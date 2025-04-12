@@ -1,0 +1,22 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+⚠️ Big Task Safety Rules
+- Never start implementing a feature without first assessing its size:
+  - If a feature: Touches >3 files/modules,
+    - Takes >2 hours to code without pause,
+    - Is hard to describe in 1–2 sentences,
+	- Has unclear test cases,
+→ then break it into smaller parts first.
+- Always prompt for a ToDo checklist before starting implementation:
+  - Create a list of sub-tasks with checkboxes or ***REMOVED*** TODO comments in code.
+  - Track completed items and remind me to check them off.
+- Prompt to add test coverage and logging for each non-trivial function or flow.
+  - Help organize big features into collapsible sections using ***REMOVED***region/***REMOVED***endregion.
+🤖 Assistant Support
+- If a task looks too big, proactively suggest how to split it.
+- Offer to generate structured TODO lists.
+- Offer test and docstring stubs for new code.
+- Warn if docstrings, type hints, or tests are missing from public functions.

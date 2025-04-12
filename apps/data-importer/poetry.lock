@@ -358,6 +358,23 @@ files = [
 ]
 
 [[package]]
+name = "movie-schema"
+version = "0.1.0"
+description = "Shared schema models for next_watch movie platform"
+optional = false
+python-versions = "^3.9"
+groups = ["main"]
+files = []
+develop = true
+
+[package.dependencies]
+pydantic = "^2.4.2"
+
+[package.source]
+type = "directory"
+url = "../../libs/movie-schema"
+
+[[package]]
 name = "mypy-extensions"
 version = "1.0.0"
 description = "Type system extensions for programs checked with the mypy type checker."
@@ -873,4 +890,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "14a173a8706942cf53c2bf93710e343947b77153150190ea799cdaecf3f88893"
+content-hash = "14b3dae10bf5b5df19bcdc2b62217f8ef7b2339e74bbafd51381a1a807729044"

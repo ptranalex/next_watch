@@ -1,0 +1,21 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Always follow Test-Driven Development (TDD) practices:
+
+1. Before writing implementation code, define a failing test that captures the expected behavior or outcome.
+2. Write only enough code to make the test pass.
+3. Refactor for readability, performance, or clarity — while keeping tests green.
+
+TDD ensures test coverage and simplifies debugging.
+
+Guidelines:
+- New functions, classes, or edge cases should include test coverage.
+- Place tests in the `tests/` directory.
+- Use `pytest` with simple `assert` statements.
+- When editing code, consider adding or updating related tests first.
+
+Example:
+- If adding a new parser method, first create `test_parser.py` with failing test cases.
