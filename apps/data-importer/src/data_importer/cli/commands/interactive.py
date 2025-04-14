@@ -6,17 +6,17 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from ha_assistant.config.app import (
+from data_importer.config.app import (
     DEFAULT_CONFIG_DIR,
-    DEFAULT_HA_TOKEN,
-    DEFAULT_HA_URL,
     DEFAULT_LOGS_DIR,
     DEFAULT_QUIET,
     DEFAULT_VERBOSE,
+    Config,
 )
-from ha_assistant.config.logging import configure_logging
+from data_importer.config.logging import configure_logging
+from data_importer.cli.utils import print_config
 
-logger = logging.getLogger("ha_assistant.cli.commands.interactive")
+logger = logging.getLogger("data_importer.cli.commands.interactive")
 console = Console()
 
 
@@ -32,18 +32,6 @@ def interactive(
         "--logs-dir",
         "-l",
         help="Directory to save log files.",
-    ),
-    ha_url: str = typer.Option(
-        DEFAULT_HA_URL,
-        "--ha-url",
-        "-u",
-        help="Home Assistant URL (or set HA_URL environment variable)",
-    ),
-    ha_token: str = typer.Option(
-        DEFAULT_HA_TOKEN,
-        "--ha-token",
-        "-t",
-        help="Home Assistant access token (or set HA_TOKEN environment variable)",
     ),
     verbose: bool = typer.Option(
         DEFAULT_VERBOSE,
@@ -78,6 +66,18 @@ def interactive(
         ***REMOVED*** Create directories if they don't exist
         config_dir.mkdir(parents=True, exist_ok=True)
         logs_dir.mkdir(parents=True, exist_ok=True)
+
+        ***REMOVED*** Create config object
+        config = Config(
+            config_dir=config_dir,
+            logs_dir=logs_dir,
+            log_level=log_level,
+            verbose=verbose,
+            quiet=quiet,
+        )
+
+        ***REMOVED*** Display the config
+        print_config(config, title="Interactive Mode Configuration", console=console)
 
         ***REMOVED*** TODO: Initialize Home Assistant client
 

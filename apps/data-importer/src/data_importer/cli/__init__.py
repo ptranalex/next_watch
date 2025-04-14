@@ -4,7 +4,9 @@ import logging
 import sys
 import typer
 
-from data_importer.cli.shell import shell
+from data_importer.cli.commands.shell import shell
+from data_importer.cli.commands.interactive import interactive
+from data_importer.config import DEFAULT_LOGS_DIR, configure_logging
 
 ***REMOVED*** Initialize Typer app
 app = typer.Typer(
@@ -14,13 +16,16 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+***REMOVED*** Configure basic logging
+configure_logging(
+    log_level="INFO", log_dir=DEFAULT_LOGS_DIR, verbose=False, quiet=False
+)
+
 logger = logging.getLogger("data_importer.cli")
 
 ***REMOVED*** Add commands to the app
 app.command(name="shell", help="Launch an interactive shell")(shell)
-
-***REMOVED*** Define CLI object for main.py to import
-cli = app
+app.command(name="interactive", help="Launch an interactive shell")(interactive)
 
 
 def main() -> None:
@@ -32,4 +37,4 @@ def main() -> None:
         sys.exit(1)
 
 
-__all__ = ["app", "main", "cli"]
+__all__ = ["app", "main"]

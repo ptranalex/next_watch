@@ -2,9 +2,14 @@
 
 import asyncio
 import logging
-from typing import Any, Dict, Callable
+import inspect
+from typing import Any, Dict, Callable, List, Optional
 
 from rich.console import Console
+from data_importer.cli.utils import (
+    format_config_table,
+    print_config as print_config_util,
+)
 
 logger = logging.getLogger("data_importer.cli.shell.helpers")
 console = Console()
@@ -20,7 +25,7 @@ def async_run(coro: Any) -> Any:
         The result of the coroutine
 
     Example:
-        run(tmdb_client.get_popular_movies(1))
+        async_run(tmdb_client.get_popular_movies(1))
     """
     try:
         ***REMOVED*** Create a new event loop if there isn't one running
@@ -37,13 +42,39 @@ def async_run(coro: Any) -> Any:
         return None
 
 
-def print_plain(text: Any) -> None:
-    """Print text without syntax highlighting.
+def print_plain(obj: Any) -> None:
+    """Print object in plain text without colors or formatting.
 
     Args:
-        text: The text to print
+        obj: Object to print
     """
-    print(text)
+    print(str(obj))
+
+
+def print_config(config=None) -> None:
+    """Print configuration settings in a readable format.
+
+    This is a shell-specific wrapper that auto-detects the config object
+    if not provided and uses the generic print_config utility.
+
+    Args:
+        config: Config object (uses the one from global namespace if None)
+    """
+    ***REMOVED*** Get config from globals if not provided
+    if config is None:
+        ***REMOVED*** Get from globals (assumes running in shell with config in namespace)
+        frame = inspect.currentframe()
+        try:
+            if frame and frame.f_back and "config" in frame.f_back.f_globals:
+                config = frame.f_back.f_globals["config"]
+            else:
+                console.print("[red]No config object found in current context[/red]")
+                return
+        finally:
+            del frame
+
+    ***REMOVED*** Use the generic utility function
+    print_config_util(config, title="Data Importer Configuration", console=console)
 
 
 def create_loading_functions(namespace: Dict[str, Any]) -> None:
@@ -58,10 +89,12 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         console.print("\n[bold green]Available data services:[/bold green]")
         console.print("1. [cyan]TMDb Client[/cyan] - Access via tmdb_client")
         console.print("2. [cyan]IMDb Client[/cyan] - Access via imdb_client")
+        console.print("3. [cyan]OMDB Client[/cyan] - Access via omdb_client")
 
         console.print("\n[bold green]Available commands:[/bold green]")
         console.print("- [cyan]help()[/cyan] - Show this help text")
-        console.print("- [cyan]run(coroutine)[/cyan] - Run async coroutines")
+        console.print("- [cyan]async_run(coroutine)[/cyan] - Run async coroutines")
+        console.print("- [cyan]print_config()[/cyan] - Display configuration settings")
 
     ***REMOVED*** Add the function to the namespace
     namespace["list_services"] = list_services
