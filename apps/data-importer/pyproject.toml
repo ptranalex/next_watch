@@ -2,13 +2,16 @@
 name = "data-importer"
 version = "0.1.0"
 description = "Data importer for next_watch movie platform"
-authors = ["Alex Tran <p.tran.alex@gmail.com>"]
+authors = [
+    {name = "Alex Tran", email = "alex@alextran.io"},
+]
 
 [tool.poetry]
 name = "data-importer"
 version = "0.1.0"
 description = "Data importer for next_watch movie platform"
 authors = ["Alex Tran <p.tran.alex@gmail.com>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -21,6 +24,8 @@ rich = "^13.6.0"
 ptpython = "^3.0.23"
 aiohttp = "^3.8.5"
 movie-schema = { path = "../../libs/movie-schema", develop = true }
+sqlmodel = "^0.0.24"
+movie-storage = {path = "../../libs/movie-storage", develop = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.3"
@@ -56,3 +61,9 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0.0"
+black = ">=22.3.0"
+isort = ">=5.10.1"
+mypy = ">=0.950"

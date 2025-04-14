@@ -1,4 +1,3 @@
-from .models import Movie, TVShow
-from .enums import MediaType, ContentRating
+from movie_schema.models import Movie, Genre
 
-__all__ = ["Movie", "TVShow", "MediaType", "ContentRating"]
+__all__ = ["Movie", "Genre"]

@@ -1,55 +1,52 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
-from datetime import date
-from enum import Enum
-
-from .enums import ContentRating, MediaType
+from typing import Optional, List
+from datetime import date, datetime
+from sqlmodel import SQLModel, Field, Relationship
 
 
-class Movie(BaseModel):
-    """Movie schema shared across applications."""
-
-    id: str = Field(..., description="Unique identifier for the movie")
-    title: str = Field(..., description="Movie title")
-    original_title: Optional[str] = Field(
-        None, description="Original title in source language"
+class MovieGenreLink(SQLModel, table=True):
+    movie_id: Optional[int] = Field(
+        default=None, foreign_key="movie.id", primary_key=True
     )
-    overview: Optional[str] = Field(None, description="Movie overview/description")
-    release_date: Optional[date] = Field(None, description="Release date")
-    poster_path: Optional[str] = Field(None, description="Path to poster image")
-    backdrop_path: Optional[str] = Field(None, description="Path to backdrop image")
-    popularity: float = Field(0.0, description="Popularity score")
-    vote_average: float = Field(0.0, description="Average vote score")
-    vote_count: int = Field(0, description="Number of votes")
-    runtime: Optional[int] = Field(None, description="Runtime in minutes")
-    genres: List[str] = Field(default_factory=list, description="List of genres")
-    content_rating: Optional[ContentRating] = Field(None, description="Content rating")
-    media_type: MediaType = Field(MediaType.MOVIE, description="Media type")
-
-    class Config:
-        frozen = True
-
-
-class TVShow(BaseModel):
-    """TV Show schema shared across applications."""
-
-    id: str = Field(..., description="Unique identifier for the TV show")
-    title: str = Field(..., description="TV show title")
-    original_title: Optional[str] = Field(
-        None, description="Original title in source language"
+    genre_id: Optional[int] = Field(
+        default=None, foreign_key="genre.id", primary_key=True
     )
-    overview: Optional[str] = Field(None, description="TV show overview/description")
-    first_air_date: Optional[date] = Field(None, description="First air date")
-    poster_path: Optional[str] = Field(None, description="Path to poster image")
-    backdrop_path: Optional[str] = Field(None, description="Path to backdrop image")
-    popularity: float = Field(0.0, description="Popularity score")
-    vote_average: float = Field(0.0, description="Average vote score")
-    vote_count: int = Field(0, description="Number of votes")
-    number_of_seasons: int = Field(0, description="Number of seasons")
-    number_of_episodes: int = Field(0, description="Number of episodes")
-    genres: List[str] = Field(default_factory=list, description="List of genres")
-    content_rating: Optional[ContentRating] = Field(None, description="Content rating")
-    media_type: MediaType = Field(MediaType.TV, description="Media type")
 
-    class Config:
-        frozen = True
+
+class Movie(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+    tmdb_id: int = Field(index=True, unique=True)
+    imdb_id: Optional[str] = Field(default=None, index=True)
+
+    title: str
+    original_title: Optional[str]
+    overview: Optional[str]
+    language: Optional[str]
+
+    release_date: Optional[date]
+    runtime: Optional[int]
+
+    poster_url: Optional[str]
+    backdrop_url: Optional[str]
+
+    tmdb_rating: Optional[float]
+    imdb_rating: Optional[float]
+    popularity: Optional[float]
+    budget: Optional[int]
+    revenue: Optional[int]
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    genres: List["Genre"] = Relationship(
+        back_populates="movies", link_model=MovieGenreLink
+    )
+
+
+class Genre(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+
+    movies: List[Movie] = Relationship(
+        back_populates="genres", link_model=MovieGenreLink
+    )

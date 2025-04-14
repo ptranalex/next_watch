@@ -96,5 +96,82 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         console.print("- [cyan]async_run(coroutine)[/cyan] - Run async coroutines")
         console.print("- [cyan]print_config()[/cyan] - Display configuration settings")
 
-    ***REMOVED*** Add the function to the namespace
+    def sync_movies(start_year: int, end_year: int, limit_per_year: int = 20) -> None:
+        """Sync movies from TMDB and OMDB based on year range.
+
+        Args:
+            start_year: Starting year (inclusive)
+            end_year: Ending year (inclusive)
+            limit_per_year: Maximum number of movies per year (default: 20)
+        """
+        from data_importer.sync import sync_movies_by_year_range
+
+        ***REMOVED*** Get clients from global namespace
+        frame = inspect.currentframe()
+        try:
+            if frame and frame.f_back:
+                globals_dict = frame.f_back.f_globals
+                tmdb_client = globals_dict.get("tmdb_client")
+                omdb_client = globals_dict.get("omdb_client")
+                async_run = globals_dict.get("async_run")
+
+                if not all([tmdb_client, omdb_client, async_run]):
+                    console.print(
+                        "[red]Error: Required clients not found in shell context[/red]"
+                    )
+                    return
+
+                console.print(
+                    f"[cyan]Starting movie sync for years {start_year}-{end_year}...[/cyan]"
+                )
+
+                ***REMOVED*** Run the sync operation
+                results = async_run(
+                    sync_movies_by_year_range(
+                        tmdb_client,
+                        omdb_client,
+                        start_year,
+                        end_year,
+                        limit_per_year=limit_per_year,
+                    )
+                )
+
+                ***REMOVED*** Import the formatter after ensuring sync was successful
+                from data_importer.sync.movie_sync import format_sync_results
+
+                ***REMOVED*** Format and display results
+                if results:
+                    formatted_results = format_sync_results(results)
+                    console.print(f"\n{formatted_results}")
+
+                    ***REMOVED*** Return the movie info to the shell for further examination
+                    movie_dicts = results.get("movie_dicts", [])
+                    movie_models = results.get("movies", [])
+                    genres = results.get("genres", [])
+
+                    console.print(
+                        f"\n[green]Synced {len(movie_dicts)} movies with {len(genres)} genres. Access them through the 'synced_movies', 'movie_models', and 'genre_list' variables.[/green]"
+                    )
+
+                    ***REMOVED*** Add results to the global namespace
+                    globals_dict["synced_movies"] = movie_dicts
+                    globals_dict["movie_models"] = movie_models
+                    globals_dict["genre_list"] = genres
+
+                    if len(movie_dicts) > 0:
+                        globals_dict["movie_example"] = movie_dicts[0]
+                        console.print(
+                            "[green]Example movie available as 'movie_example'[/green]"
+                        )
+                else:
+                    console.print(
+                        "[red]Sync operation did not return any results[/red]"
+                    )
+            else:
+                console.print("[red]Unable to access shell context[/red]")
+        finally:
+            del frame
+
+    ***REMOVED*** Add functions to the namespace
     namespace["list_services"] = list_services
+    namespace["sync_movies"] = sync_movies

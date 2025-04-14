@@ -99,7 +99,17 @@ class TMDBClient:
         data = await self._make_request("/movie/popular", {"page": page})
         return data.get("results", [])
 
-    ***REMOVED*** More methods will be implemented during development
+    async def get_movie_genres(self, language: str = "en-US") -> List[Dict[str, Any]]:
+        """Get the list of official movie genres from TMDB.
+
+        Args:
+            language: Language for the genre names (default: en-US)
+
+        Returns:
+            A list of genre dictionaries with id and name
+        """
+        data = await self._make_request("/genre/movie/list", {"language": language})
+        return data.get("genres", [])
 
     async def fetch_movies_by_year(
         self, year: int, limit: int = 10
