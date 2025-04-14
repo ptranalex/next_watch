@@ -25,7 +25,6 @@ htmlcov/
 .python-version
 
 ***REMOVED*** Virtual Environment
-.env
 .venv
 env/
 venv/
