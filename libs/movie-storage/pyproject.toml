@@ -4,17 +4,24 @@ version = "0.1.0"
 description = "Database storage operations for movie data"
 authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
+packages = [{include = "movie_storage"}]
+include = ["movie_storage/py.typed"]
 
 [tool.poetry.dependencies]
 python = ">=3.8"
 sqlmodel = ">=0.0.8"
-movie-schema = {path = "../movie-schema", develop = true}
+sqlalchemy = ">=1.4.0"
+python-dotenv = ">=0.19.0"
+psycopg2-binary = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.0.0"
 black = ">=22.3.0"
 isort = ">=5.10.1"
 mypy = ">=0.950"
+
+[tool.poetry.scripts]
+movie-db = "movie_storage.cli:main"
 
 [build-system]
 requires = ["poetry-core"]

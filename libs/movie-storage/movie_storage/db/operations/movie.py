@@ -5,8 +5,10 @@ from typing import List, Dict, Any, Optional, Tuple, Union
 from datetime import datetime
 
 from sqlmodel import Session, select, or_
+from sqlalchemy.sql import text
+from sqlalchemy import func
 
-from movie_schema.models import Movie, Genre, MovieGenreLink  ***REMOVED*** type: ignore
+from movie_storage.db.models import Movie, Genre, MovieGenreLink
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +119,8 @@ def get_movies(
 
     ***REMOVED*** Apply title search if provided
     if title_search:
-        query = query.where(Movie.title.contains(title_search))
+        search_pattern = f"%{title_search}%"
+        query = query.where(func.lower(Movie.title).like(func.lower(search_pattern)))
 
     ***REMOVED*** Apply genre filter if provided
     if genre_id:
@@ -207,14 +210,14 @@ def delete_movie(session: Session, movie_id: int) -> bool:
     if not movie:
         return False
 
-    ***REMOVED*** Delete genre links first
+    ***REMOVED*** Remove genre links
     links = session.exec(
         select(MovieGenreLink).where(MovieGenreLink.movie_id == movie_id)
     ).all()
     for link in links:
         session.delete(link)
 
-    ***REMOVED*** Delete the movie
+    ***REMOVED*** Delete movie
     session.delete(movie)
     session.commit()
     return True

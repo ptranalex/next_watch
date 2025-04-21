@@ -2,19 +2,22 @@
 
 import logging
 import asyncio
-from typing import List, Dict, Any, Optional, Tuple, Set
+from typing import List, Dict, Any, Optional, Tuple, Set, Union
 from datetime import datetime, date
+from pathlib import Path
+import json
+from sqlmodel import Session, select
 
 from rich.console import Console
 from rich.progress import Progress, TaskID
-from sqlmodel import Session
 
 from data_importer.services import TMDBClient, OMDBClient
 
 ***REMOVED*** Import database models and storage operations
-from movie_schema.models import Movie, Genre  ***REMOVED*** type: ignore
-from movie_storage.movie_operations import create_movie, get_movie_by_tmdb_id  ***REMOVED*** type: ignore
-from movie_storage.genre_operations import create_genre, get_genre_by_id  ***REMOVED*** type: ignore
+from movie_storage.db.models import Movie
+from movie_storage.db.operations import genre as genre_ops
+from movie_storage.db.operations import movie as movie_ops
+
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -99,9 +102,7 @@ async def sync_movies_by_year_range(
 
     ***REMOVED*** Check if we should save to database
     if save_to_db and db_session is None:
-        logger.warning(
-            "save_to_db is True but no db_session provided. Movies will not be saved."
-        )
+        logger.warning("save_to_db is True but no db_session provided. Movies will not be saved.")
         save_to_db = False
 
     total_movies = 0
@@ -118,10 +119,13 @@ async def sync_movies_by_year_range(
     if save_to_db and db_session:
         for genre_id, genre_data in genre_map.items():
             try:
-                ***REMOVED*** Get or create the genre
-                db_genre = get_genre_by_id(db_session, genre_id)
+                ***REMOVED*** Get or create the genre by TMDB ID
+                db_genre = genre_ops.get_genre_by_tmdb_id(db_session, genre_id)
                 if not db_genre:
-                    db_genre = create_genre(db_session, genre_data["name"])
+                    ***REMOVED*** Create a new genre with the TMDB ID
+                    db_genre = genre_ops.create_genre(
+                        db_session, genre_data["name"], tmdb_id=genre_id
+                    )
                 db_genres[genre_id] = db_genre.id
             except Exception as e:
                 logger.error(f"Error creating genre {genre_data['name']}: {str(e)}")
@@ -157,7 +161,7 @@ async def sync_movies_by_year_range(
     try:
         ***REMOVED*** Process each year
         for year in years:
-            if show_progress:
+            if show_progress and progress is not None:
                 year_task = progress.add_task(
                     f"[green]Processing year {year}", total=limit_per_year
                 )
@@ -165,9 +169,7 @@ async def sync_movies_by_year_range(
 
             try:
                 ***REMOVED*** Fetch movies from TMDB for this year
-                year_movies = await tmdb_client.fetch_movies_by_year(
-                    year, limit=limit_per_year
-                )
+                year_movies = await tmdb_client.fetch_movies_by_year(year, limit=limit_per_year)
                 tmdb_movies.extend(year_movies)
                 stats["tmdb_movies_found"] += len(year_movies)
 
@@ -196,15 +198,16 @@ async def sync_movies_by_year_range(
                             original_title=tmdb_movie.get("original_title"),
                             overview=tmdb_movie.get("overview"),
                             language=tmdb_movie.get("original_language"),
-                            release_date=convert_string_to_date(
-                                tmdb_movie.get("release_date")
-                            ),
+                            release_date=convert_string_to_date(tmdb_movie.get("release_date")),
                             poster_url=tmdb_movie.get("poster_path"),
                             backdrop_url=tmdb_movie.get("backdrop_path"),
                             tmdb_rating=tmdb_movie.get("vote_average"),
                             popularity=tmdb_movie.get("popularity"),
                             budget=tmdb_movie.get("budget"),
                             revenue=tmdb_movie.get("revenue"),
+                            runtime=tmdb_movie.get("runtime"),
+                            imdb_rating=None,
+                            imdb_id=None,
                             genres=[],  ***REMOVED*** Empty list for SQLModel initialization
                         )
 
@@ -241,9 +244,7 @@ async def sync_movies_by_year_range(
                                     imdb_rating = None
                                     if omdb_movie.get("imdbRating", "N/A") != "N/A":
                                         try:
-                                            imdb_rating = float(
-                                                omdb_movie.get("imdbRating", 0)
-                                            )
+                                            imdb_rating = float(omdb_movie.get("imdbRating", 0))
                                         except (ValueError, TypeError):
                                             pass
 
@@ -266,35 +267,31 @@ async def sync_movies_by_year_range(
 
                                     stats["omdb_matches_found"] += 1
                             except Exception as e:
-                                logger.warning(
-                                    f"OMDB lookup failed for '{movie_title}': {str(e)}"
-                                )
+                                logger.warning(f"OMDB lookup failed for '{movie_title}': {str(e)}")
 
                         ***REMOVED*** Save to database if requested
                         if save_to_db and db_session:
                             try:
                                 ***REMOVED*** Check if movie already exists
-                                existing_movie = get_movie_by_tmdb_id(
+                                existing_movie = movie_ops.get_movie_by_tmdb_id(
                                     db_session, movie.tmdb_id
                                 )
 
                                 if not existing_movie:
                                     ***REMOVED*** Create new movie in database
-                                    db_movie = create_movie(
+                                    db_movie = movie_ops.create_movie(
                                         db_session,
                                         movie_dict,  ***REMOVED*** Pass the dictionary data
                                         genre_ids=db_genre_ids,  ***REMOVED*** Pass the genre IDs
                                     )
                                     stats["movies_saved_to_db"] += 1
-                                    logger.info(
-                                        f"Saved movie to database: {movie.title}"
-                                    )
+                                    logger.info(f"Saved movie to database: {movie.title}")
                                 else:
-                                    logger.info(
-                                        f"Movie already exists in database: {movie.title}"
-                                    )
+                                    logger.info(f"Movie already exists in database: {movie.title}")
                             except Exception as e:
-                                error_msg = f"Error saving movie {movie.title} to database: {str(e)}"
+                                error_msg = (
+                                    f"Error saving movie {movie.title} to database: {str(e)}"
+                                )
                                 logger.error(error_msg)
                                 stats["errors"].append(error_msg)
 
@@ -312,9 +309,7 @@ async def sync_movies_by_year_range(
                                 "imdb_rating": movie.imdb_rating,
                                 "imdb_id": movie.imdb_id,
                                 "genres": (
-                                    [g["name"] for g in movie_genres]
-                                    if movie_genres
-                                    else []
+                                    [g["name"] for g in movie_genres] if movie_genres else []
                                 ),
                             }
                         )
@@ -322,7 +317,7 @@ async def sync_movies_by_year_range(
                         stats["movies_synced"] += 1
 
                         ***REMOVED*** Update progress
-                        if show_progress and year in task_ids:
+                        if show_progress and progress is not None and year in task_ids:
                             progress.update(
                                 task_ids[year],
                                 completed=i + 1,
@@ -330,14 +325,16 @@ async def sync_movies_by_year_range(
                             )
 
                     except Exception as e:
-                        error_msg = f"Error processing movie {tmdb_movie.get('title', 'Unknown')}: {str(e)}"
+                        error_msg = (
+                            f"Error processing movie {tmdb_movie.get('title', 'Unknown')}: {str(e)}"
+                        )
                         logger.error(error_msg)
                         stats["errors"].append(error_msg)
 
                 stats["years_processed"] += 1
 
                 ***REMOVED*** Update main progress bar
-                if show_progress:
+                if show_progress and progress is not None:
                     progress.update(main_task, advance=1)
 
             except Exception as e:
@@ -345,7 +342,7 @@ async def sync_movies_by_year_range(
                 logger.error(error_msg)
                 stats["errors"].append(error_msg)
 
-                if show_progress and year in task_ids:
+                if show_progress and progress is not None and year in task_ids:
                     progress.update(
                         task_ids[year],
                         completed=limit_per_year,
@@ -353,7 +350,7 @@ async def sync_movies_by_year_range(
                     )
 
         ***REMOVED*** Complete the progress
-        if show_progress:
+        if show_progress and progress is not None:
             progress.update(
                 main_task,
                 completed=len(years),
@@ -405,7 +402,7 @@ def format_sync_results(results: Dict[str, Any]) -> str:
     else:
         formatted_end = "N/A"
 
-    results = [
+    formatted_results = [
         f"Movie Sync Results ({stats['start_year']} - {stats['end_year']})",
         f"Started: {formatted_start}",
         f"Finished: {formatted_end}",
@@ -419,30 +416,22 @@ def format_sync_results(results: Dict[str, Any]) -> str:
 
     ***REMOVED*** Add database storage information if available
     if "movies_saved_to_db" in stats:
-        results.append(f"Movies saved to database: {stats['movies_saved_to_db']}")
+        formatted_results.append(f"Movies saved to database: {stats['movies_saved_to_db']}")
 
     ***REMOVED*** Add genre list
     if genres:
-        results.append("\nGenres:")
+        formatted_results.append("\nGenres:")
         genre_names = [f"{g['id']}: {g['name']}" for g in genres[:10]]
-        results.append("  " + ", ".join(genre_names))
+        formatted_results.append("  " + ", ".join(genre_names))
         if len(genres) > 10:
-            results.append(f"  ... and {len(genres) - 10} more genres")
+            formatted_results.append(f"  ... and {len(genres) - 10} more genres")
 
     ***REMOVED*** Add movie list summary
     if movie_dicts:
-        results.append("\nSynced Movies:")
+        formatted_results.append("\nSynced Movies:")
         for idx, movie in enumerate(movie_dicts[:10], 1):  ***REMOVED*** Show first 10 movies
-            imdb_info = (
-                f" (IMDb: {movie.get('imdb_rating')})"
-                if movie.get("imdb_rating")
-                else ""
-            )
-            tmdb_info = (
-                f" (TMDB: {movie.get('tmdb_rating')})"
-                if movie.get("tmdb_rating")
-                else ""
-            )
+            imdb_info = f" (IMDb: {movie.get('imdb_rating')})" if movie.get("imdb_rating") else ""
+            tmdb_info = f" (TMDB: {movie.get('tmdb_rating')})" if movie.get("tmdb_rating") else ""
             ratings = f"{imdb_info}{tmdb_info}" if (imdb_info or tmdb_info) else ""
 
             ***REMOVED*** Get genres if available
@@ -459,21 +448,21 @@ def format_sync_results(results: Dict[str, Any]) -> str:
             else:
                 release_date = "Unknown"
 
-            results.append(
+            formatted_results.append(
                 f"  {idx}. {movie.get('title')} ({release_date}){ratings}{genre_text}"
             )
 
         if len(movie_dicts) > 10:
-            results.append(f"  ... and {len(movie_dicts) - 10} more movies")
+            formatted_results.append(f"  ... and {len(movie_dicts) - 10} more movies")
 
     if stats["errors"]:
-        results.append(f"\nErrors encountered: {len(stats['errors'])}")
+        formatted_results.append(f"\nErrors encountered: {len(stats['errors'])}")
         for i, error in enumerate(stats["errors"][:5]):  ***REMOVED*** Show first 5 errors
-            results.append(f"  {i+1}. {error}")
+            formatted_results.append(f"  {i+1}. {error}")
 
         if len(stats["errors"]) > 5:
-            results.append(f"  ... and {len(stats['errors']) - 5} more errors")
+            formatted_results.append(f"  ... and {len(stats['errors']) - 5} more errors")
     else:
-        results.append("\nNo errors encountered.")
+        formatted_results.append("\nNo errors encountered.")
 
-    return "\n".join(results)
+    return "\n".join(formatted_results)

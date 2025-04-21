@@ -15,11 +15,12 @@ logger = logging.getLogger("data_importer.cli.shell.helpers")
 console = Console()
 
 
-def async_run(coro: Any) -> Any:
+def async_run(coro: Any, close_loop: bool = True) -> Any:
     """Run an async coroutine in the REPL.
 
     Args:
         coro: The coroutine to run
+        close_loop: Whether to close the event loop after running (defaults to True)
 
     Returns:
         The result of the coroutine
@@ -28,15 +29,17 @@ def async_run(coro: Any) -> Any:
         async_run(tmdb_client.get_popular_movies(1))
     """
     try:
-        ***REMOVED*** Create a new event loop if there isn't one running
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        ***REMOVED*** Always create a new event loop for each call
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-        ***REMOVED*** Run the coroutine and return the result
-        return loop.run_until_complete(coro)
+        try:
+            ***REMOVED*** Run the coroutine and return the result
+            return loop.run_until_complete(coro)
+        finally:
+            ***REMOVED*** Close the loop if requested
+            if close_loop:
+                loop.close()
     except Exception as e:
         console.print(f"[red]Error running async operation:[/red] {str(e)}")
         return None
@@ -96,26 +99,38 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         console.print("- [cyan]async_run(coroutine)[/cyan] - Run async coroutines")
         console.print("- [cyan]print_config()[/cyan] - Display configuration settings")
 
-    def sync_movies(start_year: int, end_year: int, limit_per_year: int = 20) -> None:
+    def sync_movies(
+        start_year: int,
+        end_year: int,
+        limit_per_year: int = 20,
+        save_to_db: bool = False,
+    ) -> None:
         """Sync movies from TMDB and OMDB based on year range.
 
         Args:
             start_year: Starting year (inclusive)
             end_year: Ending year (inclusive)
             limit_per_year: Maximum number of movies per year (default: 20)
+            save_to_db: Whether to save movies to database (default: False)
         """
         from data_importer.sync import sync_movies_by_year_range
+        from data_importer.sync.movie_sync import format_sync_results
+        from data_importer.services import TMDBClient, OMDBClient
 
-        ***REMOVED*** Get clients from global namespace
+        ***REMOVED*** Imports for database support
+        from sqlmodel import Session, create_engine
+        from movie_storage.utils import setup_movie_storage  ***REMOVED*** type: ignore
+
+        ***REMOVED*** Get clients from global namespace to get API keys
         frame = inspect.currentframe()
         try:
             if frame and frame.f_back:
                 globals_dict = frame.f_back.f_globals
-                tmdb_client = globals_dict.get("tmdb_client")
-                omdb_client = globals_dict.get("omdb_client")
+                global_tmdb_client = globals_dict.get("tmdb_client")
+                global_omdb_client = globals_dict.get("omdb_client")
                 async_run = globals_dict.get("async_run")
 
-                if not all([tmdb_client, omdb_client, async_run]):
+                if not all([global_tmdb_client, global_omdb_client, async_run]):
                     console.print(
                         "[red]Error: Required clients not found in shell context[/red]"
                     )
@@ -125,19 +140,50 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                     f"[cyan]Starting movie sync for years {start_year}-{end_year}...[/cyan]"
                 )
 
-                ***REMOVED*** Run the sync operation
-                results = async_run(
-                    sync_movies_by_year_range(
-                        tmdb_client,
-                        omdb_client,
-                        start_year,
-                        end_year,
-                        limit_per_year=limit_per_year,
+                ***REMOVED*** Define the entire operation as a single async function
+                async def run_sync_operation():
+                    ***REMOVED*** Create fresh client instances with the same API keys
+                    tmdb_client = TMDBClient(
+                        access_token=global_tmdb_client.access_token
                     )
-                )
+                    omdb_client = OMDBClient(api_key=global_omdb_client.api_key)
 
-                ***REMOVED*** Import the formatter after ensuring sync was successful
-                from data_importer.sync.movie_sync import format_sync_results
+                    try:
+                        ***REMOVED*** Set up database connection if saving to db
+                        db_session = None
+                        if save_to_db:
+                            ***REMOVED*** Setup movie storage (uses .env.local if available)
+                            setup_info = setup_movie_storage(create_tables=True)
+                            db_url = setup_info["database_url"]
+                            console.print(f"[bold]Using database:[/bold] {db_url}")
+
+                            ***REMOVED*** Create a database session
+                            engine = create_engine(db_url)
+                            db_session = Session(engine)
+
+                        ***REMOVED*** Run the sync operation
+                        results = await sync_movies_by_year_range(
+                            tmdb_client,
+                            omdb_client,
+                            start_year,
+                            end_year,
+                            limit_per_year=limit_per_year,
+                            db_session=db_session,
+                            save_to_db=save_to_db,
+                        )
+
+                        ***REMOVED*** Close database session if we created one
+                        if save_to_db and db_session:
+                            db_session.close()
+
+                        return results
+                    finally:
+                        ***REMOVED*** Clean up the temporary clients
+                        await tmdb_client.close()
+                        await omdb_client.close()
+
+                ***REMOVED*** Run everything in a single event loop
+                results = async_run(run_sync_operation())
 
                 ***REMOVED*** Format and display results
                 if results:

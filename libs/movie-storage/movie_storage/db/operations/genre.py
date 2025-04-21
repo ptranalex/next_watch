@@ -6,22 +6,23 @@ from datetime import datetime
 
 from sqlmodel import Session, select
 
-from movie_schema.models import Genre  ***REMOVED*** type: ignore
+from movie_storage.db.models import Genre
 
 logger = logging.getLogger(__name__)
 
 
-def create_genre(session: Session, name: str) -> Genre:
+def create_genre(session: Session, name: str, tmdb_id: Optional[int] = None) -> Genre:
     """Create a genre record.
 
     Args:
         session: Database session
         name: Genre name
+        tmdb_id: TMDB genre ID (optional)
 
     Returns:
         Created Genre instance
     """
-    genre = Genre(name=name)
+    genre = Genre(name=name, tmdb_id=tmdb_id)
     session.add(genre)
     session.commit()
     session.refresh(genre)
@@ -39,6 +40,21 @@ def get_genre_by_id(session: Session, genre_id: int) -> Optional[Genre]:
         Genre instance or None if not found
     """
     return session.get(Genre, genre_id)
+
+
+def get_genre_by_tmdb_id(session: Session, tmdb_id: int) -> Optional[Genre]:
+    """Get a genre by its TMDB ID.
+
+    Args:
+        session: Database session
+        tmdb_id: TMDB genre ID
+
+    Returns:
+        Genre instance or None if not found
+    """
+    statement = select(Genre).where(Genre.tmdb_id == tmdb_id)
+    result = session.exec(statement).first()
+    return result
 
 
 def get_genre_by_name(session: Session, name: str) -> Optional[Genre]:
