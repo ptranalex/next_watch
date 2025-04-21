@@ -26,9 +26,7 @@ class OMDBClient:
         self.session: Optional[aiohttp.ClientSession] = None
 
         if not self.api_key:
-            logger.warning(
-                "OMDB API key not provided. API calls will fail without authentication."
-            )
+            logger.warning("OMDB API key not provided. API calls will fail without authentication.")
 
     async def _ensure_session(self) -> aiohttp.ClientSession:
         """Ensure an aiohttp session exists.
@@ -66,9 +64,7 @@ class OMDBClient:
 
         try:
             timeout = aiohttp.ClientTimeout(total=10)
-            async with session.get(
-                self.base_url, params=params, timeout=timeout
-            ) as response:
+            async with session.get(self.base_url, params=params, timeout=timeout) as response:
                 if response.status != 200:
                     logger.error(
                         f"Error fetching from OMDB: {response.status} {await response.text()}"
@@ -100,9 +96,7 @@ class OMDBClient:
         params = {"i": imdb_id, "plot": "full", "r": "json"}
         return await self._make_request(params)
 
-    async def search_movie(
-        self, title: str, year: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def search_movie(self, title: str, year: Optional[str] = None) -> Dict[str, Any]:
         """Search for a movie by title and optional year.
 
         Args:
@@ -141,9 +135,7 @@ class OMDBClient:
             return response["Search"]
         return []
 
-    async def get_movie_by_title_and_year(
-        self, title: str, year: str
-    ) -> Dict[str, Any]:
+    async def get_movie_by_title_and_year(self, title: str, year: str) -> Dict[str, Any]:
         """Get movie details by title and year.
 
         Args:
@@ -156,9 +148,7 @@ class OMDBClient:
         params = {"t": title, "y": year, "plot": "full", "r": "json"}
         return await self._make_request(params)
 
-    async def get_season_episodes(
-        self, imdb_id: str, season: int
-    ) -> List[Dict[str, Any]]:
+    async def get_season_episodes(self, imdb_id: str, season: int) -> List[Dict[str, Any]]:
         """Get episodes for a specific season of a TV series.
 
         Args:

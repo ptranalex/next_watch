@@ -1,4 +1,4 @@
-"""Centralized logging configuration for the ebook summarizer.
+"""Centralized logging configuration for the data importer.
 
 This module provides configuration for application-wide logging, ensuring
 consistent log formatting, file output, and console display based on verbosity settings.
@@ -6,9 +6,10 @@ consistent log formatting, file output, and console display based on verbosity s
 
 import logging
 import sys
+import functools
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable, Any
 
 
 def configure_logging(
@@ -25,7 +26,7 @@ def configure_logging(
         verbose: Whether to show verbose output in console
         quiet: Whether to suppress all console output except errors
     """
-    root_logger = logging.getLogger("ha_assistant")
+    root_logger = logging.getLogger("data_importer")
     root_logger.setLevel(log_level)
     root_logger.handlers = []  ***REMOVED*** Clear any existing handlers
 
@@ -38,9 +39,7 @@ def configure_logging(
     ***REMOVED*** Add file handler if log_dir is provided
     if log_dir:
         log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = (
-            log_dir / f"ha_assistant_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        )
+        log_file = log_dir / f"data_importer_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
@@ -66,6 +65,66 @@ def configure_logging(
         logging.getLogger("httpx").setLevel(logging.WARNING)
 
     ***REMOVED*** Log initial configuration
-    root_logger.debug(
-        f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}"
-    )
+    root_logger.debug(f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}")
+
+
+def with_logging(
+    log_level: str = "INFO",
+    log_dir: Optional[Path] = None,
+    verbose: bool = False,
+    quiet: bool = False,
+) -> Callable[[Callable], Callable]:
+    """Decorator to configure logging for a function.
+
+    This decorator applies the configure_logging function before
+    executing the decorated function. It can be used to easily
+    add logging configuration to any function or method.
+
+    Args:
+        log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
+        log_dir: Directory to store log files (if None, only console logging)
+        verbose: Whether to show verbose output in console
+        quiet: Whether to suppress all console output except errors
+
+    Returns:
+        Decorator function
+
+    Examples:
+        Decorate a simple function with default logging config:
+
+        >>> @with_logging()
+        >>> def my_function():
+        >>>     logger = logging.getLogger(__name__)
+        >>>     logger.info("This will be logged")
+        >>>     return "result"
+
+        Decorate an async function with custom logging config:
+
+        >>> @with_logging(log_level="DEBUG", log_dir=Path("./logs"), verbose=True)
+        >>> async def my_async_function(arg1, arg2):
+        >>>     logger = logging.getLogger(__name__)
+        >>>     logger.debug(f"Processing {arg1} and {arg2}")
+        >>>     return await process_data(arg1, arg2)
+
+        Decorate a main CLI entry point:
+
+        >>> @with_logging(log_level="INFO", log_dir=DEFAULT_LOGS_DIR)
+        >>> def main():
+        >>>     logger = logging.getLogger(__name__)
+        >>>     logger.info("Starting application")
+        >>>     ***REMOVED*** Run the application
+        >>>     app.run()
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            ***REMOVED*** Configure logging before executing the function
+            configure_logging(log_level=log_level, log_dir=log_dir, verbose=verbose, quiet=quiet)
+
+            ***REMOVED*** Call the original function
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

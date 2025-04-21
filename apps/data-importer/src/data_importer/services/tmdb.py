@@ -111,9 +111,7 @@ class TMDBClient:
         data = await self._make_request("/genre/movie/list", {"language": language})
         return data.get("genres", [])
 
-    async def fetch_movies_by_year(
-        self, year: int, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    async def fetch_movies_by_year(self, year: int, limit: int = 10) -> List[Dict[str, Any]]:
         """Fetch movies released in a specific year from TMDB.
 
         Args:

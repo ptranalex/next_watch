@@ -1,4 +1,4 @@
-"""Command for launching an interactive chat-like interface for Home Assistant."""
+"""Command for launching an interactive interface for data import operations."""
 
 import logging
 from pathlib import Path
@@ -46,10 +46,10 @@ def interactive(
         help="Suppress non-essential output",
     ),
 ) -> None:
-    """Launch an interactive chat interface with Home Assistant.
+    """Launch an interactive interface for data import operations.
 
-    This provides a conversational way to interact with your Home Assistant instance.
-    You can ask questions about your devices, execute commands, and more.
+    This provides a conversational way to interact with movie data sources
+    and import operations without having to write code.
     """
     ***REMOVED*** Configure logging
     log_level = "DEBUG" if verbose else "INFO"
@@ -79,11 +79,11 @@ def interactive(
         ***REMOVED*** Display the config
         print_config(config, title="Interactive Mode Configuration", console=console)
 
-        ***REMOVED*** TODO: Initialize Home Assistant client
+        ***REMOVED*** TODO: Initialize movie data clients
 
-        ***REMOVED*** TODO: Set up interactive session
+        ***REMOVED*** TODO: Set up interactive data import session
 
-        ***REMOVED*** TODO: Implement chat loop
+        ***REMOVED*** TODO: Implement interactive data operations
 
         console.print("[bold green]Interactive mode initialized[/bold green]")
         console.print("Type 'exit' or 'quit' to end the session")

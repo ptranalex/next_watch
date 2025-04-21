@@ -6,7 +6,7 @@ import typer
 
 from data_importer.cli.commands.shell import shell
 from data_importer.cli.commands.interactive import interactive
-from data_importer.config import DEFAULT_LOGS_DIR, configure_logging
+from data_importer.config import DEFAULT_LOGS_DIR, configure_logging, with_logging
 
 ***REMOVED*** Initialize Typer app
 app = typer.Typer(
@@ -17,9 +17,7 @@ app = typer.Typer(
 )
 
 ***REMOVED*** Configure basic logging
-configure_logging(
-    log_level="INFO", log_dir=DEFAULT_LOGS_DIR, verbose=False, quiet=False
-)
+configure_logging(log_level="INFO", log_dir=DEFAULT_LOGS_DIR, verbose=False, quiet=False)
 
 logger = logging.getLogger("data_importer.cli")
 
@@ -28,6 +26,7 @@ app.command(name="shell", help="Launch an interactive shell")(shell)
 app.command(name="interactive", help="Launch an interactive shell")(interactive)
 
 
+@with_logging(log_level="INFO", log_dir=DEFAULT_LOGS_DIR)
 def main() -> None:
     """Main entry point for the CLI."""
     try:
