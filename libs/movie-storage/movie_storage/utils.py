@@ -5,13 +5,14 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 
 from movie_storage.config.app import Config
-from movie_storage.config.logging import configure_logging
+from movie_storage.config.logging import with_logging
 from movie_storage.db import init_db
 from movie_storage.db.migrations import run_migration
 
 logger = logging.getLogger(__name__)
 
 
+@with_logging()
 def setup_movie_storage(
     database_url: Optional[str] = None,
     create_tables: bool = False,
@@ -42,15 +43,6 @@ def setup_movie_storage(
     if database_url:
         config.database_url = database_url
 
-    ***REMOVED*** Set up logging
-    logging_info = configure_logging(
-        config=config,
-        log_dir=log_dir,
-        log_level=log_level,
-        verbose=verbose,
-        quiet=quiet,
-    )
-
     ***REMOVED*** Initialize database
     init_db(create_tables=create_tables, config=config)
 
@@ -67,6 +59,5 @@ def setup_movie_storage(
     ***REMOVED*** Return setup information
     return {
         "config": config,
-        "logging": logging_info,
         "database_url": config.database_url,
     }

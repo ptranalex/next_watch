@@ -8,11 +8,13 @@ from sqlmodel import Session, select, or_
 from sqlalchemy.sql import text
 from sqlalchemy import func
 
+from movie_storage.config.logging import with_logging
 from movie_storage.db.models import Movie, Genre, MovieGenreLink
 
 logger = logging.getLogger(__name__)
 
 
+@with_logging(log_level="INFO")
 def create_movie(
     session: Session, movie_data: Dict[str, Any], genre_ids: Optional[List[int]] = None
 ) -> Movie:
@@ -38,11 +40,14 @@ def create_movie(
     session.add(movie)
     session.flush()  ***REMOVED*** Flush to get the generated ID
 
+    logger.info(f"Created movie: {movie.title} (ID: {movie.id})")
+
     ***REMOVED*** Associate genres if provided
     if genre_ids:
         for genre_id in genre_ids:
             link = MovieGenreLink(movie_id=movie.id, genre_id=genre_id)
             session.add(link)
+        logger.debug(f"Associated movie with {len(genre_ids)} genres")
 
     session.commit()
     session.refresh(movie)
@@ -138,6 +143,7 @@ def get_movies(
     return list(movies)
 
 
+@with_logging(log_level="INFO")
 def update_movie(
     session: Session,
     movie_id: int,
@@ -158,7 +164,10 @@ def update_movie(
     movie = get_movie_by_id(session, movie_id)
 
     if not movie:
+        logger.warning(f"Attempted to update non-existent movie with ID {movie_id}")
         return None
+
+    logger.info(f"Updating movie: {movie.title} (ID: {movie_id})")
 
     ***REMOVED*** Create a copy to avoid modifying the input
     movie_dict = movie_data.copy()
@@ -183,18 +192,22 @@ def update_movie(
         ).all()
         for link in links:
             session.delete(link)
+        logger.debug(f"Removed {len(links)} existing genre associations")
 
         ***REMOVED*** Add new genre links
         for genre_id in genre_ids:
             link = MovieGenreLink(movie_id=movie_id, genre_id=genre_id)
             session.add(link)
+        logger.debug(f"Added {len(genre_ids)} new genre associations")
 
     session.add(movie)
     session.commit()
     session.refresh(movie)
+    logger.info(f"Movie updated successfully: {movie.title}")
     return movie
 
 
+@with_logging(log_level="INFO")
 def delete_movie(session: Session, movie_id: int) -> bool:
     """Delete a movie record.
 
@@ -203,21 +216,27 @@ def delete_movie(session: Session, movie_id: int) -> bool:
         movie_id: ID of the movie to delete
 
     Returns:
-        True if deleted, False if not found
+        True if the movie was deleted, False if it wasn't found
     """
     movie = get_movie_by_id(session, movie_id)
 
     if not movie:
+        logger.warning(f"Attempted to delete non-existent movie with ID {movie_id}")
         return False
 
-    ***REMOVED*** Remove genre links
+    logger.info(f"Deleting movie: {movie.title} (ID: {movie_id})")
+
+    ***REMOVED*** Delete genre links
     links = session.exec(
         select(MovieGenreLink).where(MovieGenreLink.movie_id == movie_id)
     ).all()
     for link in links:
         session.delete(link)
+    logger.debug(f"Deleted {len(links)} genre links")
 
-    ***REMOVED*** Delete movie
+    ***REMOVED*** Delete the movie
     session.delete(movie)
     session.commit()
+    logger.info(f"Movie deleted successfully")
+
     return True

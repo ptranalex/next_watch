@@ -4,28 +4,16 @@ import argparse
 import logging
 import sys
 from typing import List, Optional
+from pathlib import Path
 
 from movie_storage.config.app import Config
+from movie_storage.config.logging import with_logging
 from movie_storage.db.db import init_db, get_engine
 from movie_storage.db.migrations import run_migration
 from sqlmodel import SQLModel
 from sqlalchemy import text
 
 logger = logging.getLogger(__name__)
-
-
-def setup_logging(verbose: bool) -> None:
-    """Set up logging configuration.
-
-    Args:
-        verbose: Whether to use verbose logging
-    """
-    log_level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
 
 
 def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
@@ -51,6 +39,16 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     common_parser = argparse.ArgumentParser(add_help=False)
     common_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose logging"
+    )
+    common_parser.add_argument("--log-dir", type=Path, help="Directory for log files")
+    common_parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
+        help="Logging level",
+    )
+    common_parser.add_argument(
+        "-q", "--quiet", action="store_true", help="Suppress non-essential output"
     )
 
     ***REMOVED*** Initialize database command
@@ -149,6 +147,7 @@ def teardown_database(
     return False
 
 
+@with_logging()
 def main(args: Optional[List[str]] = None) -> int:
     """Main entry point.
 
@@ -163,8 +162,6 @@ def main(args: Optional[List[str]] = None) -> int:
     if not parsed_args.command:
         print("No command specified. Use --help for available commands.")
         return 1
-
-    setup_logging(parsed_args.verbose)
 
     ***REMOVED*** Load configuration
     config = Config.get_instance()
@@ -200,17 +197,11 @@ def main(args: Optional[List[str]] = None) -> int:
             )
             if not success:
                 return 1
-            logger.info("Database teardown completed")
-        else:
-            logger.error(f"Unknown command: {parsed_args.command}")
-            return 1
-
-        return 0
     except Exception as e:
         logger.error(f"Error: {str(e)}")
-        if getattr(parsed_args, "verbose", False):
-            logger.exception("Stack trace:")
         return 1
+
+    return 0
 
 
 if __name__ == "__main__":
