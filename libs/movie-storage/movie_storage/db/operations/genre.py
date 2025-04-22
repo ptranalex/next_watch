@@ -5,8 +5,9 @@ from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
 
 from sqlmodel import Session, select
+from sqlmodel.sql.expression import SelectOfScalar
 
-from movie_storage.db.models import Genre
+from movie_storage.models import Genre
 
 logger = logging.getLogger(__name__)
 

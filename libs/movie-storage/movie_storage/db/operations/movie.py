@@ -2,14 +2,14 @@
 
 import logging
 from typing import List, Dict, Any, Optional, Tuple, Union
-from datetime import datetime
+from datetime import datetime, date
 
 from sqlmodel import Session, select, or_
 from sqlalchemy.sql import text
 from sqlalchemy import func
 
 from movie_storage.config.logging import with_logging
-from movie_storage.db.models import Movie, Genre, MovieGenreLink
+from movie_storage.models import Movie, Genre, MovieGenreLink, Credit
 
 logger = logging.getLogger(__name__)
 
@@ -240,3 +240,152 @@ def delete_movie(session: Session, movie_id: int) -> bool:
     logger.info(f"Movie deleted successfully")
 
     return True
+
+
+@with_logging(log_level="INFO")
+def create_movie_from_tmdb_details(
+    session: Session, tmdb_details: Dict[str, Any]
+) -> Movie:
+    """Create or update a movie from TMDB movie details API response.
+
+    This function handles the conversion of a TMDB movie details API response
+    to our internal Movie and Credit models, including handling nested data
+    like credits and collection information.
+
+    Args:
+        session: Database session
+        tmdb_details: TMDB movie details API response
+
+    Returns:
+        Created or updated Movie instance
+    """
+    ***REMOVED*** Check if movie already exists
+    existing_movie = None
+    if tmdb_details.get("id"):
+        existing_movie = get_movie_by_tmdb_id(session, tmdb_details["id"])
+
+    ***REMOVED*** Extract collection data if present
+    collection_id = None
+    collection_name = None
+    if tmdb_details.get("belongs_to_collection"):
+        collection = tmdb_details["belongs_to_collection"]
+        collection_id = collection.get("id")
+        collection_name = collection.get("name")
+
+    ***REMOVED*** Prepare release date
+    release_date = None
+    if tmdb_details.get("release_date"):
+        try:
+            release_date = date.fromisoformat(tmdb_details["release_date"])
+        except (ValueError, TypeError):
+            logger.warning(
+                f"Invalid release date format: {tmdb_details.get('release_date')}"
+            )
+
+    ***REMOVED*** Extract first origin country if available
+    origin_country = None
+    if tmdb_details.get("origin_country") and len(tmdb_details["origin_country"]) > 0:
+        origin_country = tmdb_details["origin_country"][0]
+
+    ***REMOVED*** Create movie data dictionary
+    movie_data = {
+        "tmdb_id": tmdb_details.get("id"),
+        "imdb_id": tmdb_details.get("imdb_id"),
+        "title": tmdb_details.get("title", "Unknown Title"),
+        "original_title": tmdb_details.get("original_title"),
+        "overview": tmdb_details.get("overview"),
+        "tagline": tmdb_details.get("tagline"),
+        "status": tmdb_details.get("status"),
+        "language": tmdb_details.get("language"),
+        "original_language": tmdb_details.get("original_language"),
+        "origin_country": origin_country,
+        "belongs_to_collection_id": collection_id,
+        "belongs_to_collection_name": collection_name,
+        "release_date": release_date,
+        "runtime": tmdb_details.get("runtime"),
+        "poster_url": tmdb_details.get("poster_path"),
+        "backdrop_url": tmdb_details.get("backdrop_path"),
+        "homepage": tmdb_details.get("homepage"),
+        "popularity": tmdb_details.get("popularity"),
+        "vote_average": tmdb_details.get("vote_average"),
+        "vote_count": tmdb_details.get("vote_count"),
+        "budget": tmdb_details.get("budget"),
+        "revenue": tmdb_details.get("revenue"),
+        "adult": tmdb_details.get("adult", False),
+        "video": tmdb_details.get("video", False),
+        ***REMOVED*** Legacy fields for compatibility
+        "tmdb_rating": tmdb_details.get("vote_average"),
+        "imdb_rating": None,  ***REMOVED*** TMDB doesn't provide IMDb rating
+    }
+
+    ***REMOVED*** Get or create genre IDs
+    genre_ids = []
+    if tmdb_details.get("genres"):
+        for genre_data in tmdb_details["genres"]:
+            genre_id = genre_data.get("id")
+            genre_name = genre_data.get("name")
+
+            if genre_id and genre_name:
+                ***REMOVED*** Get or create genre
+                from movie_storage.db.operations import genre as genre_ops
+
+                db_genre = genre_ops.get_genre_by_tmdb_id(session, genre_id)
+                if not db_genre:
+                    db_genre = genre_ops.create_genre(
+                        session, name=genre_name, tmdb_id=genre_id
+                    )
+                genre_ids.append(db_genre.id)
+
+    ***REMOVED*** Create or update the movie
+    if existing_movie:
+        logger.info(
+            f"Updating existing movie: {movie_data['title']} (TMDB ID: {movie_data['tmdb_id']})"
+        )
+        movie = update_movie(session, existing_movie.id, movie_data, genre_ids)
+    else:
+        logger.info(
+            f"Creating new movie: {movie_data['title']} (TMDB ID: {movie_data['tmdb_id']})"
+        )
+        movie = create_movie(session, movie_data, genre_ids)
+
+    ***REMOVED*** Process credits if present
+    if tmdb_details.get("credits") and tmdb_details["credits"].get("cast"):
+        ***REMOVED*** First, remove existing credits
+        existing_credits = session.exec(
+            select(Credit).where(Credit.movie_id == movie.id)
+        ).all()
+
+        for credit in existing_credits:
+            session.delete(credit)
+
+        logger.debug(f"Removed {len(existing_credits)} existing credits")
+
+        ***REMOVED*** Add new credits
+        cast_data = tmdb_details["credits"]["cast"]
+        for cast_member in cast_data:
+            if not cast_member.get("id"):
+                continue
+
+            credit = Credit(
+                movie_id=movie.id,
+                tmdb_person_id=cast_member.get("id"),
+                name=cast_member.get("name", "Unknown"),
+                original_name=cast_member.get("original_name"),
+                character=cast_member.get("character"),
+                department=cast_member.get("known_for_department"),
+                cast_id=cast_member.get("cast_id"),
+                order=cast_member.get("order"),
+                gender=cast_member.get("gender"),
+                profile_path=cast_member.get("profile_path"),
+                popularity=cast_member.get("popularity"),
+                credit_id=cast_member.get("credit_id"),
+                adult=cast_member.get("adult", False),
+            )
+            session.add(credit)
+
+        session.commit()
+        logger.info(f"Added {len(cast_data)} credits to movie")
+
+    ***REMOVED*** Refresh the movie to include relationships
+    session.refresh(movie)
+    return movie

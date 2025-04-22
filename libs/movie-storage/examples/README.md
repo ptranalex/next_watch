@@ -2,6 +2,31 @@
 
 This directory contains examples demonstrating how to use the `movie-storage` package.
 
+***REMOVED******REMOVED*** Movie Import Example
+
+The `import_tmdb_movie.py` script demonstrates how to import a movie from a TMDB API response JSON file into the database:
+
+```bash
+***REMOVED*** Run the migration to create the necessary tables first
+python -m movie_storage.cli migrate --create-tables
+
+***REMOVED*** Import a movie from a JSON file
+python examples/import_tmdb_movie.py examples/avatar.json --create-tables
+```
+
+This example shows:
+
+1. How to use the new extended Movie model with additional fields
+2. How to process cast information into the new Credit model
+3. How to handle genre relationships
+
+The imported movie will include:
+
+- Basic movie information (title, overview, etc.)
+- Extended details (tagline, status, etc.)
+- Cast information from the credits
+- Genre associations
+
 ***REMOVED******REMOVED*** Logging Examples
 
 ***REMOVED******REMOVED******REMOVED*** Using the `@with_logging` Decorator

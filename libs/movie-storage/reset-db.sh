@@ -14,22 +14,27 @@ then
     exit 1
 fi
 
-***REMOVED*** Activate virtual environment if it exists
-if [ -d ".venv" ]; then
-  echo "Activating virtual environment..."
-  source .venv/bin/activate
-fi
+***REMOVED*** Install package
+echo "Installing movie-storage package..."
+poetry install
+
+***REMOVED*** Activate virtual environment
+echo "Activating virtual environment..."
+source .venv/bin/activate
+
+***REMOVED*** Display database info
+echo -e "\033[0;34mUsing database:\033[0m $(python -c "from movie_storage.config.app import Config; config = Config.get_instance(); print(config._mask_database_password(config.database_url))")"
 
 ***REMOVED*** Drop all tables
-echo "Dropping all tables..."
-movie-db teardown --drop-all --confirm
+echo -e "\033[0;33m⏳ Dropping all tables...\033[0m"
+python -m movie_storage.cli teardown --drop-all --confirm --verbose
 
 ***REMOVED*** Initialize database
-echo "Initializing database..."
-movie-db init --create-tables
+echo -e "\033[0;33m⏳ Initializing database...\033[0m"
+python -m movie_storage.cli init --create-tables --verbose
 
 ***REMOVED*** Run migrations
-echo "Running migrations..."
-movie-db migrate
+echo -e "\033[0;33m⏳ Running migrations...\033[0m"
+python -m movie_storage.cli migrate --verbose
 
 echo -e "\033[0;32m✅ Database reset complete!\033[0m" 

@@ -5,6 +5,7 @@ from typing import Generator, Optional
 from sqlmodel import Session, create_engine, SQLModel
 
 from movie_storage.config.app import Config
+from movie_storage.models import Movie, Genre, MovieGenreLink, Credit
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,4 @@ def init_db(
     if create_tables:
         logger.info("Creating database tables")
         ***REMOVED*** Import models to ensure they're registered with SQLModel
-        from movie_storage.db.models import Movie, Genre, MovieGenreLink  ***REMOVED*** type: ignore
-
         SQLModel.metadata.create_all(engine)
