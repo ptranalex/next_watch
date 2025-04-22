@@ -166,3 +166,35 @@ class TMDBClient:
         except aiohttp.ClientError as e:
             logger.error(f"Network error fetching movies for year {year}: {str(e)}")
             raise
+
+    async def get_movie_details(
+        self, movie_id: int, language: str = "en-US", append_credits: bool = True
+    ) -> Dict[str, Any]:
+        """Get detailed information about a specific movie including credits if requested.
+
+        Uses the TMDB movie details endpoint with optional append_to_response for credits.
+
+        Args:
+            movie_id: The TMDB ID of the movie
+            language: Language for the movie data (default: en-US)
+            append_credits: Whether to include credits data in the response (default: True)
+
+        Returns:
+            A dictionary containing the movie details and optionally credits
+
+        Raises:
+            ValueError: If the movie_id is invalid or the API returns an error
+        """
+        params: Dict[str, Any] = {"language": language}
+
+        if append_credits:
+            params["append_to_response"] = "credits"
+
+        endpoint = f"/movie/{movie_id}"
+        response = await self._make_request(endpoint, params)
+
+        if not response:
+            logger.error(f"Failed to fetch details for movie ID: {movie_id}")
+            raise ValueError(f"Could not retrieve details for movie ID: {movie_id}")
+
+        return response
