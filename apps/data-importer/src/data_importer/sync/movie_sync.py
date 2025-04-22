@@ -14,7 +14,7 @@ from rich.progress import Progress, TaskID
 from data_importer.services import TMDBClient, OMDBClient
 
 ***REMOVED*** Import database models and storage operations
-from movie_storage.db.models import Movie
+from movie_storage.models import Movie
 from movie_storage.db.operations import genre as genre_ops
 from movie_storage.db.operations import movie as movie_ops
 

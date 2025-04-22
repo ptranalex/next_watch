@@ -3,7 +3,7 @@
 import asyncio
 import logging
 import inspect
-from typing import Any, Dict, Callable, List, Optional
+from typing import Any, Dict, Callable, List, Optional, cast
 
 from rich.console import Console
 from data_importer.cli.utils import (
@@ -74,7 +74,8 @@ def print_config(config=None) -> None:
                 console.print("[red]No config object found in current context[/red]")
                 return
         finally:
-            del frame
+            if frame:
+                del frame
 
     ***REMOVED*** Use the generic utility function
     print_config_util(config, title="Data Importer Configuration", console=console)
@@ -121,100 +122,110 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         from sqlmodel import Session, create_engine
         from movie_storage.utils import setup_movie_storage  ***REMOVED*** type: ignore
 
-        ***REMOVED*** Get clients from global namespace to get API keys
+        ***REMOVED*** Get clients from global namespace
         frame = inspect.currentframe()
-        try:
-            if frame and frame.f_back:
-                globals_dict = frame.f_back.f_globals
-                global_tmdb_client = globals_dict.get("tmdb_client")
-                global_omdb_client = globals_dict.get("omdb_client")
-                async_run = globals_dict.get("async_run")
+        if not frame or not frame.f_back:
+            console.print("[red]Unable to access shell context[/red]")
+            return
 
-                if not all([global_tmdb_client, global_omdb_client, async_run]):
-                    console.print(
-                        "[red]Error: Required clients not found in shell context[/red]"
+        try:
+            globals_dict = frame.f_back.f_globals
+            global_tmdb_client = globals_dict.get("tmdb_client")
+            global_omdb_client = globals_dict.get("omdb_client")
+            global_async_run = globals_dict.get("async_run")
+
+            ***REMOVED*** Verify all required objects are available and not None
+            if not global_tmdb_client:
+                console.print("[red]Error: TMDB client not found in shell context[/red]")
+                return
+
+            if not global_omdb_client:
+                console.print("[red]Error: OMDB client not found in shell context[/red]")
+                return
+
+            if not global_async_run:
+                console.print("[red]Error: async_run function not found in shell context[/red]")
+                return
+
+            ***REMOVED*** Verify the clients have the required attributes
+            if (
+                not hasattr(global_tmdb_client, "access_token")
+                or not global_tmdb_client.access_token
+            ):
+                console.print("[red]Error: TMDB client does not have a valid access token[/red]")
+                return
+
+            if not hasattr(global_omdb_client, "api_key") or not global_omdb_client.api_key:
+                console.print("[red]Error: OMDB client does not have a valid API key[/red]")
+                return
+
+            console.print(f"[cyan]Starting movie sync for years {start_year}-{end_year}...[/cyan]")
+
+            ***REMOVED*** Define the entire operation as a single async function
+            async def run_sync_operation():
+                ***REMOVED*** Create fresh client instances with the same API keys
+                tmdb_client = TMDBClient(access_token=global_tmdb_client.access_token)
+                omdb_client = OMDBClient(api_key=global_omdb_client.api_key)
+                db_session = None
+
+                try:
+                    ***REMOVED*** Set up database connection if saving to db
+                    if save_to_db:
+                        ***REMOVED*** Setup movie storage (uses .env.local if available)
+                        setup_info = setup_movie_storage(create_tables=True)
+                        db_url = setup_info["database_url"]
+                        console.print(f"[bold]Using database:[/bold] {db_url}")
+
+                        ***REMOVED*** Create a database session
+                        engine = create_engine(db_url)
+                        db_session = Session(engine)
+
+                    ***REMOVED*** Run the sync operation
+                    results = await sync_movies_by_year_range(
+                        tmdb_client,
+                        omdb_client,
+                        start_year,
+                        end_year,
+                        limit_per_year=limit_per_year,
+                        db_session=db_session,
+                        save_to_db=save_to_db,
                     )
-                    return
+
+                    return results
+                finally:
+                    ***REMOVED*** Clean up resources
+                    if db_session:
+                        db_session.close()
+                    await tmdb_client.close()
+                    await omdb_client.close()
+
+            ***REMOVED*** Run everything in a single event loop
+            results = global_async_run(run_sync_operation())
+
+            ***REMOVED*** Format and display results
+            if results:
+                formatted_results = format_sync_results(results)
+                console.print(f"\n{formatted_results}")
+
+                ***REMOVED*** Return the movie info to the shell for further examination
+                movie_dicts = results.get("movie_dicts", [])
+                movie_models = results.get("movies", [])
+                genres = results.get("genres", [])
 
                 console.print(
-                    f"[cyan]Starting movie sync for years {start_year}-{end_year}...[/cyan]"
+                    f"\n[green]Synced {len(movie_dicts)} movies with {len(genres)} genres. Access them through the 'synced_movies', 'movie_models', and 'genre_list' variables.[/green]"
                 )
 
-                ***REMOVED*** Define the entire operation as a single async function
-                async def run_sync_operation():
-                    ***REMOVED*** Create fresh client instances with the same API keys
-                    tmdb_client = TMDBClient(
-                        access_token=global_tmdb_client.access_token
-                    )
-                    omdb_client = OMDBClient(api_key=global_omdb_client.api_key)
+                ***REMOVED*** Add results to the global namespace
+                globals_dict["synced_movies"] = movie_dicts
+                globals_dict["movie_models"] = movie_models
+                globals_dict["genre_list"] = genres
 
-                    try:
-                        ***REMOVED*** Set up database connection if saving to db
-                        db_session = None
-                        if save_to_db:
-                            ***REMOVED*** Setup movie storage (uses .env.local if available)
-                            setup_info = setup_movie_storage(create_tables=True)
-                            db_url = setup_info["database_url"]
-                            console.print(f"[bold]Using database:[/bold] {db_url}")
-
-                            ***REMOVED*** Create a database session
-                            engine = create_engine(db_url)
-                            db_session = Session(engine)
-
-                        ***REMOVED*** Run the sync operation
-                        results = await sync_movies_by_year_range(
-                            tmdb_client,
-                            omdb_client,
-                            start_year,
-                            end_year,
-                            limit_per_year=limit_per_year,
-                            db_session=db_session,
-                            save_to_db=save_to_db,
-                        )
-
-                        ***REMOVED*** Close database session if we created one
-                        if save_to_db and db_session:
-                            db_session.close()
-
-                        return results
-                    finally:
-                        ***REMOVED*** Clean up the temporary clients
-                        await tmdb_client.close()
-                        await omdb_client.close()
-
-                ***REMOVED*** Run everything in a single event loop
-                results = async_run(run_sync_operation())
-
-                ***REMOVED*** Format and display results
-                if results:
-                    formatted_results = format_sync_results(results)
-                    console.print(f"\n{formatted_results}")
-
-                    ***REMOVED*** Return the movie info to the shell for further examination
-                    movie_dicts = results.get("movie_dicts", [])
-                    movie_models = results.get("movies", [])
-                    genres = results.get("genres", [])
-
-                    console.print(
-                        f"\n[green]Synced {len(movie_dicts)} movies with {len(genres)} genres. Access them through the 'synced_movies', 'movie_models', and 'genre_list' variables.[/green]"
-                    )
-
-                    ***REMOVED*** Add results to the global namespace
-                    globals_dict["synced_movies"] = movie_dicts
-                    globals_dict["movie_models"] = movie_models
-                    globals_dict["genre_list"] = genres
-
-                    if len(movie_dicts) > 0:
-                        globals_dict["movie_example"] = movie_dicts[0]
-                        console.print(
-                            "[green]Example movie available as 'movie_example'[/green]"
-                        )
-                else:
-                    console.print(
-                        "[red]Sync operation did not return any results[/red]"
-                    )
+                if movie_dicts:
+                    globals_dict["movie_example"] = movie_dicts[0]
+                    console.print("[green]Example movie available as 'movie_example'[/green]")
             else:
-                console.print("[red]Unable to access shell context[/red]")
+                console.print("[red]Sync operation did not return any results[/red]")
         finally:
             del frame
 

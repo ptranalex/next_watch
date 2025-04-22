@@ -23,6 +23,7 @@ var/
 .coverage
 htmlcov/
 .python-version
+*.pyc
 
 ***REMOVED*** Virtual Environment
 .venv

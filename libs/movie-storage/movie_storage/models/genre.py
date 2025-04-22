@@ -1,10 +1,13 @@
 """Genre model definition."""
 
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, ForwardRef
 from sqlmodel import SQLModel, Field, Relationship
 
+***REMOVED*** Import the MovieGenreLink class directly instead of using TYPE_CHECKING
+from movie_storage.models.movie import MovieGenreLink
+
 if TYPE_CHECKING:
-    from movie_storage.models.movie import Movie, MovieGenreLink
+    from movie_storage.models.movie import Movie
 
 
 class Genre(SQLModel, table=True):
@@ -16,5 +19,5 @@ class Genre(SQLModel, table=True):
 
     ***REMOVED*** Relationships
     movies: List["Movie"] = Relationship(
-        back_populates="genres", link_model="movie_storage.models.movie.MovieGenreLink"
+        back_populates="genres", link_model=MovieGenreLink
     )

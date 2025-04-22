@@ -1,0 +1,73 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+***REMOVED*** Python Configuration Best Practices
+
+When implementing Python configuration systems, follow these patterns and best practices:
+
+***REMOVED******REMOVED*** 📁 Configuration Organization
+- Place configuration in a dedicated `config` package with specialized modules:
+  - 📄 `__init__.py`: Re-exports configuration classes and utilities
+  - 📄 `app.py`: Core application configuration with environment variable handling
+  - 📄 `logging.py`: Logging-specific configuration (formatters, handlers, levels)
+  - 📄 Domain-specific config files as needed (e.g., `api.py`, `storage.py`)
+
+***REMOVED******REMOVED*** 🏗️ Config Class Pattern
+- Implement configuration as a singleton class with type hints:
+  ```python
+  class Config:
+      _instance = None
+      
+      @classmethod
+      def get_instance(cls) -> "Config":
+          if cls._instance is None:
+              cls._instance = Config()
+          return cls._instance
+  ```
+- Use comprehensive initialization with defaults from environment:
+  ```python
+  def __init__(
+      self,
+      database_url: str = os.getenv("DATABASE_URL", "sqlite:///app.db"),
+      log_level: str = os.getenv("LOG_LEVEL", "INFO"),
+  ):
+      self.database_url = database_url
+      self.log_level = log_level
+  ```
+- Include secure string representation that masks sensitive data
+
+***REMOVED******REMOVED*** 🔒 Environment Configuration
+- Load settings with clear hierarchy:
+  1. Environment variables (highest priority)
+  2. Local .env files (.env.local)
+  3. Default .env files (.env)
+  4. Hardcoded defaults (lowest priority)
+- Use dotenv with try/except for optional dependency
+- Centralize default values as constants at module level
+
+***REMOVED******REMOVED*** 📝 Logging Configuration
+- Create a dedicated function to configure logging:
+  ```python
+  def configure_logging(
+      config: Optional[Config] = None,
+      log_level: Optional[str] = None,
+      verbose: bool = False,
+  ) -> Dict[str, Any]
+  ```
+- Provide a decorator for automatic logging setup:
+  ```python
+  @with_logging(log_level="DEBUG", verbose=True)
+  def main_function():
+      logger = logging.getLogger(__name__)
+      logger.info("This will be properly configured")
+  ```
+
+***REMOVED******REMOVED*** 🧰 Best Practices
+- Separate configuration access from business logic
+- Use dependency injection rather than global state
+- Implement validation for configuration values
+- Include comprehensive docstrings for all configuration options
+- Mask sensitive information in logs and string representations
+- Create test helpers for configuration in unit tests
