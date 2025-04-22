@@ -1,55 +1,113 @@
 ***REMOVED*** Data Importer
 
-A movie data importer for the Next Watch platform.
+This application provides tools to import movie and TV show data from external sources into the Next Watch database.
 
 ***REMOVED******REMOVED*** Features
 
-- Fetch movie data from TMDB and OMDB APIs
-- Store movie information in a database using the movie-storage module
-- Filter movies by year, popularity, and other criteria
-- Command-line interface for batch operations
-- Interactive REPL for exploring data
+- Import movies from TMDB (The Movie Database) with cast and crew information
+- Support for syncing by year range or importing specific movies by ID
+- CLI interface for easy integration
+- Interactive shell for data exploration
 
 ***REMOVED******REMOVED*** Installation
 
-```bash
-***REMOVED*** Install with Poetry
-poetry install
-```
+1. Clone the repository
+2. Install dependencies:
+   ```
+   pip install -e .
+   ```
 
 ***REMOVED******REMOVED*** Usage
 
-***REMOVED******REMOVED******REMOVED*** Command Line
+***REMOVED******REMOVED******REMOVED*** Environment Setup
+
+Set your API keys as environment variables:
 
 ```bash
-***REMOVED*** Sync movies from 2020-2021 and save to database
-poetry run python -m data_importer.cli sync --start-year 2020 --end-year 2021 --save-to-db
+export TMDB_API_KEY="your_tmdb_api_key_here"
+export OMDB_API_KEY="your_omdb_api_key_here"
 ```
 
-***REMOVED******REMOVED******REMOVED*** API Example
+***REMOVED******REMOVED******REMOVED*** CLI Commands
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Sync Movies by Year Range
+
+```bash
+data-importer sync movies 2022 2023 --credits --save
+```
+
+Options:
+
+- `--limit`, `-l`: Maximum movies per year (default: 20)
+- `--tmdb-key`, `-t`: TMDB API key (if not set as environment variable)
+- `--omdb-key`, `-o`: OMDB API key (if not set as environment variable)
+- `--save/--no-save`: Save movies to database (default: --no-save)
+- `--credits/--no-credits`: Include cast and crew information (default: --no-credits)
+- `--verbose`, `-v`: Show detailed output
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Import a Specific Movie
+
+```bash
+data-importer movie id 550  ***REMOVED*** Import Fight Club (TMDB ID: 550)
+```
+
+Options:
+
+- `--api-key`, `-k`: TMDB API key (if not set as environment variable)
+- `--language`, `-l`: Language for movie data (default: en-US)
+- `--verbose`, `-v`: Show detailed output
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Import Popular Movies
+
+```bash
+data-importer movie popular --limit 5  ***REMOVED*** Import 5 most popular movies
+```
+
+Options:
+
+- `--limit`, `-n`: Number of movies to import (default: 10)
+- `--api-key`, `-k`: TMDB API key (if not set as environment variable)
+- `--language`, `-l`: Language for movie data (default: en-US)
+- `--verbose`, `-v`: Show detailed output
+
+***REMOVED******REMOVED******REMOVED*** Interactive Shell
+
+Launch an interactive shell to explore and manipulate data:
+
+```bash
+data-importer shell
+```
+
+In the shell, you can use various functions:
 
 ```python
-from data_importer.sync.movie_sync import sync_movies_by_year_range
-from movie_storage.db import init_db
+***REMOVED*** Sync movies for a year range with credits
+sync_movies(2022, 2023, include_credits=True, save_to_db=True)
 
-***REMOVED*** Initialize database
-init_db("sqlite:///movies.db", create_tables=True)
-
-***REMOVED*** Sync movies
-results = await sync_movies_by_year_range(
-    tmdb_client=tmdb_client,
-    omdb_client=omdb_client,
-    start_year=2020,
-    end_year=2021,
-    save_to_db=True
-)
+***REMOVED*** Access the synced movies
+jprint(synced_movies[0])  ***REMOVED*** Print the first movie in nice format
 ```
 
-***REMOVED******REMOVED*** Example Scripts
+***REMOVED******REMOVED*** Development
 
-The `examples` directory contains sample scripts that demonstrate various features:
+***REMOVED******REMOVED******REMOVED*** Project Structure
 
-```bash
-***REMOVED*** Run the database sync example
-poetry run python examples/sync_with_db.py
-```
+- `src/data_importer/`: Main package
+  - `cli/`: CLI commands
+  - `services/`: Service implementations
+    - `tmdb.py`: TMDB API client
+    - `omdb.py`: OMDB API client
+  - `sync/`: Data synchronization logic
+    - `movie_sync.py`: Movie synchronization functions
+
+***REMOVED******REMOVED******REMOVED*** Adding Support for New Data Sources
+
+To add a new data source:
+
+1. Create a new client in the `services/` directory
+2. Update the sync functions to use the new source
+3. Add CLI commands to interact with the new source
+
+***REMOVED******REMOVED*** License
+
+MIT

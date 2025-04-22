@@ -105,6 +105,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         end_year: int,
         limit_per_year: int = 20,
         save_to_db: bool = False,
+        include_credits: bool = False,
     ) -> None:
         """Sync movies from TMDB and OMDB based on year range.
 
@@ -113,10 +114,12 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
             end_year: Ending year (inclusive)
             limit_per_year: Maximum number of movies per year (default: 20)
             save_to_db: Whether to save movies to database (default: False)
+            include_credits: Whether to include cast and crew information (default: False)
         """
         from data_importer.sync import sync_movies_by_year_range
         from data_importer.sync.movie_sync import format_sync_results
-        from data_importer.services import TMDBClient, OMDBClient
+        from data_importer.services.tmdb import TMDBClient
+        from data_importer.services.omdb import OMDBClient
 
         ***REMOVED*** Imports for database support
         from sqlmodel import Session, create_engine
@@ -160,6 +163,8 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 return
 
             console.print(f"[cyan]Starting movie sync for years {start_year}-{end_year}...[/cyan]")
+            if include_credits:
+                console.print("[cyan]Including cast and crew information[/cyan]")
 
             ***REMOVED*** Define the entire operation as a single async function
             async def run_sync_operation():
@@ -189,6 +194,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                         limit_per_year=limit_per_year,
                         db_session=db_session,
                         save_to_db=save_to_db,
+                        include_credits=include_credits,
                     )
 
                     return results
@@ -211,6 +217,11 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 movie_dicts = results.get("movie_dicts", [])
                 movie_models = results.get("movies", [])
                 genres = results.get("genres", [])
+                credits_saved = results.get("credits_saved", 0)
+
+                ***REMOVED*** Display additional info about credits if included
+                if include_credits and credits_saved > 0:
+                    console.print(f"[green]Imported {credits_saved} cast and crew credits[/green]")
 
                 console.print(
                     f"\n[green]Synced {len(movie_dicts)} movies with {len(genres)} genres. Access them through the 'synced_movies', 'movie_models', and 'genre_list' variables.[/green]"

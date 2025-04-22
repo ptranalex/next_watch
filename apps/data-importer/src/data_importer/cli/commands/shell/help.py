@@ -30,7 +30,7 @@ def get_help_text() -> List[str]:
         "  - print_json(obj) - Print JSON with syntax highlighting",
         "  - print_config() - Print configuration settings in a table",
         "  - list_services() - List available data services",
-        "  - sync_movies(start_year, end_year, limit_per_year=20) - Sync movies for a year range",
+        "  - sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False) - Sync movies for a year range",
         "  - help() - Show this help message",
         "",
         "TMDb Features:",
@@ -108,3 +108,67 @@ def create_shell_help_function(namespace: Dict[str, Any]) -> Callable[[], None]:
             console.print(line)
 
     return shell_help
+
+
+SHELL_HELP = """
+Next Watch Data Importer Shell
+
+This shell provides an interactive environment for working with movie and TV data.
+It includes pre-loaded clients, utility functions, and import helpers.
+
+Available services and objects:
+------------------------------
+- tmdb_client - TMDBClient for accessing The Movie Database API
+- omdb_client - OMDBClient for accessing the Open Movie Database API
+- console - Rich console for formatted output
+- jprint(obj) - Pretty-print JSON-like objects
+
+Available functions:
+-------------------
+- list_services() - List available services and their status
+- async_run(coro) - Run an async function and return the result
+- sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False) - Sync movies for a year range
+- print_config() - Display configuration settings
+
+Examples:
+---------
+Fetch popular movies:
+  popular = async_run(tmdb_client.get_popular_movies())
+  jprint(popular[0])  ***REMOVED*** Show the first movie
+
+Search for a movie:
+  results = async_run(omdb_client.search_movie("The Matrix"))
+  jprint(results)
+
+Import movies with credits:
+  sync_movies(2020, 2023, include_credits=True, save_to_db=True)
+  
+Import movies for a range of years:
+  sync_movies(2022, 2023)  ***REMOVED*** Import movies from 2022-2023
+  sync_movies(2022, 2022, limit_per_year=5)  ***REMOVED*** Import 5 movies from 2022
+  synced_movies  ***REMOVED*** List of all movies after running sync_movies()
+
+Check available genres from TMDB:
+  genres = async_run(tmdb_client.get_movie_genres())
+  jprint(genres)
+
+For more information, type 'help(function_name)' or check the documentation.
+"""
+
+BASIC_HELP = """
+Available commands:
+------------------
+- help() - Show this help message
+- exit(), quit() - Exit the shell
+- list_services() - List available services and their status
+- sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False) - Sync movies for a year range
+- async_run(coroutine) - Run async coroutines
+- print_config() - Display configuration settings
+
+Examples:
+---------
+  help()  ***REMOVED*** Show help
+  list_services()  ***REMOVED*** List available services
+  sync_movies(2022, 2023)  ***REMOVED*** Import movies from 2022-2023
+  exit()  ***REMOVED*** Exit the shell
+"""

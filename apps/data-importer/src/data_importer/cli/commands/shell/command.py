@@ -30,7 +30,7 @@ from data_importer.config.app import (
     Config,
 )
 from data_importer.config.logging import configure_logging
-from data_importer.services import TMDBClient, IMDBClient, OMDBClient  ***REMOVED*** type: ignore
+from data_importer.services import TMDBClient, IMDBClient, OMDBClient
 
 logger = logging.getLogger("data_importer.cli.shell.command")
 console = Console()

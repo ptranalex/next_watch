@@ -10,6 +10,10 @@ from sqlalchemy import func
 
 from movie_storage.config.logging import with_logging
 from movie_storage.models import Movie, Genre, MovieGenreLink, Credit
+from movie_storage.db.operations.credit import (
+    delete_credits_for_movie,
+    create_credits_from_tmdb_data,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +180,11 @@ def update_movie(
     if "genres" in movie_dict:
         del movie_dict["genres"]
 
+    ***REMOVED*** Ensure language is not None to prevent SQL errors
+    if movie_dict.get("language") is None:
+        ***REMOVED*** Use original_language as fallback, or default to 'en'
+        movie_dict["language"] = movie_dict.get("original_language") or "en"
+
     ***REMOVED*** Update movie attributes
     for key, value in movie_dict.items():
         if hasattr(movie, key):
@@ -248,7 +257,7 @@ def create_movie_from_tmdb_details(
 ) -> Movie:
     """Create or update a movie from TMDB movie details API response.
 
-    This function handles the conversion of a TMDB movie details API response
+    This function processes a TMDB movie details API response and maps it
     to our internal Movie and Credit models, including handling nested data
     like credits and collection information.
 
@@ -257,39 +266,19 @@ def create_movie_from_tmdb_details(
         tmdb_details: TMDB movie details API response
 
     Returns:
-        Created or updated Movie instance
+        Movie instance
     """
     ***REMOVED*** Check if movie already exists
-    existing_movie = None
-    if tmdb_details.get("id"):
-        existing_movie = get_movie_by_tmdb_id(session, tmdb_details["id"])
+    tmdb_id = tmdb_details.get("id")
+    if not tmdb_id:
+        logger.error("TMDB details missing movie ID")
+        raise ValueError("TMDB movie details missing required ID field")
 
-    ***REMOVED*** Extract collection data if present
-    collection_id = None
-    collection_name = None
-    if tmdb_details.get("belongs_to_collection"):
-        collection = tmdb_details["belongs_to_collection"]
-        collection_id = collection.get("id")
-        collection_name = collection.get("name")
+    existing_movie = get_movie_by_tmdb_id(session, tmdb_id)
 
-    ***REMOVED*** Prepare release date
-    release_date = None
-    if tmdb_details.get("release_date"):
-        try:
-            release_date = date.fromisoformat(tmdb_details["release_date"])
-        except (ValueError, TypeError):
-            logger.warning(
-                f"Invalid release date format: {tmdb_details.get('release_date')}"
-            )
-
-    ***REMOVED*** Extract first origin country if available
-    origin_country = None
-    if tmdb_details.get("origin_country") and len(tmdb_details["origin_country"]) > 0:
-        origin_country = tmdb_details["origin_country"][0]
-
-    ***REMOVED*** Create movie data dictionary
+    ***REMOVED*** Extract basic movie data
     movie_data = {
-        "tmdb_id": tmdb_details.get("id"),
+        "tmdb_id": tmdb_id,
         "imdb_id": tmdb_details.get("imdb_id"),
         "title": tmdb_details.get("title", "Unknown Title"),
         "original_title": tmdb_details.get("original_title"),
@@ -298,93 +287,83 @@ def create_movie_from_tmdb_details(
         "status": tmdb_details.get("status"),
         "language": tmdb_details.get("language"),
         "original_language": tmdb_details.get("original_language"),
-        "origin_country": origin_country,
-        "belongs_to_collection_id": collection_id,
-        "belongs_to_collection_name": collection_name,
-        "release_date": release_date,
         "runtime": tmdb_details.get("runtime"),
-        "poster_url": tmdb_details.get("poster_path"),
-        "backdrop_url": tmdb_details.get("backdrop_path"),
-        "homepage": tmdb_details.get("homepage"),
         "popularity": tmdb_details.get("popularity"),
         "vote_average": tmdb_details.get("vote_average"),
         "vote_count": tmdb_details.get("vote_count"),
         "budget": tmdb_details.get("budget"),
         "revenue": tmdb_details.get("revenue"),
-        "adult": tmdb_details.get("adult", False),
-        "video": tmdb_details.get("video", False),
-        ***REMOVED*** Legacy fields for compatibility
-        "tmdb_rating": tmdb_details.get("vote_average"),
-        "imdb_rating": None,  ***REMOVED*** TMDB doesn't provide IMDb rating
+        "adult": tmdb_details.get("adult"),
+        "video": tmdb_details.get("video"),
     }
 
-    ***REMOVED*** Get or create genre IDs
-    genre_ids = []
-    if tmdb_details.get("genres"):
-        for genre_data in tmdb_details["genres"]:
-            genre_id = genre_data.get("id")
-            genre_name = genre_data.get("name")
+    ***REMOVED*** Process release date
+    if release_date_str := tmdb_details.get("release_date"):
+        try:
+            movie_data["release_date"] = date.fromisoformat(release_date_str)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid release date format: {release_date_str}")
 
-            if genre_id and genre_name:
-                ***REMOVED*** Get or create genre
-                from movie_storage.db.operations import genre as genre_ops
+    ***REMOVED*** Process collection info
+    if collection := tmdb_details.get("belongs_to_collection"):
+        movie_data["belongs_to_collection_id"] = collection.get("id")
+        movie_data["belongs_to_collection_name"] = collection.get("name")
 
-                db_genre = genre_ops.get_genre_by_tmdb_id(session, genre_id)
-                if not db_genre:
-                    db_genre = genre_ops.create_genre(
-                        session, name=genre_name, tmdb_id=genre_id
-                    )
-                genre_ids.append(db_genre.id)
+    ***REMOVED*** Process URLs
+    if poster_path := tmdb_details.get("poster_path"):
+        movie_data["poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
-    ***REMOVED*** Create or update the movie
+    if backdrop_path := tmdb_details.get("backdrop_path"):
+        movie_data["backdrop_url"] = (
+            f"https://image.tmdb.org/t/p/original{backdrop_path}"
+        )
+
+    movie_data["homepage"] = tmdb_details.get("homepage")
+
+    ***REMOVED*** Extract genre IDs and ensure they exist in the database
+    genre_ids = None
+    if genres := tmdb_details.get("genres"):
+        ***REMOVED*** Import here to avoid circular imports
+        from movie_storage.db.operations.genre import get_genre_by_tmdb_id, create_genre
+
+        ***REMOVED*** Process each genre and ensure it exists in database
+        valid_genre_ids = []
+        for genre_data in genres:
+            tmdb_genre_id = genre_data.get("id")
+            if not tmdb_genre_id:
+                continue
+
+            ***REMOVED*** Check if genre exists, create if not
+            db_genre = get_genre_by_tmdb_id(session, tmdb_genre_id)
+            if not db_genre:
+                genre_name = genre_data.get("name", f"Genre {tmdb_genre_id}")
+                logger.info(
+                    f"Creating missing genre: {genre_name} (TMDB ID: {tmdb_genre_id})"
+                )
+                db_genre = create_genre(session, name=genre_name, tmdb_id=tmdb_genre_id)
+
+            ***REMOVED*** Add the database genre ID to our list
+            valid_genre_ids.append(db_genre.id)
+
+        genre_ids = valid_genre_ids
+
+    ***REMOVED*** Create or update movie
     if existing_movie:
         logger.info(
-            f"Updating existing movie: {movie_data['title']} (TMDB ID: {movie_data['tmdb_id']})"
+            f"Updating existing movie: {movie_data['title']} (ID: {existing_movie.id})"
         )
         movie = update_movie(session, existing_movie.id, movie_data, genre_ids)
     else:
-        logger.info(
-            f"Creating new movie: {movie_data['title']} (TMDB ID: {movie_data['tmdb_id']})"
-        )
+        logger.info(f"Creating new movie: {movie_data['title']}")
         movie = create_movie(session, movie_data, genre_ids)
 
     ***REMOVED*** Process credits if present
-    if tmdb_details.get("credits") and tmdb_details["credits"].get("cast"):
-        ***REMOVED*** First, remove existing credits
-        existing_credits = session.exec(
-            select(Credit).where(Credit.movie_id == movie.id)
-        ).all()
+    if tmdb_details.get("credits"):
+        ***REMOVED*** Delete existing credits
+        delete_credits_for_movie(session, movie.id)
 
-        for credit in existing_credits:
-            session.delete(credit)
-
-        logger.debug(f"Removed {len(existing_credits)} existing credits")
-
-        ***REMOVED*** Add new credits
-        cast_data = tmdb_details["credits"]["cast"]
-        for cast_member in cast_data:
-            if not cast_member.get("id"):
-                continue
-
-            credit = Credit(
-                movie_id=movie.id,
-                tmdb_person_id=cast_member.get("id"),
-                name=cast_member.get("name", "Unknown"),
-                original_name=cast_member.get("original_name"),
-                character=cast_member.get("character"),
-                department=cast_member.get("known_for_department"),
-                cast_id=cast_member.get("cast_id"),
-                order=cast_member.get("order"),
-                gender=cast_member.get("gender"),
-                profile_path=cast_member.get("profile_path"),
-                popularity=cast_member.get("popularity"),
-                credit_id=cast_member.get("credit_id"),
-                adult=cast_member.get("adult", False),
-            )
-            session.add(credit)
-
-        session.commit()
-        logger.info(f"Added {len(cast_data)} credits to movie")
+        ***REMOVED*** Create new credits
+        create_credits_from_tmdb_data(session, movie.id, tmdb_details["credits"])
 
     ***REMOVED*** Refresh the movie to include relationships
     session.refresh(movie)

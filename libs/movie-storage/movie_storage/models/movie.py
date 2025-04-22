@@ -3,6 +3,7 @@
 from typing import Optional, List, TYPE_CHECKING
 from datetime import date, datetime
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import BigInteger, Column
 
 if TYPE_CHECKING:
     from movie_storage.models.genre import Genre
@@ -59,9 +60,9 @@ class Movie(SQLModel, table=True):
     vote_average: Optional[float] = None
     vote_count: Optional[int] = None
 
-    ***REMOVED*** Financial information
-    budget: Optional[int]
-    revenue: Optional[int]
+    ***REMOVED*** Financial information (using BIGINT for large values)
+    budget: Optional[int] = Field(sa_column=Column(BigInteger), default=None)
+    revenue: Optional[int] = Field(sa_column=Column(BigInteger), default=None)
 
     ***REMOVED*** Boolean flags
     adult: Optional[bool] = False

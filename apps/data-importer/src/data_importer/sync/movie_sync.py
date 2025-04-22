@@ -11,13 +11,14 @@ from sqlmodel import Session, select
 from rich.console import Console
 from rich.progress import Progress, TaskID
 
-from data_importer.services import TMDBClient, OMDBClient
+from data_importer.services.tmdb import TMDBClient
+from data_importer.services.omdb import OMDBClient
 
 ***REMOVED*** Import database models and storage operations
 from movie_storage.models import Movie
 from movie_storage.db.operations import genre as genre_ops
 from movie_storage.db.operations import movie as movie_ops
-
+from movie_storage.db.operations.movie import create_movie_from_tmdb_details
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -81,6 +82,7 @@ async def sync_movies_by_year_range(
     show_progress: bool = True,
     db_session: Optional[Session] = None,
     save_to_db: bool = False,
+    include_credits: bool = False,
 ) -> Dict[str, Any]:
     """Sync movies from TMDB and OMDB based on a year range.
 
@@ -93,6 +95,7 @@ async def sync_movies_by_year_range(
         show_progress: Whether to show a progress bar
         db_session: Optional database session for saving to database
         save_to_db: Whether to save movies to the database
+        include_credits: Whether to include cast and crew information (default: False)
 
     Returns:
         Dictionary with statistics about the sync operation and list of movie models
@@ -137,6 +140,7 @@ async def sync_movies_by_year_range(
         "years_processed": 0,
         "movies_synced": 0,
         "movies_saved_to_db": 0,
+        "credits_saved": 0,
         "genres_found": len(genre_map),
         "start_year": start_year,
         "end_year": end_year,
@@ -178,6 +182,68 @@ async def sync_movies_by_year_range(
                     try:
                         movie_title = tmdb_movie.get("title", "")
                         year_str = str(year)
+                        tmdb_id = tmdb_movie.get("id")
+
+                        if include_credits and save_to_db and db_session and tmdb_id:
+                            ***REMOVED*** If we want credits and we're saving to DB, we'll use a different approach
+                            ***REMOVED*** that gets all details including credits in one API call
+                            try:
+                                ***REMOVED*** Fetch complete movie details with credits
+                                movie_details = await tmdb_client.get_movie_details(
+                                    movie_id=tmdb_id, append_credits=True
+                                )
+
+                                if movie_details:
+                                    ***REMOVED*** Create or update movie in database with all details including credits
+                                    db_movie = create_movie_from_tmdb_details(
+                                        db_session, movie_details
+                                    )
+
+                                    ***REMOVED*** Count credits for statistics
+                                    credit_count = len(db_movie.credits) if db_movie.credits else 0
+                                    stats["credits_saved"] += credit_count
+
+                                    ***REMOVED*** Add to in-memory movie models list
+                                    movie_models.append(db_movie)
+
+                                    ***REMOVED*** Create a dictionary representation (safer for shell use)
+                                    movie_dict = {
+                                        "tmdb_id": db_movie.tmdb_id,
+                                        "title": db_movie.title,
+                                        "original_title": db_movie.original_title,
+                                        "overview": db_movie.overview,
+                                        "language": db_movie.language,
+                                        "release_date": db_movie.release_date,
+                                        "poster_url": db_movie.poster_url,
+                                        "backdrop_url": db_movie.backdrop_url,
+                                        "tmdb_rating": db_movie.tmdb_rating,
+                                        "popularity": db_movie.popularity,
+                                        "budget": db_movie.budget,
+                                        "revenue": db_movie.revenue,
+                                        "genres": [
+                                            {"id": g.id, "name": g.name} for g in db_movie.genres
+                                        ],
+                                        "credits_count": credit_count,
+                                        "year": year,
+                                        "imdb_id": db_movie.imdb_id,
+                                    }
+
+                                    movie_dicts.append(movie_dict)
+                                    stats["movies_synced"] += 1
+                                    stats["movies_saved_to_db"] += 1
+
+                                    ***REMOVED*** Continue to next movie
+                                    if show_progress and progress is not None and year in task_ids:
+                                        progress.update(task_ids[year], advance=1)
+                                    continue
+                            except Exception as e:
+                                logger.error(
+                                    f"Error fetching full details for {movie_title}: {str(e)}"
+                                )
+                                ***REMOVED*** Fall back to normal processing without credits
+                                logger.info(
+                                    f"Falling back to standard processing for {movie_title}"
+                                )
 
                         ***REMOVED*** Get genres for this movie
                         movie_genres = []
@@ -193,7 +259,7 @@ async def sync_movies_by_year_range(
 
                         ***REMOVED*** Create a new movie model for in-memory use
                         movie = Movie(
-                            tmdb_id=tmdb_movie.get("id", 0),
+                            tmdb_id=tmdb_id or 0,
                             title=movie_title,
                             original_title=tmdb_movie.get("original_title"),
                             overview=tmdb_movie.get("overview"),
@@ -378,91 +444,55 @@ async def sync_movies_by_year_range(
 
 
 def format_sync_results(results: Dict[str, Any]) -> str:
-    """Format sync results into a human-readable string.
+    """Format sync results for display.
 
     Args:
-        results: Dictionary with statistics and movie models
+        results: Dictionary of sync results
 
     Returns:
-        Formatted string with results
+        Formatted string for display
     """
-    stats = results.get("stats", {})
-    movie_dicts = results.get("movie_dicts", [])
-    genres = results.get("genres", [])
+    if not results:
+        return "No results available"
 
-    if not stats:
-        return "No sync results available."
+    ***REMOVED*** Calculate elapsed time
+    start_time = datetime.fromisoformat(results.get("start_time", datetime.now().isoformat()))
+    end_time = datetime.fromisoformat(results.get("end_time", datetime.now().isoformat()))
+    elapsed_seconds = (end_time - start_time).total_seconds()
 
-    start_time = datetime.fromisoformat(stats["start_time"])
-    formatted_start = start_time.strftime("%Y-%m-%d %H:%M:%S")
+    ***REMOVED*** Build the formatted string
+    formatted = []
+    formatted.append("[bold cyan]===== Movie Sync Results =====[/bold cyan]")
+    formatted.append(
+        f"[bold]Time Range:[/bold] {start_time.strftime('%Y-%m-%d %H:%M:%S')} to {end_time.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+    formatted.append(f"[bold]Elapsed Time:[/bold] {elapsed_seconds:.2f} seconds")
+    formatted.append(
+        f"[bold]Year Range:[/bold] {results.get('start_year', 'N/A')} to {results.get('end_year', 'N/A')}"
+    )
+    formatted.append("")
+    formatted.append("[bold cyan]--- Statistics ---[/bold cyan]")
+    formatted.append(f"[bold]Years Processed:[/bold] {results.get('years_processed', 0)}")
+    formatted.append(f"[bold]TMDB Movies Found:[/bold] {results.get('tmdb_movies_found', 0)}")
+    formatted.append(f"[bold]OMDB Matches Found:[/bold] {results.get('omdb_matches_found', 0)}")
+    formatted.append(f"[bold]Movies Synced:[/bold] {results.get('movies_synced', 0)}")
+    formatted.append(f"[bold]Genres Found:[/bold] {results.get('genres_found', 0)}")
 
-    if stats["end_time"]:
-        end_time = datetime.fromisoformat(stats["end_time"])
-        formatted_end = end_time.strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        formatted_end = "N/A"
+    ***REMOVED*** Add credit information if available
+    if "credits_saved" in results:
+        formatted.append(f"[bold]Credits Saved:[/bold] {results.get('credits_saved', 0)}")
 
-    formatted_results = [
-        f"Movie Sync Results ({stats['start_year']} - {stats['end_year']})",
-        f"Started: {formatted_start}",
-        f"Finished: {formatted_end}",
-        f"Duration: {stats['elapsed_seconds']:.2f} seconds",
-        f"Years processed: {stats['years_processed']} of {stats['end_year'] - stats['start_year'] + 1}",
-        f"Genres found: {stats.get('genres_found', 0)}",
-        f"TMDB movies found: {stats['tmdb_movies_found']}",
-        f"OMDB matches found: {stats['omdb_matches_found']}",
-        f"Total movies synced: {stats['movies_synced']}",
-    ]
+    if results.get("save_to_db", False):
+        formatted.append(f"[bold]Movies Saved to DB:[/bold] {results.get('movies_saved_to_db', 0)}")
 
-    ***REMOVED*** Add database storage information if available
-    if "movies_saved_to_db" in stats:
-        formatted_results.append(f"Movies saved to database: {stats['movies_saved_to_db']}")
+    ***REMOVED*** Add errors if any
+    errors = results.get("errors", [])
+    if errors:
+        formatted.append("")
+        formatted.append("[bold red]--- Errors ---[/bold red]")
+        for error in errors[:5]:  ***REMOVED*** Show at most 5 errors
+            formatted.append(f"[red]- {error}[/red]")
+        if len(errors) > 5:
+            formatted.append(f"[red]... and {len(errors) - 5} more errors[/red]")
 
-    ***REMOVED*** Add genre list
-    if genres:
-        formatted_results.append("\nGenres:")
-        genre_names = [f"{g['id']}: {g['name']}" for g in genres[:10]]
-        formatted_results.append("  " + ", ".join(genre_names))
-        if len(genres) > 10:
-            formatted_results.append(f"  ... and {len(genres) - 10} more genres")
-
-    ***REMOVED*** Add movie list summary
-    if movie_dicts:
-        formatted_results.append("\nSynced Movies:")
-        for idx, movie in enumerate(movie_dicts[:10], 1):  ***REMOVED*** Show first 10 movies
-            imdb_info = f" (IMDb: {movie.get('imdb_rating')})" if movie.get("imdb_rating") else ""
-            tmdb_info = f" (TMDB: {movie.get('tmdb_rating')})" if movie.get("tmdb_rating") else ""
-            ratings = f"{imdb_info}{tmdb_info}" if (imdb_info or tmdb_info) else ""
-
-            ***REMOVED*** Get genres if available
-            genre_text = ""
-            if movie.get("genres"):
-                genre_names = [g.get("name", "") for g in movie.get("genres", [])]
-                if genre_names:
-                    genre_text = f" - Genres: {', '.join(genre_names)}"
-
-            release_date = movie.get("release_date")
-            if release_date:
-                if isinstance(release_date, date):
-                    release_date = release_date.strftime("%Y-%m-%d")
-            else:
-                release_date = "Unknown"
-
-            formatted_results.append(
-                f"  {idx}. {movie.get('title')} ({release_date}){ratings}{genre_text}"
-            )
-
-        if len(movie_dicts) > 10:
-            formatted_results.append(f"  ... and {len(movie_dicts) - 10} more movies")
-
-    if stats["errors"]:
-        formatted_results.append(f"\nErrors encountered: {len(stats['errors'])}")
-        for i, error in enumerate(stats["errors"][:5]):  ***REMOVED*** Show first 5 errors
-            formatted_results.append(f"  {i+1}. {error}")
-
-        if len(stats["errors"]) > 5:
-            formatted_results.append(f"  ... and {len(stats['errors']) - 5} more errors")
-    else:
-        formatted_results.append("\nNo errors encountered.")
-
-    return "\n".join(formatted_results)
+    return "\n".join(formatted)

@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 MIGRATIONS = [
     "movie_storage.db.migrations.001_create_initial_tables",
     "movie_storage.db.migrations.002_add_credits_and_extended_movie_fields",
+    "movie_storage.db.migrations.003_update_budget_revenue_to_bigint",
 ]
 
 
