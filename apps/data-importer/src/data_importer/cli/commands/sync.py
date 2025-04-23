@@ -15,6 +15,8 @@ from data_importer.config.logging import with_logging
 from data_importer.services.tmdb import TMDBClient
 from data_importer.services.omdb import OMDBClient
 from data_importer.sync.movie_sync import sync_movies_by_year_range, format_sync_results
+from data_importer.cli.utils import get_api_key
+from data_importer.config.app import DEFAULT_TMDB_ACCESS_TOKEN, DEFAULT_OMDB_API_KEY
 
 console = Console()
 logger = logging.getLogger(__name__)
@@ -28,11 +30,17 @@ def sync_movies(
     start_year: int = typer.Argument(..., help="Starting year (inclusive)"),
     end_year: int = typer.Argument(..., help="Ending year (inclusive)"),
     limit_per_year: int = typer.Option(20, "--limit", "-l", help="Maximum movies per year"),
-    tmdb_api_key: Optional[str] = typer.Option(
-        None, "--tmdb-key", "-t", help="TMDB API key", envvar="TMDB_API_KEY"
+    tmdb_access_token: Optional[str] = typer.Option(
+        DEFAULT_TMDB_ACCESS_TOKEN,
+        "--tmdb-token",
+        "-t",
+        help="TMDB Bearer token (or set TMDB_ACCESS_TOKEN environment variable)",
     ),
     omdb_api_key: Optional[str] = typer.Option(
-        None, "--omdb-key", "-o", help="OMDB API key", envvar="OMDB_API_KEY"
+        DEFAULT_OMDB_API_KEY,
+        "--omdb-key",
+        "-o",
+        help="OMDB API key (or set OMDB_API_KEY environment variable)",
     ),
     save_to_db: bool = typer.Option(False, "--save/--no-save", help="Save movies to database"),
     include_credits: bool = typer.Option(
@@ -46,8 +54,13 @@ def sync_movies(
     saves it to the database. With the --credits flag, it will also fetch
     and save cast and crew information.
 
-    Example:
+    API Keys:
+        - TMDB: Get from https://www.themoviedb.org/settings/api
+        - OMDB: Get from https://www.omdbapi.com/apikey.aspx
+
+    Examples:
         data-importer sync movies 2022 2023 --credits --save
+        data-importer sync movies 2010 2010 --limit 5 --no-save --verbose
     """
     ***REMOVED*** Display configuration if verbose
     if verbose:
@@ -56,27 +69,18 @@ def sync_movies(
         console.print(f"Limit per year: {limit_per_year}")
         console.print(f"Save to database: {save_to_db}")
         console.print(f"Include credits: {include_credits}")
-        console.print(f"TMDB API key: {'Provided' if tmdb_api_key else 'Not provided'}")
+        console.print(f"TMDB token: {'Provided' if tmdb_access_token else 'Not provided'}")
         console.print(f"OMDB API key: {'Provided' if omdb_api_key else 'Not provided'}")
         console.print()
 
-    ***REMOVED*** Ensure we have API keys
-    if not tmdb_api_key:
-        tmdb_api_key = os.environ.get("TMDB_API_KEY")
-        if not tmdb_api_key:
-            console.print("[bold red]Error:[/bold red] TMDB API key is required.")
-            console.print("Provide it via --tmdb-key or set the TMDB_API_KEY environment variable.")
-            raise typer.Exit(code=1)
-
-    if not omdb_api_key:
-        omdb_api_key = os.environ.get("OMDB_API_KEY")
-        if not omdb_api_key:
-            console.print("[bold red]Error:[/bold red] OMDB API key is required.")
-            console.print("Provide it via --omdb-key or set the OMDB_API_KEY environment variable.")
-            raise typer.Exit(code=1)
+    ***REMOVED*** Get API keys using the standardized utility
+    tmdb_access_token = get_api_key(
+        tmdb_access_token, "TMDB_ACCESS_TOKEN", "TMDB access token", console, required=True
+    )
+    omdb_api_key = get_api_key(omdb_api_key, "OMDB_API_KEY", "OMDB API key", console, required=True)
 
     ***REMOVED*** Initialize clients
-    tmdb_client = TMDBClient(access_token=tmdb_api_key)
+    tmdb_client = TMDBClient(access_token=tmdb_access_token)
     omdb_client = OMDBClient(api_key=omdb_api_key)
 
     ***REMOVED*** Prepare database session if saving to database

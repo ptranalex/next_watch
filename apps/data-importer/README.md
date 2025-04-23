@@ -24,7 +24,7 @@ This application provides tools to import movie and TV show data from external s
 Set your API keys as environment variables:
 
 ```bash
-export TMDB_API_KEY="your_tmdb_api_key_here"
+export TMDB_ACCESS_TOKEN="your_tmdb_access_token_here"
 export OMDB_API_KEY="your_omdb_api_key_here"
 ```
 
@@ -39,38 +39,13 @@ data-importer sync movies 2022 2023 --credits --save
 Options:
 
 - `--limit`, `-l`: Maximum movies per year (default: 20)
-- `--tmdb-key`, `-t`: TMDB API key (if not set as environment variable)
+- `--tmdb-token`, `-t`: TMDB Bearer token (if not set as environment variable)
 - `--omdb-key`, `-o`: OMDB API key (if not set as environment variable)
 - `--save/--no-save`: Save movies to database (default: --no-save)
 - `--credits/--no-credits`: Include cast and crew information (default: --no-credits)
 - `--verbose`, `-v`: Show detailed output
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Import a Specific Movie
-
-```bash
-data-importer movie id 550  ***REMOVED*** Import Fight Club (TMDB ID: 550)
-```
-
-Options:
-
-- `--api-key`, `-k`: TMDB API key (if not set as environment variable)
-- `--language`, `-l`: Language for movie data (default: en-US)
-- `--verbose`, `-v`: Show detailed output
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Import Popular Movies
-
-```bash
-data-importer movie popular --limit 5  ***REMOVED*** Import 5 most popular movies
-```
-
-Options:
-
-- `--limit`, `-n`: Number of movies to import (default: 10)
-- `--api-key`, `-k`: TMDB API key (if not set as environment variable)
-- `--language`, `-l`: Language for movie data (default: en-US)
-- `--verbose`, `-v`: Show detailed output
-
-***REMOVED******REMOVED******REMOVED*** Interactive Shell
+***REMOVED******REMOVED******REMOVED******REMOVED*** Interactive Shell
 
 Launch an interactive shell to explore and manipulate data:
 
@@ -78,14 +53,60 @@ Launch an interactive shell to explore and manipulate data:
 data-importer shell
 ```
 
+Options:
+
+- `--config-dir`, `-c`: Configuration directory
+- `--logs-dir`, `-l`: Directory to save log files
+- `--data-dir`, `-d`: Directory for movie data files
+- `--tmdb-token`, `-t`: TMDB Bearer token (if not set as environment variable)
+- `--imdb-api-key`, `-i`: IMDb API key (if not set as environment variable)
+- `--omdb-api-key`, `-o`: OMDB API key (if not set as environment variable)
+- `--verbose`, `-v`: Enable verbose logging
+- `--quiet`, `-q`: Suppress non-essential output
+- `--theme`, `-th`: Color theme for the shell (default, monokai, solarized, pastie, vs, manni, autumn, murphy, monochrome)
+- `--plain`, `-p`: Use plain output without syntax highlighting
+
 In the shell, you can use various functions:
 
 ```python
-***REMOVED*** Sync movies for a year range with credits
-sync_movies(2022, 2023, include_credits=True, save_to_db=True)
+***REMOVED*** Get popular movies from TMDB
+movies = run_async(tmdb_client.get_popular_movies())
 
-***REMOVED*** Access the synced movies
-jprint(synced_movies[0])  ***REMOVED*** Print the first movie in nice format
+***REMOVED*** Search for a movie
+results = run_async(tmdb_client.search_movies("Inception"))
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Interactive Mode (Experimental)
+
+Launch an interactive interface for data import operations:
+
+```bash
+data-importer interactive
+```
+
+Options:
+
+- `--config-dir`, `-c`: Configuration directory
+- `--logs-dir`, `-l`: Directory to save log files
+- `--tmdb-token`, `-t`: TMDB Bearer token (if not set as environment variable)
+- `--omdb-key`, `-o`: OMDB API key (if not set as environment variable)
+- `--verbose`, `-v`: Enable verbose logging
+- `--quiet`, `-q`: Suppress non-essential output
+
+Note: This feature is experimental and not fully implemented yet.
+
+***REMOVED******REMOVED******REMOVED*** API Key Configuration
+
+The application requires API keys for external services:
+
+- **TMDB Access Token**: Get from [The Movie Database](https://www.themoviedb.org/settings/api)
+- **OMDB API Key**: Get from [OMDb API](https://www.omdbapi.com/apikey.aspx)
+
+You can provide these keys either as command-line options or environment variables:
+
+```bash
+export TMDB_ACCESS_TOKEN="your_tmdb_access_token_here"
+export OMDB_API_KEY="your_omdb_api_key_here"
 ```
 
 ***REMOVED******REMOVED*** Development
@@ -94,11 +115,15 @@ jprint(synced_movies[0])  ***REMOVED*** Print the first movie in nice format
 
 - `src/data_importer/`: Main package
   - `cli/`: CLI commands
+    - `commands/`: Command implementations
+    - `utils.py`: CLI utilities
   - `services/`: Service implementations
     - `tmdb.py`: TMDB API client
     - `omdb.py`: OMDB API client
+    - `imdb.py`: IMDB API client
   - `sync/`: Data synchronization logic
     - `movie_sync.py`: Movie synchronization functions
+  - `config/`: Application configuration
 
 ***REMOVED******REMOVED******REMOVED*** Adding Support for New Data Sources
 

@@ -8,11 +8,8 @@ from rich.traceback import install
 
 from data_importer.cli.commands.shell import shell
 from data_importer.cli.commands.interactive import interactive
-from data_importer.config import DEFAULT_LOGS_DIR, configure_logging, with_logging
-
-***REMOVED*** CLI commands
-from data_importer.cli.commands import import_movie
 from data_importer.cli.commands import sync
+from data_importer.config import DEFAULT_LOGS_DIR, configure_logging, with_logging
 
 ***REMOVED*** Install rich traceback handler
 install()
@@ -30,12 +27,11 @@ configure_logging(log_level="INFO", log_dir=DEFAULT_LOGS_DIR, verbose=False, qui
 logger = logging.getLogger("data_importer.cli")
 
 ***REMOVED*** Add command groups
-app.add_typer(import_movie.app, name="movie")
 app.add_typer(sync.app, name="sync")
 
 ***REMOVED*** Add commands to the app
 app.command(name="shell", help="Launch an interactive shell")(shell)
-app.command(name="interactive", help="Launch an interactive shell")(interactive)
+app.command(name="interactive", help="Launch an interactive interface")(interactive)
 
 
 @with_logging(log_level="INFO", log_dir=DEFAULT_LOGS_DIR)

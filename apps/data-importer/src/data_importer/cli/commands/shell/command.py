@@ -17,7 +17,7 @@ from data_importer.cli.commands.shell.help import (
 )
 from data_importer.cli.commands.shell.helpers import async_run, create_loading_functions
 from data_importer.cli.commands.shell.repl import configure_repl
-from data_importer.cli.utils import print_plain, print_config
+from data_importer.cli.utils import print_plain, print_config, get_api_key
 from data_importer.config.app import (
     DEFAULT_CONFIG_DIR,
     DEFAULT_LOGS_DIR,
@@ -129,9 +129,15 @@ def shell(
         data_dir.mkdir(parents=True, exist_ok=True)
 
         ***REMOVED*** Ensure API keys are available
-        tmdb_access_token = tmdb_access_token or os.environ.get("TMDB_ACCESS_TOKEN", "")
-        imdb_api_key = imdb_api_key or os.environ.get("IMDB_API_KEY", "")
-        omdb_api_key = omdb_api_key or os.environ.get("OMDB_API_KEY", "")
+        tmdb_access_token = get_api_key(
+            tmdb_access_token, "TMDB_ACCESS_TOKEN", "TMDB access token", console, required=False
+        )
+        imdb_api_key = get_api_key(
+            imdb_api_key, "IMDB_API_KEY", "IMDb API key", console, required=False
+        )
+        omdb_api_key = get_api_key(
+            omdb_api_key, "OMDB_API_KEY", "OMDB API key", console, required=False
+        )
 
         ***REMOVED*** Create config
         config = Config(
