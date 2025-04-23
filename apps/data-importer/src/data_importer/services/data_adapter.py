@@ -1,20 +1,23 @@
-"""TMDB data adapter service.
+"""Data adapter services for movie APIs.
 
-This module provides the bridge between the TMDB API client and the movie_storage
+This module provides the bridge between external API clients and the movie_storage
 operations, handling the conversion of API responses to database models.
 """
 
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 
 from sqlmodel import Session
 
 from movie_storage.db.operations.movie import create_movie_from_tmdb_details
 from movie_storage.db.operations import (
     get_movie_by_tmdb_id,
+    get_movie_by_id,
+    update_movie,
 )
 
 from data_importer.services.tmdb import TMDBClient
+from data_importer.services.omdb import OMDBClient
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +34,7 @@ class TMDBDataAdapter:
         self.tmdb_client = tmdb_client
 
     async def import_movie_by_id(
-        self, session: Session, movie_id: int, language: str = "en-US"
+        self, session: Session, movie_id: int, language: str = "en-US", include_credits: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Import a movie by its TMDB ID.
 
@@ -42,6 +45,7 @@ class TMDBDataAdapter:
             session: Database session
             movie_id: TMDB movie ID
             language: Language for movie data (default: "en-US")
+            include_credits: Whether to include credits information (default: True)
 
         Returns:
             Dictionary with import result information, or None if import failed
@@ -52,7 +56,7 @@ class TMDBDataAdapter:
 
             ***REMOVED*** Fetch movie details with credits
             movie_details = await self.tmdb_client.get_movie_details(
-                movie_id=movie_id, language=language, append_credits=True
+                movie_id=movie_id, language=language, append_credits=include_credits
             )
 
             if not movie_details:
@@ -119,5 +123,230 @@ class TMDBDataAdapter:
 
         except Exception as e:
             logger.exception(f"Error importing popular movies: {str(e)}")
+
+        return results
+
+
+class OMDBDataAdapter:
+    """Adapter for enriching movie data from OMDB API."""
+
+    def __init__(self, omdb_client: OMDBClient):
+        """Initialize the OMDB data adapter.
+
+        Args:
+            omdb_client: An initialized OMDBClient instance
+        """
+        self.omdb_client = omdb_client
+
+    async def get_movie_data(
+        self, title: str, year: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Get movie data from OMDB.
+
+        Args:
+            title: Movie title
+            year: Optional release year
+
+        Returns:
+            Dictionary with normalized OMDB data or None if not found
+        """
+        try:
+            ***REMOVED*** Search for movie in OMDB
+            omdb_movie = await self.omdb_client.search_movie(title, year=year)
+
+            if not omdb_movie or omdb_movie.get("Response") != "True":
+                logger.debug(f"No OMDB data found for movie: {title} {f'({year})' if year else ''}")
+                return None
+
+            ***REMOVED*** Normalize OMDB data for our application
+            normalized_data = {
+                "imdb_id": omdb_movie.get("imdbID"),
+                "imdb_rating": None,
+                "runtime_mins": None,
+                "plot": omdb_movie.get("Plot"),
+                "actors": omdb_movie.get("Actors"),
+                "director": omdb_movie.get("Director"),
+                "awards": omdb_movie.get("Awards"),
+                "metascore": None,
+            }
+
+            ***REMOVED*** Process IMDB rating
+            if omdb_movie.get("imdbRating", "N/A") != "N/A":
+                try:
+                    normalized_data["imdb_rating"] = float(omdb_movie.get("imdbRating", 0))
+                except (ValueError, TypeError):
+                    pass
+
+            ***REMOVED*** Process runtime
+            runtime_str = omdb_movie.get("Runtime", "")
+            if runtime_str and runtime_str != "N/A" and "min" in runtime_str:
+                try:
+                    normalized_data["runtime_mins"] = int(runtime_str.split()[0])
+                except (ValueError, IndexError):
+                    pass
+
+            ***REMOVED*** Process Metascore
+            if omdb_movie.get("Metascore", "N/A") != "N/A":
+                try:
+                    normalized_data["metascore"] = int(omdb_movie.get("Metascore", 0))
+                except (ValueError, TypeError):
+                    pass
+
+            logger.debug(f"Retrieved OMDB data for movie: {title}")
+            return normalized_data
+
+        except Exception as e:
+            logger.exception(f"Error getting OMDB data for {title}: {str(e)}")
+            return None
+
+    async def enrich_movie(
+        self, session: Session, movie_id: int, title: str, year: Optional[str] = None
+    ) -> bool:
+        """Enrich an existing movie with OMDB data.
+
+        Args:
+            session: Database session
+            movie_id: Database ID of the movie to enrich
+            title: Movie title to search for in OMDB
+            year: Optional release year
+
+        Returns:
+            True if movie was successfully enriched, False otherwise
+        """
+        try:
+            ***REMOVED*** Get movie from database
+            db_movie = get_movie_by_id(session, movie_id)
+            if not db_movie:
+                logger.warning(f"Movie with ID {movie_id} not found in database")
+                return False
+
+            ***REMOVED*** Get OMDB data
+            omdb_data = await self.get_movie_data(title, year)
+            if not omdb_data:
+                return False
+
+            ***REMOVED*** Only update fields that are not already populated
+            updates = {}
+            if not db_movie.imdb_id and omdb_data["imdb_id"]:
+                updates["imdb_id"] = omdb_data["imdb_id"]
+            if not db_movie.imdb_rating and omdb_data["imdb_rating"]:
+                updates["imdb_rating"] = omdb_data["imdb_rating"]
+            if not db_movie.runtime and omdb_data["runtime_mins"]:
+                updates["runtime"] = omdb_data["runtime_mins"]
+
+            ***REMOVED*** Only update if we have changes
+            if updates:
+                update_movie(session, movie_id, updates)
+                logger.info(f"Enriched movie with OMDB data: {db_movie.title}")
+                return True
+            else:
+                logger.debug(f"No OMDB enrichment needed for: {db_movie.title}")
+                return False
+
+        except Exception as e:
+            logger.exception(f"Error enriching movie ID {movie_id} with OMDB data: {str(e)}")
+            return False
+
+
+class MovieDataAdapter:
+    """Combined adapter that uses both TMDB and OMDB for comprehensive movie data."""
+
+    def __init__(self, tmdb_client: TMDBClient, omdb_client: OMDBClient):
+        """Initialize the combined movie data adapter.
+
+        Args:
+            tmdb_client: An initialized TMDBClient instance
+            omdb_client: An initialized OMDBClient instance
+        """
+        self.tmdb_adapter = TMDBDataAdapter(tmdb_client)
+        self.omdb_adapter = OMDBDataAdapter(omdb_client)
+
+    async def import_movie_with_enrichment(
+        self, session: Session, tmdb_id: int, language: str = "en-US", include_credits: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """Import a movie from TMDB and enrich it with OMDB data.
+
+        Args:
+            session: Database session
+            tmdb_id: TMDB movie ID
+            language: Language for movie data (default: "en-US")
+            include_credits: Whether to include credits information (default: True)
+
+        Returns:
+            Dictionary with import result information, or None if import failed
+        """
+        ***REMOVED*** First import the movie from TMDB
+        result = await self.tmdb_adapter.import_movie_by_id(
+            session, tmdb_id, language, include_credits
+        )
+
+        if not result:
+            return None
+
+        ***REMOVED*** Get the movie details for OMDB enrichment
+        db_movie_id = result.get("movie_id")
+        if db_movie_id is None:
+            logger.warning("Missing movie_id in import result")
+            return result
+
+        db_movie = get_movie_by_id(session, db_movie_id)
+        if not db_movie or db_movie.id is None:
+            return result
+
+        ***REMOVED*** Extract year from release date if available
+        year = None
+        if db_movie.release_date:
+            year = str(db_movie.release_date.year)
+
+        ***REMOVED*** Enrich with OMDB data
+        enriched = await self.omdb_adapter.enrich_movie(session, db_movie.id, db_movie.title, year)
+
+        if enriched:
+            result["omdb_enriched"] = True
+
+        return result
+
+    async def import_popular_movies_with_enrichment(
+        self, session: Session, limit: int = 10, language: str = "en-US"
+    ) -> List[Dict[str, Any]]:
+        """Import popular movies from TMDB and enrich them with OMDB data.
+
+        Args:
+            session: Database session
+            limit: Maximum number of movies to import (default: 10)
+            language: Language for movie data (default: "en-US")
+
+        Returns:
+            List of import result dictionaries
+        """
+        results = []
+        tmdb_results = await self.tmdb_adapter.import_popular_movies(session, limit, language)
+
+        for result in tmdb_results:
+            ***REMOVED*** Get the movie details for OMDB enrichment
+            db_movie_id = result.get("movie_id")
+            if db_movie_id is None:
+                results.append(result)
+                continue
+
+            db_movie = get_movie_by_id(session, db_movie_id)
+            if not db_movie or db_movie.id is None:
+                results.append(result)
+                continue
+
+            ***REMOVED*** Extract year from release date if available
+            year = None
+            if db_movie.release_date:
+                year = str(db_movie.release_date.year)
+
+            ***REMOVED*** Enrich with OMDB data
+            enriched = await self.omdb_adapter.enrich_movie(
+                session, db_movie.id, db_movie.title, year
+            )
+
+            if enriched:
+                result["omdb_enriched"] = True
+
+            results.append(result)
 
         return results
