@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Flex,
@@ -7,14 +7,26 @@ import {
   HStack,
   IconButton,
   useColorMode,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
 } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, SearchIcon } from "@chakra-ui/icons";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import SearchInput from "../SearchInput";
 
 const Header: React.FC = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const router = useRouter();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const handleSearch = (term: string) => {
+    if (term.trim().length >= 2) {
+      router.push(`/search?q=${encodeURIComponent(term)}`);
+    }
+  };
 
   return (
     <Box as="header" bg="gray.800" px={4} py={2} shadow="md">
@@ -59,12 +71,30 @@ const Header: React.FC = () => {
         </Flex>
 
         <HStack spacing={2}>
-          <IconButton
-            aria-label="Search"
-            icon={<SearchIcon />}
-            variant="ghost"
-            onClick={() => router.push("/search")}
-          />
+          <Popover
+            isOpen={isSearchOpen}
+            onClose={() => setIsSearchOpen(false)}
+            placement="bottom-end"
+            closeOnBlur={true}
+          >
+            <PopoverTrigger>
+              <IconButton
+                aria-label="Search"
+                icon={<SearchIcon />}
+                variant="ghost"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+              />
+            </PopoverTrigger>
+            <PopoverContent width="300px" p={2}>
+              <PopoverBody>
+                <SearchInput
+                  placeholder="Search for movies..."
+                  onSearch={handleSearch}
+                  debounceTime={500}
+                />
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
           <IconButton
             aria-label="Toggle color mode"
             icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
