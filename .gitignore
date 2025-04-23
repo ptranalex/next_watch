@@ -55,3 +55,11 @@ htmlcov/
 .DS_Store
 
 ***REMOVED*** Project specific
+
+***REMOVED*** References
+reference/
+references/
+/reference/
+/references/
+**/reference/
+**/references/
