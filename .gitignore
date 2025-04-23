@@ -1,65 +1,59 @@
+***REMOVED*** Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+
 ***REMOVED*** Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
-build/
-develop-eggs/
+.build/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
 *.egg-info/
-.installed.cfg
-*.egg
+.eggs/
+.python-version
 .pytest_cache/
 .coverage
 htmlcov/
-.python-version
-*.pyc
-
-***REMOVED*** Virtual Environment
-.venv
-env/
-venv/
-ENV/
-
-***REMOVED*** Environment variables - include the base .env, exclude local overrides
-***REMOVED*** .env is now versioned with safe defaults
-.env.local
-.env.*.local
-
-***REMOVED*** IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+coverage.xml
 
 ***REMOVED*** Logs
 *.log
 ebook_summarizer.log
 
-***REMOVED*** Testing
-.coverage
-.pytest_cache/
-htmlcov/
+***REMOVED*** Env Vars
+.env.local
+.env.*.local
 
-***REMOVED*** Misc
+***REMOVED*** IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+***REMOVED*** Project Specific
 .DS_Store
-
-***REMOVED*** Project specific
-
-***REMOVED*** References
 reference/
-references/
-/reference/
-/references/
 **/reference/
+references/
 **/references/
+
+***REMOVED*** Next.js
+.next/
+**/.next/
+**/out/
+.vercel/
+next-error.log
+apps/web-nextjs/.turbo
+.turbo/
+
+***REMOVED*** Node
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
