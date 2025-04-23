@@ -117,22 +117,6 @@ async def sync_movies_by_year_range(
     ***REMOVED*** Fetch genres first
     genre_map = await fetch_genre_data(tmdb_client)
 
-    ***REMOVED*** Create database genres if saving to database
-    db_genres = {}
-    if save_to_db and db_session:
-        for genre_id, genre_data in genre_map.items():
-            try:
-                ***REMOVED*** Get or create the genre by TMDB ID
-                db_genre = genre_ops.get_genre_by_tmdb_id(db_session, genre_id)
-                if not db_genre:
-                    ***REMOVED*** Create a new genre with the TMDB ID
-                    db_genre = genre_ops.create_genre(
-                        db_session, genre_data["name"], tmdb_id=genre_id
-                    )
-                db_genres[genre_id] = db_genre.id
-            except Exception as e:
-                logger.error(f"Error creating genre {genre_data['name']}: {str(e)}")
-
     ***REMOVED*** Statistics to return
     stats = {
         "tmdb_movies_found": 0,
@@ -184,24 +168,88 @@ async def sync_movies_by_year_range(
                         year_str = str(year)
                         tmdb_id = tmdb_movie.get("id")
 
-                        if include_credits and save_to_db and db_session and tmdb_id:
-                            ***REMOVED*** If we want credits and we're saving to DB, we'll use a different approach
-                            ***REMOVED*** that gets all details including credits in one API call
-                            try:
-                                ***REMOVED*** Fetch complete movie details with credits
-                                movie_details = await tmdb_client.get_movie_details(
-                                    movie_id=tmdb_id, append_credits=True
-                                )
+                        if not tmdb_id:
+                            logger.warning(f"Skipping movie with no TMDB ID: {movie_title}")
+                            continue
 
-                                if movie_details:
-                                    ***REMOVED*** Create or update movie in database with all details including credits
+                        ***REMOVED*** Default approach: get movie details from TMDB
+                        try:
+                            ***REMOVED*** Determine if we should include credits
+                            append_credits = include_credits or False
+
+                            ***REMOVED*** Fetch complete movie details
+                            movie_details = await tmdb_client.get_movie_details(
+                                movie_id=tmdb_id, append_credits=append_credits
+                            )
+
+                            if not movie_details:
+                                logger.warning(
+                                    f"Could not get details for movie {movie_title} (ID: {tmdb_id})"
+                                )
+                                continue
+
+                            ***REMOVED*** Add year information to help with future filtering
+                            if "release_date" in movie_details and movie_details["release_date"]:
+                                try:
+                                    release_year = int(movie_details["release_date"].split("-")[0])
+                                    movie_details["year"] = release_year
+                                except (ValueError, IndexError):
+                                    movie_details["year"] = year
+                            else:
+                                movie_details["year"] = year
+
+                            ***REMOVED*** Try to get additional data from OMDB if movie title exists
+                            if movie_title:
+                                try:
+                                    omdb_movie = await omdb_client.search_movie(
+                                        movie_title, year=year_str
+                                    )
+
+                                    if omdb_movie and omdb_movie.get("Response") == "True":
+                                        ***REMOVED*** Add OMDB data to the movie details
+                                        if "imdbID" in omdb_movie and omdb_movie["imdbID"]:
+                                            movie_details["imdb_id"] = omdb_movie["imdbID"]
+
+                                        ***REMOVED*** Add IMDB rating if available
+                                        if omdb_movie.get("imdbRating", "N/A") != "N/A":
+                                            try:
+                                                imdb_rating = float(omdb_movie.get("imdbRating", 0))
+                                                movie_details["imdb_rating"] = imdb_rating
+                                            except (ValueError, TypeError):
+                                                pass
+
+                                        ***REMOVED*** Add runtime from OMDB if available and not in TMDB data
+                                        if not movie_details.get("runtime"):
+                                            runtime_str = omdb_movie.get("Runtime", "")
+                                            if (
+                                                runtime_str
+                                                and runtime_str != "N/A"
+                                                and "min" in runtime_str
+                                            ):
+                                                try:
+                                                    runtime_mins = int(runtime_str.split()[0])
+                                                    movie_details["runtime"] = runtime_mins
+                                                except (ValueError, IndexError):
+                                                    pass
+
+                                        stats["omdb_matches_found"] += 1
+                                except Exception as e:
+                                    logger.warning(
+                                        f"OMDB lookup failed for '{movie_title}': {str(e)}"
+                                    )
+
+                            ***REMOVED*** Save to database if requested
+                            if save_to_db and db_session:
+                                try:
+                                    ***REMOVED*** Create or update movie in database with all details
                                     db_movie = create_movie_from_tmdb_details(
                                         db_session, movie_details
                                     )
 
                                     ***REMOVED*** Count credits for statistics
                                     credit_count = len(db_movie.credits) if db_movie.credits else 0
-                                    stats["credits_saved"] += credit_count
+                                    if credit_count > 0:
+                                        stats["credits_saved"] += credit_count
 
                                     ***REMOVED*** Add to in-memory movie models list
                                     movie_models.append(db_movie)
@@ -226,169 +274,119 @@ async def sync_movies_by_year_range(
                                         "credits_count": credit_count,
                                         "year": year,
                                         "imdb_id": db_movie.imdb_id,
+                                        "imdb_rating": db_movie.imdb_rating,
                                     }
 
                                     movie_dicts.append(movie_dict)
                                     stats["movies_synced"] += 1
                                     stats["movies_saved_to_db"] += 1
 
-                                    ***REMOVED*** Continue to next movie
-                                    if show_progress and progress is not None and year in task_ids:
-                                        progress.update(task_ids[year], advance=1)
-                                    continue
-                            except Exception as e:
-                                logger.error(
-                                    f"Error fetching full details for {movie_title}: {str(e)}"
-                                )
-                                ***REMOVED*** Fall back to normal processing without credits
-                                logger.info(
-                                    f"Falling back to standard processing for {movie_title}"
-                                )
-
-                        ***REMOVED*** Get genres for this movie
-                        movie_genres = []
-                        genre_ids = tmdb_movie.get("genre_ids", [])
-                        db_genre_ids = []
-
-                        for genre_id in genre_ids:
-                            if genre_id in genre_map:
-                                movie_genres.append(genre_map[genre_id])
-                                ***REMOVED*** Add to db genre ids if we're saving to db
-                                if save_to_db and genre_id in db_genres:
-                                    db_genre_ids.append(db_genres[genre_id])
-
-                        ***REMOVED*** Create a new movie model for in-memory use
-                        movie = Movie(
-                            tmdb_id=tmdb_id or 0,
-                            title=movie_title,
-                            original_title=tmdb_movie.get("original_title"),
-                            overview=tmdb_movie.get("overview"),
-                            language=tmdb_movie.get("original_language"),
-                            release_date=convert_string_to_date(tmdb_movie.get("release_date")),
-                            poster_url=tmdb_movie.get("poster_path"),
-                            backdrop_url=tmdb_movie.get("backdrop_path"),
-                            tmdb_rating=tmdb_movie.get("vote_average"),
-                            popularity=tmdb_movie.get("popularity"),
-                            budget=tmdb_movie.get("budget"),
-                            revenue=tmdb_movie.get("revenue"),
-                            runtime=tmdb_movie.get("runtime"),
-                            imdb_rating=None,
-                            imdb_id=None,
-                            genres=[],  ***REMOVED*** Empty list for SQLModel initialization
-                        )
-
-                        ***REMOVED*** Create a dictionary representation (safer for shell use)
-                        movie_dict = {
-                            "tmdb_id": movie.tmdb_id,
-                            "title": movie.title,
-                            "original_title": movie.original_title,
-                            "overview": movie.overview,
-                            "language": movie.language,
-                            "release_date": movie.release_date,
-                            "poster_url": movie.poster_url,
-                            "backdrop_url": movie.backdrop_url,
-                            "tmdb_rating": movie.tmdb_rating,
-                            "popularity": movie.popularity,
-                            "budget": movie.budget,
-                            "revenue": movie.revenue,
-                            "genres": movie_genres,  ***REMOVED*** Using the genre dictionaries here
-                            "year": year,
-                        }
-
-                        ***REMOVED*** Fetch additional data from OMDB if movie title exists
-                        if movie_title:
-                            try:
-                                omdb_movie = await omdb_client.search_movie(
-                                    movie_title, year=year_str
-                                )
-
-                                if omdb_movie and omdb_movie.get("Response") == "True":
-                                    ***REMOVED*** Add OMDB data to the movie model and dictionary
-                                    movie.imdb_id = omdb_movie.get("imdbID")
-                                    movie_dict["imdb_id"] = omdb_movie.get("imdbID")
-
-                                    imdb_rating = None
-                                    if omdb_movie.get("imdbRating", "N/A") != "N/A":
-                                        try:
-                                            imdb_rating = float(omdb_movie.get("imdbRating", 0))
-                                        except (ValueError, TypeError):
-                                            pass
-
-                                    movie.imdb_rating = imdb_rating
-                                    movie_dict["imdb_rating"] = imdb_rating
-
-                                    ***REMOVED*** Add runtime from OMDB if available
-                                    runtime_str = omdb_movie.get("Runtime", "")
-                                    if (
-                                        runtime_str
-                                        and runtime_str != "N/A"
-                                        and "min" in runtime_str
-                                    ):
-                                        try:
-                                            runtime_mins = int(runtime_str.split()[0])
-                                            movie.runtime = runtime_mins
-                                            movie_dict["runtime"] = runtime_mins
-                                        except (ValueError, IndexError):
-                                            pass
-
-                                    stats["omdb_matches_found"] += 1
-                            except Exception as e:
-                                logger.warning(f"OMDB lookup failed for '{movie_title}': {str(e)}")
-
-                        ***REMOVED*** Save to database if requested
-                        if save_to_db and db_session:
-                            try:
-                                ***REMOVED*** Check if movie already exists
-                                existing_movie = movie_ops.get_movie_by_tmdb_id(
-                                    db_session, movie.tmdb_id
-                                )
-
-                                if not existing_movie:
-                                    ***REMOVED*** Create new movie in database
-                                    db_movie = movie_ops.create_movie(
-                                        db_session,
-                                        movie_dict,  ***REMOVED*** Pass the dictionary data
-                                        genre_ids=db_genre_ids,  ***REMOVED*** Pass the genre IDs
+                                    ***REMOVED*** Add simplified movie data to stats
+                                    stats["movies"].append(
+                                        {
+                                            "id": db_movie.tmdb_id,
+                                            "title": db_movie.title,
+                                            "year": year,
+                                            "tmdb_rating": db_movie.tmdb_rating,
+                                            "imdb_rating": db_movie.imdb_rating,
+                                            "imdb_id": db_movie.imdb_id,
+                                            "genres": (
+                                                [g.name for g in db_movie.genres]
+                                                if db_movie.genres
+                                                else []
+                                            ),
+                                        }
                                     )
-                                    stats["movies_saved_to_db"] += 1
-                                    logger.info(f"Saved movie to database: {movie.title}")
-                                else:
-                                    logger.info(f"Movie already exists in database: {movie.title}")
-                            except Exception as e:
-                                error_msg = (
-                                    f"Error saving movie {movie.title} to database: {str(e)}"
+
+                                    logger.info(f"Saved movie to database: {db_movie.title}")
+                                except Exception as e:
+                                    error_msg = (
+                                        f"Error saving movie {movie_title} to database: {str(e)}"
+                                    )
+                                    logger.error(error_msg)
+                                    stats["errors"].append(error_msg)
+                            else:
+                                ***REMOVED*** For in-memory use only, still create a representation
+                                ***REMOVED*** Get genres for this movie from the genre map
+                                movie_genres = []
+                                genre_ids = tmdb_movie.get("genre_ids", [])
+
+                                for genre_id in genre_ids:
+                                    if genre_id in genre_map:
+                                        movie_genres.append(genre_map[genre_id])
+
+                                ***REMOVED*** Create a virtual movie model for statistics
+                                movie = Movie(
+                                    tmdb_id=tmdb_id,
+                                    title=movie_title,
+                                    original_title=movie_details.get("original_title"),
+                                    overview=movie_details.get("overview"),
+                                    language=movie_details.get("original_language"),
+                                    release_date=convert_string_to_date(
+                                        movie_details.get("release_date")
+                                    ),
+                                    poster_url=movie_details.get("poster_path"),
+                                    backdrop_url=movie_details.get("backdrop_path"),
+                                    tmdb_rating=movie_details.get("vote_average"),
+                                    popularity=movie_details.get("popularity"),
+                                    runtime=movie_details.get("runtime"),
+                                    imdb_id=movie_details.get("imdb_id"),
+                                    imdb_rating=movie_details.get("imdb_rating"),
+                                    genres=[],  ***REMOVED*** Empty list for SQLModel initialization
                                 )
-                                logger.error(error_msg)
-                                stats["errors"].append(error_msg)
 
-                        ***REMOVED*** Add movie to the result lists
-                        movie_models.append(movie)
-                        movie_dicts.append(movie_dict)
+                                ***REMOVED*** Create a dictionary representation
+                                movie_dict = {
+                                    "tmdb_id": movie.tmdb_id,
+                                    "title": movie.title,
+                                    "original_title": movie.original_title,
+                                    "overview": movie.overview,
+                                    "language": movie.language,
+                                    "release_date": movie.release_date,
+                                    "poster_url": movie.poster_url,
+                                    "backdrop_url": movie.backdrop_url,
+                                    "tmdb_rating": movie.tmdb_rating,
+                                    "popularity": movie.popularity,
+                                    "genres": movie_genres,
+                                    "year": year,
+                                    "imdb_id": movie.imdb_id,
+                                    "imdb_rating": movie.imdb_rating,
+                                }
 
-                        ***REMOVED*** Add simplified movie data to stats
-                        stats["movies"].append(
-                            {
-                                "id": movie.tmdb_id,
-                                "title": movie.title,
-                                "year": year,
-                                "tmdb_rating": movie.tmdb_rating,
-                                "imdb_rating": movie.imdb_rating,
-                                "imdb_id": movie.imdb_id,
-                                "genres": (
-                                    [g["name"] for g in movie_genres] if movie_genres else []
-                                ),
-                            }
-                        )
+                                movie_models.append(movie)
+                                movie_dicts.append(movie_dict)
+                                stats["movies_synced"] += 1
 
-                        stats["movies_synced"] += 1
+                                ***REMOVED*** Add simplified movie data to stats
+                                stats["movies"].append(
+                                    {
+                                        "id": movie.tmdb_id,
+                                        "title": movie.title,
+                                        "year": year,
+                                        "tmdb_rating": movie.tmdb_rating,
+                                        "imdb_rating": movie.imdb_rating,
+                                        "imdb_id": movie.imdb_id,
+                                        "genres": (
+                                            [g["name"] for g in movie_genres]
+                                            if movie_genres
+                                            else []
+                                        ),
+                                    }
+                                )
 
-                        ***REMOVED*** Update progress
-                        if show_progress and progress is not None and year in task_ids:
-                            progress.update(
-                                task_ids[year],
-                                completed=i + 1,
-                                description=f"[green]Year {year}: {i+1}/{len(year_movies)} movies",
+                            ***REMOVED*** Update progress
+                            if show_progress and progress is not None and year in task_ids:
+                                progress.update(
+                                    task_ids[year],
+                                    completed=i + 1,
+                                    description=f"[green]Year {year}: {i+1}/{len(year_movies)} movies",
+                                )
+
+                        except Exception as e:
+                            logger.error(
+                                f"Error processing TMDB details for {movie_title}: {str(e)}"
                             )
+                            continue
 
                     except Exception as e:
                         error_msg = (
