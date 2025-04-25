@@ -21,7 +21,7 @@ from backend_api.db.database import get_db
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
 
 ***REMOVED*** Import API-specific query operations
-from backend_api.queries.movie_queries import (
+from backend_api.queries import (
     get_top_rated_movies,
     get_movie_genres,
     get_movies_with_filters,
