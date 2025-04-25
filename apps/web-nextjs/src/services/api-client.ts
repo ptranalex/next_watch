@@ -1,10 +1,10 @@
 import axios, { AxiosRequestConfig } from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import config from "../config";
 
 // Create API client instance
 export const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: config.api.baseUrl,
+  timeout: config.api.timeout,
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,15 +12,15 @@ export const apiClient = axios.create({
 
 // Add a request interceptor to handle authentication
 apiClient.interceptors.request.use(
-  (config) => {
+  (axiosConfig) => {
     // Get the token from localStorage if we're in the browser
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("auth_token");
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+      const token = localStorage.getItem(config.auth.tokenKey);
+      if (token && axiosConfig.headers) {
+        axiosConfig.headers.Authorization = `Bearer ${token}`;
       }
     }
-    return config;
+    return axiosConfig;
   },
   (error) => {
     return Promise.reject(error);
@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
       if (error.response.status === 401) {
         // Handle unauthorized error (e.g., clear token and redirect to login)
         if (typeof window !== "undefined") {
-          localStorage.removeItem("auth_token");
+          localStorage.removeItem(config.auth.tokenKey);
           // Could also redirect to login here
         }
       }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import {
@@ -10,6 +10,8 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { AppProps } from "next/app";
 import Layout from "../components/layout/Layout";
 import theme from "../theme";
+import config from "../config";
+import validateRuntimeConfig from "../config/validate";
 
 // Create a client
 function MyApp({ Component, pageProps }: AppProps) {
@@ -28,6 +30,13 @@ function MyApp({ Component, pageProps }: AppProps) {
       })
   );
 
+  // Validate configuration during development
+  useEffect(() => {
+    if (config.isDevelopment) {
+      validateRuntimeConfig();
+    }
+  }, []);
+
   return (
     <GoogleOAuthProvider
       clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
@@ -43,7 +52,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               <Component {...pageProps} />
             </Layout>
           </Hydrate>
-          <ReactQueryDevtools />
+          {config.isDevelopment && <ReactQueryDevtools />}
         </QueryClientProvider>
       </ChakraProvider>
     </GoogleOAuthProvider>

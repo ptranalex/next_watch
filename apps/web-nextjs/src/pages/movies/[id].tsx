@@ -30,6 +30,12 @@ import { BiMovie } from "react-icons/bi";
 import Link from "next/link";
 import MovieCard from "../../components/movies/MovieCard";
 import { fetchData } from "../../services/api-client";
+import {
+  getPosterUrl,
+  getBackdropUrl,
+  getProfileUrl,
+} from "../../utils/image-urls";
+import config from "../../config";
 
 // Types
 interface MovieDetailPageProps {
@@ -85,18 +91,13 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
     ? new Date(movie.release_date).getFullYear()
     : null;
 
-  // Get poster and backdrop URLs - check both formats
-  const posterUrl =
-    (movie as any).poster_url ||
-    (movie.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : null);
-
-  const backdropUrl =
-    (movie as any).backdrop_url ||
-    (movie.backdrop_path
-      ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-      : null);
+  // Get poster and backdrop URLs using the utilities
+  const posterUrl = getPosterUrl(
+    movie.poster_path || (movie as any).poster_url
+  );
+  const backdropUrl = getBackdropUrl(
+    movie.backdrop_path || (movie as any).backdrop_url
+  );
 
   return (
     <>
@@ -253,78 +254,84 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
         </Flex>
 
         {/* Cast Section */}
-        <Box mb={8}>
-          <Heading size="lg" mb={4}>
-            Cast
-          </Heading>
-          {isLoadingCast ? (
-            <Center py={8}>
-              <Spinner />
-            </Center>
-          ) : castData?.cast && castData.cast.length > 0 ? (
-            <SimpleGrid minChildWidth="120px" spacing={4}>
-              {castData.cast.slice(0, 12).map((person) => (
-                <Link key={person.id} href={`/actors/${person.id}`} passHref>
-                  <VStack
-                    spacing={2}
-                    p={2}
-                    borderRadius="md"
-                    _hover={{ bg: "gray.700" }}
-                    cursor="pointer"
-                    align="center"
-                  >
-                    <Avatar
-                      size="xl"
-                      name={person.name}
-                      src={
-                        (person as any).profile_url ||
-                        (person.profile_path
-                          ? `https://image.tmdb.org/t/p/w185${person.profile_path}`
-                          : undefined)
-                      }
-                    />
-                    <Text fontWeight="bold" textAlign="center" noOfLines={1}>
-                      {person.name}
-                    </Text>
-                    <Text
-                      fontSize="sm"
-                      color="gray.400"
-                      textAlign="center"
-                      noOfLines={1}
+        {config.features.enableCast && (
+          <Box mb={8}>
+            <Heading size="lg" mb={4}>
+              Cast
+            </Heading>
+            {isLoadingCast ? (
+              <Center py={8}>
+                <Spinner />
+              </Center>
+            ) : castData?.cast && castData.cast.length > 0 ? (
+              <SimpleGrid minChildWidth="120px" spacing={4}>
+                {castData.cast.slice(0, 12).map((person) => (
+                  <Link key={person.id} href={`/actors/${person.id}`} passHref>
+                    <VStack
+                      spacing={2}
+                      p={2}
+                      borderRadius="md"
+                      _hover={{ bg: "gray.700" }}
+                      cursor="pointer"
+                      align="center"
                     >
-                      {person.character}
-                    </Text>
-                  </VStack>
-                </Link>
-              ))}
-            </SimpleGrid>
-          ) : (
-            <Text color="gray.400">No cast information available.</Text>
-          )}
-        </Box>
+                      <Avatar
+                        size="xl"
+                        name={person.name}
+                        src={
+                          getProfileUrl(
+                            person.profile_path || (person as any).profile_url
+                          ) || undefined
+                        }
+                      />
+                      <Text fontWeight="bold" textAlign="center" noOfLines={1}>
+                        {person.name}
+                      </Text>
+                      <Text
+                        fontSize="sm"
+                        color="gray.400"
+                        textAlign="center"
+                        noOfLines={1}
+                      >
+                        {person.character}
+                      </Text>
+                    </VStack>
+                  </Link>
+                ))}
+              </SimpleGrid>
+            ) : (
+              <Text color="gray.400">No cast information available.</Text>
+            )}
+          </Box>
+        )}
 
         {/* Related Movies Section */}
-        <Box mb={8}>
-          <Heading size="lg" mb={4}>
-            Related Movies
-          </Heading>
-          {isLoadingRelated ? (
-            <Center py={8}>
-              <Spinner />
-            </Center>
-          ) : relatedMoviesData?.movies &&
-            relatedMoviesData.movies.length > 0 ? (
-            <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing={4}>
-              {relatedMoviesData.movies.slice(0, 5).map((movie) => (
-                <Box key={movie.id}>
-                  <MovieCard movie={movie} size="sm" />
-                </Box>
-              ))}
-            </SimpleGrid>
-          ) : (
-            <Text color="gray.400">No related movies found.</Text>
-          )}
-        </Box>
+        {config.features.enableRelatedMovies && (
+          <Box mb={8}>
+            <Heading size="lg" mb={4}>
+              Related Movies
+            </Heading>
+            {isLoadingRelated ? (
+              <Center py={8}>
+                <Spinner />
+              </Center>
+            ) : relatedMoviesData?.movies &&
+              relatedMoviesData.movies.length > 0 ? (
+              <SimpleGrid
+                columns={{ base: 2, sm: 3, md: 4, lg: 5 }}
+                spacing={4}
+              >
+                {relatedMoviesData.movies.slice(0, 5).map((movie) => (
+                  <Box key={movie.id}>
+                    <MovieCard movie={movie} size="sm" />
+                  </Box>
+                ))}
+              </SimpleGrid>
+            ) : (
+              <Text color="gray.400">No related movies found.</Text>
+            )}
+          </Box>
+        )}
       </Box>
     </>
   );
