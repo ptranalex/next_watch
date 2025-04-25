@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Heading, Text, Flex, Select } from "@chakra-ui/react";
 import { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { dehydrate, QueryClient, useQuery } from "@tanstack/react-query";
+import {
+  dehydrate,
+  QueryClient,
+  useQuery,
+  useInfiniteQuery,
+} from "@tanstack/react-query";
 import {
   getMoviesByGenre,
   getGenres,
   MoviesQueryParams,
   Genre,
+  MovieListResponse,
 } from "../../services/movie-service";
 import MovieGrid from "../../components/movies/MovieGrid";
 
@@ -19,17 +25,34 @@ interface GenrePageProps {
 
 const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
   const router = useRouter();
-  const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const formattedGenreName =
     genreName.charAt(0).toUpperCase() + genreName.slice(1);
 
-  // Fetch movies by genre using the movies endpoint with genre filter
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["movies-by-genre", genreName, page, pageSize],
-    queryFn: () => getMoviesByGenre(genreName, page, pageSize),
-    keepPreviousData: true,
+  // Fetch movies by genre using infinite query
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["movies-by-genre-infinite", genreName, pageSize],
+    queryFn: ({ pageParam = 1 }) =>
+      getMoviesByGenre(genreName, pageParam, pageSize),
+    getNextPageParam: (lastPage: MovieListResponse) => {
+      if (lastPage.page < Math.ceil(lastPage.total / lastPage.page_size)) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
+
+  // Extract all movies from all pages
+  const allMovies = data?.pages.flatMap((page) => page.movies) || [];
 
   // Fetch all genres for validation and dropdown
   const { data: genresData } = useQuery({
@@ -44,7 +67,10 @@ const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
   );
 
   const handleLoadMore = () => {
-    setPage((prevPage) => prevPage + 1);
+    console.log(`Attempting to load more ${genreName} movies...`);
+    if (!isFetchingNextPage) {
+      fetchNextPage();
+    }
   };
 
   // Handle invalid genre
@@ -97,11 +123,9 @@ const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
           </Text>
         ) : (
           <MovieGrid
-            movies={data?.movies || []}
-            isLoading={isLoading}
-            hasMore={
-              !!data && data.page < Math.ceil(data.total / data.page_size)
-            }
+            movies={allMovies}
+            isLoading={isLoading || isFetchingNextPage}
+            hasMore={hasNextPage}
             onLoadMore={handleLoadMore}
           />
         )}
@@ -117,11 +141,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const pageSize = 20; // Match the pageSize used in the component
 
   try {
-    // Prefetch movies for initial render
-    await queryClient.fetchQuery({
-      queryKey: ["movies-by-genre", genreName, 1, pageSize],
-      queryFn: () => getMoviesByGenre(genreName, 1, pageSize),
-    });
+    // Prefetch first page of movies for initial render using infinite query structure
+    const moviesData = await getMoviesByGenre(genreName, 1, pageSize);
+
+    // Manually set the infinite query data structure
+    queryClient.setQueryData(
+      ["movies-by-genre-infinite", genreName, pageSize],
+      {
+        pages: [moviesData],
+        pageParams: [1],
+      }
+    );
 
     // Prefetch genres for dropdown
     await queryClient.fetchQuery({

@@ -7,8 +7,14 @@ import {
   QueryClient,
   useQuery,
   useQueryClient,
+  useInfiniteQuery,
 } from "@tanstack/react-query";
-import { getMovies, Movie, MoviesQueryParams } from "../services/movie-service";
+import {
+  getMovies,
+  Movie,
+  MoviesQueryParams,
+  MovieListResponse,
+} from "../services/movie-service";
 import MovieGrid from "../components/movies/MovieGrid";
 import SearchInput from "../components/SearchInput";
 import useDebounce from "../hooks/useDebounce";
@@ -25,14 +31,48 @@ const HomePage: NextPage<HomePageProps> = ({ initialParams }) => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const queryClient = useQueryClient();
 
-  // Use React Query for data fetching
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["movies", { sortBy, search: debouncedSearchTerm }],
-    queryFn: () => getMovies({ sortBy, search: debouncedSearchTerm }),
+  // Use React Query for data fetching with infinite query
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["movies-infinite", { sortBy, search: debouncedSearchTerm }],
+    queryFn: ({ pageParam = 1 }) =>
+      getMovies({
+        sortBy,
+        search: debouncedSearchTerm,
+        page: pageParam,
+        pageSize: 20,
+      }),
+    getNextPageParam: (lastPage: MovieListResponse) => {
+      // Calculate if there are more pages
+      if (lastPage.page < Math.ceil(lastPage.total / lastPage.page_size)) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
     initialData: debouncedSearchTerm
       ? undefined
-      : queryClient.getQueryData(["movies", { sortBy: initialParams.sortBy }]),
+      : () => {
+          // Try to convert regular query data to infinite query format
+          const data = queryClient.getQueryData<MovieListResponse>([
+            "movies",
+            { sortBy: initialParams.sortBy },
+          ]);
+          if (!data) return undefined;
+          return {
+            pages: [data],
+            pageParams: [1],
+          };
+        },
   });
+
+  // Extract all movies from all pages
+  const allMovies = data?.pages.flatMap((page) => page.movies) || [];
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
@@ -40,6 +80,10 @@ const HomePage: NextPage<HomePageProps> = ({ initialParams }) => {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
+  };
+
+  const handleLoadMore = () => {
+    fetchNextPage();
   };
 
   return (
@@ -96,7 +140,12 @@ const HomePage: NextPage<HomePageProps> = ({ initialParams }) => {
             Error loading movies: {(error as Error).message}
           </Text>
         ) : (
-          <MovieGrid movies={data?.movies || []} isLoading={isLoading} />
+          <MovieGrid
+            movies={allMovies}
+            isLoading={isLoading || isFetchingNextPage}
+            hasMore={hasNextPage}
+            onLoadMore={handleLoadMore}
+          />
         )}
       </Box>
     </>
@@ -104,7 +153,11 @@ const HomePage: NextPage<HomePageProps> = ({ initialParams }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const params: MoviesQueryParams = { sortBy: "popularity.desc" };
+  const params: MoviesQueryParams = {
+    sortBy: "popularity.desc",
+    page: 1,
+    pageSize: 20,
+  };
   const queryClient = new QueryClient();
 
   try {

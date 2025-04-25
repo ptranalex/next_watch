@@ -3,8 +3,8 @@ import { Box, Heading, Text, Flex, Spinner } from "@chakra-ui/react";
 import { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useQuery } from "@tanstack/react-query";
-import { searchMovies } from "../services/movie-service";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { searchMovies, MovieListResponse } from "../services/movie-service";
 import MovieGrid from "../components/movies/MovieGrid";
 import useDebounce from "../hooks/useDebounce";
 import SearchInput from "../components/SearchInput";
@@ -15,14 +15,8 @@ const SearchPage: NextPage = () => {
 
   const [searchTerm, setSearchTerm] = useState((q as string) || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const [page, setPage] = useState(1);
 
-  // Reset page when search term changes
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearchTerm]);
-
-  // Update URL when search term changes
+  // Reset search state when term changes
   useEffect(() => {
     if (debouncedSearchTerm) {
       router.push(
@@ -35,16 +29,33 @@ const SearchPage: NextPage = () => {
     }
   }, [debouncedSearchTerm, router]);
 
-  // Fetch search results
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["search", debouncedSearchTerm, page],
-    queryFn: () => searchMovies(debouncedSearchTerm, page),
+  // Fetch search results with infinite query
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["search-infinite", debouncedSearchTerm],
+    queryFn: ({ pageParam = 1 }) =>
+      searchMovies(debouncedSearchTerm, pageParam),
+    getNextPageParam: (lastPage: MovieListResponse) => {
+      if (lastPage.page < Math.ceil(lastPage.total / lastPage.page_size)) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
     enabled: !!debouncedSearchTerm && debouncedSearchTerm.length >= 2,
-    keepPreviousData: true,
   });
 
+  // Extract all movies from all pages
+  const allMovies = data?.pages.flatMap((page) => page.movies) || [];
+  const totalResults = data?.pages[0]?.total || 0;
+
   const handleLoadMore = () => {
-    setPage((prevPage) => prevPage + 1);
+    fetchNextPage();
   };
 
   const handleSearch = (term: string) => {
@@ -98,25 +109,22 @@ const SearchPage: NextPage = () => {
           <>
             {debouncedSearchTerm && debouncedSearchTerm.length >= 2 && (
               <Box mb={4}>
-                {isLoading ? (
+                {isLoading && !isFetchingNextPage ? (
                   <Flex justify="center" py={8}>
                     <Spinner size="xl" color="blue.400" />
                   </Flex>
                 ) : (
                   <>
                     <Text mb={4} fontSize="lg">
-                      {data?.total
-                        ? `Found ${data.total} results for "${debouncedSearchTerm}"`
+                      {totalResults
+                        ? `Found ${totalResults} results for "${debouncedSearchTerm}"`
                         : `No results found for "${debouncedSearchTerm}"`}
                     </Text>
 
                     <MovieGrid
-                      movies={data?.movies || []}
-                      isLoading={isLoading}
-                      hasMore={
-                        !!data &&
-                        data.page < Math.ceil(data.total / data.page_size)
-                      }
+                      movies={allMovies}
+                      isLoading={isLoading || isFetchingNextPage}
+                      hasMore={hasNextPage}
                       onLoadMore={handleLoadMore}
                     />
                   </>

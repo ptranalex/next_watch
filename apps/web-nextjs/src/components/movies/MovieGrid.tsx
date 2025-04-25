@@ -1,14 +1,8 @@
-import React from "react";
-import {
-  SimpleGrid,
-  Box,
-  Text,
-  Spinner,
-  Center,
-  Button,
-} from "@chakra-ui/react";
+import React, { useEffect } from "react";
+import { SimpleGrid, Box, Text, Spinner, Center } from "@chakra-ui/react";
 import { Movie } from "../../services/movie-service";
 import MovieCard from "./MovieCard";
+import useIntersectionObserver from "../../hooks/useIntersectionObserver";
 
 interface MovieGridProps {
   movies: Movie[];
@@ -25,6 +19,26 @@ const MovieGrid: React.FC<MovieGridProps> = ({
   onLoadMore,
   columns = { base: 2, sm: 2, md: 3, lg: 4, xl: 5 },
 }) => {
+  // Use intersection observer for infinite scrolling
+  const [loaderRef, isIntersecting] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: "300px",
+  });
+
+  // Trigger load more when the loader element is visible
+  useEffect(() => {
+    if (isIntersecting && hasMore && onLoadMore && !isLoading) {
+      console.log("Loading more movies...");
+      onLoadMore();
+    }
+  }, [isIntersecting, hasMore, onLoadMore, isLoading]);
+
+  // Log when the component receives new props
+  useEffect(() => {
+    console.log(
+      `MovieGrid: ${movies.length} movies, hasMore=${hasMore}, isLoading=${isLoading}`
+    );
+  }, [movies.length, hasMore, isLoading]);
+
   if (isLoading && (!movies || movies.length === 0)) {
     return (
       <Center py={12}>
@@ -49,16 +63,10 @@ const MovieGrid: React.FC<MovieGridProps> = ({
         ))}
       </SimpleGrid>
 
-      {hasMore && onLoadMore && (
-        <Center py={8}>
-          <Button
-            colorScheme="blue"
-            onClick={onLoadMore}
-            isLoading={isLoading}
-            loadingText="Loading more"
-          >
-            Load More
-          </Button>
+      {/* Infinite scroll loading indicator */}
+      {(hasMore || isLoading) && (
+        <Center py={8} ref={loaderRef}>
+          {isLoading && <Spinner size="md" color="blue.400" />}
         </Center>
       )}
     </Box>
