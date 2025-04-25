@@ -19,7 +19,7 @@ import logging
 import importlib
 from typing import Dict, Optional, List
 
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 from sqlmodel import SQLModel, create_engine, Session
 
 from movie_storage.config.app import Config
@@ -31,6 +31,7 @@ MIGRATIONS = [
     "movie_storage.db.migrations.001_create_initial_tables",
     "movie_storage.db.migrations.002_add_credits_and_extended_movie_fields",
     "movie_storage.db.migrations.003_update_budget_revenue_to_bigint",
+    "movie_storage.db.migrations.004_rename_moviegenrelink_table",
 ]
 
 
@@ -43,14 +44,9 @@ def get_applied_migrations(engine) -> Dict[str, str]:
     Returns:
         Dictionary mapping migration IDs to descriptions
     """
-    ***REMOVED*** First check if migrations table exists
-    with engine.connect() as conn:
-        result = conn.execute(
-            text(
-                "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'migrations')"
-            )
-        )
-        table_exists = result.scalar()
+    ***REMOVED*** First check if migrations table exists using SQLAlchemy inspector
+    inspector = inspect(engine)
+    table_exists = "migrations" in inspector.get_table_names()
 
     ***REMOVED*** If table doesn't exist, create it
     if not table_exists:

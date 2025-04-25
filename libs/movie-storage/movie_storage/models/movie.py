@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 class MovieGenreLink(SQLModel, table=True):
     """Association table for Movie-Genre many-to-many relationship."""
 
+    __tablename__ = "movie_genre_link"  ***REMOVED*** type: ignore
+
     movie_id: Optional[int] = Field(
         default=None, foreign_key="movie.id", primary_key=True
     )
