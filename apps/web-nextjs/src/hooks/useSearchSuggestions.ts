@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Movie, Genre } from "../services/movie-service";
+import { fetchData } from "../services/api-client";
 
 // Type for actor which will need to be added to movie-service later
 interface Actor {
@@ -13,6 +14,10 @@ interface Actor {
 export interface Suggestion {
   type: "movie" | "actor" | "genre";
   info: Movie | Actor | Genre;
+}
+
+interface SuggestionsResponse {
+  suggestions: Suggestion[];
 }
 
 /**
@@ -29,18 +34,11 @@ const useSearchSuggestions = (query: string) => {
       if (!query || query.length < 2) return [];
 
       // Fetch from API
-      const response = await fetch(
-        `http://localhost:8000/search/suggestions?q=${encodeURIComponent(
-          query
-        )}`
+      const data = await fetchData<SuggestionsResponse>(
+        `/search/suggestions?q=${encodeURIComponent(query)}`
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch search suggestions");
-      }
-
-      const data = await response.json();
-      return data.suggestions as Suggestion[];
+      return data.suggestions;
     },
     enabled: query.length >= 2,
     staleTime: 1000 * 60 * 5, // 5 minutes

@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "../services/api-client";
 
 export interface CastMember {
   id: number;
   name: string;
   character: string;
   profile_path?: string;
+  profile_url?: string;
   order: number;
 }
 
@@ -22,14 +24,7 @@ const useMovieCast = (id: number | string) => {
   return useQuery({
     queryKey: ["movie-cast", id],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:8000/movies/${id}/cast`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch cast for movie ID ${id}`);
-      }
-
-      const data = await response.json();
-      return data as MovieCastResponse;
+      return fetchData<MovieCastResponse>(`/movies/${id}/cast`);
     },
     staleTime: 1000 * 60 * 60, // 1 hour
     enabled: !!id,

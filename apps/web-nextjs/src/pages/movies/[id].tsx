@@ -29,6 +29,7 @@ import { StarIcon, TimeIcon, CalendarIcon } from "@chakra-ui/icons";
 import { BiMovie } from "react-icons/bi";
 import Link from "next/link";
 import MovieCard from "../../components/movies/MovieCard";
+import { fetchData } from "../../services/api-client";
 
 // Types
 interface MovieDetailPageProps {
@@ -84,6 +85,19 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
     ? new Date(movie.release_date).getFullYear()
     : null;
 
+  // Get poster and backdrop URLs - check both formats
+  const posterUrl =
+    (movie as any).poster_url ||
+    (movie.poster_path
+      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : null);
+
+  const backdropUrl =
+    (movie as any).backdrop_url ||
+    (movie.backdrop_path
+      ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
+      : null);
+
   return (
     <>
       <Head>
@@ -92,7 +106,7 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
       </Head>
 
       {/* Hero section with backdrop */}
-      {movie.backdrop_path && (
+      {backdropUrl && (
         <Box position="relative" height={{ base: "200px", md: "400px" }} mb={6}>
           <Box
             position="absolute"
@@ -100,7 +114,7 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
             left={0}
             right={0}
             bottom={0}
-            backgroundImage={`url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`}
+            backgroundImage={`url(${backdropUrl})`}
             backgroundSize="cover"
             backgroundPosition="center"
             _after={{
@@ -133,24 +147,48 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
       )}
 
       <Box p={4}>
-        {!movie.backdrop_path && <Heading mb={4}>{movie.title}</Heading>}
+        {!backdropUrl && <Heading mb={4}>{movie.title}</Heading>}
 
         <Flex direction={{ base: "column", md: "row" }} gap={8} mb={8}>
           {/* Movie poster */}
           <Box flexShrink={0}>
-            <Image
-              src={
-                movie.poster_path
-                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                  : "/placeholder-poster.png"
-              }
-              alt={movie.title}
-              borderRadius="md"
-              width={300}
-              height={450}
-              objectFit="cover"
-              fallbackSrc="/placeholder-poster.png"
-            />
+            {posterUrl ? (
+              <Image
+                src={posterUrl}
+                alt={movie.title}
+                borderRadius="md"
+                width={300}
+                height={450}
+                objectFit="cover"
+                fallback={
+                  <Flex
+                    bg="gray.700"
+                    width={300}
+                    height={450}
+                    align="center"
+                    justify="center"
+                    borderRadius="md"
+                  >
+                    <Text p={4} textAlign="center" fontWeight="bold">
+                      {movie.title}
+                    </Text>
+                  </Flex>
+                }
+              />
+            ) : (
+              <Flex
+                bg="gray.700"
+                width={300}
+                height={450}
+                align="center"
+                justify="center"
+                borderRadius="md"
+              >
+                <Text p={4} textAlign="center" fontWeight="bold">
+                  {movie.title}
+                </Text>
+              </Flex>
+            )}
           </Box>
 
           <VStack align="start" spacing={4} width="100%">
@@ -239,9 +277,10 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
                       size="xl"
                       name={person.name}
                       src={
-                        person.profile_path
+                        (person as any).profile_url ||
+                        (person.profile_path
                           ? `https://image.tmdb.org/t/p/w185${person.profile_path}`
-                          : undefined
+                          : undefined)
                       }
                     />
                     <Text fontWeight="bold" textAlign="center" noOfLines={1}>
@@ -312,26 +351,18 @@ export const getServerSideProps: GetServerSideProps<
       queryFn: () => getMovieById(movieId),
     });
 
-    // Prefetch cast and related movies
+    // Prefetch cast and related movies using the same patterns as the hooks
     await Promise.allSettled([
       queryClient.prefetchQuery({
         queryKey: ["movie-cast", movieId],
         queryFn: async () => {
-          const response = await fetch(
-            `http://localhost:8000/movies/${movieId}/cast`
-          );
-          if (!response.ok) return { cast: [] };
-          return await response.json();
+          return fetchData(`/movies/${movieId}/cast`);
         },
       }),
       queryClient.prefetchQuery({
         queryKey: ["related-movies", movieId],
         queryFn: async () => {
-          const response = await fetch(
-            `http://localhost:8000/movies/${movieId}/related`
-          );
-          if (!response.ok) return { movies: [] };
-          return await response.json();
+          return fetchData(`/movies/${movieId}/related`);
         },
       }),
     ]);

@@ -20,6 +20,7 @@ interface MovieCardProps {
 const MovieCard: React.FC<MovieCardProps> = ({ movie, size = "md" }) => {
   const cardBg = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.800", "white");
+  const placeholderBg = useColorModeValue("gray.200", "gray.700");
 
   // Set dimensions based on size
   const dimensions = {
@@ -33,6 +34,13 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, size = "md" }) => {
     ? new Date(movie.release_date).getFullYear()
     : null;
 
+  // Get poster URL - try poster_url first, then fallback to poster_path
+  const posterUrl =
+    (movie as any).poster_url ||
+    (movie.poster_path
+      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : null);
+
   return (
     <Link href={`/movies/${movie.id}`} passHref>
       <Box
@@ -45,18 +53,64 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, size = "md" }) => {
         _hover={{ transform: "translateY(-5px)", boxShadow: "lg" }}
         cursor="pointer"
       >
-        <Image
-          src={
-            movie.poster_path
-              ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-              : "/placeholder-poster.png"
-          }
-          alt={movie.title}
-          width={dimensions.width}
-          height={dimensions.height}
-          objectFit="cover"
-          fallbackSrc="/placeholder-poster.png"
-        />
+        {posterUrl ? (
+          <Image
+            src={posterUrl}
+            alt={movie.title}
+            width={dimensions.width}
+            height={dimensions.height}
+            objectFit="cover"
+            fallback={
+              <Flex
+                bg={placeholderBg}
+                width={dimensions.width}
+                height={dimensions.height}
+                align="center"
+                justify="center"
+                flexDir="column"
+                p={4}
+              >
+                <Text
+                  textAlign="center"
+                  fontWeight="bold"
+                  fontSize={dimensions.fontSize}
+                  noOfLines={3}
+                >
+                  {movie.title}
+                </Text>
+                {releaseYear && (
+                  <Text fontSize="xs" mt={2}>
+                    {releaseYear}
+                  </Text>
+                )}
+              </Flex>
+            }
+          />
+        ) : (
+          <Flex
+            bg={placeholderBg}
+            width={dimensions.width}
+            height={dimensions.height}
+            align="center"
+            justify="center"
+            flexDir="column"
+            p={4}
+          >
+            <Text
+              textAlign="center"
+              fontWeight="bold"
+              fontSize={dimensions.fontSize}
+              noOfLines={3}
+            >
+              {movie.title}
+            </Text>
+            {releaseYear && (
+              <Text fontSize="xs" mt={2}>
+                {releaseYear}
+              </Text>
+            )}
+          </Flex>
+        )}
 
         <Box p={3}>
           <Heading

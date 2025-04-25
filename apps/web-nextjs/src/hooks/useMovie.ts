@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Movie } from "../services/movie-service";
+import { fetchData } from "../services/api-client";
 
 /**
  * A hook that fetches movie details by ID
@@ -10,14 +11,7 @@ const useMovie = (id: number | string) => {
   return useQuery({
     queryKey: ["movie", id],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:8000/movies/${id}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch movie details for ID ${id}`);
-      }
-
-      const data = await response.json();
-      return data as Movie;
+      return fetchData<Movie>(`/movies/${id}`);
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
     enabled: !!id,
