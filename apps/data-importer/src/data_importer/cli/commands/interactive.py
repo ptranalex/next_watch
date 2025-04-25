@@ -9,7 +9,6 @@ import typer
 from rich.console import Console
 
 from data_importer.config.app import (
-    DEFAULT_CONFIG_DIR,
     DEFAULT_LOGS_DIR,
     DEFAULT_QUIET,
     DEFAULT_VERBOSE,
@@ -27,12 +26,6 @@ console = Console()
 
 
 def interactive(
-    config_dir: Path = typer.Option(
-        DEFAULT_CONFIG_DIR,
-        "--config-dir",
-        "-c",
-        help="Configuration directory for app settings.",
-    ),
     logs_dir: Path = typer.Option(
         DEFAULT_LOGS_DIR,
         "--logs-dir",
@@ -92,7 +85,6 @@ def interactive(
 
     try:
         ***REMOVED*** Create directories if they don't exist
-        config_dir.mkdir(parents=True, exist_ok=True)
         logs_dir.mkdir(parents=True, exist_ok=True)
 
         ***REMOVED*** Get API keys
@@ -105,7 +97,6 @@ def interactive(
 
         ***REMOVED*** Create config object
         config = Config(
-            config_dir=config_dir,
             logs_dir=logs_dir,
             log_level=log_level,
             verbose=verbose,

@@ -16,7 +16,7 @@ from data_importer.services.tmdb import TMDBClient
 from data_importer.services.omdb import OMDBClient
 from data_importer.sync.movie_sync import sync_movies_by_year_range, format_sync_results
 from data_importer.cli.utils import get_api_key
-from data_importer.config.app import DEFAULT_TMDB_ACCESS_TOKEN, DEFAULT_OMDB_API_KEY
+from data_importer.config.app import DEFAULT_TMDB_ACCESS_TOKEN, DEFAULT_OMDB_API_KEY, Config
 
 console = Console()
 logger = logging.getLogger(__name__)
@@ -27,9 +27,15 @@ app = typer.Typer(name="sync", help="Sync movie and TV data from external source
 @app.command(name="movies")
 @with_logging(log_level="INFO")
 def sync_movies(
-    start_year: int = typer.Argument(..., help="Starting year (inclusive)"),
-    end_year: int = typer.Argument(..., help="Ending year (inclusive)"),
-    limit_per_year: int = typer.Option(20, "--limit", "-l", help="Maximum movies per year"),
+    start_year: Optional[int] = typer.Option(
+        None, "--start-year", "-s", help="Starting year (inclusive), defaults to config value"
+    ),
+    end_year: Optional[int] = typer.Option(
+        None, "--end-year", "-e", help="Ending year (inclusive), defaults to config value"
+    ),
+    limit_per_year: Optional[int] = typer.Option(
+        None, "--limit", "-l", help="Maximum movies per year, defaults to config value"
+    ),
     tmdb_access_token: Optional[str] = typer.Option(
         DEFAULT_TMDB_ACCESS_TOKEN,
         "--tmdb-token",
@@ -42,9 +48,23 @@ def sync_movies(
         "-o",
         help="OMDB API key (or set OMDB_API_KEY environment variable)",
     ),
-    save_to_db: bool = typer.Option(False, "--save/--no-save", help="Save movies to database"),
-    include_credits: bool = typer.Option(
-        False, "--credits/--no-credits", help="Include cast and crew information"
+    save_to_db: Optional[bool] = typer.Option(
+        None, "--save/--no-save", help="Save movies to database, defaults to config value"
+    ),
+    include_credits: Optional[bool] = typer.Option(
+        None,
+        "--credits/--no-credits",
+        help="Include cast and crew information, defaults to config value",
+    ),
+    sort_by: Optional[str] = typer.Option(
+        None,
+        "--sort-by",
+        help="How to sort movies: 'popularity.desc' or 'vote_count.desc', defaults to config value",
+    ),
+    min_vote_count: Optional[int] = typer.Option(
+        None,
+        "--min-votes",
+        help="Minimum number of votes for movies to include, defaults to config value",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
 ):
@@ -59,16 +79,36 @@ def sync_movies(
         - OMDB: Get from https://www.omdbapi.com/apikey.aspx
 
     Examples:
-        data-importer sync movies 2022 2023 --credits --save
-        data-importer sync movies 2010 2010 --limit 5 --no-save --verbose
+        data-importer sync movies --start-year 2022 --end-year 2023 --credits --save
+        data-importer sync movies --start-year 2010 --end-year 2010 --limit 5 --no-save --verbose
     """
+    ***REMOVED*** Get configuration instance
+    config = Config.get_instance()
+
+    ***REMOVED*** Use config values if not specified
+    actual_start_year = start_year if start_year is not None else config.movie_sync_start_year
+    actual_end_year = end_year if end_year is not None else config.movie_sync_end_year
+    actual_limit = (
+        limit_per_year if limit_per_year is not None else config.movie_sync_limit_per_year
+    )
+    actual_save_to_db = save_to_db if save_to_db is not None else config.movie_sync_save_to_db
+    actual_include_credits = (
+        include_credits if include_credits is not None else config.movie_sync_include_credits
+    )
+    actual_sort_by = sort_by if sort_by is not None else config.movie_sync_sort_by
+    actual_min_vote_count = (
+        min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
+    )
+
     ***REMOVED*** Display configuration if verbose
     if verbose:
-        console.print("[bold]Configuration:[/bold]")
-        console.print(f"Year range: {start_year} to {end_year}")
-        console.print(f"Limit per year: {limit_per_year}")
-        console.print(f"Save to database: {save_to_db}")
-        console.print(f"Include credits: {include_credits}")
+        console.print("[bold cyan]Movie Sync Configuration:[/bold cyan]")
+        console.print(f"Year range: {actual_start_year} to {actual_end_year}")
+        console.print(f"Limit per year: {actual_limit}")
+        console.print(f"Sort by: {actual_sort_by}")
+        console.print(f"Min vote count: {actual_min_vote_count}")
+        console.print(f"Include credits: {actual_include_credits}")
+        console.print(f"Save to database: {actual_save_to_db}")
         console.print(f"TMDB token: {'Provided' if tmdb_access_token else 'Not provided'}")
         console.print(f"OMDB API key: {'Provided' if omdb_api_key else 'Not provided'}")
         console.print()
@@ -85,12 +125,14 @@ def sync_movies(
 
     ***REMOVED*** Prepare database session if saving to database
     db_session = None
-    if save_to_db:
+    if actual_save_to_db:
         engine = get_engine()
         db_session = Session(engine)
 
-    console.print(f"[cyan]Starting movie sync for years {start_year}-{end_year}...[/cyan]")
-    if include_credits:
+    console.print(
+        f"[cyan]Starting movie sync for years {actual_start_year}-{actual_end_year}...[/cyan]"
+    )
+    if actual_include_credits:
         console.print("[cyan]Including cast and crew information[/cyan]")
 
     try:
@@ -99,13 +141,15 @@ def sync_movies(
             sync_movies_by_year_range(
                 tmdb_client=tmdb_client,
                 omdb_client=omdb_client,
-                start_year=start_year,
-                end_year=end_year,
-                limit_per_year=limit_per_year,
+                start_year=actual_start_year,
+                end_year=actual_end_year,
+                limit_per_year=actual_limit,
                 show_progress=True,
                 db_session=db_session,
-                save_to_db=save_to_db,
-                include_credits=include_credits,
+                save_to_db=actual_save_to_db,
+                include_credits=actual_include_credits,
+                sort_by=actual_sort_by,
+                min_vote_count=actual_min_vote_count,
             )
         )
 
@@ -117,7 +161,7 @@ def sync_movies(
         formatted_results = format_sync_results(results)
         console.print(formatted_results)
 
-        if include_credits:
+        if actual_include_credits:
             credits_saved = results.get("credits_saved", 0)
             if credits_saved > 0:
                 console.print(f"[green]\nSaved {credits_saved} cast and crew credits[/green]")

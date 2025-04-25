@@ -121,6 +121,11 @@ class TMDBClient:
         Returns:
             A list of movie data dictionaries from TMDB
 
+        Notes:
+            - Results are sorted by vote count in descending order
+            - Only includes movies with at least 100 votes
+            - Adult and video content is excluded
+
         Raises:
             aiohttp.ClientError: If there's a network error
             ValueError: If the API returns an error response
@@ -128,9 +133,10 @@ class TMDBClient:
         params: Dict[str, Any] = {
             "primary_release_year": year,
             "language": "en-US",
-            "sort_by": "vote_count.desc",
+            "sort_by": "vote_count.desc",  ***REMOVED*** Sort by vote count instead of popularity
             "include_adult": "false",
             "include_video": "false",
+            "vote_count.gte": 100,  ***REMOVED*** Only movies with at least 100 votes
         }
 
         movies: List[Dict[str, Any]] = []

@@ -14,6 +14,7 @@ from rich.progress import Progress, TaskID
 from data_importer.services.tmdb import TMDBClient
 from data_importer.services.omdb import OMDBClient
 from data_importer.services.data_adapter import MovieDataAdapter
+from data_importer.config.app import Config
 
 ***REMOVED*** Import database models and storage operations
 from movie_storage.models import Movie
@@ -22,6 +23,9 @@ from movie_storage.db.operations import movie as movie_ops
 
 logger = logging.getLogger(__name__)
 console = Console()
+
+***REMOVED*** Get configuration settings
+config = Config.get_instance()
 
 
 def convert_string_to_date(date_str: Optional[str]) -> Optional[date]:
@@ -76,32 +80,68 @@ async def fetch_genre_data(tmdb_client: TMDBClient) -> Dict[int, Dict[str, Any]]
 async def sync_movies_by_year_range(
     tmdb_client: TMDBClient,
     omdb_client: OMDBClient,
-    start_year: int,
-    end_year: int,
-    limit_per_year: int = 20,
+    start_year: Optional[int] = None,
+    end_year: Optional[int] = None,
+    limit_per_year: Optional[int] = None,
     show_progress: bool = True,
     db_session: Optional[Session] = None,
-    save_to_db: bool = False,
-    include_credits: bool = False,
+    save_to_db: Optional[bool] = None,
+    include_credits: Optional[bool] = None,
+    sort_by: Optional[str] = None,
+    min_vote_count: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Sync movies from TMDB and OMDB based on a year range.
 
     Args:
         tmdb_client: TMDBClient instance
         omdb_client: OMDBClient instance
-        start_year: Starting year (inclusive)
-        end_year: Ending year (inclusive)
-        limit_per_year: Maximum number of movies to sync per year
+        start_year: Starting year (inclusive), defaults to config value
+        end_year: Ending year (inclusive), defaults to config value
+        limit_per_year: Maximum number of movies to sync per year, defaults to config value
         show_progress: Whether to show a progress bar
         db_session: Optional database session for saving to database
-        save_to_db: Whether to save movies to the database
-        include_credits: Whether to include cast and crew information (default: False)
+        save_to_db: Whether to save movies to the database, defaults to config value
+        include_credits: Whether to include cast and crew information, defaults to config value
+        sort_by: How to sort movies ('popularity.desc' or 'vote_count.desc'), defaults to config value
+        min_vote_count: Minimum number of votes for a movie to be included, defaults to config value
 
     Returns:
         Dictionary with statistics about the sync operation and list of movie models
     """
+    ***REMOVED*** Load defaults from config if not provided
+    start_year = start_year if start_year is not None else config.movie_sync_start_year
+    end_year = end_year if end_year is not None else config.movie_sync_end_year
+    limit_per_year = (
+        limit_per_year if limit_per_year is not None else config.movie_sync_limit_per_year
+    )
+    save_to_db = save_to_db if save_to_db is not None else config.movie_sync_save_to_db
+    include_credits = (
+        include_credits if include_credits is not None else config.movie_sync_include_credits
+    )
+    sort_by = sort_by if sort_by is not None else config.movie_sync_sort_by
+    min_vote_count = (
+        min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
+    )
+
+    ***REMOVED*** Log configuration being used
+    logger.info(f"Starting movie sync with configuration:")
+    logger.info(f"  Years: {start_year} to {end_year}")
+    logger.info(f"  Limit per year: {limit_per_year}")
+    logger.info(f"  Sort by: {sort_by}")
+    logger.info(f"  Min vote count: {min_vote_count}")
+    logger.info(f"  Include credits: {include_credits}")
+    logger.info(f"  Save to database: {save_to_db}")
+
     if start_year > end_year:
         start_year, end_year = end_year, start_year
+
+    ***REMOVED*** Validate sort_by parameter
+    if sort_by not in ["popularity.desc", "vote_count.desc"]:
+        logger.warning(f"Invalid sort_by value: {sort_by}. Using vote_count.desc instead.")
+        sort_by = "vote_count.desc"
+
+    ***REMOVED*** Store sort strategy in stats
+    sort_strategy = "popularity" if sort_by == "popularity.desc" else "vote count"
 
     ***REMOVED*** Check if we should save to database
     if save_to_db and db_session is None:
@@ -131,6 +171,8 @@ async def sync_movies_by_year_range(
         "genres_found": len(genre_map),
         "start_year": start_year,
         "end_year": end_year,
+        "sort_strategy": sort_strategy,
+        "min_vote_count": min_vote_count,
         "start_time": datetime.now().isoformat(),
         "end_time": None,
         "elapsed_seconds": 0,
@@ -145,7 +187,8 @@ async def sync_movies_by_year_range(
     if show_progress:
         progress = Progress()
         main_task = progress.add_task(
-            f"[cyan]Syncing movies from {start_year} to {end_year}...", total=len(years)
+            f"[cyan]Syncing movies from {start_year} to {end_year} (sorted by {sort_strategy})...",
+            total=len(years),
         )
         progress.start()
 
@@ -159,10 +202,55 @@ async def sync_movies_by_year_range(
                 task_ids[year] = year_task
 
             try:
-                ***REMOVED*** Fetch movies from TMDB for this year
-                year_movies = await tmdb_client.fetch_movies_by_year(year, limit=limit_per_year)
+                ***REMOVED*** Prepare parameters for this API call
+                api_params = {
+                    "primary_release_year": year,
+                    "language": "en-US",
+                    "sort_by": sort_by,
+                    "include_adult": "false",
+                    "include_video": "false",
+                    "vote_count.gte": min_vote_count,
+                }
+
+                ***REMOVED*** Log which filters we're using
+                logger.info(
+                    f"Fetching movies for year {year} (sorted by {sort_strategy}, min votes: {min_vote_count})"
+                )
+
+                ***REMOVED*** Fetch movies from TMDB for this year with custom parameters
+                year_movies = []
+                page = 1
+
+                ***REMOVED*** Manual pagination implementation (similar to fetch_movies_by_year but with our custom params)
+                while len(year_movies) < limit_per_year:
+                    api_params["page"] = page
+                    response = await tmdb_client._make_request("/discover/movie", api_params)
+
+                    ***REMOVED*** If no results, break
+                    if not response or not response.get("results"):
+                        break
+
+                    ***REMOVED*** Add results to our list
+                    results = response.get("results", [])
+                    remaining = limit_per_year - len(year_movies)
+                    year_movies.extend(results[:remaining])
+
+                    ***REMOVED*** Check if we need to fetch more pages
+                    if page >= response.get("total_pages", 1) or not remaining:
+                        break
+
+                    page += 1
+
+                ***REMOVED*** Ensure we don't exceed the limit
+                year_movies = year_movies[:limit_per_year]
+
                 tmdb_movies.extend(year_movies)
                 stats["tmdb_movies_found"] += len(year_movies)
+
+                ***REMOVED*** Log info about results
+                logger.info(
+                    f"Year {year}: Found {len(year_movies)} movies (sorted by {sort_strategy}, min votes: {min_vote_count})"
+                )
 
                 ***REMOVED*** Process each movie from TMDB
                 for i, tmdb_movie in enumerate(year_movies):

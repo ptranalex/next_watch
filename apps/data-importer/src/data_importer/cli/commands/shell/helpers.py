@@ -101,29 +101,37 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         console.print("- [cyan]print_config()[/cyan] - Display configuration settings")
 
     def sync_movies(
-        start_year: int,
-        end_year: int,
-        limit_per_year: int = 20,
-        save_to_db: bool = False,
-        include_credits: bool = False,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None,
+        limit_per_year: Optional[int] = None,
+        save_to_db: Optional[bool] = None,
+        include_credits: Optional[bool] = None,
+        sort_by: Optional[str] = None,
+        min_vote_count: Optional[int] = None,
     ) -> None:
         """Sync movies from TMDB and OMDB based on year range.
 
         Args:
-            start_year: Starting year (inclusive)
-            end_year: Ending year (inclusive)
-            limit_per_year: Maximum number of movies per year (default: 20)
-            save_to_db: Whether to save movies to database (default: False)
-            include_credits: Whether to include cast and crew information (default: False)
+            start_year: Starting year (inclusive), defaults to config value
+            end_year: Ending year (inclusive), defaults to config value
+            limit_per_year: Maximum number of movies per year, defaults to config value
+            save_to_db: Whether to save movies to database, defaults to config value
+            include_credits: Whether to include cast and crew information, defaults to config value
+            sort_by: How to sort movies ('popularity.desc' or 'vote_count.desc'), defaults to config value
+            min_vote_count: Minimum vote count for movies to include, defaults to config value
         """
         from data_importer.sync import sync_movies_by_year_range
         from data_importer.sync.movie_sync import format_sync_results
         from data_importer.services.tmdb import TMDBClient
         from data_importer.services.omdb import OMDBClient
+        from data_importer.config.app import Config
 
         ***REMOVED*** Imports for database support
         from sqlmodel import Session, create_engine
         from movie_storage.utils import setup_movie_storage  ***REMOVED*** type: ignore
+
+        ***REMOVED*** Get config from global namespace or create a new one
+        config = Config.get_instance()
 
         ***REMOVED*** Get clients from global namespace
         frame = inspect.currentframe()
@@ -162,8 +170,41 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 console.print("[red]Error: OMDB client does not have a valid API key[/red]")
                 return
 
-            console.print(f"[cyan]Starting movie sync for years {start_year}-{end_year}...[/cyan]")
-            if include_credits:
+            ***REMOVED*** Use config values if not specified
+            actual_start_year = (
+                start_year if start_year is not None else config.movie_sync_start_year
+            )
+            actual_end_year = end_year if end_year is not None else config.movie_sync_end_year
+            actual_limit = (
+                limit_per_year if limit_per_year is not None else config.movie_sync_limit_per_year
+            )
+            actual_save_to_db = (
+                save_to_db if save_to_db is not None else config.movie_sync_save_to_db
+            )
+            actual_include_credits = (
+                include_credits
+                if include_credits is not None
+                else config.movie_sync_include_credits
+            )
+            actual_sort_by = sort_by if sort_by is not None else config.movie_sync_sort_by
+            actual_min_vote_count = (
+                min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
+            )
+
+            ***REMOVED*** Show configuration being used
+            console.print("\n[bold cyan]Movie Sync Configuration:[/bold cyan]")
+            console.print(f"Year range: {actual_start_year} to {actual_end_year}")
+            console.print(f"Limit per year: {actual_limit}")
+            console.print(f"Sort by: {actual_sort_by}")
+            console.print(f"Min vote count: {actual_min_vote_count}")
+            console.print(f"Include credits: {actual_include_credits}")
+            console.print(f"Save to database: {actual_save_to_db}")
+            console.print("")
+
+            console.print(
+                f"[cyan]Starting movie sync for years {actual_start_year}-{actual_end_year}...[/cyan]"
+            )
+            if actual_include_credits:
                 console.print("[cyan]Including cast and crew information[/cyan]")
 
             ***REMOVED*** Define the entire operation as a single async function
@@ -175,7 +216,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
 
                 try:
                     ***REMOVED*** Set up database connection if saving to db
-                    if save_to_db:
+                    if actual_save_to_db:
                         ***REMOVED*** Setup movie storage (uses .env.local if available)
                         setup_info = setup_movie_storage(create_tables=True)
                         db_url = setup_info["database_url"]
@@ -185,16 +226,18 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                         engine = create_engine(db_url)
                         db_session = Session(engine)
 
-                    ***REMOVED*** Run the sync operation
+                    ***REMOVED*** Run the sync operation with all the configured parameters
                     results = await sync_movies_by_year_range(
                         tmdb_client,
                         omdb_client,
-                        start_year,
-                        end_year,
-                        limit_per_year=limit_per_year,
+                        start_year=actual_start_year,
+                        end_year=actual_end_year,
+                        limit_per_year=actual_limit,
                         db_session=db_session,
-                        save_to_db=save_to_db,
-                        include_credits=include_credits,
+                        save_to_db=actual_save_to_db,
+                        include_credits=actual_include_credits,
+                        sort_by=actual_sort_by,
+                        min_vote_count=actual_min_vote_count,
                     )
 
                     return results
@@ -220,7 +263,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 credits_saved = results.get("credits_saved", 0)
 
                 ***REMOVED*** Display additional info about credits if included
-                if include_credits and credits_saved > 0:
+                if actual_include_credits and credits_saved > 0:
                     console.print(f"[green]Imported {credits_saved} cast and crew credits[/green]")
 
                 console.print(

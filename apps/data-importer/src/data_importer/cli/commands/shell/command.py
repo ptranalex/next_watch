@@ -19,7 +19,6 @@ from data_importer.cli.commands.shell.helpers import async_run, create_loading_f
 from data_importer.cli.commands.shell.repl import configure_repl
 from data_importer.cli.utils import print_plain, print_config, get_api_key
 from data_importer.config.app import (
-    DEFAULT_CONFIG_DIR,
     DEFAULT_LOGS_DIR,
     DEFAULT_DATA_DIR,
     DEFAULT_VERBOSE,
@@ -37,12 +36,6 @@ console = Console()
 
 
 def shell(
-    config_dir: Path = typer.Option(
-        DEFAULT_CONFIG_DIR,
-        "--config-dir",
-        "-c",
-        help="Configuration directory for app settings.",
-    ),
     logs_dir: Path = typer.Option(
         DEFAULT_LOGS_DIR,
         "--logs-dir",
@@ -124,7 +117,6 @@ def shell(
 
     try:
         ***REMOVED*** Create directories if they don't exist
-        config_dir.mkdir(parents=True, exist_ok=True)
         logs_dir.mkdir(parents=True, exist_ok=True)
         data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -141,7 +133,6 @@ def shell(
 
         ***REMOVED*** Create config
         config = Config(
-            config_dir=config_dir,
             logs_dir=logs_dir,
             data_dir=data_dir,
             tmdb_access_token=tmdb_access_token,

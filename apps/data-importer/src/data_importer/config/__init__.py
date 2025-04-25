@@ -5,7 +5,6 @@ including app settings and logging configuration.
 """
 
 from .app import (
-    DEFAULT_CONFIG_DIR,
     DEFAULT_LOG_LEVEL,
     DEFAULT_LOGS_DIR,
     DEFAULT_QUIET,
@@ -18,10 +17,8 @@ __all__ = [
     "Config",
     "configure_logging",
     "with_logging",
-    "DEFAULT_CONFIG_DIR",
     "DEFAULT_LOGS_DIR",
     "DEFAULT_LOG_LEVEL",
     "DEFAULT_VERBOSE",
     "DEFAULT_QUIET",
-    "DEFAULT_CACHE_TTL",
 ]
