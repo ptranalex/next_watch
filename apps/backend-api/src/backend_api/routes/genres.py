@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session
 from typing import List
 import logging
+import traceback
 
 ***REMOVED*** Import movie-storage operations
 from movie_storage.db.operations import (
@@ -37,11 +38,12 @@ async def list_genres(db: Session = Depends(get_db)):
         genres = get_genres(db)
 
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
-        genre_responses = [GenreResponse.from_orm(genre) for genre in genres]
+        genre_responses = [GenreResponse.model_validate(genre) for genre in genres]
 
         return GenresListResponse(genres=genre_responses, total=len(genre_responses))
     except Exception as e:
         logger.error(f"Error fetching genres: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -56,7 +58,7 @@ async def get_genre_details(genre_id: int, db: Session = Depends(get_db)):
         if not genre:
             raise HTTPException(status_code=404, detail="Genre not found")
 
-        return GenreResponse.from_orm(genre)
+        return GenreResponse.model_validate(genre)
     except HTTPException:
         raise
     except Exception as e:
@@ -75,7 +77,7 @@ async def get_genre_by_name_route(name: str, db: Session = Depends(get_db)):
         if not genre:
             raise HTTPException(status_code=404, detail="Genre not found")
 
-        return GenreResponse.from_orm(genre)
+        return GenreResponse.model_validate(genre)
     except HTTPException:
         raise
     except Exception as e:

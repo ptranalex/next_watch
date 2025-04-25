@@ -32,7 +32,7 @@ class GenreResponse(GenreBase):
         return super().from_orm(obj)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         ***REMOVED*** Allow extra fields for flexibility
         extra = "ignore"
 
