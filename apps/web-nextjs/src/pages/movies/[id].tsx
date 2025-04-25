@@ -1,41 +1,25 @@
 import React from "react";
-import {
-  Box,
-  Heading,
-  Text,
-  Image,
-  Flex,
-  Badge,
-  VStack,
-  HStack,
-  Spinner,
-  Center,
-  Grid,
-  GridItem,
-  Divider,
-  Avatar,
-  SimpleGrid,
-  Button,
-  Icon,
-} from "@chakra-ui/react";
+import { Box, Heading, Text, Flex, Center, Spinner } from "@chakra-ui/react";
 import { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { dehydrate, QueryClient, useQuery } from "@tanstack/react-query";
 import { getMovieById, Movie } from "../../services/movie-service";
 import useMovieCast from "../../hooks/useMovieCast";
 import useRelatedMovies from "../../hooks/useRelatedMovies";
-import { StarIcon, TimeIcon, CalendarIcon } from "@chakra-ui/icons";
-import { BiMovie } from "react-icons/bi";
-import Link from "next/link";
-import MovieCard from "../../components/movies/MovieCard";
-import { fetchData } from "../../services/api-client";
 import {
   getPosterUrl,
   getBackdropUrl,
   getProfileUrl,
 } from "../../utils/image-urls";
+import { fetchData } from "../../services/api-client";
 import config from "../../config";
+
+// Import modular components
+import MovieHero from "../../components/movies/detail/MovieHero";
+import MoviePoster from "../../components/movies/detail/MoviePoster";
+import MovieDetails from "../../components/movies/detail/MovieDetails";
+import MovieCast from "../../components/movies/detail/MovieCast";
+import RelatedMovies from "../../components/movies/detail/RelatedMovies";
 
 // Types
 interface MovieDetailPageProps {
@@ -43,8 +27,6 @@ interface MovieDetailPageProps {
 }
 
 const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
-  const router = useRouter();
-
   // Use React Query to fetch movie details
   const {
     data: movie,
@@ -59,9 +41,9 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
   // Fetch movie cast
   const { data: castData, isLoading: isLoadingCast } = useMovieCast(id);
 
-  // Fetch related movies
+  // Fetch related movies only if the feature is enabled
   const { data: relatedMoviesData, isLoading: isLoadingRelated } =
-    useRelatedMovies(id);
+    useRelatedMovies(id, config.features.enableRelatedMovies);
 
   // Show loading state if still fetching data
   if (isLoading) {
@@ -107,230 +89,44 @@ const MovieDetailPage: NextPage<MovieDetailPageProps> = ({ id }) => {
       </Head>
 
       {/* Hero section with backdrop */}
-      {backdropUrl && (
-        <Box position="relative" height={{ base: "200px", md: "400px" }} mb={6}>
-          <Box
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            backgroundImage={`url(${backdropUrl})`}
-            backgroundSize="cover"
-            backgroundPosition="center"
-            _after={{
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              bg: "rgba(0,0,0,0.6)",
-            }}
-          />
-          <Box
-            position="absolute"
-            bottom={0}
-            left={0}
-            right={0}
-            p={6}
-            bg="linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0))"
-          >
-            <Heading color="white">{movie.title}</Heading>
-            {releaseYear && (
-              <HStack spacing={2} color="gray.300" mt={2}>
-                <Icon as={CalendarIcon} />
-                <Text>{releaseYear}</Text>
-              </HStack>
-            )}
-          </Box>
-        </Box>
-      )}
+      <MovieHero
+        title={movie.title}
+        backdropUrl={backdropUrl}
+        releaseYear={releaseYear}
+      />
 
       <Box p={4}>
         {!backdropUrl && <Heading mb={4}>{movie.title}</Heading>}
 
         <Flex direction={{ base: "column", md: "row" }} gap={8} mb={8}>
           {/* Movie poster */}
-          <Box flexShrink={0}>
-            {posterUrl ? (
-              <Image
-                src={posterUrl}
-                alt={movie.title}
-                borderRadius="md"
-                width={300}
-                height={450}
-                objectFit="cover"
-                fallback={
-                  <Flex
-                    bg="gray.700"
-                    width={300}
-                    height={450}
-                    align="center"
-                    justify="center"
-                    borderRadius="md"
-                  >
-                    <Text p={4} textAlign="center" fontWeight="bold">
-                      {movie.title}
-                    </Text>
-                  </Flex>
-                }
-              />
-            ) : (
-              <Flex
-                bg="gray.700"
-                width={300}
-                height={450}
-                align="center"
-                justify="center"
-                borderRadius="md"
-              >
-                <Text p={4} textAlign="center" fontWeight="bold">
-                  {movie.title}
-                </Text>
-              </Flex>
-            )}
-          </Box>
+          <MoviePoster title={movie.title} posterUrl={posterUrl} />
 
-          <VStack align="start" spacing={4} width="100%">
-            {/* Movie metadata */}
-            <Flex wrap="wrap" gap={3} width="100%" justify="flex-start">
-              {movie.vote_average !== undefined && (
-                <Badge
-                  colorScheme={movie.vote_average > 7 ? "green" : "yellow"}
-                  px={2}
-                  py={1}
-                  display="flex"
-                  alignItems="center"
-                >
-                  <StarIcon mr={1} boxSize={3} />
-                  {movie.vote_average.toFixed(1)}/10
-                </Badge>
-              )}
-
-              {releaseYear && (
-                <Badge
-                  px={2}
-                  py={1}
-                  colorScheme="blue"
-                  display="flex"
-                  alignItems="center"
-                >
-                  <CalendarIcon mr={1} boxSize={3} />
-                  {releaseYear}
-                </Badge>
-              )}
-            </Flex>
-
-            {/* Genres */}
-            {movie.genres && movie.genres.length > 0 && (
-              <HStack spacing={2} wrap="wrap">
-                {movie.genres.map((genre) => (
-                  <Link
-                    href={`/genre/${genre.name.toLowerCase()}`}
-                    key={genre.id}
-                    passHref
-                  >
-                    <Badge
-                      colorScheme="blue"
-                      cursor="pointer"
-                      _hover={{ bg: "blue.500", color: "white" }}
-                    >
-                      {genre.name}
-                    </Badge>
-                  </Link>
-                ))}
-              </HStack>
-            )}
-
-            {/* Movie overview */}
-            <Box>
-              <Heading size="md" mb={2}>
-                Overview
-              </Heading>
-              <Text>{movie.overview || "No overview available."}</Text>
-            </Box>
-          </VStack>
+          {/* Movie details */}
+          <MovieDetails
+            title={movie.title}
+            overview={movie.overview || ""}
+            voteAverage={movie.vote_average}
+            releaseYear={releaseYear}
+            genres={movie.genres}
+          />
         </Flex>
 
         {/* Cast Section */}
         {config.features.enableCast && (
-          <Box mb={8}>
-            <Heading size="lg" mb={4}>
-              Cast
-            </Heading>
-            {isLoadingCast ? (
-              <Center py={8}>
-                <Spinner />
-              </Center>
-            ) : castData?.cast && castData.cast.length > 0 ? (
-              <SimpleGrid minChildWidth="120px" spacing={4}>
-                {castData.cast.slice(0, 12).map((person) => (
-                  <Link key={person.id} href={`/actors/${person.id}`} passHref>
-                    <VStack
-                      spacing={2}
-                      p={2}
-                      borderRadius="md"
-                      _hover={{ bg: "gray.700" }}
-                      cursor="pointer"
-                      align="center"
-                    >
-                      <Avatar
-                        size="xl"
-                        name={person.name}
-                        src={
-                          getProfileUrl(
-                            person.profile_path || (person as any).profile_url
-                          ) || undefined
-                        }
-                      />
-                      <Text fontWeight="bold" textAlign="center" noOfLines={1}>
-                        {person.name}
-                      </Text>
-                      <Text
-                        fontSize="sm"
-                        color="gray.400"
-                        textAlign="center"
-                        noOfLines={1}
-                      >
-                        {person.character}
-                      </Text>
-                    </VStack>
-                  </Link>
-                ))}
-              </SimpleGrid>
-            ) : (
-              <Text color="gray.400">No cast information available.</Text>
-            )}
-          </Box>
+          <MovieCast
+            cast={castData?.cast}
+            isLoading={isLoadingCast}
+            profileUrlFn={getProfileUrl}
+          />
         )}
 
         {/* Related Movies Section */}
         {config.features.enableRelatedMovies && (
-          <Box mb={8}>
-            <Heading size="lg" mb={4}>
-              Related Movies
-            </Heading>
-            {isLoadingRelated ? (
-              <Center py={8}>
-                <Spinner />
-              </Center>
-            ) : relatedMoviesData?.movies &&
-              relatedMoviesData.movies.length > 0 ? (
-              <SimpleGrid
-                columns={{ base: 2, sm: 3, md: 4, lg: 5 }}
-                spacing={4}
-              >
-                {relatedMoviesData.movies.slice(0, 5).map((movie) => (
-                  <Box key={movie.id}>
-                    <MovieCard movie={movie} size="sm" />
-                  </Box>
-                ))}
-              </SimpleGrid>
-            ) : (
-              <Text color="gray.400">No related movies found.</Text>
-            )}
-          </Box>
+          <RelatedMovies
+            movies={relatedMoviesData?.movies}
+            isLoading={isLoadingRelated}
+          />
         )}
       </Box>
     </>
@@ -358,21 +154,35 @@ export const getServerSideProps: GetServerSideProps<
       queryFn: () => getMovieById(movieId),
     });
 
-    // Prefetch cast and related movies using the same patterns as the hooks
-    await Promise.allSettled([
-      queryClient.prefetchQuery({
-        queryKey: ["movie-cast", movieId],
-        queryFn: async () => {
-          return fetchData(`/movies/${movieId}/cast`);
-        },
-      }),
-      queryClient.prefetchQuery({
-        queryKey: ["related-movies", movieId],
-        queryFn: async () => {
-          return fetchData(`/movies/${movieId}/related`);
-        },
-      }),
-    ]);
+    // Prefetch cast only if enabled
+    const prefetchPromises = [];
+
+    if (config.features.enableCast) {
+      prefetchPromises.push(
+        queryClient.prefetchQuery({
+          queryKey: ["movie-cast", movieId],
+          queryFn: async () => {
+            return fetchData(`/movies/${movieId}/cast`);
+          },
+        })
+      );
+    }
+
+    // Prefetch related movies only if enabled
+    if (config.features.enableRelatedMovies) {
+      prefetchPromises.push(
+        queryClient.prefetchQuery({
+          queryKey: ["related-movies", movieId],
+          queryFn: async () => {
+            return fetchData(`/movies/${movieId}/related`);
+          },
+        })
+      );
+    }
+
+    if (prefetchPromises.length > 0) {
+      await Promise.allSettled(prefetchPromises);
+    }
 
     return {
       props: {

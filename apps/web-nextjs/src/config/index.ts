@@ -63,6 +63,11 @@ export const AUTH_CONFIG = {
    * Token expiration time in seconds
    */
   tokenExpiration: Number(process.env.NEXT_PUBLIC_TOKEN_EXPIRATION || 86400), // 24 hours
+
+  /**
+   * Google OAuth client ID
+   */
+  googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
 };
 
 // Analytics Configuration (server-side only)

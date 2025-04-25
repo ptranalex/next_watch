@@ -5,16 +5,17 @@ import { fetchData } from "../services/api-client";
 /**
  * A hook that fetches related movies for a given movie ID
  * @param id The movie ID to fetch related movies for
+ * @param enabled Whether the query should be enabled or not
  * @returns Query result with related movies
  */
-const useRelatedMovies = (id: number | string) => {
+const useRelatedMovies = (id: number | string, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["related-movies", id],
     queryFn: async () => {
       return fetchData<MovieListResponse>(`/movies/${id}/related`);
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
-    enabled: !!id,
+    enabled: !!id && enabled,
   });
 };
 
