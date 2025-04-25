@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   VStack,
@@ -7,29 +7,35 @@ import {
   ListItem,
   Text,
   Divider,
+  Spinner,
 } from "@chakra-ui/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { Genre, getGenres } from "../../services/movie-service";
 
-// For now, we'll use a static list of genres
-// Later we can fetch this from the API
-const GENRES = [
-  { id: 28, name: "Action" },
-  { id: 12, name: "Adventure" },
-  { id: 16, name: "Animation" },
-  { id: 35, name: "Comedy" },
-  { id: 80, name: "Crime" },
-  { id: 18, name: "Drama" },
-  { id: 14, name: "Fantasy" },
-  { id: 27, name: "Horror" },
-  { id: 9648, name: "Mystery" },
-  { id: 10749, name: "Romance" },
-  { id: 878, name: "Science Fiction" },
-  { id: 53, name: "Thriller" },
-];
+// Removed static GENRES array
 
 const Sidebar: React.FC = () => {
   const router = useRouter();
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const genresData = await getGenres();
+        setGenres(genresData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch genres:", err);
+        setError("Failed to load genres");
+        setLoading(false);
+      }
+    };
+
+    fetchGenres();
+  }, []);
 
   return (
     <Box
@@ -103,30 +109,40 @@ const Sidebar: React.FC = () => {
           <Heading size="md" mb={3}>
             Genres
           </Heading>
-          <List spacing={2}>
-            {GENRES.map((genre) => (
-              <ListItem key={genre.id}>
-                <Link href={`/genre/${genre.name.toLowerCase()}`} passHref>
-                  <Text
-                    fontWeight={
-                      router.asPath === `/genre/${genre.name.toLowerCase()}`
-                        ? "bold"
-                        : "normal"
-                    }
-                    color={
-                      router.asPath === `/genre/${genre.name.toLowerCase()}`
-                        ? "blue.300"
-                        : "gray.300"
-                    }
-                    cursor="pointer"
-                    _hover={{ color: "blue.300" }}
-                  >
-                    {genre.name}
-                  </Text>
-                </Link>
-              </ListItem>
-            ))}
-          </List>
+          {loading ? (
+            <Box textAlign="center" py={4}>
+              <Spinner color="blue.300" size="sm" />
+            </Box>
+          ) : error ? (
+            <Text color="red.300" fontSize="sm">
+              {error}
+            </Text>
+          ) : (
+            <List spacing={2}>
+              {genres.map((genre) => (
+                <ListItem key={genre.id}>
+                  <Link href={`/genre/${genre.name.toLowerCase()}`} passHref>
+                    <Text
+                      fontWeight={
+                        router.asPath === `/genre/${genre.name.toLowerCase()}`
+                          ? "bold"
+                          : "normal"
+                      }
+                      color={
+                        router.asPath === `/genre/${genre.name.toLowerCase()}`
+                          ? "blue.300"
+                          : "gray.300"
+                      }
+                      cursor="pointer"
+                      _hover={{ color: "blue.300" }}
+                    >
+                      {genre.name}
+                    </Text>
+                  </Link>
+                </ListItem>
+              ))}
+            </List>
+          )}
         </Box>
       </VStack>
     </Box>
