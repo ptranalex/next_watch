@@ -49,6 +49,13 @@ const Header: React.FC = () => {
                 Home
               </Button>
             </Link>
+            <Link href="/movies/top" passHref>
+              <Button
+                variant={router.pathname === "/movies/top" ? "solid" : "ghost"}
+              >
+                Top Movies
+              </Button>
+            </Link>
             <Link href="/genre/action" passHref>
               <Button
                 variant={

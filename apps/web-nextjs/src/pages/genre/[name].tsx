@@ -20,17 +20,18 @@ interface GenrePageProps {
 const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
   const router = useRouter();
   const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
   const formattedGenreName =
     genreName.charAt(0).toUpperCase() + genreName.slice(1);
 
-  // Fetch movies by genre
+  // Fetch movies by genre using the movies endpoint with genre filter
   const { data, isLoading, error } = useQuery({
-    queryKey: ["movies-by-genre", genreName, page],
-    queryFn: () => getMoviesByGenre(genreName, page),
+    queryKey: ["movies-by-genre", genreName, page, pageSize],
+    queryFn: () => getMoviesByGenre(genreName, page, pageSize),
     keepPreviousData: true,
   });
 
-  // Fetch all genres for validation
+  // Fetch all genres for validation and dropdown
   const { data: genresData } = useQuery({
     queryKey: ["genres"],
     queryFn: getGenres,
@@ -113,12 +114,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const { name } = context.params || {};
   const genreName = String(name).toLowerCase();
   const queryClient = new QueryClient();
+  const pageSize = 20; // Match the pageSize used in the component
 
   try {
     // Prefetch movies for initial render
     await queryClient.fetchQuery({
-      queryKey: ["movies-by-genre", genreName, 1],
-      queryFn: () => getMoviesByGenre(genreName, 1),
+      queryKey: ["movies-by-genre", genreName, 1, pageSize],
+      queryFn: () => getMoviesByGenre(genreName, 1, pageSize),
     });
 
     // Prefetch genres for dropdown
@@ -130,7 +132,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         genreName,
-        initialParams: { genre: genreName, page: 1 },
+        initialParams: { genre: genreName, page: 1, pageSize },
         dehydratedState: dehydrate(queryClient),
       },
     };
@@ -139,7 +141,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         genreName,
-        initialParams: { genre: genreName, page: 1 },
+        initialParams: { genre: genreName, page: 1, pageSize },
       },
     };
   }

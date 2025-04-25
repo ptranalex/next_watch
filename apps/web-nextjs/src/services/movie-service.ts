@@ -66,7 +66,7 @@ export const getMovieById = async (id: number): Promise<Movie> => {
  */
 export const getGenres = async (): Promise<Genre[]> => {
   const response = await fetchData<{ genres: Genre[]; total: number }>(
-    "/genres"
+    "/genres/"
   );
   return response.genres;
 };
@@ -76,9 +76,13 @@ export const getGenres = async (): Promise<Genre[]> => {
  */
 export const getMoviesByGenre = async (
   genreName: string,
-  page: number = 1
+  page: number = 1,
+  limit: number = 20
 ): Promise<MovieListResponse> => {
-  return fetchData<MovieListResponse>(`/genre/${genreName}?page=${page}`);
+  // Use the movies endpoint with genre filter
+  return fetchData<MovieListResponse>(
+    `/movies?genre=${encodeURIComponent(genreName)}&page=${page}&limit=${limit}`
+  );
 };
 
 /**
