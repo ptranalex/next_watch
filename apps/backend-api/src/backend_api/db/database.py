@@ -13,9 +13,6 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql://alex:postgres@localhost:5432/next_watch"
 )
 
-***REMOVED*** SQL Echo setting for debugging
-SQL_ECHO = os.getenv("SQL_ECHO", "false").lower() == "true"
-
 
 ***REMOVED*** Initialize database on startup
 def init_database():
@@ -23,10 +20,9 @@ def init_database():
     ***REMOVED*** In production, you may want to set create_tables=False
     ***REMOVED*** and manage migrations separately with alembic
 
-    ***REMOVED*** Create config with echo setting
+    ***REMOVED*** Create config with default settings
     config = Config()
     config.database_url = DATABASE_URL
-    config.database_echo = SQL_ECHO
 
     ***REMOVED*** Initialize database with config
     init_db(db_url=DATABASE_URL, create_tables=True, config=config)

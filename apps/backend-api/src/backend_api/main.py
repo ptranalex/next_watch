@@ -2,51 +2,63 @@
 Main FastAPI application for the Next Watch backend API.
 """
 
+import os
+import sys
+from pathlib import Path
 import logging
+
+***REMOVED*** Setup basic logging
+logging.basicConfig(level=logging.INFO)
+
+***REMOVED*** Load environment variables
+try:
+    from dotenv import load_dotenv
+
+    ***REMOVED*** Try multiple locations to find the .env.local file
+    possible_paths = [
+        Path(__file__).resolve().parents[3]
+        / ".env.local",  ***REMOVED*** /Users/alex/Sandbox/next_watch/apps/backend-api/.env.local
+        Path.cwd() / ".env.local",  ***REMOVED*** Current working directory
+    ]
+
+    for path in possible_paths:
+        if path.exists():
+            load_dotenv(dotenv_path=path, override=True)
+            break
+except ImportError:
+    pass  ***REMOVED*** Continue without dotenv if not installed
+
+***REMOVED*** Import configuration
+from backend_api.config.app import settings
+
+***REMOVED*** Import remaining dependencies
 import datetime
 import traceback
-import os
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select, text
 
 ***REMOVED*** Import routes
-from backend_api.routes import movies, genres
+from backend_api.routes import movies, genres, cast
 
 ***REMOVED*** Import database initialization
 from backend_api.db.database import init_database, get_db
 
-***REMOVED*** Configure logging
-log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    level=getattr(logging, log_level),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+***REMOVED*** Get logger for this module
 logger = logging.getLogger(__name__)
-
-***REMOVED*** Debug mode
-DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
 ***REMOVED*** Create FastAPI application
 app = FastAPI(
     title="Next Watch API",
     description="API for serving movie data",
     version="0.1.0",
-    debug=DEBUG,
-)
-
-***REMOVED*** Parse CORS origins
-cors_origins_str = os.getenv("CORS_ORIGINS", "*")
-cors_origins = (
-    [origin.strip() for origin in cors_origins_str.split(",")]
-    if cors_origins_str != "*"
-    else ["*"]
+    debug=settings.debug,
 )
 
 ***REMOVED*** Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,9 +67,10 @@ app.add_middleware(
 ***REMOVED*** Register routers
 app.include_router(movies.router)
 app.include_router(genres.router)
+app.include_router(cast.router)
 
 ***REMOVED*** Performance metrics middleware if enabled
-if os.getenv("ENABLE_PERFORMANCE_METRICS", "false").lower() == "true":
+if settings.enable_performance_metrics:
 
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):
@@ -76,6 +89,7 @@ def on_startup():
     try:
         init_database()
         logger.info("Database connection established successfully")
+        logger.debug(f"Using database URL: {settings}")
     except Exception as e:
         logger.error(f"Failed to connect to database: {e}")
         raise
@@ -122,16 +136,25 @@ async def db_health_check(db: Session = Depends(get_db)):
 @app.get("/debug")
 async def debug_info(request: Request):
     """Debug endpoint returning server information."""
+    if not settings.debug:
+        raise HTTPException(status_code=403, detail="Debug mode disabled")
+
     return {
         "time": datetime.datetime.now().isoformat(),
         "client": request.client.host if request.client else None,
         "headers": dict(request.headers),
         "query_params": dict(request.query_params),
         "path_params": request.path_params,
+        "settings": str(settings),
     }
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("backend_api.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "backend_api.main:app",
+        host="0.0.0.0",
+        port=settings.api_port,
+        reload=settings.debug,
+    )

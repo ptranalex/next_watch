@@ -40,9 +40,17 @@ def get_engine(db_url: Optional[str] = None, config: Optional[Config] = None):
         logger.info(
             f"Creating new database engine with URL: {config._mask_database_password(url)}"
         )
+
+        ***REMOVED*** Use database_echo from config, but default to False for safety
+        ***REMOVED*** Set DATABASE_ECHO=true in .env/.env.local to enable SQL logging
+        echo_sql = False
+        if config.database_echo:
+            logger.info("SQL echo is enabled - SQL statements will be logged")
+            echo_sql = True
+
         engine = create_engine(
             url,
-            echo=config.database_echo,
+            echo=echo_sql,
             pool_size=config.database_pool_size,
             max_overflow=config.database_max_overflow,
             pool_timeout=config.database_pool_timeout,

@@ -1,27 +1,30 @@
 ***REMOVED*** Next Watch Backend API
 
-A FastAPI-based REST API for the Next Watch movie platform. This API serves movie data from the `movie-storage` library.
+A FastAPI-based backend service for the Next Watch application.
 
 ***REMOVED******REMOVED*** Features
 
-- Movie listing API with pagination
-- Movie details by ID or TMDB ID
-- Genre listing and details
-- PostgreSQL database integration with `movie-storage` library
+- Movie data API endpoints
+- Genre information
+- Cast and crew information
+- Movie search functionality
+- Database health checking
 
-***REMOVED******REMOVED*** Prerequisites
+***REMOVED******REMOVED*** Setup
 
-- Python 3.9+
+***REMOVED******REMOVED******REMOVED*** Prerequisites
+
+- Python 3.10+
 - Poetry for dependency management
 - PostgreSQL database
 
-***REMOVED******REMOVED*** Installation
+***REMOVED******REMOVED******REMOVED*** Installation
 
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
-   cd apps/backend-api
+   git clone https://github.com/yourusername/next_watch.git
+   cd next_watch/apps/backend-api
    ```
 
 2. Install dependencies:
@@ -30,112 +33,148 @@ A FastAPI-based REST API for the Next Watch movie platform. This API serves movi
    poetry install
    ```
 
-3. Create a configuration file:
+3. Configure environment variables by creating a `.env` file based on `.env.example`.
+
+4. Run the development server:
 
    ```bash
-   cp .env.example .env
+   ***REMOVED*** Using the CLI (recommended):
+   poetry run backend-api server start
+
+   ***REMOVED*** Or with explicit options:
+   poetry run backend-api server start --port 8080 --log-level DEBUG
+
+   ***REMOVED*** Alternative methods:
+   ***REMOVED*** Using Python's module runner:
+   poetry run python -m backend_api.main
+
+   ***REMOVED*** Using uvicorn directly:
+   poetry run uvicorn backend_api.main:app --reload --port $(grep API_PORT .env | cut -d= -f2)
    ```
 
-   Update the `.env` file with your PostgreSQL database connection string.
+***REMOVED******REMOVED******REMOVED*** CLI Reference
 
-   For local development with enhanced settings:
-
-   ```bash
-   cp .env.local.example .env.local  ***REMOVED*** If example exists
-   ***REMOVED*** or create your own .env.local file with local settings
-   ```
-
-   The `.env.local` file overrides settings in `.env` and provides additional debugging options.
-
-4. Initialize the database:
-   ```bash
-   ./setup_dev_env.sh
-   ```
-
-***REMOVED******REMOVED*** Running the API
-
-Start the development server:
+The backend API comes with a CLI tool that provides various commands:
 
 ```bash
-poetry run uvicorn backend_api.main:app --reload
+***REMOVED*** Server management
+poetry run backend-api server start  ***REMOVED*** Start the API server
+poetry run backend-api server start --help  ***REMOVED*** Show all available options
+
+***REMOVED*** Available options:
+***REMOVED*** --host TEXT                 Host to bind the server to
+***REMOVED*** --port INTEGER              Port to bind the server to (overrides config)
+***REMOVED*** --log-level TEXT            Log level (DEBUG, INFO, WARNING, ERROR)
+***REMOVED*** --reload / --no-reload      Enable auto-reload on code changes
+***REMOVED*** --log-dir PATH              Directory to store log files
+***REMOVED*** --sqlalchemy-level TEXT     Log level for SQLAlchemy
 ```
 
-The API will be available at http://localhost:8000
+***REMOVED******REMOVED*** Configuration
+
+The backend API uses a structured configuration system:
+
+- Environment variables for basic settings
+- Support for `.env` and `.env.local` files
+- Centralized logging configuration
+
+***REMOVED******REMOVED******REMOVED*** Environment Variables
+
+| Variable                     | Description                                 | Default                                                    |
+| ---------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| `DATABASE_URL`               | PostgreSQL connection string                | `postgresql://postgres:postgres@localhost:5432/next_watch` |
+| `API_PORT`                   | Port for the API server                     | `8000`                                                     |
+| `LOG_LEVEL`                  | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO`                                                     |
+| `DEBUG`                      | Enable debug mode                           | `false`                                                    |
+| `CORS_ORIGINS`               | Comma-separated list of allowed origins     | `*`                                                        |
+| `ENABLE_PERFORMANCE_METRICS` | Enable performance metrics middleware       | `false`                                                    |
+| `SQLALCHEMY_LOG_LEVEL`       | Specific logging level for SQLAlchemy       | `WARNING`                                                  |
+| `LOGS_DIR`                   | Directory to store log files                | `logs`                                                     |
+| `DATABASE_ECHO`              | Enable SQL statement logging                | `false`                                                    |
+
+***REMOVED******REMOVED******REMOVED*** Configuration Structure
+
+The configuration system is organized in the `config` package:
+
+```
+config/
+├── __init__.py   ***REMOVED*** Exports configuration classes and utilities
+├── app.py        ***REMOVED*** Core application settings and environment variables
+└── logging.py    ***REMOVED*** Centralized logging configuration
+```
+
+***REMOVED******REMOVED******REMOVED*** Using the Configuration
+
+```python
+***REMOVED*** Import settings
+from backend_api.config.app import settings
+
+***REMOVED*** Access configuration
+database_url = settings.database_url
+api_port = settings.api_port
+
+***REMOVED*** Configure logging
+from backend_api.config import configure_logging
+log_config = configure_logging(
+    log_level=settings.log_level,
+    log_dir=Path("logs"),
+    verbose=settings.debug
+)
+```
 
 ***REMOVED******REMOVED*** API Endpoints
 
 ***REMOVED******REMOVED******REMOVED*** Movies
 
-- `GET /movies`: Get a paginated list of movies
-- `GET /movies/{movie_id}`: Get movie details by ID
-- `GET /movies/tmdb/{tmdb_id}`: Get movie details by TMDB ID
+- `GET /movies/` - List movies with pagination
+- `GET /movies/{movie_id}` - Get details for a specific movie
+- `GET /movies/tmdb/{tmdb_id}` - Get movie by TMDB ID
 
 ***REMOVED******REMOVED******REMOVED*** Genres
 
-- `GET /genres`: Get a list of all genres
-- `GET /genres/{genre_id}`: Get genre details by ID
-- `GET /genres/name/{name}`: Get genre details by name
+- `GET /genres/` - List all genres
+- `GET /genres/{genre_id}` - Get details for a specific genre
+- `GET /genres/{genre_id}/movies` - Get movies for a specific genre
 
-***REMOVED******REMOVED*** Database Integration
+***REMOVED******REMOVED******REMOVED*** Cast
 
-This API integrates with the `movie-storage` library which provides database operations for movie data. Key integration points:
+- `GET /cast/movie/{movie_id}` - Get cast and crew information for a specific movie
 
-1. **Database Connection**: Uses `movie-storage`'s database connection and session management.
-2. **Schema Translation**: Converts SQLModel objects from `movie-storage` to Pydantic models for API responses.
-3. **API Operations**: Uses `movie-storage` operations for querying movies and genres.
+***REMOVED******REMOVED******REMOVED*** Health Checks
+
+- `GET /health` - API health check
+- `GET /db-health` - Database health check
 
 ***REMOVED******REMOVED*** Development
 
-***REMOVED******REMOVED******REMOVED*** Adding New Endpoints
-
-To add new endpoints, create or modify route files in `src/backend_api/routes/`.
-
-***REMOVED******REMOVED******REMOVED*** Database Operations
-
-All database operations should use the `movie-storage` library:
-
-```python
-from movie_storage.db.operations import get_movies
-
-movies = get_movies(db, offset=0, limit=10)
-```
-
-***REMOVED******REMOVED******REMOVED*** Testing
-
-Run tests with:
+***REMOVED******REMOVED******REMOVED*** Running Tests
 
 ```bash
 poetry run pytest
 ```
 
-***REMOVED******REMOVED******REMOVED*** Type Checking
+***REMOVED******REMOVED******REMOVED*** Project Structure
 
-The codebase uses type annotations to ensure type safety. To run type checking:
-
-1. First, install mypy:
-
-```bash
-poetry add --dev mypy
+```
+backend-api/
+├── src/
+│   └── backend_api/
+│       ├── routes/       ***REMOVED*** API route handlers
+│       ├── schemas/      ***REMOVED*** Pydantic models for request/response
+│       ├── db/           ***REMOVED*** Database models and utilities
+│       ├── config/       ***REMOVED*** Configuration and settings
+│       └── main.py       ***REMOVED*** Application entry point
+├── tests/                ***REMOVED*** Test cases
+└── README.md             ***REMOVED*** You are here
 ```
 
-2. Run type checking:
+***REMOVED******REMOVED*** Dependencies
 
-```bash
-poetry run mypy src/backend_api
-```
+- FastAPI - Web framework
+- SQLModel - SQL database interaction
+- Pydantic - Data validation
+- movie-storage - Internal library for movie data storage
 
-Fix any type errors that appear to maintain code quality.
+***REMOVED******REMOVED*** License
 
-***REMOVED******REMOVED*** Docker (Optional)
-
-Building the Docker image:
-
-```bash
-docker build -t next-watch-api .
-```
-
-Running with Docker:
-
-```bash
-docker run -p 8000:8000 -e DATABASE_URL=postgresql://user:password@host:5432/dbname next-watch-api
-```
+[MIT License](LICENSE)
