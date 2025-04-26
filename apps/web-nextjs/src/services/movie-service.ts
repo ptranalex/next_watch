@@ -29,7 +29,8 @@ export interface MovieListResponse {
 export interface MoviesQueryParams {
   page?: number;
   pageSize?: number;
-  genre?: string;
+  genre_id?: number;
+  actor_id?: number;
   search?: string;
   sortBy?: string;
 }
@@ -45,7 +46,10 @@ export const getMovies = async (
   if (params.page) queryParams.append("page", params.page.toString());
   if (params.pageSize)
     queryParams.append("pageSize", params.pageSize.toString());
-  if (params.genre) queryParams.append("genre", params.genre);
+  if (params.genre_id)
+    queryParams.append("genre_id", params.genre_id.toString());
+  if (params.actor_id)
+    queryParams.append("actor_id", params.actor_id.toString());
   if (params.search) queryParams.append("search", params.search);
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
 
@@ -75,14 +79,22 @@ export const getGenres = async (): Promise<Genre[]> => {
  * Fetch movies by genre
  */
 export const getMoviesByGenre = async (
-  genreName: string,
+  genreId: number,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  actorId?: number
 ): Promise<MovieListResponse> => {
   // Use the movies endpoint with genre filter
-  return fetchData<MovieListResponse>(
-    `/movies?genre=${encodeURIComponent(genreName)}&page=${page}&limit=${limit}`
-  );
+  const queryParams = new URLSearchParams();
+  queryParams.append("genre_id", genreId.toString());
+  queryParams.append("page", page.toString());
+  queryParams.append("limit", limit.toString());
+
+  if (actorId) {
+    queryParams.append("actor_id", actorId.toString());
+  }
+
+  return fetchData<MovieListResponse>(`/movies?${queryParams.toString()}`);
 };
 
 /**
@@ -90,9 +102,64 @@ export const getMoviesByGenre = async (
  */
 export const searchMovies = async (
   query: string,
-  page: number = 1
+  page: number = 1,
+  actorId?: number,
+  genreId?: number
 ): Promise<MovieListResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append("query", query);
+  queryParams.append("page", page.toString());
+
+  if (actorId) {
+    queryParams.append("actor_id", actorId.toString());
+  }
+
+  if (genreId) {
+    queryParams.append("genre_id", genreId.toString());
+  }
+
   return fetchData<MovieListResponse>(
-    `/movies/search?query=${encodeURIComponent(query)}&page=${page}`
+    `/movies/search?${queryParams.toString()}`
   );
+};
+
+/**
+ * Fetch movies featuring a specific actor by TMDB person ID
+ */
+export const getMoviesByActor = async (
+  actorId: number,
+  page: number = 1,
+  limit: number = 20
+): Promise<MovieListResponse> => {
+  // Use the movies endpoint with actor filter
+  const queryParams = new URLSearchParams();
+  queryParams.append("actor_id", actorId.toString());
+  queryParams.append("page", page.toString());
+  queryParams.append("limit", limit.toString());
+
+  return fetchData<MovieListResponse>(`/movies?${queryParams.toString()}`);
+};
+
+/**
+ * Fetch top rated movies with optional filters
+ */
+export const getTopMovies = async (
+  page: number = 1,
+  limit: number = 20,
+  year?: number,
+  genreId?: number
+): Promise<MovieListResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append("page", page.toString());
+  queryParams.append("limit", limit.toString());
+
+  if (year) {
+    queryParams.append("year", year.toString());
+  }
+
+  if (genreId) {
+    queryParams.append("genre_id", genreId.toString());
+  }
+
+  return fetchData<MovieListResponse>(`/movies/top?${queryParams.toString()}`);
 };

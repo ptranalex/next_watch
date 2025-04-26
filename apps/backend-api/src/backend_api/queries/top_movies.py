@@ -15,7 +15,7 @@ def get_top_rated_movies(
     db_session: DBSession,
     year: Optional[int] = None,
     all_time: bool = False,
-    genre_name: Optional[str] = None,
+    genre_id: Optional[int] = None,
     limit: int = 10,
     page: int = 1,
     min_votes: int = 100,
@@ -27,7 +27,7 @@ def get_top_rated_movies(
         db_session: SQLAlchemy database session
         year: Optional year to filter movies by
         all_time: If True, gets all-time top movies regardless of year
-        genre_name: Optional genre name to filter by
+        genre_id: Optional genre ID to filter by
         limit: Maximum number of results to return
         page: Page number for pagination
         min_votes: Minimum number of votes required (for all_time queries)
@@ -63,9 +63,9 @@ def get_top_rated_movies(
         params["min_votes"] = int(min_votes)
 
     ***REMOVED*** Apply genre filter if provided
-    if genre_name:
-        query += " AND LOWER(g.name) = LOWER(:genre_name)"
-        params["genre_name"] = genre_name
+    if genre_id:
+        query += " AND g.id = :genre_id"
+        params["genre_id"] = genre_id
 
     ***REMOVED*** Add group by
     query += " GROUP BY m.id"
@@ -95,8 +95,8 @@ def get_top_rated_movies(
     if all_time:
         count_query += " AND m.vote_count IS NOT NULL AND m.vote_count >= :min_votes"
 
-    if genre_name:
-        count_query += " AND LOWER(g.name) = LOWER(:genre_name)"
+    if genre_id:
+        count_query += " AND g.id = :genre_id"
 
     ***REMOVED*** Execute queries
     result = db_session.execute(text(query), params)

@@ -87,7 +87,8 @@ def format_movie_for_response(
 async def list_movies(
     skip: int = Query(0, ge=0, description="Number of movies to skip for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
-    genre: Optional[str] = Query(None, description="Filter by genre name"),
+    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
+    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
     sort_by: str = Query(
         "title", description="Field to sort by (title, release_date, imdb_rating)"
     ),
@@ -98,11 +99,13 @@ async def list_movies(
     Get a list of movies with pagination and optional filtering.
 
     Returns movies with basic information and pagination metadata.
-    Supports filtering by genre name and sorting by different fields.
+    Supports filtering by genre ID, actor TMDB ID, and sorting by different fields.
     """
     try:
         ***REMOVED*** Debug info
-        logger.info(f"Getting movies with skip={skip}, limit={limit}, genre={genre}")
+        logger.info(
+            f"Getting movies with skip={skip}, limit={limit}, genre_id={genre_id}, actor_id={actor_id}"
+        )
 
         ***REMOVED*** Determine sorting options
         sort_field = (
@@ -111,32 +114,13 @@ async def list_movies(
             else "title"
         )
 
-        ***REMOVED*** Set genre_id to None by default
-        genre_id = None
-
-        ***REMOVED*** If genre name is provided, look up the genre ID
-        if genre:
-            ***REMOVED*** Look up genre by name using our query function
-            genre_obj = get_genre_by_name(db, genre)
-            if genre_obj:
-                genre_id = genre_obj["id"]
-                logger.info(f"Found genre '{genre}' with ID {genre_id}")
-            else:
-                ***REMOVED*** Return empty result if genre doesn't exist
-                logger.warning(f"Genre '{genre}' not found in database")
-                return MoviesListResponse(
-                    movies=[],
-                    total=0,
-                    page=1,
-                    page_size=limit,
-                )
-
         ***REMOVED*** Get movies from database with pagination and filters using our query function
         movies, total_count = get_movies_with_filters(
             db,
             skip=skip,
             limit=limit,
             genre_id=genre_id,
+            actor_id=actor_id,
             sort_by=sort_field,
             sort_desc=sort_desc,
         )
@@ -183,7 +167,7 @@ async def list_movies(
 @router.get("/top", response_model=MoviesListResponse)
 async def get_top_movies_route(
     year: Optional[int] = Query(None, description="Filter by release year"),
-    genre: Optional[str] = Query(None, description="Filter by genre name"),
+    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
     limit: int = Query(10, ge=1, le=50, description="Max number of movies to return"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     db: Session = Depends(get_db),
@@ -198,30 +182,13 @@ async def get_top_movies_route(
         ***REMOVED*** If year is not provided, use current year
         current_year = year or datetime.now().year
 
-        logger.info(f"Getting top movies for year {current_year}")
-
-        ***REMOVED*** If genre name is provided, validate that it exists
-        genre_name = None
-        if genre:
-            genre_obj = get_genre_by_name(db, genre)
-            if genre_obj:
-                genre_name = genre  ***REMOVED*** Use the genre name for the query
-                logger.info(f"Found genre '{genre}' with ID {genre_obj['id']}")
-            else:
-                ***REMOVED*** Return empty result if genre doesn't exist
-                logger.warning(f"Genre '{genre}' not found in database")
-                return MoviesListResponse(
-                    movies=[],
-                    total=0,
-                    page=page,
-                    page_size=limit,
-                )
+        logger.info(f"Getting top movies for year {current_year}, genre_id={genre_id}")
 
         ***REMOVED*** Get movies using our query function
         movies, total_count = get_top_rated_movies(
             db_session=db,
             year=current_year,
-            genre_name=genre_name,
+            genre_id=genre_id,
             limit=limit,
             page=page,
             all_time=False,
@@ -265,7 +232,7 @@ async def get_top_movies_route(
 
 @router.get("/top/all-time", response_model=MoviesListResponse)
 async def get_all_time_top_movies(
-    genre: Optional[str] = Query(None, description="Filter by genre name"),
+    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
     min_votes: int = Query(100, ge=0, description="Minimum number of votes required"),
     limit: int = Query(10, ge=1, le=50, description="Max number of movies to return"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
@@ -278,29 +245,14 @@ async def get_all_time_top_movies(
     and set a minimum votes threshold.
     """
     try:
-        logger.info(f"Getting all-time top movies with min_votes={min_votes}")
-
-        ***REMOVED*** If genre name is provided, validate that it exists
-        genre_name = None
-        if genre:
-            genre_obj = get_genre_by_name(db, genre)
-            if genre_obj:
-                genre_name = genre  ***REMOVED*** Use the genre name for the query
-                logger.info(f"Found genre '{genre}' with ID {genre_obj['id']}")
-            else:
-                ***REMOVED*** Return empty result if genre doesn't exist
-                logger.warning(f"Genre '{genre}' not found in database")
-                return MoviesListResponse(
-                    movies=[],
-                    total=0,
-                    page=page,
-                    page_size=limit,
-                )
+        logger.info(
+            f"Getting all-time top movies with min_votes={min_votes}, genre_id={genre_id}"
+        )
 
         ***REMOVED*** Get movies using our query function
         movies, total_count = get_top_rated_movies(
             db_session=db,
-            genre_name=genre_name,
+            genre_id=genre_id,
             limit=limit,
             page=page,
             all_time=True,
@@ -403,12 +355,13 @@ async def get_movie_by_tmdb(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-@router.get("/search/title", response_model=MoviesListResponse)
+@router.get("/search", response_model=MoviesListResponse)
 async def search_movies(
-    title: str = Query(..., description="Movie title to search for"),
+    query: str = Query(..., description="Movie title to search for"),
     skip: int = Query(0, ge=0, description="Number of movies to skip for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
-    genre: Optional[str] = Query(None, description="Filter by genre name"),
+    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
+    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
     sort_by: str = Query(
         "title", description="Field to sort by (title, release_date, imdb_rating)"
     ),
@@ -416,43 +369,30 @@ async def search_movies(
     db: Session = Depends(get_db),
 ) -> MoviesListResponse:
     """
-    Search for movies by title with optional filtering and sorting.
+    Search for movies by title with optional filtering.
+
+    Returns movies matching the search query with pagination metadata.
+    Supports additional filtering by genre ID, actor TMDB ID, and sorting by different fields.
     """
     try:
-        logger.info(f"Searching movies with title: {title}")
+        ***REMOVED*** Debug info
+        logger.info(
+            f"Searching movies with query={query}, skip={skip}, limit={limit}, genre_id={genre_id}, actor_id={actor_id}"
+        )
 
-        ***REMOVED*** Set genre_id to None by default
-        genre_id = None
-
-        ***REMOVED*** If genre name is provided, look up the genre ID
-        if genre:
-            ***REMOVED*** Look up genre by name using our query function
-            genre_obj = get_genre_by_name(db, genre)
-            if genre_obj:
-                genre_id = genre_obj["id"]
-                logger.info(f"Found genre '{genre}' with ID {genre_id}")
-            else:
-                ***REMOVED*** Return empty result if genre doesn't exist
-                logger.warning(f"Genre '{genre}' not found in database")
-                return MoviesListResponse(
-                    movies=[],
-                    total=0,
-                    page=1,
-                    page_size=limit,
-                )
-
-        ***REMOVED*** Search movies using our query function
+        ***REMOVED*** Search movies from database with pagination and filters
         movies, total_count = search_movies_by_title(
-            db_session=db,
-            title_search=title,
+            db,
+            title_search=query,
             skip=skip,
             limit=limit,
             genre_id=genre_id,
+            actor_id=actor_id,
             sort_by=sort_by,
             sort_desc=sort_desc,
         )
 
-        logger.info(f"Found {len(movies)} movies matching '{title}'")
+        logger.info(f"Found {len(movies)} movies matching '{query}'")
 
         ***REMOVED*** Empty response if no movies
         if not movies:
@@ -486,6 +426,6 @@ async def search_movies(
     except Exception as e:
         ***REMOVED*** Get detailed stack trace
         stack_trace = traceback.format_exc()
-        logger.error(f"Error searching movies with title '{title}': {str(e)}")
+        logger.error(f"Error searching movies with query '{query}': {str(e)}")
         logger.error(f"Stack trace: {stack_trace}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
