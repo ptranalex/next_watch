@@ -12,9 +12,10 @@ import {
 import Link from "next/link";
 
 interface CastMember {
-  id: number;
+  id: number; // Internal credit ID
+  actor_id: number; // TMDB person ID
   name: string;
-  character: string;
+  character?: string;
   profile_path?: string;
   profile_url?: string;
 }
@@ -42,7 +43,7 @@ const MovieCast: React.FC<MovieCastProps> = ({
       ) : cast && cast.length > 0 ? (
         <SimpleGrid minChildWidth="120px" spacing={4}>
           {cast.slice(0, 12).map((person) => (
-            <Link key={person.id} href={`/actors/${person.id}`} passHref>
+            <Link key={person.id} href={`/actors/${person.actor_id}`} passHref>
               <VStack
                 spacing={2}
                 p={2}
@@ -68,7 +69,7 @@ const MovieCast: React.FC<MovieCastProps> = ({
                   textAlign="center"
                   noOfLines={1}
                 >
-                  {person.character}
+                  {person.character || "Unknown Role"}
                 </Text>
               </VStack>
             </Link>

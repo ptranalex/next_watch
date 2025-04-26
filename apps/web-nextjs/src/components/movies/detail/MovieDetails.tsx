@@ -66,11 +66,7 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
       {genres && genres.length > 0 && (
         <HStack spacing={2} wrap="wrap">
           {genres.map((genre) => (
-            <Link
-              href={`/genre/${genre.name.toLowerCase()}`}
-              key={genre.id}
-              passHref
-            >
+            <Link href={`/genre/${genre.id}`} key={genre.id} passHref>
               <Badge
                 colorScheme="blue"
                 cursor="pointer"

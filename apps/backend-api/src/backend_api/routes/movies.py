@@ -99,7 +99,7 @@ async def list_movies(
     Get a list of movies with pagination and optional filtering.
 
     Returns movies with basic information and pagination metadata.
-    Supports filtering by genre ID, actor TMDB ID, and sorting by different fields.
+    Supports filtering by genre ID, actor ID (which maps to TMDB actor ID), and sorting by different fields.
     """
     try:
         ***REMOVED*** Debug info
@@ -120,7 +120,7 @@ async def list_movies(
             skip=skip,
             limit=limit,
             genre_id=genre_id,
-            actor_id=actor_id,
+            actor_tmdb_id=actor_id,
             sort_by=sort_field,
             sort_desc=sort_desc,
         )
@@ -372,7 +372,7 @@ async def search_movies(
     Search for movies by title with optional filtering.
 
     Returns movies matching the search query with pagination metadata.
-    Supports additional filtering by genre ID, actor TMDB ID, and sorting by different fields.
+    Supports additional filtering by genre ID, actor ID (which maps to TMDB actor ID), and sorting by different fields.
     """
     try:
         ***REMOVED*** Debug info
@@ -387,7 +387,7 @@ async def search_movies(
             skip=skip,
             limit=limit,
             genre_id=genre_id,
-            actor_id=actor_id,
+            actor_tmdb_id=actor_id,
             sort_by=sort_by,
             sort_desc=sort_desc,
         )

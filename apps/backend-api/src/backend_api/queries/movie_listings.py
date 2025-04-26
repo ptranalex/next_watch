@@ -17,6 +17,7 @@ def get_movies_with_filters(
     limit: int = 20,
     genre_id: Optional[int] = None,
     actor_id: Optional[int] = None,
+    actor_tmdb_id: Optional[int] = None,
     sort_by: str = "title",
     sort_desc: bool = False,
 ) -> Tuple[List[Any], int]:
@@ -28,7 +29,8 @@ def get_movies_with_filters(
         skip: Number of records to skip
         limit: Maximum number of records to return
         genre_id: Optional genre ID to filter by
-        actor_id: Optional actor TMDB ID to filter by
+        actor_id: Optional credit ID to filter by (unique relationship between actor and movie)
+        actor_tmdb_id: Optional actor TMDB ID to filter by
         sort_by: Field to sort by
         sort_desc: Whether to sort in descending order
 
@@ -53,14 +55,23 @@ def get_movies_with_filters(
         where_clauses.append("mgl.genre_id = :genre_id")
         params["genre_id"] = genre_id
 
-    ***REMOVED*** If filtering by actor, join with credit table
-    if actor_id is not None:
+    ***REMOVED*** If filtering by actor or credit, join with credit table
+    if actor_id is not None or actor_tmdb_id is not None:
         query += """
         JOIN credit c ON m.id = c.movie_id
         """
-        ***REMOVED*** Filter by actor's TMDB ID
-        where_clauses.append("c.tmdb_person_id = :actor_id AND c.department = 'Acting'")
-        params["actor_id"] = actor_id
+
+        ***REMOVED*** Filter by specific credit ID
+        if actor_id is not None:
+            where_clauses.append("c.id = :actor_id AND c.department = 'Acting'")
+            params["actor_id"] = actor_id
+
+        ***REMOVED*** Or filter by actor's TMDB ID
+        if actor_tmdb_id is not None:
+            where_clauses.append(
+                "c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'"
+            )
+            params["actor_tmdb_id"] = actor_tmdb_id
 
     ***REMOVED*** Add WHERE clause if we have any conditions
     if where_clauses:
@@ -98,8 +109,8 @@ def get_movies_with_filters(
         JOIN genre g ON mgl.genre_id = g.id
         """
 
-    ***REMOVED*** If filtering by actor, join with credit table
-    if actor_id is not None:
+    ***REMOVED*** If filtering by actor or credit, join with credit table
+    if actor_id is not None or actor_tmdb_id is not None:
         count_query += """
         JOIN credit c ON m.id = c.movie_id
         """
@@ -125,6 +136,7 @@ def search_movies_by_title(
     limit: int = 20,
     genre_id: Optional[int] = None,
     actor_id: Optional[int] = None,
+    actor_tmdb_id: Optional[int] = None,
     sort_by: str = "title",
     sort_desc: bool = False,
 ) -> Tuple[List[Any], int]:
@@ -137,7 +149,8 @@ def search_movies_by_title(
         skip: Number of records to skip
         limit: Maximum number of records to return
         genre_id: Optional genre ID to filter by
-        actor_id: Optional actor TMDB ID to filter by
+        actor_id: Optional credit ID to filter by (unique relationship between actor and movie)
+        actor_tmdb_id: Optional actor TMDB ID to filter by
         sort_by: Field to sort by
         sort_desc: Whether to sort in descending order
 
@@ -168,14 +181,23 @@ def search_movies_by_title(
         where_clauses.append("mgl.genre_id = :genre_id")
         params["genre_id"] = genre_id
 
-    ***REMOVED*** If filtering by actor, join with credit table
-    if actor_id is not None:
+    ***REMOVED*** If filtering by actor or credit, join with credit table
+    if actor_id is not None or actor_tmdb_id is not None:
         query += """
         JOIN credit c ON m.id = c.movie_id
         """
-        ***REMOVED*** Filter by actor's TMDB ID
-        where_clauses.append("c.tmdb_person_id = :actor_id AND c.department = 'Acting'")
-        params["actor_id"] = actor_id
+
+        ***REMOVED*** Filter by specific credit ID
+        if actor_id is not None:
+            where_clauses.append("c.id = :actor_id AND c.department = 'Acting'")
+            params["actor_id"] = actor_id
+
+        ***REMOVED*** Or filter by actor's TMDB ID
+        if actor_tmdb_id is not None:
+            where_clauses.append(
+                "c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'"
+            )
+            params["actor_tmdb_id"] = actor_tmdb_id
 
     ***REMOVED*** Add WHERE clause with all conditions
     if where_clauses:
@@ -208,8 +230,13 @@ def search_movies_by_title(
 
     if genre_id is not None:
         count_query += """
-        JOIN movie_genre_link mgl ON m.id = mgl.movie_id
+        JOIN movie_genre_link mgl ON m.id = mgl.movie_id 
         JOIN genre g ON mgl.genre_id = g.id
+        """
+
+    if actor_id is not None or actor_tmdb_id is not None:
+        count_query += """
+        JOIN credit c ON m.id = c.movie_id
         """
 
     if where_clauses:

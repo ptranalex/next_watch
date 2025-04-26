@@ -22,6 +22,7 @@ from backend_api.schemas.cast_schema import (
     CastMemberResponse,
     CrewMemberResponse,
     MovieCreditsResponse,
+    MovieCastResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,13 +30,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["cast"])
 
 
-@router.get("/movies/{movie_id}/cast", response_model=MovieCreditsResponse)
+@router.get("/movies/{movie_id}/cast", response_model=MovieCastResponse)
 async def get_movie_cast(movie_id: int, db: Session = Depends(get_db)):
     """
-    Get cast and crew information for a specific movie.
+    Get cast information for a specific movie.
 
-    Returns cast members (actors) and crew members (directors, writers, etc.)
-    separated into their respective categories.
+    Returns only cast members (actors), excluding crew members.
     """
     try:
         ***REMOVED*** First verify the movie exists
@@ -46,40 +46,26 @@ async def get_movie_cast(movie_id: int, db: Session = Depends(get_db)):
         ***REMOVED*** Get all credits for the movie
         credits = get_credits_by_movie_id(db, movie_id)
 
-        ***REMOVED*** Separate cast and crew
+        ***REMOVED*** Filter for cast members only
         cast_members = []
-        crew_members = []
 
         for credit in credits:
             ***REMOVED*** Filter for cast members (actors)
             if credit.department == "Acting" or credit.cast_id is not None:
                 cast_member = {
                     "id": credit.id,
-                    "tmdb_person_id": credit.tmdb_person_id,
+                    "actor_id": credit.tmdb_person_id,
                     "name": credit.name,
                     "character": credit.character,
                     "profile_path": credit.profile_path,
                     "order": credit.order,
                 }
                 cast_members.append(CastMemberResponse.model_validate(cast_member))
-            ***REMOVED*** Filter for crew members
-            elif credit.department and credit.job:
-                crew_member = {
-                    "id": credit.id,
-                    "tmdb_person_id": credit.tmdb_person_id,
-                    "name": credit.name,
-                    "department": credit.department,
-                    "job": credit.job,
-                    "profile_path": credit.profile_path,
-                }
-                crew_members.append(CrewMemberResponse.model_validate(crew_member))
 
         ***REMOVED*** Sort cast by order if available
         cast_members.sort(key=lambda x: x.order if x.order is not None else 999)
 
-        return MovieCreditsResponse(
-            cast=cast_members, crew=crew_members, movie_id=movie_id
-        )
+        return MovieCastResponse(cast=cast_members, movie_id=movie_id)
 
     except HTTPException:
         raise

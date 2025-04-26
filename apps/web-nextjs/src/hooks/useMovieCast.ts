@@ -1,18 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "../services/api-client";
+import { MovieCastResponse } from "../services/movie-service";
 
 export interface CastMember {
   id: number;
+  actor_id: number;
   name: string;
-  character: string;
+  character?: string;
   profile_path?: string;
   profile_url?: string;
-  order: number;
-}
-
-interface MovieCastResponse {
-  cast: CastMember[];
-  movie_id: number;
+  order?: number;
 }
 
 /**
