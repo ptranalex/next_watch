@@ -37,6 +37,12 @@ const Sidebar: React.FC = () => {
     fetchGenres();
   }, []);
 
+  // Helper function to check if current route is for a specific genre
+  const isActiveGenre = (genreId: number): boolean => {
+    const { id } = router.query;
+    return id === genreId.toString();
+  };
+
   return (
     <Box
       as="aside"
@@ -121,18 +127,10 @@ const Sidebar: React.FC = () => {
             <List spacing={2}>
               {genres.map((genre) => (
                 <ListItem key={genre.id}>
-                  <Link href={`/genre/${genre.name.toLowerCase()}`} passHref>
+                  <Link href={`/genre/${genre.id}`} passHref>
                     <Text
-                      fontWeight={
-                        router.asPath === `/genre/${genre.name.toLowerCase()}`
-                          ? "bold"
-                          : "normal"
-                      }
-                      color={
-                        router.asPath === `/genre/${genre.name.toLowerCase()}`
-                          ? "blue.300"
-                          : "gray.300"
-                      }
+                      fontWeight={isActiveGenre(genre.id) ? "bold" : "normal"}
+                      color={isActiveGenre(genre.id) ? "blue.300" : "gray.300"}
                       cursor="pointer"
                       _hover={{ color: "blue.300" }}
                     >

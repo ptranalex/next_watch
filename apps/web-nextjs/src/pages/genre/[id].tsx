@@ -19,15 +19,24 @@ import {
 import MovieGrid from "../../components/movies/MovieGrid";
 
 interface GenrePageProps {
-  genreName: string;
+  genreId: number;
   initialParams: MoviesQueryParams;
 }
 
-const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
+const GenrePage: NextPage<GenrePageProps> = ({ genreId, initialParams }) => {
   const router = useRouter();
   const [pageSize] = useState(20);
-  const formattedGenreName =
-    genreName.charAt(0).toUpperCase() + genreName.slice(1);
+
+  // Fetch all genres for name lookup and dropdown
+  const { data: genres, isLoading: isLoadingGenres } = useQuery({
+    queryKey: ["genres"],
+    queryFn: getGenres,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Find the current genre from the genres list
+  const currentGenre = genres?.find((g) => g.id === genreId);
+  const genreName = currentGenre?.name || "";
 
   // Fetch movies by genre using infinite query
   const {
@@ -38,9 +47,9 @@ const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["movies-by-genre-infinite", genreName, pageSize],
+    queryKey: ["movies-by-genre-infinite", genreId, pageSize],
     queryFn: ({ pageParam = 1 }) =>
-      getMoviesByGenre(genreName, pageParam, pageSize),
+      getMoviesByGenre(genreId, pageParam, pageSize),
     getNextPageParam: (lastPage: MovieListResponse) => {
       if (lastPage.page < Math.ceil(lastPage.total / lastPage.page_size)) {
         return lastPage.page + 1;
@@ -49,40 +58,52 @@ const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+    enabled: Boolean(genreId),
   });
 
   // Extract all movies from all pages
   const allMovies = data?.pages.flatMap((page) => page.movies) || [];
 
-  // Fetch all genres for validation and dropdown
-  const { data: genresData } = useQuery({
-    queryKey: ["genres"],
-    queryFn: getGenres,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Check if genre exists
-  const genreExists = genresData?.some(
-    (genre: Genre) => genre.name.toLowerCase() === genreName.toLowerCase()
-  );
+  // Log info for debugging
+  useEffect(() => {
+    if (data?.pages?.length) {
+      console.log(
+        `Genre ${genreId}: Loaded ${allMovies.length} movies across ${data.pages.length} pages`
+      );
+    }
+  }, [data?.pages?.length, allMovies.length, genreId]);
 
   const handleLoadMore = () => {
-    console.log(`Attempting to load more ${genreName} movies...`);
+    console.log(`Attempting to load more movies for genre ID ${genreId}...`);
     if (!isFetchingNextPage) {
       fetchNextPage();
     }
   };
 
+  const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedGenreId = parseInt(e.target.value, 10);
+    router.push(`/genre/${selectedGenreId}`);
+  };
+
   // Handle invalid genre
-  if (genresData && !genreExists && !isLoading) {
+  if (genres && !currentGenre && !isLoadingGenres) {
     return (
       <Box p={8} textAlign="center">
         <Heading size="lg" mb={4}>
           Genre Not Found
         </Heading>
         <Text mb={6}>
-          The genre "{formattedGenreName}" does not exist or contains no movies.
+          The genre with ID {genreId} does not exist or contains no movies.
         </Text>
+      </Box>
+    );
+  }
+
+  // Handle loading state
+  if (isLoadingGenres) {
+    return (
+      <Box p={8} textAlign="center">
+        <Text>Loading genre information...</Text>
       </Box>
     );
   }
@@ -90,27 +111,25 @@ const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
   return (
     <>
       <Head>
-        <title>{formattedGenreName} Movies | Next Watch</title>
+        <title>{genreName} Movies | Next Watch</title>
         <meta
           name="description"
-          content={`Browse the best ${formattedGenreName} movies`}
+          content={`Browse the best ${genreName} movies`}
         />
       </Head>
 
       <Box p={4}>
         <Flex justify="space-between" align="center" mb={6}>
-          <Heading>{formattedGenreName} Movies</Heading>
+          <Heading>{genreName} Movies</Heading>
 
           <Select
             width="200px"
             bg="gray.700"
-            onChange={(e) =>
-              router.push(`/genre/${e.target.value.toLowerCase()}`)
-            }
-            value={genreName}
+            onChange={handleGenreChange}
+            value={genreId.toString()}
           >
-            {genresData?.map((genre: Genre) => (
-              <option key={genre.id} value={genre.name.toLowerCase()}>
+            {genres?.map((genre: Genre) => (
+              <option key={genre.id} value={genre.id.toString()}>
                 {genre.name}
               </option>
             ))}
@@ -135,43 +154,56 @@ const GenrePage: NextPage<GenrePageProps> = ({ genreName, initialParams }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { name } = context.params || {};
-  const genreName = String(name).toLowerCase();
+  const { id } = context.params || {};
+  const genreId = parseInt(String(id), 10);
+
+  // Return 404 for invalid IDs
+  if (isNaN(genreId)) {
+    return {
+      notFound: true,
+    };
+  }
+
   const queryClient = new QueryClient();
   const pageSize = 20; // Match the pageSize used in the component
 
   try {
-    // Prefetch first page of movies for initial render using infinite query structure
-    const moviesData = await getMoviesByGenre(genreName, 1, pageSize);
-
-    // Manually set the infinite query data structure
-    queryClient.setQueryData(
-      ["movies-by-genre-infinite", genreName, pageSize],
-      {
-        pages: [moviesData],
-        pageParams: [1],
-      }
-    );
-
-    // Prefetch genres for dropdown
+    // Prefetch genres for dropdown and name lookup
     await queryClient.fetchQuery({
       queryKey: ["genres"],
       queryFn: getGenres,
     });
 
+    // Prefetch first page of movies for initial render
+    try {
+      const moviesData = await getMoviesByGenre(genreId, 1, pageSize);
+
+      // Manually set the infinite query data structure
+      queryClient.setQueryData(
+        ["movies-by-genre-infinite", genreId, pageSize],
+        {
+          pages: [moviesData],
+          pageParams: [1],
+        }
+      );
+    } catch (err) {
+      console.error(`Error fetching movies for genre ${genreId}:`, err);
+      // Continue despite movie fetch error - the page will handle it
+    }
+
     return {
       props: {
-        genreName,
-        initialParams: { genre: genreName, page: 1, pageSize },
+        genreId,
+        initialParams: { genre_id: genreId, page: 1, pageSize },
         dehydratedState: dehydrate(queryClient),
       },
     };
   } catch (error) {
-    console.error(`Error fetching genre ${genreName}:`, error);
+    console.error(`Error in getServerSideProps for genre ${genreId}:`, error);
     return {
       props: {
-        genreName,
-        initialParams: { genre: genreName, page: 1, pageSize },
+        genreId,
+        initialParams: { genre_id: genreId, page: 1, pageSize },
       },
     };
   }

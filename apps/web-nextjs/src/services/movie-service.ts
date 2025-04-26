@@ -163,3 +163,11 @@ export const getTopMovies = async (
 
   return fetchData<MovieListResponse>(`/movies/top?${queryParams.toString()}`);
 };
+
+/**
+ * Get a genre by its ID
+ */
+export const getGenreById = async (id: number): Promise<Genre | undefined> => {
+  const genres = await getGenres();
+  return genres.find((genre) => genre.id === id);
+};
