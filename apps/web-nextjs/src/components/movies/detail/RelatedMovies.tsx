@@ -1,43 +1,96 @@
-import React from "react";
-import {
-  Box,
-  Heading,
-  Text,
-  SimpleGrid,
-  Center,
-  Spinner,
-} from "@chakra-ui/react";
-import MovieCard from "../MovieCard";
-import { Movie } from "../../../services/movie-service";
+"use client";
 
-interface RelatedMoviesProps {
-  movies?: Movie[];
-  isLoading: boolean;
+import { Box, Heading, Alert, AlertIcon, Spinner } from "@chakra-ui/react";
+import useRelatedMovies from "@/src/hooks/useRelatedMovies";
+import MovieGrid from "../MovieGrid";
+import { useState } from "react";
+import config from "@/src/config";
+
+// Match the Movie type expected by MovieGrid
+interface Movie {
+  id: string;
+  title: string;
+  poster_path: string;
+  vote_average: number;
+  release_date: string;
+  genres?: string[];
 }
 
-const RelatedMovies: React.FC<RelatedMoviesProps> = ({ movies, isLoading }) => {
+interface RelatedMoviesProps {
+  movieId: string;
+  title?: string;
+}
+
+export default function RelatedMovies({
+  movieId,
+  title = "Related Movies",
+}: RelatedMoviesProps) {
+  const [isEnabled] = useState(() => !!config.features.enableRelatedMovies);
+
+  const { data, isLoading, error } = useRelatedMovies(movieId, isEnabled);
+
+  // If feature is disabled, don't render anything
+  if (!isEnabled) {
+    return null;
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box textAlign="center" py={6}>
+        <Spinner size="lg" />
+      </Box>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Alert status="error" my={4}>
+        <AlertIcon />
+        Error loading related movies:{" "}
+        {error instanceof Error ? error.message : "Unknown error"}
+      </Alert>
+    );
+  }
+
+  // Empty state
+  if (!data || !data.movies || data.movies.length === 0) {
+    return (
+      <Box my={6}>
+        <Heading as="h3" size="md" mb={4}>
+          {title}
+        </Heading>
+        <Alert status="info">
+          <AlertIcon />
+          No related movies found.
+        </Alert>
+      </Box>
+    );
+  }
+
+  // Format the movie data for MovieGrid component with proper type handling
+  const formattedMovies: Movie[] = data.movies.map((movie) => ({
+    id: movie.id.toString(),
+    title: movie.title,
+    // Ensure poster_path is always a string with fallback
+    poster_path: movie.poster_path || "/placeholder-poster.jpg",
+    vote_average: movie.vote_average || 0,
+    release_date: movie.release_date || "",
+    genres: movie.genres ? movie.genres.map((g) => g.name) : [],
+  }));
+
   return (
-    <Box mb={8}>
-      <Heading size="lg" mb={4}>
-        Related Movies
+    <Box my={6}>
+      <Heading as="h3" size="md" mb={4}>
+        {title}
       </Heading>
-      {isLoading ? (
-        <Center py={8}>
-          <Spinner />
-        </Center>
-      ) : movies && movies.length > 0 ? (
-        <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing={4}>
-          {movies.slice(0, 5).map((movie) => (
-            <Box key={movie.id}>
-              <MovieCard movie={movie} size="sm" />
-            </Box>
-          ))}
-        </SimpleGrid>
-      ) : (
-        <Text color="gray.400">No related movies found.</Text>
-      )}
+      <MovieGrid
+        movies={formattedMovies}
+        isLoading={false}
+        hasMoreMovies={false}
+        onLoadMore={() => {}}
+      />
     </Box>
   );
-};
-
-export default RelatedMovies;
+}

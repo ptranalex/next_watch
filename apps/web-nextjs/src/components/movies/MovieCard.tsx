@@ -1,163 +1,204 @@
-import React from "react";
+"use client";
+
+import { useState } from "react";
 import {
   Box,
   Image,
-  Heading,
   Text,
   Badge,
   Flex,
   useColorModeValue,
+  IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
-import { StarIcon } from "@chakra-ui/icons";
-import Link from "next/link";
-import { Movie } from "../../services/movie-service";
+import { HiStar, HiBookmark, HiCheck } from "react-icons/hi2";
+import NextLink from "next/link";
+
+interface Movie {
+  id: string;
+  title: string;
+  poster_path: string;
+  vote_average: number;
+  release_date: string;
+  genres?: string[];
+}
 
 interface MovieCardProps {
   movie: Movie;
-  size?: "sm" | "md" | "lg";
+  onFavoriteToggle?: (movieId: string) => void;
+  onWatchlistToggle?: (movieId: string) => void;
+  onWatchedToggle?: (movieId: string) => void;
+  isFavorite?: boolean;
+  isWatchlist?: boolean;
+  isWatched?: boolean;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ movie, size = "md" }) => {
+export default function MovieCard({
+  movie,
+  onFavoriteToggle,
+  onWatchlistToggle,
+  onWatchedToggle,
+  isFavorite = false,
+  isWatchlist = false,
+  isWatched = false,
+}: MovieCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const cardBg = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("gray.800", "white");
-  const placeholderBg = useColorModeValue("gray.200", "gray.700");
+  const cardBorder = useColorModeValue("gray.200", "gray.700");
 
-  // Set dimensions based on size
-  const dimensions = {
-    sm: { width: "150px", height: "225px", fontSize: "sm" },
-    md: { width: "200px", height: "300px", fontSize: "md" },
-    lg: { width: "250px", height: "375px", fontSize: "lg" },
-  }[size];
-
-  // Format release date if available
-  const releaseYear = movie.release_date
+  // Format release year
+  const year = movie.release_date
     ? new Date(movie.release_date).getFullYear()
-    : null;
+    : "Unknown";
 
-  // Get poster URL - try poster_url first, then fallback to poster_path
-  const posterUrl =
-    (movie as any).poster_url ||
-    (movie.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : null);
+  // Format rating color
+  const getRatingColor = (rating: number): string => {
+    if (rating >= 7.5) return "green";
+    if (rating >= 6) return "yellow";
+    return "red";
+  };
 
   return (
-    <Link href={`/movies/${movie.id}`} passHref>
-      <Box
-        width={dimensions.width}
-        borderRadius="lg"
-        overflow="hidden"
-        bg={cardBg}
-        boxShadow="md"
-        transition="all 0.3s"
-        _hover={{ transform: "translateY(-5px)", boxShadow: "lg" }}
-        cursor="pointer"
-      >
-        {posterUrl ? (
+    <Box
+      position="relative"
+      borderRadius="lg"
+      overflow="hidden"
+      bg={cardBg}
+      borderWidth="1px"
+      borderColor={cardBorder}
+      transition="all 0.3s"
+      _hover={{
+        transform: "translateY(-4px)",
+        shadow: "lg",
+        borderColor: "blue.400",
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <NextLink href={`/movies/${movie.id}`} passHref>
+        <Box position="relative" cursor="pointer">
           <Image
-            src={posterUrl}
+            src={movie.poster_path}
             alt={movie.title}
-            width={dimensions.width}
-            height={dimensions.height}
+            fallbackSrc="https://via.placeholder.com/300x450?text=No+Image"
+            borderTopRadius="lg"
+            width="100%"
+            height="auto"
             objectFit="cover"
-            fallback={
-              <Flex
-                bg={placeholderBg}
-                width={dimensions.width}
-                height={dimensions.height}
-                align="center"
-                justify="center"
-                flexDir="column"
-                p={4}
-              >
-                <Text
-                  textAlign="center"
-                  fontWeight="bold"
-                  fontSize={dimensions.fontSize}
-                  noOfLines={3}
-                >
-                  {movie.title}
-                </Text>
-                {releaseYear && (
-                  <Text fontSize="xs" mt={2}>
-                    {releaseYear}
-                  </Text>
-                )}
-              </Flex>
-            }
+            aspectRatio="2/3"
           />
-        ) : (
-          <Flex
-            bg={placeholderBg}
-            width={dimensions.width}
-            height={dimensions.height}
-            align="center"
-            justify="center"
-            flexDir="column"
-            p={4}
+
+          {/* Rating badge */}
+          <Badge
+            position="absolute"
+            top={2}
+            right={2}
+            colorScheme={getRatingColor(movie.vote_average)}
+            fontSize="sm"
+            borderRadius="full"
+            px={2}
+            py={1}
           >
-            <Text
-              textAlign="center"
-              fontWeight="bold"
-              fontSize={dimensions.fontSize}
-              noOfLines={3}
+            {movie.vote_average.toFixed(1)}
+          </Badge>
+
+          {/* Year badge */}
+          <Badge
+            position="absolute"
+            bottom={2}
+            right={2}
+            colorScheme="blue"
+            fontSize="sm"
+            borderRadius="full"
+            px={2}
+            py={1}
+          >
+            {year}
+          </Badge>
+
+          {/* Overlay with buttons */}
+          {isHovered && (
+            <Flex
+              position="absolute"
+              top={2}
+              left={2}
+              direction="column"
+              gap={2}
             >
-              {movie.title}
-            </Text>
-            {releaseYear && (
-              <Text fontSize="xs" mt={2}>
-                {releaseYear}
-              </Text>
-            )}
-          </Flex>
-        )}
-
-        <Box p={3}>
-          <Heading
-            as="h3"
-            size={size === "sm" ? "xs" : "sm"}
-            noOfLines={1}
-            color={textColor}
-            mb={1}
-          >
-            {movie.title}
-          </Heading>
-
-          <Flex justify="space-between" align="center">
-            {releaseYear && (
-              <Text fontSize="xs" color="gray.500">
-                {releaseYear}
-              </Text>
-            )}
-
-            {movie.vote_average !== undefined && (
-              <Flex align="center">
-                <StarIcon color="yellow.400" mr={1} boxSize={3} />
-                <Text fontSize="xs" fontWeight="bold">
-                  {movie.vote_average.toFixed(1)}
-                </Text>
-              </Flex>
-            )}
-          </Flex>
-
-          {movie.genres && movie.genres.length > 0 && (
-            <Flex mt={2} flexWrap="wrap" gap={1}>
-              {movie.genres.slice(0, 2).map((genre) => (
-                <Badge
-                  key={genre.id}
-                  colorScheme="blue"
-                  fontSize="xx-small"
-                  variant="subtle"
+              {onFavoriteToggle && (
+                <Tooltip
+                  label={
+                    isFavorite ? "Remove from Favorites" : "Add to Favorites"
+                  }
                 >
-                  {genre.name}
-                </Badge>
-              ))}
+                  <IconButton
+                    aria-label="Toggle favorite"
+                    icon={<HiStar />}
+                    size="sm"
+                    colorScheme={isFavorite ? "yellow" : "gray"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onFavoriteToggle(movie.id);
+                    }}
+                  />
+                </Tooltip>
+              )}
+
+              {onWatchlistToggle && (
+                <Tooltip
+                  label={
+                    isWatchlist ? "Remove from Watchlist" : "Add to Watchlist"
+                  }
+                >
+                  <IconButton
+                    aria-label="Toggle watchlist"
+                    icon={<HiBookmark />}
+                    size="sm"
+                    colorScheme={isWatchlist ? "blue" : "gray"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onWatchlistToggle(movie.id);
+                    }}
+                  />
+                </Tooltip>
+              )}
+
+              {onWatchedToggle && (
+                <Tooltip
+                  label={isWatched ? "Mark as Unwatched" : "Mark as Watched"}
+                >
+                  <IconButton
+                    aria-label="Toggle watched"
+                    icon={<HiCheck />}
+                    size="sm"
+                    colorScheme={isWatched ? "green" : "gray"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onWatchedToggle(movie.id);
+                    }}
+                  />
+                </Tooltip>
+              )}
             </Flex>
           )}
         </Box>
-      </Box>
-    </Link>
-  );
-};
+      </NextLink>
 
-export default MovieCard;
+      <Box p={3}>
+        <Text fontWeight="bold" fontSize="md" noOfLines={1} title={movie.title}>
+          {movie.title}
+        </Text>
+
+        {movie.genres && movie.genres.length > 0 && (
+          <Flex mt={1} gap={1} flexWrap="wrap">
+            {movie.genres.slice(0, 2).map((genre) => (
+              <Badge key={genre} colorScheme="gray" fontSize="xs">
+                {genre}
+              </Badge>
+            ))}
+          </Flex>
+        )}
+      </Box>
+    </Box>
+  );
+}

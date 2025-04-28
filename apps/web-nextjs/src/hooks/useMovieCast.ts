@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchData } from "../services/api-client";
-import { MovieCastResponse } from "../services/movie-service";
+import { MovieAPI } from "../services/movies-api";
 
 export interface CastMember {
   id: number;
@@ -21,7 +20,7 @@ const useMovieCast = (id: number | string) => {
   return useQuery({
     queryKey: ["movie-cast", id],
     queryFn: async () => {
-      return fetchData<MovieCastResponse>(`/movies/${id}/cast`);
+      return MovieAPI.getCast(Number(id));
     },
     staleTime: 1000 * 60 * 60, // 1 hour
     enabled: !!id,

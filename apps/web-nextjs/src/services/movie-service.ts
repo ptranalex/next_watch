@@ -12,6 +12,24 @@ export interface Movie {
   vote_average?: number;
   release_date?: string;
   genres?: Genre[];
+
+  // Additional fields for movie attributes display
+  imdb_id?: string;
+  tmdb_id?: number;
+  original_title?: string;
+  runtime?: number;
+  budget?: number;
+  revenue?: number;
+  original_language?: string;
+  status?: string;
+  production_countries?: { iso_3166_1: string; name: string }[];
+  production_companies?: { id: number; name: string; logo_path?: string }[];
+  imdb_rating?: number;
+  vote_count?: number;
+  popularity?: number;
+  tagline?: string;
+  homepage?: string;
+  fshare_link?: string;
 }
 
 export interface Genre {

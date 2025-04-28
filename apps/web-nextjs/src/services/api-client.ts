@@ -84,3 +84,85 @@ export const deleteData = async <T>(
   const response = await apiClient.delete<T>(endpoint, config);
   return response.data;
 };
+
+/**
+ * Generic API client class for entity-based operations
+ * This provides a consistent interface for CRUD operations on entities
+ */
+export class APIClient<T> {
+  private endpoint: string;
+
+  constructor(endpoint: string) {
+    this.endpoint = endpoint;
+  }
+
+  /**
+   * Get all entities with optional query parameters
+   */
+  getAll = async (
+    params?: Record<string, any>
+  ): Promise<{ data: T[]; meta?: any }> => {
+    const queryString = params
+      ? `?${new URLSearchParams(this.formatParams(params)).toString()}`
+      : "";
+    return fetchData<{ data: T[]; meta?: any }>(
+      `${this.endpoint}${queryString}`
+    );
+  };
+
+  /**
+   * Get a single entity by ID
+   */
+  getById = async (id: number | string): Promise<T> => {
+    return fetchData<T>(`${this.endpoint}/${id}`);
+  };
+
+  /**
+   * Create a new entity
+   */
+  create = async (data: Partial<T>): Promise<T> => {
+    return postData<T>(this.endpoint, data);
+  };
+
+  /**
+   * Update an existing entity
+   */
+  update = async (id: number | string, data: Partial<T>): Promise<T> => {
+    return putData<T>(`${this.endpoint}/${id}`, data);
+  };
+
+  /**
+   * Delete an entity
+   */
+  delete = async (id: number | string): Promise<void> => {
+    return deleteData<void>(`${this.endpoint}/${id}`);
+  };
+
+  /**
+   * Perform a custom query on the entity endpoint
+   */
+  query = async <R = T>(
+    queryString: string,
+    config?: AxiosRequestConfig
+  ): Promise<R> => {
+    return fetchData<R>(`${this.endpoint}/${queryString}`, config);
+  };
+
+  /**
+   * Helper to format parameters for URL query strings
+   * Handles nested objects and arrays
+   */
+  private formatParams(params: Record<string, any>): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    Object.keys(params).forEach((key) => {
+      const value = params[key];
+      if (value !== undefined && value !== null) {
+        result[key] =
+          typeof value === "object" ? JSON.stringify(value) : String(value);
+      }
+    });
+
+    return result;
+  }
+}

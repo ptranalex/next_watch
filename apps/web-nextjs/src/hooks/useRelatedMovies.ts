@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { MovieListResponse } from "../services/movie-service";
-import { fetchData } from "../services/api-client";
+import { MovieAPI } from "../services/movies-api";
 
 /**
  * A hook that fetches related movies for a given movie ID
@@ -12,7 +11,7 @@ const useRelatedMovies = (id: number | string, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["related-movies", id],
     queryFn: async () => {
-      return fetchData<MovieListResponse>(`/movies/${id}/related`);
+      return MovieAPI.getRelatedMovies(Number(id));
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
     enabled: !!id && enabled,

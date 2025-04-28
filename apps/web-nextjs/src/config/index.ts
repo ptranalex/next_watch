@@ -50,6 +50,22 @@ export const FEATURES = {
    * Enable/disable search functionality
    */
   enableSearch: process.env.NEXT_PUBLIC_ENABLE_SEARCH !== "false",
+
+  /**
+   * Enable/disable movie trailers
+   */
+  enableTrailers: process.env.NEXT_PUBLIC_ENABLE_TRAILERS !== "false",
+
+  /**
+   * Enable/disable Fshare links
+   */
+  enableFshare: process.env.NEXT_PUBLIC_ENABLE_FSHARE !== "false",
+
+  /**
+   * Enable/disable detailed attributes
+   */
+  enableDetailedAttributes:
+    process.env.NEXT_PUBLIC_ENABLE_DETAILED_ATTRIBUTES !== "false",
 };
 
 // Authentication Configuration

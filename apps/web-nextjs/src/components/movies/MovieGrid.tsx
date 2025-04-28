@@ -1,55 +1,72 @@
-import React, { useEffect } from "react";
-import { SimpleGrid, Box, Text, Spinner, Center } from "@chakra-ui/react";
-import { Movie } from "../../services/movie-service";
+"use client";
+
+import { SimpleGrid, Box, Text, Center, Button } from "@chakra-ui/react";
 import MovieCard from "./MovieCard";
-import useIntersectionObserver from "../../hooks/useIntersectionObserver";
+import MovieCardSkeleton from "./MovieCardSkeleton";
+
+interface Movie {
+  id: string;
+  title: string;
+  poster_path: string;
+  vote_average: number;
+  release_date: string;
+  genres?: string[];
+}
 
 interface MovieGridProps {
   movies: Movie[];
   isLoading?: boolean;
-  hasMore?: boolean;
+  error?: Error | null;
+  onFavoriteToggle?: (movieId: string) => void;
+  onWatchlistToggle?: (movieId: string) => void;
+  onWatchedToggle?: (movieId: string) => void;
+  favorites?: Set<string>;
+  watchlist?: Set<string>;
+  watched?: Set<string>;
   onLoadMore?: () => void;
-  columns?: { base: number; sm: number; md: number; lg: number; xl?: number };
+  hasMoreMovies?: boolean;
+  isLoadingMore?: boolean;
+  skeletonCount?: number;
 }
 
-const MovieGrid: React.FC<MovieGridProps> = ({
+export default function MovieGrid({
   movies,
   isLoading = false,
-  hasMore = false,
+  error = null,
+  onFavoriteToggle,
+  onWatchlistToggle,
+  onWatchedToggle,
+  favorites = new Set(),
+  watchlist = new Set(),
+  watched = new Set(),
   onLoadMore,
-  columns = { base: 2, sm: 2, md: 3, lg: 4, xl: 5 },
-}) => {
-  // Use intersection observer for infinite scrolling
-  const [loaderRef, isIntersecting] = useIntersectionObserver<HTMLDivElement>({
-    rootMargin: "300px",
-  });
-
-  // Trigger load more when the loader element is visible
-  useEffect(() => {
-    if (isIntersecting && hasMore && onLoadMore && !isLoading) {
-      console.log("Loading more movies...");
-      onLoadMore();
-    }
-  }, [isIntersecting, hasMore, onLoadMore, isLoading]);
-
-  // Log when the component receives new props
-  useEffect(() => {
-    console.log(
-      `MovieGrid: ${movies.length} movies, hasMore=${hasMore}, isLoading=${isLoading}`
-    );
-  }, [movies.length, hasMore, isLoading]);
-
-  if (isLoading && (!movies || movies.length === 0)) {
+  hasMoreMovies = false,
+  isLoadingMore = false,
+  skeletonCount = 12,
+}: MovieGridProps) {
+  if (error) {
     return (
-      <Center py={12}>
-        <Spinner size="xl" color="blue.400" />
+      <Center py={10}>
+        <Text color="red.500">Error loading movies: {error.message}</Text>
       </Center>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <SimpleGrid columns={{ base: 2, md: 3, lg: 4, xl: 6 }} spacing={4} my={4}>
+        {Array(skeletonCount)
+          .fill(0)
+          .map((_, index) => (
+            <MovieCardSkeleton key={index} />
+          ))}
+      </SimpleGrid>
     );
   }
 
   if (!movies || movies.length === 0) {
     return (
-      <Center py={12}>
+      <Center py={10}>
         <Text>No movies found</Text>
       </Center>
     );
@@ -57,20 +74,34 @@ const MovieGrid: React.FC<MovieGridProps> = ({
 
   return (
     <Box>
-      <SimpleGrid columns={columns} spacing={6} py={4} justifyItems="center">
+      <SimpleGrid columns={{ base: 2, md: 3, lg: 4, xl: 6 }} spacing={4} my={4}>
         {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+          <MovieCard
+            key={movie.id}
+            movie={movie}
+            onFavoriteToggle={onFavoriteToggle}
+            onWatchlistToggle={onWatchlistToggle}
+            onWatchedToggle={onWatchedToggle}
+            isFavorite={favorites.has(movie.id)}
+            isWatchlist={watchlist.has(movie.id)}
+            isWatched={watched.has(movie.id)}
+          />
         ))}
       </SimpleGrid>
 
-      {/* Infinite scroll loading indicator */}
-      {(hasMore || isLoading) && (
-        <Center py={8} ref={loaderRef}>
-          {isLoading && <Spinner size="md" color="blue.400" />}
+      {onLoadMore && hasMoreMovies && (
+        <Center py={8}>
+          <Button
+            onClick={onLoadMore}
+            isLoading={isLoadingMore}
+            loadingText="Loading more"
+            colorScheme="blue"
+            variant="outline"
+          >
+            Load More
+          </Button>
         </Center>
       )}
     </Box>
   );
-};
-
-export default MovieGrid;
+}

@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Movie } from "../services/movie-service";
-import { fetchData } from "../services/api-client";
+import { MovieAPI } from "../services/movies-api";
 
 /**
  * A hook that fetches movie details by ID
@@ -11,7 +10,7 @@ const useMovie = (id: number | string) => {
   return useQuery({
     queryKey: ["movie", id],
     queryFn: async () => {
-      return fetchData<Movie>(`/movies/${id}`);
+      return MovieAPI.getById(Number(id));
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
     enabled: !!id,
