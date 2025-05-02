@@ -53,20 +53,40 @@ def get_movie_details_by_id(
     Returns:
         Movie details dictionary or None if not found
     """
-    query = """
-    SELECT m.*
+    ***REMOVED*** Get movie details with director
+    movie_query = """
+    SELECT m.*, 
+           (SELECT c.name 
+            FROM credit c 
+            WHERE c.movie_id = m.id 
+            AND c.department = 'Directing' 
+            AND c.job = 'Director' 
+            LIMIT 1) as director
     FROM movie m
     WHERE m.id = :movie_id
     """
 
-    result = db_session.execute(text(query), {"movie_id": movie_id})
+    result = db_session.execute(text(movie_query), {"movie_id": movie_id})
     movie = result.first()
 
     if not movie:
         return None
 
-    ***REMOVED*** Convert to dictionary
-    return dict(movie._mapping)
+    ***REMOVED*** Get credits
+    credits_query = """
+    SELECT c.*
+    FROM credit c
+    WHERE c.movie_id = :movie_id
+    """
+
+    credits_result = db_session.execute(text(credits_query), {"movie_id": movie_id})
+    credits = [dict(row._mapping) for row in credits_result.all()]
+
+    ***REMOVED*** Combine movie and credits
+    movie_dict = dict(movie._mapping)
+    movie_dict["credits"] = credits
+
+    return movie_dict
 
 
 def get_movie_details_by_tmdb_id(
