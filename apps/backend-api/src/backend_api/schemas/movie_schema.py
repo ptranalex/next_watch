@@ -52,6 +52,7 @@ class MovieResponse(BaseModel):
     vote_average: Optional[float] = None
     imdb_rating: Optional[float] = None
     imdb_id: Optional[str] = None
+    runtime: Optional[int] = None
     genres: List[Dict[str, Any]] = Field(default_factory=list)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
