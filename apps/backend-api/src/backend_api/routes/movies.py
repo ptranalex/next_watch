@@ -60,27 +60,8 @@ def format_movie_for_response(
         ***REMOVED*** It's already a dictionary
         movie_dict = movie.copy()
     else:
-        ***REMOVED*** Create a dictionary from the movie object's attributes
-        movie_dict = {
-            "id": movie.id,
-            "tmdb_id": movie.tmdb_id,
-            "title": movie.title,
-            "overview": movie.overview,
-            "release_date": movie.release_date,
-            "poster_url": movie.poster_url,
-            "backdrop_url": movie.backdrop_url,
-            "vote_average": movie.vote_average,
-            "imdb_rating": movie.imdb_rating,
-            "imdb_id": movie.imdb_id,
-            "runtime": movie.runtime,
-            "director": movie.director,
-            "writer": movie.writer,
-            "metacritic_rating": movie.metacritic_rating,
-            "rotten_tomatoes_rating": movie.rotten_tomatoes_rating,
-            "awards": movie.awards,
-            "created_at": movie.created_at,
-            "updated_at": movie.updated_at,
-        }
+        ***REMOVED*** Convert SQLAlchemy Row to dictionary
+        movie_dict = dict(movie._mapping)
 
     ***REMOVED*** Add genres to the dictionary
     movie_dict["genres"] = genre_list
