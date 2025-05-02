@@ -167,7 +167,8 @@ class OMDBDataAdapter:
                 "actors": omdb_movie.get("Actors"),
                 "director": omdb_movie.get("Director"),
                 "awards": omdb_movie.get("Awards"),
-                "metascore": None,
+                "metacritic_rating": None,
+                "rotten_tomatoes_rating": None,
             }
 
             ***REMOVED*** Process IMDB rating
@@ -188,9 +189,21 @@ class OMDBDataAdapter:
             ***REMOVED*** Process Metascore
             if omdb_movie.get("Metascore", "N/A") != "N/A":
                 try:
-                    normalized_data["metascore"] = int(omdb_movie.get("Metascore", 0))
+                    normalized_data["metacritic_rating"] = int(omdb_movie.get("Metascore", 0))
                 except (ValueError, TypeError):
                     pass
+
+            ***REMOVED*** Process Rotten Tomatoes rating from Ratings array
+            ratings = omdb_movie.get("Ratings", [])
+            for rating in ratings:
+                if rating.get("Source") == "Rotten Tomatoes":
+                    try:
+                        ***REMOVED*** Remove % sign and convert to integer
+                        rt_value = rating.get("Value", "").replace("%", "")
+                        normalized_data["rotten_tomatoes_rating"] = int(rt_value)
+                    except (ValueError, TypeError):
+                        pass
+                    break
 
             logger.debug(f"Retrieved OMDB data for movie: {title}")
             return normalized_data
@@ -233,6 +246,12 @@ class OMDBDataAdapter:
                 updates["imdb_rating"] = omdb_data["imdb_rating"]
             if not db_movie.runtime and omdb_data["runtime_mins"]:
                 updates["runtime"] = omdb_data["runtime_mins"]
+            if not db_movie.metacritic_rating and omdb_data["metacritic_rating"]:
+                updates["metacritic_rating"] = omdb_data["metacritic_rating"]
+            if not db_movie.rotten_tomatoes_rating and omdb_data["rotten_tomatoes_rating"]:
+                updates["rotten_tomatoes_rating"] = omdb_data["rotten_tomatoes_rating"]
+            if not db_movie.awards and omdb_data["awards"]:
+                updates["awards"] = omdb_data["awards"]
 
             ***REMOVED*** Only update if we have changes
             if updates:

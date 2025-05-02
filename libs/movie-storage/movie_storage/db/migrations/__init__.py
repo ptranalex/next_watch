@@ -32,6 +32,7 @@ MIGRATIONS = [
     "movie_storage.db.migrations.002_add_credits_and_extended_movie_fields",
     "movie_storage.db.migrations.003_update_budget_revenue_to_bigint",
     "movie_storage.db.migrations.004_rename_moviegenrelink_table",
+    "movie_storage.db.migrations.005_add_ratings_and_awards",
 ]
 
 

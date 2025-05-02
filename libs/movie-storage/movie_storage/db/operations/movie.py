@@ -295,6 +295,11 @@ def create_movie_from_tmdb_details(
         "revenue": tmdb_details.get("revenue"),
         "adult": tmdb_details.get("adult"),
         "video": tmdb_details.get("video"),
+        "tmdb_rating": tmdb_details.get("vote_average"),
+        "imdb_rating": tmdb_details.get("imdb_rating"),
+        "metacritic_rating": tmdb_details.get("metascore"),
+        "rotten_tomatoes_rating": None,  ***REMOVED*** Will be populated by OMDB enrichment
+        "awards": None,  ***REMOVED*** Will be populated by OMDB enrichment
     }
 
     ***REMOVED*** Process release date

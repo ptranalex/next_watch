@@ -70,9 +70,14 @@ class Movie(SQLModel, table=True):
     adult: Optional[bool] = False
     video: Optional[bool] = False
 
-    ***REMOVED*** Legacy ratings (may be kept for compatibility)
+    ***REMOVED*** Ratings from different sources
     tmdb_rating: Optional[float]
     imdb_rating: Optional[float]
+    rotten_tomatoes_rating: Optional[int] = None
+    metacritic_rating: Optional[int] = None
+
+    ***REMOVED*** Awards information
+    awards: Optional[str] = None
 
     ***REMOVED*** Timestamp fields
     created_at: datetime = Field(default_factory=datetime.utcnow)
