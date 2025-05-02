@@ -59,6 +59,7 @@ class MovieResponse(BaseModel):
     metacritic_rating: Optional[int] = None
     rotten_tomatoes_rating: Optional[int] = None
     awards: Optional[str] = None
+    original_language: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

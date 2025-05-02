@@ -72,7 +72,7 @@ def format_movie_for_response(
 
 @router.get("/", response_model=MoviesListResponse)
 async def list_movies(
-    skip: int = Query(0, ge=0, description="Number of movies to skip for pagination"),
+    page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
     genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
     actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
@@ -89,9 +89,12 @@ async def list_movies(
     Supports filtering by genre ID, actor ID (which maps to TMDB actor ID), and sorting by different fields.
     """
     try:
+        ***REMOVED*** Calculate skip from page number
+        skip = (page - 1) * limit
+
         ***REMOVED*** Debug info
         logger.info(
-            f"Getting movies with skip={skip}, limit={limit}, genre_id={genre_id}, actor_id={actor_id}"
+            f"Getting movies with page={page}, skip={skip}, limit={limit}, genre_id={genre_id}, actor_id={actor_id}"
         )
 
         ***REMOVED*** Determine sorting options
@@ -119,7 +122,7 @@ async def list_movies(
             return MoviesListResponse(
                 movies=[],
                 total=0,
-                page=1,
+                page=page,
                 page_size=limit,
             )
 
@@ -132,9 +135,6 @@ async def list_movies(
             ***REMOVED*** Format movie for response
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
-
-        ***REMOVED*** Calculate page number
-        page = (skip // limit) + 1 if limit > 0 else 1
 
         ***REMOVED*** Create the paginated response
         return MoviesListResponse(

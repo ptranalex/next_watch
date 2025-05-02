@@ -67,10 +67,7 @@ def get_movie_details_by_id(
             WHERE c.movie_id = m.id 
             AND c.department = 'Writing' 
             AND c.job = 'Screenplay' 
-            LIMIT 1) as writer,
-           m.metacritic_rating,
-           m.rotten_tomatoes_rating,
-           m.awards
+            LIMIT 1) as writer
     FROM movie m
     WHERE m.id = :movie_id
     """
