@@ -53,7 +53,7 @@ def get_movie_details_by_id(
     Returns:
         Movie details dictionary or None if not found
     """
-    ***REMOVED*** Get movie details with director
+    ***REMOVED*** Get movie details with director, writer, and ratings
     movie_query = """
     SELECT m.*, 
            (SELECT c.name 
@@ -61,7 +61,16 @@ def get_movie_details_by_id(
             WHERE c.movie_id = m.id 
             AND c.department = 'Directing' 
             AND c.job = 'Director' 
-            LIMIT 1) as director
+            LIMIT 1) as director,
+           (SELECT c.name 
+            FROM credit c 
+            WHERE c.movie_id = m.id 
+            AND c.department = 'Writing' 
+            AND c.job = 'Screenplay' 
+            LIMIT 1) as writer,
+           m.metacritic_rating,
+           m.rotten_tomatoes_rating,
+           m.awards
     FROM movie m
     WHERE m.id = :movie_id
     """

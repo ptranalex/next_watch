@@ -54,7 +54,11 @@ class MovieResponse(BaseModel):
     imdb_id: Optional[str] = None
     runtime: Optional[int] = None
     director: Optional[str] = None
+    writer: Optional[str] = None
     genres: List[Dict[str, Any]] = Field(default_factory=list)
+    metacritic_rating: Optional[int] = None
+    rotten_tomatoes_rating: Optional[int] = None
+    awards: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
