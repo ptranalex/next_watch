@@ -370,6 +370,32 @@ def create_movie_from_tmdb_details(
         ***REMOVED*** Create new credits
         create_credits_from_tmdb_data(session, movie.id, tmdb_details["credits"])
 
+    ***REMOVED*** Process trailers if present
+    if videos := tmdb_details.get("videos", {}).get("results", []):
+        ***REMOVED*** Import here to avoid circular imports
+        from movie_storage.db.operations.trailer import (
+            delete_trailers_for_movie,
+            create_trailer,
+        )
+
+        ***REMOVED*** Delete existing trailers
+        delete_trailers_for_movie(session, movie.id)
+
+        ***REMOVED*** Create new trailers
+        for video in videos:
+            if video.get("site") == "YouTube" and video.get("type") == "Trailer":
+                trailer_data = {
+                    "movie_id": movie.id,
+                    "youtube_key": video.get("key"),
+                    "name": video.get("name"),
+                    "is_official": video.get("official", False),
+                    "url_link": f"https://www.youtube.com/watch?v={video.get('key')}",
+                }
+                create_trailer(session, trailer_data)
+                logger.info(
+                    f"Created trailer: {trailer_data['name']} for movie {movie.title}"
+                )
+
     ***REMOVED*** Refresh the movie to include relationships
     session.refresh(movie)
     return movie
