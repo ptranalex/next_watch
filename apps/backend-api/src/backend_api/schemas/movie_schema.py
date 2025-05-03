@@ -2,7 +2,7 @@
 Movie schemas for API responses using Pydantic.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
 
@@ -14,8 +14,7 @@ class GenreInfo(BaseModel):
     name: str
     tmdb_id: Optional[int] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MovieBase(BaseModel):
@@ -63,9 +62,7 @@ class MovieResponse(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    class Config:
-        orm_mode = True
-        extra = "ignore"
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     @classmethod
     def model_validate(cls, obj, **kwargs):

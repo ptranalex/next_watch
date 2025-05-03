@@ -16,6 +16,7 @@ from backend_api.queries.movie_listings import (
     search_movies_by_title,
 )
 from backend_api.queries.genres import get_genre_by_name
+from backend_api.queries.trailer import get_trailers_for_movie
 
 ***REMOVED*** Re-export all query functions for easier imports
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "get_movies_with_filters",
     "search_movies_by_title",
     "get_genre_by_name",
+    "get_trailers_for_movie",
 ]

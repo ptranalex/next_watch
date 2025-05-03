@@ -2,7 +2,7 @@
 Cast schemas for API responses using Pydantic.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
@@ -17,9 +17,7 @@ class CastMemberResponse(BaseModel):
     profile_path: Optional[str] = None
     order: Optional[int] = None
 
-    class Config:
-        orm_mode = True
-        extra = "ignore"
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
@@ -42,9 +40,7 @@ class CrewMemberResponse(BaseModel):
     job: Optional[str] = None
     profile_path: Optional[str] = None
 
-    class Config:
-        orm_mode = True
-        extra = "ignore"
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
@@ -64,8 +60,7 @@ class MovieCreditsResponse(BaseModel):
     crew: List[CrewMemberResponse]
     movie_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MovieCastResponse(BaseModel):
@@ -74,5 +69,4 @@ class MovieCastResponse(BaseModel):
     cast: List[CastMemberResponse]
     movie_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

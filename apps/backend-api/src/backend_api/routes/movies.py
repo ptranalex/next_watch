@@ -19,6 +19,7 @@ from backend_api.db.database import get_db
 
 ***REMOVED*** Import response schemas
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
+from backend_api.schemas.trailer_schema import TrailerResponse
 
 ***REMOVED*** Import API-specific query operations
 from backend_api.queries import (
@@ -29,6 +30,7 @@ from backend_api.queries import (
     get_movie_details_by_tmdb_id,
     search_movies_by_title,
     get_genre_by_name,
+    get_trailers_for_movie,
 )
 
 logger = logging.getLogger(__name__)
@@ -414,5 +416,40 @@ async def search_movies(
         ***REMOVED*** Get detailed stack trace
         stack_trace = traceback.format_exc()
         logger.error(f"Error searching movies with query '{query}': {str(e)}")
+        logger.error(f"Stack trace: {stack_trace}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/{movie_id}/trailers", response_model=List[TrailerResponse])
+async def get_movie_trailers(
+    movie_id: int, db: Session = Depends(get_db)
+) -> List[TrailerResponse]:
+    """Get all trailers for a movie.
+
+    Args:
+        movie_id: Movie ID
+        db: Database session
+
+    Returns:
+        List of trailers
+
+    Raises:
+        HTTPException: If movie not found
+    """
+    try:
+        ***REMOVED*** First check if movie exists
+        movie = get_movie_details_by_id(db, movie_id)
+        if not movie:
+            raise HTTPException(status_code=404, detail="Movie not found")
+
+        ***REMOVED*** Get trailers using our query function
+        trailers = get_trailers_for_movie(db, movie_id)
+        return [TrailerResponse.from_orm(t) for t in trailers]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        stack_trace = traceback.format_exc()
+        logger.error(f"Error fetching trailers for movie {movie_id}: {str(e)}")
         logger.error(f"Stack trace: {stack_trace}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

@@ -13,9 +13,9 @@ uvicorn = "^0.23.2"
 pydantic = "^2.4.2"
 sqlalchemy = "^2.0.23"
 alembic = "^1.12.1"
-movie-storage = {path = "../../libs/movie-storage"}
 typer = "^0.15.2"
 python-dotenv = "^1.0.0"
+movie-storage = {path = "../../libs/movie-storage"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.3"
