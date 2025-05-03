@@ -1,4 +1,4 @@
-"""Models for the movie storage package."""
+"""Model definitions for the movie storage library."""
 
 from typing import List
 
@@ -6,10 +6,12 @@ from typing import List
 from movie_storage.models.movie import Movie, MovieGenreLink
 from movie_storage.models.genre import Genre
 from movie_storage.models.credit import Credit
+from movie_storage.models.trailer import Trailer
 
 __all__: List[str] = [
     "Movie",
-    "Genre",
     "MovieGenreLink",
+    "Genre",
     "Credit",
+    "Trailer",
 ]

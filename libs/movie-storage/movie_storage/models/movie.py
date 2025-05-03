@@ -8,6 +8,7 @@ from sqlalchemy import BigInteger, Column
 if TYPE_CHECKING:
     from movie_storage.models.genre import Genre
     from movie_storage.models.credit import Credit
+    from movie_storage.models.trailer import Trailer
 
 
 class MovieGenreLink(SQLModel, table=True):
@@ -88,3 +89,4 @@ class Movie(SQLModel, table=True):
         back_populates="movies", link_model=MovieGenreLink
     )
     credits: List["Credit"] = Relationship(back_populates="movie")
+    trailers: List["Trailer"] = Relationship(back_populates="movie")

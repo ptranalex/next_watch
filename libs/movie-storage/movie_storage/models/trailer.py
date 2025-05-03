@@ -1,0 +1,30 @@
+"""Trailer model definition."""
+
+from typing import Optional, TYPE_CHECKING
+from datetime import datetime
+from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from movie_storage.models.movie import Movie
+
+
+class Trailer(SQLModel, table=True):
+    """Trailer model representing a movie trailer or video."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+    ***REMOVED*** Foreign key to Movie
+    movie_id: int = Field(foreign_key="movie.id")
+
+    ***REMOVED*** Trailer information
+    youtube_key: str = Field(index=True)
+    name: str
+    is_official: bool = Field(default=True)
+    url_link: Optional[str] = None
+
+    ***REMOVED*** Timestamp fields
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    ***REMOVED*** Relationship back to Movie
+    movie: Optional["Movie"] = Relationship(back_populates="trailers")
