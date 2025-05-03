@@ -1,5 +1,5 @@
 """
-API routes for genre resources.
+Genre-related API routes (v1).
 """
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/genres", tags=["genres"])
 
 
-@router.get("/", response_model=GenresListResponse)
+@router.get("", response_model=GenresListResponse)
 async def list_genres(db: Session = Depends(get_db)):
     """
     Get a list of all movie genres.

@@ -38,8 +38,8 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select, text
 
-***REMOVED*** Import routes
-from backend_api.routes import movies, genres, cast
+***REMOVED*** Import versioned API router
+from backend_api.routes.api_v1 import api_v1_router
 
 ***REMOVED*** Import database initialization
 from backend_api.db.database import init_database, get_db
@@ -64,10 +64,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-***REMOVED*** Register routers
-app.include_router(movies.router)
-app.include_router(genres.router)
-app.include_router(cast.router)
+***REMOVED*** Register v1 API router - this is the new, organized API
+app.include_router(api_v1_router)
 
 ***REMOVED*** Performance metrics middleware if enabled
 if settings.enable_performance_metrics:
@@ -98,7 +96,13 @@ def on_startup():
 @app.get("/")
 async def root():
     """Root endpoint returning API information."""
-    return {"message": "Welcome to Next Watch API"}
+    return {
+        "message": "Welcome to Next Watch API",
+        "api_versions": {
+            "v1": "Available at /api/v1/",
+        },
+        "documentation": "/docs",
+    }
 
 
 @app.get("/health")

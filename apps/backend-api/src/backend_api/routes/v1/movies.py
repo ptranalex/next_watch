@@ -1,18 +1,19 @@
 """
-API routes for movie resources.
+Movie-related API routes (v1).
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlmodel import Session
-from typing import List, Optional, Tuple, Dict, Union, Any
+from typing import List, Optional, Dict, Any
 import logging
 import traceback
-from datetime import date, datetime
-from sqlalchemy.sql import text, func, select
-from fastapi import Response
+from datetime import datetime
 
-***REMOVED*** Import movie-storage models only
-from movie_storage.models import Movie, MovieGenreLink
+***REMOVED*** Import movie-storage operations
+from movie_storage.db.operations import (
+    get_movie_by_id,
+    get_credits_by_movie_id,
+)
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
@@ -20,6 +21,10 @@ from backend_api.db.database import get_db
 ***REMOVED*** Import response schemas
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
 from backend_api.schemas.trailer_schema import TrailerResponse
+from backend_api.schemas.cast_schema import (
+    CastMemberResponse,
+    MovieCastResponse,
+)
 
 ***REMOVED*** Import API-specific query operations
 from backend_api.queries import (
@@ -28,8 +33,6 @@ from backend_api.queries import (
     get_movies_with_filters,
     get_movie_details_by_id,
     get_movie_details_by_tmdb_id,
-    search_movies_by_title,
-    get_genre_by_name,
     get_trailers_for_movie,
 )
 
@@ -38,18 +41,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/movies", tags=["movies"])
 
 
+***REMOVED*** Helper function from existing movies.py
 def format_movie_for_response(
     movie: Any, genres: List[Dict[str, Any]]
 ) -> MovieResponse:
     """
     Format a movie database row into a MovieResponse model.
-
-    Args:
-        movie: Movie database row or dictionary with attributes
-        genres: List of genre dictionaries from get_movie_genres
-
-    Returns:
-        MovieResponse object with formatted data
     """
     ***REMOVED*** Convert genres to the expected format
     genre_list = [
@@ -72,7 +69,7 @@ def format_movie_for_response(
     return MovieResponse.model_validate(movie_dict)
 
 
-@router.get("/", response_model=MoviesListResponse)
+@router.get("", response_model=MoviesListResponse)
 async def list_movies(
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
@@ -86,40 +83,22 @@ async def list_movies(
 ) -> MoviesListResponse:
     """
     Get a list of movies with pagination and optional filtering.
-
-    Returns movies with basic information and pagination metadata.
-    Supports filtering by genre ID, actor ID (which maps to TMDB actor ID), and sorting by different fields.
     """
     try:
         ***REMOVED*** Calculate skip from page number
         skip = (page - 1) * limit
 
-        ***REMOVED*** Debug info
-        logger.info(
-            f"Getting movies with page={page}, skip={skip}, limit={limit}, genre_id={genre_id}, actor_id={actor_id}"
-        )
-
-        ***REMOVED*** Determine sorting options
-        sort_field = (
-            sort_by
-            if sort_by in ["title", "release_date", "imdb_rating", "vote_count"]
-            else "title"
-        )
-
-        ***REMOVED*** Get movies from database with pagination and filters using our query function
+        ***REMOVED*** Get movies from database with pagination and filters
         movies, total_count = get_movies_with_filters(
             db,
             skip=skip,
             limit=limit,
             genre_id=genre_id,
             actor_tmdb_id=actor_id,
-            sort_by=sort_field,
+            sort_by=sort_by,
             sort_desc=sort_desc,
         )
-        logger.info(f"Found {len(movies)} movies")
-        logger.info(f"Total matching movies in database: {total_count}")
 
-        ***REMOVED*** Empty response if no movies
         if not movies:
             return MoviesListResponse(
                 movies=[],
@@ -131,14 +110,10 @@ async def list_movies(
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Get the movie's genres
             genres = get_movie_genres(db, movie.id)
-
-            ***REMOVED*** Format movie for response
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
-        ***REMOVED*** Create the paginated response
         return MoviesListResponse(
             movies=movie_responses,
             total=total_count,
@@ -146,15 +121,79 @@ async def list_movies(
             page_size=limit,
         )
     except Exception as e:
-        ***REMOVED*** Get detailed stack trace
-        stack_trace = traceback.format_exc()
         logger.error(f"Error fetching movies: {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/{movie_id}", response_model=MovieResponse)
+async def get_movie_details(
+    movie_id: int, db: Session = Depends(get_db)
+) -> MovieResponse:
+    """
+    Get detailed information for a specific movie by its database ID.
+    """
+    try:
+        movie = get_movie_details_by_id(db, movie_id)
+
+        if not movie:
+            raise HTTPException(status_code=404, detail="Movie not found")
+
+        genres = get_movie_genres(db, movie["id"])
+        return format_movie_for_response(movie, genres)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching movie {movie_id}: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/{movie_id}/cast", response_model=MovieCastResponse)
+async def get_movie_cast(movie_id: int, db: Session = Depends(get_db)):
+    """
+    Get cast information for a specific movie.
+    """
+    try:
+        ***REMOVED*** First verify the movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise HTTPException(status_code=404, detail="Movie not found")
+
+        ***REMOVED*** Get all credits for the movie
+        credits = get_credits_by_movie_id(db, movie_id)
+
+        ***REMOVED*** Filter for cast members only
+        cast_members = []
+
+        for credit in credits:
+            ***REMOVED*** Filter for cast members (actors)
+            if credit.department == "Acting" or credit.cast_id is not None:
+                cast_member = {
+                    "id": credit.id,
+                    "actor_id": credit.tmdb_person_id,
+                    "name": credit.name,
+                    "character": credit.character,
+                    "profile_path": credit.profile_path,
+                    "order": credit.order,
+                }
+                cast_members.append(CastMemberResponse.model_validate(cast_member))
+
+        ***REMOVED*** Sort cast by order if available
+        cast_members.sort(key=lambda x: x.order if x.order is not None else 999)
+
+        return MovieCastResponse(cast=cast_members, movie_id=movie_id)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching cast for movie {movie_id}: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.get("/top", response_model=MoviesListResponse)
-async def get_top_movies_route(
+async def get_top_movies(
     year: Optional[int] = Query(None, description="Filter by release year"),
     genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
     limit: int = Query(10, ge=1, le=50, description="Max number of movies to return"),
@@ -163,15 +202,10 @@ async def get_top_movies_route(
 ) -> MoviesListResponse:
     """
     Get top-rated movies by IMDB rating.
-
-    If year is provided, returns top movies for that year, otherwise returns top movies
-    for the current year.
     """
     try:
         ***REMOVED*** If year is not provided, use current year
         current_year = year or datetime.now().year
-
-        logger.info(f"Getting top movies for year {current_year}, genre_id={genre_id}")
 
         ***REMOVED*** Get movies using our query function
         movies, total_count = get_top_rated_movies(
@@ -183,9 +217,6 @@ async def get_top_movies_route(
             all_time=False,
         )
 
-        logger.info(f"Found {len(movies)} top movies for year {current_year}")
-
-        ***REMOVED*** Empty response if no movies
         if not movies:
             return MoviesListResponse(
                 movies=[],
@@ -197,14 +228,10 @@ async def get_top_movies_route(
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Get the movie's genres
             genres = get_movie_genres(db, movie.id)
-
-            ***REMOVED*** Format movie for response
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
-        ***REMOVED*** Create the paginated response
         return MoviesListResponse(
             movies=movie_responses,
             total=total_count,
@@ -212,10 +239,8 @@ async def get_top_movies_route(
             page_size=limit,
         )
     except Exception as e:
-        ***REMOVED*** Get detailed stack trace
-        stack_trace = traceback.format_exc()
         logger.error(f"Error fetching top movies: {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -229,15 +254,8 @@ async def get_all_time_top_movies(
 ) -> MoviesListResponse:
     """
     Get all-time top-rated movies by IMDB rating.
-
-    Returns top movies across all years, with the option to filter by genre
-    and set a minimum votes threshold.
     """
     try:
-        logger.info(
-            f"Getting all-time top movies with min_votes={min_votes}, genre_id={genre_id}"
-        )
-
         ***REMOVED*** Get movies using our query function
         movies, total_count = get_top_rated_movies(
             db_session=db,
@@ -248,9 +266,6 @@ async def get_all_time_top_movies(
             min_votes=min_votes,
         )
 
-        logger.info(f"Found {len(movies)} all-time top movies")
-
-        ***REMOVED*** Empty response if no movies
         if not movies:
             return MoviesListResponse(
                 movies=[],
@@ -262,14 +277,10 @@ async def get_all_time_top_movies(
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Get the movie's genres
             genres = get_movie_genres(db, movie.id)
-
-            ***REMOVED*** Format movie for response
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
-        ***REMOVED*** Create the paginated response
         return MoviesListResponse(
             movies=movie_responses,
             total=total_count,
@@ -277,40 +288,8 @@ async def get_all_time_top_movies(
             page_size=limit,
         )
     except Exception as e:
-        ***REMOVED*** Get detailed stack trace
-        stack_trace = traceback.format_exc()
         logger.error(f"Error fetching all-time top movies: {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
-
-@router.get("/{movie_id}", response_model=MovieResponse)
-async def get_movie_details(
-    movie_id: int, db: Session = Depends(get_db)
-) -> MovieResponse:
-    """
-    Get detailed information for a specific movie by its database ID.
-
-    Includes all movie fields, genres, and other metadata.
-    """
-    try:
-        ***REMOVED*** Use our query function instead of directly calling movie-storage
-        movie = get_movie_details_by_id(db, movie_id)
-
-        if not movie:
-            raise HTTPException(status_code=404, detail="Movie not found")
-
-        ***REMOVED*** Get the movie's genres
-        genres = get_movie_genres(db, movie["id"])
-
-        ***REMOVED*** Format movie for response
-        return format_movie_for_response(movie, genres)
-    except HTTPException:
-        raise
-    except Exception as e:
-        stack_trace = traceback.format_exc()
-        logger.error(f"Error fetching movie {movie_id}: {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -320,103 +299,20 @@ async def get_movie_by_tmdb(
 ) -> MovieResponse:
     """
     Get detailed information for a specific movie by its TMDB ID.
-
-    Useful for looking up movies by their external ID.
     """
     try:
-        ***REMOVED*** Use our query function instead of directly calling movie-storage
         movie = get_movie_details_by_tmdb_id(db, tmdb_id)
 
         if not movie:
             raise HTTPException(status_code=404, detail="Movie not found")
 
-        ***REMOVED*** Get the movie's genres
         genres = get_movie_genres(db, movie["id"])
-
-        ***REMOVED*** Format movie for response
         return format_movie_for_response(movie, genres)
     except HTTPException:
         raise
     except Exception as e:
-        stack_trace = traceback.format_exc()
         logger.error(f"Error fetching movie by TMDB ID {tmdb_id}: {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
-
-@router.get("/search", response_model=MoviesListResponse)
-async def search_movies(
-    query: str = Query(..., description="Movie title to search for"),
-    skip: int = Query(0, ge=0, description="Number of movies to skip for pagination"),
-    limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
-    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
-    sort_by: str = Query(
-        "title", description="Field to sort by (title, release_date, imdb_rating)"
-    ),
-    sort_desc: bool = Query(False, description="Sort in descending order"),
-    db: Session = Depends(get_db),
-) -> MoviesListResponse:
-    """
-    Search for movies by title with optional filtering.
-
-    Returns movies matching the search query with pagination metadata.
-    Supports additional filtering by genre ID, actor ID (which maps to TMDB actor ID), and sorting by different fields.
-    """
-    try:
-        ***REMOVED*** Debug info
-        logger.info(
-            f"Searching movies with query={query}, skip={skip}, limit={limit}, genre_id={genre_id}, actor_id={actor_id}"
-        )
-
-        ***REMOVED*** Search movies from database with pagination and filters
-        movies, total_count = search_movies_by_title(
-            db,
-            title_search=query,
-            skip=skip,
-            limit=limit,
-            genre_id=genre_id,
-            actor_tmdb_id=actor_id,
-            sort_by=sort_by,
-            sort_desc=sort_desc,
-        )
-
-        logger.info(f"Found {len(movies)} movies matching '{query}'")
-
-        ***REMOVED*** Empty response if no movies
-        if not movies:
-            return MoviesListResponse(
-                movies=[],
-                total=0,
-                page=1,
-                page_size=limit,
-            )
-
-        ***REMOVED*** Convert database rows to Pydantic response models
-        movie_responses = []
-        for movie in movies:
-            ***REMOVED*** Get the movie's genres
-            genres = get_movie_genres(db, movie.id)
-
-            ***REMOVED*** Format movie for response
-            movie_response = format_movie_for_response(movie, genres)
-            movie_responses.append(movie_response)
-
-        ***REMOVED*** Calculate page number
-        page = (skip // limit) + 1 if limit > 0 else 1
-
-        ***REMOVED*** Create the paginated response
-        return MoviesListResponse(
-            movies=movie_responses,
-            total=total_count,
-            page=page,
-            page_size=limit,
-        )
-    except Exception as e:
-        ***REMOVED*** Get detailed stack trace
-        stack_trace = traceback.format_exc()
-        logger.error(f"Error searching movies with query '{query}': {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -424,17 +320,8 @@ async def search_movies(
 async def get_movie_trailers(
     movie_id: int, db: Session = Depends(get_db)
 ) -> List[TrailerResponse]:
-    """Get all trailers for a movie.
-
-    Args:
-        movie_id: Movie ID
-        db: Database session
-
-    Returns:
-        List of trailers
-
-    Raises:
-        HTTPException: If movie not found
+    """
+    Get all trailers for a movie.
     """
     try:
         ***REMOVED*** First check if movie exists
@@ -449,7 +336,6 @@ async def get_movie_trailers(
     except HTTPException:
         raise
     except Exception as e:
-        stack_trace = traceback.format_exc()
         logger.error(f"Error fetching trailers for movie {movie_id}: {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
