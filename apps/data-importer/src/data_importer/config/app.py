@@ -64,6 +64,7 @@ DEFAULT_MOVIE_SYNC_SORT_BY = os.getenv("MOVIE_SYNC_SORT_BY", "vote_count.desc")
 DEFAULT_MOVIE_SYNC_INCLUDE_CREDITS = (
     os.getenv("MOVIE_SYNC_INCLUDE_CREDITS", "true").lower() == "true"
 )
+DEFAULT_MOVIE_SYNC_INCLUDE_VIDEOS = os.getenv("MOVIE_SYNC_INCLUDE_VIDEOS", "true").lower() == "true"
 DEFAULT_MOVIE_SYNC_SAVE_TO_DB = os.getenv("MOVIE_SYNC_SAVE_TO_DB", "true").lower() == "true"
 
 ***REMOVED*** ------------------------------------------------------------------------------
@@ -98,6 +99,7 @@ class Config:
     movie_sync_min_vote_count: int
     movie_sync_sort_by: str
     movie_sync_include_credits: bool
+    movie_sync_include_videos: bool
     movie_sync_save_to_db: bool
 
     ***REMOVED*** Singleton instance
@@ -130,6 +132,7 @@ class Config:
         movie_sync_min_vote_count: int = DEFAULT_MOVIE_SYNC_MIN_VOTE_COUNT,
         movie_sync_sort_by: str = DEFAULT_MOVIE_SYNC_SORT_BY,
         movie_sync_include_credits: bool = DEFAULT_MOVIE_SYNC_INCLUDE_CREDITS,
+        movie_sync_include_videos: bool = DEFAULT_MOVIE_SYNC_INCLUDE_VIDEOS,
         movie_sync_save_to_db: bool = DEFAULT_MOVIE_SYNC_SAVE_TO_DB,
     ):
         """Initialize configuration.
@@ -150,6 +153,7 @@ class Config:
             movie_sync_min_vote_count: Minimum vote count for movies to include
             movie_sync_sort_by: How to sort movies ('popularity.desc' or 'vote_count.desc')
             movie_sync_include_credits: Whether to include cast and crew information
+            movie_sync_include_videos: Whether to include videos in movie sync
             movie_sync_save_to_db: Whether to save movies to the database
         """
         self.logs_dir = logs_dir
@@ -168,6 +172,7 @@ class Config:
         self.movie_sync_min_vote_count = movie_sync_min_vote_count
         self.movie_sync_sort_by = movie_sync_sort_by
         self.movie_sync_include_credits = movie_sync_include_credits
+        self.movie_sync_include_videos = movie_sync_include_videos
         self.movie_sync_save_to_db = movie_sync_save_to_db
 
     def __str__(self) -> str:
@@ -205,6 +210,7 @@ class Config:
             f"  movie_sync_min_vote_count={self.movie_sync_min_vote_count},\n"
             f"  movie_sync_sort_by={self.movie_sync_sort_by},\n"
             f"  movie_sync_include_credits={self.movie_sync_include_credits},\n"
+            f"  movie_sync_include_videos={self.movie_sync_include_videos},\n"
             f"  movie_sync_save_to_db={self.movie_sync_save_to_db}\n"
             f")"
         )

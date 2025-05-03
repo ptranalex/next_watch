@@ -174,27 +174,39 @@ class TMDBClient:
             raise
 
     async def get_movie_details(
-        self, movie_id: int, language: str = "en-US", append_credits: bool = True
+        self,
+        movie_id: int,
+        language: str = "en-US",
+        append_credits: bool = True,
+        append_videos: bool = True,
     ) -> Dict[str, Any]:
-        """Get detailed information about a specific movie including credits if requested.
+        """Get detailed information about a specific movie including credits and videos if requested.
 
-        Uses the TMDB movie details endpoint with optional append_to_response for credits.
+        Uses the TMDB movie details endpoint with optional append_to_response for credits and videos.
 
         Args:
             movie_id: The TMDB ID of the movie
             language: Language for the movie data (default: en-US)
             append_credits: Whether to include credits data in the response (default: True)
+            append_videos: Whether to include videos data in the response (default: True)
 
         Returns:
-            A dictionary containing the movie details and optionally credits
+            A dictionary containing the movie details and optionally credits and videos
 
         Raises:
             ValueError: If the movie_id is invalid or the API returns an error
         """
         params: Dict[str, Any] = {"language": language}
 
+        ***REMOVED*** Build append_to_response parameter
+        append_items = []
         if append_credits:
-            params["append_to_response"] = "credits"
+            append_items.append("credits")
+        if append_videos:
+            append_items.append("videos")
+
+        if append_items:
+            params["append_to_response"] = ",".join(append_items)
 
         endpoint = f"/movie/{movie_id}"
         response = await self._make_request(endpoint, params)

@@ -30,7 +30,8 @@ def get_help_text() -> List[str]:
         "  - print_json(obj) - Print JSON with syntax highlighting",
         "  - print_config() - Print configuration settings in a table",
         "  - list_services() - List available data services",
-        "  - sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False) - Sync movies for a year range",
+        "  - sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False, include_videos=False) - Sync movies for a year range",
+        "  - sync_movie_by_id(tmdb_id, save_to_db=False, include_credits=False, include_videos=False) - Sync a single movie by TMDB ID",
         "  - help() - Show this help message",
         "",
         "TMDb Features:",
@@ -48,9 +49,12 @@ def get_help_text() -> List[str]:
         "Data Sync:",
         "  - sync_movies(2020, 2023) - Import movies from 2020-2023 using TMDB and OMDB",
         "  - sync_movies(2022, 2022, limit_per_year=5) - Import 5 movies from 2022",
+        "  - sync_movie_by_id(550) - Import Fight Club (TMDB ID: 550) with all its data",
+        "  - sync_movie_by_id(550, include_videos=True) - Import movie with trailers",
         "  - synced_movies - List of all movies after running sync_movies()",
         "  - movie_example - Example of first movie from last sync",
         "  - genre_list - List of all genres fetched from TMDB",
+        "  - last_synced_movie - Last movie synced using sync_movie_by_id()",
         "",
         "Python tools:",
         "  - dir(object) - List all attributes of an object",
@@ -127,7 +131,8 @@ Available functions:
 -------------------
 - list_services() - List available services and their status
 - async_run(coro) - Run an async function and return the result
-- sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False) - Sync movies for a year range
+- sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False, include_videos=False) - Sync movies for a year range
+- sync_movie_by_id(tmdb_id, save_to_db=False, include_credits=False, include_videos=False) - Sync a single movie by TMDB ID
 - print_config() - Display configuration settings
 
 Examples:
@@ -140,9 +145,13 @@ Search for a movie:
   results = async_run(omdb_client.search_movie("The Matrix"))
   jprint(results)
 
-Import movies with credits:
-  sync_movies(2020, 2023, include_credits=True, save_to_db=True)
+Import movies with credits and trailers:
+  sync_movies(2020, 2023, include_credits=True, include_videos=True, save_to_db=True)
   
+Import a single movie with all data:
+  sync_movie_by_id(550, include_credits=True, include_videos=True)  ***REMOVED*** Import Fight Club
+  last_synced_movie  ***REMOVED*** Access the imported movie
+
 Import movies for a range of years:
   sync_movies(2022, 2023)  ***REMOVED*** Import movies from 2022-2023
   sync_movies(2022, 2022, limit_per_year=5)  ***REMOVED*** Import 5 movies from 2022
@@ -161,7 +170,7 @@ Available commands:
 - help() - Show this help message
 - exit(), quit() - Exit the shell
 - list_services() - List available services and their status
-- sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False) - Sync movies for a year range
+- sync_movies(start_year, end_year, limit_per_year=20, save_to_db=False, include_credits=False, include_videos=False) - Sync movies for a year range
 - async_run(coroutine) - Run async coroutines
 - print_config() - Display configuration settings
 

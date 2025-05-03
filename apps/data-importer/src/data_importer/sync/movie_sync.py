@@ -87,6 +87,7 @@ async def sync_movies_by_year_range(
     db_session: Optional[Session] = None,
     save_to_db: Optional[bool] = None,
     include_credits: Optional[bool] = None,
+    include_videos: Optional[bool] = None,
     sort_by: Optional[str] = None,
     min_vote_count: Optional[int] = None,
 ) -> Dict[str, Any]:
@@ -102,6 +103,7 @@ async def sync_movies_by_year_range(
         db_session: Optional database session for saving to database
         save_to_db: Whether to save movies to the database, defaults to config value
         include_credits: Whether to include cast and crew information, defaults to config value
+        include_videos: Whether to include video/trailer information, defaults to config value
         sort_by: How to sort movies ('popularity.desc' or 'vote_count.desc'), defaults to config value
         min_vote_count: Minimum number of votes for a movie to be included, defaults to config value
 
@@ -118,6 +120,9 @@ async def sync_movies_by_year_range(
     include_credits = (
         include_credits if include_credits is not None else config.movie_sync_include_credits
     )
+    include_videos = (
+        include_videos if include_videos is not None else config.movie_sync_include_videos
+    )
     sort_by = sort_by if sort_by is not None else config.movie_sync_sort_by
     min_vote_count = (
         min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
@@ -130,6 +135,7 @@ async def sync_movies_by_year_range(
     logger.info(f"  Sort by: {sort_by}")
     logger.info(f"  Min vote count: {min_vote_count}")
     logger.info(f"  Include credits: {include_credits}")
+    logger.info(f"  Include videos: {include_videos}")
     logger.info(f"  Save to database: {save_to_db}")
 
     if start_year > end_year:
@@ -268,7 +274,7 @@ async def sync_movies_by_year_range(
                                 ***REMOVED*** Import movie using combined adapter with OMDB enrichment
                                 language = "en-US"  ***REMOVED*** Default language
                                 result = await data_adapter.import_movie_with_enrichment(
-                                    db_session, tmdb_id, language, include_credits
+                                    db_session, tmdb_id, language, include_credits, include_videos
                                 )
 
                                 if not result:

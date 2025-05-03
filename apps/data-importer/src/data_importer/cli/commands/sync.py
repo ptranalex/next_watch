@@ -56,6 +56,11 @@ def sync_movies(
         "--credits/--no-credits",
         help="Include cast and crew information, defaults to config value",
     ),
+    include_videos: Optional[bool] = typer.Option(
+        None,
+        "--videos/--no-videos",
+        help="Include video/trailer information, defaults to config value",
+    ),
     sort_by: Optional[str] = typer.Option(
         None,
         "--sort-by",
@@ -95,6 +100,9 @@ def sync_movies(
     actual_include_credits = (
         include_credits if include_credits is not None else config.movie_sync_include_credits
     )
+    actual_include_videos = (
+        include_videos if include_videos is not None else config.movie_sync_include_videos
+    )
     actual_sort_by = sort_by if sort_by is not None else config.movie_sync_sort_by
     actual_min_vote_count = (
         min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
@@ -108,6 +116,7 @@ def sync_movies(
         console.print(f"Sort by: {actual_sort_by}")
         console.print(f"Min vote count: {actual_min_vote_count}")
         console.print(f"Include credits: {actual_include_credits}")
+        console.print(f"Include videos: {actual_include_videos}")
         console.print(f"Save to database: {actual_save_to_db}")
         console.print(f"TMDB token: {'Provided' if tmdb_access_token else 'Not provided'}")
         console.print(f"OMDB API key: {'Provided' if omdb_api_key else 'Not provided'}")
@@ -134,6 +143,8 @@ def sync_movies(
     )
     if actual_include_credits:
         console.print("[cyan]Including cast and crew information[/cyan]")
+    if actual_include_videos:
+        console.print("[cyan]Including video/trailer information[/cyan]")
 
     try:
         ***REMOVED*** Run the sync operation
@@ -148,6 +159,7 @@ def sync_movies(
                 db_session=db_session,
                 save_to_db=actual_save_to_db,
                 include_credits=actual_include_credits,
+                include_videos=actual_include_videos,
                 sort_by=actual_sort_by,
                 min_vote_count=actual_min_vote_count,
             )

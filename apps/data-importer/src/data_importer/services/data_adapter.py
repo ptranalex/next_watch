@@ -33,12 +33,45 @@ class TMDBDataAdapter:
         """
         self.tmdb_client = tmdb_client
 
+    def _extract_trailers(self, movie_details: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Extract trailer information from TMDB movie details.
+
+        Args:
+            movie_details: Movie details dictionary from TMDB
+
+        Returns:
+            List of trailer dictionaries with youtube_key, name, and is_official
+        """
+        trailers = []
+        videos = movie_details.get("videos", {}).get("results", [])
+
+        for video in videos:
+            ***REMOVED*** Only include YouTube videos that are trailers
+            if (
+                video.get("site", "").lower() == "youtube"
+                and video.get("type", "").lower() == "trailer"
+            ):
+                trailers.append(
+                    {
+                        "youtube_key": video.get("key"),
+                        "name": video.get("name"),
+                        "is_official": video.get("official", True),
+                    }
+                )
+
+        return trailers
+
     async def import_movie_by_id(
-        self, session: Session, movie_id: int, language: str = "en-US", include_credits: bool = True
+        self,
+        session: Session,
+        movie_id: int,
+        language: str = "en-US",
+        include_credits: bool = True,
+        include_videos: bool = True,
     ) -> Optional[Dict[str, Any]]:
         """Import a movie by its TMDB ID.
 
-        This method fetches movie details with credits from the TMDB API
+        This method fetches movie details with credits and videos from the TMDB API
         and creates or updates the corresponding records in the database.
 
         Args:
@@ -46,6 +79,7 @@ class TMDBDataAdapter:
             movie_id: TMDB movie ID
             language: Language for movie data (default: "en-US")
             include_credits: Whether to include credits information (default: True)
+            include_videos: Whether to include video/trailer information (default: True)
 
         Returns:
             Dictionary with import result information, or None if import failed
@@ -54,9 +88,12 @@ class TMDBDataAdapter:
             ***REMOVED*** Check if movie already exists in database
             existing_movie = get_movie_by_tmdb_id(session, movie_id)
 
-            ***REMOVED*** Fetch movie details with credits
+            ***REMOVED*** Fetch movie details with credits and videos
             movie_details = await self.tmdb_client.get_movie_details(
-                movie_id=movie_id, language=language, append_credits=include_credits
+                movie_id=movie_id,
+                language=language,
+                append_credits=include_credits,
+                append_videos=include_videos,
             )
 
             if not movie_details:
@@ -67,6 +104,10 @@ class TMDBDataAdapter:
             if movie_details.get("language") is None:
                 movie_details["language"] = language.split("-")[0] if "-" in language else language
 
+            ***REMOVED*** Extract trailers before creating movie
+            trailers = self._extract_trailers(movie_details) if include_videos else []
+            movie_details["trailers"] = trailers
+
             ***REMOVED*** Create or update movie in database
             db_movie = create_movie_from_tmdb_details(session, movie_details)
 
@@ -75,6 +116,7 @@ class TMDBDataAdapter:
                 "tmdb_id": db_movie.tmdb_id,
                 "title": db_movie.title,
                 "credit_count": len(db_movie.credits) if db_movie.credits else 0,
+                "trailer_count": len(db_movie.trailers) if db_movie.trailers else 0,
                 "operation": "updated" if existing_movie else "created",
             }
 
@@ -281,7 +323,12 @@ class MovieDataAdapter:
         self.omdb_adapter = OMDBDataAdapter(omdb_client)
 
     async def import_movie_with_enrichment(
-        self, session: Session, tmdb_id: int, language: str = "en-US", include_credits: bool = True
+        self,
+        session: Session,
+        tmdb_id: int,
+        language: str = "en-US",
+        include_credits: bool = True,
+        include_videos: bool = True,
     ) -> Optional[Dict[str, Any]]:
         """Import a movie from TMDB and enrich it with OMDB data.
 
@@ -290,13 +337,14 @@ class MovieDataAdapter:
             tmdb_id: TMDB movie ID
             language: Language for movie data (default: "en-US")
             include_credits: Whether to include credits information (default: True)
+            include_videos: Whether to include video/trailer information (default: True)
 
         Returns:
             Dictionary with import result information, or None if import failed
         """
         ***REMOVED*** First import the movie from TMDB
         result = await self.tmdb_adapter.import_movie_by_id(
-            session, tmdb_id, language, include_credits
+            session, tmdb_id, language, include_credits, include_videos
         )
 
         if not result:
