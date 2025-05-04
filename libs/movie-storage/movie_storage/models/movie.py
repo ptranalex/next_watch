@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from movie_storage.models.genre import Genre
     from movie_storage.models.credit import Credit
     from movie_storage.models.trailer import Trailer
+    from movie_storage.models.user_interaction import UserMovieInteraction
 
 
 class MovieGenreLink(SQLModel, table=True):
@@ -90,3 +91,6 @@ class Movie(SQLModel, table=True):
     )
     credits: List["Credit"] = Relationship(back_populates="movie")
     trailers: List["Trailer"] = Relationship(back_populates="movie")
+    user_interactions: List["UserMovieInteraction"] = Relationship(
+        back_populates="movie"
+    )

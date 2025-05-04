@@ -44,6 +44,22 @@ from movie_storage.db.operations.user import (
     authenticate_user,
 )
 
+from movie_storage.db.operations.trailer import (
+    create_trailer,
+)
+
+from movie_storage.db.operations.user_interaction import (
+    create_user_movie_interaction,
+    get_user_movie_interaction,
+    get_user_movie_interactions,
+    get_user_watchlist,
+    get_user_watched_movies,
+    get_user_liked_movies,
+    update_user_movie_interaction,
+    delete_user_movie_interaction,
+    toggle_user_movie_interaction_flag,
+)
+
 __all__ = [
     ***REMOVED*** Movie operations
     "create_movie",
@@ -80,4 +96,16 @@ __all__ = [
     "update_user",
     "delete_user",
     "authenticate_user",
+    ***REMOVED*** Trailer operations
+    "create_trailer",
+    ***REMOVED*** User interaction operations
+    "create_user_movie_interaction",
+    "get_user_movie_interaction",
+    "get_user_movie_interactions",
+    "get_user_watchlist",
+    "get_user_watched_movies",
+    "get_user_liked_movies",
+    "update_user_movie_interaction",
+    "delete_user_movie_interaction",
+    "toggle_user_movie_interaction_flag",
 ]

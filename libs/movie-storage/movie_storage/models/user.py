@@ -3,9 +3,12 @@ User model for authentication and user management.
 """
 
 from datetime import datetime
-from typing import Optional
-from sqlmodel import Field, SQLModel
+from typing import Optional, List, TYPE_CHECKING
+from sqlmodel import Field, SQLModel, Relationship
 import passlib.hash
+
+if TYPE_CHECKING:
+    from movie_storage.models.user_interaction import UserMovieInteraction
 
 
 class User(SQLModel, table=True):
@@ -19,6 +22,7 @@ class User(SQLModel, table=True):
         username: Optional username
         created_at: Timestamp when the user was created
         updated_at: Timestamp when the user was last updated
+        movie_interactions: Relationship to UserMovieInteraction
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -27,6 +31,11 @@ class User(SQLModel, table=True):
     username: Optional[str] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    ***REMOVED*** Relationships
+    movie_interactions: List["UserMovieInteraction"] = Relationship(
+        back_populates="user"
+    )
 
     @staticmethod
     def hash_password(password: str) -> str:
