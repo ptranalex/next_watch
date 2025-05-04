@@ -76,9 +76,20 @@ async def list_movies(
     genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
     actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
     sort_by: str = Query(
-        "title", description="Field to sort by (title, release_date, imdb_rating)"
+        "title",
+        description="Field to sort by (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
     sort_desc: bool = Query(False, description="Sort in descending order"),
+    imdb_rating: Optional[float] = Query(
+        None, ge=0, le=10, description="Filter by minimum IMDb rating"
+    ),
+    rotten_tomatoes_rating: Optional[int] = Query(
+        None, ge=0, le=100, description="Filter by minimum Rotten Tomatoes rating"
+    ),
+    metacritic_rating: Optional[int] = Query(
+        None, ge=0, le=100, description="Filter by minimum Metacritic rating"
+    ),
+    year: Optional[int] = Query(None, description="Filter by release year"),
     db: Session = Depends(get_db),
 ) -> MoviesListResponse:
     """
@@ -97,6 +108,10 @@ async def list_movies(
             actor_tmdb_id=actor_id,
             sort_by=sort_by,
             sort_desc=sort_desc,
+            imdb_rating=imdb_rating,
+            rotten_tomatoes_rating=rotten_tomatoes_rating,
+            metacritic_rating=metacritic_rating,
+            year=year,
         )
 
         if not movies:

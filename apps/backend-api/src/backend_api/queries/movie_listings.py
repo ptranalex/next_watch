@@ -20,6 +20,10 @@ def get_movies_with_filters(
     actor_tmdb_id: Optional[int] = None,
     sort_by: str = "title",
     sort_desc: bool = False,
+    imdb_rating: Optional[float] = None,
+    rotten_tomatoes_rating: Optional[int] = None,
+    metacritic_rating: Optional[int] = None,
+    year: Optional[int] = None,
 ) -> Tuple[List[Any], int]:
     """
     Get movies with pagination, filtering, and sorting.
@@ -33,6 +37,10 @@ def get_movies_with_filters(
         actor_tmdb_id: Optional actor TMDB ID to filter by
         sort_by: Field to sort by
         sort_desc: Whether to sort in descending order
+        imdb_rating: Minimum IMDb rating to filter by
+        rotten_tomatoes_rating: Minimum Rotten Tomatoes rating to filter by
+        metacritic_rating: Minimum Metacritic rating to filter by
+        year: Release year to filter by
 
     Returns:
         Tuple of (list of movie rows, total count)
@@ -73,12 +81,37 @@ def get_movies_with_filters(
             )
             params["actor_tmdb_id"] = actor_tmdb_id
 
+    ***REMOVED*** Add rating filters
+    if imdb_rating is not None:
+        where_clauses.append("m.imdb_rating >= :imdb_rating")
+        params["imdb_rating"] = imdb_rating
+
+    if rotten_tomatoes_rating is not None:
+        where_clauses.append("m.rotten_tomatoes_rating >= :rotten_tomatoes_rating")
+        params["rotten_tomatoes_rating"] = rotten_tomatoes_rating
+
+    if metacritic_rating is not None:
+        where_clauses.append("m.metacritic_rating >= :metacritic_rating")
+        params["metacritic_rating"] = metacritic_rating
+
+    ***REMOVED*** Add year filter
+    if year is not None:
+        where_clauses.append("EXTRACT(YEAR FROM m.release_date) = :year")
+        params["year"] = year
+
     ***REMOVED*** Add WHERE clause if we have any conditions
     if where_clauses:
         query += " WHERE " + " AND ".join(where_clauses)
 
     ***REMOVED*** Add sorting
-    valid_sort_fields = ["title", "release_date", "imdb_rating", "vote_count"]
+    valid_sort_fields = [
+        "title",
+        "release_date",
+        "imdb_rating",
+        "rotten_tomatoes_rating",
+        "metacritic_rating",
+        "vote_count",
+    ]
     sort_field = sort_by if sort_by in valid_sort_fields else "title"
 
     query += f" ORDER BY m.{sort_field}"
@@ -139,6 +172,10 @@ def search_movies_by_title(
     actor_tmdb_id: Optional[int] = None,
     sort_by: str = "title",
     sort_desc: bool = False,
+    imdb_rating: Optional[float] = None,
+    rotten_tomatoes_rating: Optional[int] = None,
+    metacritic_rating: Optional[int] = None,
+    year: Optional[int] = None,
 ) -> Tuple[List[Any], int]:
     """
     Search for movies by title with additional filtering options.
@@ -153,6 +190,10 @@ def search_movies_by_title(
         actor_tmdb_id: Optional actor TMDB ID to filter by
         sort_by: Field to sort by
         sort_desc: Whether to sort in descending order
+        imdb_rating: Minimum IMDb rating to filter by
+        rotten_tomatoes_rating: Minimum Rotten Tomatoes rating to filter by
+        metacritic_rating: Minimum Metacritic rating to filter by
+        year: Release year to filter by
 
     Returns:
         Tuple of (list of movie rows, total count)
@@ -199,12 +240,37 @@ def search_movies_by_title(
             )
             params["actor_tmdb_id"] = actor_tmdb_id
 
+    ***REMOVED*** Add rating filters
+    if imdb_rating is not None:
+        where_clauses.append("m.imdb_rating >= :imdb_rating")
+        params["imdb_rating"] = imdb_rating
+
+    if rotten_tomatoes_rating is not None:
+        where_clauses.append("m.rotten_tomatoes_rating >= :rotten_tomatoes_rating")
+        params["rotten_tomatoes_rating"] = rotten_tomatoes_rating
+
+    if metacritic_rating is not None:
+        where_clauses.append("m.metacritic_rating >= :metacritic_rating")
+        params["metacritic_rating"] = metacritic_rating
+
+    ***REMOVED*** Add year filter
+    if year is not None:
+        where_clauses.append("EXTRACT(YEAR FROM m.release_date) = :year")
+        params["year"] = year
+
     ***REMOVED*** Add WHERE clause with all conditions
     if where_clauses:
         query += " WHERE " + " AND ".join(where_clauses)
 
     ***REMOVED*** Add sorting
-    valid_sort_fields = ["title", "release_date", "imdb_rating", "vote_count"]
+    valid_sort_fields = [
+        "title",
+        "release_date",
+        "imdb_rating",
+        "rotten_tomatoes_rating",
+        "metacritic_rating",
+        "vote_count",
+    ]
     sort_field = sort_by if sort_by in valid_sort_fields else "title"
 
     query += f" ORDER BY m.{sort_field}"
