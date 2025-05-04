@@ -10,6 +10,9 @@ import logging
 ***REMOVED*** Setup basic logging
 logging.basicConfig(level=logging.INFO)
 
+***REMOVED*** Get logger for this module
+logger = logging.getLogger(__name__)
+
 ***REMOVED*** Load environment variables
 try:
     from dotenv import load_dotenv
@@ -44,8 +47,14 @@ from backend_api.routes.api_v1 import api_v1_router
 ***REMOVED*** Import database initialization
 from backend_api.db.database import init_database, get_db
 
-***REMOVED*** Get logger for this module
-logger = logging.getLogger(__name__)
+***REMOVED*** Import services
+try:
+    from backend_api.services.suggestion_engine import SuggestionEngine
+
+    suggestion_service_enabled = True
+except ImportError:
+    suggestion_service_enabled = False
+    logger.warning("Redis suggestion engine not available: redis-py not installed")
 
 ***REMOVED*** Create FastAPI application
 app = FastAPI(
@@ -66,6 +75,9 @@ app.add_middleware(
 
 ***REMOVED*** Register v1 API router - this is the new, organized API
 app.include_router(api_v1_router)
+
+***REMOVED*** Global variables for services
+suggestion_engine = None
 
 ***REMOVED*** Performance metrics middleware if enabled
 if settings.enable_performance_metrics:
@@ -91,6 +103,45 @@ def on_startup():
     except Exception as e:
         logger.error(f"Failed to connect to database: {e}")
         raise
+
+
+@app.on_event("startup")
+async def init_suggestion_engine():
+    """Initialize Redis suggestion engine on startup if available."""
+    global suggestion_engine
+
+    if not suggestion_service_enabled:
+        logger.warning("Suggestion service not enabled - Redis dependencies missing")
+        return
+
+    try:
+        ***REMOVED*** Get Redis URL from environment or use default
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        logger.info(f"Initializing Redis suggestion engine with URL: {redis_url}")
+
+        suggestion_engine = SuggestionEngine(redis_url)
+        await suggestion_engine.initialize()
+
+        logger.info("Redis suggestion engine initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Redis suggestion engine: {e}")
+        logger.error(traceback.format_exc())
+        ***REMOVED*** Don't raise - application should still start without suggestion service
+
+
+@app.on_event("shutdown")
+async def shutdown_suggestion_engine():
+    """Shutdown Redis suggestion engine on application shutdown."""
+    global suggestion_engine
+
+    if suggestion_engine is not None:
+        try:
+            logger.info("Shutting down Redis suggestion engine")
+            await suggestion_engine.shutdown()
+            logger.info("Redis suggestion engine shut down successfully")
+        except Exception as e:
+            logger.error(f"Error shutting down Redis suggestion engine: {e}")
+            logger.error(traceback.format_exc())
 
 
 @app.get("/")
