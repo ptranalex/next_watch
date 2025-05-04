@@ -10,11 +10,11 @@ from .app import (
     DEFAULT_API_PORT,
     DEFAULT_CORS_ORIGINS,
     DEFAULT_DEBUG,
-    Settings,
+    Config,
 )
 
 __all__ = [
-    "Settings",
+    "Config",
     "DEFAULT_LOG_LEVEL",
     "DEFAULT_DATABASE_URL",
     "DEFAULT_API_PORT",

@@ -35,12 +35,20 @@ DEFAULT_ENABLE_PERFORMANCE_METRICS = (
     os.getenv("ENABLE_PERFORMANCE_METRICS", "false").lower() == "true"
 )
 
+***REMOVED*** Authentication settings
+DEFAULT_JWT_SECRET = os.getenv("JWT_SECRET", "change_this_in_production_very_important")
+DEFAULT_JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+)
+DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
 ***REMOVED*** ------------------------------------------------------------------------------
 
 
-class Settings:
+class Config:
     """Configuration class for the backend API."""
 
     database_url: str
@@ -50,19 +58,24 @@ class Settings:
     cors_origins: List[str]
     enable_performance_metrics: bool
     log_dir: str
+    ***REMOVED*** JWT settings
+    jwt_secret: str
+    jwt_algorithm: str
+    access_token_expire_minutes: int
+    refresh_token_expire_days: int
 
     ***REMOVED*** Singleton instance
     _instance = None
 
     @classmethod
-    def get_instance(cls) -> "Settings":
-        """Get the singleton instance of Settings.
+    def get_instance(cls) -> "Config":
+        """Get the singleton instance of Config.
 
         Returns:
-            The global Settings instance
+            The global Config instance
         """
         if cls._instance is None:
-            cls._instance = Settings()
+            cls._instance = Config()
         return cls._instance
 
     def __init__(
@@ -74,6 +87,10 @@ class Settings:
         cors_origins: str = DEFAULT_CORS_ORIGINS,
         enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
         log_dir: str = DEFAULT_LOGS_DIR,
+        jwt_secret: str = DEFAULT_JWT_SECRET,
+        jwt_algorithm: str = DEFAULT_JWT_ALGORITHM,
+        access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
+        refresh_token_expire_days: int = DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS,
     ):
         """Initialize configuration.
 
@@ -85,6 +102,10 @@ class Settings:
             cors_origins: Comma-separated list of allowed origins for CORS
             enable_performance_metrics: Whether to enable performance metrics
             log_dir: Directory to store log files
+            jwt_secret: Secret key for JWT token generation
+            jwt_algorithm: Algorithm for JWT token generation
+            access_token_expire_minutes: Minutes until access token expires
+            refresh_token_expire_days: Days until refresh token expires
         """
         self.database_url = database_url
         self.api_port = api_port
@@ -97,32 +118,59 @@ class Settings:
         )
         self.enable_performance_metrics = enable_performance_metrics
         self.log_dir = log_dir
+        ***REMOVED*** JWT settings
+        self.jwt_secret = jwt_secret
+        self.jwt_algorithm = jwt_algorithm
+        self.access_token_expire_minutes = access_token_expire_minutes
+        self.refresh_token_expire_days = refresh_token_expire_days
 
-    def __str__(self) -> str:
-        """Return a string representation of the Settings instance with sensitive data masked.
+        ***REMOVED*** Warn if using default JWT secret in production
+        if self.jwt_secret == DEFAULT_JWT_SECRET and not self.debug:
+            logger.warning(
+                "WARNING: Using default JWT_SECRET in production environment. "
+                "This is insecure. Set a proper JWT_SECRET environment variable."
+            )
+
+    def _mask_database_password(self, url: str) -> str:
+        """Mask password in database URL for logging.
+
+        Args:
+            url: Database URL
 
         Returns:
-            String representation of Settings
+            Masked URL
         """
-        ***REMOVED*** Mask sensitive information in the connection string
-        masked_url = self.database_url
-        if "@" in masked_url and "://" in masked_url:
-            protocol_part = masked_url.split("://")[0]
-            auth_part = masked_url.split("://")[1].split("@")[0]
+        if "@" in url and "://" in url:
+            protocol_part = url.split("://")[0]
+            auth_part = url.split("://")[1].split("@")[0]
             masked_auth = auth_part.split(":")[0] + ":****"
-            remaining_part = masked_url.split("@", 1)[1]
-            masked_url = f"{protocol_part}://{masked_auth}@{remaining_part}"
+            remaining_part = url.split("@", 1)[1]
+            return f"{protocol_part}://{masked_auth}@{remaining_part}"
+        return url
+
+    def __str__(self) -> str:
+        """Return a string representation of the Config instance with sensitive data masked.
+
+        Returns:
+            String representation of Config
+        """
+        ***REMOVED*** Mask sensitive information
+        masked_url = self._mask_database_password(self.database_url)
+        masked_jwt = "****" if self.jwt_secret else None
 
         return (
-            f"Settings(database_url={masked_url}, "
+            f"Config(database_url={masked_url}, "
             f"api_port={self.api_port}, "
             f"log_level={self.log_level}, "
             f"debug={self.debug}, "
             f"cors_origins={self.cors_origins}, "
             f"log_dir={self.log_dir}, "
-            f"enable_performance_metrics={self.enable_performance_metrics})"
+            f"enable_performance_metrics={self.enable_performance_metrics}, "
+            f"jwt_algorithm={self.jwt_algorithm}, "
+            f"access_token_expire_minutes={self.access_token_expire_minutes}, "
+            f"refresh_token_expire_days={self.refresh_token_expire_days})"
         )
 
 
 ***REMOVED*** Create a singleton instance to be imported elsewhere
-settings = Settings()
+settings = Config()

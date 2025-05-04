@@ -1,6 +1,14 @@
 ***REMOVED*** Movie Storage
 
-Database operations for movie data.
+Database operations for movie data and user authentication.
+
+***REMOVED******REMOVED*** Features
+
+- Movie data storage and retrieval
+- Genre management
+- Cast and crew information
+- User authentication system
+- Password hashing with bcrypt
 
 ***REMOVED******REMOVED*** Installation
 
@@ -16,8 +24,10 @@ Example usage:
 ```python
 from sqlmodel import Session, create_engine
 from movie_storage.db import init_db
-from movie_storage.movie_operations import create_movie, get_movies
-from movie_storage.genre_operations import create_genre
+from movie_storage.db.operations import (
+    create_movie, get_movies, create_user, authenticate_user
+)
+from movie_storage.db.operations import create_genre
 
 ***REMOVED*** Initialize database
 db_url = "sqlite:///movies.db"
@@ -44,6 +54,27 @@ with Session(engine) as session:
     ***REMOVED*** Get all movies
     movies = get_movies(session)
     print(f"Found {len(movies)} movies")
+
+    ***REMOVED*** User management
+    ***REMOVED*** Create a new user
+    user = create_user(
+        session,
+        email="user@example.com",
+        password="secure_password",
+        username="exampleuser"
+    )
+
+    ***REMOVED*** Authenticate user
+    authenticated_user = authenticate_user(
+        session,
+        email="user@example.com",
+        password="secure_password"
+    )
+
+    if authenticated_user:
+        print(f"User authenticated: {authenticated_user.username}")
+    else:
+        print("Authentication failed")
 ```
 
 ***REMOVED******REMOVED*** Development

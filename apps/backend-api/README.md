@@ -9,6 +9,8 @@ A FastAPI-based backend service for the Next Watch application.
 - Cast and crew information
 - Movie search functionality
 - Database health checking
+- User authentication with JWT
+- User registration and profile management
 
 ***REMOVED******REMOVED*** Setup
 
@@ -80,17 +82,21 @@ The backend API uses a structured configuration system:
 
 ***REMOVED******REMOVED******REMOVED*** Environment Variables
 
-| Variable                     | Description                                 | Default                                                    |
-| ---------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
-| `DATABASE_URL`               | PostgreSQL connection string                | `postgresql://postgres:postgres@localhost:5432/next_watch` |
-| `API_PORT`                   | Port for the API server                     | `8000`                                                     |
-| `LOG_LEVEL`                  | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO`                                                     |
-| `DEBUG`                      | Enable debug mode                           | `false`                                                    |
-| `CORS_ORIGINS`               | Comma-separated list of allowed origins     | `*`                                                        |
-| `ENABLE_PERFORMANCE_METRICS` | Enable performance metrics middleware       | `false`                                                    |
-| `SQLALCHEMY_LOG_LEVEL`       | Specific logging level for SQLAlchemy       | `WARNING`                                                  |
-| `LOGS_DIR`                   | Directory to store log files                | `logs`                                                     |
-| `DATABASE_ECHO`              | Enable SQL statement logging                | `false`                                                    |
+| Variable                      | Description                                 | Default                                                    |
+| ----------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| `DATABASE_URL`                | PostgreSQL connection string                | `postgresql://postgres:postgres@localhost:5432/next_watch` |
+| `API_PORT`                    | Port for the API server                     | `8000`                                                     |
+| `LOG_LEVEL`                   | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO`                                                     |
+| `DEBUG`                       | Enable debug mode                           | `false`                                                    |
+| `CORS_ORIGINS`                | Comma-separated list of allowed origins     | `*`                                                        |
+| `ENABLE_PERFORMANCE_METRICS`  | Enable performance metrics middleware       | `false`                                                    |
+| `SQLALCHEMY_LOG_LEVEL`        | Specific logging level for SQLAlchemy       | `WARNING`                                                  |
+| `LOGS_DIR`                    | Directory to store log files                | `logs`                                                     |
+| `DATABASE_ECHO`               | Enable SQL statement logging                | `false`                                                    |
+| `JWT_SECRET`                  | Secret key for JWT token generation         | `change_this_in_production_very_important`                 |
+| `JWT_ALGORITHM`               | Algorithm for JWT token generation          | `HS256`                                                    |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Minutes until access token expires          | `30`                                                       |
+| `REFRESH_TOKEN_EXPIRE_DAYS`   | Days until refresh token expires            | `7`                                                        |
 
 ***REMOVED******REMOVED******REMOVED*** Configuration Structure
 
@@ -123,6 +129,14 @@ log_config = configure_logging(
 ```
 
 ***REMOVED******REMOVED*** API Endpoints
+
+***REMOVED******REMOVED******REMOVED*** Authentication
+
+- `POST /api/v1/auth/register` - Register a new user
+- `POST /api/v1/auth/login` - Authenticate and get access/refresh tokens
+- `POST /api/v1/auth/login/json` - JSON-based login alternative
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `GET /api/v1/auth/me` - Get current authenticated user details
 
 ***REMOVED******REMOVED******REMOVED*** Movies
 

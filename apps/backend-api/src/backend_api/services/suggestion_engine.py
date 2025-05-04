@@ -5,12 +5,15 @@ Redis-backed search suggestion service.
 from typing import List, Optional, Dict, Any, Tuple, cast
 import logging
 import json
-import redis.asyncio
-from redis.exceptions import RedisError
+import redis.asyncio  ***REMOVED*** type: ignore
+from redis.exceptions import RedisError  ***REMOVED*** type: ignore
 import math
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
+
+***REMOVED*** TMDB image base URLs for different sizes
+TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
 
 class SuggestionEngine:
@@ -128,7 +131,7 @@ class SuggestionEngine:
             ***REMOVED*** Implementation depends on Redis version:
             try:
                 ***REMOVED*** Redis 6.2+ method
-                suggestions = await redis_client.zrange(
+                suggestions = await redis_client.zrange(  ***REMOVED*** type: ignore
                     "suggestions",
                     min_query,
                     max_query,
@@ -284,12 +287,14 @@ class SuggestionEngine:
                         for key in keys:
                             ***REMOVED*** Convert bytes to string if needed
                             if isinstance(key, bytes):
-                                key = key.decode("utf-8")
+                                key_str = key.decode("utf-8")
+                            else:
+                                key_str = key
 
-                            if ":" in key:
-                                parts = key.split(":", 1)
+                            if ":" in key_str:  ***REMOVED*** type: ignore
+                                parts = key_str.split(":", 1)  ***REMOVED*** type: ignore
                                 if len(parts) > 1 and parts[1] not in suggestions:
-                                    suggestions.append(parts[1])
+                                    suggestions.append(parts[1])  ***REMOVED*** type: ignore
                                     if len(suggestions) >= limit:
                                         break
 
@@ -303,24 +308,33 @@ class SuggestionEngine:
                     entity_data = None
                     entity_type = None
 
-                    for etype in entity_types:
-                        key = f"entity:{etype}:{suggestion}"
-                        data_json = await redis_client.get(key)
+                    for e_type in entity_types:
+                        entity_key = f"entity:{e_type}:{suggestion}"
+                        data_json = await redis_client.get(entity_key)
                         if data_json:
                             try:
                                 entity_data = json.loads(data_json)
-                                entity_type = etype
+                                entity_type = e_type
                                 break
                             except json.JSONDecodeError:
-                                logger.warning(f"Invalid JSON in Redis for key {key}")
+                                logger.warning(
+                                    f"Invalid JSON in Redis for key {entity_key}"
+                                )
 
                     if entity_data and entity_type:
                         ***REMOVED*** Build a rich suggestion with entity data
+
+                        ***REMOVED*** Process image path to ensure it has base URL
+                        image_path = entity_data.get("image_path")
+                        if image_path and image_path.startswith("/"):
+                            ***REMOVED*** Add TMDB base URL to image path
+                            image_path = f"{TMDB_IMAGE_BASE_URL}{image_path}"
+
                         detailed_suggestion = {
                             "text": suggestion,
                             "type": entity_type,
                             "id": entity_data.get("id"),
-                            "image_path": entity_data.get("image_path"),
+                            "image_path": image_path,
                             "year": entity_data.get("year"),
                             "popularity": entity_data.get("popularity"),
                             "additional_info": {
@@ -473,7 +487,7 @@ class SuggestionEngine:
             popularity = suggestion.get("popularity", 0) or 0
 
             ***REMOVED*** Basic composite score formula
-            composite_score = 0
+            composite_score: float = 0
             if vote_avg and popularity:
                 ***REMOVED*** This formula prioritizes highly rated popular content
                 composite_score = vote_avg * math.log1p(popularity)

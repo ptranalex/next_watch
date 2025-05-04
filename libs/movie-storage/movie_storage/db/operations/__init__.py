@@ -33,6 +33,17 @@ from movie_storage.db.operations.credit import (
     create_credits_from_tmdb_data,
 )
 
+from movie_storage.db.operations.user import (
+    create_user,
+    get_user_by_id,
+    get_user_by_email,
+    get_user_by_username,
+    get_users,
+    update_user,
+    delete_user,
+    authenticate_user,
+)
+
 __all__ = [
     ***REMOVED*** Movie operations
     "create_movie",
@@ -60,4 +71,13 @@ __all__ = [
     "delete_credit",
     "delete_credits_for_movie",
     "create_credits_from_tmdb_data",
+    ***REMOVED*** User operations
+    "create_user",
+    "get_user_by_id",
+    "get_user_by_email",
+    "get_user_by_username",
+    "get_users",
+    "update_user",
+    "delete_user",
+    "authenticate_user",
 ]
