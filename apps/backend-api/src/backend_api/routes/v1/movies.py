@@ -2,18 +2,12 @@
 Movie-related API routes (v1).
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, Depends, Query, Path
+from fastapi.responses import JSONResponse
 from sqlmodel import Session
 from typing import List, Optional, Dict, Any
 import logging
-import traceback
 from datetime import datetime
-
-***REMOVED*** Import movie-storage operations
-from movie_storage.db.operations import (
-    get_movie_by_id,
-    get_credits_by_movie_id,
-)
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
@@ -26,14 +20,13 @@ from backend_api.schemas.cast_schema import (
     MovieCastResponse,
 )
 
-***REMOVED*** Import API-specific query operations
-from backend_api.queries import (
-    get_top_rated_movies,
-    get_movie_genres,
-    get_movies_with_filters,
-    get_movie_details_by_id,
-    get_movie_details_by_tmdb_id,
-    get_trailers_for_movie,
+***REMOVED*** Import service and query
+from backend_api.services.movie_service import MovieService
+from backend_api.queries.movie_query import MovieQuery
+from backend_api.errors import (
+    ResourceNotFoundError,
+    ValidationError,
+    service_error_to_http_exception,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,7 +34,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/movies", tags=["movies"])
 
 
-***REMOVED*** Helper function from existing movies.py
+***REMOVED*** Get dependencies
+def get_movie_service():
+    """Get movie service."""
+    return MovieService()
+
+
+def get_movie_query():
+    """Get movie query."""
+    return MovieQuery()
+
+
+***REMOVED*** Helper function
 def format_movie_for_response(
     movie: Any, genres: List[Dict[str, Any]]
 ) -> MovieResponse:
@@ -54,13 +58,31 @@ def format_movie_for_response(
         for genre in genres
     ]
 
-    ***REMOVED*** Check if movie is a dictionary or an object
+    ***REMOVED*** Convert movie to dictionary based on its type
     if isinstance(movie, dict):
         ***REMOVED*** It's already a dictionary
         movie_dict = movie.copy()
+    elif isinstance(movie, tuple):
+        ***REMOVED*** If it's a tuple from a raw SQL query, assume column ordering
+        ***REMOVED*** This is a simplification - adjust column names as needed
+        columns = [
+            "id",
+            "title",
+            "overview",
+            "release_date",
+            "poster_url",
+            "backdrop_url",
+        ]
+        movie_dict = {col: movie[i] for i, col in enumerate(columns) if i < len(movie)}
     else:
-        ***REMOVED*** Convert SQLAlchemy Row to dictionary
-        movie_dict = dict(movie._mapping)
+        ***REMOVED*** Convert SQLAlchemy Row or other object to dictionary
+        try:
+            movie_dict = dict(movie._mapping)
+        except (AttributeError, TypeError):
+            ***REMOVED*** Fallback to __dict__ for other objects
+            movie_dict = {
+                k: v for k, v in movie.__dict__.items() if not k.startswith("_")
+            }
 
     ***REMOVED*** Add genres to the dictionary
     movie_dict["genres"] = genre_list
@@ -91,6 +113,7 @@ async def list_movies(
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
     db: Session = Depends(get_db),
+    movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
     """
     Get a list of movies with pagination and optional filtering.
@@ -100,7 +123,7 @@ async def list_movies(
         skip = (page - 1) * limit
 
         ***REMOVED*** Get movies from database with pagination and filters
-        movies, total_count = get_movies_with_filters(
+        movies, total_count = movie_query.get_movies_with_filters(
             db,
             skip=skip,
             limit=limit,
@@ -125,7 +148,17 @@ async def list_movies(
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
         movie_responses = []
         for movie in movies:
-            genres = get_movie_genres(db, movie.id)
+            ***REMOVED*** Try different ways to access the ID based on the object type
+            if isinstance(movie, dict):
+                movie_id = movie["id"]
+            elif isinstance(movie, tuple):
+                ***REMOVED*** Assume ID is the first element in the tuple
+                movie_id = movie[0]
+            else:
+                ***REMOVED*** Assume it's an object with an id attribute
+                movie_id = movie.id
+
+            genres = movie_query.get_movie_genres(db, movie_id)
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
@@ -135,76 +168,47 @@ async def list_movies(
             page=page,
             page_size=limit,
         )
-    except Exception as e:
-        logger.error(f"Error fetching movies: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    except (ResourceNotFoundError, ValidationError) as e:
+        raise service_error_to_http_exception(e)
 
 
 @router.get("/{movie_id}", response_model=MovieResponse)
 async def get_movie_details(
-    movie_id: int, db: Session = Depends(get_db)
+    movie_id: int = Path(..., ge=1, description="Movie database ID"),
+    db: Session = Depends(get_db),
+    movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MovieResponse:
     """
     Get detailed information for a specific movie by its database ID.
     """
     try:
-        movie = get_movie_details_by_id(db, movie_id)
-
-        if not movie:
-            raise HTTPException(status_code=404, detail="Movie not found")
-
-        genres = get_movie_genres(db, movie["id"])
+        movie = movie_query.get_movie_details(db, movie_id)
+        genres = movie_query.get_movie_genres(db, movie["id"])
         return format_movie_for_response(movie, genres)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching movie {movie_id}: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    except (ResourceNotFoundError, ValidationError) as e:
+        raise service_error_to_http_exception(e)
 
 
 @router.get("/{movie_id}/cast", response_model=MovieCastResponse)
-async def get_movie_cast(movie_id: int, db: Session = Depends(get_db)):
+async def get_movie_cast(
+    movie_id: int = Path(..., ge=1, description="Movie database ID"),
+    db: Session = Depends(get_db),
+    movie_service: MovieService = Depends(get_movie_service),
+):
     """
     Get cast information for a specific movie.
     """
     try:
-        ***REMOVED*** First verify the movie exists
-        movie = get_movie_by_id(db, movie_id)
-        if not movie:
-            raise HTTPException(status_code=404, detail="Movie not found")
+        cast_members = movie_service.get_movie_cast(db, movie_id)
 
-        ***REMOVED*** Get all credits for the movie
-        credits = get_credits_by_movie_id(db, movie_id)
+        ***REMOVED*** Convert to response objects
+        cast_responses = []
+        for cast_member in cast_members:
+            cast_responses.append(CastMemberResponse.model_validate(cast_member))
 
-        ***REMOVED*** Filter for cast members only
-        cast_members = []
-
-        for credit in credits:
-            ***REMOVED*** Filter for cast members (actors)
-            if credit.department == "Acting" or credit.cast_id is not None:
-                cast_member = {
-                    "id": credit.id,
-                    "actor_id": credit.tmdb_person_id,
-                    "name": credit.name,
-                    "character": credit.character,
-                    "profile_path": credit.profile_path,
-                    "order": credit.order,
-                }
-                cast_members.append(CastMemberResponse.model_validate(cast_member))
-
-        ***REMOVED*** Sort cast by order if available
-        cast_members.sort(key=lambda x: x.order if x.order is not None else 999)
-
-        return MovieCastResponse(cast=cast_members, movie_id=movie_id)
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching cast for movie {movie_id}: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        return MovieCastResponse(cast=cast_responses, movie_id=movie_id)
+    except (ResourceNotFoundError, ValidationError) as e:
+        raise service_error_to_http_exception(e)
 
 
 @router.get("/top", response_model=MoviesListResponse)
@@ -214,22 +218,18 @@ async def get_top_movies(
     limit: int = Query(10, ge=1, le=50, description="Max number of movies to return"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     db: Session = Depends(get_db),
+    movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
     """
-    Get top-rated movies by IMDB rating.
+    Get top rated movies for a specific year (or the current year if not specified).
     """
     try:
-        ***REMOVED*** If year is not provided, use current year
-        current_year = year or datetime.now().year
+        ***REMOVED*** Calculate skip from page number
+        skip = (page - 1) * limit
 
-        ***REMOVED*** Get movies using our query function
-        movies, total_count = get_top_rated_movies(
-            db_session=db,
-            year=current_year,
-            genre_id=genre_id,
-            limit=limit,
-            page=page,
-            all_time=False,
+        ***REMOVED*** Get top movies for the year
+        movies, total_count = movie_query.get_top_rated_movies(
+            db, limit=limit, skip=skip, year=year, genre_id=genre_id
         )
 
         if not movies:
@@ -243,7 +243,17 @@ async def get_top_movies(
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
         movie_responses = []
         for movie in movies:
-            genres = get_movie_genres(db, movie.id)
+            ***REMOVED*** Try different ways to access the ID based on the object type
+            if isinstance(movie, dict):
+                movie_id = movie["id"]
+            elif isinstance(movie, tuple):
+                ***REMOVED*** Assume ID is the first element in the tuple
+                movie_id = movie[0]
+            else:
+                ***REMOVED*** Assume it's an object with an id attribute
+                movie_id = movie.id
+
+            genres = movie_query.get_movie_genres(db, movie_id)
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
@@ -253,104 +263,38 @@ async def get_top_movies(
             page=page,
             page_size=limit,
         )
-    except Exception as e:
-        logger.error(f"Error fetching top movies: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
-
-@router.get("/top/all-time", response_model=MoviesListResponse)
-async def get_all_time_top_movies(
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
-    min_votes: int = Query(100, ge=0, description="Minimum number of votes required"),
-    limit: int = Query(10, ge=1, le=50, description="Max number of movies to return"),
-    page: int = Query(1, ge=1, description="Page number for pagination"),
-    db: Session = Depends(get_db),
-) -> MoviesListResponse:
-    """
-    Get all-time top-rated movies by IMDB rating.
-    """
-    try:
-        ***REMOVED*** Get movies using our query function
-        movies, total_count = get_top_rated_movies(
-            db_session=db,
-            genre_id=genre_id,
-            limit=limit,
-            page=page,
-            all_time=True,
-            min_votes=min_votes,
-        )
-
-        if not movies:
-            return MoviesListResponse(
-                movies=[],
-                total=0,
-                page=page,
-                page_size=limit,
-            )
-
-        ***REMOVED*** Convert SQLModel objects to Pydantic response models
-        movie_responses = []
-        for movie in movies:
-            genres = get_movie_genres(db, movie.id)
-            movie_response = format_movie_for_response(movie, genres)
-            movie_responses.append(movie_response)
-
-        return MoviesListResponse(
-            movies=movie_responses,
-            total=total_count,
-            page=page,
-            page_size=limit,
-        )
-    except Exception as e:
-        logger.error(f"Error fetching all-time top movies: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    except (ResourceNotFoundError, ValidationError) as e:
+        raise service_error_to_http_exception(e)
 
 
 @router.get("/tmdb/{tmdb_id}", response_model=MovieResponse)
 async def get_movie_by_tmdb(
-    tmdb_id: int, db: Session = Depends(get_db)
+    tmdb_id: int = Path(..., ge=1, description="Movie TMDB ID"),
+    db: Session = Depends(get_db),
+    movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MovieResponse:
     """
     Get detailed information for a specific movie by its TMDB ID.
     """
     try:
-        movie = get_movie_details_by_tmdb_id(db, tmdb_id)
-
-        if not movie:
-            raise HTTPException(status_code=404, detail="Movie not found")
-
-        genres = get_movie_genres(db, movie["id"])
+        movie = movie_query.get_movie_by_tmdb_id(db, tmdb_id)
+        genres = movie_query.get_movie_genres(db, movie["id"])
         return format_movie_for_response(movie, genres)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching movie by TMDB ID {tmdb_id}: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    except (ResourceNotFoundError, ValidationError) as e:
+        raise service_error_to_http_exception(e)
 
 
 @router.get("/{movie_id}/trailers", response_model=List[TrailerResponse])
 async def get_movie_trailers(
-    movie_id: int, db: Session = Depends(get_db)
+    movie_id: int = Path(..., ge=1, description="Movie database ID"),
+    db: Session = Depends(get_db),
+    movie_query: MovieQuery = Depends(get_movie_query),
 ) -> List[TrailerResponse]:
     """
-    Get all trailers for a movie.
+    Get trailers for a specific movie.
     """
     try:
-        ***REMOVED*** First check if movie exists
-        movie = get_movie_details_by_id(db, movie_id)
-        if not movie:
-            raise HTTPException(status_code=404, detail="Movie not found")
-
-        ***REMOVED*** Get trailers using our query function
-        trailers = get_trailers_for_movie(db, movie_id)
-        return [TrailerResponse.from_orm(t) for t in trailers]
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching trailers for movie {movie_id}: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        trailers = movie_query.get_movie_trailers(db, movie_id)
+        return [TrailerResponse.model_validate(trailer) for trailer in trailers]
+    except (ResourceNotFoundError, ValidationError) as e:
+        raise service_error_to_http_exception(e)

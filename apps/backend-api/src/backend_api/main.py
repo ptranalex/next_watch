@@ -47,6 +47,9 @@ from backend_api.routes.api_v1 import api_v1_router
 ***REMOVED*** Import database initialization
 from backend_api.db.database import init_database, get_db
 
+***REMOVED*** Import middlewares
+from backend_api.middlewares import ErrorHandlerMiddleware
+
 ***REMOVED*** Import services
 try:
     from backend_api.services.suggestion_engine import SuggestionEngine
@@ -72,6 +75,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+***REMOVED*** Add error handling middleware
+app.add_middleware(ErrorHandlerMiddleware)
 
 ***REMOVED*** Register v1 API router - this is the new, organized API
 app.include_router(api_v1_router)
