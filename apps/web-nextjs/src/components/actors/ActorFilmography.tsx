@@ -12,9 +12,10 @@ import {
   Link,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
+import { Movie } from "@/domain/entities";
 
-interface Movie {
-  id: string;
+interface FilmographyMovie {
+  id: number;
   title: string;
   release_date: string;
   poster_path: string;
@@ -26,7 +27,7 @@ interface ActorFilmographyProps {
 }
 
 export default function ActorFilmography({ actorId }: ActorFilmographyProps) {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<FilmographyMovie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -38,23 +39,23 @@ export default function ActorFilmography({ actorId }: ActorFilmographyProps) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Mock data for the actor's filmography
-        const mockFilmography: Movie[] = [
+        const mockFilmography: FilmographyMovie[] = [
           {
-            id: "1",
+            id: 1,
             title: "The Shawshank Redemption",
             release_date: "1994-09-23",
             poster_path: "https://via.placeholder.com/92x138?text=Shawshank",
             character: "Ellis Boyd 'Red' Redding",
           },
           {
-            id: "2",
+            id: 2,
             title: "The Dark Knight",
             release_date: "2008-07-18",
             poster_path: "https://via.placeholder.com/92x138?text=DarkKnight",
             character: "Lucius Fox",
           },
           {
-            id: "3",
+            id: 3,
             title: "Million Dollar Baby",
             release_date: "2004-12-15",
             poster_path:
@@ -62,14 +63,14 @@ export default function ActorFilmography({ actorId }: ActorFilmographyProps) {
             character: "Eddie Scrap-Iron Dupris",
           },
           {
-            id: "4",
+            id: 4,
             title: "Se7en",
             release_date: "1995-09-22",
             poster_path: "https://via.placeholder.com/92x138?text=Se7en",
             character: "Detective Lt. William Somerset",
           },
           {
-            id: "5",
+            id: 5,
             title: "Bruce Almighty",
             release_date: "2003-05-23",
             poster_path: "https://via.placeholder.com/92x138?text=Bruce",
@@ -118,7 +119,7 @@ export default function ActorFilmography({ actorId }: ActorFilmographyProps) {
           <Link
             as={NextLink}
             href={`/movies/${movie.id}`}
-            key={movie.id}
+            key={String(movie.id)}
             _hover={{ textDecoration: "none" }}
           >
             <HStack

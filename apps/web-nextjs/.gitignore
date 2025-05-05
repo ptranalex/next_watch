@@ -1,0 +1,38 @@
+***REMOVED*** dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+***REMOVED*** testing
+/coverage
+
+***REMOVED*** next.js
+/.next/
+/out/
+
+***REMOVED*** production
+/build
+
+***REMOVED*** misc
+.DS_Store
+*.pem
+
+***REMOVED*** debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+***REMOVED*** local env files
+.env*.local
+
+***REMOVED*** vercel
+.vercel
+
+***REMOVED*** typescript
+*.tsbuildinfo
+next-env.d.ts
+
+***REMOVED*** migration tools temp files
+/migration-temp/
+*.bak
+*.migration.temp 

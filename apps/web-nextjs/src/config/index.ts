@@ -14,7 +14,7 @@ export const API_CONFIG = {
    * Base URL for the API
    * In browser contexts, this must be prefixed with NEXT_PUBLIC_
    */
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001",
 
   /**
    * API version
@@ -84,6 +84,11 @@ export const AUTH_CONFIG = {
    * Google OAuth client ID
    */
   googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+
+  /**
+   * Default expiration time for login sessions (in seconds)
+   */
+  sessionExpiration: 60 * 60 * 24 * 7, // 7 days
 };
 
 // Analytics Configuration (server-side only)

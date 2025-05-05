@@ -11,18 +11,7 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import DefinitionItem from "@/components/utils/DefinitionItem";
-
-interface Actor {
-  id: string;
-  name: string;
-  profile_path: string;
-  birthday?: string;
-  deathday?: string;
-  place_of_birth?: string;
-  biography?: string;
-  gender: string;
-  popularity: number;
-}
+import { Actor } from "@/domain/entities";
 
 interface ActorDetailContentProps {
   actorId: string;
@@ -44,15 +33,16 @@ export default function ActorDetailContent({
 
         // Mock data for the actor
         const mockActor: Actor = {
-          id: actorId,
+          id: parseInt(actorId),
+          actor_id: parseInt(actorId),
           name: "Morgan Freeman",
           profile_path:
             "https://image.tmdb.org/t/p/w500/oIciQWr8VwKoR8TmAw1owaiZFyb.jpg",
-          birthday: "1937-06-01",
+          birth_date: "1937-06-01",
           place_of_birth: "Memphis, Tennessee, USA",
           biography:
             "Morgan Freeman is an American actor, film director, and narrator. Freeman has received Academy Award nominations for his performances in Street Smart, Driving Miss Daisy, The Shawshank Redemption and Invictus, and won the Best Supporting Actor Oscar in 2005 for Million Dollar Baby. He has also won a Golden Globe Award and a Screen Actors Guild Award.",
-          gender: "Male",
+          gender: 2,
           popularity: 84.5,
         };
 
@@ -88,13 +78,13 @@ export default function ActorDetailContent({
 
   // Calculate age
   const calculateAge = () => {
-    if (!actor.birthday) return "Unknown";
+    if (!actor.birth_date) return "Unknown";
 
-    const birthDate = new Date(actor.birthday);
+    const birthDate = new Date(actor.birth_date);
     let endDate = new Date();
 
-    if (actor.deathday) {
-      endDate = new Date(actor.deathday);
+    if (actor.death_date) {
+      endDate = new Date(actor.death_date);
     }
 
     let age = endDate.getFullYear() - birthDate.getFullYear();
@@ -133,9 +123,9 @@ export default function ActorDetailContent({
 
           <VStack align="flex-start" spacing={2} width="100%">
             <DefinitionItem term="Birthday">
-              {actor.birthday ? (
+              {actor.birth_date ? (
                 <Text>
-                  {new Date(actor.birthday).toLocaleDateString()}
+                  {new Date(actor.birth_date).toLocaleDateString()}
                   <Badge ml={2} colorScheme="blue">
                     {calculateAge()} years old
                   </Badge>
@@ -145,9 +135,9 @@ export default function ActorDetailContent({
               )}
             </DefinitionItem>
 
-            {actor.deathday && (
+            {actor.death_date && (
               <DefinitionItem term="Died">
-                <Text>{new Date(actor.deathday).toLocaleDateString()}</Text>
+                <Text>{new Date(actor.death_date).toLocaleDateString()}</Text>
               </DefinitionItem>
             )}
 
@@ -156,11 +146,17 @@ export default function ActorDetailContent({
             </DefinitionItem>
 
             <DefinitionItem term="Gender">
-              <Text>{actor.gender}</Text>
+              <Text>
+                {actor.gender === 1
+                  ? "Female"
+                  : actor.gender === 2
+                  ? "Male"
+                  : "Other"}
+              </Text>
             </DefinitionItem>
 
             <DefinitionItem term="Popularity">
-              <Text>{actor.popularity.toFixed(1)}</Text>
+              <Text>{actor.popularity?.toFixed(1)}</Text>
             </DefinitionItem>
           </VStack>
         </VStack>

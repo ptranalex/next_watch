@@ -1,162 +1,94 @@
 "use client";
 
-import { ReactNode } from "react";
+import type { FC } from "react";
 import {
-  IconButton,
   Box,
-  CloseButton,
-  Flex,
-  Icon,
-  useColorModeValue,
+  Button,
   Drawer,
+  DrawerBody,
   DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
+  Icon,
   Text,
-  useDisclosure,
-  BoxProps,
-  FlexProps,
   VStack,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { HiMenu, HiHome, HiFilm, HiStar, HiUser } from "react-icons/hi";
-import { IconType } from "react-icons";
-import { usePathname } from "next/navigation";
+import { FaHome, FaSearch, FaUser } from "react-icons/fa";
+import { MdOutlineTheaterComedy } from "react-icons/md";
+import { PiMaskSad } from "react-icons/pi";
+import { HiOutlineBars3 } from "react-icons/hi2";
 import Link from "next/link";
-import ColorModeSwitch from "../common/ColorModeSwitch";
+import { useAuth } from "@/hooks";
+import { useMovieQuery } from "../../context/MovieQueryContext";
+import type { IconType } from "react-icons";
 
-interface NavItemProps extends FlexProps {
+interface NavItem {
   icon: IconType;
-  children: ReactNode;
-  href: string;
-  isActive: boolean;
+  label: string;
+  path: string;
 }
 
-interface MobileNavMenuProps extends BoxProps {
-  onClose?: () => void;
-}
+const MobileNavMenu: FC = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isAuthenticated, logout } = useAuth();
+  const { reset } = useMovieQuery();
 
-interface SidebarProps extends BoxProps {
-  onClose: () => void;
-}
-
-const NavItems = [
-  { name: "Home", icon: HiHome, href: "/" },
-  { name: "Movies", icon: HiFilm, href: "/movies" },
-  { name: "Actors", icon: HiStar, href: "/actors" },
-  { name: "Profile", icon: HiUser, href: "/profile" },
-];
-
-const NavItem = ({ icon, children, href, isActive, ...rest }: NavItemProps) => {
-  const activeColor = useColorModeValue("blue.500", "blue.300");
-  const inactiveColor = useColorModeValue("gray.600", "gray.300");
-  const activeBg = useColorModeValue("blue.50", "blue.900");
-  const hoverBg = useColorModeValue("gray.100", "gray.700");
+  const navItems: NavItem[] = [
+    { icon: FaHome, label: "Home", path: "/" },
+    { icon: FaSearch, label: "Search", path: "/search" },
+    { icon: MdOutlineTheaterComedy, label: "Movies", path: "/movies" },
+    { icon: PiMaskSad, label: "Actors", path: "/actors" },
+  ];
 
   return (
-    <Link href={href} passHref style={{ width: "100%" }}>
-      <Flex
-        align="center"
-        p="4"
-        mx="4"
-        borderRadius="lg"
-        role="group"
-        cursor="pointer"
-        bg={isActive ? activeBg : "transparent"}
-        color={isActive ? activeColor : inactiveColor}
-        _hover={{
-          bg: isActive ? activeBg : hoverBg,
-        }}
-        {...rest}
-      >
-        {icon && (
-          <Icon
-            mr="4"
-            fontSize="16"
-            as={icon}
-            color={isActive ? activeColor : inactiveColor}
-          />
-        )}
-        {children}
-      </Flex>
-    </Link>
-  );
-};
-
-const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
-  const pathname = usePathname();
-
-  return (
-    <Box
-      transition="3s ease"
-      bg={useColorModeValue("white", "gray.900")}
-      borderRight="1px"
-      borderRightColor={useColorModeValue("gray.200", "gray.700")}
-      w={{ base: "full", md: 60 }}
-      pos="fixed"
-      h="full"
-      {...rest}
-    >
-      <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
-        <Text fontSize="2xl" fontWeight="bold">
-          NextWatch
-        </Text>
-        <CloseButton display={{ base: "flex", md: "none" }} onClick={onClose} />
-      </Flex>
-
-      <VStack spacing={2} align="stretch">
-        {NavItems.map((item) => (
-          <NavItem
-            key={item.name}
-            icon={item.icon}
-            href={item.href}
-            isActive={
-              pathname === item.href ||
-              (item.href !== "/" && pathname?.startsWith(item.href))
-            }
-          >
-            {item.name}
-          </NavItem>
-        ))}
-      </VStack>
-
-      <Flex position="absolute" bottom="5" width="100%" px="8">
-        <ColorModeSwitch showLabel />
-      </Flex>
-    </Box>
-  );
-};
-
-export default function MobileNavMenu({
-  onClose,
-  ...rest
-}: MobileNavMenuProps) {
-  const { isOpen, onOpen, onClose: onDrawerClose } = useDisclosure();
-
-  const handleClose = () => {
-    onDrawerClose();
-    if (onClose) onClose();
-  };
-
-  return (
-    <Box display={{ base: "block", md: "none" }} {...rest}>
-      <IconButton
-        variant="outline"
+    <>
+      <Button
+        variant="ghost"
         onClick={onOpen}
-        aria-label="Open navigation menu"
-        icon={<HiMenu />}
-      />
-
-      <Drawer
-        autoFocus={false}
-        isOpen={isOpen}
-        placement="left"
-        onClose={handleClose}
-        returnFocusOnClose={false}
-        onOverlayClick={handleClose}
-        size="full"
+        leftIcon={<Icon as={HiOutlineBars3} />}
       >
+        Menu
+      </Button>
+
+      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+        <DrawerOverlay />
         <DrawerContent>
-          <SidebarContent onClose={handleClose} />
+          <DrawerHeader>Menu</DrawerHeader>
+          <DrawerBody>
+            <VStack spacing={4} align="stretch">
+              {navItems.map((item) => (
+                <Link key={item.path} href={item.path} onClick={onClose}>
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    leftIcon={<Icon as={item.icon} />}
+                    onClick={() => reset()}
+                    width="100%"
+                  >
+                    <Text>{item.label}</Text>
+                  </Button>
+                </Link>
+              ))}
+
+              {isAuthenticated ? (
+                <Link href="/profile" onClick={onClose}>
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    leftIcon={<Icon as={FaUser} />}
+                    width="100%"
+                  >
+                    <Text>Profile</Text>
+                  </Button>
+                </Link>
+              ) : null}
+            </VStack>
+          </DrawerBody>
         </DrawerContent>
       </Drawer>
-    </Box>
+    </>
   );
-}
+};
+
+export default MobileNavMenu;

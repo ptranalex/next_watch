@@ -15,6 +15,7 @@ interface MovieQuery {
   searchText: string;
   genre: string | null;
   sortOrder: string;
+  sortDesc: boolean;
   rating_imdb: number | null;
   rating_rotten_tomatoes: number | null;
   rating_metacritic: number | null;
@@ -27,6 +28,8 @@ interface MovieQueryContextType {
   setSearchText: (text: string) => void;
   setGenre: (genre: string | null) => void;
   setSortOrder: (order: string) => void;
+  setSortDirection: (desc: boolean) => void;
+  setSorting: (order: string, desc: boolean) => void;
   setRatingImdb: (rating: number | null) => void;
   setRatingTomatoes: (rating: number | null) => void;
   setRatingMetacritic: (rating: number | null) => void;
@@ -38,7 +41,8 @@ interface MovieQueryContextType {
 const defaultMovieQuery: MovieQuery = {
   searchText: "",
   genre: null,
-  sortOrder: "released",
+  sortOrder: "release_date",
+  sortDesc: true,
   rating_imdb: null,
   rating_rotten_tomatoes: null,
   rating_metacritic: null,
@@ -51,6 +55,8 @@ const MovieQueryContext = createContext<MovieQueryContextType>({
   setSearchText: () => {},
   setGenre: () => {},
   setSortOrder: () => {},
+  setSortDirection: () => {},
+  setSorting: () => {},
   setRatingImdb: () => {},
   setRatingTomatoes: () => {},
   setRatingMetacritic: () => {},
@@ -76,7 +82,8 @@ export const MovieQueryProvider = ({ children }: MovieQueryProviderProps) => {
     return {
       searchText: searchParams.get("search") || "",
       genre: searchParams.get("genre"),
-      sortOrder: searchParams.get("sort") || "released",
+      sortOrder: searchParams.get("sort") || "release_date",
+      sortDesc: searchParams.get("desc") !== "false",
       rating_imdb: searchParams.get("imdb")
         ? Number(searchParams.get("imdb"))
         : null,
@@ -101,6 +108,7 @@ export const MovieQueryProvider = ({ children }: MovieQueryProviderProps) => {
       if (newQuery.searchText) params.set("search", newQuery.searchText);
       if (newQuery.genre) params.set("genre", newQuery.genre);
       if (newQuery.sortOrder) params.set("sort", newQuery.sortOrder);
+      params.set("desc", newQuery.sortDesc ? "true" : "false");
       if (newQuery.rating_imdb !== null)
         params.set("imdb", newQuery.rating_imdb.toString());
       if (newQuery.rating_rotten_tomatoes !== null)
@@ -108,6 +116,9 @@ export const MovieQueryProvider = ({ children }: MovieQueryProviderProps) => {
       if (newQuery.rating_metacritic !== null)
         params.set("mc", newQuery.rating_metacritic.toString());
       if (newQuery.year !== null) params.set("year", newQuery.year.toString());
+
+      // Log the params being set
+      console.log("Updating URL with params:", params.toString(), newQuery);
 
       // Update URL without reloading the page
       router.push(`?${params.toString()}`);
@@ -142,6 +153,24 @@ export const MovieQueryProvider = ({ children }: MovieQueryProviderProps) => {
   const setSortOrder = useCallback(
     (sortOrder: string) => {
       const newQuery = { ...movieQuery, sortOrder };
+      setMovieQuery(newQuery);
+      updateUrl(newQuery);
+    },
+    [movieQuery, updateUrl]
+  );
+
+  const setSortDirection = useCallback(
+    (desc: boolean) => {
+      const newQuery = { ...movieQuery, sortDesc: desc };
+      setMovieQuery(newQuery);
+      updateUrl(newQuery);
+    },
+    [movieQuery, updateUrl]
+  );
+
+  const setSorting = useCallback(
+    (order: string, desc: boolean) => {
+      const newQuery = { ...movieQuery, sortOrder: order, sortDesc: desc };
       setMovieQuery(newQuery);
       updateUrl(newQuery);
     },
@@ -196,6 +225,8 @@ export const MovieQueryProvider = ({ children }: MovieQueryProviderProps) => {
         setSearchText,
         setGenre,
         setSortOrder,
+        setSortDirection,
+        setSorting,
         setRatingImdb,
         setRatingTomatoes,
         setRatingMetacritic,

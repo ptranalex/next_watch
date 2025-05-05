@@ -1,15 +1,14 @@
 "use client";
 
-import { Box, Grid, GridItem, Heading, Show, Divider } from "@chakra-ui/react";
-import RatingSliderGroup from "@/src/components/movies/filter/MovieFilter";
-import MovieGrid from "@/src/components/movies/grid/MovieGrid";
-import MovieHeading from "@/src/components/movies/grid/MovieHeading";
-import LeftNavBar from "@/src/components/layout/LeftNavBar";
-import SortSelector from "@/src/components/layout/SortSelector";
-import TopMovies from "@/src/components/movies/TopMovies";
-import { useSlugLogic } from "@/src/hooks/useSlugLogic";
+import { Box, Grid, GridItem, Heading, Show } from "@chakra-ui/react";
+import RatingSliderGroup from "@/components/home/MovieFilter";
+import MovieGrid from "@/components/home/MovieGrid";
+import MovieHeading from "@/components/home/MovieHeading";
+import LeftNavBar from "@/components/layout/LeftNavBar";
+import SortSelector from "@/components/layout/SortSelector";
+import { useSlugLogic } from "@/hooks";
 
-export default function HomePage() {
+const HomePage: React.FC = () => {
   const title = useSlugLogic();
 
   return (
@@ -31,7 +30,11 @@ export default function HomePage() {
           </GridItem>
         </Show>
         <GridItem area="main">
-          <Box paddingLeft={0}>
+          <Box
+            marginBottom={5}
+            marginRight={{ base: -5, md: "auto" }}
+            marginLeft={{ base: -5, md: "auto" }}
+          >
             <MovieHeading title={title} />
             <Box marginBottom={5}>
               <SortSelector />
@@ -41,28 +44,10 @@ export default function HomePage() {
             columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
             source="movie_listing"
           />
-
-          {/* Top Movies Sections */}
-          <Divider my={10} />
-
-          {/* This Year's Top Movies */}
-          <TopMovies
-            title={`Top Movies of ${new Date().getFullYear()}`}
-            showYearSelector={false}
-            isAllTime={false}
-            limit={12}
-          />
-
-          {/* All-Time Top Movies */}
-          <Divider my={10} />
-          <TopMovies
-            title="All-Time Classics"
-            isAllTime={true}
-            showYearSelector={false}
-            limit={12}
-          />
         </GridItem>
       </Grid>
     </Box>
   );
-}
+};
+
+export default HomePage;

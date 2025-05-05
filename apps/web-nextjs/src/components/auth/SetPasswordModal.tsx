@@ -1,130 +1,150 @@
-"use client";
-
-import { useState } from "react";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   Button,
   FormControl,
   FormLabel,
   Input,
-  FormErrorMessage,
-  useToast,
-  VStack,
+  InputGroup,
+  InputRightElement,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  Stack,
+  Text,
+  useColorModeValue,
 } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { HiKey } from "react-icons/hi2";
+import { APIClient } from "@/services/api";
 
-interface SetPasswordModalProps {
+interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function SetPasswordModal({
-  isOpen,
-  onClose,
-}: SetPasswordModalProps) {
+const apiClient = new APIClient("/users/set_password");
+
+const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
+  const textColor = useColorModeValue("black", "white");
+  const modalBgColor = useColorModeValue("gray.100", "gray.800");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const toast = useToast();
+  const [verifiedPassword, setVerifiedPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [verifiedPasswordError, setVerifiedPasswordError] = useState<
+    string | null
+  >(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const handleShowPassword = () => setShowPassword(!showPassword);
 
-  const handleSubmit = async () => {
-    // Clear any previous errors
-    setError(null);
-
-    // Validate passwords
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // In a real app, this would call an API endpoint
-      // Example: await apiClient.post('/auth/set-password', { password });
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast({
-        title: "Password set",
-        description: "Your password has been successfully set",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-
-      onClose();
-    } catch (err) {
-      setError("Failed to set password. Please try again.");
-      console.error("Error setting password:", err);
-    } finally {
-      setIsSubmitting(false);
+  const validatePassword = () => {
+    // Password should be at least 8 characters long, contain at least one number, one lowercase and one uppercase letter
+    const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+    if (re.test(password)) {
+      setPasswordError(null);
+    } else {
+      console.log("Password error");
+      setPasswordError(
+        "Password should be at least 8 characters long, contain at least one number, one lowercase and one uppercase letter"
+      );
     }
   };
 
-  const handleClose = () => {
-    setPassword("");
-    setConfirmPassword("");
-    setError(null);
-    onClose();
+  const validateVerifiedPassword = () => {
+    // Verify if the password is the same as the first password
+    if (password === verifiedPassword) {
+      setVerifiedPasswordError(null);
+    } else {
+      console.log("Password error");
+      setVerifiedPasswordError(
+        "Re-entered password does not match the first password"
+      );
+    }
+  };
+
+  const onPasswordSubmit = () => {
+    validatePassword();
+    validateVerifiedPassword();
+
+    if (passwordError || verifiedPasswordError) {
+      return;
+    }
+
+    apiClient
+      .create({ password })
+      .then(() => {})
+      .catch(() => {
+        console.error("Error setting password");
+      });
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Set Password</ModalHeader>
+    <Modal isCentered isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay
+        bg="blackAlpha.300"
+        backdropFilter="auto"
+        backdropBlur="4px"
+      />
+      <ModalContent bg={modalBgColor} color={textColor}>
+        <ModalHeader>
+          <Text fontSize="2xl">Set Password</Text>
+        </ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4}>
-            <FormControl isInvalid={!!error}>
-              <FormLabel>New Password</FormLabel>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter new password"
-              />
+        <ModalBody padding={6}>
+          <Stack spacing={4}>
+            <FormControl id="password" isRequired>
+              <FormLabel>Password</FormLabel>
+              <InputGroup>
+                <Input
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={validatePassword}
+                />
+                <InputRightElement h={"full"}>
+                  <Button
+                    variant={"ghost"}
+                    onClick={handleShowPassword}
+                    _hover={{ bg: "transparent" }}
+                  >
+                    {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
+              {passwordError && <Text as="sub">{passwordError}</Text>}
             </FormControl>
 
-            <FormControl isInvalid={!!error}>
-              <FormLabel>Confirm Password</FormLabel>
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-              />
-              {error && <FormErrorMessage>{error}</FormErrorMessage>}
+            <FormControl id="verified_password" isRequired>
+              <FormLabel>Re-enter Password</FormLabel>
+              <InputGroup>
+                <Input
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  onChange={(e) => setVerifiedPassword(e.target.value)}
+                  onBlur={validateVerifiedPassword}
+                />
+              </InputGroup>
+              {verifiedPasswordError && (
+                <Text as="sub">{verifiedPasswordError}</Text>
+              )}
             </FormControl>
-          </VStack>
+
+            <Button
+              width="100%"
+              colorScheme="blue"
+              leftIcon={<HiKey fontSize="1.5rem" />}
+              justifyContent="left"
+              onClick={onPasswordSubmit}
+            >
+              Submit Password
+            </Button>
+          </Stack>
         </ModalBody>
-
-        <ModalFooter>
-          <Button variant="outline" mr={3} onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            colorScheme="blue"
-            onClick={handleSubmit}
-            isLoading={isSubmitting}
-          >
-            Set Password
-          </Button>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );
-}
+};
+
+export default LoginModal;

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -10,9 +11,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60, // 1 minute
-            cacheTime: 1000 * 60 * 5, // 5 minutes
+            staleTime: 10 * 60 * 1000, // 10 minutes - even longer stale time
+            cacheTime: 60 * 60 * 1000, // 60 minutes - keep data in cache longer
             refetchOnWindowFocus: false,
+            refetchOnMount: false, // Don't refetch on re-mount when within staleTime
+            retry: 1, // Reduce retry attempts
           },
         },
       })
@@ -20,8 +23,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <GoogleOAuthProvider
+        clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+      >
+        {children}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </GoogleOAuthProvider>
     </QueryClientProvider>
   );
 }

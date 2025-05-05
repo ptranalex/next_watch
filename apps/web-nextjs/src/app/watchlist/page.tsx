@@ -1,6 +1,6 @@
 "use client";
 
-import { Watchlist } from "@/src/components/user/watchlist";
+import { WatchlistPage as Watchlist } from "@/components/user/WatchlistPage";
 import { Box, Container } from "@chakra-ui/react";
 
 export default function WatchlistPage() {

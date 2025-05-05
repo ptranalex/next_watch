@@ -1,9 +1,10 @@
-import config from "@/src/config";
+import config from "@/config";
 
 /**
- * Token storage key in localStorage
+ * Token storage keys in localStorage
  */
-const TOKEN_KEY = config.auth.tokenKey;
+const ACCESS_TOKEN_KEY = config.auth.tokenKey;
+const REFRESH_TOKEN_KEY = `${ACCESS_TOKEN_KEY}_refresh`;
 
 /**
  * Interface for the decoded JWT payload
@@ -11,9 +12,11 @@ const TOKEN_KEY = config.auth.tokenKey;
 interface JwtPayload {
   sub: string; // User ID
   exp: number; // Expiration timestamp
+  type: string; // Token type (access or refresh)
   email?: string;
   name?: string;
   role?: string;
+  iat: number; // Issued at timestamp
 }
 
 /**
@@ -21,38 +24,75 @@ interface JwtPayload {
  */
 const AuthTokenManager = {
   /**
-   * Store the JWT token in localStorage
+   * Store both access and refresh tokens in localStorage
    */
-  setToken: (token: string): void => {
+  setTokens: (accessToken: string, refreshToken: string): void => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     }
   },
 
   /**
-   * Get the JWT token from localStorage
+   * Set just the access token
    */
-  getToken: (): string | null => {
+  setAccessToken: (token: string): void => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem(TOKEN_KEY);
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    }
+  },
+
+  /**
+   * Set just the refresh token
+   */
+  setRefreshToken: (token: string): void => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(REFRESH_TOKEN_KEY, token);
+    }
+  },
+
+  /**
+   * Get the access token from localStorage
+   */
+  getAccessToken: (): string | null => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(ACCESS_TOKEN_KEY);
     }
     return null;
   },
 
   /**
-   * Remove the JWT token from localStorage
+   * Get the refresh token from localStorage
    */
-  removeToken: (): void => {
+  getRefreshToken: (): string | null => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem(TOKEN_KEY);
+      return localStorage.getItem(REFRESH_TOKEN_KEY);
+    }
+    return null;
+  },
+
+  /**
+   * Remove both tokens from localStorage
+   */
+  removeTokens: (): void => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
     }
   },
 
   /**
-   * Check if a token is present
+   * Check if an access token is present
    */
-  hasToken: (): boolean => {
-    return !!AuthTokenManager.getToken();
+  hasAccessToken: (): boolean => {
+    return !!AuthTokenManager.getAccessToken();
+  },
+
+  /**
+   * Check if a refresh token is present
+   */
+  hasRefreshToken: (): boolean => {
+    return !!AuthTokenManager.getRefreshToken();
   },
 
   /**
@@ -77,10 +117,10 @@ const AuthTokenManager = {
   },
 
   /**
-   * Check if the current token is valid (exists and not expired)
+   * Check if the current access token is valid (exists and not expired)
    */
-  isTokenValid: (): boolean => {
-    const token = AuthTokenManager.getToken();
+  isAccessTokenValid: (): boolean => {
+    const token = AuthTokenManager.getAccessToken();
 
     if (!token) {
       return false;
@@ -95,7 +135,7 @@ const AuthTokenManager = {
 
       // Check if token has expired
       const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp > currentTime;
+      return payload.exp > currentTime && payload.type === "access";
     } catch (error) {
       console.error("Error validating token:", error);
       return false;
@@ -103,7 +143,33 @@ const AuthTokenManager = {
   },
 
   /**
-   * Get user info from the token
+   * Check if the refresh token is valid
+   */
+  isRefreshTokenValid: (): boolean => {
+    const token = AuthTokenManager.getRefreshToken();
+
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const payload = AuthTokenManager.decodeToken(token);
+
+      if (!payload) {
+        return false;
+      }
+
+      // Check if token has expired
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp > currentTime && payload.type === "refresh";
+    } catch (error) {
+      console.error("Error validating refresh token:", error);
+      return false;
+    }
+  },
+
+  /**
+   * Get user info from the access token
    */
   getUserInfo: (): {
     id: string;
@@ -111,7 +177,7 @@ const AuthTokenManager = {
     name?: string;
     role?: string;
   } | null => {
-    const token = AuthTokenManager.getToken();
+    const token = AuthTokenManager.getAccessToken();
 
     if (!token) {
       return null;

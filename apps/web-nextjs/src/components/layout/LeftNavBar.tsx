@@ -1,112 +1,162 @@
-"use client";
-
-import { Box, VStack, Text, Divider, Icon, Link } from "@chakra-ui/react";
-import NextLink from "next/link";
-import { usePathname } from "next/navigation";
 import {
-  HiHome,
-  HiFilm,
-  HiUser,
-  HiStar,
-  HiClock,
+  Heading,
+  Icon,
+  Text,
+  HStack,
+  Link as ChakraLink,
+  Box,
+  SkeletonText,
+  VStack,
+} from "@chakra-ui/react";
+import {
+  GiAlienSkull,
+  GiCalendar,
+  GiFairyWand,
+  GiGhost,
+  GiLaurelCrown,
+  GiMagnifyingGlass,
+  GiPistolGun,
+  GiPunch,
+  GiTrophy,
+} from "react-icons/gi";
+import {
   HiBookmark,
+  HiCheckBadge,
+  HiDocumentCheck,
+  HiHeart,
 } from "react-icons/hi2";
-import { IconType } from "react-icons";
+import { MdOutlineTheaterComedy } from "react-icons/md";
+import { PiMaskSad } from "react-icons/pi";
+import Link from "next/link";
+import { useAuth } from "@/hooks";
+import useMovieQueryStore from "../../store/movieQuery";
+import { useQuery } from "@tanstack/react-query";
+import { MovieAPI } from "@/services/api";
+import { Genre } from "@/domain/entities";
+import { Suspense, lazy } from "react";
 
-interface NavItemProps {
-  icon: IconType;
-  href: string;
+interface NavItem {
+  icon: React.ElementType;
   label: string;
-  isActive?: boolean;
+  path: string;
 }
 
-const NavItem = ({ icon, href, label, isActive }: NavItemProps) => {
-  return (
-    <Link
-      as={NextLink}
-      href={href}
-      display="flex"
-      alignItems="center"
-      p={2}
-      borderRadius="md"
-      _hover={{ bg: "gray.100", textDecoration: "none" }}
-      bg={isActive ? "gray.100" : "transparent"}
-      fontWeight={isActive ? "bold" : "normal"}
-    >
-      <Icon as={icon} boxSize={5} mr={3} />
+const NavLink: React.FC<NavItem> = ({ icon, label, path }) => (
+  <ChakraLink as={Link} href={path}>
+    <HStack marginBottom={3}>
+      <Icon as={icon} boxSize={6} color="gray.500" />
       <Text>{label}</Text>
-    </Link>
+    </HStack>
+  </ChakraLink>
+);
+
+// Map of genre names to their icons
+const genreIcons: Record<string, React.ElementType> = {
+  Action: GiPunch,
+  Thriller: GiPistolGun,
+  Comedy: MdOutlineTheaterComedy,
+  Drama: PiMaskSad,
+  Fantasy: GiFairyWand,
+  Horror: GiGhost,
+  Mystery: GiMagnifyingGlass,
+  "Sci-Fi": GiAlienSkull,
+};
+
+// Lazy-loaded genre section component
+const GenreContent = () => {
+  const { data: genres, isLoading } = useQuery({
+    queryKey: ["genres"],
+    queryFn: () => MovieAPI.getAllGenres(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Default icon for genres without a specific icon
+  const defaultIcon = GiPunch;
+
+  if (isLoading) {
+    return (
+      <Box pl={6} pr={6}>
+        <SkeletonText noOfLines={6} spacing={3} skeletonHeight={3} />
+      </Box>
+    );
+  }
+
+  if (!genres || genres.length === 0) {
+    return <Text color="gray.500">No genres available</Text>;
+  }
+
+  return (
+    <>
+      {genres.map((genre: Genre) => (
+        <NavLink
+          key={genre.id}
+          icon={genreIcons[genre.name] || defaultIcon}
+          label={genre.name}
+          path={`/genres/${genre.id}`}
+        />
+      ))}
+    </>
   );
 };
 
-export default function LeftNavBar() {
-  const pathname = usePathname();
+// Genre section wrapper with its own heading
+const GenreSection = () => {
+  return (
+    <VStack align="stretch" spacing={0}>
+      <Heading fontSize="2xl" marginTop={9} marginBottom={3}>
+        Genre
+      </Heading>
+      <GenreContent />
+    </VStack>
+  );
+};
 
-  const isActive = (path: string) => {
-    return pathname === path;
-  };
+const LeftNavBar: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const resetFilters = useMovieQueryStore((state) => state.resetFilters);
+
+  const userNavItems: NavItem[] = isAuthenticated
+    ? [
+        { icon: HiBookmark, label: "Watch List", path: "/watchlist" },
+        { icon: HiHeart, label: "Favourite", path: "/favourite" },
+        { icon: HiDocumentCheck, label: "History", path: "/history" },
+        { icon: HiCheckBadge, label: "Our Picks", path: "/recommended" },
+      ]
+    : [];
+
+  const topNavItems: NavItem[] = [
+    { icon: GiTrophy, label: "Best of Year", path: "/top-year" },
+    { icon: GiCalendar, label: "Popular in 2023", path: "/top-year-2023" },
+    { icon: GiCalendar, label: "Popular in 2022", path: "/top-year-2022" },
+    {
+      icon: GiLaurelCrown,
+      label: "All time top 250",
+      path: "/top-250-all-time",
+    },
+  ];
 
   return (
-    <Box position="sticky" top="80px" w="full">
-      <VStack align="stretch" spacing={2} w="full">
-        <NavItem icon={HiHome} href="/" label="Home" isActive={isActive("/")} />
+    <>
+      <Heading fontSize="2xl" marginTop={9} marginBottom={3}>
+        <ChakraLink as={Link} href="/" onClick={resetFilters}>
+          Home
+        </ChakraLink>
+      </Heading>
 
-        <Divider my={2} />
+      {isAuthenticated &&
+        userNavItems.map((item) => <NavLink key={item.path} {...item} />)}
 
-        <Text fontSize="sm" color="gray.500" fontWeight="medium" px={2} mb={1}>
-          Discover
-        </Text>
+      <Heading fontSize="2xl" marginTop={9} marginBottom={3}>
+        Top
+      </Heading>
+      {topNavItems.map((item) => (
+        <NavLink key={item.path} {...item} />
+      ))}
 
-        <NavItem
-          icon={HiFilm}
-          href="/movies"
-          label="Movies"
-          isActive={isActive("/movies")}
-        />
-
-        <NavItem
-          icon={HiUser}
-          href="/actors"
-          label="Actors"
-          isActive={pathname.startsWith("/actors")}
-        />
-
-        <Divider my={2} />
-
-        <Text fontSize="sm" color="gray.500" fontWeight="medium" px={2} mb={1}>
-          Personal
-        </Text>
-
-        <NavItem
-          icon={HiStar}
-          href="/favorites"
-          label="Favorites"
-          isActive={isActive("/favorites")}
-        />
-
-        <NavItem
-          icon={HiClock}
-          href="/watched"
-          label="Watched"
-          isActive={isActive("/watched")}
-        />
-
-        <NavItem
-          icon={HiBookmark}
-          href="/watchlist"
-          label="Watchlist"
-          isActive={isActive("/watchlist")}
-        />
-
-        <Divider my={2} />
-
-        <NavItem
-          icon={HiUser}
-          href="/profile"
-          label="Profile"
-          isActive={isActive("/profile")}
-        />
-      </VStack>
-    </Box>
+      {/* Genre section loads independently of the rest of the navigation */}
+      <GenreSection />
+    </>
   );
-}
+};
+
+export default LeftNavBar;

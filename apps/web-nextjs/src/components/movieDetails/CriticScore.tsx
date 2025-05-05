@@ -1,0 +1,84 @@
+import { CircularProgress, CircularProgressLabel } from "@chakra-ui/react";
+
+interface Props {
+  source: string;
+  value: number | null | undefined;
+  scale_up?: number;
+}
+
+const CriticScore = ({ source, value, scale_up = 1 }: Props) => {
+  const getColor = (source: string, value: number | null | undefined) => {
+    let color: string;
+    let progress_display: number;
+    let score_display: string;
+
+    if (value === null || value === undefined) {
+      score_display = "•";
+      color = "transparent";
+      progress_display = 0;
+    } else {
+      if (source === "imdb") {
+        // Format: "6.5/10"
+        progress_display = value * 10;
+        score_display = value.toFixed(1);
+        if (value >= 8.0) {
+          color = "***REMOVED***FFC107";
+        } else if (value >= 7.0) {
+          color = "***REMOVED***00E676";
+        } else if (value >= 6.0) {
+          color = "***REMOVED***82B1FF";
+        } else {
+          color = "***REMOVED***B0BEC5";
+        }
+      } else if (source === "rotten_tomatoes") {
+        // Format: "74%"
+        score_display = value.toString();
+        progress_display = value;
+        if (value >= 90) {
+          color = "***REMOVED***FFC107";
+        } else if (value >= 70) {
+          color = "***REMOVED***00E676";
+        } else if (value >= 50) {
+          color = "***REMOVED***82B1FF";
+        } else {
+          color = "***REMOVED***B0BEC5";
+        }
+      } else if (source === "metacritic") {
+        // Format: "74/100"
+        score_display = value.toString();
+        progress_display = value;
+        if (value >= 90) {
+          color = "***REMOVED***FFC107";
+        } else if (value >= 70) {
+          color = "***REMOVED***00E676";
+        } else if (value >= 50) {
+          color = "***REMOVED***82B1FF";
+        } else {
+          color = "***REMOVED***B0BEC5";
+        }
+      } else {
+        throw new Error(`Unknown rating source: ${source}`);
+      }
+    }
+    return [score_display, progress_display, color];
+  };
+
+  const [score_display, progress_display, color] = getColor(source, value);
+
+  return (
+    <>
+      <CircularProgress
+        value={Number(progress_display)}
+        color={`${color}`}
+        size={`${40 * scale_up}px`}
+        thickness={value === null || value === undefined ? "1px" : "10px"}
+      >
+        <CircularProgressLabel fontSize={`${12 * scale_up}px`}>
+          {score_display}
+        </CircularProgressLabel>
+      </CircularProgress>
+    </>
+  );
+};
+
+export default CriticScore;
