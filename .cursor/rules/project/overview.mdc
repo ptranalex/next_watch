@@ -1,0 +1,57 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+***REMOVED*** Project Overview
+
+This is a monorepo containing multiple packages across different technologies.
+
+***REMOVED******REMOVED*** Packages Structure
+
+```yaml
+monorepo:
+  packages:
+    - name: backend-api
+      path: apps/backend-api
+      language: python
+      config:
+        python.analysis.extraPaths:
+          - ../../libs/movie-storage
+    - name: web-nextjs
+      path: apps/web-nextjs
+      language: javascript
+    - name: movie-storage
+      path: libs/movie-storage
+      language: python
+```
+
+***REMOVED******REMOVED*** Additional Packages
+
+The monorepo also contains these packages not included in the primary configuration:
+
+- `apps/data-importer`: Data import utilities
+- `apps/mobile-flutter`: Mobile application
+
+***REMOVED******REMOVED*** Module Location Guidelines
+
+***REMOVED******REMOVED******REMOVED*** Python Modules
+
+1. **Shared Libraries**
+   - All shared Python code should be placed in `libs/`
+   - The `movie-storage` package contains core data models and storage logic
+
+2. **Backend API**
+   - Backend API code lives in `apps/backend-api`
+   - Imports shared code from `libs/movie-storage`
+
+***REMOVED******REMOVED******REMOVED*** JavaScript/TypeScript Modules
+
+1. **Web Application**
+   - Next.js web application code lives in `apps/web-nextjs`
+   - Components should follow the established organization pattern
+
+***REMOVED******REMOVED******REMOVED*** Mobile Modules
+
+1. **Flutter Application**
+   - Mobile application code lives in `apps/mobile-flutter`
