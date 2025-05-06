@@ -43,3 +43,26 @@ export interface UserMovieDetail {
   in_watchlist: boolean;
   imdb_rating: number | null;
 }
+
+/**
+ * User model from API
+ */
+export interface User {
+  id: number;
+  email: string;
+  username?: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Import results for Netflix history
+ */
+export interface NetflixImportResult {
+  imported: number;
+  matched: number;
+  skipped: number;
+  total: number;
+}

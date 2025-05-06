@@ -11,16 +11,17 @@ import {
   useColorModeValue,
   Divider,
   Flex,
+  Icon,
+  HStack,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useState } from "react";
+import ImportNetflixHistoryModal from "@/components/profile/ImportNetflixHistoryModal";
+import { HiFilm, HiOutlineArrowUpTray } from "react-icons/hi2";
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const bgColor = useColorModeValue("gray.50", "gray.900");
-  const cardBgColor = useColorModeValue("white", "gray.800");
-
   return (
     <ProtectedRoute>
       <ProfileContent />
@@ -34,10 +35,19 @@ function ProfileContent() {
   const router = useRouter();
   const bgColor = useColorModeValue("gray.50", "gray.900");
   const cardBgColor = useColorModeValue("white", "gray.800");
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     router.push("/");
+  };
+
+  const openImportModal = () => {
+    setIsImportModalOpen(true);
+  };
+
+  const closeImportModal = () => {
+    setIsImportModalOpen(false);
   };
 
   if (!user) {
@@ -68,6 +78,22 @@ function ProfileContent() {
 
           <Divider />
 
+          <Heading as="h3" size="md" alignSelf="center" mb={2}>
+            Your Watch History
+          </Heading>
+
+          <HStack justifyContent="center" spacing={4}>
+            <Button
+              colorScheme="teal"
+              leftIcon={<Icon as={HiOutlineArrowUpTray} />}
+              onClick={openImportModal}
+            >
+              Import Netflix History
+            </Button>
+          </HStack>
+
+          <Divider />
+
           <Button
             colorScheme="red"
             variant="outline"
@@ -78,6 +104,11 @@ function ProfileContent() {
           </Button>
         </VStack>
       </Container>
+
+      <ImportNetflixHistoryModal
+        isOpen={isImportModalOpen}
+        onClose={closeImportModal}
+      />
     </Box>
   );
 }

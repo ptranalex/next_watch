@@ -74,7 +74,7 @@ const NavBar: React.FC = () => {
           {showLogo && (
             <Image
               src={logo.src}
-              alt="Box Office Logo"
+              alt="Next Watch Logo"
               boxSize="40px"
               objectFit="cover"
               borderRadius="full"
@@ -86,7 +86,7 @@ const NavBar: React.FC = () => {
           )}
           {showHeading && (
             <Heading size="sm" marginRight={10} whiteSpace="nowrap">
-              Box Office
+              Next Watch
             </Heading>
           )}
           <SearchInput onFocus={handleSearchFocus} onBlur={handleSearchBlur} />
