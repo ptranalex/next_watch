@@ -32,6 +32,7 @@ class UserMovieDetail(BaseModel):
     watched: bool = False
     liked: bool = False
     in_watchlist: bool = False
+    imdb_rating: Optional[float] = None
 
 
 class UserInteractionQuery:
@@ -308,6 +309,7 @@ class UserInteractionQuery:
                         watched=interaction.watched,
                         liked=interaction.liked,
                         in_watchlist=interaction.in_watchlist,
+                        imdb_rating=movie.imdb_rating,
                     )
                 )
 

@@ -73,6 +73,7 @@ class UserMovieDetail(BaseModel):
     watched: bool = False
     liked: bool = False
     in_watchlist: bool = False
+    imdb_rating: Optional[float] = None
 
 
 class UserMovieInteractionsListResponse(BaseModel):
