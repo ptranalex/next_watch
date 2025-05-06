@@ -39,15 +39,15 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
       }
 
       // Then update the server state using the correct API endpoints
-      if (updatedMovie.is_watched !== movie.is_watched) {
+      if (updatedMovie.watched !== movie.watched) {
         await userInteractionAPI.toggleWatched(movie.id);
       }
 
-      if (updatedMovie.is_liked !== movie.is_liked) {
+      if (updatedMovie.liked !== movie.liked) {
         await userInteractionAPI.toggleLiked(movie.id);
       }
 
-      if (updatedMovie.to_watch !== movie.to_watch) {
+      if (updatedMovie.in_watchlist !== movie.in_watchlist) {
         await userInteractionAPI.toggleWatchlist(movie.id);
       }
 

@@ -4,16 +4,21 @@ import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
-  UseInfiniteQueryResult,
 } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { MovieAPI, MovieListResponse } from "@/services/api";
+import { MovieAPI } from "@/services/api";
 import { Movie } from "@/domain/entities";
 import { useEffect } from "react";
-import { userInteractionAPI } from "@/services/api";
+import { userInteractionAPI, UserMovieDetail } from "@/services/api";
 
 interface UseMoviesOptions {
-  source: "movie_listing" | "more_like_this" | "by_actor";
+  source:
+    | "movie_listing"
+    | "more_like_this"
+    | "by_actor"
+    | "watchlist"
+    | "favorites"
+    | "watched";
   movie_id?: number;
   actor_id?: number;
   genre_id?: number;
@@ -136,6 +141,115 @@ export const useMovies = (options: UseMoviesOptions) => {
           if (!options.actor_id)
             throw new Error("actor_id is required for by_actor");
           return MovieAPI.getMoviesByActor(options.actor_id, page);
+        case "watchlist":
+          // Use optimized endpoint to get watchlist with movie details in single API call
+          if (page > 1) {
+            return { movies: [], total: 0, page };
+          }
+
+          const watchlistResponse = await userInteractionAPI.getUserMovies(
+            "watchlist"
+          );
+
+          // If no results, return empty array
+          if (!watchlistResponse || watchlistResponse.length === 0) {
+            return { movies: [], total: 0, page: 1 };
+          }
+
+          // Transform the response to match expected format - API returns flattened structure
+          const watchlistMovies = watchlistResponse.map(
+            (item: UserMovieDetail) =>
+              ({
+                id: item.movie_id,
+                title: item.title,
+                poster_url: item.poster_url,
+                poster_path: item.poster_url,
+                release_date: item.release_date,
+                imdb_rating: item.imdb_rating,
+                // Map API response properties to expected Movie properties
+                in_watchlist: item.in_watchlist,
+                liked: item.liked,
+                watched: item.watched,
+              } as Movie)
+          );
+
+          return {
+            movies: watchlistMovies,
+            total: watchlistMovies.length,
+            page: 1,
+          };
+        case "favorites":
+          // Use optimized endpoint to get liked movies with details in single API call
+          if (page > 1) {
+            return { movies: [], total: 0, page };
+          }
+
+          const likedResponse = await userInteractionAPI.getUserMovies("liked");
+
+          // If no results, return empty array
+          if (!likedResponse || likedResponse.length === 0) {
+            return { movies: [], total: 0, page: 1 };
+          }
+
+          // Transform the response to match expected format - API returns flattened structure
+          const favoriteMovies = likedResponse.map(
+            (item: UserMovieDetail) =>
+              ({
+                id: item.movie_id,
+                title: item.title,
+                poster_url: item.poster_url,
+                poster_path: item.poster_url,
+                release_date: item.release_date,
+                imdb_rating: item.imdb_rating,
+                // Map API response properties to expected Movie properties
+                in_watchlist: item.in_watchlist,
+                liked: item.liked,
+                watched: item.watched,
+              } as Movie)
+          );
+
+          return {
+            movies: favoriteMovies,
+            total: favoriteMovies.length,
+            page: 1,
+          };
+        case "watched":
+          // Use optimized endpoint to get watched movies with details in single API call
+          if (page > 1) {
+            return { movies: [], total: 0, page };
+          }
+
+          const watchedResponse = await userInteractionAPI.getUserMovies(
+            "watched"
+          );
+
+          // If no results, return empty array
+          if (!watchedResponse || watchedResponse.length === 0) {
+            return { movies: [], total: 0, page: 1 };
+          }
+
+          // Transform the response to match expected format - API returns flattened structure
+          const watchedMovies = watchedResponse.map(
+            (item: UserMovieDetail) =>
+              ({
+                id: item.movie_id,
+                title: item.title,
+                poster_url: item.poster_url,
+                poster_path: item.poster_url,
+                release_date: item.release_date,
+                imdb_rating: item.imdb_rating,
+                // Map API response properties to expected Movie properties
+                in_watchlist: item.in_watchlist,
+                liked: item.liked,
+                watched: item.watched,
+              } as Movie)
+          );
+
+          return {
+            movies: watchedMovies,
+            total: watchedMovies.length,
+            page: 1,
+          };
         default:
           throw new Error(`Unknown source: ${options.source}`);
       }
@@ -143,6 +257,15 @@ export const useMovies = (options: UseMoviesOptions) => {
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
       if (lastPage.movies.length === 0) return undefined;
+
+      // Don't attempt to load more pages for watchlist, favorites, or watched
+      if (
+        options.source === "watchlist" ||
+        options.source === "favorites" ||
+        options.source === "watched"
+      )
+        return undefined;
+
       return lastPage.page + 1;
     },
     staleTime: 5 * 60 * 1000,
@@ -164,11 +287,22 @@ export const useMovies = (options: UseMoviesOptions) => {
       }
 
       // Update local cache with the optimistic update
-      queryClient.setQueryData(queryKey, (oldData: any) => {
+      queryClient.setQueryData(queryKey, (oldData: unknown) => {
         if (!oldData) return oldData;
+
+        // Cast to appropriate type with movies array inside pages
+        interface QueryData {
+          pages: Array<{
+            movies: Movie[];
+            [key: string]: unknown;
+          }>;
+          [key: string]: unknown;
+        }
+
+        const typedOldData = oldData as QueryData;
         return {
-          ...oldData,
-          pages: oldData.pages.map((page: any) => ({
+          ...typedOldData,
+          pages: typedOldData.pages.map((page) => ({
             ...page,
             movies: page.movies.map((m: Movie) =>
               m.id === updatedMovie.id ? { ...m, ...updatedMovie } : m

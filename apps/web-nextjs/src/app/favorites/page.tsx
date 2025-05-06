@@ -8,18 +8,18 @@ import { memo } from "react";
 // Memoize components for better performance
 const MemoizedMovieGrid = memo(MovieGrid);
 
-export default function WatchlistPage() {
+export default function FavoritesPage() {
   return (
     <MovieBrowseLayout
       title={
         <Heading as="h1" marginY={5}>
-          Your Watchlist
+          Your Favorites
         </Heading>
       }
     >
       <MemoizedMovieGrid
         columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
-        source="watchlist"
+        source="favorites"
       />
     </MovieBrowseLayout>
   );

@@ -33,16 +33,13 @@ export interface UserMovieInteractionWithMovie
  * User movie detail (optimized response)
  */
 export interface UserMovieDetail {
-  id: number;
+  interaction_id: number | null;
+  movie_id: number;
   title: string;
-  overview?: string;
-  poster_url?: string;
-  backdrop_url?: string;
-  release_date?: string;
-  imdb_rating?: number;
-  is_liked: boolean;
-  is_watched: boolean;
-  to_watch: boolean;
-  interaction_created_at: string;
-  interaction_updated_at: string;
+  poster_url: string | null;
+  release_date: string | null;
+  watched: boolean;
+  liked: boolean;
+  in_watchlist: boolean;
+  imdb_rating: number | null;
 }

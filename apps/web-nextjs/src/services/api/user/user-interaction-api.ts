@@ -1,6 +1,5 @@
 import { APIClient, fetchData, postData, deleteData } from "../core/api-client";
-import { Movie } from "@/domain/entities";
-import { UserMovieInteractionResponse } from "./types";
+import { UserMovieInteractionResponse, UserMovieDetail } from "./types";
 
 /**
  * Helper function to convert API interaction format to UI format
@@ -39,7 +38,7 @@ export const mapUiInteractionToApi = (uiInteraction: {
   to_watch?: boolean;
   created_at?: string;
   updated_at?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }): UserMovieInteractionResponse => {
   return {
     id: uiInteraction.id || 0,
@@ -155,38 +154,21 @@ class UserInteractionAPI extends APIClient<UserMovieInteractionResponse> {
   };
 
   /**
-   * Get user's watchlist with detailed movie information
+   * Get user's movies with details for a specific category
+   * Unified method that replaces the individual category methods
+   *
+   * @param category The category of movies to fetch (watchlist, watched, liked)
+   * @param limit Maximum number of items to return
+   * @param offset Number of items to skip
+   * @returns Array of movies with user interaction details
    */
-  getWatchlistWithDetails = async (
+  getUserMovies = async (
+    category: "watchlist" | "watched" | "liked",
     limit: number = 20,
     offset: number = 0
-  ): Promise<UserMovieInteractionResponse[]> => {
-    return fetchData<UserMovieInteractionResponse[]>(
-      `${this.endpoint}/watchlist/details?limit=${limit}&offset=${offset}`
-    );
-  };
-
-  /**
-   * Get user's watched movies with detailed movie information
-   */
-  getWatchedWithDetails = async (
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<UserMovieInteractionResponse[]> => {
-    return fetchData<UserMovieInteractionResponse[]>(
-      `${this.endpoint}/watched/details?limit=${limit}&offset=${offset}`
-    );
-  };
-
-  /**
-   * Get user's liked movies with detailed movie information
-   */
-  getLikedWithDetails = async (
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<UserMovieInteractionResponse[]> => {
-    return fetchData<UserMovieInteractionResponse[]>(
-      `${this.endpoint}/liked/details?limit=${limit}&offset=${offset}`
+  ): Promise<UserMovieDetail[]> => {
+    return fetchData<UserMovieDetail[]>(
+      `${this.endpoint}/movies/${category}?limit=${limit}&offset=${offset}`
     );
   };
 }

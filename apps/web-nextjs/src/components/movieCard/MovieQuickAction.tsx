@@ -1,9 +1,8 @@
 import { VStack, HStack, Box } from "@chakra-ui/react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
-import { Movie, toMovieEntity } from "@/domain/entities";
+import { Movie } from "@/domain/entities";
 import CopyToClipboardButton from "./CopyToClipBoardButton";
 import CardToggleIconButton from "./CardToggleIconButton";
-import { userInteractionAPI } from "@/services/api";
 
 interface Props {
   movie: Movie;
@@ -25,7 +24,7 @@ const MovieQuickAction = ({
   const handleWatched = async () => {
     const updatedMovie = {
       ...movie,
-      is_watched: !movie.is_watched,
+      watched: !movie.watched,
     };
     onMovieUpdate(updatedMovie);
   };
@@ -33,7 +32,7 @@ const MovieQuickAction = ({
   const handleLiked = async () => {
     const updatedMovie = {
       ...movie,
-      is_liked: !movie.is_liked,
+      liked: !movie.liked,
     };
     onMovieUpdate(updatedMovie);
   };
@@ -41,7 +40,7 @@ const MovieQuickAction = ({
   const handleToWatch = async () => {
     const updatedMovie = {
       ...movie,
-      to_watch: !movie.to_watch,
+      in_watchlist: !movie.in_watchlist,
     };
     onMovieUpdate(updatedMovie);
   };
@@ -58,7 +57,7 @@ const MovieQuickAction = ({
       <Stack spacing={0} width="100%" height="100%" overflow="hidden">
         <CardToggleIconButton
           movie={movie}
-          attribute="to_watch"
+          attribute="in_watchlist"
           endpoint="towatch"
           onToggle={handleToWatch}
           icon={<HiBookmark />}
@@ -68,7 +67,7 @@ const MovieQuickAction = ({
         />
         <CardToggleIconButton
           movie={movie}
-          attribute="is_liked"
+          attribute="liked"
           endpoint="liked"
           onToggle={handleLiked}
           icon={<HiHeart />}
@@ -78,7 +77,7 @@ const MovieQuickAction = ({
         />
         <CardToggleIconButton
           movie={movie}
-          attribute="is_watched"
+          attribute="watched"
           endpoint="watched"
           onToggle={handleWatched}
           icon={<HiDocumentCheck />}

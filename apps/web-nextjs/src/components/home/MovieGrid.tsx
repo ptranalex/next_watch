@@ -26,7 +26,13 @@ type ColumnBreakpoints =
 
 interface MovieGridProps {
   columns: ColumnBreakpoints;
-  source: "movie_listing" | "more_like_this" | "by_actor";
+  source:
+    | "movie_listing"
+    | "more_like_this"
+    | "by_actor"
+    | "watchlist"
+    | "favorites"
+    | "watched";
   movie_id?: number;
   actor_id?: number;
   genre_id?: number;
@@ -168,6 +174,14 @@ const MovieGrid = React.memo(
 
     // Prefetch logic to ensure screen has enough content
     useEffect(() => {
+      // Skip prefetching for watchlist, favorites, and watched since we load everything at once
+      if (
+        source === "watchlist" ||
+        source === "favorites" ||
+        source === "watched"
+      )
+        return;
+
       // Only run if we have initial data, have more to load, aren't already loading,
       // haven't completed initial loading, and know screen capacity
       if (
@@ -201,6 +215,7 @@ const MovieGrid = React.memo(
       loadingNextPage,
       initialLoadComplete,
       handleFetchNextPage,
+      source,
     ]);
 
     // Memoize movie list to prevent unnecessary re-renders
@@ -248,29 +263,48 @@ const MovieGrid = React.memo(
 
     return (
       <Box ref={scrollContainerRef}>
-        <InfiniteScroll
-          dataLength={fetchedMoviesCount}
-          next={handleFetchNextPage}
-          hasMore={!!hasNextPage}
-          loader={
-            loadingNextPage ? (
-              <MovieSkeletonGrid
-                columns={columns}
-                count={skeletonCounts.next}
-              />
-            ) : null
-          }
-          scrollThreshold={0.8}
-          endMessage={
-            <Text textAlign="center" py={4}>
-              No more movies to load
-            </Text>
-          }
-        >
+        {source === "watchlist" ||
+        source === "favorites" ||
+        source === "watched" ? (
+          // For watchlist, favorites, and watched, use a simple grid without infinite scrolling
           <SimpleGrid columns={columns} spacing={3} padding={1}>
             {movieList}
+            {fetchedMoviesCount === 0 && (
+              <Text textAlign="center" py={4} gridColumn="1 / -1">
+                {source === "favorites"
+                  ? "You haven't liked any movies yet"
+                  : source === "watched"
+                  ? "You haven't watched any movies yet"
+                  : "Your watchlist is empty"}
+              </Text>
+            )}
           </SimpleGrid>
-        </InfiniteScroll>
+        ) : (
+          // For other sources, use infinite scrolling
+          <InfiniteScroll
+            dataLength={fetchedMoviesCount}
+            next={handleFetchNextPage}
+            hasMore={!!hasNextPage}
+            loader={
+              loadingNextPage ? (
+                <MovieSkeletonGrid
+                  columns={columns}
+                  count={skeletonCounts.next}
+                />
+              ) : null
+            }
+            scrollThreshold={0.8}
+            endMessage={
+              <Text textAlign="center" py={4}>
+                No more movies to load
+              </Text>
+            }
+          >
+            <SimpleGrid columns={columns} spacing={3} padding={1}>
+              {movieList}
+            </SimpleGrid>
+          </InfiniteScroll>
+        )}
         <ScrollToTopButton />
       </Box>
     );

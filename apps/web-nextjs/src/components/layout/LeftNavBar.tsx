@@ -138,7 +138,7 @@ const LeftNavBar: React.FC = () => {
 
     return [
       { icon: HiBookmark, label: "Watch List", path: "/watchlist" },
-      { icon: HiHeart, label: "Favourite", path: "/favourite" },
+      { icon: HiHeart, label: "Favorites", path: "/favorites" },
       { icon: HiDocumentCheck, label: "History", path: "/history" },
       { icon: HiCheckBadge, label: "Our Picks", path: "/recommended" },
     ];

@@ -6,7 +6,7 @@ import userInteractionAPI from "@/services/api/user/user-interaction-api";
 
 interface ToggleIconButtonProps {
   movie: Movie;
-  attribute: "is_watched" | "is_liked" | "to_watch"; // The attribute to toggle
+  attribute: "watched" | "liked" | "in_watchlist"; // The attribute to toggle
   endpoint: "watched" | "liked" | "towatch"; // The API endpoint to use
   onToggle: (value: boolean) => void;
   icon: React.ReactElement; // Icon to show when the attribute is true
