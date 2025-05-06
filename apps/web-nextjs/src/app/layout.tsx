@@ -1,16 +1,13 @@
 "use client";
 
-import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
+import { ColorModeScript } from "@chakra-ui/react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import theme from "../theme";
 import NavBar from "../components/layout/NavBar";
-import AuthInitializer from "@/components/auth/AuthInitializer";
 import { Providers } from "./providers";
-import { MovieQueryProvider } from "../context/MovieQueryContext";
 import LoadingIndicator from "../components/commons/LoadingIndicator";
-import SessionExpiredModal from "@/components/commons/SessionExpiredModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,24 +33,11 @@ export default function RootLayout({
         <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       </head>
       <body className={inter.className}>
-        <AuthInitializer />
-        <ChakraProvider
-          theme={theme}
-          colorModeManager={{
-            type: "localStorage",
-            get: () => "dark",
-            set: () => {},
-          }}
-        >
-          <Providers>
-            <MovieQueryProvider>
-              <NavBar />
-              {isChangingPage && <LoadingIndicator />}
-              <SessionExpiredModal />
-              <main>{children}</main>
-            </MovieQueryProvider>
-          </Providers>
-        </ChakraProvider>
+        <Providers>
+          <NavBar />
+          {isChangingPage && <LoadingIndicator />}
+          <main>{children}</main>
+        </Providers>
       </body>
     </html>
   );

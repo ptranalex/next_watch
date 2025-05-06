@@ -8,6 +8,17 @@ import LeftNavBar from "@/components/layout/LeftNavBar";
 import SortSelector from "@/components/layout/SortSelector";
 import { useSlugLogic } from "@/hooks";
 
+/**
+ * HomePage component - Entry point for the application's main page
+ *
+ * This component is responsible for:
+ * 1. Rendering the home page layout with filters and movie grid
+ * 2. Leveraging shared components for consistency
+ * 3. Implementing page-specific logic
+ *
+ * It relies on global state from providers, but doesn't set up providers itself.
+ */
+
 const HomePage: React.FC = () => {
   const title = useSlugLogic();
 

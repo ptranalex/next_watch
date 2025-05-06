@@ -2,7 +2,6 @@
 
 import type { FC } from "react";
 import {
-  Box,
   Button,
   Drawer,
   DrawerBody,
@@ -31,7 +30,7 @@ interface NavItem {
 
 const MobileNavMenu: FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { reset } = useMovieQuery();
 
   const navItems: NavItem[] = [

@@ -3,7 +3,6 @@
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
   Button,
-  Center,
   FormControl,
   FormLabel,
   Input,
@@ -22,9 +21,8 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { HiArrowLeftOnRectangle, HiMiniPlus } from "react-icons/hi2";
-import { useRegister } from "@/hooks";
-import { AuthUser } from "@/store/auth";
+import { HiArrowLeftOnRectangle } from "react-icons/hi2";
+import { useAuth } from "@/hooks";
 import { ValidationError } from "@/services/api";
 
 interface SignupModalProps {
@@ -35,7 +33,7 @@ interface SignupModalProps {
 const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   const textColor = useColorModeValue("black", "white");
   const modalBgColor = useColorModeValue("gray.100", "gray.800");
-  const { register, isLoading, error } = useRegister();
+  const { register, isLoading, error } = useAuth();
   const [full_name, setFull_name] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

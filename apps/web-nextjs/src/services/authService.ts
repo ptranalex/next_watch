@@ -130,6 +130,14 @@ const authService = {
       return false;
     }
 
+    // Prevent too frequent refresh attempts
+    if (!AuthTokenManager.canAttemptRefresh()) {
+      console.log("Auth: Refresh attempt too soon, skipping");
+      return true; // Return true to prevent error states during cooldown
+    }
+
+    AuthTokenManager.markRefreshAttempt();
+
     try {
       // Use the correct endpoint without trailing slash
       // Send JSON payload instead of form data as the API expects a JSON object with refresh_token field
@@ -142,12 +150,30 @@ const authService = {
       });
 
       if (!response.ok) {
-        console.error("Token refresh failed:", await response.text());
+        const status = response.status;
+        const responseText = await response.text();
+        console.error(`Token refresh failed (${status}):`, responseText);
+
+        // Handle specific error cases
+        if (status === 401 || status === 403) {
+          // The refresh token itself is invalid or expired
+          console.warn("Refresh token invalid or expired, logging out");
+          authService.logout();
+          return false;
+        }
+
+        if (status >= 500) {
+          // Server error - might be temporary, don't invalidate session yet
+          console.warn("Server error during token refresh, will retry later");
+          return false;
+        }
+
         return false;
       }
 
       const tokens = await response.json();
       AuthTokenManager.setTokens(tokens.access_token, tokens.refresh_token);
+      console.log("Auth: Token refreshed successfully");
       return true;
     } catch (error) {
       console.error("Error refreshing token:", error);

@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, memo } from "react";
 import {
   Box,
   Heading,
@@ -7,10 +7,8 @@ import {
   GridItem,
   Stack,
   Text,
-  HStack,
-  Spinner,
 } from "@chakra-ui/react";
-import { Movie, Actor, Genre } from "@/domain/entities";
+import { Movie, Genre } from "@/domain/entities";
 import MovieAttributes from "./MovieAttributes";
 import MovieQuickAction from "./MovieQuickAction";
 import RatingGroup from "./RatingGroup";
@@ -21,7 +19,7 @@ import MovieGrid from "../home/MovieGrid";
 import dynamic from "next/dynamic";
 
 // Placeholder component for when the TrailerCard fails to load
-const TrailerFallback = () => (
+const TrailerFallback = memo(() => (
   <Box
     height="300px"
     width="100%"
@@ -32,7 +30,8 @@ const TrailerFallback = () => (
   >
     <Text color="gray.400">Trailer unavailable</Text>
   </Box>
-);
+));
+TrailerFallback.displayName = "TrailerFallback";
 
 // Error boundary component for dynamic imports
 class ErrorBoundary extends React.Component<
@@ -84,63 +83,94 @@ interface MovieDetailViewProps {
   onUpdateMovie: (movie: Movie) => void;
 }
 
-// Helper functions for type safety
-const getMovieId = (movie: Movie): number => {
-  return typeof movie.id === "number" ? movie.id : 0;
+/**
+ * Utilities for safe movie data access with proper type checking
+ */
+const movieUtils = {
+  /**
+   * Safely extracts the movie ID as a number
+   */
+  getMovieId: (movie: Movie): number => {
+    return typeof movie.id === "number" ? movie.id : 0;
+  },
+
+  /**
+   * Extracts release year from date string
+   */
+  getReleaseYear: (movie: Movie): string => {
+    if (!movie.release_date) return "";
+    try {
+      return new Date(movie.release_date.toString()).getFullYear().toString();
+    } catch {
+      return "";
+    }
+  },
+
+  /**
+   * Safely renders any value as a string
+   */
+  renderText: (value: unknown): string => {
+    if (value === undefined || value === null) return "";
+    return String(value);
+  },
+
+  /**
+   * Formats movie genres as a comma-separated string
+   */
+  renderGenres: (movie: Movie): string => {
+    if (!movie.genres || !Array.isArray(movie.genres)) return "N/A";
+    return (
+      movie.genres
+        .filter(
+          (genre): genre is Genre =>
+            typeof genre === "object" && genre !== null && "name" in genre
+        )
+        .map((genre) => genre.name)
+        .join(", ") || "N/A"
+    );
+  },
 };
 
-const getActors = (movie: Movie): Actor[] => {
-  if (!movie.actors || !Array.isArray(movie.actors)) return [];
-  return movie.actors.filter(
-    (actor): actor is Actor =>
-      typeof actor === "object" && actor !== null && "name" in actor
-  );
-};
-
-const getReleaseYear = (movie: Movie): string => {
-  if (!movie.release_date) return "";
-  try {
-    return new Date(movie.release_date.toString()).getFullYear().toString();
-  } catch {
-    return "";
-  }
-};
-
-const renderText = (value: unknown): string => {
-  if (value === undefined || value === null) return "";
-  return String(value);
-};
-
-const renderGenres = (movie: Movie): string => {
-  if (!movie.genres || !Array.isArray(movie.genres)) return "N/A";
-  return (
-    movie.genres
-      .filter(
-        (genre): genre is Genre =>
-          typeof genre === "object" && genre !== null && "name" in genre
-      )
-      .map((genre) => genre.name)
-      .join(", ") || "N/A"
-  );
-};
-
+/**
+ * The main component for displaying detailed movie information
+ * Includes trailer, metadata, ratings, and interactive elements
+ */
 const MovieDetailView: React.FC<MovieDetailViewProps> = ({
   movie,
   isSignedIn,
   isSmallerScreen,
   onUpdateMovie,
 }) => {
-  // State to track if components have loaded successfully
-  const [trailerLoaded, setTrailerLoaded] = useState(false);
+  // Memoize values to prevent recalculation
+  const movieId = React.useMemo(() => movieUtils.getMovieId(movie), [movie]);
+  const releaseYear = React.useMemo(
+    () => movieUtils.getReleaseYear(movie),
+    [movie]
+  );
+  const genres = React.useMemo(() => movieUtils.renderGenres(movie), [movie]);
 
-  // Attempt to load components safely
-  useEffect(() => {
-    try {
-      setTrailerLoaded(true);
-    } catch (error) {
-      console.error("Error loading components:", error);
-    }
-  }, []);
+  // For performance - extract only the needed rating data
+  const ratings = React.useMemo(
+    () => ({
+      imdb_rating:
+        typeof movie.imdb_rating === "number" ? movie.imdb_rating : null,
+      rotten_tomatoes_rating:
+        typeof movie.rotten_tomatoes_rating === "number"
+          ? movie.rotten_tomatoes_rating
+          : null,
+      metacritic_rating:
+        typeof movie.metacritic_rating === "number"
+          ? movie.metacritic_rating
+          : null,
+    }),
+    [movie.imdb_rating, movie.rotten_tomatoes_rating, movie.metacritic_rating]
+  );
+
+  // Safely extract poster URL and title
+  const posterUrl =
+    typeof movie.poster_url === "string" ? movie.poster_url : "";
+  const title = typeof movie.title === "string" ? movie.title : "Movie poster";
+  const overview = typeof movie.overview === "string" ? movie.overview : "";
 
   return (
     <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
@@ -150,15 +180,11 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
             <Stack alignItems="flex-end">
               <Image
                 float={{ base: "left", lg: "right" }}
-                src={
-                  typeof movie.poster_url === "string" ? movie.poster_url : ""
-                }
-                alt={
-                  typeof movie.title === "string" ? movie.title : "Movie poster"
-                }
+                src={posterUrl}
+                alt={title}
               />
               <ErrorBoundary fallback={<Text>Unable to load actors</Text>}>
-                <ActorsGallery actors={getActors(movie)} />
+                <ActorsGallery movieId={movieId} />
               </ErrorBoundary>
             </Stack>
           </Box>
@@ -172,37 +198,21 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
         >
           <ErrorBoundary fallback={<TrailerFallback />}>
             <Suspense fallback={<TrailerFallback />}>
-              <TrailerCard movieId={getMovieId(movie)} />
+              <TrailerCard movieId={movieId} />
             </Suspense>
           </ErrorBoundary>
         </Box>
-        <Heading marginBottom={2}>{renderText(movie.title)}</Heading>
+        <Heading marginBottom={2}>{movieUtils.renderText(movie.title)}</Heading>
         <Text fontSize="md" marginBottom={1}>
-          {getReleaseYear(movie)} • {renderText(movie.rated)} •{" "}
-          {renderText(movie.runtime)}
+          {releaseYear} • {movieUtils.renderText(movie.rated)} •{" "}
+          {movieUtils.renderText(movie.runtime)}
         </Text>
         <Text fontSize="md" marginBottom={5}>
-          {renderGenres(movie)}
+          {genres}
         </Text>
         <Box marginBottom={5}>
           <ErrorBoundary fallback={<Text>Rating unavailable</Text>}>
-            <RatingGroup
-              movie={{
-                imdb_rating:
-                  typeof movie.imdb_rating === "number"
-                    ? movie.imdb_rating
-                    : null,
-                rotten_tomatoes_rating:
-                  typeof movie.rotten_tomatoes_rating === "number"
-                    ? movie.rotten_tomatoes_rating
-                    : null,
-                metacritic_rating:
-                  typeof movie.metacritic_rating === "number"
-                    ? movie.metacritic_rating
-                    : null,
-              }}
-              scale_up={1.3}
-            />
+            <RatingGroup movie={ratings} scale_up={1.3} />
           </ErrorBoundary>
         </Box>
         {isSignedIn && (
@@ -217,13 +227,11 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
             </ErrorBoundary>
           </Box>
         )}
-        <ExpandableText>
-          {typeof movie.overview === "string" ? movie.overview : ""}
-        </ExpandableText>
+        <ExpandableText>{overview}</ExpandableText>
         {isSmallerScreen && (
           <Box width="50%" mt={3}>
             <ErrorBoundary fallback={<Text>Unable to load actors</Text>}>
-              <ActorsGallery actors={getActors(movie)} />
+              <ActorsGallery movieId={movieId} />
             </ErrorBoundary>
           </Box>
         )}
@@ -239,7 +247,7 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
               <MovieGrid
                 columns={{ base: 3, md: 3, lg: 4 }}
                 source="more_like_this"
-                movie_id={getMovieId(movie)}
+                movie_id={movieId}
               />
             </ErrorBoundary>
           </>
@@ -249,4 +257,4 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
   );
 };
 
-export default MovieDetailView;
+export default memo(MovieDetailView);

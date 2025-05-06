@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from "react";
 import { useProtectedRoute } from "@/hooks";
-import { Spinner, Center, VStack, Text, Box } from "@chakra-ui/react";
+import { Spinner, Center, VStack, Text } from "@chakra-ui/react";
 
 interface ProtectedRouteProps {
   children: ReactNode;

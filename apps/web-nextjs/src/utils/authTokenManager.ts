@@ -19,6 +19,18 @@ interface JwtPayload {
   iat: number; // Issued at timestamp
 }
 
+// Track last token refresh to prevent too frequent refreshes
+let lastRefreshAttempt = 0;
+const REFRESH_COOLDOWN = 10000; // 10 seconds
+
+// Predefined refresh thresholds (in milliseconds)
+const REFRESH_THRESHOLDS = {
+  PROACTIVE: 10 * 60 * 1000, // 10 minutes - early refresh
+  NAVIGATION: 5 * 60 * 1000, // 5 minutes - during navigation
+  WARNING: 2 * 60 * 1000, // 2 minutes - show warning
+  CRITICAL: 30 * 1000, // 30 seconds - emergency refresh
+};
+
 /**
  * Auth token manager for handling JWT tokens
  */
@@ -196,6 +208,106 @@ const AuthTokenManager = {
       role: payload.role,
     };
   },
+
+  /**
+   * Get detailed token information including expiration time
+   */
+  getTokenInfo: (): {
+    isValid: boolean;
+    expiresAt: number;
+    expiresIn: number;
+    type: string;
+  } | null => {
+    const token = AuthTokenManager.getAccessToken();
+
+    if (!token) {
+      return null;
+    }
+
+    const payload = AuthTokenManager.decodeToken(token);
+
+    if (!payload) {
+      return null;
+    }
+
+    const expiresAt = payload.exp * 1000; // Convert to milliseconds
+    const now = Date.now();
+
+    return {
+      isValid: expiresAt > now,
+      expiresAt,
+      expiresIn: Math.max(0, expiresAt - now),
+      type: payload.type,
+    };
+  },
+
+  /**
+   * Get time until token expiration in milliseconds
+   * Returns -1 if token is invalid or already expired
+   */
+  getTimeUntilExpiration: (): number => {
+    const tokenInfo = AuthTokenManager.getTokenInfo();
+    if (!tokenInfo || !tokenInfo.isValid) return -1;
+    return tokenInfo.expiresIn;
+  },
+
+  /**
+   * Check if token needs refresh based on the specified threshold
+   * @param threshold Threshold in milliseconds or a predefined threshold name
+   */
+  shouldRefreshToken: (
+    threshold: number | keyof typeof REFRESH_THRESHOLDS = "PROACTIVE"
+  ): boolean => {
+    const timeUntilExpiration = AuthTokenManager.getTimeUntilExpiration();
+    if (timeUntilExpiration === -1) return false;
+
+    // Determine actual threshold value
+    const actualThreshold =
+      typeof threshold === "number" ? threshold : REFRESH_THRESHOLDS[threshold];
+
+    return timeUntilExpiration < actualThreshold;
+  },
+
+  /**
+   * Check if token is critically close to expiration
+   */
+  isTokenCritical: (): boolean => {
+    return AuthTokenManager.shouldRefreshToken("CRITICAL");
+  },
+
+  /**
+   * Check if token is close enough to expiration to show a warning
+   */
+  shouldShowWarning: (): boolean => {
+    return AuthTokenManager.shouldRefreshToken("WARNING");
+  },
+
+  /**
+   * Check if token needs refresh during navigation
+   */
+  shouldRefreshForNavigation: (): boolean => {
+    return AuthTokenManager.shouldRefreshToken("NAVIGATION");
+  },
+
+  /**
+   * Check if refresh is allowed (not in cooldown period)
+   */
+  canAttemptRefresh: (): boolean => {
+    const now = Date.now();
+    return now - lastRefreshAttempt > REFRESH_COOLDOWN;
+  },
+
+  /**
+   * Mark that a refresh attempt was made
+   */
+  markRefreshAttempt: (): void => {
+    lastRefreshAttempt = Date.now();
+  },
+
+  /**
+   * Get refresh threshold values for external use
+   */
+  getRefreshThresholds: () => REFRESH_THRESHOLDS,
 };
 
 export default AuthTokenManager;

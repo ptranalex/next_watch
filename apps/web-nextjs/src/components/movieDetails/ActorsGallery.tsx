@@ -1,13 +1,20 @@
 import React from "react";
-import { Box, Image, SimpleGrid, Text } from "@chakra-ui/react";
+import { Box, Image, SimpleGrid, Text, Spinner } from "@chakra-ui/react";
 import Link from "next/link";
-import { Actor } from "@/domain/entities";
+import { useMovieCast } from "@/hooks/domain/movie/useMovieCast";
+
+// TMDB image base URL
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w200";
 
 interface ActorsGalleryProps {
-  actors: Actor[];
+  movieId: number;
 }
 
-const ActorsGallery: React.FC<ActorsGalleryProps> = ({ actors = [] }) => {
+const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
+  // Fetch cast data using React Query
+  const { data: castData, isLoading, error } = useMovieCast(movieId);
+
+  // Get initials when no profile image is available
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -15,14 +22,39 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ actors = [] }) => {
       .join("");
   };
 
-  if (!actors.length) {
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <Box textAlign="center" py={2}>
+        <Spinner size="sm" color="blue.500" mr={2} />
+        <Text display="inline" fontSize="sm">
+          Loading cast...
+        </Text>
+      </Box>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <Text fontSize="sm" color="gray.500">
+        Unable to load cast
+      </Text>
+    );
+  }
+
+  // Handle no cast data
+  if (!castData?.cast?.length) {
     return null;
   }
+
+  // Get only top 3 actors
+  const topActors = castData.cast.slice(0, 3);
 
   return (
     <Box>
       <SimpleGrid columns={3} spacing={2}>
-        {actors.map((actor) => (
+        {topActors.map((actor) => (
           <Box
             key={actor.id}
             textAlign="center"
@@ -33,9 +65,14 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ actors = [] }) => {
             borderRadius={0}
             overflow="hidden"
           >
-            <Link href={`/actors/${actor.id}`} key={actor.id}>
+            <Link href={`/actors/${actor.actor_id}`}>
               {actor.profile_path ? (
-                <Image src={actor.profile_path} alt={actor.name} />
+                <Image
+                  src={`${TMDB_IMAGE_BASE}${actor.profile_path}`}
+                  alt={actor.name}
+                  width="100%"
+                  height="auto"
+                />
               ) : (
                 <Box
                   width="100%"

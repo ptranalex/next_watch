@@ -7,7 +7,7 @@ import {
   userInteractionAPI,
   UserMovieInteractionResponse,
 } from "@/services/api";
-import { Movie, toMovieEntity } from "@/domain/entities";
+import { toMovieEntity } from "@/domain/entities";
 import { FEATURES } from "@/config/features";
 import { useAuth } from "@/hooks";
 
@@ -71,8 +71,14 @@ export function useMovie(id: number) {
 
   // Log the combined movie data
   if (movie) {
-    // Cast to any to avoid TypeScript errors for debugging logs
-    const movieData = movie as any;
+    // Use a more specific type than any
+    const movieData = movie as {
+      id: number;
+      title: string;
+      liked?: boolean;
+      watched?: boolean;
+      in_watchlist?: boolean;
+    };
     console.log("Combined movie data:", {
       id: movieData.id,
       title: movieData.title,

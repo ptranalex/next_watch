@@ -24,10 +24,8 @@ import {
   HiLifebuoy,
   HiMiniPlus,
 } from "react-icons/hi2";
-import authService from "@/services/authService";
-import { useAuthStore } from "@/store/auth";
 import SignupModal from "./SignupModal";
-import { useLogin } from "@/hooks";
+import { useAuth } from "@/hooks";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -37,8 +35,7 @@ interface LoginModalProps {
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const textColor = useColorModeValue("black", "white");
   const modalBgColor = useColorModeValue("gray.100", "gray.800");
-  const { loadUser } = useAuthStore();
-  const { login, isLoading, error, clearError } = useLogin();
+  const { login, error, clearError } = useAuth();
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);

@@ -36,6 +36,7 @@ MIGRATIONS = [
     "movie_storage.db.migrations.006_add_trailer_table",
     "movie_storage.db.migrations.007_add_users_table",
     "movie_storage.db.migrations.008_add_user_movie_interactions_table",
+    "movie_storage.db.migrations.009_add_performance_optimization_indexes",
 ]
 
 

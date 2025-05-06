@@ -1,72 +1,90 @@
-***REMOVED*** Next Watch
+***REMOVED*** NextWatch
 
-A movie and TV show tracking application with detailed credits information.
-
-***REMOVED******REMOVED*** Features
-
-- Movie database with detailed information including cast and crew
-- Import data from TMDB and OMDB APIs
-- Command-line interface for easy data management
-- Credit information for cast and crew members
+A modern movie tracking application built with Next.js and Python.
 
 ***REMOVED******REMOVED*** Project Structure
 
-- `apps/data-importer/`: Tools for importing data from external sources
-- `libs/movie-storage/`: Database models and operations for movie data
+This is a monorepo containing multiple packages:
 
-***REMOVED******REMOVED*** Installation
+```
+next_watch/
+├── apps/
+│   ├── backend-api/     ***REMOVED*** Python FastAPI backend
+│   ├── data-importer/   ***REMOVED*** Data import utilities
+│   ├── mobile-flutter/  ***REMOVED*** Mobile application
+│   └── web-nextjs/      ***REMOVED*** Next.js web application
+├── libs/
+│   └── movie-storage/   ***REMOVED*** Shared Python library for movie data models
+└── tools/               ***REMOVED*** Various tools and scripts
+```
+
+***REMOVED******REMOVED*** Features
+
+- Movie tracking (watched, liked, watchlist)
+- User authentication and profiles
+- Movie recommendations based on user preferences
+- Movie search and discovery
+- Responsive design for mobile and desktop
+
+***REMOVED******REMOVED*** Backend Architecture
+
+The backend follows a Command Query Responsibility Segregation (CQRS) pattern:
+
+- **Commands (Services)**: Handle state-changing operations (create, update, delete)
+- **Queries**: Handle optimized read operations
+
+This separation allows for specialized optimization of read and write paths.
+
+***REMOVED******REMOVED******REMOVED*** Key Components
+
+- **Routes**: API endpoints for client interaction
+- **Services**: Business logic for state-changing operations
+- **Queries**: Optimized read operations
+- **Models**: Data structures with SQLModel
+- **Schemas**: Pydantic models for request/response validation
+
+***REMOVED******REMOVED*** Getting Started
+
+***REMOVED******REMOVED******REMOVED*** Prerequisites
+
+- Python 3.10+
+- Node.js 16+
+- PostgreSQL 13+
+
+***REMOVED******REMOVED******REMOVED*** Setup
 
 1. Clone the repository
 2. Install dependencies:
    ```
+   cd apps/backend-api
    pip install -e .
+   cd ../../apps/web-nextjs
+   npm install
    ```
+3. Configure environment:
+   Copy `.env.example` to `.env` in each app directory and update settings
 
-***REMOVED******REMOVED*** Usage
+***REMOVED******REMOVED******REMOVED*** Running the Applications
 
-***REMOVED******REMOVED******REMOVED*** Importing Movie Data
+**Backend:**
 
-Set your API keys:
-
-```bash
-export TMDB_API_KEY="your_tmdb_api_key_here"
-export OMDB_API_KEY="your_omdb_api_key_here"
+```
+cd apps/backend-api
+python -m src.backend_api.main
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Sync movies by year range with credits:
+**Frontend:**
 
-```bash
-data-importer sync movies 2022 2023 --credits --save
+```
+cd apps/web-nextjs
+npm run dev
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Import a specific movie:
+***REMOVED******REMOVED*** API Documentation
 
-```bash
-data-importer movie id 550  ***REMOVED*** Import Fight Club (TMDB ID: 550)
-```
+Once the backend is running, access the Swagger documentation at:
+`http://localhost:8000/docs`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Import popular movies:
+***REMOVED******REMOVED*** Contributing
 
-```bash
-data-importer movie popular --limit 5  ***REMOVED*** Import 5 most popular movies
-```
-
-***REMOVED******REMOVED******REMOVED*** Interactive Shell
-
-Explore and manipulate data using the interactive shell:
-
-```bash
-data-importer shell
-```
-
-***REMOVED******REMOVED*** Development
-
-***REMOVED******REMOVED******REMOVED*** Adding New Functionality
-
-1. Implement new features in the appropriate library
-2. Add CLI commands to expose functionality
-3. Update tests and documentation
-
-***REMOVED******REMOVED*** License
-
-MIT
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on contributing to this project.

@@ -6,9 +6,6 @@ import {
   IconButton,
   Image,
   useColorMode,
-  Menu,
-  MenuButton,
-  Button,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
@@ -26,19 +23,15 @@ const NavBar: React.FC = () => {
   const { colorMode } = useColorMode();
   const logo = colorMode === "light" ? logoLight : logoDark;
   const router = useRouter();
-  const { isMobile, isDesktop } = useDevice();
+  const { isMobile } = useDevice();
 
   const resetFilters = useMovieQueryStore((state) => state.resetFilters);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const handleLogoClick = () => {
     resetFilters();
     router.push("/");
-  };
-
-  const handleProfileClick = () => {
-    router.push("/profile");
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,24 +57,6 @@ const NavBar: React.FC = () => {
   const showLogo = !isSearchFocused;
   const showHeading = !isSearchFocused && !isMobile;
   const showUserIcon = !isSearchFocused;
-
-  const updateUserMenu = () => {
-    if (user) {
-      return (
-        <Menu>
-          <MenuButton
-            as={Button}
-            rounded="full"
-            variant="link"
-            cursor="pointer"
-            minW={0}
-          >
-            <Avatar size="sm" name={user.username || user.email} />
-          </MenuButton>
-        </Menu>
-      );
-    }
-  };
 
   return (
     <>

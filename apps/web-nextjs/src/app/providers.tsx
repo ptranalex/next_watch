@@ -4,31 +4,56 @@ import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import AuthProvider from "@/components/providers/AuthProvider";
+import { ChakraProvider } from "@chakra-ui/react";
+import theme from "../theme";
+import { MovieQueryProvider } from "../context/MovieQueryContext";
 
+/**
+ * Global providers component
+ * The order matters - providers higher in the tree can be accessed by providers lower down
+ */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 10 * 60 * 1000, // 10 minutes - even longer stale time
-            cacheTime: 60 * 60 * 1000, // 60 minutes - keep data in cache longer
+            staleTime: 10 * 60 * 1000, // 10 minutes
+            cacheTime: 60 * 60 * 1000, // 60 minutes
             refetchOnWindowFocus: false,
-            refetchOnMount: false, // Don't refetch on re-mount when within staleTime
-            retry: 1, // Reduce retry attempts
+            refetchOnMount: false,
+            retry: 1,
           },
         },
       })
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GoogleOAuthProvider
-        clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
-      >
-        {children}
-        <ReactQueryDevtools initialIsOpen={false} />
-      </GoogleOAuthProvider>
-    </QueryClientProvider>
+    // 1. Setup UI framework
+    <ChakraProvider
+      theme={theme}
+      colorModeManager={{
+        type: "localStorage",
+        get: () => "dark",
+        set: () => {},
+      }}
+    >
+      {/* 2. Setup data fetching */}
+      <QueryClientProvider client={queryClient}>
+        {/* 3. Setup authentication */}
+        <GoogleOAuthProvider
+          clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+        >
+          <AuthProvider>
+            {/* 4. Setup app-specific state */}
+            <MovieQueryProvider>
+              {children}
+              <ReactQueryDevtools initialIsOpen={false} />
+            </MovieQueryProvider>
+          </AuthProvider>
+        </GoogleOAuthProvider>
+      </QueryClientProvider>
+    </ChakraProvider>
   );
 }

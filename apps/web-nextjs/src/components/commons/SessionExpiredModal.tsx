@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import React from "react";
 import {
   Modal,
   ModalOverlay,
@@ -13,24 +15,31 @@ import {
   Box,
   Icon,
 } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
 import { HiExclamationCircle } from "react-icons/hi";
 import LoginModal from "../auth/LoginModal";
+import { useState, useEffect } from "react";
+
+// The definitive session expired messages that should trigger this modal
+// These should ONLY be set when automatic recovery has already failed
+const DEFINITIVE_SESSION_ERRORS = [
+  "Your session has expired. Please log in again.",
+  "Session expired",
+];
 
 /**
- * A modal that appears when the user's session has expired
- * It automatically listens for auth errors and displays when needed
+ * A simple modal that appears when the user's session has expired and
+ * automatic recovery attempts have failed.
+ * This component ONLY handles UI display and doesn't attempt recovery.
  */
 const SessionExpiredModal: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { error, clearError } = useAuth();
-  const router = useRouter();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Check for session expiration errors
+  // Only show for definitive session expired errors
   useEffect(() => {
-    if (error && error.includes("session has expired")) {
+    if (error && DEFINITIVE_SESSION_ERRORS.some((msg) => error.includes(msg))) {
       onOpen();
     }
   }, [error, onOpen]);
@@ -42,6 +51,11 @@ const SessionExpiredModal: React.FC = () => {
     setShowLoginModal(true);
   };
 
+  const handleClose = () => {
+    clearError();
+    onClose();
+  };
+
   const handleLoginModalClose = () => {
     setShowLoginModal(false);
   };
@@ -50,11 +64,11 @@ const SessionExpiredModal: React.FC = () => {
     <>
       <Modal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleClose}
         isCentered
         closeOnOverlayClick={false}
       >
-        <ModalOverlay />
+        <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent>
           <ModalHeader display="flex" alignItems="center">
             <Icon
@@ -77,7 +91,7 @@ const SessionExpiredModal: React.FC = () => {
           </ModalBody>
 
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
+            <Button variant="ghost" mr={3} onClick={handleClose}>
               Close
             </Button>
             <Button colorScheme="blue" onClick={handleLogin}>

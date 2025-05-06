@@ -16,3 +16,9 @@ export * from "./domain";
 
 // UI-related hooks (debounce, intersection, responsiveness)
 export * from "./ui";
+
+// Utility hooks
+export { default as useParams } from "./useParams";
+
+// Note: All auth hooks are now exported from the core module
+// There's no need to explicitly import them here as they're included in the core export

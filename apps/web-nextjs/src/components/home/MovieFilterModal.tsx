@@ -1,11 +1,5 @@
-import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
   Button,
-  FormControl,
-  FormLabel,
-  Input,
-  InputGroup,
-  InputRightElement,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -15,14 +9,13 @@ import {
   Stack,
   Text,
   useColorModeValue,
+  useToast,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
-import { HiArrowPath } from "react-icons/hi2";
-import { HiArrowRight } from "react-icons/hi2";
+import React from "react";
+import { HiArrowPath, HiArrowRight } from "react-icons/hi2";
 
 import RatingSliderGroup from "./MovieFilter";
-import useMovieQueryStore from "../../store/movieQuery";
-import { on } from "events";
+import useMovieQueryStore from "@/store/movieQuery";
 
 interface MovieFilterModalProps {
   isOpen: boolean;
@@ -35,11 +28,28 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
 }) => {
   const textColor = useColorModeValue("black", "white");
   const modalBgColor = useColorModeValue("gray.100", "gray.800");
+  const toast = useToast();
 
   const { resetFilters } = useMovieQueryStore();
 
+  const onApply = () => {
+    toast({
+      title: "Filters applied",
+      status: "success",
+      duration: 2000,
+      isClosable: true,
+    });
+    onClose();
+  };
+
   const onReset = () => {
     resetFilters();
+    toast({
+      title: "Filters reset",
+      status: "info",
+      duration: 2000,
+      isClosable: true,
+    });
     onClose();
   };
 
@@ -61,19 +71,19 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
             <Button
               colorScheme="blue"
               leftIcon={<HiArrowRight />}
-              onClick={onClose}
+              onClick={onApply}
               width="100%"
               justifyContent="left"
             >
               Apply
             </Button>
             <Button
-              // colorScheme="red"
+              colorScheme="gray"
               leftIcon={<HiArrowPath />}
               onClick={onReset}
               width="100%"
               justifyContent="left"
-              variant={"outline"}
+              variant="outline"
             >
               Reset
             </Button>
