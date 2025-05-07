@@ -99,9 +99,11 @@ const ImportNetflixHistoryModal: React.FC<ImportNetflixHistoryModalProps> = ({
       setUploadProgress(100);
       setImportResult(result);
 
+      const totalImported = result.newly_marked_watched;
+
       toast({
         title: "Import successful",
-        description: `Successfully imported ${result.imported} items from Netflix history`,
+        description: `Successfully imported ${totalImported} movies from Netflix history`,
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -193,17 +195,39 @@ const ImportNetflixHistoryModal: React.FC<ImportNetflixHistoryModalProps> = ({
                   Import Summary:
                 </Text>
                 <UnorderedList>
-                  <ListItem>Total titles: {importResult.total}</ListItem>
                   <ListItem>
-                    Successfully imported: {importResult.imported}
+                    Total entries: {importResult.total_entries}
                   </ListItem>
                   <ListItem>
-                    Matched with existing movies: {importResult.matched}
+                    Matches found: {importResult.matched_movies}
                   </ListItem>
                   <ListItem>
-                    Skipped (not found): {importResult.skipped}
+                    Already watched: {importResult.already_marked_watched}
                   </ListItem>
+                  <ListItem>
+                    Newly marked as watched: {importResult.newly_marked_watched}
+                  </ListItem>
+                  {importResult.unmatched_titles.length > 0 && (
+                    <ListItem>
+                      Titles not found: {importResult.unmatched_titles.length}
+                    </ListItem>
+                  )}
                 </UnorderedList>
+
+                {importResult.unmatched_titles.length > 0 && (
+                  <Box mt={4}>
+                    <Text fontWeight="bold" mb={2}>
+                      Unmatched Titles:
+                    </Text>
+                    <Box maxH="150px" overflowY="auto" fontSize="sm">
+                      <UnorderedList>
+                        {importResult.unmatched_titles.map((title, index) => (
+                          <ListItem key={index}>{title}</ListItem>
+                        ))}
+                      </UnorderedList>
+                    </Box>
+                  </Box>
+                )}
               </Box>
             )}
 

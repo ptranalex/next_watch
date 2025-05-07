@@ -36,18 +36,11 @@ class UserAPI extends APIClient<User> {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(`/api/v1/users/imports/netflix`, {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Failed to import Netflix history");
-    }
-
-    return response.json();
+    // Use the API client's new uploadForm method
+    return this.uploadForm<NetflixImportResult>(
+      "/api/v1/user/movies/import/netflix",
+      formData
+    );
   };
 }
 

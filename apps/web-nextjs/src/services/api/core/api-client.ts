@@ -197,6 +197,24 @@ export const deleteData = async <T>(
   return response.data;
 };
 
+// Function for uploading form data
+export const uploadFormData = async <T>(
+  endpoint: string,
+  formData: FormData,
+  config?: AxiosRequestConfig
+): Promise<T> => {
+  const mergedConfig: AxiosRequestConfig = {
+    ...config,
+    headers: {
+      ...config?.headers,
+      "Content-Type": "multipart/form-data",
+    },
+  };
+
+  const response = await apiClient.post<T>(endpoint, formData, mergedConfig);
+  return response.data;
+};
+
 /**
  * Generic API client class for entity-based operations
  * This provides a consistent interface for CRUD operations on entities
@@ -283,6 +301,18 @@ export class APIClient<T> {
 
     return result;
   }
+
+  /**
+   * Upload form data to the API
+   */
+  uploadForm = async <R = T>(
+    path: string,
+    formData: FormData,
+    config?: AxiosRequestConfig
+  ): Promise<R> => {
+    const fullPath = path.startsWith("/") ? path : `${this.endpoint}/${path}`;
+    return uploadFormData<R>(fullPath, formData, config);
+  };
 }
 
 // Check token validity

@@ -6,9 +6,19 @@ adding them to watchlists, or liking them.
 """
 
 from typing import Annotated, List, Optional
-from datetime import datetime, date
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from datetime import datetime
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    status,
+    UploadFile,
+    File,
+)
 from sqlmodel import Session, Field
+import logging
 
 from backend_api.db.database import get_db
 from backend_api.routes.v1.auth import get_current_user
@@ -29,6 +39,9 @@ from movie_storage.models.user import User
 from movie_storage.models.movie import Movie
 from movie_storage.models.user_interaction import UserMovieInteraction
 from movie_storage.db.operations import get_movie_by_id
+from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 ***REMOVED*** Create router
 router = APIRouter(prefix="/user/movies", tags=["user-movies"])
@@ -458,3 +471,95 @@ async def get_user_movie_details(
         return movie_details
     except ValidationError as e:
         raise service_error_to_http_exception(e)
+
+
+***REMOVED*** New schema for Netflix import results
+class NetflixImportResult(BaseModel):
+    """Result of a Netflix history import operation."""
+
+    total_entries: int
+    matched_movies: int
+    already_marked_watched: int
+    newly_marked_watched: int
+    unmatched_titles: List[str]
+
+
+***REMOVED*** Import Netflix watch history
+@router.post(
+    "/import/netflix",
+    response_model=NetflixImportResult,
+    summary="Import Netflix watch history",
+)
+async def import_netflix_history(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    interaction_service: Annotated[
+        UserInteractionService, Depends(get_user_interaction_service)
+    ],
+    file: UploadFile = File(...),
+):
+    """
+    Import Netflix watch history from a CSV file.
+
+    Parses the Netflix CSV export format, matches movie titles to the database,
+    and marks matching movies as watched by the current user.
+
+    Args:
+        current_user: Current authenticated user
+        db: Database session
+        interaction_service: User interaction service
+        file: CSV file containing Netflix watch history
+
+    Returns:
+        Summary of import results including matches and unmatched titles
+
+    Raises:
+        HTTPException: For invalid files or processing errors
+    """
+    ***REMOVED*** Ensure user ID is available
+    if current_user.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User ID is missing",
+        )
+
+    ***REMOVED*** Validate file
+    if not file.filename or not file.filename.endswith(".csv"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please upload a CSV file",
+        )
+
+    ***REMOVED*** Read file content
+    try:
+        contents = await file.read()
+        csv_text = contents.decode("utf-8")
+
+        ***REMOVED*** Process CSV using service
+        try:
+            result = interaction_service.import_netflix_history(
+                db, current_user.id, csv_text
+            )
+
+            ***REMOVED*** Convert to response model
+            return NetflixImportResult(
+                total_entries=result["total_entries"],
+                matched_movies=result["matched_movies"],
+                already_marked_watched=result["already_marked_watched"],
+                newly_marked_watched=result["newly_marked_watched"],
+                unmatched_titles=result["unmatched_titles"],
+            )
+        except ValidationError as e:
+            ***REMOVED*** Convert validation errors to HTTP exceptions
+            raise service_error_to_http_exception(e)
+    except UnicodeDecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File is not a valid UTF-8 encoded CSV file",
+        )
+    except Exception as e:
+        logger.error(f"Error processing Netflix CSV: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing file: {str(e)}",
+        )

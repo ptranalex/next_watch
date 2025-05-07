@@ -61,8 +61,9 @@ export interface User {
  * Import results for Netflix history
  */
 export interface NetflixImportResult {
-  imported: number;
-  matched: number;
-  skipped: number;
-  total: number;
+  total_entries: number;
+  matched_movies: number;
+  already_marked_watched: number;
+  newly_marked_watched: number;
+  unmatched_titles: string[];
 }
