@@ -45,7 +45,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     if (re.test(password)) {
       setPasswordError(null);
     } else {
-      console.log("Password error");
       setPasswordError(
         "Password should be at least 8 characters long, contain at least one number, one lowercase and one uppercase letter"
       );
@@ -57,7 +56,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     if (password === verifiedPassword) {
       setVerifiedPasswordError(null);
     } else {
-      console.log("Password error");
       setVerifiedPasswordError(
         "Re-entered password does not match the first password"
       );

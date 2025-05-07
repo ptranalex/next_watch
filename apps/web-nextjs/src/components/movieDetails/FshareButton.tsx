@@ -18,7 +18,6 @@ const FshareButton = ({ fshare_link }: Props) => {
         navigator.clipboard
           .writeText(fshare_link ?? "")
           .then(() => {
-            console.log("Fshare link copied to clipboard");
             setIsCopied(true);
           })
           .catch((err) => {

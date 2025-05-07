@@ -117,9 +117,6 @@ export const MovieQueryProvider = ({ children }: MovieQueryProviderProps) => {
         params.set("mc", newQuery.rating_metacritic.toString());
       if (newQuery.year !== null) params.set("year", newQuery.year.toString());
 
-      // Log the params being set
-      console.log("Updating URL with params:", params.toString(), newQuery);
-
       // Update URL without reloading the page
       router.push(`?${params.toString()}`);
     },

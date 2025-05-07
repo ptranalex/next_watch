@@ -42,22 +42,10 @@ export const MovieAPI = {
     if (params.sortBy) {
       const backendSortField = sortMapping[params.sortBy] || params.sortBy;
       queryParams.append("sort_by", backendSortField);
-      console.log("MovieAPI - Sort mapping:", {
-        original: params.sortBy,
-        mapped: backendSortField,
-        direction: params.sort_desc ? "desc" : "asc",
-        desc_type: typeof params.sort_desc,
-      });
-    } else {
-      console.log("MovieAPI - No sortBy parameter provided");
     }
 
     // Always add sort_desc parameter for clarity
     queryParams.append("sort_desc", (params.sort_desc === true).toString());
-    console.log(
-      "MovieAPI - Final sort_desc value:",
-      (params.sort_desc === true).toString()
-    );
 
     // Add rating filter parameters
     if (params.imdb_rating)
@@ -73,8 +61,6 @@ export const MovieAPI = {
         params.metacritic_rating.toString()
       );
     if (params.year) queryParams.append("year", params.year.toString());
-
-    console.log("API call with query params:", queryParams.toString());
 
     return fetchData<MovieListResponse>(
       `/api/v1/movies?${queryParams.toString()}`

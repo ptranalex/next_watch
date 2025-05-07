@@ -254,7 +254,6 @@ export const useAuthStore = create<AuthState>()(
 
       // Handle token expiration
       handleTokenExpired: () => {
-        console.warn("Token expired, logging out user");
         set({
           user: null,
           isAuthenticated: false,
@@ -271,25 +270,20 @@ export const useAuthStore = create<AuthState>()(
         if (!isAuthenticated) return false;
 
         try {
-          console.log("Auth: Attempting token refresh");
           const refreshed = await authService.refreshToken();
 
           if (refreshed) {
-            console.log("Auth: Token refreshed successfully");
             return true;
           }
 
           // Check if the refresh token is valid to determine if we should logout
           if (!AuthTokenManager.isRefreshTokenValid()) {
-            console.warn("Auth: Refresh token invalid, session will expire");
             return false;
           }
 
           // Token refresh failed but refresh token still valid (possibly temporary server issue)
-          console.warn("Auth: Token refresh failed but will retry later");
           return false;
         } catch (error) {
-          console.error("Auth: Error refreshing token:", error);
           return false;
         }
       },
@@ -323,14 +317,10 @@ export const useAuthStore = create<AuthState>()(
 
           // Check if token needs refresh based on predefined thresholds
           if (AuthTokenManager.shouldRefreshToken()) {
-            console.log(
-              "Auth: Scheduled refresh - token approaching expiration"
-            );
             await get().attemptTokenRefresh();
           }
           // If token is critical but refresh failed, we might want to warn the user
           else if (AuthTokenManager.isTokenCritical()) {
-            console.warn("Auth: Token critically close to expiration");
             // This could trigger a warning UI
           }
         }, 60000); // Check every minute
@@ -349,7 +339,6 @@ export const useAuthStore = create<AuthState>()(
 
             // Check if we should refresh for navigation (using dedicated threshold)
             if (AuthTokenManager.shouldRefreshForNavigation()) {
-              console.log("Auth: Navigation-triggered refresh");
               await get().attemptTokenRefresh();
             }
           };

@@ -110,7 +110,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   };
 
   const onForgotPassword = () => {
-    console.log("Forgot password");
+    // No console.log here
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {

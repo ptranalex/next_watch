@@ -27,20 +27,9 @@ const SortSelector = () => {
     (order) => order.value === sortOrder && order.desc === sortDesc
   );
 
-  // Add a console log to debug state changes
-  console.log("SortSelector - Current sort state:", {
-    sortOrder,
-    sortDesc,
-    currentLabel: currentSortOrder?.label || "None",
-  });
-
   // Monitor for changes
   useEffect(() => {
-    console.log("SortSelector - Sort changed to:", {
-      sortOrder,
-      sortDesc,
-      currentLabel: currentSortOrder?.label || "None",
-    });
+    // No console.log needed here
   }, [sortOrder, sortDesc, currentSortOrder]);
 
   return (
@@ -52,12 +41,6 @@ const SortSelector = () => {
         {sortOrders.map((order) => (
           <MenuItem
             onClick={() => {
-              console.log(
-                "SortSelector - Setting sort:",
-                order.value,
-                order.desc ?? false,
-                order.label
-              );
               setSorting(order.value, order.desc ?? false);
             }}
             key={`${order.value}-${order.desc ? "desc" : "asc"}`}

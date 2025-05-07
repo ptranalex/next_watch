@@ -46,24 +46,6 @@ export const useMovies = (options: UseMoviesOptions) => {
   const sortOrder = searchParams.get("sort") || "release_date";
   const sortDesc = searchParams.get("desc") !== "false"; // Default to true unless explicitly false
 
-  // Log filter values to verify they're being read from URL
-  console.log("Filter values from URL:", {
-    imdb_rating,
-    rotten_tomatoes_rating,
-    metacritic_rating,
-    year,
-    sortOrder,
-    sortDesc,
-    allParams: {
-      sort: searchParams.get("sort"),
-      desc: searchParams.get("desc"),
-      imdb: searchParams.get("imdb"),
-      rt: searchParams.get("rt"),
-      mc: searchParams.get("mc"),
-      year: searchParams.get("year"),
-    },
-  });
-
   const queryKey = [
     "movies",
     options.source,
@@ -83,10 +65,6 @@ export const useMovies = (options: UseMoviesOptions) => {
 
   // Monitor for query key changes
   useEffect(() => {
-    console.log("useMovies - QueryKey changed:", {
-      sortOrder,
-      sortDesc,
-    });
     // Force a refresh when sort order changes
     if (sortOrder) {
       queryClient.invalidateQueries({ queryKey: ["movies"] });
@@ -105,22 +83,8 @@ export const useMovies = (options: UseMoviesOptions) => {
     queryFn: async ({ pageParam }) => {
       const page = pageParam || 1;
 
-      console.log("Making API call with filters:", {
-        page,
-        imdb_rating,
-        rotten_tomatoes_rating,
-        metacritic_rating,
-        year,
-        sortOrder,
-        sortDesc,
-      });
-
       switch (options.source) {
         case "movie_listing":
-          console.log("useMovies - Calling MovieAPI.getMovies with sort:", {
-            sortBy: sortOrder,
-            sort_desc: sortDesc,
-          });
           return MovieAPI.getMovies({
             page,
             limit: 10,
@@ -283,7 +247,6 @@ export const useMovies = (options: UseMoviesOptions) => {
     },
     onSuccess: (updatedMovie: Movie) => {
       if (!updatedMovie || typeof updatedMovie.id !== "number") {
-        console.error("Invalid movie for update:", updatedMovie);
         return;
       }
 
