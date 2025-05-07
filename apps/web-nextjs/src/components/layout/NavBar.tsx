@@ -16,6 +16,7 @@ import { useAuth, useDevice } from "@/hooks";
 import useMovieQueryStore from "../../store/movieQuery";
 import ColorModeSwitch from "./ColorModeSwitch";
 import LoginModal from "../auth/LoginModal";
+import ProfileModal from "../profile/ProfileModal";
 import MobileNavMenu from "./MobileNavMenu";
 import SearchInput from "./SearchInput";
 
@@ -34,14 +35,23 @@ const NavBar: React.FC = () => {
     router.push("/");
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
+  const handleOpenLoginModal = () => {
+    setIsLoginModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseLoginModal = () => {
+    setIsLoginModalOpen(false);
+  };
+
+  const handleOpenProfileModal = () => {
+    setIsProfileModalOpen(true);
+  };
+
+  const handleCloseProfileModal = () => {
+    setIsProfileModalOpen(false);
   };
 
   const handleSearchFocus = () => {
@@ -93,7 +103,7 @@ const NavBar: React.FC = () => {
           {isAuthenticated && user && showUserIcon ? (
             <Box
               cursor="pointer"
-              onClick={() => router.push("/profile")}
+              onClick={handleOpenProfileModal}
               ml={{ base: 0, md: 2 }}
             >
               <Avatar size="sm" name={user.username || user.email} />
@@ -102,7 +112,7 @@ const NavBar: React.FC = () => {
             <IconButton
               aria-label="Login"
               icon={<HiArrowLeftOnRectangle />}
-              onClick={handleOpenModal}
+              onClick={handleOpenLoginModal}
               fontSize={25}
             />
           ) : (
@@ -115,7 +125,11 @@ const NavBar: React.FC = () => {
           {!isSearchFocused && <ColorModeSwitch />}
         </HStack>
       </Box>
-      <LoginModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <LoginModal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} />
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={handleCloseProfileModal}
+      />
     </>
   );
 };

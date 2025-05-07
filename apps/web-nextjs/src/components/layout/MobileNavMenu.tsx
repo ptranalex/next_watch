@@ -21,6 +21,8 @@ import Link from "next/link";
 import { useAuth } from "@/hooks";
 import { useMovieQuery } from "../../context/MovieQueryContext";
 import type { IconType } from "react-icons";
+import { useState } from "react";
+import ProfileModal from "../profile/ProfileModal";
 
 interface NavItem {
   icon: IconType;
@@ -32,6 +34,7 @@ const MobileNavMenu: FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isAuthenticated } = useAuth();
   const { reset } = useMovieQuery();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const navItems: NavItem[] = [
     { icon: FaHome, label: "Home", path: "/" },
@@ -39,6 +42,15 @@ const MobileNavMenu: FC = () => {
     { icon: MdOutlineTheaterComedy, label: "Movies", path: "/movies" },
     { icon: PiMaskSad, label: "Actors", path: "/actors" },
   ];
+
+  const handleOpenProfileModal = () => {
+    onClose(); // Close the drawer first
+    setIsProfileModalOpen(true);
+  };
+
+  const handleCloseProfileModal = () => {
+    setIsProfileModalOpen(false);
+  };
 
   return (
     <>
@@ -71,21 +83,25 @@ const MobileNavMenu: FC = () => {
               ))}
 
               {isAuthenticated ? (
-                <Link href="/profile" onClick={onClose}>
-                  <Button
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    leftIcon={<Icon as={FaUser} />}
-                    width="100%"
-                  >
-                    <Text>Profile</Text>
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  justifyContent="flex-start"
+                  leftIcon={<Icon as={FaUser} />}
+                  width="100%"
+                  onClick={handleOpenProfileModal}
+                >
+                  <Text>Profile</Text>
+                </Button>
               ) : null}
             </VStack>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={handleCloseProfileModal}
+      />
     </>
   );
 };
