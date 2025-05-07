@@ -1,3 +1,4 @@
+import { useDebounce } from "@/hooks";
 import {
   Box,
   HStack,
@@ -8,9 +9,8 @@ import {
   SliderTrack,
   Text,
 } from "@chakra-ui/react";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { MdGraphicEq } from "react-icons/md";
-import { useDebounce } from "@/hooks";
 
 interface RatingSliderProps {
   step: number;

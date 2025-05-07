@@ -1,5 +1,5 @@
-import { Box, Grid, GridItem, Show } from "@chakra-ui/react";
 import LeftNavBar from "@/components/layout/LeftNavBar";
+import { Box, Grid, GridItem, Show } from "@chakra-ui/react";
 import React from "react";
 
 interface MovieLayoutProps {

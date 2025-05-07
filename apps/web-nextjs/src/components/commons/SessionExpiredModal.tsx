@@ -1,24 +1,23 @@
 "use client";
 
-import React from "react";
+import LoginModal from "@/components/auth/LoginModal";
+import { useAuth } from "@/hooks";
 import {
+  Box,
+  Button,
+  Icon,
   Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
-  Button,
-  useDisclosure,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Text,
-  Box,
-  Icon,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { useAuth } from "@/hooks";
+import React, { useEffect, useState } from "react";
 import { HiExclamationCircle } from "react-icons/hi";
-import LoginModal from "../auth/LoginModal";
-import { useState, useEffect } from "react";
 
 // The definitive session expired messages that should trigger this modal
 // These should ONLY be set when automatic recovery has already failed

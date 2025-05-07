@@ -1,13 +1,20 @@
+import { Genre } from "@/domain/entities";
+import { useAuth } from "@/hooks";
+import { MovieAPI } from "@/services/api";
+import useMovieQueryStore from "@/store/movieQuery";
 import {
-  Heading,
-  Icon,
-  Text,
-  HStack,
-  Link as ChakraLink,
   Box,
+  Link as ChakraLink,
+  Heading,
+  HStack,
+  Icon,
   SkeletonText,
+  Text,
   VStack,
 } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { memo, useCallback, useMemo } from "react";
 import {
   GiAlienSkull,
   GiCalendar,
@@ -27,13 +34,6 @@ import {
 } from "react-icons/hi2";
 import { MdOutlineTheaterComedy } from "react-icons/md";
 import { PiMaskSad } from "react-icons/pi";
-import Link from "next/link";
-import { useAuth } from "@/hooks";
-import useMovieQueryStore from "@/store/movieQuery";
-import { useQuery } from "@tanstack/react-query";
-import { MovieAPI } from "@/services/api";
-import { Genre } from "@/domain/entities";
-import { useCallback, useMemo, memo } from "react";
 
 interface NavItem {
   icon: React.ElementType;

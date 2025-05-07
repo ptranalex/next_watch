@@ -1,29 +1,13 @@
 "use client";
 
-import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import {
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Stack,
-  Text,
-  useColorModeValue,
-  useToast,
-} from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { Stack, Text, useToast } from "@chakra-ui/react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
 import { useAuth } from "@/hooks";
 import { ValidationError } from "@/services/api";
+import BaseModal from "@/components/layout/BaseModal";
+import FormInput from "@/components/form/FormInput";
+import { PrimaryCTA } from "@/components/form/FormCTA";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -31,20 +15,18 @@ interface SignupModalProps {
 }
 
 const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
-  const textColor = useColorModeValue("black", "white");
-  const modalBgColor = useColorModeValue("gray.100", "gray.800");
   const { register, isLoading, error } = useAuth();
   const [full_name, setFull_name] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [verifiedPassword, setVerifiedPassword] = useState("");
+  const [fullNameError, setFullNameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [verifiedPasswordError, setVerifiedPasswordError] = useState<
     string | null
   >(null);
   const [signupError, setSignupError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -53,6 +35,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       setPassword("");
       setVerifiedPassword("");
       setFull_name("");
+      setFullNameError(null);
       setEmailError(null);
       setPasswordError(null);
       setVerifiedPasswordError(null);
@@ -87,10 +70,10 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
 
   const validateFullname = () => {
     if (full_name.length > 0) {
-      setEmailError(null);
+      setFullNameError(null);
       return true;
     } else {
-      setEmailError("Full name cannot be empty");
+      setFullNameError("Full name cannot be empty");
       return false;
     }
   };
@@ -152,115 +135,79 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleShowPassword = () => setShowPassword(!showPassword);
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent bg={modalBgColor} color={textColor}>
-        <ModalHeader>
-          <Text fontSize="2xl">Create Your Account</Text>
-          <Text fontSize="sm" color="gray.500" mt={3} mb={0}>
+    <BaseModal isOpen={isOpen} onClose={onClose} title="Create Your Account">
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={4}>
+          <Text fontSize="sm" color="gray.500" mt={-4} mb={2}>
             Register to unlock special features, save your favorites, and
             enhance your experience.
           </Text>
-        </ModalHeader>
-        <ModalCloseButton />
-        <form onSubmit={handleSubmit}>
-          <ModalBody padding={6}>
-            <Stack spacing={4}>
-              <FormControl id="full_name" isRequired>
-                <FormLabel>Full Name</FormLabel>
-                <Input
-                  placeholder="Firstname Lastname"
-                  type="text"
-                  onChange={(e) => setFull_name(e.target.value)}
-                  onBlur={validateFullname}
-                  value={full_name}
-                />
-                {emailError && <Text as="sub">{emailError}</Text>}
-              </FormControl>
-              <FormControl id="email" isRequired>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  placeholder="Email"
-                  type="email"
-                  onChange={(e) => setUsername(e.target.value)}
-                  onBlur={validateEmail}
-                  value={username}
-                />
-                {emailError && <Text as="sub">{emailError}</Text>}
-              </FormControl>
 
-              <FormControl id="password" isRequired>
-                <FormLabel>Password</FormLabel>
-                <InputGroup>
-                  <Input
-                    placeholder="Password"
-                    type={showPassword ? "text" : "password"}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onBlur={validatePassword}
-                    value={password}
-                  />
-                  <InputRightElement h={"full"}>
-                    <Button
-                      variant={"ghost"}
-                      onClick={handleShowPassword}
-                      _hover={{ bg: "transparent" }}
-                    >
-                      {showPassword ? <ViewOffIcon /> : <ViewIcon />}
-                    </Button>
-                  </InputRightElement>
-                </InputGroup>
-                {passwordError && <Text as="sub">{passwordError}</Text>}
-              </FormControl>
-              <FormControl id="verified_password" isRequired>
-                <FormLabel>Re-enter Password</FormLabel>
-                <InputGroup>
-                  <Input
-                    placeholder="Password"
-                    type={showPassword ? "text" : "password"}
-                    onChange={(e) => setVerifiedPassword(e.target.value)}
-                    onBlur={validateVerifiedPassword}
-                    value={verifiedPassword}
-                  />
-                </InputGroup>
-                {verifiedPasswordError && (
-                  <Text as="sub">{verifiedPasswordError}</Text>
-                )}
-              </FormControl>
-              <Button
-                width="100%"
-                colorScheme="blue"
-                leftIcon={<HiArrowLeftOnRectangle fontSize="1.5rem" />}
-                justifyContent="left"
-                type="submit"
-                isLoading={isLoading}
-              >
-                Sign up
-              </Button>
-              {signupError && (
-                <Text as="sub" color="red.500">
-                  {signupError}
-                </Text>
-              )}
-            </Stack>
-          </ModalBody>
+          <FormInput
+            id="full_name"
+            label="Full Name"
+            type="text"
+            placeholder="Firstname Lastname"
+            value={full_name}
+            onChange={setFull_name}
+            onBlur={validateFullname}
+            error={fullNameError}
+            isRequired
+          />
 
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              type="submit"
-              isLoading={isLoading}
-            >
-              Sign up
-            </Button>
-            <Button onClick={onClose}>Cancel</Button>
-          </ModalFooter>
-        </form>
-      </ModalContent>
-    </Modal>
+          <FormInput
+            id="email"
+            label="Email"
+            type="email"
+            placeholder="Email"
+            value={username}
+            onChange={setUsername}
+            onBlur={validateEmail}
+            error={emailError}
+            isRequired
+          />
+
+          <FormInput
+            id="password"
+            label="Password"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={setPassword}
+            onBlur={validatePassword}
+            error={passwordError}
+            isRequired
+          />
+
+          <FormInput
+            id="verified_password"
+            label="Re-enter Password"
+            type="password"
+            placeholder="Password"
+            value={verifiedPassword}
+            onChange={setVerifiedPassword}
+            onBlur={validateVerifiedPassword}
+            error={verifiedPasswordError}
+            isRequired
+          />
+
+          <PrimaryCTA
+            type="submit"
+            isLoading={isLoading}
+            icon={HiArrowLeftOnRectangle}
+          >
+            Sign up
+          </PrimaryCTA>
+
+          {signupError && (
+            <Text as="sub" color="red.500">
+              {signupError}
+            </Text>
+          )}
+        </Stack>
+      </form>
+    </BaseModal>
   );
 };
 

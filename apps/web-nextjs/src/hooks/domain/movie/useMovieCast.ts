@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { MovieAPI } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 
 export const useMovieCast = (movieId: number) => {
   return useQuery({

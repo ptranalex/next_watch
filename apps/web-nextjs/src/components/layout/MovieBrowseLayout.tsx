@@ -1,8 +1,8 @@
-import React, { Suspense, memo, ReactNode } from "react";
+import LeftNavBar from "@/components/layout/LeftNavBar";
+import SortSelector from "@/components/layout/SortSelector";
 import { Box, Grid, GridItem, Heading, Show, Skeleton } from "@chakra-ui/react";
-import LeftNavBar from "./LeftNavBar";
-import SortSelector from "./SortSelector";
 import dynamic from "next/dynamic";
+import React, { memo, ReactNode, Suspense } from "react";
 
 // Memoize components to prevent unnecessary re-renders
 const MemoizedLeftNavBar = memo(LeftNavBar);

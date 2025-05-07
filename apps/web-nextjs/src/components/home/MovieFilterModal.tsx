@@ -1,3 +1,5 @@
+import RatingSliderGroup from "@/components/home/MovieFilter";
+import useMovieQueryStore from "@/store/movieQuery";
 import {
   Button,
   Modal,
@@ -13,9 +15,6 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { HiArrowPath, HiArrowRight } from "react-icons/hi2";
-
-import RatingSliderGroup from "./MovieFilter";
-import useMovieQueryStore from "@/store/movieQuery";
 
 interface MovieFilterModalProps {
   isOpen: boolean;

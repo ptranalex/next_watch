@@ -1,8 +1,8 @@
+import { Movie } from "@/domain/entities";
+import userInteractionAPI from "@/services/api/user/user-interaction-api";
 import { Box, IconButton, useColorModeValue, useToast } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { Movie } from "@/domain/entities";
-import { TiPlus, TiMinus } from "react-icons/ti";
-import userInteractionAPI from "@/services/api/user/user-interaction-api";
+import { TiMinus, TiPlus } from "react-icons/ti";
 
 interface ToggleIconButtonProps {
   movie: Movie;

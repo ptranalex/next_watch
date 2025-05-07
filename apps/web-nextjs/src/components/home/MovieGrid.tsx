@@ -1,21 +1,21 @@
 "use client";
 
-import { Box, SimpleGrid, Text, useBreakpointValue } from "@chakra-ui/react";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
-import { useSearchParams } from "next/navigation";
-import InfiniteScroll from "react-infinite-scroll-component";
-import { useMovies } from "@/hooks";
+import ScrollToTopButton from "@/components/commons/ScrollToTopButton";
 import MovieCard from "@/components/movieCard/MovieCard";
 import MovieCardContainer from "@/components/movieCard/MovieCardContainer";
 import MovieCardSkeleton from "@/components/movieCard/MovieCardSkeleton";
-import ScrollToTopButton from "@/components/commons/ScrollToTopButton";
 import { Movie } from "@/domain/entities";
+import { useMovies } from "@/hooks";
+import { Box, SimpleGrid, Text, useBreakpointValue } from "@chakra-ui/react";
+import { useSearchParams } from "next/navigation";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 type ColumnBreakpoints =
   | {

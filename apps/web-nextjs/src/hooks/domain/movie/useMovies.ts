@@ -1,15 +1,14 @@
 "use client";
 
+import { Movie } from "@/domain/entities";
+import { MovieAPI, userInteractionAPI, UserMovieDetail } from "@/services/api";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { MovieAPI } from "@/services/api";
-import { Movie } from "@/domain/entities";
-import { useEffect, useState } from "react";
-import { userInteractionAPI, UserMovieDetail } from "@/services/api";
+import { useEffect } from "react";
 
 interface UseMoviesOptions {
   source:

@@ -1,20 +1,20 @@
-import React, { useCallback } from "react";
-import {
-  Box,
-  Text,
-  Spinner,
-  Center,
-  Alert,
-  AlertIcon,
-  AlertDescription,
-  SimpleGrid,
-} from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
-import { userInteractionAPI, MovieAPI } from "@/services/api";
-import { Movie, toMovieEntity } from "@/domain/entities";
+import ScrollToTopButton from "@/components/commons/ScrollToTopButton";
 import MovieCard from "@/components/movieCard/MovieCard";
 import MovieCardContainer from "@/components/movieCard/MovieCardContainer";
-import ScrollToTopButton from "@/components/commons/ScrollToTopButton";
+import { Movie, toMovieEntity } from "@/domain/entities";
+import { MovieAPI, userInteractionAPI } from "@/services/api";
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  Box,
+  Center,
+  SimpleGrid,
+  Spinner,
+  Text,
+} from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
+import React, { useCallback } from "react";
 
 interface WatchlistPageProps {
   userId: string;

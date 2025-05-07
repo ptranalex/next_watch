@@ -1,6 +1,8 @@
 "use client";
 
-import type { FC } from "react";
+import ProfileModal from "@/components/profile/ProfileModal";
+import { useMovieQuery } from "@/context/MovieQueryContext";
+import { useAuth } from "@/hooks";
 import {
   Button,
   Drawer,
@@ -13,16 +15,14 @@ import {
   VStack,
   useDisclosure,
 } from "@chakra-ui/react";
+import Link from "next/link";
+import type { FC } from "react";
+import { useState } from "react";
+import type { IconType } from "react-icons";
 import { FaHome, FaSearch, FaUser } from "react-icons/fa";
+import { HiOutlineBars3 } from "react-icons/hi2";
 import { MdOutlineTheaterComedy } from "react-icons/md";
 import { PiMaskSad } from "react-icons/pi";
-import { HiOutlineBars3 } from "react-icons/hi2";
-import Link from "next/link";
-import { useAuth } from "@/hooks";
-import { useMovieQuery } from "../../context/MovieQueryContext";
-import type { IconType } from "react-icons";
-import { useState } from "react";
-import ProfileModal from "../profile/ProfileModal";
 
 interface NavItem {
   icon: IconType;

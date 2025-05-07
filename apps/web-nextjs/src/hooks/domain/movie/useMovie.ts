@@ -1,15 +1,15 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FEATURES } from "@/config/features";
+import { toMovieEntity } from "@/domain/entities";
+import { useAuth } from "@/hooks";
 import {
   MovieAPI,
   MovieCastResponse,
   userInteractionAPI,
   UserMovieInteractionResponse,
 } from "@/services/api";
-import { toMovieEntity } from "@/domain/entities";
-import { FEATURES } from "@/config/features";
-import { useAuth } from "@/hooks";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook for fetching and managing a single movie

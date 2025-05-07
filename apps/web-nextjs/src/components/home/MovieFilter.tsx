@@ -1,11 +1,11 @@
 "use client";
 
+import RatingSlider from "@/components/home/RatingSlider";
+import { useMovieQuery } from "@/context/MovieQueryContext";
 import { FaImdb } from "react-icons/fa";
+import { HiCalendarDays } from "react-icons/hi2";
 import { MdAssessment } from "react-icons/md";
 import { SiRottentomatoes } from "react-icons/si";
-import { HiCalendarDays } from "react-icons/hi2";
-import { useMovieQuery } from "@/context/MovieQueryContext";
-import RatingSlider from "./RatingSlider";
 
 const MovieFilter = () => {
   // Use the context-based filter state which automatically updates the URL

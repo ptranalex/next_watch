@@ -1,7 +1,7 @@
+import { useMovieTrailer } from "@/hooks";
+import { Box, Spinner, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import ReactPlayer from "react-player/youtube";
-import { Box, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useMovieTrailer } from "@/hooks";
 
 interface TrailerCardProps {
   movieId: number;

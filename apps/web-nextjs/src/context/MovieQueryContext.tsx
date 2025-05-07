@@ -1,14 +1,14 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
-  useContext,
-  useState,
-  useCallback,
   ReactNode,
+  useCallback,
+  useContext,
   useEffect,
+  useState,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 
 // Movie query interface that matches what was in the original Zustand store
 interface MovieQuery {

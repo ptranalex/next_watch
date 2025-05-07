@@ -1,7 +1,7 @@
-import { Menu, Button, MenuButton, MenuList, MenuItem } from "@chakra-ui/react";
-import { BsChevronDown } from "react-icons/bs";
 import { useMovieQuery } from "@/context/MovieQueryContext";
+import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import { useEffect } from "react";
+import { BsChevronDown } from "react-icons/bs";
 
 const SortSelector = () => {
   const sortOrders = [

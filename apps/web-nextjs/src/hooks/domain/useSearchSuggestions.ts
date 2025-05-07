@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import { SearchAPI } from "@/services/api";
 import { TextSuggestionsResponse } from "@/services/api/search/types";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Hook to fetch enhanced search suggestions based on a query string

@@ -1,17 +1,16 @@
 // components/SuggestionItem.jsx
+import { TextSuggestion } from "@/services/api/search/types";
 import {
+  Box,
+  Link as ChakraLink,
   HStack,
   Icon,
   Image,
-  Link as ChakraLink,
-  Text,
-  Box,
   Tag,
+  Text,
 } from "@chakra-ui/react";
-import { HiOutlineFilm, HiTag, HiUserCircle } from "react-icons/hi2";
-import { HiFolder } from "react-icons/hi2";
 import Link from "next/link";
-import { TextSuggestion } from "@/services/api/search/types";
+import { HiFolder, HiOutlineFilm, HiTag, HiUserCircle } from "react-icons/hi2";
 
 interface SuggestionItemProps {
   suggestion: TextSuggestion;

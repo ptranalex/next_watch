@@ -1,3 +1,7 @@
+import MovieQuickAction from "@/components/movieCard/MovieQuickAction";
+import { Movie } from "@/domain/entities";
+import { useAuth } from "@/hooks";
+import { fetchData, userInteractionAPI } from "@/services/api";
 import {
   Box,
   Card,
@@ -6,14 +10,10 @@ import {
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
-import { HiMiniStar } from "react-icons/hi2";
-import Link from "next/link";
-import { Movie } from "@/domain/entities";
-import { useAuth } from "@/hooks";
-import MovieQuickAction from "./MovieQuickAction";
-import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { fetchData, userInteractionAPI } from "@/services/api";
+import Link from "next/link";
+import { useState } from "react";
+import { HiMiniStar } from "react-icons/hi2";
 
 interface Props {
   movie: Movie;

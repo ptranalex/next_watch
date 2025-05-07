@@ -1,3 +1,12 @@
+import logoLight from "@/assets/logo-light.jpeg";
+import logoDark from "@/assets/logo.jpeg";
+import LoginModal from "@/components/auth/LoginModal";
+import ColorModeSwitch from "@/components/layout/ColorModeSwitch";
+import MobileNavMenu from "@/components/layout/MobileNavMenu";
+import SearchInput from "@/components/layout/SearchInput";
+import ProfileModal from "@/components/profile/ProfileModal";
+import { useAuth, useDevice } from "@/hooks";
+import useMovieQueryStore from "@/store/movieQuery";
 import {
   Avatar,
   Box,
@@ -7,18 +16,9 @@ import {
   Image,
   useColorMode,
 } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
-import { useRouter } from "next/navigation";
-import logoLight from "../../assets/logo-light.jpeg";
-import logoDark from "../../assets/logo.jpeg";
-import { useAuth, useDevice } from "@/hooks";
-import useMovieQueryStore from "../../store/movieQuery";
-import ColorModeSwitch from "./ColorModeSwitch";
-import LoginModal from "../auth/LoginModal";
-import ProfileModal from "../profile/ProfileModal";
-import MobileNavMenu from "./MobileNavMenu";
-import SearchInput from "./SearchInput";
 
 const NavBar: React.FC = () => {
   const { colorMode } = useColorMode();

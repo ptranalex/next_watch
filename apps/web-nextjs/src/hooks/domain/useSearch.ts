@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@/hooks/ui/useDebounce";
 import { MovieAPI, MovieListResponse } from "@/services/api";
-import { useDebounce } from "../ui/useDebounce";
+import { useQuery } from "@tanstack/react-query";
 
 interface UseSearchOptions {
   query: string;

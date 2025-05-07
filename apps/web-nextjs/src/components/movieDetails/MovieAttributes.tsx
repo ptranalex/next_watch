@@ -1,13 +1,13 @@
+import { Genre, Movie } from "@/domain/entities";
+import { useMovieCast } from "@/hooks";
 import {
-  SimpleGrid,
-  Text,
   Link as ChakraLink,
+  SimpleGrid,
   Spinner,
+  Text,
 } from "@chakra-ui/react";
 import Link from "next/link";
 import DefinitionItem from "../utils/DefinitionItem";
-import { Movie, Genre } from "@/domain/entities";
-import { useMovieCast } from "@/hooks";
 
 interface Props {
   movie: Movie;

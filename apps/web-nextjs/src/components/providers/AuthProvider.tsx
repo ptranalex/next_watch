@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback } from "react";
 import { useAuthStore } from "@/store/auth";
-import SessionExpiredModal from "../commons/SessionExpiredModal";
+import SessionExpiredModal from "@/components/commons/SessionExpiredModal";
 import AuthTokenManager from "@/utils/authTokenManager";
 
 /**

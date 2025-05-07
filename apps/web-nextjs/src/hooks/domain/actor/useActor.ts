@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ActorAPI } from "@/services/api";
-import { Actor, toActorEntity } from "@/domain/entities";
-import { MovieListResponse } from "@/services/api";
+import { toActorEntity } from "@/domain/entities";
+import { ActorAPI, MovieListResponse } from "@/services/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook for fetching and managing a single actor

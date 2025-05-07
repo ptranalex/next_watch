@@ -1,10 +1,10 @@
-import { VStack, HStack, useToast } from "@chakra-ui/react";
+import ToggleIconButton from "@/components/commons/ToggleIconButton";
+import CopyToClipboardButton from "@/components/movieCard/CopyToClipBoardButton";
+import { Movie } from "@/domain/entities";
+import userInteractionAPI from "@/services/api/user/user-interaction-api";
+import { HStack, useToast, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
-import { Movie } from "@/domain/entities";
-import CopyToClipboardButton from "../utils/CopyToClipBoardButton";
-import ToggleIconButton from "../commons/ToggleIconButton";
-import userInteractionAPI from "@/services/api/user/user-interaction-api";
 
 interface Props {
   movie: Movie;

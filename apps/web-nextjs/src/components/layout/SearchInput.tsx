@@ -1,3 +1,6 @@
+import SuggestionItem from "@/components/layout/SuggestionItem";
+import { useSearchSuggestions } from "@/hooks";
+import { TextSuggestion } from "@/services/api/search/types";
 import {
   Box,
   Link as ChakraLink,
@@ -14,13 +17,10 @@ import {
   Text,
   useBreakpointValue,
 } from "@chakra-ui/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { HiMiniMagnifyingGlass } from "react-icons/hi2";
-import Link from "next/link";
-import { useSearchSuggestions } from "@/hooks";
-import SuggestionItem from "./SuggestionItem";
-import { TextSuggestion } from "@/services/api/search/types";
 
 const SearchBar = ({
   onFocus,

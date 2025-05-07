@@ -1,9 +1,8 @@
+import { Movie } from "@/domain/entities";
+import { APIClient } from "@/services/api";
 import { SunIcon } from "@chakra-ui/icons";
 import { Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { APIClient } from "@/services/api";
-import { Movie } from "@/services/api";
 
 const apiClient = new APIClient<Movie>("/movies");
 

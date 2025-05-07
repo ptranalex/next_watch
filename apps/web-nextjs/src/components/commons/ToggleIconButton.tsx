@@ -1,7 +1,6 @@
 import { IconButton } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { TiPlus } from "react-icons/ti";
-import { TiMinus } from "react-icons/ti";
+import { TiMinus, TiPlus } from "react-icons/ti";
 
 interface ToggleIconButtonProps {
   isActive: boolean;

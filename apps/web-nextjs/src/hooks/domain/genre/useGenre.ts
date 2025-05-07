@@ -1,9 +1,8 @@
 "use client";
 
+import { toGenreEntity } from "@/domain/entities";
+import { GenreAPI, MovieAPI, MovieListResponse } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
-import { GenreAPI, MovieAPI } from "@/services/api";
-import { Genre, toGenreEntity } from "@/domain/entities";
-import { MovieListResponse } from "@/services/api";
 
 /**
  * Hook for fetching and managing a single genre

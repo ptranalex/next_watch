@@ -1,5 +1,7 @@
 "use client";
 
+import MovieFilterModal from "@/components/home/MovieFilterModal";
+import useMovieQueryStore from "@/store/movieQuery";
 import {
   HStack,
   Heading,
@@ -8,8 +10,6 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { HiAdjustmentsHorizontal } from "react-icons/hi2";
-import useMovieQueryStore from "@/store/movieQuery";
-import MovieFilterModal from "./MovieFilterModal";
 
 interface MovieHeadingProps {
   title?: string;

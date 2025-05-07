@@ -1,8 +1,8 @@
-import { VStack, HStack, Box } from "@chakra-ui/react";
-import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
+import CardToggleIconButton from "@/components/movieCard/CardToggleIconButton";
+import CopyToClipboardButton from "@/components/movieCard/CopyToClipBoardButton";
 import { Movie } from "@/domain/entities";
-import CopyToClipboardButton from "./CopyToClipBoardButton";
-import CardToggleIconButton from "./CardToggleIconButton";
+import { Box, HStack, VStack } from "@chakra-ui/react";
+import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
 
 interface Props {
   movie: Movie;

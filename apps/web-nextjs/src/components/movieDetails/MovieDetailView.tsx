@@ -1,22 +1,22 @@
-import React, { Suspense, memo } from "react";
+import MovieGrid from "@/components/home/MovieGrid";
+import ActorsGallery from "@/components/movieDetails/ActorsGallery";
+import MovieAttributes from "@/components/movieDetails/MovieAttributes";
+import MovieQuickAction from "@/components/movieDetails/MovieQuickAction";
+import RatingGroup from "@/components/movieDetails/RatingGroup";
+import ExpandableText from "@/components/utils/ExpandableText";
+import { FEATURES } from "@/config/features";
+import { Genre, Movie } from "@/domain/entities";
 import {
   Box,
+  GridItem,
   Heading,
   Image,
   SimpleGrid,
-  GridItem,
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { Movie, Genre } from "@/domain/entities";
-import MovieAttributes from "./MovieAttributes";
-import MovieQuickAction from "./MovieQuickAction";
-import RatingGroup from "./RatingGroup";
-import ExpandableText from "../utils/ExpandableText";
-import ActorsGallery from "./ActorsGallery";
-import { FEATURES } from "@/config/features";
-import MovieGrid from "../home/MovieGrid";
 import dynamic from "next/dynamic";
+import React, { Suspense, memo } from "react";
 
 // Placeholder component for when the TrailerCard fails to load
 const TrailerFallback = memo(() => (

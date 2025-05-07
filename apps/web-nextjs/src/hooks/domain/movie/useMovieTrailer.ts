@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 
 export interface Trailer {
   id: number;

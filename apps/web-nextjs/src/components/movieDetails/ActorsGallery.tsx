@@ -1,7 +1,7 @@
-import React from "react";
-import { Box, Image, SimpleGrid, Text, Spinner } from "@chakra-ui/react";
-import Link from "next/link";
 import { useMovieCast } from "@/hooks/domain/movie/useMovieCast";
+import { Box, Image, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
+import Link from "next/link";
+import React from "react";
 
 // TMDB image base URL
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w200";

@@ -4,15 +4,8 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
   Stack,
   Text,
-  useColorModeValue,
   useToast,
   Box,
   Progress,
@@ -28,6 +21,10 @@ import {
 } from "react-icons/hi2";
 import userAPI from "@/services/api/user/user-api";
 import { NetflixImportResult } from "@/services/api/user/types";
+import BaseModal from "@/components/layout/BaseModal";
+import { PrimaryCTA, SecondaryCTA } from "@/components/form/FormCTA";
+import InfoBanner from "@/components/common/InfoBanner";
+import FileInput from "@/components/form/FileInput";
 
 interface ImportNetflixHistoryModalProps {
   isOpen: boolean;
@@ -38,43 +35,31 @@ const ImportNetflixHistoryModal: React.FC<ImportNetflixHistoryModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const textColor = useColorModeValue("black", "white");
-  const modalBgColor = useColorModeValue("gray.100", "gray.800");
   const toast = useToast();
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [fileName, setFileName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [importResult, setImportResult] = useState<NetflixImportResult | null>(
     null
   );
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      setFileName("");
-      setFileError("No file selected");
-      return;
-    }
-
-    // Check file extension
+  const validateCsvFile = (file: File) => {
     if (!file.name.endsWith(".csv")) {
-      setFileName(file.name);
-      setFileError("Please upload a CSV file");
-      return;
+      return "Please upload a CSV file";
     }
+    return null;
+  };
 
-    setFileName(file.name);
+  const handleFileChange = (file: File | null) => {
+    setSelectedFile(file);
     setFileError(null);
     setImportResult(null);
   };
 
   const handleUpload = async () => {
-    if (!fileName || fileError) {
+    if (!selectedFile) {
       toast({
         title: "Error",
         description: "Please select a valid CSV file",
@@ -85,17 +70,12 @@ const ImportNetflixHistoryModal: React.FC<ImportNetflixHistoryModalProps> = ({
       return;
     }
 
-    if (!fileInputRef.current?.files?.[0]) {
-      return;
-    }
-
-    const file = fileInputRef.current.files[0];
     setIsUploading(true);
     setUploadProgress(10);
 
     try {
       // Use the actual API service
-      const result = await userAPI.importNetflixHistory(file);
+      const result = await userAPI.importNetflixHistory(selectedFile);
       setUploadProgress(100);
       setImportResult(result);
 
@@ -125,152 +105,97 @@ const ImportNetflixHistoryModal: React.FC<ImportNetflixHistoryModalProps> = ({
   };
 
   const clearFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    setFileName("");
-    setFileError(null);
+    setSelectedFile(null);
     setImportResult(null);
   };
 
   return (
-    <Modal isCentered isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay
-        bg="blackAlpha.300"
-        backdropFilter="auto"
-        backdropBlur="4px"
-      />
-      <ModalContent bg={modalBgColor} color={textColor}>
-        <ModalHeader>
-          <Text fontSize="2xl">Import Netflix History</Text>
-        </ModalHeader>
-        <ModalCloseButton />
-        <ModalBody padding={6}>
-          <Stack spacing={4}>
-            <Box bg="blue.50" p={3} borderRadius="md" color="blue.700">
-              <Flex alignItems="center">
-                <Icon as={HiInformationCircle} boxSize={5} mr={2} />
-                <Text fontSize="sm">
-                  To export your Netflix watch history, go to your Netflix
-                  account, select &quot;Viewing activity&quot;, and click on
-                  &quot;Download all&quot;.
-                </Text>
-              </Flex>
-            </Box>
+    <BaseModal isOpen={isOpen} onClose={onClose} title="Import Netflix History">
+      <Stack spacing={4}>
+        <InfoBanner variant="info">
+          To export your Netflix watch history, go to your Netflix account,
+          select &quot;Viewing activity&quot;, and click on &quot;Download
+          all&quot;.
+        </InfoBanner>
 
-            <FormControl id="csv-file">
-              <FormLabel>Netflix History CSV</FormLabel>
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                p={1}
-                height="auto"
-              />
-              {fileError && (
-                <Text as="sub" color="red.500">
-                  {fileError}
-                </Text>
+        <FileInput
+          id="csv-file"
+          label="Netflix History CSV"
+          accept=".csv"
+          onChange={handleFileChange}
+          error={fileError}
+          validateFile={validateCsvFile}
+          isRequired={true}
+        />
+
+        {isUploading && (
+          <Box>
+            <Text mb={1} fontSize="sm">
+              Uploading...
+            </Text>
+            <Progress value={uploadProgress} size="sm" colorScheme="blue" />
+          </Box>
+        )}
+
+        {importResult && (
+          <Box bg="green.50" p={3} borderRadius="md" color="green.700">
+            <Text fontWeight="bold" mb={2}>
+              Import Summary:
+            </Text>
+            <UnorderedList>
+              <ListItem>Total entries: {importResult.total_entries}</ListItem>
+              <ListItem>Matches found: {importResult.matched_movies}</ListItem>
+              <ListItem>
+                Already watched: {importResult.already_marked_watched}
+              </ListItem>
+              <ListItem>
+                Newly marked as watched: {importResult.newly_marked_watched}
+              </ListItem>
+              {importResult.unmatched_titles.length > 0 && (
+                <ListItem>
+                  Titles not found: {importResult.unmatched_titles.length}
+                </ListItem>
               )}
-              {fileName && !fileError && (
-                <Text as="sub" color="green.500">
-                  {fileName} ready to upload
-                </Text>
-              )}
-            </FormControl>
+            </UnorderedList>
 
-            {isUploading && (
-              <Box>
-                <Text mb={1} fontSize="sm">
-                  Uploading...
-                </Text>
-                <Progress value={uploadProgress} size="sm" colorScheme="blue" />
-              </Box>
-            )}
-
-            {importResult && (
-              <Box bg="green.50" p={3} borderRadius="md" color="green.700">
+            {importResult.unmatched_titles.length > 0 && (
+              <Box mt={4}>
                 <Text fontWeight="bold" mb={2}>
-                  Import Summary:
+                  Unmatched Titles:
                 </Text>
-                <UnorderedList>
-                  <ListItem>
-                    Total entries: {importResult.total_entries}
-                  </ListItem>
-                  <ListItem>
-                    Matches found: {importResult.matched_movies}
-                  </ListItem>
-                  <ListItem>
-                    Already watched: {importResult.already_marked_watched}
-                  </ListItem>
-                  <ListItem>
-                    Newly marked as watched: {importResult.newly_marked_watched}
-                  </ListItem>
-                  {importResult.unmatched_titles.length > 0 && (
-                    <ListItem>
-                      Titles not found: {importResult.unmatched_titles.length}
-                    </ListItem>
-                  )}
-                </UnorderedList>
-
-                {importResult.unmatched_titles.length > 0 && (
-                  <Box mt={4}>
-                    <Text fontWeight="bold" mb={2}>
-                      Unmatched Titles:
-                    </Text>
-                    <Box maxH="150px" overflowY="auto" fontSize="sm">
-                      <UnorderedList>
-                        {importResult.unmatched_titles.map((title, index) => (
-                          <ListItem key={index}>{title}</ListItem>
-                        ))}
-                      </UnorderedList>
-                    </Box>
-                  </Box>
-                )}
+                <Box maxH="150px" overflowY="auto" fontSize="sm">
+                  <UnorderedList>
+                    {importResult.unmatched_titles.map((title, index) => (
+                      <ListItem key={index}>{title}</ListItem>
+                    ))}
+                  </UnorderedList>
+                </Box>
               </Box>
             )}
+          </Box>
+        )}
 
-            <Button
-              width="100%"
-              colorScheme="blue"
-              leftIcon={<HiDocumentArrowUp fontSize="1.5rem" />}
-              justifyContent="left"
-              onClick={handleUpload}
-              isLoading={isUploading}
-              loadingText="Uploading..."
-              isDisabled={!fileName || !!fileError || isUploading}
-            >
-              Upload Netflix History
-            </Button>
+        <PrimaryCTA
+          width="100%"
+          icon={HiDocumentArrowUp}
+          onClick={handleUpload}
+          isLoading={isUploading}
+        >
+          Upload Netflix History
+        </PrimaryCTA>
 
-            {fileName && (
-              <Button
-                variant="outline"
-                colorScheme="red"
-                width="100%"
-                leftIcon={<HiExclamationTriangle fontSize="1.5rem" />}
-                justifyContent="left"
-                onClick={clearFileInput}
-                isDisabled={isUploading}
-              >
-                Clear Selected File
-              </Button>
-            )}
-
-            <Button
-              variant="ghost"
-              colorScheme="gray"
-              width="100%"
-              onClick={onClose}
-              isDisabled={isUploading}
-            >
-              Close
-            </Button>
-          </Stack>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        {selectedFile && (
+          <SecondaryCTA
+            variant="outline"
+            width="100%"
+            icon={HiExclamationTriangle}
+            onClick={clearFileInput}
+          >
+            Clear Selected File
+          </SecondaryCTA>
+        )}
+      </Stack>
+    </BaseModal>
   );
 };
 
