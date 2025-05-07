@@ -8,7 +8,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { MovieAPI } from "@/services/api";
 import { Movie } from "@/domain/entities";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { userInteractionAPI, UserMovieDetail } from "@/services/api";
 
 interface UseMoviesOptions {
@@ -123,7 +123,7 @@ export const useMovies = (options: UseMoviesOptions) => {
           });
           return MovieAPI.getMovies({
             page,
-            limit: 50,
+            limit: 10,
             genre_id: options.genre_id,
             actor_id: options.actor_id,
             sortBy: sortOrder,
@@ -148,7 +148,9 @@ export const useMovies = (options: UseMoviesOptions) => {
           }
 
           const watchlistResponse = await userInteractionAPI.getUserMovies(
-            "watchlist"
+            "watchlist",
+            20, // Use consistent page size with backend default
+            0 // First page offset
           );
 
           // If no results, return empty array
@@ -184,7 +186,11 @@ export const useMovies = (options: UseMoviesOptions) => {
             return { movies: [], total: 0, page };
           }
 
-          const likedResponse = await userInteractionAPI.getUserMovies("liked");
+          const likedResponse = await userInteractionAPI.getUserMovies(
+            "liked",
+            20, // Use consistent page size with backend default
+            0 // First page offset
+          );
 
           // If no results, return empty array
           if (!likedResponse || likedResponse.length === 0) {
@@ -215,17 +221,16 @@ export const useMovies = (options: UseMoviesOptions) => {
           };
         case "watched":
           // Use optimized endpoint to get watched movies with details in single API call
-          if (page > 1) {
-            return { movies: [], total: 0, page };
-          }
-
+          const pageSize = 20; // Default page size
           const watchedResponse = await userInteractionAPI.getUserMovies(
-            "watched"
+            "watched",
+            pageSize, // Use fixed page size
+            (page - 1) * pageSize // Calculate offset based on page number
           );
 
           // If no results, return empty array
           if (!watchedResponse || watchedResponse.length === 0) {
-            return { movies: [], total: 0, page: 1 };
+            return { movies: [], total: 0, page };
           }
 
           // Transform the response to match expected format - API returns flattened structure
@@ -247,8 +252,8 @@ export const useMovies = (options: UseMoviesOptions) => {
 
           return {
             movies: watchedMovies,
-            total: watchedMovies.length,
-            page: 1,
+            total: 1000, // Set a large number to ensure hasNextPage is true if we have results
+            page,
           };
         default:
           throw new Error(`Unknown source: ${options.source}`);
@@ -258,12 +263,8 @@ export const useMovies = (options: UseMoviesOptions) => {
       if (!lastPage) return undefined;
       if (lastPage.movies.length === 0) return undefined;
 
-      // Don't attempt to load more pages for watchlist, favorites, or watched
-      if (
-        options.source === "watchlist" ||
-        options.source === "favorites" ||
-        options.source === "watched"
-      )
+      // Don't attempt to load more pages for watchlist and favorites
+      if (options.source === "watchlist" || options.source === "favorites")
         return undefined;
 
       return lastPage.page + 1;

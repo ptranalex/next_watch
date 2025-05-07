@@ -174,13 +174,8 @@ const MovieGrid = React.memo(
 
     // Prefetch logic to ensure screen has enough content
     useEffect(() => {
-      // Skip prefetching for watchlist, favorites, and watched since we load everything at once
-      if (
-        source === "watchlist" ||
-        source === "favorites" ||
-        source === "watched"
-      )
-        return;
+      // Skip prefetching for watchlist and favorites since we load everything at once
+      if (source === "watchlist" || source === "favorites") return;
 
       // Only run if we have initial data, have more to load, aren't already loading,
       // haven't completed initial loading, and know screen capacity
@@ -263,24 +258,20 @@ const MovieGrid = React.memo(
 
     return (
       <Box ref={scrollContainerRef}>
-        {source === "watchlist" ||
-        source === "favorites" ||
-        source === "watched" ? (
-          // For watchlist, favorites, and watched, use a simple grid without infinite scrolling
+        {source === "watchlist" || source === "favorites" ? (
+          // For watchlist and favorites, use a simple grid without infinite scrolling
           <SimpleGrid columns={columns} spacing={3} padding={1}>
             {movieList}
             {fetchedMoviesCount === 0 && (
               <Text textAlign="center" py={4} gridColumn="1 / -1">
                 {source === "favorites"
                   ? "You haven't liked any movies yet"
-                  : source === "watched"
-                  ? "You haven't watched any movies yet"
                   : "Your watchlist is empty"}
               </Text>
             )}
           </SimpleGrid>
         ) : (
-          // For other sources, use infinite scrolling
+          // For other sources including watched, use infinite scrolling
           <InfiniteScroll
             dataLength={fetchedMoviesCount}
             next={handleFetchNextPage}
@@ -296,7 +287,11 @@ const MovieGrid = React.memo(
             scrollThreshold={0.8}
             endMessage={
               <Text textAlign="center" py={4}>
-                No more movies to load
+                {fetchedMoviesCount > 0
+                  ? "No more movies to load"
+                  : source === "watched"
+                  ? "You haven't watched any movies yet"
+                  : "No movies found"}
               </Text>
             }
           >
