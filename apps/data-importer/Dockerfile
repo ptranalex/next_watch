@@ -33,22 +33,20 @@ RUN cd /tmp/movie-storage && \
     cd /app
 
 ***REMOVED*** Copy necessary files for installation
-COPY apps/backend-api/pyproject.toml ./
-COPY apps/backend-api/README.md ./
-COPY apps/backend-api/src ./src/
+COPY apps/data-importer/pyproject.toml ./
+COPY apps/data-importer/README.md ./
+COPY apps/data-importer/src ./src/
 
 ***REMOVED*** Fix the movie-storage dependency
-RUN sed -i 's|movie-storage = {path = "../../libs/movie-storage"}|movie-storage = "*"|g' pyproject.toml
+RUN sed -i 's|movie-storage = {path = "../../libs/movie-storage", develop = true}|movie-storage = "*"|g' pyproject.toml
 
 ***REMOVED*** Install dependencies directly with pip
 RUN pip install . && \
     rm -rf /tmp/poetry_cache
 
 ***REMOVED*** Copy the rest of the application code
-COPY apps/backend-api/tests ./tests/
+COPY apps/data-importer/data ./data/
 
-***REMOVED*** Expose the port the app runs on
-EXPOSE 8000
-
-***REMOVED*** Run the application
-CMD ["uvicorn", "backend_api.main:app", "--host", "0.0.0.0", "--port", "8000"] 
+***REMOVED*** Command to run the importer CLI
+***REMOVED*** The main entry point is in data_importer.cli:main
+CMD ["python", "-m", "data_importer"] 
