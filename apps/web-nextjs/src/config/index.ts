@@ -14,7 +14,7 @@ export const API_CONFIG = {
    * Base URL for the API
    * In browser contexts, this must be prefixed with NEXT_PUBLIC_
    */
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
 
   /**
    * API version

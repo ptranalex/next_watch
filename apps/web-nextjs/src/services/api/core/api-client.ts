@@ -16,7 +16,7 @@ try {
   config = {
     api: {
       timeout: 10000, // 10 seconds
-      baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001",
+      baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
     },
     auth: {
       tokenKey: "auth_token",
