@@ -7,19 +7,18 @@ jobs:
   ssh-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Print secrets
+      - name: Restore SSH key from raw string
         run: |
-          echo "HOST: ${{ secrets.HOST }}"
-          echo "USER: ${{ secrets.USER }}"
-          echo "KEY: ${{ secrets.KEY }}"
+          mkdir -p /root/.ssh
+          echo "${{ secrets.KEY }}" | sed 's/\\n/\n/g' > /root/.ssh/id_rsa
+          chmod 600 /root/.ssh/id_rsa
 
-      - name: Test SSH with appleboy
+      - name: Test SSH with Appleboy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
-          key: ${{ secrets.KEY }}
+          key_path: /root/.ssh/id_rsa
           script: |
-            echo "✅ SSH connection via Appleboy succeeded!"
+            echo "✅ SSH via Appleboy works with normal key!"
             hostname
-            whoami
