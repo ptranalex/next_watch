@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosError } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import {
   APIError,
   NetworkError,
@@ -7,11 +7,14 @@ import {
   CacheHitError,
 } from "./errors";
 
-// Attempt to import config, if it exists at the expected path
-let config: any;
+// Import config properly with ES modules
+import defaultConfig from "../../../config";
+
+// Use proper typing and fallback
+let config: typeof defaultConfig;
 try {
-  config = require("../../../config").default;
-} catch (e) {
+  config = defaultConfig;
+} catch {
   // Fallback config if import fails
   config = {
     api: {
@@ -21,7 +24,7 @@ try {
     auth: {
       tokenKey: "auth_token",
     },
-  };
+  } as typeof defaultConfig;
 }
 
 // Create API client instance with retry config
