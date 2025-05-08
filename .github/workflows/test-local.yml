@@ -6,19 +6,23 @@ on:
 jobs:
   ssh-test:
     runs-on: ubuntu-latest
+    env:
+      SSH_PATH: ${{ secrets.IS_ACT == 'true' && '/root/.ssh/id_rsa' || '/home/runner/.ssh/id_rsa' }}
+      SSH_DIR: ${{ secrets.IS_ACT == 'true' && '/root/.ssh' || '/home/runner/.ssh' }}
+
     steps:
-      - name: Restore SSH key from raw string
+      - name: Restore SSH key from string
         run: |
-          mkdir -p /root/.ssh
-          echo "${{ secrets.KEY }}" | sed 's/\\n/\n/g' > /root/.ssh/id_rsa
-          chmod 600 /root/.ssh/id_rsa
+          mkdir -p "$SSH_DIR"
+          echo "${{ secrets.KEY }}" | sed 's/\\n/\n/g' > "$SSH_PATH"
+          chmod 600 "$SSH_PATH"
 
       - name: Test SSH with Appleboy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
-          key_path: /root/.ssh/id_rsa
+          key_path: ${{ env.SSH_PATH }}
           script: |
-            echo "✅ SSH via Appleboy works with normal key!"
+            echo "✅ SSH connection successful"
             hostname
