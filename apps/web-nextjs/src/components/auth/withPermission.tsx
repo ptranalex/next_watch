@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Box, Heading, Text, Button } from "@chakra-ui/react";
 import { useAuth, Permission } from "@/hooks/";
@@ -67,6 +67,17 @@ export function withPermission<P extends object>(
     const { isAuthenticated, hasPermission, isLoading } = useAuth();
     const router = useRouter();
 
+    // Handle redirects in useEffect to ensure they only happen client-side
+    useEffect(() => {
+      // Check if user is authenticated and has permission
+      const hasAccess = isAuthenticated && hasPermission(requiredPermission);
+
+      // Only redirect if user doesn't have access and redirectTo is set
+      if (!hasAccess && redirectTo && !fallback) {
+        router.push(redirectTo);
+      }
+    }, [isAuthenticated, hasPermission, router]);
+
     // Handle loading state
     if (showLoading && isLoading) {
       return (
@@ -79,21 +90,14 @@ export function withPermission<P extends object>(
     // Check if user is authenticated and has permission
     const hasAccess = isAuthenticated && hasPermission(requiredPermission);
 
-    // If no access, show fallback or redirect
+    // If no access, show fallback or unauthorized message
     if (!hasAccess) {
       // If fallback is provided, show it
       if (fallback) {
         return <>{fallback}</>;
       }
 
-      // Otherwise show default or redirect
-      if (redirectTo) {
-        // Use setTimeout to avoid React state updates during render
-        setTimeout(() => router.push(redirectTo), 0);
-        return null;
-      }
-
-      // Default unauthorized component
+      // Default unauthorized component (redirect happens in useEffect)
       return <DefaultUnauthorized redirectTo={redirectTo} />;
     }
 

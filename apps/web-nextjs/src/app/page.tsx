@@ -6,6 +6,9 @@ import MovieHeading from "@/components/home/MovieHeading";
 import { useSlugLogic } from "@/hooks";
 import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
 
+// Make the page dynamic to avoid prerendering issues
+export const dynamic = "force-dynamic";
+
 // Memoize components
 const MemoizedMovieGrid = memo(MovieGrid);
 

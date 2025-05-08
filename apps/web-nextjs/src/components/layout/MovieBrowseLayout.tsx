@@ -1,3 +1,5 @@
+"use client";
+
 import LeftNavBar from "@/components/layout/LeftNavBar";
 import SortSelector from "@/components/layout/SortSelector";
 import { Box, Grid, GridItem, Heading, Show, Skeleton } from "@chakra-ui/react";

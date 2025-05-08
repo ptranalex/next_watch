@@ -4,10 +4,10 @@ import ScrollToTopButton from "@/components/commons/ScrollToTopButton";
 import MovieCard from "@/components/movieCard/MovieCard";
 import MovieCardContainer from "@/components/movieCard/MovieCardContainer";
 import MovieCardSkeleton from "@/components/movieCard/MovieCardSkeleton";
+import { useMovieQuery } from "@/context/MovieQueryContext";
 import { Movie } from "@/domain/entities";
 import { useMovies } from "@/hooks";
 import { Box, SimpleGrid, Text, useBreakpointValue } from "@chakra-ui/react";
-import { useSearchParams } from "next/navigation";
 import React, {
   useCallback,
   useEffect,
@@ -63,8 +63,8 @@ const MovieGrid = React.memo(
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // Track URL search params to reset state when filters change
-    const searchParams = useSearchParams();
+    // Get filter values from MovieQueryContext
+    const { movieQuery } = useMovieQuery();
 
     // Memoize these values to prevent recalculation on every render
     const safeIds = useMemo(
@@ -79,12 +79,31 @@ const MovieGrid = React.memo(
       [movie_id, actor_id, genre_id]
     );
 
+    // Reset initialLoadComplete when filter values change
+    useEffect(() => {
+      setInitialLoadComplete(false);
+    }, [
+      movieQuery.rating_imdb,
+      movieQuery.rating_rotten_tomatoes,
+      movieQuery.rating_metacritic,
+      movieQuery.year,
+      movieQuery.sortOrder,
+      movieQuery.sortDesc,
+    ]);
+
     const { data, isLoading, fetchNextPage, hasNextPage, updateMovie, error } =
       useMovies({
         source,
         movie_id: safeIds.movieId,
         actor_id: safeIds.actorId,
         genre_id: safeIds.genreId,
+        // Pass filter values from context to useMovies
+        imdb_rating: movieQuery.rating_imdb || undefined,
+        rotten_tomatoes_rating: movieQuery.rating_rotten_tomatoes || undefined,
+        metacritic_rating: movieQuery.rating_metacritic || undefined,
+        year: movieQuery.year || undefined,
+        sortOrder: movieQuery.sortOrder,
+        sortDesc: movieQuery.sortDesc,
       });
 
     const breakpointColumns = useBreakpointValue(
@@ -100,11 +119,6 @@ const MovieGrid = React.memo(
         next: 2 * numSkeletons - (100 % numSkeletons),
       };
     }, [breakpointColumns]);
-
-    // Reset initial load state when URL params change
-    useEffect(() => {
-      setInitialLoadComplete(false);
-    }, [searchParams]);
 
     // Calculate screen capacity on mount and resize - memoized calculation
     useEffect(() => {

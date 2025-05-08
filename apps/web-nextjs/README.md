@@ -32,12 +32,40 @@ cp .env.example .env.local
 npm run dev
 ```
 
+***REMOVED******REMOVED******REMOVED*** Docker Deployment
+
+The application includes a Docker configuration for containerized deployment:
+
+```bash
+***REMOVED*** Build Docker image
+docker build -t web-nextjs -f apps/web-nextjs/Dockerfile .
+
+***REMOVED*** Run Docker container
+docker run -d -p 3000:3000 --name web-nextjs-app web-nextjs
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Docker Architecture
+
+The Docker setup uses a specially configured development mode that:
+
+- Avoids static generation issues with Next.js in production mode
+- Correctly handles React hooks like useSearchParams with proper Suspense boundaries
+- Provides a secure environment with non-root users
+- Reduces container size through careful layer management
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Docker Environment Variables
+
+- `NODE_ENV=development` - Uses development mode for best compatibility
+- `NEXT_TELEMETRY_DISABLED=1` - Disables Next.js telemetry
+- `PORT=3000` - Sets the internal container port
+
 ***REMOVED******REMOVED******REMOVED*** Available Scripts
 
 - `npm run dev` - Start the development server
 - `npm run build` - Build for production
 - `npm start` - Run the production build
 - `npm run lint` - Run ESLint
+- `npm run docker-build` - Custom build script optimized for Docker deployment
 
 ***REMOVED******REMOVED*** 🏗️ Architecture
 
@@ -107,3 +135,121 @@ npm test -- --coverage
 ***REMOVED******REMOVED*** 📄 License
 
 This project is licensed under the MIT License
+
+***REMOVED******REMOVED*** URL Parameter Handling
+
+The application uses a custom hook called `useUrlParams` for handling URL parameters safely in both server and client components. This approach solves the common SSR/hydration issues with `useSearchParams` in Next.js.
+
+***REMOVED******REMOVED******REMOVED*** Using the `useUrlParams` hook
+
+```tsx
+import { useUrlParams } from "@/hooks/navigation/useUrlParams";
+
+function MyComponent() {
+  // Specify expected parameter types
+  const { params, updateParams, setParam } = useUrlParams<{
+    search?: string;
+    page?: number;
+    filter?: boolean;
+  }>();
+
+  // Access URL params with proper typing
+  const searchTerm = params.search || "";
+  const currentPage = params.page || 1;
+
+  // Update single parameter
+  const handleSearch = (term: string) => {
+    setParam("search", term);
+  };
+
+  // Update multiple parameters at once
+  const resetFilters = () => {
+    updateParams({
+      search: "",
+      page: 1,
+    });
+  };
+
+  return (
+    <div>
+      <p>Current search: {searchTerm}</p>
+      <p>Page: {currentPage}</p>
+      <button onClick={() => handleSearch("new term")}>Search</button>
+      <button onClick={resetFilters}>Reset</button>
+    </div>
+  );
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** Benefits of this approach
+
+1. **Type safety**: Parameters are properly typed
+2. **Server-side rendering compatible**: Works in both SSR and client environments
+3. **No hydration errors**: Handles the hydration process correctly
+4. **No suspense boundaries needed**: Eliminates the need for wrapping components in suspense boundaries
+5. **Production build compatible**: Works correctly in production builds without special accommodations
+
+***REMOVED******REMOVED*** Sustainable Docker Strategy
+
+For the most sustainable Docker deployment, we have two main approaches:
+
+***REMOVED******REMOVED******REMOVED*** Approach 1: Production Build with useUrlParams
+
+Use our custom `useUrlParams` hook throughout the codebase, which safely handles URL parameters without requiring Suspense boundaries. This approach works with proper static generation and can use a standard production Dockerfile.
+
+***REMOVED******REMOVED******REMOVED*** Approach 2: Development Server Mode for Production
+
+In some cases where you can't update all component instances, running in development mode can provide a more flexible solution:
+
+```dockerfile
+***REMOVED*** Simplified Dockerfile for Next.js
+FROM node:20-alpine
+
+***REMOVED*** Setup app directory
+WORKDIR /app
+
+***REMOVED*** Install dependencies
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN pnpm install --frozen-lockfile
+
+***REMOVED*** Copy application code
+COPY . .
+
+***REMOVED*** Configure for development mode
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+
+***REMOVED*** Start the development server
+CMD ["pnpm", "dev"]
+```
+
+This approach avoids static generation issues and is more forgiving with client-side hooks like `useSearchParams`, but comes with some performance trade-offs.
+
+***REMOVED******REMOVED*** Development
+
+***REMOVED******REMOVED******REMOVED*** Prerequisites
+
+- Node.js 20+
+- pnpm 10.10.0+
+
+***REMOVED******REMOVED******REMOVED*** Setup
+
+```bash
+***REMOVED*** Install dependencies
+pnpm install
+
+***REMOVED*** Start development server
+pnpm dev
+```
+
+***REMOVED******REMOVED*** Building for Production
+
+```bash
+***REMOVED*** Build the application
+pnpm production-build
+
+***REMOVED*** Start the production server
+pnpm start
+```

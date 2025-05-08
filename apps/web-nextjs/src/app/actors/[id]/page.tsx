@@ -4,22 +4,40 @@ import { Box, Heading, Spinner } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { MovieAPI } from "@/services/api";
 import MovieGrid from "@/components/home/MovieGrid";
-import { useParams } from "next/navigation";
 import { memo } from "react";
 import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
+
+// Export dynamic to ensure server-side rendering works correctly
+export const dynamic = "force-dynamic";
 
 // Memoize components for better performance
 const MemoizedMovieGrid = memo(MovieGrid);
 
-const ActorPage = () => {
-  const params = useParams();
-  const actorId = Number(params.id);
+// Actor page props interface
+interface ActorPageProps {
+  params: { id: string };
+}
+
+const ActorPage = ({ params }: ActorPageProps) => {
+  // Safely extract actor ID from params
+  const actorId = params?.id ? Number(params.id) : null;
 
   const { data: movies, isLoading } = useQuery({
     queryKey: ["movies", "actor", actorId],
-    queryFn: () => MovieAPI.getMovies({ actor_id: actorId }),
+    queryFn: () => MovieAPI.getMovies({ actor_id: actorId || undefined }),
     staleTime: 5 * 60 * 1000, // 5 minutes caching for performance
+    enabled: !!actorId, // Only run query when we have a valid actorId
   });
+
+  if (!actorId) {
+    return (
+      <MovieBrowseLayout title={<Heading>Actor Not Found</Heading>}>
+        <Box p={5} textAlign="center">
+          Invalid actor ID
+        </Box>
+      </MovieBrowseLayout>
+    );
+  }
 
   if (isLoading) {
     return (

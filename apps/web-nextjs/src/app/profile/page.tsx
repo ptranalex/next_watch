@@ -19,7 +19,10 @@ import { useAuth } from "@/hooks";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useState } from "react";
 import ImportNetflixHistoryModal from "@/components/profile/ImportNetflixHistoryModal";
-import { HiFilm, HiOutlineArrowUpTray } from "react-icons/hi2";
+import { HiOutlineArrowUpTray } from "react-icons/hi2";
+
+// Make the page dynamic to avoid prerendering issues
+export const dynamic = "force-dynamic";
 
 export default function ProfilePage() {
   return (

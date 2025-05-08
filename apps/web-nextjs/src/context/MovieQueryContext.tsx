@@ -1,12 +1,11 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useState,
 } from "react";
 
@@ -75,140 +74,46 @@ interface MovieQueryProviderProps {
 // Movie Query Provider component
 export const MovieQueryProvider = ({ children }: MovieQueryProviderProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Get query params from URL or use defaults
-  const getQueryFromUrl = useCallback(() => {
-    return {
-      searchText: searchParams.get("search") || "",
-      genre: searchParams.get("genre"),
-      sortOrder: searchParams.get("sort") || "release_date",
-      sortDesc: searchParams.get("desc") !== "false",
-      rating_imdb: searchParams.get("imdb")
-        ? Number(searchParams.get("imdb"))
-        : null,
-      rating_rotten_tomatoes: searchParams.get("rt")
-        ? Number(searchParams.get("rt"))
-        : null,
-      rating_metacritic: searchParams.get("mc")
-        ? Number(searchParams.get("mc"))
-        : null,
-      year: searchParams.get("year") ? Number(searchParams.get("year")) : null,
-    };
-  }, [searchParams]);
-
-  // State for movie query
-  const [movieQuery, setMovieQuery] = useState<MovieQuery>(getQueryFromUrl());
-
-  // Update URL when movie query changes
-  const updateUrl = useCallback(
-    (newQuery: MovieQuery) => {
-      const params = new URLSearchParams();
-
-      if (newQuery.searchText) params.set("search", newQuery.searchText);
-      if (newQuery.genre) params.set("genre", newQuery.genre);
-      if (newQuery.sortOrder) params.set("sort", newQuery.sortOrder);
-      params.set("desc", newQuery.sortDesc ? "true" : "false");
-      if (newQuery.rating_imdb !== null)
-        params.set("imdb", newQuery.rating_imdb.toString());
-      if (newQuery.rating_rotten_tomatoes !== null)
-        params.set("rt", newQuery.rating_rotten_tomatoes.toString());
-      if (newQuery.rating_metacritic !== null)
-        params.set("mc", newQuery.rating_metacritic.toString());
-      if (newQuery.year !== null) params.set("year", newQuery.year.toString());
-
-      // Update URL without reloading the page
-      router.push(`?${params.toString()}`);
-    },
-    [router]
-  );
-
-  // Update local state from URL whenever URL changes
-  useEffect(() => {
-    setMovieQuery(getQueryFromUrl());
-  }, [searchParams, getQueryFromUrl]);
+  // State for movie query - now using default values directly
+  const [movieQuery, setMovieQuery] = useState<MovieQuery>(defaultMovieQuery);
 
   // Setters for each property
-  const setSearchText = useCallback(
-    (text: string) => {
-      const newQuery = { ...movieQuery, searchText: text };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setSearchText = useCallback((text: string) => {
+    setMovieQuery((prev) => ({ ...prev, searchText: text }));
+  }, []);
 
-  const setGenre = useCallback(
-    (genre: string | null) => {
-      const newQuery = { ...movieQuery, genre };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setGenre = useCallback((genre: string | null) => {
+    setMovieQuery((prev) => ({ ...prev, genre }));
+  }, []);
 
-  const setSortOrder = useCallback(
-    (sortOrder: string) => {
-      const newQuery = { ...movieQuery, sortOrder };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setSortOrder = useCallback((sortOrder: string) => {
+    setMovieQuery((prev) => ({ ...prev, sortOrder }));
+  }, []);
 
-  const setSortDirection = useCallback(
-    (desc: boolean) => {
-      const newQuery = { ...movieQuery, sortDesc: desc };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setSortDirection = useCallback((desc: boolean) => {
+    setMovieQuery((prev) => ({ ...prev, sortDesc: desc }));
+  }, []);
 
-  const setSorting = useCallback(
-    (order: string, desc: boolean) => {
-      const newQuery = { ...movieQuery, sortOrder: order, sortDesc: desc };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setSorting = useCallback((order: string, desc: boolean) => {
+    setMovieQuery((prev) => ({ ...prev, sortOrder: order, sortDesc: desc }));
+  }, []);
 
-  const setRatingImdb = useCallback(
-    (rating: number | null) => {
-      const newQuery = { ...movieQuery, rating_imdb: rating };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setRatingImdb = useCallback((rating: number | null) => {
+    setMovieQuery((prev) => ({ ...prev, rating_imdb: rating }));
+  }, []);
 
-  const setRatingTomatoes = useCallback(
-    (rating: number | null) => {
-      const newQuery = { ...movieQuery, rating_rotten_tomatoes: rating };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setRatingTomatoes = useCallback((rating: number | null) => {
+    setMovieQuery((prev) => ({ ...prev, rating_rotten_tomatoes: rating }));
+  }, []);
 
-  const setRatingMetacritic = useCallback(
-    (rating: number | null) => {
-      const newQuery = { ...movieQuery, rating_metacritic: rating };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setRatingMetacritic = useCallback((rating: number | null) => {
+    setMovieQuery((prev) => ({ ...prev, rating_metacritic: rating }));
+  }, []);
 
-  const setYear = useCallback(
-    (year: number | null) => {
-      const newQuery = { ...movieQuery, year };
-      setMovieQuery(newQuery);
-      updateUrl(newQuery);
-    },
-    [movieQuery, updateUrl]
-  );
+  const setYear = useCallback((year: number | null) => {
+    setMovieQuery((prev) => ({ ...prev, year }));
+  }, []);
 
   const reset = useCallback(() => {
     setMovieQuery(defaultMovieQuery);

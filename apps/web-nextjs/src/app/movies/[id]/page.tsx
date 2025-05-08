@@ -1,7 +1,7 @@
 "use client";
 
 import { useMediaQuery } from "@chakra-ui/react";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useAuth, useMovie, useParams } from "@/hooks";
 import { Movie } from "@/domain/entities";
 import MovieDetailView from "@/components/movieDetails/MovieDetailView";
@@ -11,7 +11,10 @@ import MovieErrorState from "@/components/movieDetails/MovieErrorState";
 import MovieNotFoundState from "@/components/movieDetails/MovieNotFoundState";
 import MovieInitialLoading from "@/components/movieDetails/MovieInitialLoading";
 
-// Handle movie id parameter in a way compatible with Next.js 15
+// Export dynamic to ensure server-side rendering works correctly
+export const dynamic = "force-dynamic";
+
+// Handle movie id parameter in a way compatible with Next.js
 interface MovieDetailPageProps {
   params: Promise<{ id: string }> | { id: string };
 }
@@ -21,16 +24,25 @@ interface MovieDetailPageProps {
  * Displays a movie's details, with states for loading, error, and not found
  */
 const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
+  const [isParamsLoading, setIsParamsLoading] = useState(true);
+
   // Use our custom hook to handle params unwrapping
-  const { id } = useParams(params);
-  const movieId = id ? Number(id) : null;
+  const resolvedParams = useParams(params);
+  const movieId = resolvedParams?.id ? Number(resolvedParams.id) : null;
+
+  // Track when params are resolved
+  useEffect(() => {
+    if (resolvedParams && Object.keys(resolvedParams).length > 0) {
+      setIsParamsLoading(false);
+    }
+  }, [resolvedParams]);
 
   const { isAuthenticated } = useAuth();
   const [isSmallerScreen] = useMediaQuery("(max-width: 600px)");
 
   const {
     movie,
-    isLoading,
+    isLoading: isMovieLoading,
     error,
     toggleWatched,
     toggleLiked,
@@ -53,8 +65,8 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
     [movie, toggleWatched, toggleLiked, toggleWatchlist]
   );
 
-  // Render different states based on loading/error conditions
-  if (movieId === null) {
+  // Show initial loading state while waiting for params to resolve
+  if (isParamsLoading || movieId === null) {
     return (
       <MovieLayout>
         <MovieInitialLoading />
@@ -62,7 +74,8 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
     );
   }
 
-  if (isLoading) {
+  // Show loading state while fetching movie data
+  if (isMovieLoading) {
     return (
       <MovieLayout>
         <MovieSkeleton isSmallerScreen={isSmallerScreen} />
@@ -70,6 +83,7 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
     );
   }
 
+  // Handle error state
   if (error) {
     return (
       <MovieLayout>
@@ -78,6 +92,7 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
     );
   }
 
+  // Handle movie not found
   if (!movie) {
     return (
       <MovieLayout>
@@ -86,6 +101,7 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
     );
   }
 
+  // Render movie details
   return (
     <MovieLayout>
       <MovieDetailView

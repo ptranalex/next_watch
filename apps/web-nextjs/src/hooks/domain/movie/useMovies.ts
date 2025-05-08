@@ -7,7 +7,6 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 interface UseMoviesOptions {
@@ -23,27 +22,25 @@ interface UseMoviesOptions {
   genre_id?: number;
   page?: number;
   searchText?: string;
+  // Add filter options directly as props instead of using URL params
+  imdb_rating?: number;
+  rotten_tomatoes_rating?: number;
+  metacritic_rating?: number;
+  year?: number;
+  sortOrder?: string;
+  sortDesc?: boolean;
 }
 
 export const useMovies = (options: UseMoviesOptions) => {
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
 
-  // Read filter values directly from URL
-  const imdb_rating = searchParams.get("imdb")
-    ? Number(searchParams.get("imdb"))
-    : undefined;
-  const rotten_tomatoes_rating = searchParams.get("rt")
-    ? Number(searchParams.get("rt"))
-    : undefined;
-  const metacritic_rating = searchParams.get("mc")
-    ? Number(searchParams.get("mc"))
-    : undefined;
-  const year = searchParams.get("year")
-    ? Number(searchParams.get("year"))
-    : undefined;
-  const sortOrder = searchParams.get("sort") || "release_date";
-  const sortDesc = searchParams.get("desc") !== "false"; // Default to true unless explicitly false
+  // Use provided filter values directly instead of from URL
+  const imdb_rating = options.imdb_rating;
+  const rotten_tomatoes_rating = options.rotten_tomatoes_rating;
+  const metacritic_rating = options.metacritic_rating;
+  const year = options.year;
+  const sortOrder = options.sortOrder || "release_date";
+  const sortDesc = options.sortDesc !== false; // Default to true unless explicitly false
 
   const queryKey = [
     "movies",
@@ -52,7 +49,7 @@ export const useMovies = (options: UseMoviesOptions) => {
       movie_id: options.movie_id,
       actor_id: options.actor_id,
       genre_id: options.genre_id,
-      // Add URL filters to query key to trigger refetch when URL changes
+      // Add filter options to query key
       imdb_rating,
       rotten_tomatoes_rating,
       metacritic_rating,
