@@ -191,5 +191,5 @@ jobs:
             head -10 docker-compose.prod.yml
 
             ***REMOVED*** Run docker-compose commands - try with sudo if normal fails
-            docker-compose -f docker-compose.prod.yml pull || sudo docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml up -d || sudo docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml pull || sudo docker-compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d || sudo docker-compose -f docker-compose.prod.yml up -d
