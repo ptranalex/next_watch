@@ -23,29 +23,29 @@ RUN curl -sSL https://install.python-poetry.org | python -
 ***REMOVED*** Add Poetry to PATH
 ENV PATH="${PATH}:/root/.local/bin"
 
-***REMOVED*** Copy the movie-storage library
+***REMOVED*** Copy dependency-related files first
 COPY libs/movie-storage /tmp/movie-storage/
+COPY apps/backend-api/pyproject.toml ./
+COPY apps/backend-api/README.md ./
+COPY apps/backend-api/src ./src/ 
 
-***REMOVED*** Install movie-storage
+***REMOVED*** Now install movie-storage and backend-api dependencies
 RUN cd /tmp/movie-storage && \
     poetry build && \
     pip install dist/*.whl && \
-    cd /app
-
-***REMOVED*** Copy necessary files for installation
-COPY apps/backend-api/pyproject.toml ./
-COPY apps/backend-api/README.md ./
-COPY apps/backend-api/src ./src/
-
-***REMOVED*** Fix the movie-storage dependency
-RUN sed -i 's|movie-storage = {path = "../../libs/movie-storage"}|movie-storage = "*"|g' pyproject.toml
-
-***REMOVED*** Install dependencies directly with pip
-RUN pip install . && \
+    cd /app && \
+    sed -i 's|movie-storage = {path = "../../libs/movie-storage"}|movie-storage = "*"|g' pyproject.toml && \
+    pip install . && \
     rm -rf /tmp/poetry_cache
 
+***REMOVED*** Now copy the rest of the app source (won’t invalidate earlier layers unless code changes)
+COPY apps/backend-api/src ./src/
+
 ***REMOVED*** Copy the rest of the application code
-COPY apps/backend-api/tests ./tests/
+COPY apps/backend-api/src ./src/
+
+***REMOVED*** Create tests directory
+RUN mkdir -p ./tests/
 
 ***REMOVED*** Expose the port the app runs on
 EXPOSE 8000
