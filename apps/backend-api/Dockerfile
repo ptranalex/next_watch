@@ -1,56 +1,65 @@
-ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim AS base
+***REMOVED*** Stage 1: Build dependencies and package
+FROM python:3.12-alpine AS builder
 
-***REMOVED*** Set up environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=0 \
     POETRY_VIRTUALENVS_CREATE=0 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+    POETRY_CACHE_DIR=/tmp/poetry_cache \
+    PATH="${PATH}:/root/.local/bin"
 
 WORKDIR /app
 
-***REMOVED*** Install system dependencies with retry logic and alternate mirrors
-RUN set -eux; \
-    apt-get update || (sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && apt-get update); \
-    apt-get install -y --no-install-recommends \
-    build-essential \
+***REMOVED*** Install build dependencies - use a single layer and clean up in the same step
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    gcc \
+    musl-dev \
+    python3-dev \
+    libffi-dev \
+    openssl-dev \
+    && curl -sSL https://install.python-poetry.org | python -
 
-***REMOVED*** Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python -
-
-***REMOVED*** Add Poetry to PATH
-ENV PATH="${PATH}:/root/.local/bin"
-
-***REMOVED*** Copy dependency-related files first
+***REMOVED*** Copy only dependency-related files first
 COPY libs/movie-storage /tmp/movie-storage/
-COPY apps/backend-api/pyproject.toml ./
-COPY apps/backend-api/README.md ./
-COPY apps/backend-api/src ./src/ 
-
-***REMOVED*** Now install movie-storage and backend-api dependencies
-RUN cd /tmp/movie-storage && \
-    poetry build && \
-    pip install dist/*.whl && \
-    cd /app && \
-    sed -i 's|movie-storage = {path = "../../libs/movie-storage"}|movie-storage = "*"|g' pyproject.toml && \
-    pip install . && \
-    rm -rf /tmp/poetry_cache
-
-***REMOVED*** Now copy the rest of the app source (won’t invalidate earlier layers unless code changes)
+COPY apps/backend-api/pyproject.toml apps/backend-api/poetry.lock* ./
 COPY apps/backend-api/src ./src/
 
-***REMOVED*** Copy the rest of the application code
+***REMOVED*** Fix the local path so `pip install .` works
+RUN sed -i 's|movie-storage = {path = "../../libs/movie-storage"}|movie-storage = "*"|g' pyproject.toml
+
+***REMOVED*** Build and install dependencies - combine commands to reduce layers
+RUN cd /tmp/movie-storage \
+    && poetry build \
+    && pip install --no-cache-dir dist/*.whl \
+    && cd /app \
+    && pip install --no-cache-dir . \
+    && rm -rf /tmp/poetry_cache /tmp/movie-storage \
+    && apk del .build-deps
+
+***REMOVED*** Stage 2: Runtime image - use a much smaller base
+FROM python:3.12-alpine AS final
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+***REMOVED*** Install runtime dependencies only
+RUN apk add --no-cache libstdc++
+
+***REMOVED*** Copy only what's needed from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
+
+***REMOVED*** Only copy the application code, not the entire Python installation
 COPY apps/backend-api/src ./src/
 
-***REMOVED*** Create tests directory
-RUN mkdir -p ./tests/
-
-***REMOVED*** Expose the port the app runs on
 EXPOSE 8000
 
-***REMOVED*** Run the application
-CMD ["uvicorn", "backend_api.main:app", "--host", "0.0.0.0", "--port", "8000"] 
+***REMOVED*** Use a non-root user for better security
+RUN addgroup -S app && adduser -S app -G app
+USER app
+
+CMD ["uvicorn", "backend_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
