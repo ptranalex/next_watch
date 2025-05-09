@@ -12,8 +12,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-***REMOVED*** Install system dependencies and Poetry
-RUN apt-get update && apt-get install -y --no-install-recommends \
+***REMOVED*** Install system dependencies with retry logic and alternate mirrors
+RUN set -eux; \
+    apt-get update || (sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && apt-get update); \
+    apt-get install -y --no-install-recommends \
     build-essential \
     curl \
  && curl -sSL https://install.python-poetry.org | python - \

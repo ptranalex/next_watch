@@ -14,6 +14,9 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 FROM base AS deps
 WORKDIR /app
 
+***REMOVED*** Install additional build dependencies
+RUN apk add --no-cache python3 make g++
+
 ***REMOVED*** Copy package.json, pnpm-lock.yaml and npmrc
 COPY apps/web-nextjs/package.json .
 COPY apps/web-nextjs/pnpm-lock.yaml .

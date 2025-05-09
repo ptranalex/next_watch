@@ -1,0 +1,195 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [main]
+  ***REMOVED*** Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      deploy_only:
+        description: "Skip build and only deploy"
+        required: false
+        default: "false"
+      skip_registry:
+        description: "Skip registry sync"
+        required: false
+        default: "false"
+      build_only:
+        description: "Skip deployment and only build"
+        required: false
+        default: "false"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set environment
+        id: set-env
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "ACT_RUNNING=true" >> $GITHUB_ENV
+            echo "SSH_PATH=/root/.ssh/id_rsa" >> $GITHUB_ENV
+            echo "SSH_DIR=/root/.ssh" >> $GITHUB_ENV
+          else
+            echo "ACT_RUNNING=false" >> $GITHUB_ENV
+            echo "SSH_PATH=/home/runner/.ssh/id_rsa" >> $GITHUB_ENV
+            echo "SSH_DIR=/home/runner/.ssh" >> $GITHUB_ENV
+          fi
+
+      - name: Set feature flag
+        run: |
+          echo "DEPLOY_ONLY=${{ github.event.inputs.deploy_only }}" >> $GITHUB_ENV
+          echo "SKIP_REGISTRY=${{ github.event.inputs.skip_registry }}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          driver-opts: |
+            network=host
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_PAT }}
+
+      - name: Build Backend API
+        if: ${{ env.DEPLOY_ONLY != 'true' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./apps/backend-api/Dockerfile
+          push: ${{ env.SKIP_REGISTRY != 'true' }}
+          load: ${{ env.SKIP_REGISTRY == 'true' }}
+          tags: ghcr.io/${{ github.repository }}/backend-api:latest
+          platforms: linux/amd64
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          network: host
+
+      - name: Build Data Importer
+        if: ${{ env.DEPLOY_ONLY != 'true' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./apps/data-importer/Dockerfile
+          push: ${{ env.SKIP_REGISTRY != 'true' }}
+          load: ${{ env.SKIP_REGISTRY == 'true' }}
+          platforms: linux/amd64
+          tags: ghcr.io/${{ github.repository }}/data-importer:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          network: host
+
+      - name: Build Frontend
+        if: ${{ env.DEPLOY_ONLY != 'true' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./apps/web-nextjs/Dockerfile
+          push: ${{ env.SKIP_REGISTRY != 'true' }}
+          load: ${{ env.SKIP_REGISTRY == 'true' }}
+          platforms: linux/amd64
+          tags: ghcr.io/${{ github.repository }}/frontend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          network: host
+
+      - name: Restore SSH key from string
+        run: |
+          mkdir -p "$SSH_DIR"
+          echo "${{ secrets.DEPLOY_KEY }}" | sed 's/\\n/\n/g' > "$SSH_PATH"
+          chmod 600 "$SSH_PATH"
+          echo "SSH key written to $SSH_PATH with permissions:"
+          ls -la "$SSH_PATH"
+          echo "SSH key format check:"
+          ssh-keygen -l -f "$SSH_PATH" || echo "INVALID SSH KEY FORMAT"
+
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key_path: ${{ env.SSH_PATH }}
+          script: |
+            echo "✅ SSH connection successful"
+            hostname
+            echo "This is a test from GitHub Actions"
+
+      - name: Setup Docker permissions on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key_path: ${{ env.SSH_PATH }}
+          script: |
+            ***REMOVED*** Check if we're in docker group
+            echo "Current groups:"
+            groups
+
+            if ! groups | grep -q docker; then
+              echo "Not in docker group. Need sudo to add user to docker group or run docker directly."
+              
+              ***REMOVED*** Try to add current user to docker group (if we have sudo)
+              if command -v sudo >/dev/null 2>&1; then
+                echo "Trying to add user to docker group with sudo..."
+                sudo usermod -aG docker $USER || echo "Failed to add user to docker group. Will try sudo for docker commands."
+                echo "You may need to log out and back in for group changes to take effect."
+              else
+                echo "Sudo not available. Will try to run docker with sudo."
+              fi
+            fi
+
+            ***REMOVED*** Test docker access
+            echo "Testing docker access directly..."
+            docker ps >/dev/null 2>&1 || { 
+              echo "Direct docker access failed, trying with sudo..."
+              sudo docker ps >/dev/null 2>&1 && echo "Docker works with sudo. Will use sudo for docker commands."
+            }
+
+      - name: Deploy with docker-compose
+        if: ${{ env.BUILD_ONLY != 'true' }}
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key_path: ${{ env.SSH_PATH }}
+          script: |
+            set -e
+            mkdir -p /home/${{ secrets.DEPLOY_USER }}/next_watch
+            cd /home/${{ secrets.DEPLOY_USER }}/next_watch
+
+            echo "🔐 Attempting Docker login to GHCR..."
+            if ! echo "${{ secrets.GITHUB_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
+              echo "⚠️ Docker login failed — retrying with sudo..."
+              echo "${{ secrets.GITHUB_PAT }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
+                echo "❌ Docker login failed even with sudo. Aborting."
+                exit 1
+              }
+            fi
+
+            ***REMOVED*** write .env
+            echo "DOCKER_FRONTEND_IMAGE=ghcr.io/${{ github.repository }}/frontend:latest" > .env
+            echo "DOCKER_BACKEND_IMAGE=ghcr.io/${{ github.repository }}/backend-api:latest" >> .env
+            echo "DOCKER_IMPORTER_IMAGE=ghcr.io/${{ github.repository }}/data-importer:latest" >> .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+
+            ***REMOVED*** write docker-compose.prod.yml directly from GitHub
+            curl -H "Authorization: token ${{ secrets.GITHUB_PAT }}" \
+                 -H "Accept: application/vnd.github.v3.raw" \
+                 -o docker-compose.prod.yml \
+                 https://api.github.com/repos/${{ github.repository }}/contents/infra/docker-compose.prod.yml
+
+            ***REMOVED*** Verify file content
+            echo "Verifying docker-compose.prod.yml content:"
+            ls -la docker-compose.prod.yml
+            head -10 docker-compose.prod.yml
+
+            ***REMOVED*** Run docker-compose commands - try with sudo if normal fails
+            docker-compose -f docker-compose.prod.yml pull || sudo docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d || sudo docker-compose -f docker-compose.prod.yml up -d
