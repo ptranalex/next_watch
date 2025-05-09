@@ -54,7 +54,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_PAT }}
+          password: ${{ secrets.GH_PAT }}
 
       - name: Build Backend API
         if: ${{ env.DEPLOY_ONLY != 'true' }}
@@ -163,9 +163,9 @@ jobs:
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
             echo "🔐 Attempting Docker login to GHCR..."
-            if ! echo "${{ secrets.GITHUB_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
+            if ! echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
               echo "⚠️ Docker login failed — retrying with sudo..."
-              echo "${{ secrets.GITHUB_PAT }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
+              echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
                 echo "❌ Docker login failed even with sudo. Aborting."
                 exit 1
               }
@@ -180,7 +180,7 @@ jobs:
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
 
             ***REMOVED*** write docker-compose.prod.yml directly from GitHub
-            curl -H "Authorization: token ${{ secrets.GITHUB_PAT }}" \
+            curl -H "Authorization: token ${{ secrets.GH_PAT }}" \
                  -H "Accept: application/vnd.github.v3.raw" \
                  -o docker-compose.prod.yml \
                  https://api.github.com/repos/${{ github.repository }}/contents/infra/docker-compose.prod.yml
