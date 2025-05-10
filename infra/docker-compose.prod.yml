@@ -1,38 +1,57 @@
 services:
+  db:
+    image: postgres:14
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend-api:
     image: ${DOCKER_BACKEND_IMAGE}
     restart: always
     ports:
       - "8000:8000"
     environment:
-      - POSTGRES_HOST=host.docker.internal
+      - ENVIRONMENT=production
+      - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_JWK=${JWT_JWK:-}
+      - JWT_JWK_ROTATION_INTERVAL=${JWT_JWK_ROTATION_INTERVAL:-86400}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
 
   data-importer:
     image: ${DOCKER_IMPORTER_IMAGE}
     restart: always
     environment:
-      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     depends_on:
       - backend-api
+      - db
 
   frontend:
     image: ${DOCKER_FRONTEND_IMAGE}
@@ -43,3 +62,6 @@ services:
       - NEXT_PUBLIC_API_URL=https://alexsandbox.me
     depends_on:
       - backend-api
+
+volumes:
+  postgres_data:

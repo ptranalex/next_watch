@@ -17,21 +17,27 @@ logger = logging.getLogger(__name__)
 try:
     from dotenv import load_dotenv
 
-    ***REMOVED*** Try multiple locations to find the .env.local file
-    possible_paths = [
-        Path(__file__).resolve().parents[3]
-        / ".env.local",  ***REMOVED*** /Users/alex/Sandbox/next_watch/apps/backend-api/.env.local
-        Path.cwd() / ".env.local",  ***REMOVED*** Current working directory
-    ]
+    ***REMOVED*** Only load .env files if we're not in production
+    if os.getenv("ENVIRONMENT") != "production":
+        ***REMOVED*** Try multiple locations to find the .env.local file
+        possible_paths = [
+            Path(__file__).resolve().parents[3]
+            / ".env.local",  ***REMOVED*** /Users/alex/Sandbox/next_watch/apps/backend-api/.env.local
+            Path.cwd() / ".env.local",  ***REMOVED*** Current working directory
+        ]
 
-    for path in possible_paths:
-        if path.exists():
-            load_dotenv(dotenv_path=path, override=True)
-            break
+        for path in possible_paths:
+            if path.exists():
+                logger.info(f"Loading environment variables from {path}")
+                load_dotenv(dotenv_path=path, override=True)
+                break
 except ImportError:
     pass  ***REMOVED*** Continue without dotenv if not installed
 
-***REMOVED*** Import configuration
+***REMOVED*** Log environment
+logger.info(f"Running in environment: {os.getenv('ENVIRONMENT', 'development')}")
+
+***REMOVED*** Import configuration after environment variables are loaded
 from backend_api.config.app import settings
 
 ***REMOVED*** Import remaining dependencies

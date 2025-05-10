@@ -181,6 +181,21 @@ jobs:
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
 
+            ***REMOVED*** Handle JWT configuration
+            if [ -n "${{ secrets.JWT_SECRET }}" ]; then
+              echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            fi
+
+            ***REMOVED*** Handle JWK configuration if available
+            if [ -n "${{ secrets.JWT_JWK }}" ]; then
+              echo "JWT_JWK=${{ secrets.JWT_JWK }}" >> .env
+            fi
+
+            ***REMOVED*** Handle JWK rotation if available
+            if [ -n "${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" ]; then
+              echo "JWT_JWK_ROTATION_INTERVAL=${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" >> .env
+            fi
+
             ***REMOVED*** write docker-compose.prod.yml directly from GitHub
             curl -H "Authorization: token ${{ secrets.GH_PAT }}" \
                  -H "Accept: application/vnd.github.v3.raw" \

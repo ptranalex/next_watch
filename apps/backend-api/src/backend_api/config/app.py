@@ -2,15 +2,14 @@
 
 import os
 import sys
+import json
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Dict, Any
 import logging
 
 ***REMOVED*** Configure basic logging first for this module
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-***REMOVED*** Note: Environment variables are now loaded in main.py
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** DEFAULT SETTINGS
@@ -42,6 +41,9 @@ DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 )
 DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+DEFAULT_JWT_JWK_ROTATION_INTERVAL = int(
+    os.getenv("JWT_JWK_ROTATION_INTERVAL", "86400")
+)  ***REMOVED*** 24 hours in seconds
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
@@ -63,6 +65,8 @@ class Config:
     jwt_algorithm: str
     access_token_expire_minutes: int
     refresh_token_expire_days: int
+    jwt_jwk: Optional[Dict[str, Any]]
+    jwt_jwk_rotation_interval: int
 
     ***REMOVED*** Singleton instance
     _instance = None
@@ -91,6 +95,7 @@ class Config:
         jwt_algorithm: str = DEFAULT_JWT_ALGORITHM,
         access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
         refresh_token_expire_days: int = DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS,
+        jwt_jwk_rotation_interval: int = DEFAULT_JWT_JWK_ROTATION_INTERVAL,
     ):
         """Initialize configuration.
 
@@ -106,7 +111,12 @@ class Config:
             jwt_algorithm: Algorithm for JWT token generation
             access_token_expire_minutes: Minutes until access token expires
             refresh_token_expire_days: Days until refresh token expires
+            jwt_jwk_rotation_interval: Interval in seconds for JWK rotation
         """
+        ***REMOVED*** In production, force debug to False
+        if os.getenv("ENVIRONMENT") == "production":
+            debug = False
+
         self.database_url = database_url
         self.api_port = api_port
         self.log_level = log_level
@@ -118,11 +128,35 @@ class Config:
         )
         self.enable_performance_metrics = enable_performance_metrics
         self.log_dir = log_dir
+
         ***REMOVED*** JWT settings
         self.jwt_secret = jwt_secret
         self.jwt_algorithm = jwt_algorithm
         self.access_token_expire_minutes = access_token_expire_minutes
         self.refresh_token_expire_days = refresh_token_expire_days
+        self.jwt_jwk_rotation_interval = jwt_jwk_rotation_interval
+
+        ***REMOVED*** Parse JWK if available
+        self.jwt_jwk = None
+        if jwk_str := os.getenv("JWT_JWK"):
+            try:
+                self.jwt_jwk = json.loads(jwk_str)
+                logger.info("JWK configuration loaded successfully")
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JWK configuration: {e}")
+                if not self.debug:
+                    raise ValueError(
+                        "Invalid JWK configuration in production environment"
+                    )
+
+        ***REMOVED*** Log configuration
+        logger.info(
+            f"Initializing configuration with environment: {os.getenv('ENVIRONMENT', 'development')}"
+        )
+        logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
+        logger.info(f"Debug mode: {self.debug}")
+        logger.info(f"JWT algorithm: {self.jwt_algorithm}")
+        logger.info(f"JWK enabled: {self.jwt_jwk is not None}")
 
         ***REMOVED*** Warn if using default JWT secret in production
         if self.jwt_secret == DEFAULT_JWT_SECRET and not self.debug:
@@ -168,7 +202,8 @@ class Config:
             f"enable_performance_metrics={self.enable_performance_metrics}, "
             f"jwt_algorithm={self.jwt_algorithm}, "
             f"access_token_expire_minutes={self.access_token_expire_minutes}, "
-            f"refresh_token_expire_days={self.refresh_token_expire_days})"
+            f"refresh_token_expire_days={self.refresh_token_expire_days}, "
+            f"jwt_jwk_enabled={self.jwt_jwk is not None})"
         )
 
 
