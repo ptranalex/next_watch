@@ -94,6 +94,8 @@ jobs:
           load: ${{ env.SKIP_REGISTRY == 'true' }}
           platforms: linux/amd64
           tags: ghcr.io/${{ github.repository }}/frontend:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://alexsandbox.me
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
           network: host

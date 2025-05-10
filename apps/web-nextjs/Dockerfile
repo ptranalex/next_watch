@@ -29,6 +29,10 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 
+***REMOVED*** Accept build arguments for environment variables
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 ***REMOVED*** Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 COPY apps/web-nextjs/package.json .
@@ -46,6 +50,9 @@ COPY apps/web-nextjs/public ./public
 ***REMOVED*** Set environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+***REMOVED*** Display build information for verification
+RUN echo "Building with NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
 
 ***REMOVED*** Build the Next.js application
 RUN pnpm build
