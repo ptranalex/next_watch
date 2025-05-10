@@ -62,4 +62,4 @@ EXPOSE 8000
 RUN addgroup -S app && adduser -S app -G app
 USER app
 
-CMD ["uvicorn", "backend_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend_api.main:app", "--host", "0.0.0.0", "--port", "8000"] 

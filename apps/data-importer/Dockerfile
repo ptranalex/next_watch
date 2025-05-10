@@ -70,4 +70,4 @@ RUN addgroup -S app && adduser -S app -G app \
 ***REMOVED*** Switch to non-root user
 USER app
 
-CMD ["python", "-m", "data_importer"]
+CMD ["python", "-m", "data_importer"] 

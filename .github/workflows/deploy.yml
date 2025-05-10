@@ -1,26 +1,32 @@
 name: Deploy Application
 
 on:
-  push:
-    branches: [main]
-  ***REMOVED*** Allow manual trigger
   workflow_dispatch:
-    inputs:
-      deploy_only:
-        description: "Skip build and only deploy"
+  workflow_call:
+    secrets:
+      DEPLOY_KEY:
+        required: true
+      DEPLOY_HOST:
+        required: true
+      DEPLOY_USER:
+        required: true
+      GH_PAT:
+        required: true
+      POSTGRES_USER:
+        required: true
+      POSTGRES_PASSWORD:
+        required: true
+      POSTGRES_DB:
+        required: true
+      JWT_SECRET:
+        required: true
+      JWT_JWK:
         required: false
-        default: "false"
-      skip_registry:
-        description: "Skip registry sync"
+      JWT_JWK_ROTATION_INTERVAL:
         required: false
-        default: "false"
-      build_only:
-        description: "Skip deployment and only build"
-        required: false
-        default: "false"
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,68 +43,6 @@ jobs:
             echo "SSH_PATH=/home/runner/.ssh/id_rsa" >> $GITHUB_ENV
             echo "SSH_DIR=/home/runner/.ssh" >> $GITHUB_ENV
           fi
-
-      - name: Set feature flag
-        run: |
-          echo "DEPLOY_ONLY=${{ github.event.inputs.deploy_only }}" >> $GITHUB_ENV
-          echo "SKIP_REGISTRY=${{ github.event.inputs.skip_registry }}" >> $GITHUB_ENV
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver-opts: |
-            network=host
-
-      - name: Login to Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_PAT }}
-
-      - name: Build Backend API
-        if: ${{ env.DEPLOY_ONLY != 'true' }}
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./apps/backend-api/Dockerfile
-          push: ${{ env.SKIP_REGISTRY != 'true' }}
-          load: ${{ env.SKIP_REGISTRY == 'true' }}
-          tags: ghcr.io/${{ github.repository }}/backend-api:latest
-          platforms: linux/amd64
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          network: host
-
-      - name: Build Data Importer
-        if: ${{ env.DEPLOY_ONLY != 'true' }}
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./apps/data-importer/Dockerfile
-          push: ${{ env.SKIP_REGISTRY != 'true' }}
-          load: ${{ env.SKIP_REGISTRY == 'true' }}
-          platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository }}/data-importer:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          network: host
-
-      - name: Build Frontend
-        if: ${{ env.DEPLOY_ONLY != 'true' }}
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./apps/web-nextjs/Dockerfile
-          push: ${{ env.SKIP_REGISTRY != 'true' }}
-          load: ${{ env.SKIP_REGISTRY == 'true' }}
-          platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
-          build-args: |
-            NEXT_PUBLIC_API_URL=https://alexsandbox.me
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          network: host
 
       - name: Restore SSH key from string
         run: |
@@ -121,39 +65,26 @@ jobs:
             hostname
             echo "This is a test from GitHub Actions"
 
-      - name: Setup Docker permissions on server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key_path: ${{ env.SSH_PATH }}
-          script: |
-            ***REMOVED*** Check if we're in docker group
-            echo "Current groups:"
-            groups
+      - name: Create .env file
+        run: |
+          cat << EOF > .env
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_HOST=host.docker.internal
+          DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@host.docker.internal:5432/${{ secrets.POSTGRES_DB }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EOF
 
-            if ! groups | grep -q docker; then
-              echo "Not in docker group. Need sudo to add user to docker group or run docker directly."
-              
-              ***REMOVED*** Try to add current user to docker group (if we have sudo)
-              if command -v sudo >/dev/null 2>&1; then
-                echo "Trying to add user to docker group with sudo..."
-                sudo usermod -aG docker $USER || echo "Failed to add user to docker group. Will try sudo for docker commands."
-                echo "You may need to log out and back in for group changes to take effect."
-              else
-                echo "Sudo not available. Will try to run docker with sudo."
-              fi
-            fi
+          if [ -n "${{ secrets.JWT_JWK }}" ]; then
+            echo "JWT_JWK=${{ secrets.JWT_JWK }}" >> .env
+          fi
 
-            ***REMOVED*** Test docker access
-            echo "Testing docker access directly..."
-            docker ps >/dev/null 2>&1 || { 
-              echo "Direct docker access failed, trying with sudo..."
-              sudo docker ps >/dev/null 2>&1 && echo "Docker works with sudo. Will use sudo for docker commands."
-            }
+          if [ -n "${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" ]; then
+            echo "JWT_JWK_ROTATION_INTERVAL=${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" >> .env
+          fi
 
       - name: Deploy with docker-compose
-        if: ${{ env.BUILD_ONLY != 'true' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -208,5 +139,5 @@ jobs:
             head -10 docker-compose.prod.yml
 
             ***REMOVED*** Run docker-compose commands - try with sudo if normal fails
-            docker compose -f docker-compose.prod.yml pull || sudo docker-compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d || sudo docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml pull || sudo docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d || sudo docker compose -f docker-compose.prod.yml up -d
