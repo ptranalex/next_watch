@@ -3,6 +3,22 @@ name: Deploy Application
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      deploy_backend:
+        description: "Deploy backend API"
+        required: false
+        type: boolean
+        default: false
+      deploy_importer:
+        description: "Deploy data importer"
+        required: false
+        type: boolean
+        default: false
+      deploy_frontend:
+        description: "Deploy frontend"
+        required: false
+        type: boolean
+        default: false
     secrets:
       DEPLOY_KEY:
         required: true
@@ -65,25 +81,6 @@ jobs:
             hostname
             echo "This is a test from GitHub Actions"
 
-      - name: Create .env file
-        run: |
-          cat << EOF > .env
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-          POSTGRES_HOST=host.docker.internal
-          DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@host.docker.internal:5432/${{ secrets.POSTGRES_DB }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          EOF
-
-          if [ -n "${{ secrets.JWT_JWK }}" ]; then
-            echo "JWT_JWK=${{ secrets.JWT_JWK }}" >> .env
-          fi
-
-          if [ -n "${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" ]; then
-            echo "JWT_JWK_ROTATION_INTERVAL=${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" >> .env
-          fi
-
       - name: Deploy with docker-compose
         uses: appleboy/ssh-action@master
         with:
@@ -138,6 +135,48 @@ jobs:
             ls -la docker-compose.prod.yml
             head -10 docker-compose.prod.yml
 
-            ***REMOVED*** Run docker-compose commands - try with sudo if normal fails
-            docker compose -f docker-compose.prod.yml pull || sudo docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d || sudo docker compose -f docker-compose.prod.yml up -d
+            ***REMOVED*** Build the list of services to deploy
+            SERVICES=""
+            if [ "${{ inputs.deploy_backend }}" = "true" ]; then
+              SERVICES="$SERVICES backend-api"
+            fi
+            if [ "${{ inputs.deploy_importer }}" = "true" ]; then
+              SERVICES="$SERVICES data-importer"
+            fi
+            if [ "${{ inputs.deploy_frontend }}" = "true" ]; then
+              SERVICES="$SERVICES frontend"
+            fi
+
+            if [ -n "$SERVICES" ]; then
+              echo "Deploying services: $SERVICES"
+              
+              ***REMOVED*** Cleanup before deployment
+              echo "🧹 Cleaning up Docker resources..."
+              
+              ***REMOVED*** Stop and remove containers that are not running
+              docker ps -a -q -f status=exited | xargs -r docker rm
+              sudo docker ps -a -q -f status=exited | xargs -r sudo docker rm
+              
+              ***REMOVED*** Remove unused images
+              docker image prune -af
+              sudo docker image prune -af
+              
+              ***REMOVED*** Remove unused volumes
+              docker volume prune -f
+              sudo docker volume prune -f
+              
+              ***REMOVED*** Remove unused networks
+              docker network prune -f
+              sudo docker network prune -f
+              
+              ***REMOVED*** Pull and deploy only the specified services
+              docker compose -f docker-compose.prod.yml pull $SERVICES || sudo docker compose -f docker-compose.prod.yml pull $SERVICES
+              docker compose -f docker-compose.prod.yml up -d $SERVICES || sudo docker compose -f docker-compose.prod.yml up -d $SERVICES
+              
+              ***REMOVED*** Final cleanup after deployment
+              echo "🧹 Final cleanup..."
+              docker system prune -af --volumes
+              sudo docker system prune -af --volumes
+            else
+              echo "No services to deploy"
+            fi

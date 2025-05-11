@@ -3,14 +3,19 @@ name: Build Application
 on:
   workflow_dispatch:
     inputs:
-      skip_registry:
-        description: "Skip registry sync"
+      build_all:
+        description: "Build all apps regardless of changes"
         required: false
         default: "false"
+  push:
+    paths:
+      - "apps/backend-api/**"
+      - "apps/data-importer/**"
+      - "apps/web-nextjs/**"
   workflow_call:
     inputs:
-      skip_registry:
-        description: "Skip registry sync"
+      build_all:
+        description: "Build all apps regardless of changes"
         required: false
         type: string
         default: "false"
@@ -20,74 +25,65 @@ on:
     outputs:
       image_backend:
         description: "Backend API image"
-        value: ${{ jobs.build.outputs.image_backend }}
+        value: ${{ jobs.build_backend.outputs.image }}
       image_importer:
         description: "Data Importer image"
-        value: ${{ jobs.build.outputs.image_importer }}
+        value: ${{ jobs.build_importer.outputs.image }}
       image_frontend:
         description: "Frontend image"
-        value: ${{ jobs.build.outputs.image_frontend }}
+        value: ${{ jobs.build_frontend.outputs.image }}
 
 jobs:
-  build:
+  check_changes:
     runs-on: ubuntu-latest
     outputs:
-      image_backend: ghcr.io/${{ github.repository }}/backend-api:latest
-      image_importer: ghcr.io/${{ github.repository }}/data-importer:latest
-      image_frontend: ghcr.io/${{ github.repository }}/frontend:latest
+      backend_changed: ${{ steps.filter.outputs.backend }}
+      importer_changed: ${{ steps.filter.outputs.importer }}
+      frontend_changed: ${{ steps.filter.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
         with:
-          driver-opts: |
-            network=host
+          fetch-depth: 0
 
-      - name: Login to Container Registry
-        uses: docker/login-action@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_PAT }}
+          filters: |
+            backend:
+              - 'apps/backend-api/**'
+            importer:
+              - 'apps/data-importer/**'
+            frontend:
+              - 'apps/web-nextjs/**'
 
-      - name: Build Backend API
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./apps/backend-api/Dockerfile
-          push: ${{ github.event.inputs.skip_registry != 'true' }}
-          load: ${{ github.event.inputs.skip_registry == 'true' }}
-          tags: ghcr.io/${{ github.repository }}/backend-api:latest
-          platforms: linux/amd64
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          network: host
+  build_backend:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: backend-api
+      dockerfile_path: ./apps/backend-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
 
-      - name: Build Data Importer
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./apps/data-importer/Dockerfile
-          push: ${{ github.event.inputs.skip_registry != 'true' }}
-          load: ${{ github.event.inputs.skip_registry == 'true' }}
-          platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository }}/data-importer:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          network: host
+  build_importer:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: data-importer
+      dockerfile_path: ./apps/data-importer/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
 
-      - name: Build Frontend
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./apps/web-nextjs/Dockerfile
-          push: ${{ github.event.inputs.skip_registry != 'true' }}
-          load: ${{ github.event.inputs.skip_registry == 'true' }}
-          platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
-          build-args: |
-            NEXT_PUBLIC_API_URL=https://alexsandbox.me
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          network: host
+  build_frontend:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: frontend
+      dockerfile_path: ./apps/web-nextjs/Dockerfile
+      build_args: |
+        NEXT_PUBLIC_API_URL=https://alexsandbox.me
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}

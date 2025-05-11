@@ -3,19 +3,115 @@ name: Release
 on:
   push:
     branches: [main]
+    paths:
+      - "apps/backend-api/**"
+      - "apps/data-importer/**"
+      - "apps/web-nextjs/**"
   workflow_dispatch:
+    inputs:
+      build_all:
+        description: "Build and deploy all apps regardless of changes"
+        required: false
+        type: boolean
+        default: false
+      deploy_backend:
+        description: "Deploy backend API"
+        required: false
+        type: boolean
+        default: false
+      deploy_importer:
+        description: "Deploy data importer"
+        required: false
+        type: boolean
+        default: false
+      deploy_frontend:
+        description: "Deploy frontend"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
-  build:
-    uses: ./.github/workflows/build.yml
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend_changed: ${{ steps.set-outputs.outputs.backend_changed }}
+      importer_changed: ${{ steps.set-outputs.outputs.importer_changed }}
+      frontend_changed: ${{ steps.set-outputs.outputs.frontend_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v2
+        if: github.event_name == 'push'
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'apps/backend-api/**'
+            importer:
+              - 'apps/data-importer/**'
+            frontend:
+              - 'apps/web-nextjs/**'
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "backend_changed=${{ steps.filter.outputs.backend }}" >> $GITHUB_OUTPUT
+            echo "importer_changed=${{ steps.filter.outputs.importer }}" >> $GITHUB_OUTPUT
+            echo "frontend_changed=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
+          else
+            echo "backend_changed=${{ github.event.inputs.deploy_backend }}" >> $GITHUB_OUTPUT
+            echo "importer_changed=${{ github.event.inputs.deploy_importer }}" >> $GITHUB_OUTPUT
+            echo "frontend_changed=${{ github.event.inputs.deploy_frontend }}" >> $GITHUB_OUTPUT
+          fi
+
+  build_backend:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
     with:
-      skip_registry: "false"
+      app_name: backend-api
+      dockerfile_path: ./apps/backend-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+  build_importer:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: data-importer
+      dockerfile_path: ./apps/data-importer/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+  build_frontend:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: frontend
+      dockerfile_path: ./apps/web-nextjs/Dockerfile
+      build_args: |
+        NEXT_PUBLIC_API_URL=https://alexsandbox.me
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
   deploy:
-    needs: build
+    needs: [check_changes, build_backend, build_importer, build_frontend]
+    if: |
+      always() && 
+      (needs.check_changes.outputs.backend_changed == 'true' || 
+       needs.check_changes.outputs.importer_changed == 'true' || 
+       needs.check_changes.outputs.frontend_changed == 'true' || 
+       github.event.inputs.build_all == true)
     uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_frontend: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == true }}
     secrets:
       DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}

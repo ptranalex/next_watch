@@ -70,4 +70,6 @@ RUN addgroup -S app && adduser -S app -G app \
 ***REMOVED*** Switch to non-root user
 USER app
 
-CMD ["python", "-m", "data_importer"] 
+***REMOVED*** Default command - will be overridden by docker compose run or docker run
+ENTRYPOINT ["python", "-m", "data_importer"]
+CMD ["sync", "movies", "--help"] 
