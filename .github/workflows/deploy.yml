@@ -2,6 +2,22 @@ name: Deploy Application
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: "Deploy backend API"
+        required: false
+        type: boolean
+        default: false
+      deploy_importer:
+        description: "Deploy data importer"
+        required: false
+        type: boolean
+        default: false
+      deploy_frontend:
+        description: "Deploy frontend"
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       deploy_backend:
@@ -137,13 +153,13 @@ jobs:
 
             ***REMOVED*** Build the list of services to deploy
             SERVICES=""
-            if [ "${{ inputs.deploy_backend }}" = "true" ]; then
+            if [ "${{ github.event.inputs.deploy_backend || inputs.deploy_backend }}" = "true" ]; then
               SERVICES="$SERVICES backend-api"
             fi
-            if [ "${{ inputs.deploy_importer }}" = "true" ]; then
+            if [ "${{ github.event.inputs.deploy_importer || inputs.deploy_importer }}" = "true" ]; then
               SERVICES="$SERVICES data-importer"
             fi
-            if [ "${{ inputs.deploy_frontend }}" = "true" ]; then
+            if [ "${{ github.event.inputs.deploy_frontend || inputs.deploy_frontend }}" = "true" ]; then
               SERVICES="$SERVICES frontend"
             fi
 
