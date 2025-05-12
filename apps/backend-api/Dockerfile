@@ -47,7 +47,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 ***REMOVED*** Install runtime dependencies only
-RUN apk add --no-cache libstdc++
+RUN apk add --no-cache libstdc++ curl
 
 ***REMOVED*** Copy only what's needed from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
@@ -64,6 +64,6 @@ USER app
 
 ***REMOVED*** Add health check configuration
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
+  CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["uvicorn", "backend_api.main:app", "--host", "0.0.0.0", "--port", "8000"] 

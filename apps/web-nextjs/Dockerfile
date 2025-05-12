@@ -50,6 +50,10 @@ COPY apps/web-nextjs/public ./public
 ***REMOVED*** Set environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+
+***REMOVED*** Install curl for health checks
+RUN apk add --no-cache curl
 
 ***REMOVED*** Display build information for verification
 RUN echo "Building with NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
@@ -86,7 +90,7 @@ EXPOSE 3000
 
 ***REMOVED*** Add health check configuration
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+  CMD curl -f http://localhost:3000/ || exit 1
 
 ***REMOVED*** Start the application
 CMD ["node", "server.js"] 
