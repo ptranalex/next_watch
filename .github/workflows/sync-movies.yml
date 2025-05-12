@@ -30,6 +30,7 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
@@ -78,13 +79,14 @@ jobs:
             CMD="docker run --rm \
                  -e POSTGRES_HOST=host.docker.internal \
                  -e POSTGRES_PORT=5432 \
-                 -e POSTGRES_USER='${{ secrets.POSTGRES_USER }}' \
-                 -e POSTGRES_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
-                 -e POSTGRES_DB='${{ secrets.POSTGRES_DB }}' \
+                 -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+                 -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+                 -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
                  -e DATABASE_URL='postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@host.docker.internal:5432/${{ secrets.POSTGRES_DB }}' \
-                 -e TMDB_ACCESS_TOKEN='${{ secrets.TMDB_ACCESS_TOKEN }}' \
-                 -e OMDB_API_KEY='${{ secrets.OMDB_API_KEY }}' \
+                 -e TMDB_ACCESS_TOKEN=${{ secrets.TMDB_ACCESS_TOKEN }} \
+                 -e OMDB_API_KEY=${{ secrets.OMDB_API_KEY }} \
                  --add-host=host.docker.internal:host-gateway \
+                 
                  $IMAGE \
                  sync movies \
                  --start-year ${{ github.event.inputs.start_year }} \
@@ -105,7 +107,7 @@ jobs:
 
             ***REMOVED*** Execute command
             echo "Running command: $CMD"
-            eval $CMD
+            eval "$CMD" | while IFS= read -r line; do echo "$line"; done
 
             ***REMOVED*** Cleanup old images
             docker image prune -f
