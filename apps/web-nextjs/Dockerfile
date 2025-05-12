@@ -52,9 +52,6 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-***REMOVED*** Install curl for health checks
-RUN apk add --no-cache curl
-
 ***REMOVED*** Display build information for verification
 RUN echo "Building with NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
 
@@ -64,6 +61,9 @@ RUN pnpm build
 ***REMOVED*** Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
+
+***REMOVED*** Install curl for health checks - before changing user
+RUN apk add --no-cache curl
 
 ***REMOVED*** Create a non-root user for better security
 RUN addgroup --system --gid 1001 nodejs && \
@@ -88,9 +88,9 @@ USER nextjs
 ***REMOVED*** Expose the port
 EXPOSE 3000
 
-***REMOVED*** Add health check configuration
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD curl -f http://localhost:3000/ || exit 1
+***REMOVED*** Add health check configuration - increased start period and using a more reliable path
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/_next/static/ || exit 1
 
 ***REMOVED*** Start the application
 CMD ["node", "server.js"] 
