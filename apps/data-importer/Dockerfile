@@ -1,75 +1,82 @@
-***REMOVED*** Stage 1: Build dependencies and package
-ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-alpine AS builder
+***REMOVED*** Stage 1: Build dependencies
+FROM python:3.12-slim-bullseye AS builder
 
-***REMOVED*** Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=0 \
-    POETRY_VIRTUALENVS_CREATE=0 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache \
-    PATH="/root/.local/bin:$PATH"
+    PIP_NO_CACHE_DIR=1
 
-WORKDIR /app
+WORKDIR /build
 
-***REMOVED*** Install build dependencies in a single layer
-RUN apk add --no-cache --virtual .build-deps \
-    build-base \
-    curl \
-    gcc \
-    musl-dev \
-    python3-dev \
-    libffi-dev \
-    openssl-dev \
-    && curl -sSL https://install.python-poetry.org | python -
+***REMOVED*** Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-***REMOVED*** Copy and build the shared movie-storage library
-COPY libs/movie-storage /tmp/movie-storage/
-COPY apps/data-importer/pyproject.toml apps/data-importer/poetry.lock* ./
-COPY apps/data-importer/src ./src/
+***REMOVED*** Create virtual environment
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
 
-***REMOVED*** Build and install dependencies
-RUN cd /tmp/movie-storage \
-    && poetry build \
-    && pip install --no-cache-dir dist/*.whl \
-    && sed -i 's|movie-storage = {path = "../../libs/movie-storage", develop = true}|movie-storage = "*"|g' pyproject.toml \
-    && pip install --no-cache-dir . \
-    && rm -rf /tmp/movie-storage /tmp/poetry_cache \
-    && apk del .build-deps
+***REMOVED*** Install Python dependencies
+COPY apps/data-importer/requirements.txt .
+***REMOVED*** Remove lines containing absolute file paths
+RUN grep -v "file:" requirements.txt > filtered_requirements.txt && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r filtered_requirements.txt
 
-***REMOVED*** Stage 2: Runtime image
-FROM python:${PYTHON_VERSION}-alpine AS final
-
-***REMOVED*** Set runtime environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-WORKDIR /app
-
-***REMOVED*** Install runtime dependencies only
-RUN apk add --no-cache libstdc++
-
-***REMOVED*** Copy only what's needed from builder - use find to determine the correct path
-RUN mkdir -p /usr/local/lib/python3.12/site-packages
-
-***REMOVED*** Copy only what's needed from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
-COPY --from=builder /usr/local/bin/python /usr/local/bin/
+***REMOVED*** Copy and install local packages
+COPY libs/movie-storage ./movie-storage
+RUN pip install --no-cache-dir ./movie-storage
 
 ***REMOVED*** Copy application code
-COPY apps/data-importer/src ./src/
+COPY apps/data-importer/src ./src
 
-***REMOVED*** Create data directory with proper permissions
-RUN mkdir -p /app/data/
+***REMOVED*** Aggressive clean up to reduce image size
+RUN find /venv -name "*.pyc" -delete && \
+    find /venv -name "__pycache__" -delete && \
+    find /venv -name "*.dist-info" -exec rm -rf {} +; true && \
+    find /venv -name "*.egg-info" -exec rm -rf {} +; true && \
+    find /venv -name "tests" -type d -exec rm -rf {} +; true && \
+    find /venv -name "*.so" -exec strip {} \; || true && \
+    find /venv -name "*.c" -delete && \
+    find /venv -name "*.pyx" -delete && \
+    find /venv -name "*.txt" -delete && \
+    find /venv -path "*/doc/*" -delete && \
+    find /venv -path "*/docs/*" -delete && \
+    find /venv -path "*/examples/*" -delete
 
-***REMOVED*** Create non-root user for better security
-RUN addgroup -S app && adduser -S app -G app \
-    && chown -R app:app /app/data/
+***REMOVED*** Stage 2: Runtime image - uses slim-bullseye for smaller size
+FROM python:3.12-slim-bullseye
 
-***REMOVED*** Switch to non-root user
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/venv/bin:$PATH" \
+    PYTHONPATH=/app:/app/src
+
+WORKDIR /app
+
+***REMOVED*** Runtime dependencies only - minimal install
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+***REMOVED*** Copy virtual env from builder
+COPY --from=builder /venv /venv
+
+***REMOVED*** Copy application code
+COPY --from=builder /build/src ./src
+
+***REMOVED*** Create necessary directories with proper permissions
+RUN mkdir -p /app/data /app/logs
+
+***REMOVED*** Create a non-root user
+RUN groupadd -r app && useradd -r -g app app && \
+    chown -R app:app /app
 USER app
 
-***REMOVED*** Default command - will be overridden by docker compose run or docker run
+***REMOVED*** Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import data_importer; assert data_importer.__version__"
+
+***REMOVED*** Default command
 ENTRYPOINT ["python", "-m", "data_importer"]
-CMD ["sync", "movies", "--help"] 
+CMD ["sync", "movies", "--help"]

@@ -48,19 +48,32 @@ This separation allows for specialized optimization of read and write paths.
 ***REMOVED******REMOVED******REMOVED*** Prerequisites
 
 - Python 3.10+
-- Node.js 16+
+- Node.js 18+
+- pnpm 10+
 - PostgreSQL 13+
 
 ***REMOVED******REMOVED******REMOVED*** Setup
 
 1. Clone the repository
 2. Install dependencies:
+
+   **For Python components:**
+
    ```
    cd apps/backend-api
    pip install -e .
-   cd ../../apps/web-nextjs
-   npm install
    ```
+
+   **For JavaScript/TypeScript components (using pnpm):**
+
+   ```
+   ***REMOVED*** Install pnpm if not already installed
+   npm install -g pnpm
+
+   ***REMOVED*** Install dependencies for all JS/TS packages
+   pnpm install
+   ```
+
 3. Configure environment:
    Copy `.env.example` to `.env` in each app directory and update settings
 
@@ -76,8 +89,25 @@ python -m src.backend_api.main
 **Frontend:**
 
 ```
+***REMOVED*** From repository root
+pnpm dev:web
+
+***REMOVED*** Or from the web-nextjs directory
 cd apps/web-nextjs
-npm run dev
+pnpm dev
+```
+
+***REMOVED******REMOVED******REMOVED*** Building the Applications
+
+**Frontend:**
+
+```
+***REMOVED*** From repository root
+pnpm build:web
+
+***REMOVED*** Or from the web-nextjs directory
+cd apps/web-nextjs
+pnpm build
 ```
 
 ***REMOVED******REMOVED*** API Documentation
