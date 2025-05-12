@@ -1,4 +1,4 @@
-name: Build Application
+name: Build Application (Backend, Importer, Frontend)
 
 on:
   workflow_dispatch:

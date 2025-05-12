@@ -1,4 +1,4 @@
-name: Release
+name: Release Application (Backend, Importer, Frontend)
 
 on:
   push:

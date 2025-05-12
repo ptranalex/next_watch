@@ -1,4 +1,4 @@
-name: Deploy Application
+name: Deploy Application (Backend, Importer, Frontend)
 
 on:
   workflow_dispatch:
