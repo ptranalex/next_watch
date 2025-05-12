@@ -7,20 +7,22 @@ on:
         description: "Start year (inclusive)"
         required: true
         type: number
+        default: 2020
       end_year:
         description: "End year (inclusive)"
         required: true
         type: number
+        default: 2025
       limit:
         description: "Maximum movies per year"
         required: false
         type: number
-        default: 0
+        default: 100
       credits:
         description: "Include cast and crew information"
         required: false
         type: boolean
-        default: false
+        default: true
       save:
         description: "Save movies to database"
         required: false
