@@ -45,6 +45,14 @@ DEFAULT_JWT_JWK_ROTATION_INTERVAL = int(
     os.getenv("JWT_JWK_ROTATION_INTERVAL", "86400")
 )  ***REMOVED*** 24 hours in seconds
 
+***REMOVED*** Redis settings
+DEFAULT_REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+DEFAULT_REDIS_MAX_CONNECTIONS = int(os.getenv("REDIS_MAX_CONNECTIONS", "10"))
+DEFAULT_REDIS_SOCKET_TIMEOUT = int(os.getenv("REDIS_SOCKET_TIMEOUT", "5"))
+DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT = int(
+    os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "5")
+)
+
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
 ***REMOVED*** ------------------------------------------------------------------------------
@@ -60,6 +68,10 @@ class Config:
     cors_origins: List[str]
     enable_performance_metrics: bool
     log_dir: str
+    redis_url: str
+    redis_max_connections: int
+    redis_socket_timeout: int
+    redis_socket_connect_timeout: int
     ***REMOVED*** JWT settings
     jwt_secret: str
     jwt_algorithm: str
@@ -91,6 +103,10 @@ class Config:
         cors_origins: str = DEFAULT_CORS_ORIGINS,
         enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
         log_dir: str = DEFAULT_LOGS_DIR,
+        redis_url: str = DEFAULT_REDIS_URL,
+        redis_max_connections: int = DEFAULT_REDIS_MAX_CONNECTIONS,
+        redis_socket_timeout: int = DEFAULT_REDIS_SOCKET_TIMEOUT,
+        redis_socket_connect_timeout: int = DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT,
         jwt_secret: str = DEFAULT_JWT_SECRET,
         jwt_algorithm: str = DEFAULT_JWT_ALGORITHM,
         access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -107,6 +123,10 @@ class Config:
             cors_origins: Comma-separated list of allowed origins for CORS
             enable_performance_metrics: Whether to enable performance metrics
             log_dir: Directory to store log files
+            redis_url: URL for Redis connection
+            redis_max_connections: Maximum number of Redis connections in pool
+            redis_socket_timeout: Redis socket timeout in seconds
+            redis_socket_connect_timeout: Redis socket connect timeout in seconds
             jwt_secret: Secret key for JWT token generation
             jwt_algorithm: Algorithm for JWT token generation
             access_token_expire_minutes: Minutes until access token expires
@@ -128,6 +148,12 @@ class Config:
         )
         self.enable_performance_metrics = enable_performance_metrics
         self.log_dir = log_dir
+
+        ***REMOVED*** Redis settings
+        self.redis_url = redis_url
+        self.redis_max_connections = redis_max_connections
+        self.redis_socket_timeout = redis_socket_timeout
+        self.redis_socket_connect_timeout = redis_socket_connect_timeout
 
         ***REMOVED*** JWT settings
         self.jwt_secret = jwt_secret
@@ -154,6 +180,11 @@ class Config:
             f"Initializing configuration with environment: {os.getenv('ENVIRONMENT', 'development')}"
         )
         logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
+        logger.info(f"Redis URL: {self.redis_url}")
+        logger.info(f"Redis max connections: {self.redis_max_connections}")
+        logger.info(
+            f"Redis timeouts: socket={self.redis_socket_timeout}s, connect={self.redis_socket_connect_timeout}s"
+        )
         logger.info(f"Debug mode: {self.debug}")
         logger.info(f"JWT algorithm: {self.jwt_algorithm}")
         logger.info(f"JWK enabled: {self.jwt_jwk is not None}")
@@ -200,6 +231,8 @@ class Config:
             f"cors_origins={self.cors_origins}, "
             f"log_dir={self.log_dir}, "
             f"enable_performance_metrics={self.enable_performance_metrics}, "
+            f"redis_max_connections={self.redis_max_connections}, "
+            f"redis_timeouts=[socket={self.redis_socket_timeout}s, connect={self.redis_socket_connect_timeout}s], "
             f"jwt_algorithm={self.jwt_algorithm}, "
             f"access_token_expire_minutes={self.access_token_expire_minutes}, "
             f"refresh_token_expire_days={self.refresh_token_expire_days}, "

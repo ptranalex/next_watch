@@ -7,10 +7,12 @@ from sqlmodel import Session
 from typing import List, Optional, Dict, Any
 import logging
 import traceback
+import os
 from redis.exceptions import RedisError
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
+from backend_api.config.app import settings
 
 ***REMOVED*** Import pydantic models for response
 from pydantic import BaseModel
@@ -72,9 +74,7 @@ async def get_suggestion_engine() -> SuggestionEngine:
     """
     global suggestion_engine
     if suggestion_engine is None:
-        ***REMOVED*** In production, get this from environment variable or config
-        redis_url = "redis://localhost:6379/0"
-        suggestion_engine = SuggestionEngine(redis_url)
+        suggestion_engine = SuggestionEngine(settings.redis_url)
         await suggestion_engine.initialize()
     return suggestion_engine
 
