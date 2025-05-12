@@ -76,40 +76,39 @@ jobs:
 
             ***REMOVED*** Run the data importer
             echo "🚀 Running movie sync for years ${{ github.event.inputs.start_year }}-${{ github.event.inputs.end_year }}"
-            CMD="docker run --rm \
-                 --memory=512m \
-                 --cpus=0.75 \
-                 -e POSTGRES_HOST=host.docker.internal \
-                 -e POSTGRES_PORT=5432 \
-                 -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-                 -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-                 -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
-                 -e DATABASE_URL='postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@host.docker.internal:5432/${{ secrets.POSTGRES_DB }}' \
-                 -e TMDB_ACCESS_TOKEN=${{ secrets.TMDB_ACCESS_TOKEN }} \
-                 -e OMDB_API_KEY=${{ secrets.OMDB_API_KEY }} \
-                 --add-host=host.docker.internal:host-gateway \
-                 
-                 $IMAGE \
-                 sync movies \
-                 --start-year ${{ github.event.inputs.start_year }} \
-                 --end-year ${{ github.event.inputs.end_year }}"
+
+            ***REMOVED*** Build the command as a single string without line breaks
+            CMD="docker run --rm --memory=512m --cpus=0.75"
+            CMD="${CMD} -e POSTGRES_HOST=host.docker.internal"
+            CMD="${CMD} -e POSTGRES_PORT=5432" 
+            CMD="${CMD} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }}"
+            CMD="${CMD} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
+            CMD="${CMD} -e POSTGRES_DB=${{ secrets.POSTGRES_DB }}"
+            CMD="${CMD} -e DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@host.docker.internal:5432/${{ secrets.POSTGRES_DB }}"
+            CMD="${CMD} -e TMDB_ACCESS_TOKEN=${{ secrets.TMDB_ACCESS_TOKEN }}"
+            CMD="${CMD} -e OMDB_API_KEY=${{ secrets.OMDB_API_KEY }}"
+            CMD="${CMD} --add-host=host.docker.internal:host-gateway"
+            CMD="${CMD} ${IMAGE}"
+            CMD="${CMD} sync movies"
+            CMD="${CMD} --start-year ${{ github.event.inputs.start_year }}"
+            CMD="${CMD} --end-year ${{ github.event.inputs.end_year }}"
 
             ***REMOVED*** Add optional parameters
             if [ "${{ github.event.inputs.limit }}" != "0" ]; then
-              CMD="$CMD --limit ${{ github.event.inputs.limit }}"
+              CMD="${CMD} --limit ${{ github.event.inputs.limit }}"
             fi
 
             if [ "${{ github.event.inputs.credits }}" = "true" ]; then
-              CMD="$CMD --credits"
+              CMD="${CMD} --credits"
             fi
 
             if [ "${{ github.event.inputs.save }}" = "true" ]; then
-              CMD="$CMD --save"
+              CMD="${CMD} --save"
             fi
 
             ***REMOVED*** Execute command
             echo "Running command: $CMD"
-            eval "$CMD" | while IFS= read -r line; do echo "$line"; done
+            eval "$CMD"
 
             ***REMOVED*** Cleanup old images
             docker image prune -f
