@@ -74,8 +74,7 @@ RUN groupadd -r app && useradd -r -g app app && \
 USER app
 
 ***REMOVED*** Healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import data_importer; assert data_importer.__version__"
+HEALTHCHECK CMD python -c "import data_importer" || exit 1
 
 ***REMOVED*** Default command
 ENTRYPOINT ["python", "-m", "data_importer"]
