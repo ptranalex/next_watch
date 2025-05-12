@@ -64,7 +64,7 @@ FROM base AS runner
 WORKDIR /app
 
 ***REMOVED*** Install curl for health checks - before changing user
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl net-tools
 
 ***REMOVED*** Create a non-root user for better security
 RUN addgroup --system --gid 1001 nodejs && \
@@ -80,11 +80,9 @@ ENV PORT=3000
 
 ***REMOVED*** Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-***REMOVED*** Add a symlink to the node_modules/.bin directory to ensure next is in PATH
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin /usr/local/bin
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 ***REMOVED*** Use the non-root user
 USER nextjs
@@ -92,11 +90,11 @@ USER nextjs
 ***REMOVED*** Expose the port
 EXPOSE 3000
 
-***REMOVED*** Add health check configuration - use curl with connection timeout and connection to the external interface
+***REMOVED*** Add health check configuration
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl --fail --max-time 5 --connect-timeout 5 http://localhost:3000/ || exit 1
 
-***REMOVED*** Start the application directly
+***REMOVED*** Start the application with npx to ensure next is found
 ENV HOST=0.0.0.0
 ENV PORT=3000
-CMD ["node", "server.js"]
+CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "3000"]
