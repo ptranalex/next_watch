@@ -15,6 +15,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_JWK=${JWT_JWK:-}
       - JWT_JWK_ROTATION_INTERVAL=${JWT_JWK_ROTATION_INTERVAL:-86400}
+      - REDIS_URL=redis://host.docker.internal:6379/0
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
