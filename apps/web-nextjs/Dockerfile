@@ -92,9 +92,11 @@ USER nextjs
 ***REMOVED*** Expose the port
 EXPOSE 3000
 
-***REMOVED*** Add health check configuration - increased start period and using a more reliable path
+***REMOVED*** Add health check configuration - use curl with connection timeout and connection to the external interface
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD ps aux | grep "node server.js" | grep -v grep || exit 1
+  CMD curl --fail --max-time 5 --connect-timeout 5 http://localhost:3000/ || exit 1
 
-***REMOVED*** Start the application - revert to the working version
+***REMOVED*** Start the application directly
+ENV HOST=0.0.0.0
+ENV PORT=3000
 CMD ["node", "server.js"]
