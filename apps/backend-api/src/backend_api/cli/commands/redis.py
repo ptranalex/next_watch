@@ -154,23 +154,11 @@ async def _populate_suggestions_async(
     await suggestion_engine.initialize()
 
     try:
-        ***REMOVED*** Initialize Redis connection with configuration settings
+        ***REMOVED*** Initialize Redis connection with basic configuration
         import redis.asyncio
 
-        ***REMOVED*** Create connection pool with settings
-        pool = redis.asyncio.ConnectionPool.from_url(
-            url=redis_url,
-            max_connections=settings.redis_max_connections,
-            socket_timeout=float(settings.redis_socket_timeout),
-            socket_connect_timeout=float(settings.redis_socket_connect_timeout),
-            retry_on_timeout=settings.redis_retry_on_timeout,
-            retry_on_error=settings.redis_retry_on_error,
-            max_retries=settings.redis_max_retries,
-        )
-
-        ***REMOVED*** Create Redis client with pool
-        redis_client = redis.asyncio.Redis(
-            connection_pool=pool, decode_responses=True, encoding="utf-8"
+        redis_client = redis.asyncio.Redis.from_url(
+            redis_url, decode_responses=True, encoding="utf-8"
         )
 
         ***REMOVED*** Clear existing data if requested
