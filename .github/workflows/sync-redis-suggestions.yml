@@ -80,13 +80,15 @@ jobs:
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
             ***REMOVED*** Check if backend-api container is running
-            if ! docker ps --format "{{.Names}}" | grep -q "backend-api"; then
+            if ! docker ps --format "{{.Names}}" | grep -q "^backend-api$"; then
               echo "❌ Error: backend-api container is not running"
+              echo "Containers currently running:"
+              docker ps
               echo "Please start the container first with: docker compose -f docker-compose.prod.yml up -d backend-api"
               exit 1
             fi
 
-            echo "🚀 Running Redis populate suggestions on existing backend-api container"
+            echo "🚀 Running Redis populate suggestions on container: backend-api"
 
             ***REMOVED*** Build the command to run on the existing container
             CMD="docker exec backend-api python -m backend_api.cli redis populate-suggestions"

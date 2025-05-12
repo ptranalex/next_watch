@@ -1,6 +1,7 @@
 services:
   backend-api:
     image: ${DOCKER_BACKEND_IMAGE}
+    container_name: backend-api
     restart: always
     ports:
       - "8000:8000"
@@ -39,6 +40,7 @@ services:
 
   frontend:
     image: ${DOCKER_FRONTEND_IMAGE}
+    container_name: frontend
     restart: always
     ports:
       - "3000:3000"
@@ -62,6 +64,7 @@ services:
 
   data-importer:
     image: ${DOCKER_IMPORTER_IMAGE}
+    container_name: data-importer
     profiles: ["sync"]
     environment:
       - POSTGRES_HOST=host.docker.internal
