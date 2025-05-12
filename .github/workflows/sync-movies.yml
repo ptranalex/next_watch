@@ -56,17 +56,6 @@ jobs:
           echo "SSH key format check:"
           ssh-keygen -l -f "$SSH_PATH" || echo "INVALID SSH KEY FORMAT"
 
-      - name: Create .env file for docker compose secrets
-        run: |
-          cat << EOF > .env
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-          DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@host.docker.internal:5432/${{ secrets.POSTGRES_DB }}
-          TMDB_ACCESS_TOKEN=${{ secrets.TMDB_ACCESS_TOKEN }}
-          OMDB_API_KEY=${{ secrets.OMDB_API_KEY }}
-          EOF
-
       - name: Run data importer
         uses: appleboy/ssh-action@master
         with:
@@ -77,34 +66,16 @@ jobs:
             set -e
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
-            ***REMOVED*** Ensure we have the latest image
-            echo "🔐 Attempting Docker login to GHCR..."
-            if ! echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
-              echo "⚠️ Docker login failed — retrying with sudo..."
-              echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
-                echo "❌ Docker login failed even with sudo. Aborting."
-                exit 1
-              }
-            fi
+            ***REMOVED*** Docker login
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
+            ***REMOVED*** Pull the latest image
             IMAGE="ghcr.io/${{ github.repository }}/data-importer:latest"
-
-            ***REMOVED*** Pull the image
-            echo "📥 Pulling data-importer image..."
             docker pull $IMAGE
 
-            ***REMOVED*** First, create a modified container with the missing dependency
-            echo "📦 Installing missing dependencies..."
-            docker run --rm --name temp-container -d $IMAGE sleep 300
-            docker exec temp-container apk add --no-cache py3-aiohttp
-            docker commit temp-container $IMAGE:with-deps
-            docker stop temp-container
-
-            ***REMOVED*** Now run with proper Python path and working directory
-            echo "🚀 Running the data importer with PYTHONPATH set:"
+            ***REMOVED*** Run the data importer
+            echo "🚀 Running movie sync for years ${{ github.event.inputs.start_year }}-${{ github.event.inputs.end_year }}"
             CMD="docker run --rm \
-                 --entrypoint python \
-                 -e PYTHONPATH=/app/src \
                  -e POSTGRES_HOST=host.docker.internal \
                  -e POSTGRES_PORT=5432 \
                  -e POSTGRES_USER='${{ secrets.POSTGRES_USER }}' \
@@ -114,9 +85,8 @@ jobs:
                  -e TMDB_ACCESS_TOKEN='${{ secrets.TMDB_ACCESS_TOKEN }}' \
                  -e OMDB_API_KEY='${{ secrets.OMDB_API_KEY }}' \
                  --add-host=host.docker.internal:host-gateway \
-                 -w /app/src \
-                 $IMAGE:with-deps \
-                 -m data_importer sync movies \
+                 $IMAGE \
+                 sync movies \
                  --start-year ${{ github.event.inputs.start_year }} \
                  --end-year ${{ github.event.inputs.end_year }}"
 
@@ -137,23 +107,5 @@ jobs:
             echo "Running command: $CMD"
             eval $CMD
 
-            ***REMOVED*** If the above fails, try to install more dependencies
-            if [ $? -ne 0 ]; then
-              echo "⚠️ First attempt failed, trying with more dependencies..."
-              docker run --rm --name temp-container-2 -d $IMAGE sleep 300
-              docker exec temp-container-2 apk add --no-cache py3-pip
-              docker exec temp-container-2 pip install aiohttp requests
-              docker commit temp-container-2 $IMAGE:with-more-deps
-              docker stop temp-container-2
-              
-              ***REMOVED*** Try again with more dependencies
-              CMD=${CMD/$IMAGE:with-deps/$IMAGE:with-more-deps}
-              echo "Running command with more dependencies: $CMD"
-              eval $CMD
-            fi
-
-            ***REMOVED*** Cleanup after sync
-            echo "🧹 Cleaning up..."
-            docker system prune -af --volumes
-            docker rmi $IMAGE:with-deps $IMAGE:with-more-deps 2>/dev/null || true
-            sudo docker system prune -af --volumes
+            ***REMOVED*** Cleanup old images
+            docker image prune -f
