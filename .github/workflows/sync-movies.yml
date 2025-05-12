@@ -77,6 +77,8 @@ jobs:
             ***REMOVED*** Run the data importer
             echo "🚀 Running movie sync for years ${{ github.event.inputs.start_year }}-${{ github.event.inputs.end_year }}"
             CMD="docker run --rm \
+                 --memory=512m \
+                 --cpus=0.75 \
                  -e POSTGRES_HOST=host.docker.internal \
                  -e POSTGRES_PORT=5432 \
                  -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
