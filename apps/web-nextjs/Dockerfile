@@ -56,7 +56,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ***REMOVED*** Display build information for verification
 RUN echo "Building with NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
 
-***REMOVED*** Build the Next.js application
+***REMOVED*** Build the Next.js application with standalone output
 RUN pnpm build
 
 ***REMOVED*** Production image, copy all the files and run next
@@ -78,11 +78,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-***REMOVED*** Copy built application
+***REMOVED*** Copy built application - using standalone mode for smaller image
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 ***REMOVED*** Use the non-root user
 USER nextjs
@@ -90,11 +89,11 @@ USER nextjs
 ***REMOVED*** Expose the port
 EXPOSE 3000
 
-***REMOVED*** Add health check configuration
+***REMOVED*** Add health check configuration - use container's IP with curl
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl --fail --max-time 5 --connect-timeout 5 http://localhost:3000/ || exit 1
+  CMD IP=$(hostname -i) && curl --fail --max-time 5 --connect-timeout 5 http://$IP:3000/ || exit 1
 
-***REMOVED*** Start the application with npx to ensure next is found
+***REMOVED*** Start the application in standalone mode
 ENV HOST=0.0.0.0
 ENV PORT=3000
-CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "3000"]
+CMD ["node", "server.js"]
