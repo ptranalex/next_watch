@@ -93,4 +93,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:3000/_next/static/ || exit 1
 
 ***REMOVED*** Start the application
-CMD ["node", "server.js"] 
+CMD ["npm", "run", "start"]
