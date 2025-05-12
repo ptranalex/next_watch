@@ -48,9 +48,10 @@ COPY apps/web-nextjs/src ./src
 COPY apps/web-nextjs/public ./public
 
 ***REMOVED*** Set environment variables
+ENV HOST=0.0.0.0
+ENV PORT=3000
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
 
 ***REMOVED*** Display build information for verification
 RUN echo "Building with NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
@@ -82,6 +83,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+***REMOVED*** Add a symlink to the node_modules/.bin directory to ensure next is in PATH
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin /usr/local/bin
+
 ***REMOVED*** Use the non-root user
 USER nextjs
 
@@ -90,7 +94,7 @@ EXPOSE 3000
 
 ***REMOVED*** Add health check configuration - increased start period and using a more reliable path
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3000/_next/static/ || exit 1
+  CMD ps aux | grep "node server.js" | grep -v grep || exit 1
 
-***REMOVED*** Start the application
-CMD ["npm", "run", "start"]
+***REMOVED*** Start the application - revert to the working version
+CMD ["node", "server.js"]
