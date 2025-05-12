@@ -84,5 +84,9 @@ USER nextjs
 ***REMOVED*** Expose the port
 EXPOSE 3000
 
+***REMOVED*** Add health check configuration
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
 ***REMOVED*** Start the application
 CMD ["node", "server.js"] 
