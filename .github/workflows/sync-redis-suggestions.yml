@@ -1,0 +1,127 @@
+name: Sync Redis Suggestions
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Maximum number of movies to load"
+        required: false
+        type: number
+        default: 1000
+      clear:
+        description: "Clear existing suggestions first"
+        required: false
+        type: boolean
+        default: true
+      include_actors:
+        description: "Include actors in suggestions"
+        required: false
+        type: boolean
+        default: true
+      include_directors:
+        description: "Include directors in suggestions"
+        required: false
+        type: boolean
+        default: true
+      actor_limit:
+        description: "Maximum number of actors to load"
+        required: false
+        type: number
+        default: 500
+      director_limit:
+        description: "Maximum number of directors to load"
+        required: false
+        type: number
+        default: 200
+      verbose:
+        description: "Show detailed output"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set environment
+        id: set-env
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "ACT_RUNNING=true" >> $GITHUB_ENV
+            echo "SSH_PATH=/root/.ssh/id_rsa" >> $GITHUB_ENV
+            echo "SSH_DIR=/root/.ssh" >> $GITHUB_ENV
+          else
+            echo "ACT_RUNNING=false" >> $GITHUB_ENV
+            echo "SSH_PATH=/home/runner/.ssh/id_rsa" >> $GITHUB_ENV
+            echo "SSH_DIR=/home/runner/.ssh" >> $GITHUB_ENV
+          fi
+
+      - name: Restore SSH key from string
+        run: |
+          mkdir -p "$SSH_DIR"
+          echo "${{ secrets.DEPLOY_KEY }}" | sed 's/\\n/\n/g' > "$SSH_PATH"
+          chmod 600 "$SSH_PATH"
+          echo "SSH key written to $SSH_PATH with permissions:"
+          ls -la "$SSH_PATH"
+          echo "SSH key format check:"
+          ssh-keygen -l -f "$SSH_PATH" || echo "INVALID SSH KEY FORMAT"
+
+      - name: Run Redis populate suggestions
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key_path: ${{ env.SSH_PATH }}
+          script: |
+            set -e
+            cd /home/${{ secrets.DEPLOY_USER }}/next_watch
+
+            ***REMOVED*** Check if backend-api container is running
+            if ! docker ps --format "{{.Names}}" | grep -q "backend-api"; then
+              echo "❌ Error: backend-api container is not running"
+              echo "Please start the container first with: docker compose -f docker-compose.prod.yml up -d backend-api"
+              exit 1
+            fi
+
+            echo "🚀 Running Redis populate suggestions on existing backend-api container"
+
+            ***REMOVED*** Build the command to run on the existing container
+            CMD="docker exec backend-api python -m backend_api.cli redis populate-suggestions"
+
+            ***REMOVED*** Add parameters
+            CMD="${CMD} --limit ${{ github.event.inputs.limit }}"
+
+            if [ "${{ github.event.inputs.clear }}" = "true" ]; then
+              CMD="${CMD} --clear"
+            else
+              CMD="${CMD} --no-clear"
+            fi
+
+            if [ "${{ github.event.inputs.include_actors }}" = "true" ]; then
+              CMD="${CMD} --actors"
+            else
+              CMD="${CMD} --no-actors"
+            fi
+
+            if [ "${{ github.event.inputs.include_directors }}" = "true" ]; then
+              CMD="${CMD} --directors"
+            else
+              CMD="${CMD} --no-directors"
+            fi
+
+            CMD="${CMD} --actor-limit ${{ github.event.inputs.actor_limit }}"
+            CMD="${CMD} --director-limit ${{ github.event.inputs.director_limit }}"
+
+            if [ "${{ github.event.inputs.verbose }}" = "true" ]; then
+              CMD="${CMD} --verbose"
+            fi
+
+            ***REMOVED*** Execute command
+            echo "Running command: $CMD"
+            eval "$CMD"
+
+            ***REMOVED*** Cleanup old images
+            docker image prune -f
