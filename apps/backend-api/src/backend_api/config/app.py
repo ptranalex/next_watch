@@ -48,10 +48,19 @@ DEFAULT_JWT_JWK_ROTATION_INTERVAL = int(
 ***REMOVED*** Redis settings
 DEFAULT_REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 DEFAULT_REDIS_MAX_CONNECTIONS = int(os.getenv("REDIS_MAX_CONNECTIONS", "10"))
-DEFAULT_REDIS_SOCKET_TIMEOUT = int(os.getenv("REDIS_SOCKET_TIMEOUT", "5"))
+DEFAULT_REDIS_SOCKET_TIMEOUT = int(
+    os.getenv("REDIS_SOCKET_TIMEOUT", "30")
+)  ***REMOVED*** Increased from 5 to 30
 DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT = int(
-    os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "5")
+    os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "30")
+)  ***REMOVED*** Increased from 5 to 30
+DEFAULT_REDIS_RETRY_ON_TIMEOUT = (
+    os.getenv("REDIS_RETRY_ON_TIMEOUT", "true").lower() == "true"
 )
+DEFAULT_REDIS_RETRY_ON_ERROR = (
+    os.getenv("REDIS_RETRY_ON_ERROR", "true").lower() == "true"
+)
+DEFAULT_REDIS_MAX_RETRIES = int(os.getenv("REDIS_MAX_RETRIES", "3"))
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
@@ -72,6 +81,9 @@ class Config:
     redis_max_connections: int
     redis_socket_timeout: int
     redis_socket_connect_timeout: int
+    redis_retry_on_timeout: bool
+    redis_retry_on_error: bool
+    redis_max_retries: int
     ***REMOVED*** JWT settings
     jwt_secret: str
     jwt_algorithm: str
@@ -107,6 +119,9 @@ class Config:
         redis_max_connections: int = DEFAULT_REDIS_MAX_CONNECTIONS,
         redis_socket_timeout: int = DEFAULT_REDIS_SOCKET_TIMEOUT,
         redis_socket_connect_timeout: int = DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT,
+        redis_retry_on_timeout: bool = DEFAULT_REDIS_RETRY_ON_TIMEOUT,
+        redis_retry_on_error: bool = DEFAULT_REDIS_RETRY_ON_ERROR,
+        redis_max_retries: int = DEFAULT_REDIS_MAX_RETRIES,
         jwt_secret: str = DEFAULT_JWT_SECRET,
         jwt_algorithm: str = DEFAULT_JWT_ALGORITHM,
         access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -127,6 +142,9 @@ class Config:
             redis_max_connections: Maximum number of Redis connections in pool
             redis_socket_timeout: Redis socket timeout in seconds
             redis_socket_connect_timeout: Redis socket connect timeout in seconds
+            redis_retry_on_timeout: Whether to retry on timeout errors
+            redis_retry_on_error: Whether to retry on other errors
+            redis_max_retries: Maximum number of retry attempts
             jwt_secret: Secret key for JWT token generation
             jwt_algorithm: Algorithm for JWT token generation
             access_token_expire_minutes: Minutes until access token expires
@@ -154,6 +172,9 @@ class Config:
         self.redis_max_connections = redis_max_connections
         self.redis_socket_timeout = redis_socket_timeout
         self.redis_socket_connect_timeout = redis_socket_connect_timeout
+        self.redis_retry_on_timeout = redis_retry_on_timeout
+        self.redis_retry_on_error = redis_retry_on_error
+        self.redis_max_retries = redis_max_retries
 
         ***REMOVED*** JWT settings
         self.jwt_secret = jwt_secret
@@ -184,6 +205,9 @@ class Config:
         logger.info(f"Redis max connections: {self.redis_max_connections}")
         logger.info(
             f"Redis timeouts: socket={self.redis_socket_timeout}s, connect={self.redis_socket_connect_timeout}s"
+        )
+        logger.info(
+            f"Redis retry settings: on_timeout={self.redis_retry_on_timeout}, on_error={self.redis_retry_on_error}, max_retries={self.redis_max_retries}"
         )
         logger.info(f"Debug mode: {self.debug}")
         logger.info(f"JWT algorithm: {self.jwt_algorithm}")
@@ -233,6 +257,7 @@ class Config:
             f"enable_performance_metrics={self.enable_performance_metrics}, "
             f"redis_max_connections={self.redis_max_connections}, "
             f"redis_timeouts=[socket={self.redis_socket_timeout}s, connect={self.redis_socket_connect_timeout}s], "
+            f"redis_retry_settings=[on_timeout={self.redis_retry_on_timeout}, on_error={self.redis_retry_on_error}, max_retries={self.redis_max_retries}], "
             f"jwt_algorithm={self.jwt_algorithm}, "
             f"access_token_expire_minutes={self.access_token_expire_minutes}, "
             f"refresh_token_expire_days={self.refresh_token_expire_days}, "
