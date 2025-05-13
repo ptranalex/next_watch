@@ -28,7 +28,7 @@ export function useMovie(id: number) {
   } = useQuery({
     queryKey: ["movie", id],
     queryFn: () => MovieAPI.getById(id),
-    enabled: !!id,
+    enabled: id > 0,
   });
 
   // Fetch user interaction data if authenticated
@@ -39,7 +39,7 @@ export function useMovie(id: number) {
   } = useQuery({
     queryKey: ["movieInteraction", id],
     queryFn: () => userInteractionAPI.getMovieInteraction(id),
-    enabled: !!id && isAuthenticated,
+    enabled: id > 0 && isAuthenticated,
     onSuccess: (data) => {
       console.log("Loaded interaction data:", data);
       // Debug API property mapping
@@ -207,13 +207,14 @@ export function useMovie(id: number) {
       }
       return { movies: [], total: 0, page: 1, page_size: 20 };
     },
-    enabled: FEATURES.SHOW_MORE_LIKE_THIS && !!serviceMovie,
+    enabled: FEATURES.SHOW_MORE_LIKE_THIS && !!serviceMovie && id > 0,
   });
 
   // Fetch movie cast
   const castQuery = useQuery<MovieCastResponse>({
     queryKey: ["movieCast", id],
     queryFn: () => MovieAPI.getCast(id),
+    enabled: id > 0,
   });
 
   return {
