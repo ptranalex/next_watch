@@ -29,7 +29,6 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ["*"],
     },
-    esmExternals: "loose", // Helps with pnpm compatibility
   },
 
   // Additional production optimizations

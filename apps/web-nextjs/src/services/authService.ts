@@ -35,19 +35,17 @@ const authService = {
    * Register a new user
    */
   register: async (data: RegisterData): Promise<UserData> => {
-    const formData = new URLSearchParams();
-    formData.append("username", data.email);
-    formData.append("password", data.password);
-    if (data.username) {
-      formData.append("display_name", data.username);
-    }
-
     const response = await fetch(`${API_URL}/api/v1/auth/signup/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
       },
-      body: formData.toString(),
+      body: JSON.stringify({
+        email: data.email,
+        username: data.username,
+        password: data.password,
+        password_confirm: data.password_confirm,
+      }),
     });
 
     if (!response.ok) {
@@ -150,7 +148,6 @@ const authService = {
 
       if (!response.ok) {
         const status = response.status;
-        const responseText = await response.text();
 
         // Handle specific error cases
         if (status === 401 || status === 403) {
@@ -170,7 +167,7 @@ const authService = {
       const tokens = await response.json();
       AuthTokenManager.setTokens(tokens.access_token, tokens.refresh_token);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   },
