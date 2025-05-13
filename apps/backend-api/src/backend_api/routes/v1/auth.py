@@ -84,7 +84,7 @@ async def get_optional_user(
 
 ***REMOVED*** Authentication endpoints
 @router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/signup/", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
 async def register(
     user_data: UserCreate,
