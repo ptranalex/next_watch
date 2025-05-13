@@ -7,11 +7,6 @@ on:
         description: "Build all apps regardless of changes"
         required: false
         default: "false"
-  push:
-    paths:
-      - "apps/backend-api/**"
-      - "apps/data-importer/**"
-      - "apps/web-nextjs/**"
   workflow_call:
     inputs:
       build_all:
