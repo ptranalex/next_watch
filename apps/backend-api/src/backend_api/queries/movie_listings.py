@@ -24,6 +24,8 @@ def get_movies_with_filters(
     rotten_tomatoes_rating: Optional[int] = None,
     metacritic_rating: Optional[int] = None,
     year: Optional[int] = None,
+    start_year: Optional[int] = None,
+    end_year: Optional[int] = None,
 ) -> Tuple[List[Any], int]:
     """
     Get movies with pagination, filtering, and sorting.
@@ -41,6 +43,8 @@ def get_movies_with_filters(
         rotten_tomatoes_rating: Minimum Rotten Tomatoes rating to filter by
         metacritic_rating: Minimum Metacritic rating to filter by
         year: Release year to filter by
+        start_year: Start release year to filter by (inclusive)
+        end_year: End release year to filter by (inclusive)
 
     Returns:
         Tuple of (list of movie rows, total count)
@@ -98,6 +102,15 @@ def get_movies_with_filters(
     if year is not None:
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) = :year")
         params["year"] = year
+
+    ***REMOVED*** Add year range filters
+    if start_year is not None:
+        where_clauses.append("EXTRACT(YEAR FROM m.release_date) >= :start_year")
+        params["start_year"] = start_year
+
+    if end_year is not None:
+        where_clauses.append("EXTRACT(YEAR FROM m.release_date) <= :end_year")
+        params["end_year"] = end_year
 
     ***REMOVED*** Add WHERE clause if we have any conditions
     if where_clauses:
@@ -176,6 +189,8 @@ def search_movies_by_title(
     rotten_tomatoes_rating: Optional[int] = None,
     metacritic_rating: Optional[int] = None,
     year: Optional[int] = None,
+    start_year: Optional[int] = None,
+    end_year: Optional[int] = None,
 ) -> Tuple[List[Any], int]:
     """
     Search for movies by title with additional filtering options.
@@ -194,6 +209,8 @@ def search_movies_by_title(
         rotten_tomatoes_rating: Minimum Rotten Tomatoes rating to filter by
         metacritic_rating: Minimum Metacritic rating to filter by
         year: Release year to filter by
+        start_year: Start release year to filter by (inclusive)
+        end_year: End release year to filter by (inclusive)
 
     Returns:
         Tuple of (list of movie rows, total count)
@@ -257,6 +274,15 @@ def search_movies_by_title(
     if year is not None:
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) = :year")
         params["year"] = year
+
+    ***REMOVED*** Add year range filters
+    if start_year is not None:
+        where_clauses.append("EXTRACT(YEAR FROM m.release_date) >= :start_year")
+        params["start_year"] = start_year
+
+    if end_year is not None:
+        where_clauses.append("EXTRACT(YEAR FROM m.release_date) <= :end_year")
+        params["end_year"] = end_year
 
     ***REMOVED*** Add WHERE clause with all conditions
     if where_clauses:

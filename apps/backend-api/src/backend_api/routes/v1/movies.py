@@ -112,6 +112,10 @@ async def list_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
+    start_year: Optional[int] = Query(
+        None, description="Filter by start year (inclusive)"
+    ),
+    end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
@@ -135,6 +139,8 @@ async def list_movies(
             rotten_tomatoes_rating=rotten_tomatoes_rating,
             metacritic_rating=metacritic_rating,
             year=year,
+            start_year=start_year,
+            end_year=end_year,
         )
 
         if not movies:

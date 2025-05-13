@@ -45,6 +45,8 @@ class MovieQuery:
         rotten_tomatoes_rating: Optional[int] = None,
         metacritic_rating: Optional[int] = None,
         year: Optional[int] = None,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None,
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Get movies with various filtering options.
@@ -61,6 +63,8 @@ class MovieQuery:
             rotten_tomatoes_rating: Minimum Rotten Tomatoes rating
             metacritic_rating: Minimum Metacritic rating
             year: Filter by release year
+            start_year: Filter by start year (inclusive)
+            end_year: Filter by end year (inclusive)
 
         Returns:
             Tuple of (movie list, total count)
@@ -108,6 +112,8 @@ class MovieQuery:
             rotten_tomatoes_rating=rotten_tomatoes_rating,
             metacritic_rating=metacritic_rating,
             year=year,
+            start_year=start_year,
+            end_year=end_year,
         )
 
     def get_movie_details(self, db: Session, movie_id: int) -> Dict[str, Any]:
