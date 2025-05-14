@@ -89,6 +89,11 @@ const MovieGrid = React.memo(
       movieQuery.year,
       movieQuery.sortOrder,
       movieQuery.sortDesc,
+      // Add key props that should trigger a reset when changed
+      source,
+      safeIds.movieId,
+      safeIds.actorId,
+      safeIds.genreId,
     ]);
 
     const { data, isLoading, fetchNextPage, hasNextPage, updateMovie, error } =
