@@ -1,8 +1,8 @@
 "use client";
 
-import { toActorEntity } from "@/domain/entities";
-import { ActorAPI, MovieListResponse } from "@/services/api";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Actor } from "@/domain/entities";
+import { ActorAPI } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Hook for fetching and managing a single actor
@@ -10,11 +10,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
  * @returns Actor data, loading state, error, and related information
  */
 export function useActor(id: number) {
-  const queryClient = useQueryClient();
-
   // Fetch actor data
   const {
-    data: serviceActor,
+    data: actor,
     isLoading,
     error,
   } = useQuery({
@@ -23,11 +21,11 @@ export function useActor(id: number) {
     enabled: !!id,
   });
 
-  // Convert service actor to entity
-  const actor = serviceActor ? toActorEntity(serviceActor) : undefined;
+  // Get actor name with fallback
+  const actorName = actor?.name || "Actor";
 
   // Fetch movies featuring this actor
-  const moviesQuery = useQuery<MovieListResponse>({
+  const moviesQuery = useQuery({
     queryKey: ["actorMovies", id],
     queryFn: () => ActorAPI.getActorMovies(id),
     enabled: !!id,
@@ -35,9 +33,12 @@ export function useActor(id: number) {
 
   return {
     actor,
+    actorName,
     isLoading,
     error,
     movies: moviesQuery.data?.movies || [],
     totalMovies: moviesQuery.data?.total || 0,
   };
 }
+
+export default useActor;

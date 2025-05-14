@@ -1,44 +1,42 @@
-"use client";
-
-import { ColorModeScript } from "@chakra-ui/react";
 import { Inter } from "next/font/google";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import theme from "../theme";
-import NavBar from "../components/layout/NavBar";
 import { Providers } from "./providers";
-import LoadingIndicator from "../components/commons/LoadingIndicator";
+import type { Metadata, Viewport } from "next";
+import AppShell from "@/components/layout/AppShell";
+import ThemeScript from "@/components/providers/ThemeScript";
 
-// No longer need to mark as dynamic since we're not using useSearchParams
-// export const dynamic = "force-dynamic";
-
+// Load Inter font
 const inter = Inter({ subsets: ["latin"] });
+
+// Add metadata using Next.js metadata API
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Next Watch",
+    default: "Next Watch - Find Your Next Movie",
+  },
+  description: "Discover your next favorite movie with Next Watch",
+};
+
+// Sets browser toolbar color based on light/dark mode preference (mostly for mobile/pwa polish)
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "***REMOVED***171923" },
+  ],
+};
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  const pathname = usePathname();
-  const [isChangingPage, setIsChangingPage] = useState(false);
-
-  // Track page changes to show loading state
-  useEffect(() => {
-    setIsChangingPage(true);
-    const timeout = setTimeout(() => setIsChangingPage(false), 300);
-    return () => clearTimeout(timeout);
-  }, [pathname]); // Removed searchParams dependency
-
+}) {
   return (
     <html lang="en" data-theme="dark">
       <head>
-        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <ThemeScript />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} chakra-ui-dark`}>
         <Providers>
-          <NavBar />
-          {isChangingPage && <LoadingIndicator />}
-          <main>{children}</main>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

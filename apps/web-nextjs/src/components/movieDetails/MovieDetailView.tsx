@@ -173,7 +173,7 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
   const overview = typeof movie.overview === "string" ? movie.overview : "";
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
+    <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5} paddingY={5}>
       {!isSmallerScreen && (
         <GridItem display="flex" justifyContent="flex-end">
           <Box maxWidth={280}>

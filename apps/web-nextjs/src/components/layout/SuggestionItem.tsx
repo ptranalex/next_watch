@@ -1,3 +1,5 @@
+"use client";
+
 // components/SuggestionItem.jsx
 import { TextSuggestion } from "@/services/api/search/types";
 import {

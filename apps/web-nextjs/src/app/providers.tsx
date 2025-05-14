@@ -11,6 +11,7 @@ import { MovieQueryProvider } from "../context/MovieQueryContext";
 
 /**
  * Global providers component
+ * Responsible only for setting up context providers, not UI elements
  * The order matters - providers higher in the tree can be accessed by providers lower down
  */
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -30,30 +31,25 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    // 1. Setup UI framework
-    <ChakraProvider
-      theme={theme}
-      colorModeManager={{
-        type: "localStorage",
-        get: () => "dark",
-        set: () => {},
-      }}
-    >
-      {/* 2. Setup data fetching */}
-      <QueryClientProvider client={queryClient}>
-        {/* 3. Setup authentication */}
-        <GoogleOAuthProvider
-          clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
-        >
-          <AuthProvider>
-            {/* 4. Setup app-specific state */}
-            <MovieQueryProvider>
-              {children}
-              <ReactQueryDevtools initialIsOpen={false} />
-            </MovieQueryProvider>
-          </AuthProvider>
-        </GoogleOAuthProvider>
-      </QueryClientProvider>
-    </ChakraProvider>
+    <>
+      {/* 1. Setup UI framework */}
+      <ChakraProvider theme={theme} resetCSS={true}>
+        {/* 2. Setup data fetching */}
+        <QueryClientProvider client={queryClient}>
+          {/* 3. Setup authentication */}
+          <GoogleOAuthProvider
+            clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+          >
+            <AuthProvider>
+              {/* 4. Setup app-specific state */}
+              <MovieQueryProvider>
+                {children}
+                <ReactQueryDevtools initialIsOpen={false} />
+              </MovieQueryProvider>
+            </AuthProvider>
+          </GoogleOAuthProvider>
+        </QueryClientProvider>
+      </ChakraProvider>
+    </>
   );
 }

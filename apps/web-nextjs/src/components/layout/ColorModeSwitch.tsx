@@ -1,3 +1,5 @@
+"use client";
+
 import { HStack, IconButton, useColorMode } from "@chakra-ui/react";
 import { HiMoon, HiSun } from "react-icons/hi";
 

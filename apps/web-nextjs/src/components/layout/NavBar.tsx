@@ -1,3 +1,5 @@
+"use client";
+
 import logoLight from "@/assets/logo-light.jpeg";
 import logoDark from "@/assets/logo.jpeg";
 import LoginModal from "@/components/auth/LoginModal";

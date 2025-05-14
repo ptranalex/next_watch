@@ -1,16 +1,20 @@
-import { Box, Container, Heading, Text, Button } from "@chakra-ui/react";
+"use client";
+
+import { Heading, Text, Button, Center, VStack } from "@chakra-ui/react";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
+/**
+ * Custom 404 page
+ * The AppShell is already provided by the root layout, so we just need the content
+ */
 export default function NotFound() {
   return (
-    <Container maxW="container.xl" py={20}>
-      <Box textAlign="center">
-        <Heading as="h1" size="2xl" mb={4}>
+    <Center minH="70vh" width="100%">
+      <VStack spacing={8} textAlign="center">
+        <Heading as="h1" size="2xl">
           404 - Page Not Found
         </Heading>
-        <Text fontSize="xl" mb={8}>
+        <Text fontSize="xl">
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </Text>
         <Link href="/" passHref>
@@ -18,7 +22,7 @@ export default function NotFound() {
             Return to Home
           </Button>
         </Link>
-      </Box>
-    </Container>
+      </VStack>
+    </Center>
   );
 }

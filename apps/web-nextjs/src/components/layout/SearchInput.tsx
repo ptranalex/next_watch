@@ -1,3 +1,5 @@
+"use client";
+
 import SuggestionItem from "@/components/layout/SuggestionItem";
 import { useSearchSuggestions } from "@/hooks";
 import { TextSuggestion } from "@/services/api/search/types";

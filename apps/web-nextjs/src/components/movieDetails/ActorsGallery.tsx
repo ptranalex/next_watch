@@ -48,13 +48,10 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
     return null;
   }
 
-  // Get only top 3 actors
-  const topActors = castData.cast.slice(0, 3);
-
   return (
     <Box>
       <SimpleGrid columns={3} spacing={2}>
-        {topActors.map((actor) => (
+        {castData.cast.map((actor) => (
           <Box
             key={actor.id}
             textAlign="center"

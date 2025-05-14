@@ -52,7 +52,7 @@ const MovieAttributes = ({ movie }: Props) => {
         {isLoading ? (
           <Spinner size="sm" />
         ) : (
-          castData?.cast.slice(0, 3).map((actor) => (
+          castData?.cast.map((actor) => (
             <ChakraLink
               as={Link}
               href={`/actors/${actor.actor_id}`}
