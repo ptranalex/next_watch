@@ -16,6 +16,7 @@ class CastMemberResponse(BaseModel):
     character: Optional[str] = None
     profile_path: Optional[str] = None
     order: Optional[int] = None
+    popularity: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
