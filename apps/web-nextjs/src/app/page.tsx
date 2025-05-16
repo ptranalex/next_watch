@@ -2,8 +2,6 @@
 
 import { memo } from "react";
 import MovieGrid from "@/components/home/MovieGrid";
-import MovieHeading from "@/components/home/MovieHeading";
-import { useSlugLogic } from "@/hooks";
 import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
 
 // Make the page dynamic to avoid prerendering issues
@@ -18,10 +16,10 @@ const MemoizedMovieGrid = memo(MovieGrid);
  * Uses the shared MovieBrowseLayout for consistent UI with genre pages
  */
 const HomePage: React.FC = () => {
-  const title = useSlugLogic();
+  const title = "All Movies";
 
   return (
-    <MovieBrowseLayout title={<MovieHeading title={title} />}>
+    <MovieBrowseLayout title={title}>
       <MemoizedMovieGrid
         columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
         source="movie_listing"

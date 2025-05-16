@@ -4,6 +4,9 @@ import React, { memo } from "react";
 import NavBar from "./NavBar";
 import SideBar from "./SideBar";
 import { Box, Grid, GridItem, Show } from "@chakra-ui/react";
+import { useSyncFiltersToUrl } from "@/hooks/filter/useSyncFilterToUrl";
+import { useFilterResetOnRouteChange } from "@/hooks/filter/useFilterResetOnRouteChange";
+import { useMovieFilterRehydration } from "@/hooks/filter/useMovieFilterRehydration";
 
 // Memoize child components to prevent unnecessary re-renders
 const MemoizedNavBar = memo(NavBar);
@@ -15,6 +18,10 @@ const MemoizedSideBar = memo(SideBar);
  * Memoized client component that provides the main layout structure
  */
 function AppShell({ children }: { children: React.ReactNode }) {
+  useFilterResetOnRouteChange();
+  useMovieFilterRehydration();
+  useSyncFiltersToUrl();
+
   return (
     <>
       <MemoizedNavBar />

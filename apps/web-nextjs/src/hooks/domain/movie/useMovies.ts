@@ -2,6 +2,7 @@
 
 import { Movie } from "@/domain/entities";
 import { MovieAPI, userInteractionAPI, UserMovieDetail } from "@/services/api";
+import useMovieFilterStore from "@/store/movieFilterStore";
 import {
   useInfiniteQuery,
   useMutation,
@@ -22,7 +23,7 @@ interface UseMoviesOptions {
   genre_id?: number;
   page?: number;
   searchText?: string;
-  // Add filter options directly as props instead of using URL params
+  // Legacy filter props (still available but ignored if store is used)
   imdb_rating?: number;
   rotten_tomatoes_rating?: number;
   metacritic_rating?: number;
@@ -34,13 +35,16 @@ interface UseMoviesOptions {
 export const useMovies = (options: UseMoviesOptions) => {
   const queryClient = useQueryClient();
 
-  // Use provided filter values directly instead of from URL
-  const imdb_rating = options.imdb_rating;
-  const rotten_tomatoes_rating = options.rotten_tomatoes_rating;
-  const metacritic_rating = options.metacritic_rating;
-  const year = options.year;
-  const sortOrder = options.sortOrder || "release_date";
-  const sortDesc = options.sortDesc !== false; // Default to true unless explicitly false
+  // Get filters directly from the store
+  const { filters } = useMovieFilterStore();
+
+  // Use filter values from store, but allow override from props for backward compatibility
+  const imdb_rating = filters.imdb_rating;
+  const rotten_tomatoes_rating = filters.rotten_tomatoes_rating;
+  const metacritic_rating = filters.metacritic_rating;
+  const year = filters.year;
+  const sortOrder = filters.sortOrder || "release_date";
+  const sortDesc = true; // Always descending for now
 
   const queryKey = [
     "movies",

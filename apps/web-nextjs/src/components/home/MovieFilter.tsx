@@ -1,26 +1,53 @@
 "use client";
 
 import RatingSlider from "@/components/home/RatingSlider";
-import { useMovieQuery } from "@/context/MovieQueryContext";
+import useMovieFilterStore from "@/store/movieFilterStore";
+import { useCallback } from "react";
 import { FaImdb } from "react-icons/fa";
 import { HiCalendarDays } from "react-icons/hi2";
 import { MdAssessment } from "react-icons/md";
 import { SiRottentomatoes } from "react-icons/si";
 
+// Define the filter param types
+type FilterParams = Record<string, number | null> & {
+  rating_imdb: number | null;
+  rating_rotten_tomatoes: number | null;
+  rating_metacritic: number | null;
+  year: number | null;
+};
+
 const MovieFilter = () => {
-  // Use the context-based filter state which automatically updates the URL
-  const {
-    movieQuery: {
-      rating_imdb,
-      rating_rotten_tomatoes,
-      rating_metacritic,
-      year,
+  // Get store filters and actions
+  const { filters, setFilter } = useMovieFilterStore();
+
+  // Handlers for each rating type
+  const handleImdbChange = useCallback(
+    (value: number | null) => {
+      setFilter("imdb_rating", value ?? undefined);
     },
-    setRatingImdb,
-    setRatingTomatoes,
-    setRatingMetacritic,
-    setYear,
-  } = useMovieQuery();
+    [setFilter]
+  );
+
+  const handleTomatoesChange = useCallback(
+    (value: number | null) => {
+      setFilter("rotten_tomatoes_rating", value ?? undefined);
+    },
+    [setFilter]
+  );
+
+  const handleMetacriticChange = useCallback(
+    (value: number | null) => {
+      setFilter("metacritic_rating", value ?? undefined);
+    },
+    [setFilter]
+  );
+
+  const handleYearChange = useCallback(
+    (value: number | null) => {
+      setFilter("year", value ?? undefined);
+    },
+    [setFilter]
+  );
 
   return (
     <>
@@ -29,8 +56,8 @@ const MovieFilter = () => {
         step={0.5}
         max={10}
         min={0}
-        value={rating_imdb ?? 0}
-        setValue={setRatingImdb}
+        value={filters.imdb_rating}
+        setValue={handleImdbChange}
         icon={FaImdb}
       />
       <RatingSlider
@@ -38,8 +65,8 @@ const MovieFilter = () => {
         step={10}
         max={100}
         min={0}
-        value={rating_rotten_tomatoes ?? 0}
-        setValue={setRatingTomatoes}
+        value={filters.rotten_tomatoes_rating}
+        setValue={handleTomatoesChange}
         icon={SiRottentomatoes}
       />
       <RatingSlider
@@ -47,8 +74,8 @@ const MovieFilter = () => {
         step={10}
         max={100}
         min={0}
-        value={rating_metacritic ?? 0}
-        setValue={setRatingMetacritic}
+        value={filters.metacritic_rating}
+        setValue={handleMetacriticChange}
         icon={MdAssessment}
       />
       <RatingSlider
@@ -56,8 +83,8 @@ const MovieFilter = () => {
         step={1}
         max={2024}
         min={1990}
-        value={year ?? 0}
-        setValue={setYear}
+        value={filters.year}
+        setValue={handleYearChange}
         icon={HiCalendarDays}
       />
     </>

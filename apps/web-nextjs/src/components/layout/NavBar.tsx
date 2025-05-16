@@ -8,7 +8,6 @@ import MobileNavMenu from "@/components/layout/MobileNavMenu";
 import SearchInput from "@/components/layout/SearchInput";
 import ProfileModal from "@/components/profile/ProfileModal";
 import { useAuth, useDevice } from "@/hooks";
-import useMovieQueryStore from "@/store/movieQuery";
 import {
   Avatar,
   Box,
@@ -19,7 +18,7 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
 
 const NavBar: React.FC = () => {
@@ -28,14 +27,13 @@ const NavBar: React.FC = () => {
   const router = useRouter();
   const { isMobile } = useDevice();
 
-  const resetFilters = useMovieQueryStore((state) => state.resetFilters);
   const { isAuthenticated, user } = useAuth();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const handleLogoClick = () => {
-    resetFilters();
+  const handleLogoClick = useCallback(() => {
+    // Navigate to home page
     router.push("/");
-  };
+  }, [router]);
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);

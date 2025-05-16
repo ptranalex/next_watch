@@ -1,5 +1,7 @@
+"use client";
+
 import { useAuth } from "@/hooks";
-import useMovieQueryStore from "@/store/movieQuery";
+import useMovieFilterStore from "@/store/movieFilterStore";
 import {
   Box,
   Link as ChakraLink,
@@ -23,7 +25,6 @@ import {
 } from "react-icons/hi2";
 import MovieFilter from "@/components/home/MovieFilter";
 import GenreSection from "@/components/navigation/GenreSection";
-import { useMovieQuery } from "@/context/MovieQueryContext";
 
 interface NavItem {
   icon: React.ElementType;
@@ -42,10 +43,10 @@ const NavLink = memo<NavItem>(({ icon, label, path }) => (
 ));
 NavLink.displayName = "NavLink";
 
-// Filter section wrapper - DON'T memoize this component as it needs to respond to context changes
+// Filter section wrapper - DON'T memoize this component as it needs to respond to filter changes
 const FilterSection = () => {
-  // Get current filter values from context to force re-renders when they change
-  const { movieQuery } = useMovieQuery();
+  // Get current filter values from store to force re-renders when they change
+  const { filters } = useMovieFilterStore();
 
   return (
     <>
@@ -58,9 +59,9 @@ const FilterSection = () => {
 };
 
 // Memoized HomeLink component
-const HomeLink = memo(({ onResetFilters }: { onResetFilters: () => void }) => (
+const HomeLink = memo(() => (
   <Heading fontSize="xl" marginTop={10} marginBottom={3}>
-    <ChakraLink as={Link} href="/" onClick={onResetFilters}>
+    <ChakraLink as={Link} href="/">
       Home
     </ChakraLink>
   </Heading>
@@ -99,13 +100,7 @@ TopNavSection.displayName = "TopNavSection";
 
 const SideBar: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const resetFilters = useMovieQueryStore((state) => state.resetFilters);
   const isMobile = useBreakpointValue({ base: true, md: false });
-
-  // Memoize the reset filters function
-  const handleResetFilters = useCallback(() => {
-    resetFilters();
-  }, [resetFilters]);
 
   // Memoize navigation items to prevent recreating on every render
   const userNavItems = useMemo<NavItem[]>(() => {
@@ -136,7 +131,7 @@ const SideBar: React.FC = () => {
 
   return (
     <Box>
-      <HomeLink onResetFilters={handleResetFilters} />
+      <HomeLink />
       <UserNavSection items={userNavItems} />
       <FilterSection />
       <TopNavSection items={topNavItems} />

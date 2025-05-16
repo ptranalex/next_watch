@@ -1,6 +1,5 @@
-import { useMovieQuery } from "@/context/MovieQueryContext";
+import useMovieFilterStore from "@/store/movieFilterStore";
 import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
-import { useEffect } from "react";
 import { BsChevronDown } from "react-icons/bs";
 
 const SortSelector = () => {
@@ -18,19 +17,14 @@ const SortSelector = () => {
     { value: "vote_count", label: "Popularity", desc: true },
   ];
 
-  const { movieQuery, setSorting } = useMovieQuery();
-  const sortOrder = movieQuery.sortOrder;
-  const sortDesc = movieQuery.sortDesc;
+  // Get filters and the setSorting method from the store
+  const { filters, setSorting } = useMovieFilterStore();
+  const { sortOrder, sortDesc } = filters;
 
-  // Debug current selection
+  // Find the current sort order for display
   const currentSortOrder = sortOrders.find(
     (order) => order.value === sortOrder && order.desc === sortDesc
   );
-
-  // Monitor for changes
-  useEffect(() => {
-    // No console.log needed here
-  }, [sortOrder, sortDesc, currentSortOrder]);
 
   return (
     <Menu>
@@ -41,7 +35,7 @@ const SortSelector = () => {
         {sortOrders.map((order) => (
           <MenuItem
             onClick={() => {
-              setSorting(order.value, order.desc ?? false);
+              setSorting(order.value, order.desc ?? true);
             }}
             key={`${order.value}-${order.desc ? "desc" : "asc"}`}
           >

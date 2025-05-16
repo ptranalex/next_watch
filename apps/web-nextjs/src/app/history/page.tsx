@@ -9,14 +9,14 @@ import { memo } from "react";
 const MemoizedMovieGrid = memo(MovieGrid);
 
 export default function HistoryPage() {
+  const title = (
+    <Heading as="h1" marginY={5}>
+      Watch History
+    </Heading>
+  );
+
   return (
-    <MovieBrowseLayout
-      title={
-        <Heading as="h1" marginY={5}>
-          Watch History
-        </Heading>
-      }
-    >
+    <MovieBrowseLayout title={title}>
       <MemoizedMovieGrid
         columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
         source="watched"

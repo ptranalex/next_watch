@@ -8,4 +8,3 @@ export * from "./actor";
 export * from "./genre";
 export * from "./useSearch";
 export * from "./useSearchSuggestions";
-export * from "./useSlugLogic";

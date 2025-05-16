@@ -253,3 +253,42 @@ pnpm production-build
 ***REMOVED*** Start the production server
 pnpm start
 ```
+
+***REMOVED******REMOVED*** URL-Based Filter System
+
+The application uses URL-based state management for filters instead of React context. This provides several benefits:
+
+- Filter state persists across page refreshes
+- Filters can be shared via URL
+- Browser navigation (back/forward) works with filter changes
+- Improved SEO as filters are reflected in URLs
+
+***REMOVED******REMOVED******REMOVED*** Available URL Parameters
+
+The following URL parameters can be used for filtering:
+
+| Parameter              | Type   | Description                            | Example                      |
+| ---------------------- | ------ | -------------------------------------- | ---------------------------- |
+| q                      | string | Search query                           | `?q=matrix`                  |
+| genre                  | string | Movie genre                            | `?genre=action`              |
+| rating_imdb            | number | Minimum IMDb rating (0-10)             | `?rating_imdb=7.5`           |
+| rating_rotten_tomatoes | number | Minimum Rotten Tomatoes rating (0-100) | `?rating_rotten_tomatoes=80` |
+| rating_metacritic      | number | Minimum Metacritic rating (0-100)      | `?rating_metacritic=70`      |
+| year                   | number | Release year                           | `?year=2023`                 |
+| sort                   | string | Sort field                             | `?sort=release_date`         |
+| order                  | string | Sort order (asc/desc)                  | `?order=desc`                |
+
+***REMOVED******REMOVED******REMOVED*** Examples
+
+- View all action movies: `/movies?genre=action`
+- 2023 movies with IMDb rating 7+: `/movies?year=2023&rating_imdb=7`
+- Highly rated comedies sorted by rating: `/movies?genre=comedy&rating_imdb=8&sort=imdb_rating&order=desc`
+
+***REMOVED******REMOVED*** Components
+
+The filter system is composed of several components:
+
+- `MovieFilter`: Rating and year sliders
+- `GenreSelector`: Genre selection buttons
+- `SortSelector`: Sort type and direction controls
+- `SearchInput`: Movie title search field

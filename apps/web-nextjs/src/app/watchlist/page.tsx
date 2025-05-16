@@ -9,14 +9,14 @@ import { memo } from "react";
 const MemoizedMovieGrid = memo(MovieGrid);
 
 export default function WatchlistPage() {
+  const title = (
+    <Heading as="h1" marginY={5}>
+      Your Watchlist
+    </Heading>
+  );
+
   return (
-    <MovieBrowseLayout
-      title={
-        <Heading as="h1" marginY={5}>
-          Your Watchlist
-        </Heading>
-      }
-    >
+    <MovieBrowseLayout title={title}>
       <MemoizedMovieGrid
         columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
         source="watchlist"

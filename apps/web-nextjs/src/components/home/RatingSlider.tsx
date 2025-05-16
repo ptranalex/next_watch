@@ -1,4 +1,3 @@
-import { useDebounce } from "@/hooks";
 import {
   Box,
   HStack,
@@ -9,7 +8,7 @@ import {
   SliderTrack,
   Text,
 } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdGraphicEq } from "react-icons/md";
 
 interface RatingSliderProps {
@@ -29,28 +28,33 @@ const RatingSlider = ({
   icon,
   min,
 }: RatingSliderProps) => {
-  // Local state for immediate UI updates
+  // Local state for slider value
   const [sliderValue, setSliderValue] = useState(value);
 
-  // Debounced value to limit API calls
-  const debouncedValue = useDebounce(sliderValue, 500);
+  // Track if we're currently dragging to prevent prop updates during drag
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Update local state when props change
+  // Update local state when props change (but not during dragging)
   useEffect(() => {
-    setSliderValue(value);
-  }, [value]);
-
-  // Update global state (and trigger URL change) only when debounced value changes
-  useEffect(() => {
-    if (debouncedValue !== undefined && debouncedValue !== value) {
-      setValue(debouncedValue);
+    if (!isDragging) {
+      setSliderValue(value);
     }
-  }, [debouncedValue, setValue, value]);
+  }, [value, isDragging]);
 
-  // Handle local changes without triggering API calls immediately
-  const handleSliderChange = useCallback((val: number) => {
+  // Handle slider drag start
+  const handleChange = (val: number) => {
+    setIsDragging(true);
     setSliderValue(val);
-  }, []);
+  };
+
+  // Handle slider release
+  const handleChangeEnd = (val: number) => {
+    // Only update URL params if value actually changed
+    if (val !== value) {
+      setValue(val);
+    }
+    setIsDragging(false);
+  };
 
   return (
     <HStack marginBottom={3}>
@@ -63,10 +67,10 @@ const RatingSlider = ({
       <Slider
         aria-label="rating-slider"
         value={sliderValue !== undefined ? sliderValue : min}
-        onChange={handleSliderChange}
+        onChange={handleChange}
+        onChangeEnd={handleChangeEnd}
         step={step}
         max={max}
-        defaultValue={min}
         min={min}
       >
         <SliderTrack bg="blue.500">
