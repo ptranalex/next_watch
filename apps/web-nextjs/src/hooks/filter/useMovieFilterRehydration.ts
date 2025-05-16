@@ -7,10 +7,13 @@ import useMovieFilterStore from "@/store/movieFilterStore";
 export function useMovieFilterRehydration() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { setFilter } = useMovieFilterStore();
+  const { setFilter, unlockFilters } = useMovieFilterStore();
 
   useEffect(() => {
     if (!pathname || !searchParams) return;
+
+    // SAFETY: Always unlock all filters first
+    unlockFilters();
 
     // Set filters from query params
     const entries = Array.from(searchParams.entries()) as [string, string][];
@@ -30,15 +33,6 @@ export function useMovieFilterRehydration() {
       } else if (key === "sortOrder") {
         setFilter("sortOrder", value);
       }
-    }
-
-    // Handle locked route: `/top/[year]`
-    if (pathname.startsWith("/top/")) {
-      const routeYear = Number(pathname.split("/")[2]);
-      if (!isNaN(routeYear)) {
-        setFilter("year", routeYear);
-      }
-      setFilter("sortOrder", "imdb_rating_desc");
     }
   }, []); // ✅ Run only once on mount
 }

@@ -29,6 +29,8 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ["*"],
     },
+    // Disable scroll restoration warnings
+    scrollRestoration: false,
   },
 
   // Additional production optimizations

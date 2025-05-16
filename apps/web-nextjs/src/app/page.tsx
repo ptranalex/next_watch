@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { Heading } from "@chakra-ui/react";
 import MovieGrid from "@/components/home/MovieGrid";
 import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
 
@@ -16,7 +17,11 @@ const MemoizedMovieGrid = memo(MovieGrid);
  * Uses the shared MovieBrowseLayout for consistent UI with genre pages
  */
 const HomePage: React.FC = () => {
-  const title = "All Movies";
+  const title = (
+    <Heading as="h1" marginY={5}>
+      All Movies
+    </Heading>
+  );
 
   return (
     <MovieBrowseLayout title={title}>

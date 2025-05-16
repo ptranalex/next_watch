@@ -18,7 +18,10 @@ type FilterParams = Record<string, number | null> & {
 
 const MovieFilter = () => {
   // Get store filters and actions
-  const { filters, setFilter } = useMovieFilterStore();
+  const { filters, setFilter, isFilterLocked } = useMovieFilterStore();
+
+  // Get current year for the year filter
+  const currentYear = new Date().getFullYear();
 
   // Handlers for each rating type
   const handleImdbChange = useCallback(
@@ -49,6 +52,12 @@ const MovieFilter = () => {
     [setFilter]
   );
 
+  // Check if each filter is locked
+  const imdbLocked = isFilterLocked("imdb_rating");
+  const tomatoesLocked = isFilterLocked("rotten_tomatoes_rating");
+  const metacriticLocked = isFilterLocked("metacritic_rating");
+  const yearLocked = isFilterLocked("year");
+
   return (
     <>
       <RatingSlider
@@ -59,6 +68,7 @@ const MovieFilter = () => {
         value={filters.imdb_rating}
         setValue={handleImdbChange}
         icon={FaImdb}
+        isLocked={imdbLocked}
       />
       <RatingSlider
         key="rotten_tomatoes"
@@ -68,6 +78,7 @@ const MovieFilter = () => {
         value={filters.rotten_tomatoes_rating}
         setValue={handleTomatoesChange}
         icon={SiRottentomatoes}
+        isLocked={tomatoesLocked}
       />
       <RatingSlider
         key="metacritic"
@@ -77,15 +88,17 @@ const MovieFilter = () => {
         value={filters.metacritic_rating}
         setValue={handleMetacriticChange}
         icon={MdAssessment}
+        isLocked={metacriticLocked}
       />
       <RatingSlider
         key="year"
         step={1}
-        max={2024}
+        max={currentYear}
         min={1990}
         value={filters.year}
         setValue={handleYearChange}
         icon={HiCalendarDays}
+        isLocked={yearLocked}
       />
     </>
   );

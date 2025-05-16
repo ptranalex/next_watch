@@ -9,7 +9,8 @@ import {
   Text,
 } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
-import { MdGraphicEq } from "react-icons/md";
+import { MdGraphicEq, MdLock } from "react-icons/md";
+import { RiLock2Line } from "react-icons/ri";
 
 interface RatingSliderProps {
   step: number;
@@ -18,6 +19,7 @@ interface RatingSliderProps {
   value?: number;
   setValue: (val: number) => void;
   icon: React.ElementType;
+  isLocked?: boolean;
 }
 
 const RatingSlider = ({
@@ -27,6 +29,7 @@ const RatingSlider = ({
   setValue,
   icon,
   min,
+  isLocked = false,
 }: RatingSliderProps) => {
   // Local state for slider value
   const [sliderValue, setSliderValue] = useState(value);
@@ -43,12 +46,16 @@ const RatingSlider = ({
 
   // Handle slider drag start
   const handleChange = (val: number) => {
+    if (isLocked) return;
+
     setIsDragging(true);
     setSliderValue(val);
   };
 
   // Handle slider release
   const handleChangeEnd = (val: number) => {
+    if (isLocked) return;
+
     // Only update URL params if value actually changed
     if (val !== value) {
       setValue(val);
@@ -58,12 +65,14 @@ const RatingSlider = ({
 
   return (
     <HStack marginBottom={3}>
-      <Icon as={icon} boxSize={6} color="gray.500" />
-      {sliderValue !== undefined ? (
-        <Text width={10}>{sliderValue}</Text>
-      ) : (
-        <Text width={10}>-</Text>
-      )}
+      <Icon as={icon} boxSize={6} color={isLocked ? "blue.500" : "gray.500"} />
+      <HStack width={10} position="relative">
+        {sliderValue !== undefined ? (
+          <Text>{sliderValue}</Text>
+        ) : (
+          <Text>-</Text>
+        )}
+      </HStack>
       <Slider
         aria-label="rating-slider"
         value={sliderValue !== undefined ? sliderValue : min}
@@ -72,12 +81,13 @@ const RatingSlider = ({
         step={step}
         max={max}
         min={min}
+        // isDisabled={isLocked}
       >
-        <SliderTrack bg="blue.500">
-          <SliderFilledTrack bg="blue.100" />
+        <SliderTrack bg={"blue.100"}>
+          <SliderFilledTrack bg={"blue.500"} />
         </SliderTrack>
-        <SliderThumb boxSize={4}>
-          <Box color="blue" as={MdGraphicEq} />
+        <SliderThumb boxSize={5}>
+          <Box color="blue" as={isLocked ? RiLock2Line : MdGraphicEq} />
         </SliderThumb>
       </Slider>
     </HStack>
