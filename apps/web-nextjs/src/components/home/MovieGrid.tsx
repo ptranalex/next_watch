@@ -39,14 +39,37 @@ interface MovieGridProps {
   genre_id?: number;
 }
 
-// Memoized skeleton components to prevent unnecessary re-renders
+// First, let's change the MovieSkeletonGrid component to support inline rendering
 const MovieSkeletonGrid = React.memo(
-  ({ columns, count }: { columns: ColumnBreakpoints; count: number }) => {
+  ({
+    columns,
+    count,
+    inline = false,
+  }: {
+    columns: ColumnBreakpoints;
+    count: number;
+    inline?: boolean;
+  }) => {
     const skeletonsArray = Array.from({ length: count }, (_, i) => i + 1);
+
+    if (inline) {
+      // Just return the skeleton items without wrapping SimpleGrid
+      return (
+        <>
+          {skeletonsArray.map((key) => (
+            <MovieCardContainer key={`skeleton-${key}`}>
+              <MovieCardSkeleton />
+            </MovieCardContainer>
+          ))}
+        </>
+      );
+    }
+
+    // Original behavior with wrapping SimpleGrid
     return (
       <SimpleGrid columns={columns} spacing={3} padding={1}>
         {skeletonsArray.map((key) => (
-          <MovieCardContainer key={key}>
+          <MovieCardContainer key={`skeleton-${key}`}>
             <MovieCardSkeleton />
           </MovieCardContainer>
         ))}
@@ -97,7 +120,17 @@ const MovieGrid = React.memo(
 
     // Reset initialLoadComplete when source/ids/filters change
     useEffect(() => {
+      // Reset both states when filters or source changes
       setInitialLoadComplete(false);
+      // Also reset initial data loaded to trigger fresh skeleton loading state
+      setInitialDataLoaded(false);
+
+      // Re-enable initial data loaded after a short delay
+      const timer = setTimeout(() => {
+        setInitialDataLoaded(true);
+      }, 50);
+
+      return () => clearTimeout(timer);
     }, [
       // Reset when filters change too
       filters.imdb_rating,
@@ -126,11 +159,23 @@ const MovieGrid = React.memo(
 
     // Memoize the skeleton counts
     const skeletonCounts = useMemo(() => {
-      const numSkeletons =
+      const numCols =
         typeof breakpointColumns === "number" ? breakpointColumns : 4;
+
+      // Calculate how many rows would fit in viewport
+      const viewportHeight =
+        typeof window !== "undefined" ? window.innerHeight : 800;
+      const estimatedRowHeight = 350; // Estimate movie card height
+      const rowsInViewport = Math.ceil(viewportHeight / estimatedRowHeight);
+
+      // Calculate initial rows (viewport + buffer)
+      const initialRows = rowsInViewport + 2; // Add 2 extra rows of buffer
+
       return {
-        initial: numSkeletons * 6,
-        next: 2 * numSkeletons - (100 % numSkeletons),
+        // Initial load should fill screen height plus buffer (2 extra rows)
+        initial: numCols * initialRows,
+        // Next page loads should be at least one row
+        next: Math.max(numCols, 2 * numCols - (numCols % 2)),
       };
     }, [breakpointColumns]);
 
@@ -173,7 +218,17 @@ const MovieGrid = React.memo(
       };
     }, [breakpointColumns]);
 
-    // Memoize fetchNextPage handler to prevent recreating on every render
+    // Track number of pages loaded
+    const [pagesLoaded, setPagesLoaded] = useState(0);
+
+    // Update pagesLoaded when data changes
+    useEffect(() => {
+      if (data?.pages) {
+        setPagesLoaded(data.pages.length);
+      }
+    }, [data?.pages?.length]);
+
+    // Handle fetchNextPage
     const handleFetchNextPage = useCallback(async () => {
       if (!fetchNextPage || loadingNextPage) return;
 
@@ -218,26 +273,35 @@ const MovieGrid = React.memo(
         screenItemCapacity > 0 &&
         !isLoading
       ) {
-        // console.log("Prefetch check:", {
-        //   fetchedMoviesCount,
-        //   screenItemCapacity,
-        //   shouldFetch: fetchedMoviesCount < screenItemCapacity,
-        // });
+        // Always load at least 2 pages for initial data (minimum standard)
+        const needsMorePages = pagesLoaded < 2;
 
-        // If current count doesn't fill screen and we can load more
-        if (fetchedMoviesCount < screenItemCapacity) {
-          // Fetch more content
-          // console.log("Prefetching more content");
+        // Check if content doesn't fill screen based on item count
+        const needsMoreContent = fetchedMoviesCount < screenItemCapacity * 1.5;
+
+        // Fetch more if either condition is met
+        if (needsMorePages || needsMoreContent) {
+          console.log("Prefetching more content:", {
+            pagesLoaded,
+            fetchedMoviesCount,
+            screenItemCapacity,
+            needsMorePages,
+            needsMoreContent,
+          });
+
           handleFetchNextPage().then(() => {
-            // After loading, check if we need to mark initial load as complete
-            if (fetchedMoviesCount >= screenItemCapacity || !hasNextPage) {
-              // console.log("Setting initial load complete");
+            // Only mark as complete if we have enough pages AND content
+            if (
+              pagesLoaded >= 2 &&
+              fetchedMoviesCount >= screenItemCapacity * 1.5
+            ) {
+              console.log("Setting initial load complete");
               setInitialLoadComplete(true);
             }
           });
         } else {
           // We already have enough content
-          // console.log("Already have enough content");
+          console.log("Already have enough content");
           setInitialLoadComplete(true);
         }
       }
@@ -250,6 +314,54 @@ const MovieGrid = React.memo(
       loadingNextPage,
       initialLoadComplete,
       handleFetchNextPage,
+      source,
+      pagesLoaded,
+    ]);
+
+    // After the existing useEffect for prefetching content, add this new effect
+    // Check if content fills the screen after rendering and fetch more if needed
+    useEffect(() => {
+      // Skip for sources that don't use infinite loading
+      if (source === "watchlist" || source === "favorites") return;
+
+      // Skip if we're already loading or there's no more data
+      if (loadingNextPage || !hasNextPage || isLoading) return;
+
+      // Skip if we haven't received initial data yet
+      if (!data?.pages || fetchedMoviesCount === 0) return;
+
+      // Only run this check once initial rendering is settled
+      const checkContentHeight = () => {
+        if (!scrollContainerRef.current) return;
+
+        const container = scrollContainerRef.current;
+        const contentHeight = container.scrollHeight;
+        const viewportHeight = window.innerHeight;
+        const containerTop = container.getBoundingClientRect().top;
+        const visibleContainerHeight = viewportHeight - containerTop;
+
+        // If content doesn't fill the container, fetch more data
+        if (contentHeight < visibleContainerHeight && hasNextPage) {
+          console.log("Content height insufficient, fetching more data:", {
+            contentHeight,
+            visibleContainerHeight,
+            fetchedMoviesCount,
+          });
+          handleFetchNextPage();
+        }
+      };
+
+      // Run after a short delay to ensure rendering is complete
+      const timer = setTimeout(checkContentHeight, 300);
+
+      return () => clearTimeout(timer);
+    }, [
+      fetchedMoviesCount,
+      hasNextPage,
+      loadingNextPage,
+      isLoading,
+      handleFetchNextPage,
+      data?.pages,
       source,
     ]);
 
@@ -316,15 +428,8 @@ const MovieGrid = React.memo(
             dataLength={fetchedMoviesCount}
             next={handleFetchNextPage}
             hasMore={!!hasNextPage}
-            loader={
-              loadingNextPage ? (
-                <MovieSkeletonGrid
-                  columns={columns}
-                  count={skeletonCounts.next}
-                />
-              ) : null
-            }
-            scrollThreshold={0.8}
+            loader={null}
+            scrollThreshold={0.5}
             endMessage={
               <Text textAlign="center" py={4}>
                 {fetchedMoviesCount > 0
@@ -337,6 +442,13 @@ const MovieGrid = React.memo(
           >
             <SimpleGrid columns={columns} spacing={3} padding={1}>
               {movieList}
+              {loadingNextPage && hasNextPage && (
+                <MovieSkeletonGrid
+                  columns={columns}
+                  count={skeletonCounts.next}
+                  inline={true}
+                />
+              )}
             </SimpleGrid>
           </InfiniteScroll>
         )}
