@@ -48,8 +48,7 @@ jobs:
         run: |
           BUILD_ARGS=""
           if [ -n "${{ inputs.build_args }}" ]; then
-            ***REMOVED*** Process each line in build_args as a separate argument
-            IFS=$'\n'
+            ***REMOVED*** Process build_args as space-separated arguments
             for arg in ${{ inputs.build_args }}; do
               BUILD_ARGS="${BUILD_ARGS} --build-arg ${arg}"
             done
