@@ -56,12 +56,9 @@ jobs:
           echo "Cleaned args: '$CLEANED_ARGS'"
 
           if [ -n "$CLEANED_ARGS" ]; then
-            ***REMOVED*** For each arg separated by space
-            for arg in $CLEANED_ARGS; do
-              if [ -n "$arg" ]; then
-                BUILD_ARGS+=" --build-arg $arg"
-              fi
-            done
+            ***REMOVED*** Just pass the entire string as one build-arg
+            ***REMOVED*** This fixes the duplicate --build-arg issue
+            BUILD_ARGS="--build-arg $CLEANED_ARGS"
           fi
 
           echo "args=${BUILD_ARGS}" >> "$GITHUB_OUTPUT"
