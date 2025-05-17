@@ -94,7 +94,7 @@ jobs:
     with:
       app_name: frontend
       dockerfile_path: ./apps/web-nextjs/Dockerfile
-      build_args: "NEXT_PUBLIC_API_URL=https://alexsandbox.me"
+      build_args: NEXT_PUBLIC_API_URL=https://alexsandbox.me
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
