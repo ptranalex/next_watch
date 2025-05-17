@@ -48,13 +48,14 @@ jobs:
         shell: bash
         run: |
           BUILD_ARGS=""
-          echo "${{ inputs.build_args }}" > build_args.txt
 
-          while IFS= read -r arg; do
+          echo "${{ inputs.build_args }}" > args.txt
+
+          while IFS= read -r arg || [ -n "$arg" ]; do
             if [ -n "$arg" ]; then
               BUILD_ARGS+=" --build-arg $arg"
             fi
-          done < build_args.txt
+          done < args.txt
 
           echo "args=${BUILD_ARGS}" >> "$GITHUB_OUTPUT"
           echo "Using build args: ${BUILD_ARGS}"
