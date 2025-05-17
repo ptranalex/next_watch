@@ -29,8 +29,8 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 
-***REMOVED*** Accept build arguments for environment variables
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+***REMOVED*** Accept build arguments for environment variables - no default to ensure it's explicitly set
+ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 ***REMOVED*** Copy dependencies
@@ -73,10 +73,15 @@ RUN addgroup --system --gid 1001 nodejs && \
 ***REMOVED*** Set permissions
 RUN mkdir -p /app && chown -R nextjs:nodejs /app
 
-***REMOVED*** Set environment variables
+***REMOVED*** Pass the API URL to the runtime environment
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+
+***REMOVED*** Display runtime configuration
+RUN echo "Runtime NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
 
 ***REMOVED*** Copy built application - using standalone mode for smaller image
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
