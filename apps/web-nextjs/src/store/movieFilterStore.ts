@@ -1,5 +1,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this store
+const logger = createLogger("movieFilterStore");
 
 interface MovieFilters {
   imdb_rating?: number;
@@ -49,10 +53,11 @@ const useMovieFilterStore = create<MovieFilterStore>()(
         set((state) => {
           // Don't update if the filter is locked
           if (state.lockedFilters.includes(key)) {
-            console.log(`Filter ${String(key)} is locked, ignoring update`);
+            logger.debug(`Filter ${String(key)} is locked, ignoring update`);
             return state;
           }
 
+          logger.debug(`Setting filter ${String(key)} to ${value}`);
           return {
             filters: { ...state.filters, [key]: value },
           };
@@ -68,9 +73,17 @@ const useMovieFilterStore = create<MovieFilterStore>()(
             if (state.filters[lockedKey] !== undefined) {
               // Cast to handle the type safely
               (newFilters as any)[lockedKey] = state.filters[lockedKey];
+              logger.debug(
+                `Preserving locked filter ${String(lockedKey)}: ${
+                  state.filters[lockedKey]
+                }`
+              );
             }
           });
 
+          logger.info(
+            "Resetting filters to initial state (preserving locked filters)"
+          );
           return { filters: newFilters };
         }),
 
@@ -80,6 +93,19 @@ const useMovieFilterStore = create<MovieFilterStore>()(
         set((state) => {
           const sortOrderLocked = state.lockedFilters.includes("sortOrder");
           const sortDescLocked = state.lockedFilters.includes("sortDesc");
+
+          if (sortOrderLocked) {
+            logger.debug("Sort order is locked, ignoring update");
+          }
+          if (sortDescLocked) {
+            logger.debug("Sort direction is locked, ignoring update");
+          }
+
+          if (!sortOrderLocked || !sortDescLocked) {
+            logger.info(
+              `Setting sort to ${order} (${desc ? "descending" : "ascending"})`
+            );
+          }
 
           return {
             filters: {
@@ -92,13 +118,24 @@ const useMovieFilterStore = create<MovieFilterStore>()(
 
       // Locking methods
       lockFilters: (keys) =>
-        set((state) => ({
-          lockedFilters: Array.from(new Set([...state.lockedFilters, ...keys])),
-        })),
+        set((state) => {
+          logger.info(`Locking filters: ${keys.join(", ")}`);
+          return {
+            lockedFilters: Array.from(
+              new Set([...state.lockedFilters, ...keys])
+            ),
+          };
+        }),
 
-      unlockFilters: () => set({ lockedFilters: [] }),
+      unlockFilters: () => {
+        logger.info("Unlocking all filters");
+        set({ lockedFilters: [] });
+      },
 
-      unlockAllFilters: () => set({ lockedFilters: [] }),
+      unlockAllFilters: () => {
+        logger.info("Unlocking all filters");
+        set({ lockedFilters: [] });
+      },
 
       isFilterLocked: (key) => get().lockedFilters.includes(key),
     }),

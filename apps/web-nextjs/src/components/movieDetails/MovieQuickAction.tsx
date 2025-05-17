@@ -3,8 +3,12 @@ import CopyToClipboardButton from "@/components/movieCard/CopyToClipBoardButton"
 import { Movie } from "@/domain/entities";
 import userInteractionAPI from "@/services/api/user/user-interaction-api";
 import { HStack, useToast, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("MovieQuickAction");
 
 interface Props {
   movie: Movie;
@@ -25,19 +29,40 @@ const MovieQuickAction = ({
   const [isLoadingLiked, setIsLoadingLiked] = useState(false);
   const [isLoadingInWatchlist, setIsLoadingInWatchlist] = useState(false);
 
-  const handleWatched = async () => {
-    if (isLoadingWatched) return;
+  // Log component initialization
+  useEffect(() => {
+    logger.debug(
+      `MovieQuickAction initialized for: ${movie.title} (ID: ${movie.id})`
+    );
+    logger.debug(
+      `Initial state: watched=${movie.watched}, liked=${movie.liked}, in_watchlist=${movie.in_watchlist}`
+    );
+  }, [movie.id, movie.title, movie.watched, movie.liked, movie.in_watchlist]);
 
-    setIsLoadingWatched(true);
+  const handleWatched = async () => {
+    if (isLoadingWatched) {
+      logger.debug(`Watched toggle already in progress for movie ${movie.id}`);
+      return;
+    }
+
     const newValue = !movie.watched;
+    logger.info(
+      `Toggling watched status for ${movie.title} (${movie.id}): ${movie.watched} → ${newValue}`
+    );
+    setIsLoadingWatched(true);
 
     try {
       // Optimistic update
       const updatedMovie = { ...movie, watched: newValue };
       onMovieUpdate(updatedMovie);
+      logger.debug(`Optimistic update applied for watched status: ${newValue}`);
 
       // API call
+      logger.debug(`Calling toggleWatched API for movie ${movie.id}`);
       await userInteractionAPI.toggleWatched(movie.id as number);
+      logger.info(
+        `Successfully updated watched status on server for movie ${movie.id}`
+      );
 
       // Success toast
       toast({
@@ -52,8 +77,15 @@ const MovieQuickAction = ({
       });
     } catch (error) {
       // Error handling - revert optimistic update
+      logger.error(
+        `Failed to update watched status for movie ${movie.id}:`,
+        error
+      );
       const revertedMovie = { ...movie, watched: !newValue };
       onMovieUpdate(revertedMovie);
+      logger.debug(
+        `Optimistic update reverted for watched status to: ${!newValue}`
+      );
 
       // Error toast
       toast({
@@ -66,22 +98,34 @@ const MovieQuickAction = ({
       });
     } finally {
       setIsLoadingWatched(false);
+      logger.debug(`Watched toggle operation completed for movie ${movie.id}`);
     }
   };
 
   const handleLiked = async () => {
-    if (isLoadingLiked) return;
+    if (isLoadingLiked) {
+      logger.debug(`Liked toggle already in progress for movie ${movie.id}`);
+      return;
+    }
 
-    setIsLoadingLiked(true);
     const newValue = !movie.liked;
+    logger.info(
+      `Toggling liked status for ${movie.title} (${movie.id}): ${movie.liked} → ${newValue}`
+    );
+    setIsLoadingLiked(true);
 
     try {
       // Optimistic update
       const updatedMovie = { ...movie, liked: newValue };
       onMovieUpdate(updatedMovie);
+      logger.debug(`Optimistic update applied for liked status: ${newValue}`);
 
       // API call
+      logger.debug(`Calling toggleLiked API for movie ${movie.id}`);
       await userInteractionAPI.toggleLiked(movie.id as number);
+      logger.info(
+        `Successfully updated liked status on server for movie ${movie.id}`
+      );
 
       // Success toast
       toast({
@@ -96,8 +140,15 @@ const MovieQuickAction = ({
       });
     } catch (error) {
       // Error handling - revert optimistic update
+      logger.error(
+        `Failed to update liked status for movie ${movie.id}:`,
+        error
+      );
       const revertedMovie = { ...movie, liked: !newValue };
       onMovieUpdate(revertedMovie);
+      logger.debug(
+        `Optimistic update reverted for liked status to: ${!newValue}`
+      );
 
       // Error toast
       toast({
@@ -110,22 +161,38 @@ const MovieQuickAction = ({
       });
     } finally {
       setIsLoadingLiked(false);
+      logger.debug(`Liked toggle operation completed for movie ${movie.id}`);
     }
   };
 
   const handleInWatchlist = async () => {
-    if (isLoadingInWatchlist) return;
+    if (isLoadingInWatchlist) {
+      logger.debug(
+        `Watchlist toggle already in progress for movie ${movie.id}`
+      );
+      return;
+    }
 
-    setIsLoadingInWatchlist(true);
     const newValue = !movie.in_watchlist;
+    logger.info(
+      `Toggling watchlist status for ${movie.title} (${movie.id}): ${movie.in_watchlist} → ${newValue}`
+    );
+    setIsLoadingInWatchlist(true);
 
     try {
       // Optimistic update
       const updatedMovie = { ...movie, in_watchlist: newValue };
       onMovieUpdate(updatedMovie);
+      logger.debug(
+        `Optimistic update applied for watchlist status: ${newValue}`
+      );
 
       // API call
+      logger.debug(`Calling toggleWatchlist API for movie ${movie.id}`);
       await userInteractionAPI.toggleWatchlist(movie.id as number);
+      logger.info(
+        `Successfully updated watchlist status on server for movie ${movie.id}`
+      );
 
       // Success toast
       toast({
@@ -140,8 +207,15 @@ const MovieQuickAction = ({
       });
     } catch (error) {
       // Error handling - revert optimistic update
+      logger.error(
+        `Failed to update watchlist status for movie ${movie.id}:`,
+        error
+      );
       const revertedMovie = { ...movie, in_watchlist: !newValue };
       onMovieUpdate(revertedMovie);
+      logger.debug(
+        `Optimistic update reverted for watchlist status to: ${!newValue}`
+      );
 
       // Error toast
       toast({
@@ -154,6 +228,9 @@ const MovieQuickAction = ({
       });
     } finally {
       setIsLoadingInWatchlist(false);
+      logger.debug(
+        `Watchlist toggle operation completed for movie ${movie.id}`
+      );
     }
   };
 

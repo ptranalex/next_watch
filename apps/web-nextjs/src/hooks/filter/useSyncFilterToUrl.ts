@@ -3,8 +3,12 @@
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import useMovieFilterStore from "@/store/movieFilterStore";
+import { createLogger } from "@/utils/logging";
 
-export function useSyncFiltersToUrl() {
+// Create logger for this hook
+const logger = createLogger("useSyncFilterToUrl");
+
+export function useSyncFilterToUrl() {
   const { filters, isFilterLocked } = useMovieFilterStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -12,24 +16,31 @@ export function useSyncFiltersToUrl() {
   const lastUpdateRef = useRef<number>(0);
   const lastUrlRef = useRef<string>("");
 
+  // Log hook initialization
+  logger.debug("useSyncFilterToUrl initialized");
+
   useEffect(() => {
     // Throttle updates to prevent rapid consecutive URL changes
     const now = Date.now();
     if (now - lastUpdateRef.current < 300) {
+      logger.debug("Throttling URL update (< 300ms since last update)");
       return; // Don't update if less than 300ms have passed
     }
 
     const params = new URLSearchParams();
 
+    // Build params from filters
     Object.entries(filters).forEach(([key, value]) => {
       // Skip locked filters - they're encoded in the path
       if (isFilterLocked(key as any)) {
+        logger.debug(`Skipping locked filter: ${key}`);
         return;
       }
 
       // Skip empty values
       if (value !== undefined && value !== null && value !== "") {
         params.set(key, String(value));
+        logger.debug(`Setting URL param: ${key}=${value}`);
       }
     });
 
@@ -38,6 +49,7 @@ export function useSyncFiltersToUrl() {
 
     // Don't update if URL isn't changing to avoid unnecessary navigation
     if (newUrl === lastUrlRef.current) {
+      logger.debug("URL unchanged, skipping update");
       return;
     }
 
@@ -57,6 +69,7 @@ export function useSyncFiltersToUrl() {
 
     // Only navigate if params have actually changed
     if (!currentParamsEqual) {
+      logger.info(`Updating URL: ${newUrl}`);
       lastUpdateRef.current = now;
       lastUrlRef.current = newUrl;
       router.replace(newUrl, { scroll: false });

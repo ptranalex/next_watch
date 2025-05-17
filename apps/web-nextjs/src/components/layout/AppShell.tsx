@@ -1,12 +1,16 @@
 "use client";
 
-import React, { memo, Suspense } from "react";
+import React, { memo, Suspense, useEffect } from "react";
 import NavBar from "./NavBar";
 import SideBar from "./SideBar";
 import { Box, Grid, GridItem, Show, Spinner } from "@chakra-ui/react";
-import { useSyncFiltersToUrl } from "@/hooks/filter/useSyncFilterToUrl";
+import { useSyncFilterToUrl } from "@/hooks/filter/useSyncFilterToUrl";
 import { useFilterResetOnRouteChange } from "@/hooks/filter/useFilterResetOnRouteChange";
 import { useMovieFilterRehydration } from "@/hooks/filter/useMovieFilterRehydration";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("AppShell");
 
 // Memoize child components to prevent unnecessary re-renders
 const MemoizedNavBar = memo(NavBar);
@@ -14,14 +18,28 @@ const MemoizedSideBar = memo(SideBar);
 
 // Create a separate component for filter hooks
 const FilterHooksProvider = () => {
+  // Create specific logger for filter hooks
+  const filterLogger = createLogger("FilterHooksProvider");
+
+  useEffect(() => {
+    filterLogger.debug("Initializing filter hooks");
+  }, []);
+
   useFilterResetOnRouteChange();
   useMovieFilterRehydration();
-  useSyncFiltersToUrl();
+  useSyncFilterToUrl();
+
   return null; // This component just runs hooks, doesn't render anything
 };
 
 // Create a component to wrap the main content with Suspense
 const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
+  const suspenseLogger = createLogger("ContentWithSuspense");
+
+  useEffect(() => {
+    suspenseLogger.debug("Content suspense wrapper mounted");
+  }, []);
+
   return (
     <Suspense
       fallback={
@@ -41,6 +59,15 @@ const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
  * Memoized client component that provides the main layout structure
  */
 function AppShell({ children }: { children: React.ReactNode }) {
+  // Log app shell rendering
+  useEffect(() => {
+    logger.info("AppShell mounted - rendering main application layout");
+
+    return () => {
+      logger.debug("AppShell unmounting");
+    };
+  }, []);
+
   return (
     <>
       <MemoizedNavBar />

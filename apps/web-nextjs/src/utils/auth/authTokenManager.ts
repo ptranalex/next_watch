@@ -1,4 +1,8 @@
 import config from "@/config";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this module
+const logger = createLogger("AuthTokenManager");
 
 /**
  * Token storage keys in localStorage
@@ -42,6 +46,7 @@ const AuthTokenManager = {
     if (typeof window !== "undefined") {
       localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      logger.debug("Access and refresh tokens stored");
     }
   },
 
@@ -51,6 +56,7 @@ const AuthTokenManager = {
   setAccessToken: (token: string): void => {
     if (typeof window !== "undefined") {
       localStorage.setItem(ACCESS_TOKEN_KEY, token);
+      logger.debug("Access token stored");
     }
   },
 
@@ -60,6 +66,7 @@ const AuthTokenManager = {
   setRefreshToken: (token: string): void => {
     if (typeof window !== "undefined") {
       localStorage.setItem(REFRESH_TOKEN_KEY, token);
+      logger.debug("Refresh token stored");
     }
   },
 
@@ -68,7 +75,9 @@ const AuthTokenManager = {
    */
   getAccessToken: (): string | null => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem(ACCESS_TOKEN_KEY);
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      logger.debug(`Access token ${token ? "retrieved" : "not found"}`);
+      return token;
     }
     return null;
   },
@@ -78,7 +87,9 @@ const AuthTokenManager = {
    */
   getRefreshToken: (): string | null => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem(REFRESH_TOKEN_KEY);
+      const token = localStorage.getItem(REFRESH_TOKEN_KEY);
+      logger.debug(`Refresh token ${token ? "retrieved" : "not found"}`);
+      return token;
     }
     return null;
   },
@@ -90,6 +101,7 @@ const AuthTokenManager = {
     if (typeof window !== "undefined") {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
+      logger.info("All tokens removed");
     }
   },
 
@@ -97,14 +109,18 @@ const AuthTokenManager = {
    * Check if an access token is present
    */
   hasAccessToken: (): boolean => {
-    return !!AuthTokenManager.getAccessToken();
+    const hasToken = !!AuthTokenManager.getAccessToken();
+    logger.debug(`Access token presence check: ${hasToken}`);
+    return hasToken;
   },
 
   /**
    * Check if a refresh token is present
    */
   hasRefreshToken: (): boolean => {
-    return !!AuthTokenManager.getRefreshToken();
+    const hasToken = !!AuthTokenManager.getRefreshToken();
+    logger.debug(`Refresh token presence check: ${hasToken}`);
+    return hasToken;
   },
 
   /**
@@ -121,9 +137,11 @@ const AuthTokenManager = {
           .join("")
       );
 
-      return JSON.parse(jsonPayload);
+      const payload = JSON.parse(jsonPayload);
+      logger.debug(`Token decoded successfully, type: ${payload.type}`);
+      return payload;
     } catch (error) {
-      console.error("Failed to decode token:", error);
+      logger.error("Failed to decode token:", error);
       return null;
     }
   },
@@ -135,6 +153,7 @@ const AuthTokenManager = {
     const token = AuthTokenManager.getAccessToken();
 
     if (!token) {
+      logger.debug("Access token validation failed: No token");
       return false;
     }
 
@@ -142,14 +161,31 @@ const AuthTokenManager = {
       const payload = AuthTokenManager.decodeToken(token);
 
       if (!payload) {
+        logger.debug("Access token validation failed: Invalid format");
         return false;
       }
 
       // Check if token has expired
       const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp > currentTime && payload.type === "access";
+      const isValid = payload.exp > currentTime && payload.type === "access";
+
+      if (isValid) {
+        const timeRemaining = payload.exp - currentTime;
+        logger.debug(`Access token valid, expires in ${timeRemaining} seconds`);
+      } else {
+        if (payload.exp <= currentTime) {
+          logger.debug("Access token validation failed: Token expired");
+        }
+        if (payload.type !== "access") {
+          logger.debug(
+            `Access token validation failed: Wrong token type (${payload.type})`
+          );
+        }
+      }
+
+      return isValid;
     } catch (error) {
-      console.error("Error validating token:", error);
+      logger.error("Error validating access token:", error);
       return false;
     }
   },
@@ -161,6 +197,7 @@ const AuthTokenManager = {
     const token = AuthTokenManager.getRefreshToken();
 
     if (!token) {
+      logger.debug("Refresh token validation failed: No token");
       return false;
     }
 
@@ -168,14 +205,33 @@ const AuthTokenManager = {
       const payload = AuthTokenManager.decodeToken(token);
 
       if (!payload) {
+        logger.debug("Refresh token validation failed: Invalid format");
         return false;
       }
 
       // Check if token has expired
       const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp > currentTime && payload.type === "refresh";
+      const isValid = payload.exp > currentTime && payload.type === "refresh";
+
+      if (isValid) {
+        const timeRemaining = payload.exp - currentTime;
+        logger.debug(
+          `Refresh token valid, expires in ${timeRemaining} seconds`
+        );
+      } else {
+        if (payload.exp <= currentTime) {
+          logger.debug("Refresh token validation failed: Token expired");
+        }
+        if (payload.type !== "refresh") {
+          logger.debug(
+            `Refresh token validation failed: Wrong token type (${payload.type})`
+          );
+        }
+      }
+
+      return isValid;
     } catch (error) {
-      console.error("Error validating refresh token:", error);
+      logger.error("Error validating refresh token:", error);
       return false;
     }
   },
@@ -192,15 +248,18 @@ const AuthTokenManager = {
     const token = AuthTokenManager.getAccessToken();
 
     if (!token) {
+      logger.debug("Cannot get user info: No access token");
       return null;
     }
 
     const payload = AuthTokenManager.decodeToken(token);
 
     if (!payload) {
+      logger.debug("Cannot get user info: Failed to decode token");
       return null;
     }
 
+    logger.debug(`Retrieved user info from token for user ID: ${payload.sub}`);
     return {
       id: payload.sub,
       email: payload.email,
@@ -221,22 +280,30 @@ const AuthTokenManager = {
     const token = AuthTokenManager.getAccessToken();
 
     if (!token) {
+      logger.debug("Cannot get token info: No access token");
       return null;
     }
 
     const payload = AuthTokenManager.decodeToken(token);
 
     if (!payload) {
+      logger.debug("Cannot get token info: Failed to decode token");
       return null;
     }
 
     const expiresAt = payload.exp * 1000; // Convert to milliseconds
     const now = Date.now();
+    const expiresIn = Math.max(0, expiresAt - now);
 
+    logger.debug(
+      `Token info retrieved: type=${payload.type}, expires in ${Math.floor(
+        expiresIn / 1000
+      )} seconds`
+    );
     return {
       isValid: expiresAt > now,
       expiresAt,
-      expiresIn: Math.max(0, expiresAt - now),
+      expiresIn,
       type: payload.type,
     };
   },
@@ -247,7 +314,13 @@ const AuthTokenManager = {
    */
   getTimeUntilExpiration: (): number => {
     const tokenInfo = AuthTokenManager.getTokenInfo();
-    if (!tokenInfo || !tokenInfo.isValid) return -1;
+    if (!tokenInfo || !tokenInfo.isValid) {
+      logger.debug("Token expiration check: Token invalid or expired");
+      return -1;
+    }
+    logger.debug(
+      `Time until expiration: ${Math.floor(tokenInfo.expiresIn / 1000)} seconds`
+    );
     return tokenInfo.expiresIn;
   },
 
@@ -265,28 +338,49 @@ const AuthTokenManager = {
     const actualThreshold =
       typeof threshold === "number" ? threshold : REFRESH_THRESHOLDS[threshold];
 
-    return timeUntilExpiration < actualThreshold;
+    const shouldRefresh = timeUntilExpiration < actualThreshold;
+    if (shouldRefresh) {
+      logger.debug(
+        `Token refresh needed: ${Math.floor(
+          timeUntilExpiration / 1000
+        )}s remaining, threshold: ${Math.floor(actualThreshold / 1000)}s`
+      );
+    }
+
+    return shouldRefresh;
   },
 
   /**
    * Check if token is critically close to expiration
    */
   isTokenCritical: (): boolean => {
-    return AuthTokenManager.shouldRefreshToken("CRITICAL");
+    const isCritical = AuthTokenManager.shouldRefreshToken("CRITICAL");
+    if (isCritical) {
+      logger.warn("Token critically close to expiration");
+    }
+    return isCritical;
   },
 
   /**
    * Check if token is close enough to expiration to show a warning
    */
   shouldShowWarning: (): boolean => {
-    return AuthTokenManager.shouldRefreshToken("WARNING");
+    const shouldWarn = AuthTokenManager.shouldRefreshToken("WARNING");
+    if (shouldWarn) {
+      logger.warn("Token close to expiration, warning threshold reached");
+    }
+    return shouldWarn;
   },
 
   /**
    * Check if token needs refresh during navigation
    */
   shouldRefreshForNavigation: (): boolean => {
-    return AuthTokenManager.shouldRefreshToken("NAVIGATION");
+    const shouldRefresh = AuthTokenManager.shouldRefreshToken("NAVIGATION");
+    if (shouldRefresh) {
+      logger.debug("Token needs refresh for navigation");
+    }
+    return shouldRefresh;
   },
 
   /**
@@ -294,7 +388,17 @@ const AuthTokenManager = {
    */
   canAttemptRefresh: (): boolean => {
     const now = Date.now();
-    return now - lastRefreshAttempt > REFRESH_COOLDOWN;
+    const canRefresh = now - lastRefreshAttempt > REFRESH_COOLDOWN;
+
+    if (!canRefresh) {
+      logger.debug(
+        `Refresh attempt rejected: In cooldown period (${Math.floor(
+          (REFRESH_COOLDOWN - (now - lastRefreshAttempt)) / 1000
+        )}s remaining)`
+      );
+    }
+
+    return canRefresh;
   },
 
   /**
@@ -302,6 +406,7 @@ const AuthTokenManager = {
    */
   markRefreshAttempt: (): void => {
     lastRefreshAttempt = Date.now();
+    logger.debug("Refresh attempt marked at current time");
   },
 
   /**

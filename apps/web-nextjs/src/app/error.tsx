@@ -1,6 +1,11 @@
 "use client";
 
 import { Center, VStack, Heading, Text, Button } from "@chakra-ui/react";
+import { createLogger } from "@/utils/logging";
+import { useEffect } from "react";
+
+// Create logger for error handling
+const logger = createLogger("ErrorPage");
 
 export default function Error({
   error,
@@ -9,6 +14,22 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Log error details when the component mounts
+  useEffect(() => {
+    // Log the error with all available details
+    logger.error(`Application error occurred: ${error.message}`, {
+      name: error.name,
+      stack: error.stack,
+      digest: error.digest,
+    });
+  }, [error]);
+
+  // Log when user attempts to reset
+  const handleReset = () => {
+    logger.info("User triggered error reset");
+    reset();
+  };
+
   return (
     <Center minH="70vh" width="100%">
       <VStack spacing={8} textAlign="center">
@@ -27,7 +48,7 @@ export default function Error({
           colorScheme="red"
           bgGradient="linear(to-r, red.400, red.500, red.600)"
           color="white"
-          onClick={reset}
+          onClick={handleReset}
           size="lg"
         >
           Try again

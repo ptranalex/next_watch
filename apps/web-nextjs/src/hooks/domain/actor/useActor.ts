@@ -3,6 +3,11 @@
 import { Actor } from "@/domain/entities";
 import { ActorAPI } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
+import { createLogger } from "@/utils/logging";
+import { useEffect } from "react";
+
+// Create logger for this hook
+const logger = createLogger("useActor");
 
 /**
  * Hook for fetching and managing a single actor
@@ -10,6 +15,9 @@ import { useQuery } from "@tanstack/react-query";
  * @returns Actor data, loading state, error, and related information
  */
 export function useActor(id: number) {
+  // Log hook initialization
+  logger.debug(`useActor initialized with id: ${id}`);
+
   // Fetch actor data
   const {
     data: actor,
@@ -17,7 +25,10 @@ export function useActor(id: number) {
     error,
   } = useQuery({
     queryKey: ["actor", id],
-    queryFn: () => ActorAPI.getById(id),
+    queryFn: () => {
+      logger.info(`Fetching actor data for id: ${id}`);
+      return ActorAPI.getById(id);
+    },
     enabled: !!id,
   });
 
@@ -27,9 +38,30 @@ export function useActor(id: number) {
   // Fetch movies featuring this actor
   const moviesQuery = useQuery({
     queryKey: ["actorMovies", id],
-    queryFn: () => ActorAPI.getActorMovies(id),
+    queryFn: () => {
+      logger.info(`Fetching movies for actor id: ${id}`);
+      return ActorAPI.getActorMovies(id);
+    },
     enabled: !!id,
+    onSuccess: (data) => {
+      logger.info(
+        `Fetched ${data?.movies?.length || 0} movies for actor: ${actorName}`
+      );
+    },
   });
+
+  // Log errors
+  useEffect(() => {
+    if (error) {
+      logger.error(`Error fetching actor data for id ${id}:`, error);
+    }
+    if (moviesQuery.error) {
+      logger.error(
+        `Error fetching actor movies for id ${id}:`,
+        moviesQuery.error
+      );
+    }
+  }, [error, moviesQuery.error, id, actorName]);
 
   return {
     actor,

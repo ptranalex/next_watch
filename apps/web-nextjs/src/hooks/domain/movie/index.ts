@@ -3,8 +3,12 @@
  * These hooks handle movie-related data and operations
  */
 
-export * from "./useMovie";
-export * from "./useMovies";
-export * from "./useMovieTrailer";
-export * from "./useMovieCast";
-export * from "./useTopMovies";
+// Export all movie hooks
+export { useMovies } from "./useMovies";
+export { useMovie } from "./useMovie";
+export { useMovieCast } from "./useMovieCast";
+export { useMovieTrailer } from "./useMovieTrailer";
+export { useTopMovies } from "./useTopMovies";
+
+// Default export for backward compatibility
+export { useMovies as default } from "./useMovies";

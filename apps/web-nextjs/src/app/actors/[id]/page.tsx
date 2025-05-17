@@ -2,10 +2,14 @@
 
 import { Heading } from "@chakra-ui/react";
 import MovieGrid from "@/components/home/MovieGrid";
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
 import { useParams } from "@/hooks";
 import { useActor } from "@/hooks/domain/actor/useActor";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("ActorPage");
 
 // Memoize components for better performance
 const MemoizedMovieGrid = memo(MovieGrid);
@@ -21,12 +25,27 @@ interface ActorPageProps {
  * Uses the shared MovieBrowseLayout for consistent UI with other pages
  */
 const ActorPage = ({ params: paramsPromise }: ActorPageProps) => {
+  // Log component initialization
+  logger.debug("ActorPage initializing");
+
   // Safely unwrap params and extract actor ID
   const params = useParams(paramsPromise);
   const actorId = params?.id ? Number(params.id) : 0;
 
+  // Log the extracted actor ID
+  useEffect(() => {
+    logger.info(`Rendering actor page for actor ID: ${actorId}`);
+  }, [actorId]);
+
   // Use the domain hook to access actor data
   const { actor, actorName } = useActor(actorId);
+
+  // Log when actor data changes
+  useEffect(() => {
+    if (actor) {
+      logger.info(`Actor data loaded: ${actorName} (ID: ${actorId})`);
+    }
+  }, [actor, actorName, actorId]);
 
   const actorTitle = (
     <Heading as="h1" marginY={5}>

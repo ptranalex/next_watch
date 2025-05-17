@@ -2,6 +2,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import AuthTokenManager from "@/utils/auth/authTokenManager";
 import authService, { RegisterData } from "@/services/authService";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this store
+const logger = createLogger("authStore");
 
 // Add a type declaration for the global window object
 declare global {
@@ -84,14 +88,17 @@ export const useAuthStore = create<AuthState>()(
 
       // Basic Actions
       login: async (email: string, password: string) => {
+        logger.info(`Login attempt for: ${email}`);
         set({ isLoading: true, error: null, lastAuthAction: "login" });
         try {
           // Call authentication service
           await authService.login({ email, password });
+          logger.info("Login successful, loading user data");
 
           // Load user data
           return get().loadUser();
         } catch (error) {
+          logger.error("Login failed:", error);
           set({
             error: formatError(error, "Login failed"),
             isLoading: false,
@@ -102,14 +109,17 @@ export const useAuthStore = create<AuthState>()(
       },
 
       register: async (data: RegisterData) => {
+        logger.info(`Registration attempt for: ${data.email}`);
         set({ isLoading: true, error: null, lastAuthAction: "register" });
         try {
           // Register user
           await authService.register(data);
+          logger.info("Registration successful, attempting login");
 
           // Automatically log in after registration
           return get().login(data.email, data.password);
         } catch (error) {
+          logger.error("Registration failed:", error);
           set({
             error: formatError(error, "Registration failed"),
             isLoading: false,
@@ -119,6 +129,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        logger.info("Logging out user");
         authService.logout();
         set({
           user: null,
@@ -131,21 +142,27 @@ export const useAuthStore = create<AuthState>()(
       loadUser: async () => {
         // If token is not valid, try to refresh first
         if (!AuthTokenManager.isAccessTokenValid()) {
+          logger.debug("Access token invalid, attempting refresh");
           if (AuthTokenManager.isRefreshTokenValid()) {
             const refreshed = await authService.refreshToken();
             if (!refreshed) {
+              logger.warn("Token refresh failed, user not authenticated");
               set({ isAuthenticated: false, user: null });
               return false;
             }
+            logger.debug("Token refreshed successfully");
           } else {
+            logger.debug("Refresh token also invalid, user not authenticated");
             set({ isAuthenticated: false, user: null });
             return false;
           }
         }
 
+        logger.debug("Loading user data");
         set({ isLoading: true, lastAuthAction: "loadUser" });
         try {
           const userData = await authService.getCurrentUser();
+          logger.info(`User loaded: ${userData.email} (ID: ${userData.id})`);
           set({
             user: userData,
             isAuthenticated: true,
@@ -154,6 +171,7 @@ export const useAuthStore = create<AuthState>()(
           });
           return true;
         } catch (error) {
+          logger.error("Failed to load user data:", error);
           set({
             user: null,
             isAuthenticated: false,
@@ -164,29 +182,42 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      clearError: () => set({ error: null }),
+      clearError: () => {
+        logger.debug("Clearing auth errors");
+        set({ error: null });
+      },
 
       // Enhanced Actions
       checkAuthStatus: async () => {
         // Skip check if we're already loading or if we're authenticated and have user data
         if (get().isLoading || (get().isAuthenticated && get().user)) {
+          logger.debug(
+            "Skipping auth check - already authenticated or loading"
+          );
           return get().isAuthenticated;
         }
 
         // Check if we have a valid token
         if (AuthTokenManager.isAccessTokenValid()) {
+          logger.debug("Access token valid, loading user data");
           return get().loadUser();
         }
 
         // Try to refresh if possible
         if (AuthTokenManager.isRefreshTokenValid()) {
+          logger.debug(
+            "Access token invalid but refresh token valid, attempting refresh"
+          );
           const refreshed = await authService.refreshToken();
           if (refreshed) {
+            logger.debug("Token refreshed successfully, loading user data");
             return get().loadUser();
           }
+          logger.debug("Token refresh failed");
         }
 
         // No valid token and couldn't refresh
+        logger.debug("No valid tokens, user not authenticated");
         set({ isAuthenticated: false, user: null });
         return false;
       },
@@ -194,22 +225,45 @@ export const useAuthStore = create<AuthState>()(
       hasPermission: (permission: string) => {
         // Get the current user
         const { user } = get();
-        if (!user) return false;
+        if (!user) {
+          logger.debug(
+            `Permission check failed (${permission}): No user logged in`
+          );
+          return false;
+        }
 
         // If user has explicit permissions array, use it
         if (user.permissions?.length) {
-          return user.permissions.includes(permission);
+          const hasPermission = user.permissions.includes(permission);
+          logger.debug(
+            `Permission check (${permission}): ${
+              hasPermission ? "Granted" : "Denied"
+            }`
+          );
+          return hasPermission;
         }
 
         // Fallback to role-based permission check
-        if (user.role === "admin") return true;
+        if (user.role === "admin") {
+          logger.debug(
+            `Permission check (${permission}): Granted due to admin role`
+          );
+          return true;
+        }
 
         // For demo, grant basic permissions to all authenticated users
         const basicPermissions = ["movies:read"];
-        return basicPermissions.includes(permission);
+        const hasBasicPermission = basicPermissions.includes(permission);
+        logger.debug(
+          `Basic permission check (${permission}): ${
+            hasBasicPermission ? "Granted" : "Denied"
+          }`
+        );
+        return hasBasicPermission;
       },
 
       updateProfile: async (userData: Partial<AuthUser>) => {
+        logger.info("Updating user profile");
         set({ isLoading: true, error: null, lastAuthAction: "updateProfile" });
 
         try {
@@ -217,6 +271,7 @@ export const useAuthStore = create<AuthState>()(
           // Example: const updatedUser = await authService.updateProfile(userData);
 
           // For now, just update the local state
+          logger.info("Profile updated successfully");
           set({
             user: { ...get().user!, ...userData },
             isLoading: false,
@@ -224,6 +279,7 @@ export const useAuthStore = create<AuthState>()(
 
           return true;
         } catch (error) {
+          logger.error("Failed to update profile:", error);
           set({
             isLoading: false,
             error: formatError(error, "Failed to update profile"),
@@ -234,15 +290,18 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginWithToken: async (token: string) => {
+        logger.info("Attempting login with token");
         set({ isLoading: true, error: null, lastAuthAction: "loginWithToken" });
 
         try {
           // Store token
           AuthTokenManager.setAccessToken(token);
+          logger.debug("Token stored, loading user data");
 
           // Load user with the token
           return get().loadUser();
         } catch (error) {
+          logger.error("Token login failed:", error);
           set({
             isLoading: false,
             error: formatError(error, "Token login failed"),
@@ -254,6 +313,7 @@ export const useAuthStore = create<AuthState>()(
 
       // Handle token expiration
       handleTokenExpired: () => {
+        logger.warn("Token expired, logging user out");
         set({
           user: null,
           isAuthenticated: false,
@@ -267,23 +327,33 @@ export const useAuthStore = create<AuthState>()(
         const { isAuthenticated } = get();
 
         // Don't attempt refresh if not authenticated
-        if (!isAuthenticated) return false;
+        if (!isAuthenticated) {
+          logger.debug("Not attempting refresh - user not authenticated");
+          return false;
+        }
 
         try {
+          logger.debug("Attempting token refresh");
           const refreshed = await authService.refreshToken();
 
           if (refreshed) {
+            logger.info("Token refreshed successfully");
             return true;
           }
 
           // Check if the refresh token is valid to determine if we should logout
           if (!AuthTokenManager.isRefreshTokenValid()) {
+            logger.warn("Refresh token invalid, authentication will be lost");
             return false;
           }
 
           // Token refresh failed but refresh token still valid (possibly temporary server issue)
+          logger.warn(
+            "Token refresh failed but refresh token still valid (temporary issue?)"
+          );
           return false;
         } catch (error) {
+          logger.error("Token refresh attempt failed:", error);
           return false;
         }
       },
@@ -294,10 +364,15 @@ export const useAuthStore = create<AuthState>()(
         enable: boolean
       ) => {
         // This is used to control which refresh strategies are active
+        logger.debug(
+          `${enable ? "Enabling" : "Disabling"} refresh strategy: ${strategy}`
+        );
+
         // Implementation depends on the strategy
         if (strategy === "navigation" && typeof window !== "undefined") {
           // Clean up existing observer if disabling
           if (!enable && window.__navigationObserver) {
+            logger.debug("Cleaning up navigation observer");
             window.__navigationObserver.disconnect();
             window.__navigationObserver = undefined;
           }
@@ -306,6 +381,8 @@ export const useAuthStore = create<AuthState>()(
 
       // Setup background token refresh
       setupTokenRefresh: () => {
+        logger.info("Setting up token refresh mechanisms");
+
         // Track last handled navigation to prevent duplicate refreshes
         let lastNavigationTime = 0;
         const NAVIGATION_COOLDOWN = 1000; // 1 second cooldown
@@ -317,10 +394,12 @@ export const useAuthStore = create<AuthState>()(
 
           // Check if token needs refresh based on predefined thresholds
           if (AuthTokenManager.shouldRefreshToken()) {
+            logger.debug("Token refresh needed based on scheduled check");
             await get().attemptTokenRefresh();
           }
           // If token is critical but refresh failed, we might want to warn the user
           else if (AuthTokenManager.isTokenCritical()) {
+            logger.warn("Token critically close to expiration");
             // This could trigger a warning UI
           }
         }, 60000); // Check every minute
@@ -339,6 +418,7 @@ export const useAuthStore = create<AuthState>()(
 
             // Check if we should refresh for navigation (using dedicated threshold)
             if (AuthTokenManager.shouldRefreshForNavigation()) {
+              logger.debug("Token refresh needed for navigation");
               await get().attemptTokenRefresh();
             }
           };
@@ -359,6 +439,8 @@ export const useAuthStore = create<AuthState>()(
             characterData: false,
           });
 
+          logger.debug("Navigation observer set up for token refresh");
+
           // Store for cleanup
           window.__navigationObserver = observer;
         }
@@ -370,6 +452,8 @@ export const useAuthStore = create<AuthState>()(
 
         // Return cleanup function
         return () => {
+          logger.debug("Cleaning up token refresh mechanisms");
+
           if (typeof window !== "undefined") {
             // Clean up interval
             if (window.__tokenRefreshInterval) {
@@ -399,6 +483,7 @@ export const useAuthStore = create<AuthState>()(
 // Setup token expiration listener
 if (typeof window !== "undefined") {
   window.addEventListener("auth:token-expired", () => {
+    logger.warn("auth:token-expired event received");
     useAuthStore.getState().handleTokenExpired();
   });
 }

@@ -18,8 +18,12 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("NavBar");
 
 const NavBar: React.FC = () => {
   const { colorMode } = useColorMode();
@@ -30,8 +34,20 @@ const NavBar: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  // Log component initialization and auth state
+  useEffect(() => {
+    logger.debug(
+      `NavBar initialized: auth=${isAuthenticated}, mobile=${isMobile}, colorMode=${colorMode}`
+    );
+
+    if (isAuthenticated && user) {
+      logger.debug(`User authenticated: ${user.email}`);
+    }
+  }, [isAuthenticated, user, isMobile, colorMode]);
+
   const handleLogoClick = useCallback(() => {
     // Navigate to home page
+    logger.debug("Logo clicked, navigating to home page");
     router.push("/");
   }, [router]);
 
@@ -39,28 +55,41 @@ const NavBar: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const handleOpenLoginModal = () => {
+    logger.info("Opening login modal");
     setIsLoginModalOpen(true);
   };
 
   const handleCloseLoginModal = () => {
+    logger.debug("Closing login modal");
     setIsLoginModalOpen(false);
   };
 
   const handleOpenProfileModal = () => {
+    logger.info("Opening profile modal");
     setIsProfileModalOpen(true);
   };
 
   const handleCloseProfileModal = () => {
+    logger.debug("Closing profile modal");
     setIsProfileModalOpen(false);
   };
 
   const handleSearchFocus = () => {
+    logger.debug("Search input focused");
     setIsSearchFocused(true);
   };
 
   const handleSearchBlur = () => {
+    logger.debug("Search input blurred");
     setIsSearchFocused(false);
   };
+
+  // Log layout changes
+  useEffect(() => {
+    if (isSearchFocused) {
+      logger.debug("Layout changed to search-focused mode");
+    }
+  }, [isSearchFocused]);
 
   // Element visibility based on combined conditions
   const showMobileNav = !isSearchFocused && isMobile;

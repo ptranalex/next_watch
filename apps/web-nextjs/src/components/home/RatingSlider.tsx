@@ -11,6 +11,10 @@ import {
 import React, { useState, useEffect } from "react";
 import { MdGraphicEq, MdLock } from "react-icons/md";
 import { RiLock2Line } from "react-icons/ri";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("RatingSlider");
 
 interface RatingSliderProps {
   step: number;
@@ -37,16 +41,27 @@ const RatingSlider = ({
   // Track if we're currently dragging to prevent prop updates during drag
   const [isDragging, setIsDragging] = useState(false);
 
+  // Log when the slider is locked/unlocked
+  useEffect(() => {
+    if (isLocked) {
+      logger.debug(`Slider locked with value: ${value}`);
+    }
+  }, [isLocked, value]);
+
   // Update local state when props change (but not during dragging)
   useEffect(() => {
     if (!isDragging) {
+      logger.debug(`Slider value updated from props: ${value}`);
       setSliderValue(value);
     }
   }, [value, isDragging]);
 
   // Handle slider drag start
   const handleChange = (val: number) => {
-    if (isLocked) return;
+    if (isLocked) {
+      logger.debug("Slider interaction blocked (locked)");
+      return;
+    }
 
     setIsDragging(true);
     setSliderValue(val);
@@ -54,11 +69,17 @@ const RatingSlider = ({
 
   // Handle slider release
   const handleChangeEnd = (val: number) => {
-    if (isLocked) return;
+    if (isLocked) {
+      logger.debug("Slider change blocked (locked)");
+      return;
+    }
 
     // Only update URL params if value actually changed
     if (val !== value) {
+      logger.info(`Slider final value: ${val} (changed from ${value})`);
       setValue(val);
+    } else {
+      logger.debug("Slider value unchanged after drag");
     }
     setIsDragging(false);
   };

@@ -16,7 +16,11 @@ import {
   Text,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
-import React, { Suspense, memo } from "react";
+import React, { Suspense, memo, useEffect } from "react";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("MovieDetailView");
 
 // Placeholder component for when the TrailerCard fails to load
 const TrailerFallback = memo(() => (
@@ -38,6 +42,8 @@ class ErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback: React.ReactNode },
   { hasError: boolean }
 > {
+  private logger = createLogger("ErrorBoundary");
+
   constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
@@ -48,11 +54,16 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("Component error:", error, info);
+    this.logger.error("Component error:", {
+      error: error.message,
+      stack: error.stack,
+      componentStack: info.componentStack,
+    });
   }
 
   render() {
     if (this.state.hasError) {
+      this.logger.warn("Rendering fallback due to error");
       return this.props.fallback;
     }
     return this.props.children;
@@ -61,18 +72,21 @@ class ErrorBoundary extends React.Component<
 
 // Lazy load non-critical components with error boundary
 const TrailerCard = dynamic(() => import("./TrailerCard"), {
-  loading: () => (
-    <Box
-      height="300px"
-      width="100%"
-      bg="gray.700"
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-    >
-      <Text>Loading trailer...</Text>
-    </Box>
-  ),
+  loading: () => {
+    logger.debug("Loading trailer dynamically");
+    return (
+      <Box
+        height="300px"
+        width="100%"
+        bg="gray.700"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Text>Loading trailer...</Text>
+      </Box>
+    );
+  },
   ssr: false,
 });
 
@@ -101,7 +115,8 @@ const movieUtils = {
     if (!movie.release_date) return "";
     try {
       return new Date(movie.release_date.toString()).getFullYear().toString();
-    } catch {
+    } catch (e) {
+      logger.warn(`Failed to parse release date: ${movie.release_date}`, e);
       return "";
     }
   },
@@ -118,7 +133,10 @@ const movieUtils = {
    * Formats movie genres as a comma-separated string
    */
   renderGenres: (movie: Movie): string => {
-    if (!movie.genres || !Array.isArray(movie.genres)) return "N/A";
+    if (!movie.genres || !Array.isArray(movie.genres)) {
+      logger.debug(`Movie ${movie.id} has no genres`);
+      return "N/A";
+    }
     return (
       movie.genres
         .filter(
@@ -141,6 +159,13 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
   isSmallerScreen,
   onUpdateMovie,
 }) => {
+  // Log component initialization
+  useEffect(() => {
+    logger.info(
+      `Rendering movie detail view for: ${movie.title} (ID: ${movie.id})`
+    );
+  }, [movie.id, movie.title]);
+
   // Memoize values to prevent recalculation
   const movieId = React.useMemo(() => movieUtils.getMovieId(movie), [movie]);
   const releaseYear = React.useMemo(
@@ -165,6 +190,17 @@ const MovieDetailView: React.FC<MovieDetailViewProps> = ({
     }),
     [movie.imdb_rating, movie.rotten_tomatoes_rating, movie.metacritic_rating]
   );
+
+  // Log ratings data
+  useEffect(() => {
+    logger.debug(
+      `Movie ratings: IMDb=${ratings.imdb_rating}, RT=${ratings.rotten_tomatoes_rating}, Metacritic=${ratings.metacritic_rating}`
+    );
+  }, [
+    ratings.imdb_rating,
+    ratings.rotten_tomatoes_rating,
+    ratings.metacritic_rating,
+  ]);
 
   // Safely extract poster URL and title
   const posterUrl =

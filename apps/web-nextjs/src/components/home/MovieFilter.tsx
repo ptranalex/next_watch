@@ -2,11 +2,15 @@
 
 import RatingSlider from "@/components/home/RatingSlider";
 import useMovieFilterStore from "@/store/movieFilterStore";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FaImdb } from "react-icons/fa";
 import { HiCalendarDays } from "react-icons/hi2";
 import { MdAssessment } from "react-icons/md";
 import { SiRottentomatoes } from "react-icons/si";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("MovieFilter");
 
 // Define the filter param types
 type FilterParams = Record<string, number | null> & {
@@ -23,9 +27,15 @@ const MovieFilter = () => {
   // Get current year for the year filter
   const currentYear = new Date().getFullYear();
 
+  // Log initial filter state and when filters change
+  useEffect(() => {
+    logger.debug("Filter state updated", filters);
+  }, [filters]);
+
   // Handlers for each rating type
   const handleImdbChange = useCallback(
     (value: number | null) => {
+      logger.debug(`IMDb rating changed: ${value}`);
       setFilter("imdb_rating", value ?? undefined);
     },
     [setFilter]
@@ -33,6 +43,7 @@ const MovieFilter = () => {
 
   const handleTomatoesChange = useCallback(
     (value: number | null) => {
+      logger.debug(`Rotten Tomatoes rating changed: ${value}`);
       setFilter("rotten_tomatoes_rating", value ?? undefined);
     },
     [setFilter]
@@ -40,6 +51,7 @@ const MovieFilter = () => {
 
   const handleMetacriticChange = useCallback(
     (value: number | null) => {
+      logger.debug(`Metacritic rating changed: ${value}`);
       setFilter("metacritic_rating", value ?? undefined);
     },
     [setFilter]
@@ -47,6 +59,7 @@ const MovieFilter = () => {
 
   const handleYearChange = useCallback(
     (value: number | null) => {
+      logger.debug(`Year changed: ${value}`);
       setFilter("year", value ?? undefined);
     },
     [setFilter]
@@ -57,6 +70,19 @@ const MovieFilter = () => {
   const tomatoesLocked = isFilterLocked("rotten_tomatoes_rating");
   const metacriticLocked = isFilterLocked("metacritic_rating");
   const yearLocked = isFilterLocked("year");
+
+  // Log locked filters
+  useEffect(() => {
+    const lockedFilters = [];
+    if (imdbLocked) lockedFilters.push("imdb_rating");
+    if (tomatoesLocked) lockedFilters.push("rotten_tomatoes_rating");
+    if (metacriticLocked) lockedFilters.push("metacritic_rating");
+    if (yearLocked) lockedFilters.push("year");
+
+    if (lockedFilters.length > 0) {
+      logger.info(`Locked filters: ${lockedFilters.join(", ")}`);
+    }
+  }, [imdbLocked, tomatoesLocked, metacriticLocked, yearLocked]);
 
   return (
     <>

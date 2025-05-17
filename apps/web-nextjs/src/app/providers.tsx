@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -8,6 +8,10 @@ import AuthProvider from "@/components/providers/AuthProvider";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme from "../theme";
 import { MovieQueryProvider } from "../context/MovieQueryContext";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("Providers");
 
 /**
  * Global providers component
@@ -15,20 +19,38 @@ import { MovieQueryProvider } from "../context/MovieQueryContext";
  * The order matters - providers higher in the tree can be accessed by providers lower down
  */
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 10 * 60 * 1000, // 10 minutes
-            cacheTime: 60 * 60 * 1000, // 60 minutes
-            refetchOnWindowFocus: false,
-            refetchOnMount: false,
-            retry: 1,
-          },
+  // Log provider initialization
+  useEffect(() => {
+    logger.info("Application providers initializing");
+
+    return () => {
+      logger.debug("Application providers unmounting");
+    };
+  }, []);
+
+  const [queryClient] = useState(() => {
+    logger.debug("Creating QueryClient with default configuration");
+    return new QueryClient({
+      defaultOptions: {
+        queries: {
+          staleTime: 10 * 60 * 1000, // 10 minutes
+          cacheTime: 60 * 60 * 1000, // 60 minutes
+          refetchOnWindowFocus: false,
+          refetchOnMount: false,
+          retry: 1,
         },
-      })
-  );
+      },
+    });
+  });
+
+  // Check for required environment variables
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+      logger.warn(
+        "NEXT_PUBLIC_GOOGLE_CLIENT_ID is not defined - Google authentication may not work"
+      );
+    }
+  }, []);
 
   return (
     <>

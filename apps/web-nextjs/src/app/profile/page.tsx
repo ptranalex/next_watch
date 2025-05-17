@@ -17,14 +17,21 @@ import {
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ImportNetflixHistoryModal from "@/components/profile/ImportNetflixHistoryModal";
 import { HiOutlineArrowUpTray } from "react-icons/hi2";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("ProfilePage");
 
 // Make the page dynamic to avoid prerendering issues
 export const dynamic = "force-dynamic";
 
 export default function ProfilePage() {
+  // Log component initialization
+  logger.debug("ProfilePage initializing");
+
   return (
     <ProtectedRoute>
       <ProfileContent />
@@ -34,26 +41,40 @@ export default function ProfilePage() {
 
 // Separate component for the profile content
 function ProfileContent() {
+  // Create specific logger for profile content
+  const contentLogger = createLogger("ProfileContent");
+
   const { user, logout } = useAuth();
   const router = useRouter();
   const bgColor = useColorModeValue("gray.50", "gray.900");
   const cardBgColor = useColorModeValue("white", "gray.800");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
+  // Log when user data is loaded
+  useEffect(() => {
+    if (user) {
+      contentLogger.info(`Profile loaded for user: ${user.email}`);
+    }
+  }, [user]);
+
   const handleLogout = () => {
+    contentLogger.info("User initiated logout from profile page");
     logout();
     router.push("/");
   };
 
   const openImportModal = () => {
+    contentLogger.info("User opened Netflix history import modal");
     setIsImportModalOpen(true);
   };
 
   const closeImportModal = () => {
+    contentLogger.debug("User closed Netflix history import modal");
     setIsImportModalOpen(false);
   };
 
   if (!user) {
+    contentLogger.warn("ProfileContent rendered without user data");
     return null; // This shouldn't happen due to ProtectedRoute, but just in case
   }
 

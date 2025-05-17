@@ -17,6 +17,10 @@ import React, {
   useState,
 } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("MovieGrid");
 
 type ColumnBreakpoints =
   | {
@@ -93,6 +97,20 @@ const MovieGrid = React.memo(
     // Get store filters to watch for changes
     const { filters } = useMovieFilterStore();
 
+    // Log component initialization with source and ID details
+    useEffect(() => {
+      logger.info(`MovieGrid initialized - source: ${source}`, {
+        movie_id,
+        actor_id,
+        genre_id,
+        filters,
+      });
+
+      return () => {
+        logger.debug("MovieGrid unmounting");
+      };
+    }, [source, movie_id, actor_id, genre_id, filters]);
+
     // Server-side compatible hydration - use useEffect for client-only behavior
     useEffect(() => {
       // Only on client, we can afford to show loading temporarily
@@ -100,6 +118,7 @@ const MovieGrid = React.memo(
         setInitialDataLoaded(false);
         const timer = setTimeout(() => {
           setInitialDataLoaded(true);
+          logger.debug("Initial data loading state reset after hydration");
         }, 50);
         return () => clearTimeout(timer);
       }
@@ -109,6 +128,10 @@ const MovieGrid = React.memo(
     const topYearPattern = /^\/top\/(\d{4})$/;
     const yearMatch = pathname ? pathname.match(topYearPattern) : null;
     const yearFromPath = yearMatch ? parseInt(yearMatch[1], 10) : null;
+
+    if (yearFromPath) {
+      logger.debug(`Year from path detected: ${yearFromPath}`);
+    }
 
     // Memoize these values to prevent recalculation on every render
     const safeIds = useMemo(
@@ -132,6 +155,20 @@ const MovieGrid = React.memo(
       setInitialLoadComplete(false);
       // Also reset initial data loaded to trigger fresh skeleton loading state
       setInitialDataLoaded(false);
+
+      logger.info("Resetting grid for new filter/source", {
+        source,
+        movieId: safeIds.movieId,
+        actorId: safeIds.actorId,
+        genreId: safeIds.genreId,
+        filters: {
+          imdb_rating: filters.imdb_rating,
+          rotten_tomatoes_rating: filters.rotten_tomatoes_rating,
+          metacritic_rating: filters.metacritic_rating,
+          year: filters.year,
+          sortOrder: filters.sortOrder,
+        },
+      });
 
       // Re-enable initial data loaded after a short delay
       const timer = setTimeout(() => {
@@ -161,9 +198,29 @@ const MovieGrid = React.memo(
         genre_id: safeIds.genreId,
       });
 
+    // Log when data changes or errors
+    useEffect(() => {
+      if (error) {
+        logger.error("Error fetching movies:", error);
+      } else if (data?.pages) {
+        const movieCount = data.pages.reduce(
+          (count, page) => count + (page.movies?.length || 0),
+          0
+        );
+        logger.info(
+          `Movies data loaded: ${movieCount} movies across ${data.pages.length} pages`
+        );
+      }
+    }, [data?.pages, error]);
+
     const breakpointColumns = useBreakpointValue(
       columns as Record<string, number>
     );
+
+    // Log when breakpoints change
+    useEffect(() => {
+      logger.debug(`Grid columns updated: ${breakpointColumns}`);
+    }, [breakpointColumns]);
 
     // Memoize the skeleton counts
     const skeletonCounts = useMemo(() => {
@@ -200,6 +257,9 @@ const MovieGrid = React.memo(
         // Total items capacity = rows * columns
         const capacity = rows * cols;
 
+        logger.debug(
+          `Screen capacity calculated: ${capacity} items (${rows} rows × ${cols} columns)`
+        );
         setScreenItemCapacity(capacity);
       };
 
@@ -235,6 +295,7 @@ const MovieGrid = React.memo(
     const handleFetchNextPage = useCallback(async () => {
       if (!fetchNextPage || loadingNextPage) return;
 
+      logger.info("Fetching next page of movies");
       setLoadingNextPage(true);
       await fetchNextPage();
       setLoadingNextPage(false);
@@ -255,6 +316,7 @@ const MovieGrid = React.memo(
     const handleMovieUpdate = useCallback(
       (movie: Movie) => {
         if (typeof updateMovie === "function") {
+          logger.debug(`Movie updated: ${movie.id} - ${movie.title}`);
           updateMovie(movie);
         }
       },
@@ -284,7 +346,7 @@ const MovieGrid = React.memo(
 
         // Fetch more if either condition is met
         if (needsMorePages || needsMoreContent) {
-          console.log("Prefetching more content:", {
+          logger.info("Prefetching more content:", {
             pagesLoaded,
             fetchedMoviesCount,
             screenItemCapacity,
@@ -298,13 +360,13 @@ const MovieGrid = React.memo(
               pagesLoaded >= 2 &&
               fetchedMoviesCount >= screenItemCapacity * 1.5
             ) {
-              console.log("Setting initial load complete");
+              logger.debug("Setting initial load complete");
               setInitialLoadComplete(true);
             }
           });
         } else {
           // We already have enough content
-          console.log("Already have enough content");
+          logger.debug("Already have enough content");
           setInitialLoadComplete(true);
         }
       }
@@ -345,7 +407,7 @@ const MovieGrid = React.memo(
 
         // If content doesn't fill the container, fetch more data
         if (contentHeight < visibleContainerHeight && hasNextPage) {
-          console.log("Content height insufficient, fetching more data:", {
+          logger.info("Content height insufficient, fetching more data:", {
             contentHeight,
             visibleContainerHeight,
             fetchedMoviesCount,
@@ -390,7 +452,7 @@ const MovieGrid = React.memo(
 
     // Handle error states
     if (error) {
-      console.error("Error fetching movies:", error);
+      logger.error("Error fetching movies:", error);
       return <Text>Error loading movies. Please try again later.</Text>;
     }
 
@@ -402,6 +464,7 @@ const MovieGrid = React.memo(
           ? breakpointColumns * 6 // 6 rows for consistency
           : 24; // Default to 24 items (6 rows of 4 columns)
 
+      logger.debug(`Showing loading skeleton with ${fixedSkeletonCount} items`);
       return <MovieSkeletonGrid columns={columns} count={fixedSkeletonCount} />;
     }
 
@@ -412,8 +475,13 @@ const MovieGrid = React.memo(
       data.pages.length === 0 ||
       fetchedMoviesCount === 0
     ) {
+      logger.info("No movies found for current filters");
       return <Text>No movies found</Text>;
     }
+
+    logger.debug(
+      `Rendering ${fetchedMoviesCount} movies in ${data.pages.length} pages`
+    );
 
     return (
       <Box ref={scrollContainerRef}>

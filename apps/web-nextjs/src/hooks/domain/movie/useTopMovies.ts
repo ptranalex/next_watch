@@ -1,5 +1,10 @@
 import { MovieAPI } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
+import { createLogger } from "@/utils/logging";
+import { useEffect } from "react";
+
+// Create logger for this hook
+const logger = createLogger("useTopMovies");
 
 /**
  * Hook to fetch top-rated movies by IMDB rating
@@ -20,10 +25,25 @@ export const useTopMovies = (
   page: number = 1,
   minVotes: number = 100
 ) => {
-  return useQuery({
+  // Log hook initialization parameters
+  logger.debug("useTopMovies initialized", {
+    year,
+    isAllTime,
+    genreId,
+    limit,
+    page,
+    minVotes,
+  });
+
+  const result = useQuery({
     queryKey: ["top-movies", isAllTime, year, genreId, limit, page, minVotes],
     queryFn: () => {
       if (isAllTime) {
+        logger.info(
+          `Fetching all-time top movies (page ${page}, limit ${limit})${
+            genreId ? `, for genre ${genreId}` : ""
+          }`
+        );
         return MovieAPI.getAllTimeTopMovies({
           page,
           limit,
@@ -31,6 +51,12 @@ export const useTopMovies = (
           min_votes: minVotes,
         });
       } else {
+        const yearValue = year || new Date().getFullYear();
+        logger.info(
+          `Fetching top movies for year ${yearValue} (page ${page}, limit ${limit})${
+            genreId ? `, for genre ${genreId}` : ""
+          }`
+        );
         return MovieAPI.getTopMovies({
           page,
           limit,
@@ -42,6 +68,21 @@ export const useTopMovies = (
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
+
+  // Log results or errors
+  useEffect(() => {
+    if (result.error) {
+      logger.error("Error fetching top movies:", result.error);
+    } else if (result.data) {
+      logger.info(
+        `Fetched ${result.data.movies.length} top movies (total: ${
+          result.data.total || "unknown"
+        })`
+      );
+    }
+  }, [result.data, result.error]);
+
+  return result;
 };
 
 export default useTopMovies;

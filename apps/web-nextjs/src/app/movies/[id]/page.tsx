@@ -1,10 +1,14 @@
 "use client";
 
 import { useMediaQuery } from "@chakra-ui/react";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useAuth, useMovie, useParams } from "@/hooks";
 import { Movie } from "@/domain/entities";
 import MovieDetailView from "@/components/movieDetails/MovieDetailView";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("MovieDetailPage");
 
 // Force dynamic to ensure latest movie data is fetched
 export const dynamic = "force-dynamic";
@@ -18,9 +22,17 @@ interface MovieDetailPageProps {
  * Displays a movie's details, with states for error and not found
  */
 const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
+  // Log component initialization
+  logger.debug("MovieDetailPage initializing");
+
   // Use our custom hook to handle params unwrapping
   const resolvedParams = useParams(params);
   const movieId = resolvedParams?.id ? Number(resolvedParams.id) : 0;
+
+  // Log the extracted movie ID
+  useEffect(() => {
+    logger.info(`Rendering movie detail page for ID: ${movieId}`);
+  }, [movieId]);
 
   const { isAuthenticated } = useAuth();
   const [isSmallerScreen] = useMediaQuery("(max-width: 600px)");
@@ -34,16 +46,36 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
     toggleWatchlist,
   } = useMovie(movieId);
 
+  // Log movie data and errors
+  useEffect(() => {
+    if (error) {
+      logger.error(`Error loading movie ${movieId}:`, error);
+    } else if (movie) {
+      logger.info(`Movie data loaded: ${movie.title} (ID: ${movieId})`);
+    }
+  }, [movie, error, movieId]);
+
   // Function to update movie from UI interactions (memoized)
   const updateMovie = useCallback(
     (updatedMovie: Movie) => {
       if (!movie) return;
 
       if (updatedMovie.watched !== movie.watched) {
+        logger.debug(
+          `Toggling watched status for movie ${movie.id}: ${!movie.watched}`
+        );
         toggleWatched();
       } else if (updatedMovie.liked !== movie.liked) {
+        logger.debug(
+          `Toggling liked status for movie ${movie.id}: ${!movie.liked}`
+        );
         toggleLiked();
       } else if (updatedMovie.in_watchlist !== movie.in_watchlist) {
+        logger.debug(
+          `Toggling watchlist status for movie ${
+            movie.id
+          }: ${!movie.in_watchlist}`
+        );
         toggleWatchlist();
       }
     },

@@ -1,7 +1,7 @@
 "use client";
 
 import { FEATURES } from "@/config/features";
-import { toMovieEntity } from "@/domain/entities";
+import { toMovieEntity, Movie } from "@/domain/entities";
 import { useAuth } from "@/hooks";
 import {
   MovieAPI,
@@ -10,6 +10,10 @@ import {
   UserMovieInteractionResponse,
 } from "@/services/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this hook
+const logger = createLogger("useMovie");
 
 /**
  * Hook for fetching and managing a single movie
@@ -19,6 +23,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 export function useMovie(id: number) {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
+
+  // Log hook initialization
+  logger.debug(
+    `useMovie initialized with id: ${id}, authenticated: ${isAuthenticated}`
+  );
 
   // Fetch movie data
   const {
@@ -41,24 +50,21 @@ export function useMovie(id: number) {
     queryFn: () => userInteractionAPI.getMovieInteraction(id),
     enabled: id > 0 && isAuthenticated,
     onSuccess: (data) => {
-      console.log("Loaded interaction data:", data);
-      // Debug API property mapping
-      if (data) {
-        console.log("API property values:", {
-          liked: data.liked,
-          watched: data.watched,
-          in_watchlist: data.in_watchlist,
-        });
-      }
+      logger.info("Loaded interaction data for movie", {
+        movieId: id,
+        liked: data?.liked,
+        watched: data?.watched,
+        in_watchlist: data?.in_watchlist,
+      });
     },
     onError: (error) => {
-      console.error("Error loading interaction data:", error);
+      logger.error(`Error loading interaction data for movie ${id}:`, error);
     },
   });
 
   // Combine movie data with user interaction data
   const movie = serviceMovie
-    ? {
+    ? ({
         ...toMovieEntity(serviceMovie),
         // Apply user interaction properties if available
         ...(interactionData && {
@@ -66,25 +72,17 @@ export function useMovie(id: number) {
           watched: interactionData.watched,
           in_watchlist: interactionData.in_watchlist,
         }),
-      }
+      } as Movie)
     : undefined;
 
   // Log the combined movie data
   if (movie) {
-    // Use a more specific type than any
-    const movieData = movie as {
-      id: number;
-      title: string;
-      liked?: boolean;
-      watched?: boolean;
-      in_watchlist?: boolean;
-    };
-    console.log("Combined movie data:", {
-      id: movieData.id,
-      title: movieData.title,
-      liked: movieData.liked,
-      watched: movieData.watched,
-      in_watchlist: movieData.in_watchlist,
+    logger.debug("Combined movie data", {
+      id: movie.id,
+      title: movie.title,
+      liked: movie.liked,
+      watched: movie.watched,
+      in_watchlist: movie.in_watchlist,
     });
   }
 
@@ -94,16 +92,28 @@ export function useMovie(id: number) {
   // Combined error
   const error = movieError || (isAuthenticated ? interactionError : null);
 
+  // Log errors
+  if (error) {
+    logger.error(`Error in useMovie hook for movie ${id}:`, error);
+  }
+
   // Toggle watched status
   const { mutate: toggleWatched } = useMutation({
     mutationFn: async () => {
       if (!movie) throw new Error("Movie not loaded");
+
+      const movieTitle = (movie as Movie).title || "Unknown movie";
+      logger.info(`Toggling watched status for movie: ${id} - ${movieTitle}`);
 
       // Call the API and return an optimistic update of the movie
       await userInteractionAPI.toggleWatched(id);
       return { ...movie, watched: !movie.watched };
     },
     onSuccess: (updatedMovie) => {
+      logger.info(
+        `Updated watched status for movie ${id}: ${updatedMovie.watched}`
+      );
+
       // Update the movie interaction in the cache
       queryClient.setQueryData<UserMovieInteractionResponse | null>(
         ["movieInteraction", id],
@@ -124,6 +134,9 @@ export function useMovie(id: number) {
         }
       );
     },
+    onError: (error) => {
+      logger.error(`Error toggling watched status for movie ${id}:`, error);
+    },
   });
 
   // Toggle liked status
@@ -131,11 +144,18 @@ export function useMovie(id: number) {
     mutationFn: async () => {
       if (!movie) throw new Error("Movie not loaded");
 
+      const movieTitle = (movie as Movie).title || "Unknown movie";
+      logger.info(`Toggling liked status for movie: ${id} - ${movieTitle}`);
+
       // Call the API and return an optimistic update of the movie
       await userInteractionAPI.toggleLiked(id);
       return { ...movie, liked: !movie.liked };
     },
     onSuccess: (updatedMovie) => {
+      logger.info(
+        `Updated liked status for movie ${id}: ${updatedMovie.liked}`
+      );
+
       // Update the movie interaction in the cache
       queryClient.setQueryData<UserMovieInteractionResponse | null>(
         ["movieInteraction", id],
@@ -156,6 +176,9 @@ export function useMovie(id: number) {
         }
       );
     },
+    onError: (error) => {
+      logger.error(`Error toggling liked status for movie ${id}:`, error);
+    },
   });
 
   // Toggle in_watchlist status
@@ -163,11 +186,18 @@ export function useMovie(id: number) {
     mutationFn: async () => {
       if (!movie) throw new Error("Movie not loaded");
 
+      const movieTitle = (movie as Movie).title || "Unknown movie";
+      logger.info(`Toggling watchlist status for movie: ${id} - ${movieTitle}`);
+
       // Call the API and return an optimistic update of the movie
       await userInteractionAPI.toggleWatchlist(id);
       return { ...movie, in_watchlist: !movie.in_watchlist };
     },
     onSuccess: (updatedMovie) => {
+      logger.info(
+        `Updated watchlist status for movie ${id}: ${updatedMovie.in_watchlist}`
+      );
+
       // Update the movie interaction in the cache
       queryClient.setQueryData<UserMovieInteractionResponse | null>(
         ["movieInteraction", id],
@@ -188,6 +218,9 @@ export function useMovie(id: number) {
         }
       );
     },
+    onError: (error) => {
+      logger.error(`Error toggling watchlist status for movie ${id}:`, error);
+    },
   });
 
   // Fetch related movies (similar genres)
@@ -202,12 +235,27 @@ export function useMovie(id: number) {
           typeof firstGenre === "object" &&
           "id" in firstGenre
         ) {
+          logger.debug(
+            `Fetching related movies by genre ${firstGenre.id} for movie ${id}`
+          );
           return MovieAPI.getMoviesByGenre(firstGenre.id);
         }
       }
+
+      logger.debug(
+        `No genres found for movie ${id}, skipping related movies fetch`
+      );
       return { movies: [], total: 0, page: 1, page_size: 20 };
     },
     enabled: FEATURES.SHOW_MORE_LIKE_THIS && !!serviceMovie && id > 0,
+    onSuccess: (data) => {
+      logger.info(
+        `Fetched ${data.movies.length} related movies for movie ${id}`
+      );
+    },
+    onError: (error) => {
+      logger.error(`Error fetching related movies for movie ${id}:`, error);
+    },
   });
 
   // Fetch movie cast
@@ -215,6 +263,14 @@ export function useMovie(id: number) {
     queryKey: ["movieCast", id],
     queryFn: () => MovieAPI.getCast(id),
     enabled: id > 0,
+    onSuccess: (data) => {
+      logger.info(
+        `Fetched ${data.cast?.length || 0} cast members for movie ${id}`
+      );
+    },
+    onError: (error) => {
+      logger.error(`Error fetching cast for movie ${id}:`, error);
+    },
   });
 
   return {
