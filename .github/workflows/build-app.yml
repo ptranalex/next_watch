@@ -45,19 +45,19 @@ jobs:
 
       - name: Prepare build arguments
         id: build-args
+        shell: bash
         run: |
-          ***REMOVED*** Trim and sanitize the input
-          INPUT_ARGS=$(echo "${{ inputs.build_args }}" | tr -d '\n' | tr -d '\r')
-
           BUILD_ARGS=""
-          if [ -n "$INPUT_ARGS" ]; then
-            ***REMOVED*** Simple space-separated handling 
-            BUILD_ARGS="--build-arg $INPUT_ARGS"
-            ***REMOVED*** Replace spaces between args with ' --build-arg '
-            BUILD_ARGS=$(echo "$BUILD_ARGS" | sed 's/ / --build-arg /g')
+          if [ -n "${{ inputs.build_args }}" ]; then
+            ***REMOVED*** Safely read each line (each should be KEY=VALUE)
+            while IFS= read -r arg; do
+              if [ -n "$arg" ]; then
+                BUILD_ARGS+=" --build-arg $arg"
+              fi
+            done <<< "${{ inputs.build_args }}"
           fi
 
-          echo "args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
+          echo "args=${BUILD_ARGS}" >> "$GITHUB_OUTPUT"
           echo "Using build args: ${BUILD_ARGS}"
 
       - name: Set image info
