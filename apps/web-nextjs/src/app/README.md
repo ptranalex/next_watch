@@ -32,6 +32,8 @@ app/
 └── not-found.tsx        ***REMOVED*** 404 page
 ```
 
+aaaa
+
 ***REMOVED******REMOVED*** 🧩 App Router Conventions
 
 ***REMOVED******REMOVED******REMOVED*** Page Components
