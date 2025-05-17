@@ -6,6 +6,10 @@ import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
 import { useParams, useSearchParams, usePathname } from "next/navigation";
 import useMovieFilterStore from "@/store/movieFilterStore";
 import { Heading } from "@chakra-ui/react";
+import { createLogger } from "@/utils/logging";
+
+// Create a logger for this component
+const logger = createLogger("TopMoviesPage");
 
 // Make the page dynamic to avoid prerendering issues
 export const dynamic = "force-dynamic";
@@ -35,7 +39,7 @@ const TopMoviesByYearPage: React.FC = () => {
   useEffect(() => {
     // Special cases handling
     if (yearParam === "current-year") {
-      console.log(`Setting top movies for current year: ${currentYear}`);
+      logger.info(`Setting top movies for current year: ${currentYear}`);
 
       unlockAllFilters();
       setFilter("year", currentYear);
@@ -43,7 +47,7 @@ const TopMoviesByYearPage: React.FC = () => {
       setFilter("sortDesc", true);
       lockFilters(["year", "sortOrder"]);
     } else if (yearParam === "all-time") {
-      console.log("Setting top movies of all time");
+      logger.info("Setting top movies of all time");
 
       unlockAllFilters();
       // Clear year filter for all-time
@@ -54,7 +58,7 @@ const TopMoviesByYearPage: React.FC = () => {
     } else {
       // Normal numeric year handling
       const year = parseInt(yearParam, 10);
-      console.log(`Setting top movies for year: ${year}`);
+      logger.info(`Setting top movies for year: ${year}`);
 
       unlockAllFilters();
       setFilter("year", year);
@@ -65,7 +69,7 @@ const TopMoviesByYearPage: React.FC = () => {
 
     // Cleanup function: unlock filters when component unmounts or before re-running effect
     return () => {
-      console.log(
+      logger.debug(
         "🔓 Cleaning up: unlocking filters when leaving top/[year] page"
       );
       unlockAllFilters();
@@ -84,6 +88,7 @@ const TopMoviesByYearPage: React.FC = () => {
     // This forces React to include searchParams in hydration
     if (searchParams) {
       // Just accessing searchParams is enough to make React track it
+      logger.debugOnce("Including searchParams in hydration");
     }
   }, [searchParams]);
 
@@ -98,6 +103,8 @@ const TopMoviesByYearPage: React.FC = () => {
     const year = parseInt(yearParam, 10);
     titleText = `Top Movies from ${year || currentYear}`;
   }
+
+  logger.debug(`Rendering page with title: ${titleText}`);
 
   const title = (
     <Heading as="h1" marginY={5}>
