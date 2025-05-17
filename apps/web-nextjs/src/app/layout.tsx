@@ -3,6 +3,7 @@ import { Providers } from "./providers";
 import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/layout/AppShell";
 import ThemeScript from "@/components/providers/ThemeScript";
+import "./globals.css";
 
 // Load Inter font
 const inter = Inter({ subsets: ["latin"] });
