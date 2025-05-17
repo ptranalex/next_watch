@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { useAuthStore } from "@/store/auth";
 import SessionExpiredModal from "@/components/commons/SessionExpiredModal";
-import AuthTokenManager from "@/utils/authTokenManager";
+import AuthTokenManager from "@/utils/auth/authTokenManager";
 
 /**
  * Auth provider component that handles auth initialization and recovery

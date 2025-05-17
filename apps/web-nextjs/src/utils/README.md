@@ -2,7 +2,29 @@
 
 This directory contains reusable utility functions that provide common functionality across the application.
 
-***REMOVED******REMOVED*** 📂 Directory Structure
+***REMOVED******REMOVED*** 📂 Current Directory Structure
+
+```
+utils/
+├── logging/             ***REMOVED*** Logging utilities
+│   ├── loggerConfig.ts  ***REMOVED*** Core logging utility
+│   ├── loggerConfig.md  ***REMOVED*** Documentation for logger
+│   ├── README.md        ***REMOVED*** Logging utilities overview
+│   ├── index.ts         ***REMOVED*** Exports from logging
+│   └── examples/        ***REMOVED*** Logger usage examples
+│       └── loggerConfigExample.tsx
+├── auth/                ***REMOVED*** Authentication utilities
+│   ├── authTokenManager.ts ***REMOVED*** Auth token management
+│   └── index.ts         ***REMOVED*** Exports from auth
+├── media/               ***REMOVED*** Media-related utilities
+│   ├── image-urls.ts    ***REMOVED*** Image URL handling
+│   └── index.ts         ***REMOVED*** Exports from media
+└── index.ts             ***REMOVED*** Main export for all utilities
+```
+
+***REMOVED******REMOVED*** 🛠️ Ideal Utility Categories
+
+For future development, consider these additional categories:
 
 ```
 utils/
@@ -18,168 +40,9 @@ utils/
 │   └── formatters.ts   ***REMOVED*** Number formatting utilities
 ├── api/                ***REMOVED*** API-related utilities
 │   └── error-handler.ts ***REMOVED*** API error handling utilities
-├── storage/            ***REMOVED*** Storage-related utilities
-│   ├── local-storage.ts ***REMOVED*** LocalStorage utilities
-│   └── session-storage.ts ***REMOVED*** SessionStorage utilities
-└── index.ts            ***REMOVED*** Main export for utilities
-```
-
-***REMOVED******REMOVED*** 🛠️ Utility Categories
-
-***REMOVED******REMOVED******REMOVED*** Date Utilities
-
-Functions for working with dates:
-
-```typescript
-// utils/date/formatters.ts
-export function formatDate(
-  date: Date | string,
-  format: string = "YYYY-MM-DD"
-): string {
-  // Format implementation...
-}
-
-export function relativeTime(date: Date | string): string {
-  // Relative time implementation (e.g., "2 hours ago")...
-}
-
-// utils/date/parsers.ts
-export function parseDate(dateString: string, format?: string): Date {
-  // Parse implementation...
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** String Utilities
-
-Functions for string manipulation:
-
-```typescript
-// utils/string/formatters.ts
-export function capitalize(str: string): string {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-export function truncate(str: string, maxLength: number): string {
-  if (!str || str.length <= maxLength) return str;
-  return str.slice(0, maxLength) + "...";
-}
-
-// utils/string/validators.ts
-export function isValidEmail(email: string): boolean {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** Array Utilities
-
-Functions for array operations:
-
-```typescript
-// utils/array/transformers.ts
-export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
-  return array.reduce((result, item) => {
-    const groupKey = String(item[key]);
-    result[groupKey] = result[groupKey] || [];
-    result[groupKey].push(item);
-    return result;
-  }, {} as Record<string, T[]>);
-}
-
-export function uniqueBy<T>(array: T[], key: keyof T): T[] {
-  const seen = new Set();
-  return array.filter((item) => {
-    const value = item[key];
-    if (seen.has(value)) return false;
-    seen.add(value);
-    return true;
-  });
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** Number Utilities
-
-Functions for number formatting:
-
-```typescript
-// utils/number/formatters.ts
-export function formatCurrency(
-  value: number,
-  currency: string = "USD"
-): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-  }).format(value);
-}
-
-export function formatPercentage(value: number, decimals: number = 1): string {
-  return `${(value * 100).toFixed(decimals)}%`;
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** API Utilities
-
-Functions for API operations:
-
-```typescript
-// utils/api/error-handler.ts
-import {
-  APIError,
-  NetworkError,
-  ValidationError,
-} from "@/services/api/core/errors";
-
-export function handleApiError(error: unknown): {
-  message: string;
-  code?: string;
-} {
-  if (error instanceof NetworkError) {
-    return {
-      message: "Network error. Please check your connection.",
-      code: "NETWORK_ERROR",
-    };
-  }
-
-  if (error instanceof ValidationError) {
-    return {
-      message: "Validation error. Please check your inputs.",
-      code: "VALIDATION_ERROR",
-    };
-  }
-
-  if (error instanceof APIError) {
-    return { message: error.message, code: String(error.statusCode) };
-  }
-
-  return { message: "An unexpected error occurred.", code: "UNKNOWN_ERROR" };
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** Storage Utilities
-
-Functions for browser storage:
-
-```typescript
-// utils/storage/local-storage.ts
-export function getItem<T>(key: string, defaultValue?: T): T | undefined {
-  if (typeof window === "undefined") return defaultValue;
-
-  const item = localStorage.getItem(key);
-  if (!item) return defaultValue;
-
-  try {
-    return JSON.parse(item) as T;
-  } catch {
-    return defaultValue;
-  }
-}
-
-export function setItem<T>(key: string, value: T): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(key, JSON.stringify(value));
-}
+└── storage/            ***REMOVED*** Storage-related utilities
+    ├── local-storage.ts ***REMOVED*** LocalStorage utilities
+    └── session-storage.ts ***REMOVED*** SessionStorage utilities
 ```
 
 ***REMOVED******REMOVED*** 🔄 Usage Pattern
@@ -187,22 +50,23 @@ export function setItem<T>(key: string, value: T): void {
 Import utility functions directly from their modules:
 
 ```typescript
-import { formatDate, relativeTime } from "@/utils/date/formatters";
-import { capitalize, truncate } from "@/utils/string/formatters";
+import { createLogger } from "@/utils/logging";
+import { getAuthToken } from "@/utils/auth";
+import { getImageUrl } from "@/utils/media";
 
 // Use in components
-const formattedDate = formatDate(movie.release_date);
-const title = capitalize(movie.title);
-const description = truncate(movie.overview, 150);
+const logger = createLogger("MyComponent");
+const token = getAuthToken();
+const imageUrl = getImageUrl(movie.poster_path);
 ```
 
 Or use the centralized export:
 
 ```typescript
-import { formatDate, capitalize, truncate } from "@/utils";
+import { createLogger, getAuthToken, getImageUrl } from "@/utils";
 
 // Use in components
-const formattedDate = formatDate(movie.release_date);
+const logger = createLogger("MyComponent");
 ```
 
 ***REMOVED******REMOVED*** 📝 Utility Development Guidelines

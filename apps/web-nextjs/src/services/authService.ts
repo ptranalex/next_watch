@@ -1,5 +1,5 @@
 import config from "@/config";
-import AuthTokenManager from "@/utils/authTokenManager";
+import AuthTokenManager from "@/utils/auth/authTokenManager";
 
 const API_URL = config.api.baseUrl;
 

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import AuthTokenManager from "@/utils/authTokenManager";
+import AuthTokenManager from "@/utils/auth/authTokenManager";
 import authService, { RegisterData } from "@/services/authService";
 
 // Add a type declaration for the global window object
