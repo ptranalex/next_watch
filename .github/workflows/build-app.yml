@@ -47,22 +47,19 @@ jobs:
         id: build-args
         shell: bash
         run: |
-          ***REMOVED*** Debug input
-          echo "Raw build args: '${{ inputs.build_args }}'"
+          echo "Raw input:"
+          echo "${{ inputs.build_args }}"
 
-          BUILD_ARGS=""
-          ***REMOVED*** Remove any leading/trailing whitespace and handle multi-line input
-          CLEANED_ARGS=$(echo "${{ inputs.build_args }}" | tr -d '\r' | tr '\n' ' ' | xargs)
-          echo "Cleaned args: '$CLEANED_ARGS'"
+          ***REMOVED*** Cleaned args: preserve lines but remove carriage returns
+          CLEANED_ARGS=$(echo "${{ inputs.build_args }}" | tr -d '\r')
 
-          if [ -n "$CLEANED_ARGS" ]; then
-            ***REMOVED*** Just pass the entire string as one build-arg
-            ***REMOVED*** This fixes the duplicate --build-arg issue
-            BUILD_ARGS="--build-arg $CLEANED_ARGS"
-          fi
+          ***REMOVED*** Write output as a multi-line GitHub Actions output
+          echo "args<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CLEANED_ARGS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
-          echo "args=${BUILD_ARGS}" >> "$GITHUB_OUTPUT"
-          echo "Final build args: '${BUILD_ARGS}'"
+          echo "Final build args:"
+          echo "$CLEANED_ARGS"
 
       - name: Set image info
         id: image-info
