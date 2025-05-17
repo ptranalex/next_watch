@@ -85,19 +85,24 @@ const MovieGrid = React.memo(
     const [loadingNextPage, setLoadingNextPage] = useState(false);
     const [screenItemCapacity, setScreenItemCapacity] = useState(0);
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-    const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+    // Start as true for consistent server/client rendering, manage in useEffect
+    const [initialDataLoaded, setInitialDataLoaded] = useState(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
     // Get store filters to watch for changes
     const { filters } = useMovieFilterStore();
 
-    // Add a short delay to ensure initial render completes
+    // Server-side compatible hydration - use useEffect for client-only behavior
     useEffect(() => {
-      const timer = setTimeout(() => {
-        setInitialDataLoaded(true);
-      }, 50);
-      return () => clearTimeout(timer);
+      // Only on client, we can afford to show loading temporarily
+      if (typeof window !== "undefined") {
+        setInitialDataLoaded(false);
+        const timer = setTimeout(() => {
+          setInitialDataLoaded(true);
+        }, 50);
+        return () => clearTimeout(timer);
+      }
     }, []);
 
     // Check URL path for year parameter in the /top/[year] pattern
@@ -120,6 +125,9 @@ const MovieGrid = React.memo(
 
     // Reset initialLoadComplete when source/ids/filters change
     useEffect(() => {
+      // Only run on the client side
+      if (typeof window === "undefined") return;
+
       // Reset both states when filters or source changes
       setInitialLoadComplete(false);
       // Also reset initial data loaded to trigger fresh skeleton loading state
@@ -162,17 +170,12 @@ const MovieGrid = React.memo(
       const numCols =
         typeof breakpointColumns === "number" ? breakpointColumns : 4;
 
-      // Calculate how many rows would fit in viewport
-      const viewportHeight =
-        typeof window !== "undefined" ? window.innerHeight : 800;
-      const estimatedRowHeight = 350; // Estimate movie card height
-      const rowsInViewport = Math.ceil(viewportHeight / estimatedRowHeight);
-
-      // Calculate initial rows (viewport + buffer)
-      const initialRows = rowsInViewport + 2; // Add 2 extra rows of buffer
+      // Fixed constants instead of window-dependent calculations for server/client consistency
+      // These values are used only for initial rendering before hydration
+      const initialRows = 6; // Use a fixed number of rows for initial server render
 
       return {
-        // Initial load should fill screen height plus buffer (2 extra rows)
+        // Fixed number for server rendering to prevent hydration mismatch
         initial: numCols * initialRows,
         // Next page loads should be at least one row
         next: Math.max(numCols, 2 * numCols - (numCols % 2)),
@@ -393,9 +396,13 @@ const MovieGrid = React.memo(
 
     // Handle loading state
     if (isLoading || !initialDataLoaded) {
-      return (
-        <MovieSkeletonGrid columns={columns} count={skeletonCounts.initial} />
-      );
+      // Use a fixed skeleton count for consistent server/client rendering
+      const fixedSkeletonCount =
+        typeof breakpointColumns === "number"
+          ? breakpointColumns * 6 // 6 rows for consistency
+          : 24; // Default to 24 items (6 rows of 4 columns)
+
+      return <MovieSkeletonGrid columns={columns} count={fixedSkeletonCount} />;
     }
 
     // Handle empty states
