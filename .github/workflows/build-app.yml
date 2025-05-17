@@ -47,18 +47,25 @@ jobs:
         id: build-args
         shell: bash
         run: |
+          ***REMOVED*** Debug input
+          echo "Raw build args: '${{ inputs.build_args }}'"
+
           BUILD_ARGS=""
+          ***REMOVED*** Remove any leading/trailing whitespace and handle multi-line input
+          CLEANED_ARGS=$(echo "${{ inputs.build_args }}" | tr -d '\r' | tr '\n' ' ' | xargs)
+          echo "Cleaned args: '$CLEANED_ARGS'"
 
-          echo "${{ inputs.build_args }}" > args.txt
-
-          while IFS= read -r arg || [ -n "$arg" ]; do
-            if [ -n "$arg" ]; then
-              BUILD_ARGS+=" --build-arg $arg"
-            fi
-          done < args.txt
+          if [ -n "$CLEANED_ARGS" ]; then
+            ***REMOVED*** For each arg separated by space
+            for arg in $CLEANED_ARGS; do
+              if [ -n "$arg" ]; then
+                BUILD_ARGS+=" --build-arg $arg"
+              fi
+            done
+          fi
 
           echo "args=${BUILD_ARGS}" >> "$GITHUB_OUTPUT"
-          echo "Using build args: ${BUILD_ARGS}"
+          echo "Final build args: '${BUILD_ARGS}'"
 
       - name: Set image info
         id: image-info
