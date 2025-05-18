@@ -18,6 +18,10 @@ export * from "./actors/actor-api";
 export * from "./search/types";
 export * from "./search/search-api";
 
+// Auth-related exports
+export * from "./auth/types";
+export * from "./auth/auth-api";
+
 // User interaction exports
 export * from "./user/types";
 export {

@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import AuthTokenManager from "@/utils/auth/authTokenManager";
-import authService, { RegisterData } from "@/services/authService";
+import { AuthAPI } from "@/services/api/auth/auth-api";
+import type { RegisterData } from "@/services/api/auth/types";
 import { createLogger } from "@/utils/logging";
 
 // Create logger for this store
@@ -92,7 +93,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null, lastAuthAction: "login" });
         try {
           // Call authentication service
-          await authService.login({ email, password });
+          await AuthAPI.login({ email, password });
           logger.info("Login successful, loading user data");
 
           // Load user data
@@ -113,7 +114,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null, lastAuthAction: "register" });
         try {
           // Register user
-          await authService.register(data);
+          await AuthAPI.register(data);
           logger.info("Registration successful, attempting login");
 
           // Automatically log in after registration
@@ -130,7 +131,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         logger.info("Logging out user");
-        authService.logout();
+        AuthAPI.logout();
         set({
           user: null,
           isAuthenticated: false,
@@ -144,7 +145,7 @@ export const useAuthStore = create<AuthState>()(
         if (!AuthTokenManager.isAccessTokenValid()) {
           logger.debug("Access token invalid, attempting refresh");
           if (AuthTokenManager.isRefreshTokenValid()) {
-            const refreshed = await authService.refreshToken();
+            const refreshed = await AuthAPI.refreshToken();
             if (!refreshed) {
               logger.warn("Token refresh failed, user not authenticated");
               set({ isAuthenticated: false, user: null });
@@ -161,7 +162,7 @@ export const useAuthStore = create<AuthState>()(
         logger.debug("Loading user data");
         set({ isLoading: true, lastAuthAction: "loadUser" });
         try {
-          const userData = await authService.getCurrentUser();
+          const userData = await AuthAPI.getCurrentUser();
           logger.info(`User loaded: ${userData.email} (ID: ${userData.id})`);
           set({
             user: userData,
@@ -208,7 +209,7 @@ export const useAuthStore = create<AuthState>()(
           logger.debug(
             "Access token invalid but refresh token valid, attempting refresh"
           );
-          const refreshed = await authService.refreshToken();
+          const refreshed = await AuthAPI.refreshToken();
           if (refreshed) {
             logger.debug("Token refreshed successfully, loading user data");
             return get().loadUser();
@@ -334,7 +335,7 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           logger.debug("Attempting token refresh");
-          const refreshed = await authService.refreshToken();
+          const refreshed = await AuthAPI.refreshToken();
 
           if (refreshed) {
             logger.info("Token refreshed successfully");

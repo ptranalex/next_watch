@@ -9,6 +9,10 @@ import {
 
 // Import config properly with ES modules
 import defaultConfig from "../../../config";
+import { createLogger, apiLogger } from "@/utils/logging";
+
+// Create dedicated logger for API client
+const logger = createLogger("APIClient");
 
 // Use proper typing and fallback
 let config: typeof defaultConfig;
@@ -16,6 +20,7 @@ try {
   config = defaultConfig;
 } catch {
   // Fallback config if import fails
+  logger.warn("Failed to load config, using fallback values");
   config = {
     api: {
       timeout: 10000, // 10 seconds
@@ -36,6 +41,11 @@ const apiClient = axios.create({
   },
 });
 
+logger.info("API client initialized", {
+  baseURL: apiClient.defaults.baseURL,
+  timeout: apiClient.defaults.timeout,
+});
+
 // Request cache
 const requestCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -46,16 +56,26 @@ const tokenExpiredEvent = new CustomEvent("auth:token-expired");
 // Add a request interceptor to handle authentication and caching
 apiClient.interceptors.request.use(
   (axiosConfig) => {
+    // Log outgoing requests
+    logger.debug(
+      `Request: ${axiosConfig.method?.toUpperCase()} ${axiosConfig.url}`,
+      {
+        params: axiosConfig.params,
+        headers: axiosConfig.headers,
+      }
+    );
+
     // Only try to get token in browser environment
     if (typeof window !== "undefined") {
       try {
         const token = localStorage.getItem(config.auth.tokenKey);
         if (token && axiosConfig.headers) {
           axiosConfig.headers.Authorization = `Bearer ${token}`;
+          logger.debug("Added auth token to request");
         }
       } catch (e) {
         // Ignore localStorage errors during SSR
-        console.warn("Failed to access localStorage:", e);
+        logger.warn("Failed to access localStorage:", e);
       }
     }
 
@@ -67,6 +87,9 @@ apiClient.interceptors.request.use(
       const cachedResponse = requestCache.get(cacheKey);
 
       if (cachedResponse && Date.now() - cachedResponse.timestamp < CACHE_TTL) {
+        logger.debug(`Cache hit for ${axiosConfig.url}`, {
+          age: Date.now() - cachedResponse.timestamp,
+        });
         throw new CacheHitError(cachedResponse.data);
       }
     }
@@ -74,6 +97,7 @@ apiClient.interceptors.request.use(
     return axiosConfig;
   },
   (error) => {
+    logger.error("Request interceptor error:", error);
     return Promise.reject(error);
   }
 );
@@ -81,6 +105,13 @@ apiClient.interceptors.request.use(
 // Add a response interceptor for error handling and caching
 apiClient.interceptors.response.use(
   (response) => {
+    // Log successful responses
+    logger.debug(
+      `Response: ${response.status} ${response.config.method?.toUpperCase()} ${
+        response.config.url
+      }`
+    );
+
     // Cache successful GET responses
     if (response.config.method === "get") {
       const cacheKey = `${response.config.url}${JSON.stringify(
@@ -90,6 +121,7 @@ apiClient.interceptors.response.use(
         data: response.data,
         timestamp: Date.now(),
       });
+      logger.debug(`Cached response for ${response.config.url}`);
     }
     return response;
   },
@@ -102,6 +134,18 @@ apiClient.interceptors.response.use(
 
     // Type guard to ensure we're handling AxiosError
     if (axios.isAxiosError(error)) {
+      // Log error details
+      const requestInfo = {
+        method: error.config?.method?.toUpperCase(),
+        url: error.config?.url,
+        status: error.response?.status,
+      };
+
+      logger.error(`API error: ${requestInfo.method} ${requestInfo.url}`, {
+        status: requestInfo.status,
+        data: error.response?.data,
+      });
+
       // Handle different types of errors
       if (!error.response) {
         throw new NetworkError("Network error occurred");
@@ -128,7 +172,7 @@ apiClient.interceptors.response.use(
               error.response.headers["www-authenticate"]?.includes("expired");
 
             if (isExpiredToken) {
-              console.warn("Token expired or invalid, clearing local storage");
+              logger.warn("Token expired or invalid, clearing local storage");
               // Clear token from localStorage
               localStorage.removeItem(config.auth.tokenKey);
 
@@ -149,6 +193,7 @@ apiClient.interceptors.response.use(
     }
 
     // If not an Axios error, re-throw
+    logger.error("Unhandled API error:", error);
     throw error;
   }
 );
@@ -160,13 +205,18 @@ export const fetchData = async <T>(
   retries = 3
 ): Promise<T> => {
   try {
+    logger.debug(`Fetching data from ${endpoint}`, { retries });
     const response = await apiClient.get<T>(endpoint, config);
     return response.data;
   } catch (error) {
     if (retries > 0 && error instanceof NetworkError) {
+      logger.warn(
+        `Network error fetching ${endpoint}, retrying (${retries} attempts left)`
+      );
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return fetchData<T>(endpoint, config, retries - 1);
     }
+    logger.error(`Failed to fetch data from ${endpoint}`, { error });
     throw error;
   }
 };
@@ -177,8 +227,14 @@ export const postData = async <T>(
   data: Record<string, unknown>,
   config?: AxiosRequestConfig
 ): Promise<T> => {
-  const response = await apiClient.post<T>(endpoint, data, config);
-  return response.data;
+  try {
+    logger.debug(`Posting data to ${endpoint}`);
+    const response = await apiClient.post<T>(endpoint, data, config);
+    return response.data;
+  } catch (error) {
+    logger.error(`Failed to post data to ${endpoint}`, { error });
+    throw error;
+  }
 };
 
 // Generic put function
@@ -187,8 +243,14 @@ export const putData = async <T>(
   data: Record<string, unknown>,
   config?: AxiosRequestConfig
 ): Promise<T> => {
-  const response = await apiClient.put<T>(endpoint, data, config);
-  return response.data;
+  try {
+    logger.debug(`Putting data to ${endpoint}`);
+    const response = await apiClient.put<T>(endpoint, data, config);
+    return response.data;
+  } catch (error) {
+    logger.error(`Failed to put data to ${endpoint}`, { error });
+    throw error;
+  }
 };
 
 // Generic delete function
@@ -196,8 +258,14 @@ export const deleteData = async <T>(
   endpoint: string,
   config?: AxiosRequestConfig
 ): Promise<T> => {
-  const response = await apiClient.delete<T>(endpoint, config);
-  return response.data;
+  try {
+    logger.debug(`Deleting data from ${endpoint}`);
+    const response = await apiClient.delete<T>(endpoint, config);
+    return response.data;
+  } catch (error) {
+    logger.error(`Failed to delete data from ${endpoint}`, { error });
+    throw error;
+  }
 };
 
 // Function for uploading form data
@@ -206,16 +274,22 @@ export const uploadFormData = async <T>(
   formData: FormData,
   config?: AxiosRequestConfig
 ): Promise<T> => {
-  const mergedConfig: AxiosRequestConfig = {
-    ...config,
-    headers: {
-      ...config?.headers,
-      "Content-Type": "multipart/form-data",
-    },
-  };
+  try {
+    logger.debug(`Uploading form data to ${endpoint}`);
+    const mergedConfig: AxiosRequestConfig = {
+      ...config,
+      headers: {
+        ...config?.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    };
 
-  const response = await apiClient.post<T>(endpoint, formData, mergedConfig);
-  return response.data;
+    const response = await apiClient.post<T>(endpoint, formData, mergedConfig);
+    return response.data;
+  } catch (error) {
+    logger.error(`Failed to upload form data to ${endpoint}`, { error });
+    throw error;
+  }
 };
 
 /**
@@ -224,10 +298,14 @@ export const uploadFormData = async <T>(
  */
 export class APIClient<T> {
   protected endpoint: string;
+  protected logger: ReturnType<typeof createLogger>;
 
   constructor(endpoint: string) {
     // Remove trailing slash if present
     this.endpoint = endpoint.endsWith("/") ? endpoint.slice(0, -1) : endpoint;
+    // Create a logger specific to this client instance
+    this.logger = createLogger(`APIClient:${this.endpoint}`);
+    this.logger.debug("Initialized");
   }
 
   /**
@@ -236,6 +314,7 @@ export class APIClient<T> {
   getAll = async (
     params?: Record<string, unknown>
   ): Promise<{ data: T[]; meta?: Record<string, unknown> }> => {
+    this.logger.debug("Getting all items", { params });
     const queryString = params
       ? `?${new URLSearchParams(this.formatParams(params)).toString()}`
       : "";
@@ -248,6 +327,7 @@ export class APIClient<T> {
    * Get a single entity by ID
    */
   getById = async (id: number | string): Promise<T> => {
+    this.logger.debug(`Getting item by ID: ${id}`);
     return fetchData<T>(`${this.endpoint}/${id}`);
   };
 
@@ -255,6 +335,7 @@ export class APIClient<T> {
    * Create a new entity
    */
   create = async (data: Partial<T>): Promise<T> => {
+    this.logger.debug("Creating new item", { data });
     return postData<T>(this.endpoint, data);
   };
 
@@ -262,6 +343,7 @@ export class APIClient<T> {
    * Update an existing entity
    */
   update = async (id: number | string, data: Partial<T>): Promise<T> => {
+    this.logger.debug(`Updating item ${id}`, { data });
     return putData<T>(`${this.endpoint}/${id}`, data);
   };
 
@@ -269,6 +351,7 @@ export class APIClient<T> {
    * Delete an entity
    */
   delete = async (id: number | string): Promise<void> => {
+    this.logger.debug(`Deleting item ${id}`);
     return deleteData<void>(`${this.endpoint}/${id}`);
   };
 
@@ -279,6 +362,7 @@ export class APIClient<T> {
     queryString: string,
     config?: AxiosRequestConfig
   ): Promise<R> => {
+    this.logger.debug(`Executing custom query: ${queryString}`, { config });
     // Add a slash if queryString doesn't start with one and isn't empty
     const separator = queryString && !queryString.startsWith("/") ? "/" : "";
     return fetchData<R>(`${this.endpoint}${separator}${queryString}`, config);
@@ -313,6 +397,7 @@ export class APIClient<T> {
     formData: FormData,
     config?: AxiosRequestConfig
   ): Promise<R> => {
+    this.logger.debug(`Uploading form to ${path}`);
     const fullPath = path.startsWith("/") ? path : `${this.endpoint}/${path}`;
     return uploadFormData<R>(fullPath, formData, config);
   };
@@ -324,14 +409,21 @@ export const isTokenValid = (): boolean => {
 
   try {
     const token = localStorage.getItem(config.auth.tokenKey);
-    if (!token) return false;
+    if (!token) {
+      logger.debug("No token found in localStorage");
+      return false;
+    }
 
     // Simple check based on token format (JWT)
-    if (token.split(".").length !== 3) return false;
+    if (token.split(".").length !== 3) {
+      logger.warn("Invalid token format found in localStorage");
+      return false;
+    }
 
+    logger.debug("Token validation passed");
     return true;
   } catch (e) {
-    console.error("Error checking token validity:", e);
+    logger.error("Error checking token validity:", e);
     return false;
   }
 };
