@@ -1,13 +1,19 @@
 "use client";
 
 import SortSelector from "@/components/layout/SortSelector";
-import { Box } from "@chakra-ui/react";
+import FilterButton from "@/components/home/FilterButton";
+import { Box, Flex } from "@chakra-ui/react";
 import React, { memo, ReactNode, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MovieAPI, GenreAPI, ActorAPI } from "@/services/api";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("MovieBrowseLayout");
 
 // Memoize components to prevent unnecessary re-renders
 const MemoizedSortSelector = memo(SortSelector);
+const MemoizedFilterButton = memo(FilterButton);
 
 interface MovieBrowseLayoutProps {
   children: ReactNode;
@@ -72,11 +78,18 @@ const MovieBrowseLayout: React.FC<MovieBrowseLayoutProps> = ({
     <>
       <Box marginTop={5}>
         {title}
-        <Box marginBottom={5}>{rightHeader || <MemoizedSortSelector />}</Box>
+        <Box marginBottom={5}>
+          {rightHeader || (
+            <Flex alignItems="center">
+              <MemoizedSortSelector />
+              <MemoizedFilterButton />
+            </Flex>
+          )}
+        </Box>
       </Box>
       {children}
     </>
   );
 };
 
-export default memo(MovieBrowseLayout);
+export default MovieBrowseLayout;

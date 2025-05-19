@@ -1,5 +1,5 @@
 import RatingSliderGroup from "@/components/home/MovieFilter";
-import useMovieQueryStore from "@/store/movieQuery";
+import useMovieFilterStore from "@/store/movieFilterStore";
 import {
   Button,
   Modal,
@@ -15,6 +15,10 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { HiArrowPath, HiArrowRight } from "react-icons/hi2";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("MovieFilterModal");
 
 interface MovieFilterModalProps {
   isOpen: boolean;
@@ -29,9 +33,10 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
   const modalBgColor = useColorModeValue("gray.100", "gray.800");
   const toast = useToast();
 
-  const { resetFilters } = useMovieQueryStore();
+  const { resetFilters } = useMovieFilterStore();
 
   const onApply = () => {
+    logger.info("Applying movie filters");
     toast({
       title: "Filters applied",
       status: "success",
@@ -42,6 +47,7 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
   };
 
   const onReset = () => {
+    logger.info("Resetting movie filters");
     resetFilters();
     toast({
       title: "Filters reset",
@@ -53,18 +59,18 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
   };
 
   return (
-    <Modal isCentered isOpen={isOpen} onClose={onClose}>
+    <Modal isCentered isOpen={isOpen} onClose={onClose} size="xs">
       <ModalOverlay
         bg="blackAlpha.300"
         backdropFilter="auto"
         backdropBlur="4px"
       />
-      <ModalContent bg={modalBgColor} color={textColor}>
+      <ModalContent bg={modalBgColor} color={textColor} mx={2}>
         <ModalHeader>
-          <Text fontSize="2xl">Movie Filter</Text>
+          <Text fontSize="xl">Movie Filter</Text>
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody padding={6}>
+        <ModalBody padding={4}>
           <Stack spacing={4}>
             <RatingSliderGroup />
             <Button
