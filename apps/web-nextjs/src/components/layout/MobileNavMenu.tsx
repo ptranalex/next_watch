@@ -17,6 +17,7 @@ import {
   Heading,
   Divider,
   Box,
+  IconButton,
 } from "@chakra-ui/react";
 import Link from "next/link";
 import type { FC } from "react";
@@ -114,13 +115,13 @@ const MobileNavMenu: FC = () => {
 
   return (
     <>
-      <Button
-        variant="ghost"
+      <IconButton
+        key="mobile-nav-menu"
+        aria-label="Open menu"
+        icon={<HiOutlineBars3 />}
         onClick={onOpen}
-        leftIcon={<Icon as={HiOutlineBars3} />}
-      >
-        Menu
-      </Button>
+        fontSize={25}
+      />
 
       <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
         <DrawerOverlay />
