@@ -17,5 +17,9 @@ export * from "./domain";
 // UI-related hooks (debounce, intersection, responsiveness)
 export * from "./ui";
 
+// Genre hooks
+export { default as useGenre } from "./domain/genre/useGenre";
+export { default as useAllGenres } from "./domain/genre/useAllGenres";
+
 // Note: All auth hooks are now exported from the core module
 // There's no need to explicitly import them here as they're included in the core export

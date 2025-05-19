@@ -1,7 +1,7 @@
 "use client";
 
 import { Genre } from "@/domain/entities";
-import { MovieAPI } from "@/services/api";
+import { useAllGenres } from "@/hooks";
 import {
   Box,
   Link as ChakraLink,
@@ -12,7 +12,6 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { memo, useCallback } from "react";
 import {
@@ -68,15 +67,8 @@ const genreIcons: Record<string, React.ElementType> = {
 
 // Memoized genre content component
 const GenreContent = memo(() => {
-  const {
-    data: genres,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["genres"],
-    queryFn: () => MovieAPI.getAllGenres(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
+  // Use our custom hook to get all genres
+  const { genres, isLoading, error } = useAllGenres();
 
   // Default icon for genres without a specific icon
   const defaultIcon = GiPunch;

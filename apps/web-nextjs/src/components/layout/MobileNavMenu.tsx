@@ -1,7 +1,7 @@
 "use client";
 
 import ProfileModal from "@/components/profile/ProfileModal";
-import GenreSection from "@/components/navigation/GenreSection";
+import { MobileGenreSection } from "@/components/navigation";
 import { useAuth } from "@/hooks";
 import {
   Button,
@@ -10,6 +10,8 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerOverlay,
+  DrawerCloseButton,
+  DrawerFooter,
   Icon,
   Text,
   VStack,
@@ -18,6 +20,7 @@ import {
   Divider,
   Box,
   IconButton,
+  HStack,
 } from "@chakra-ui/react";
 import Link from "next/link";
 import type { FC } from "react";
@@ -36,6 +39,10 @@ import {
   HiUser,
 } from "react-icons/hi2";
 import { useRouter } from "next/navigation";
+import { createLogger } from "@/utils/logging";
+
+// Create a logger for this component
+const logger = createLogger("MobileNavMenu");
 
 interface NavItem {
   icon: IconType;
@@ -52,6 +59,7 @@ const MobileNavMenu: FC = () => {
   // Handle navigation with filter reset
   const handleNavigation = useCallback(
     (path: string) => {
+      logger.debug(`Navigating to ${path}`);
       onClose();
       router.push(path);
     },
@@ -126,59 +134,62 @@ const MobileNavMenu: FC = () => {
       <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
         <DrawerOverlay />
         <DrawerContent>
+          <DrawerCloseButton size="lg" />
           <DrawerHeader borderBottomWidth="1px">Next Watch</DrawerHeader>
           <DrawerBody>
-            <VStack spacing={3} align="stretch" pt={2}>
+            <VStack spacing={4} align="stretch" pt={2}>
               {/* Main navigation */}
-              <Heading fontSize="md" fontWeight="bold">
-                Navigation
-              </Heading>
-              {renderNavGroup(mainNavItems)}
+              <Box>
+                <Heading fontSize="md" fontWeight="bold" mb={2}>
+                  Browse
+                </Heading>
+                {renderNavGroup(mainNavItems)}
+              </Box>
 
               {/* User navigation - only show if authenticated */}
               {userNavItems.length > 0 && (
-                <>
-                  <Divider my={2} />
-                  <Heading fontSize="md" fontWeight="bold">
+                <Box>
+                  <Divider mb={2} />
+                  <Heading fontSize="md" fontWeight="bold" mb={2}>
                     My Lists
                   </Heading>
                   {renderNavGroup(userNavItems)}
-                </>
+                </Box>
               )}
 
               {/* Top movies */}
-              <Divider my={2} />
-              <Heading fontSize="md" fontWeight="bold">
-                Top Movies
-              </Heading>
-              {renderNavGroup(topNavItems)}
-
-              {/* Genres section */}
-              <Divider my={2} />
-              <Heading fontSize="md" fontWeight="bold">
-                Genres
-              </Heading>
-              <Box maxH="200px" overflowY="auto" pr={2}>
-                <GenreSection />
+              <Box>
+                <Divider mb={2} />
+                <Heading fontSize="md" fontWeight="bold" mb={2}>
+                  Top Movies
+                </Heading>
+                {renderNavGroup(topNavItems)}
               </Box>
 
-              {/* Profile button - only show if authenticated */}
-              {isAuthenticated && (
-                <>
-                  <Divider my={2} />
-                  <Button
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    leftIcon={<Icon as={HiUser} />}
-                    width="100%"
-                    onClick={handleOpenProfileModal}
-                  >
-                    <Text>Profile</Text>
-                  </Button>
-                </>
-              )}
+              {/* Genres section - now using MobileGenreSection */}
+              <Box>
+                <Divider mb={2} />
+                <Heading fontSize="md" fontWeight="bold" mb={2}>
+                  Genres
+                </Heading>
+                <MobileGenreSection layout="grid" onClose={onClose} />
+              </Box>
             </VStack>
           </DrawerBody>
+
+          {/* Footer with profile button if authenticated */}
+          {isAuthenticated && (
+            <DrawerFooter borderTopWidth="1px">
+              <Button
+                leftIcon={<Icon as={HiUser} />}
+                width="100%"
+                colorScheme="blue"
+                onClick={handleOpenProfileModal}
+              >
+                Profile
+              </Button>
+            </DrawerFooter>
+          )}
         </DrawerContent>
       </Drawer>
 
