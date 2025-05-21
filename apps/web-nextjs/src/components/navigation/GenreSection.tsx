@@ -10,7 +10,6 @@ import {
   Icon,
   SkeletonText,
   Text,
-  VStack,
 } from "@chakra-ui/react";
 import Link from "next/link";
 import { memo, useCallback } from "react";
@@ -65,7 +64,7 @@ const genreIcons: Record<string, React.ElementType> = {
   "Sci-Fi": GiAlienSkull,
 };
 
-// Memoized genre content component
+// Memoized genre content component - follows the pattern of other sections in SideBar
 const GenreContent = memo(() => {
   // Use our custom hook to get all genres
   const { genres, isLoading, error } = useAllGenres();
@@ -75,7 +74,7 @@ const GenreContent = memo(() => {
 
   if (isLoading) {
     return (
-      <Box pl={6} pr={6}>
+      <Box>
         <SkeletonText noOfLines={6} spacing={3} skeletonHeight={3} />
       </Box>
     );
@@ -105,15 +104,15 @@ const GenreContent = memo(() => {
 });
 GenreContent.displayName = "GenreContent";
 
-// Genre section wrapper with its own heading - memoized
+// Genre section wrapper with consistent style matching other SideBar sections
 const GenreSection = memo(() => {
   return (
-    <VStack align="stretch" spacing={0}>
+    <>
       <Heading fontSize="xl" marginTop={5} marginBottom={3}>
-        Genre
+        Genres
       </Heading>
       <GenreContent />
-    </VStack>
+    </>
   );
 });
 GenreSection.displayName = "GenreSection";
