@@ -34,6 +34,7 @@ export function useMovie(id: number) {
     data: serviceMovie,
     isLoading: isLoadingMovie,
     error: movieError,
+    refetch: refetchMovie,
   } = useQuery({
     queryKey: ["movie", id],
     queryFn: () => MovieAPI.getById(id),
@@ -45,6 +46,7 @@ export function useMovie(id: number) {
     data: interactionData,
     isLoading: isLoadingInteraction,
     error: interactionError,
+    refetch: refetchInteraction,
   } = useQuery({
     queryKey: ["movieInteraction", id],
     queryFn: () => userInteractionAPI.getMovieInteraction(id),
@@ -96,6 +98,25 @@ export function useMovie(id: number) {
   if (error) {
     logger.error(`Error in useMovie hook for movie ${id}:`, error);
   }
+
+  // Refetch all movie data
+  const refetch = async () => {
+    logger.info(`Refetching movie data for ID: ${id}`);
+
+    try {
+      // Refetch movie data
+      await refetchMovie();
+
+      // Refetch interaction data if authenticated
+      if (isAuthenticated) {
+        await refetchInteraction();
+      }
+
+      logger.info(`Refetch complete for movie ID: ${id}`);
+    } catch (error) {
+      logger.error(`Error during refetch for movie ${id}:`, error);
+    }
+  };
 
   // Toggle watched status
   const { mutate: toggleWatched } = useMutation({
@@ -280,6 +301,7 @@ export function useMovie(id: number) {
     toggleWatched,
     toggleLiked,
     toggleWatchlist: toggleInWatchlist,
+    refetch,
     relatedMovies: relatedMoviesQuery.data,
     cast: castQuery.data?.cast || [],
   };

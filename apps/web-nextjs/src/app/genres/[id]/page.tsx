@@ -1,11 +1,11 @@
 "use client";
 
-import { Heading } from "@chakra-ui/react";
 import MovieGrid from "@/components/home/MovieGrid";
 import { memo, useEffect } from "react";
 import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
 import { useGenre, useParams } from "@/hooks";
 import { createLogger } from "@/utils/logging";
+import PageHeading from "@/components/common/PageHeading";
 
 // Create logger for this component
 const logger = createLogger("GenrePage");
@@ -48,16 +48,12 @@ const GenrePage = ({ params: paramsPromise }: GenrePageProps) => {
     }
   }, [genre, genreId]);
 
-  const genreTitle = (
-    <Heading as="h1" marginY={5}>
-      {genre?.name || "Genre"}
-    </Heading>
-  );
+  const genreTitle = <PageHeading>{genre?.name || "Genre"}</PageHeading>;
 
   return (
     <MovieBrowseLayout title={genreTitle}>
       <MemoizedMovieGrid
-        columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
+        columns={{ base: 2, sm: 3, md: 4, lg: 6 }}
         source="movie_listing"
         genre_id={genreId}
       />

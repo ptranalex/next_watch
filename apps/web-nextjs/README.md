@@ -10,6 +10,7 @@ NextWatch Web is the frontend application for the NextWatch platform, allowing u
 - Track watched, liked, and watchlist movies
 - View movie details, trailers, and cast information
 - Manage user profiles and preferences
+- Enjoy a mobile-optimized experience with touch-friendly interfaces
 
 ***REMOVED******REMOVED*** 🚀 Getting Started
 
@@ -75,6 +76,12 @@ NextWatch follows **Clean Architecture** principles with a domain-driven approac
 src/
 ├── app/               ***REMOVED*** Next.js App Router pages
 ├── components/        ***REMOVED*** React components
+│   ├── mobile/        ***REMOVED*** Mobile-specific components
+│   │   ├── common/    ***REMOVED*** Shared mobile UI components
+│   │   ├── filters/   ***REMOVED*** Mobile filter components
+│   │   └── layout/    ***REMOVED*** Mobile layout components
+├── context/           ***REMOVED*** React context providers
+│   └── ResponsiveContext.tsx  ***REMOVED*** Responsive design context
 ├── domain/            ***REMOVED*** Domain entities and business logic
 │   └── entities/      ***REMOVED*** Core data structures and type definitions
 ├── hooks/             ***REMOVED*** React hooks
@@ -92,6 +99,93 @@ src/
 2. **Hooks Layer** - React-specific integration with domain logic
 3. **Services Layer** - External API communication
 4. **Components** - UI presentation logic
+
+***REMOVED******REMOVED******REMOVED*** Mobile-First Design
+
+NextWatch implements a mobile-first approach with these key features:
+
+1. **Responsive Context Provider** - Centralizes device detection and breakpoint logic
+2. **Touch-Optimized Components** - Designed specifically for mobile interfaces:
+
+   - Bottom Sheets instead of modals
+   - Bottom Action Bars for thumb-reachable interfaces
+   - Pull-to-refresh with haptic feedback
+   - Swipe actions for list items
+   - Optimized touch targets (44×44px minimum)
+
+3. **Adaptive Layout System**:
+
+   - Components that automatically adapt to screen size
+   - Conditional rendering based on device capabilities
+   - Proper spacing for touch interactions
+
+4. **Performance Optimizations**:
+   - Skeleton loading screens for perceived performance
+   - Lazy-loaded modal content
+   - Touch event optimization
+
+***REMOVED******REMOVED******REMOVED*** Mobile-First Development Guidelines
+
+When adding new features or components to NextWatch, follow these guidelines:
+
+1. **Start with Mobile Design First**
+
+   - Begin by designing and implementing the mobile version of the UI
+   - Use the existing mobile components in `src/components/mobile/*`
+   - Focus on simple, focused UI with essential features only
+
+2. **Touch-Friendly Interactions**
+
+   - Ensure all interactive elements are at least 44×44px (Apple HIG guideline)
+   - Place primary actions within easy thumb reach (bottom of screen)
+   - Use SwipeAction for list item interactions
+   - Implement haptic feedback for important interactions using `window.navigator.vibrate()`
+
+3. **Component Organization**
+
+   - Place mobile-specific components in `src/components/mobile/`
+   - Common mobile patterns go in `src/components/mobile/common/`
+   - Use naming convention `Mobile*` for mobile-specific components
+
+4. **Responsive Enhancement**
+
+   - After completing mobile implementation, enhance for larger screens
+   - Use Chakra UI's responsive object syntax: `prop={{ base: "mobileValue", md: "desktopValue" }}`
+   - Hide/show elements with Chakra's `Show` component or `display={{ base: "none", md: "block" }}`
+
+5. **Performance Considerations**
+
+   - Implement skeleton loaders for mobile (see `src/components/mobile/loaders/`)
+   - Use dynamic imports with `next/dynamic` for non-critical components
+   - Test on actual mobile devices or throttled connections
+
+6. **Testing Your Mobile Implementation**
+
+   - Use Chrome DevTools' device emulation
+   - Test touch interactions on real devices when possible
+   - Verify performance on low-end mobile devices
+
+7. **Navigation Patterns**
+
+   - Use the `MobileNavBar` component for primary navigation
+   - Implement the `BottomSheet` component instead of traditional modals
+   - Consider gesture-based navigation where appropriate
+
+8. **Code Splitting Strategy**
+   - Separate mobile/desktop logic when significant differences exist
+   - Use responsive props for minor differences
+   - Create container components that choose between implementations based on screen size
+
+***REMOVED******REMOVED******REMOVED*** Existing Mobile Components
+
+| Component       | Purpose                                   | Usage                                                                        |
+| --------------- | ----------------------------------------- | ---------------------------------------------------------------------------- |
+| BottomSheet     | Mobile alternative to modals              | `<BottomSheet isOpen={isOpen} onClose={close}>{content}</BottomSheet>`       |
+| BottomActionBar | Fixed action bar at bottom of screen      | `<BottomActionBar actions={[...]}/>`                                         |
+| MobileNavBar    | Bottom navigation tabs                    | Added automatically to AppShell                                              |
+| PullToRefresh   | Add pull-to-refresh to scrollable content | `<PullToRefresh onRefresh={loadData}>{content}</PullToRefresh>`              |
+| SwipeAction     | Add swipe gestures to list items          | `<SwipeAction leftActions={[...]} rightActions={[...]}>{item}</SwipeAction>` |
+| MovieSkeleton   | Skeleton loader for movie items           | `<MovieSkeleton count={8} isGrid={false} />`                                 |
 
 ***REMOVED******REMOVED*** 📚 Documentation Structure
 
@@ -294,3 +388,36 @@ The filter system is composed of several components:
 - `GenreSelector`: Genre selection buttons
 - `SortSelector`: Sort type and direction controls
 - `SearchInput`: Movie title search field
+
+***REMOVED******REMOVED*** Mobile Development Guidelines
+
+When working on mobile features:
+
+1. **Always test on real devices** - Simulators don't always accurately represent touch behavior
+2. **Focus on motion efficiency** - Minimize the number of taps and user effort
+3. **Optimize for offline and poor connectivity** - Mobile networks can be unreliable
+4. **Use haptic feedback appropriately** - Provide tactile confirmation for key actions
+5. **Consider mobile-specific interaction patterns** - Don't just shrink desktop UI
+
+***REMOVED******REMOVED******REMOVED*** Mobile Component Structure
+
+Mobile-specific components are organized in the `components/mobile` directory:
+
+- `common/` - Reusable mobile UI patterns (BottomSheet, BottomActionBar, etc.)
+- `filters/` - Filter interfaces optimized for mobile
+- `layout/` - Mobile layout components
+
+***REMOVED******REMOVED******REMOVED*** Responsive Integration
+
+Use the `useResponsive()` hook to access device information:
+
+```tsx
+import { useResponsive } from "@/context/ResponsiveContext";
+
+function MyComponent() {
+  const { isMobile, isTablet, isDesktop, hasTouchScreen } = useResponsive();
+
+  // Conditional rendering based on device
+  return isMobile ? <MobileView /> : <DesktopView />;
+}
+```

@@ -6,8 +6,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { ChakraProvider } from "@chakra-ui/react";
-import theme from "../theme";
+import theme from "@/theme";
 import { MovieQueryProvider } from "../context/MovieQueryContext";
+import { ResponsiveProvider } from "@/context/ResponsiveContext";
 import { createLogger } from "@/utils/logging";
 
 // Create logger for this component
@@ -56,21 +57,24 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <>
       {/* 1. Setup UI framework */}
       <ChakraProvider theme={theme} resetCSS={true}>
-        {/* 2. Setup data fetching */}
-        <QueryClientProvider client={queryClient}>
-          {/* 3. Setup authentication */}
-          <GoogleOAuthProvider
-            clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
-          >
-            <AuthProvider>
-              {/* 4. Setup app-specific state */}
-              <MovieQueryProvider>
-                {children}
-                <ReactQueryDevtools initialIsOpen={false} />
-              </MovieQueryProvider>
-            </AuthProvider>
-          </GoogleOAuthProvider>
-        </QueryClientProvider>
+        {/* 2. Setup responsive detection */}
+        <ResponsiveProvider>
+          {/* 3. Setup data fetching */}
+          <QueryClientProvider client={queryClient}>
+            {/* 4. Setup authentication */}
+            <GoogleOAuthProvider
+              clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+            >
+              <AuthProvider>
+                {/* 5. Setup app-specific state */}
+                <MovieQueryProvider>
+                  {children}
+                  <ReactQueryDevtools initialIsOpen={false} />
+                </MovieQueryProvider>
+              </AuthProvider>
+            </GoogleOAuthProvider>
+          </QueryClientProvider>
+        </ResponsiveProvider>
       </ChakraProvider>
     </>
   );

@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import { Providers } from "./providers";
 import type { Metadata, Viewport } from "next";
-import AppShell from "@/components/layout/AppShell";
+import ResponsiveShell from "@/components/layout/ResponsiveShell";
 import ThemeScript from "@/components/providers/ThemeScript";
 import "./globals.css";
 
@@ -23,6 +23,11 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "***REMOVED***171923" },
   ],
+  // Add mobile viewport settings
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -37,7 +42,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} chakra-ui-dark`}>
         <Providers>
-          <AppShell>{children}</AppShell>
+          <ResponsiveShell>{children}</ResponsiveShell>
         </Providers>
       </body>
     </html>

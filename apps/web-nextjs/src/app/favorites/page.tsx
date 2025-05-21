@@ -1,8 +1,8 @@
 "use client";
 
-import { Heading } from "@chakra-ui/react";
 import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
 import MovieGrid from "@/components/home/MovieGrid";
+import PageHeading from "@/components/common/PageHeading";
 import { memo } from "react";
 
 // Memoize components for better performance
@@ -15,16 +15,12 @@ const MemoizedMovieGrid = memo(MovieGrid);
  * MovieGrid cards handle prefetching on hover automatically
  */
 export default function FavoritesPage() {
-  const title = (
-    <Heading as="h1" marginY={5}>
-      Your Favorites
-    </Heading>
-  );
+  const title = <PageHeading>Your Favorites</PageHeading>;
 
   return (
     <MovieBrowseLayout title={title}>
       <MemoizedMovieGrid
-        columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
+        columns={{ base: 2, sm: 3, md: 4, lg: 6 }}
         source="favorites"
       />
     </MovieBrowseLayout>

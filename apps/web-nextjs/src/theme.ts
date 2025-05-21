@@ -220,14 +220,15 @@ const theme = extendTheme({
         bg: "gray.900",
         color: "whiteAlpha.900",
         height: "100%", // Explicit height helps with positioning context
-        overflowX: "hidden",
+        // Removing overflowX: "hidden" to fix sticky navbar positioning
       },
       body: {
         bg: "gray.900",
         color: "whiteAlpha.900",
         minHeight: "100%",
-        // Do not add overflowX: "hidden" here - it breaks sticky positioning by creating a new containing block
+        // We MUST NOT set overflowX: "hidden" here - it breaks sticky positioning by creating a new containing block
         // that prevents elements with position: sticky from working properly
+        // When overflow properties are set, they create a new containing block for sticky positioned elements
       },
       // Improve tap highlights
       "a, button": {

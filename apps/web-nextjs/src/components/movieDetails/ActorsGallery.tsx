@@ -1,5 +1,5 @@
 import { useMovieCast } from "@/hooks/domain/movie/useMovieCast";
-import { Box, Image, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
+import { Box, Image, Grid, Spinner, Text, Tooltip } from "@chakra-ui/react";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -61,74 +61,93 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
   }
 
   return (
-    <Box>
-      <SimpleGrid columns={3} spacing={2}>
-        {castData.cast.map((actor) => (
-          <Box
+    <Box width="100%">
+      <Grid templateColumns="repeat(3, 1fr)" gap={2} width="100%">
+        {castData.cast.slice(0, 6).map((actor) => (
+          <Tooltip
             key={actor.id}
-            textAlign="center"
-            _hover={{
-              transform: "scale(1.05)",
-              transition: "transform 0.2s ease-in-out",
-            }}
-            borderRadius={4}
-            overflow="hidden"
-            height="160px"
+            label={actor.name}
+            aria-label={`Actor: ${actor.name}`}
+            placement="top"
+            hasArrow
+            openDelay={300}
           >
-            <Link
-              href={`/actors/${actor.actor_id}`}
-              style={{ display: "block", height: "100%" }}
+            <Box
+              textAlign="center"
+              _hover={{
+                transform: "scale(1.05)",
+                transition: "transform 0.2s ease-in-out",
+              }}
+              borderRadius={4}
+              overflow="hidden"
+              position="relative"
+              paddingBottom="150%" // 2:3 aspect ratio (height is 150% of width)
+              w="100%"
             >
-              {actor.profile_path && !failedImages[actor.id] ? (
-                <Image
-                  src={`${TMDB_IMAGE_BASE}${actor.profile_path}`}
-                  alt={actor.name}
-                  width="100%"
-                  height="100%"
-                  objectFit="cover"
-                  onError={() => handleImageError(actor.id)}
-                  fallback={
-                    <Box
-                      width="100%"
-                      height="100%"
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                      backgroundColor="blue.700"
-                    >
-                      <Text fontSize="2xl" fontWeight="bold" color="white">
-                        {getInitials(actor.name)}
-                      </Text>
-                    </Box>
-                  }
-                />
-              ) : (
-                <Box
-                  width="100%"
-                  height="100%"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  backgroundColor="blue.700"
-                >
-                  <Text fontSize="2xl" fontWeight="bold" color="white">
-                    {getInitials(actor.name)}
-                  </Text>
-                </Box>
-              )}
-              <Text
-                fontSize="sm"
-                mt={1}
-                noOfLines={1}
-                textAlign="center"
-                fontWeight="medium"
+              <Link
+                href={`/actors/${actor.actor_id}`}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                }}
               >
-                {actor.name}
-              </Text>
-            </Link>
-          </Box>
+                {actor.profile_path && !failedImages[actor.id] ? (
+                  <Image
+                    src={`${TMDB_IMAGE_BASE}${actor.profile_path}`}
+                    alt={actor.name}
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    objectFit="cover"
+                    borderRadius={4}
+                    onError={() => handleImageError(actor.id)}
+                    fallback={
+                      <Box
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        width="100%"
+                        height="100%"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        backgroundColor="blue.700"
+                        borderRadius={4}
+                      >
+                        <Text fontSize="2xl" fontWeight="bold" color="white">
+                          {getInitials(actor.name)}
+                        </Text>
+                      </Box>
+                    }
+                  />
+                ) : (
+                  <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    backgroundColor="blue.700"
+                    borderRadius={4}
+                  >
+                    <Text fontSize="2xl" fontWeight="bold" color="white">
+                      {getInitials(actor.name)}
+                    </Text>
+                  </Box>
+                )}
+              </Link>
+            </Box>
+          </Tooltip>
         ))}
-      </SimpleGrid>
+      </Grid>
     </Box>
   );
 };
