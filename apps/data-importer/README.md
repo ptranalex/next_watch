@@ -5,17 +5,29 @@ This application provides tools to import movie and TV show data from external s
 ***REMOVED******REMOVED*** Features
 
 - Import movies from TMDB (The Movie Database) with cast and crew information
+- Import movie details from OMDB (Open Movie Database)
 - Support for syncing by year range or importing specific movies by ID
-- CLI interface for easy integration
+- CLI interface with multiple commands
 - Interactive shell for data exploration
+- Detailed logging and error handling
+- Bulk operations with progress tracking
+- Customizable data transformation options
 
 ***REMOVED******REMOVED*** Installation
 
-1. Clone the repository
-2. Install dependencies:
-   ```
-   pip install -e .
-   ```
+***REMOVED******REMOVED******REMOVED*** Using Poetry (Recommended)
+
+```bash
+cd apps/data-importer
+poetry install
+```
+
+***REMOVED******REMOVED******REMOVED*** Using Pip
+
+```bash
+cd apps/data-importer
+pip install -e .
+```
 
 ***REMOVED******REMOVED*** Usage
 
@@ -27,6 +39,8 @@ Set your API keys as environment variables:
 export TMDB_ACCESS_TOKEN="your_tmdb_access_token_here"
 export OMDB_API_KEY="your_omdb_api_key_here"
 ```
+
+Alternatively, create a `.env` file in the project root with these values.
 
 ***REMOVED******REMOVED******REMOVED*** CLI Commands
 
@@ -43,6 +57,53 @@ Options:
 - `--omdb-key`, `-o`: OMDB API key (if not set as environment variable)
 - `--save/--no-save`: Save movies to database (default: --no-save)
 - `--credits/--no-credits`: Include cast and crew information (default: --no-credits)
+- `--verbose`, `-v`: Show detailed output
+- `--filter`: Filter movies by specified criteria (e.g., "vote_count>100")
+- `--skip-existing`: Skip movies that already exist in the database
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Import Movies by ID
+
+```bash
+data-importer import tmdb-id 550 634649 --credits --save
+```
+
+Options:
+
+- `--tmdb-token`, `-t`: TMDB Bearer token (if not set as environment variable)
+- `--omdb-key`, `-o`: OMDB API key (if not set as environment variable)
+- `--save/--no-save`: Save movies to database (default: --no-save)
+- `--credits/--no-credits`: Include cast and crew information (default: --no-credits)
+- `--verbose`, `-v`: Show detailed output
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Import from File
+
+```bash
+data-importer import from-file movie_ids.txt --credits --save
+```
+
+Options:
+
+- `--tmdb-token`, `-t`: TMDB Bearer token (if not set as environment variable)
+- `--omdb-key`, `-o`: OMDB API key (if not set as environment variable)
+- `--save/--no-save`: Save movies to database (default: --no-save)
+- `--credits/--no-credits`: Include cast and crew information (default: --no-credits)
+- `--verbose`, `-v`: Show detailed output
+- `--format`: Format of the input file (tmdb-id, imdb-id, title)
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Update Existing Movies
+
+```bash
+data-importer update movies --credits
+```
+
+Options:
+
+- `--all`: Update all movies in the database
+- `--ids`: Comma-separated list of movie IDs to update
+- `--since`: Update movies added since specified date (YYYY-MM-DD)
+- `--tmdb-token`, `-t`: TMDB Bearer token (if not set as environment variable)
+- `--omdb-key`, `-o`: OMDB API key (if not set as environment variable)
+- `--credits/--no-credits`: Update cast and crew information (default: --no-credits)
 - `--verbose`, `-v`: Show detailed output
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Interactive Shell
@@ -74,6 +135,15 @@ movies = run_async(tmdb_client.get_popular_movies())
 
 ***REMOVED*** Search for a movie
 results = run_async(tmdb_client.search_movies("Inception"))
+
+***REMOVED*** Get movie by ID
+movie = run_async(tmdb_client.get_movie(550))
+
+***REMOVED*** Get movie credits
+credits = run_async(tmdb_client.get_movie_credits(550))
+
+***REMOVED*** Save movie to database
+db_movie = save_movie(movie, credits)
 ```
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Interactive Mode (Experimental)
@@ -109,6 +179,26 @@ export TMDB_ACCESS_TOKEN="your_tmdb_access_token_here"
 export OMDB_API_KEY="your_omdb_api_key_here"
 ```
 
+***REMOVED******REMOVED******REMOVED*** Configuration File
+
+You can also create a configuration file at `~/.data-importer/config.toml`:
+
+```toml
+[api]
+tmdb_token = "your_tmdb_access_token_here"
+omdb_key = "your_omdb_api_key_here"
+imdb_key = "your_imdb_api_key_here"
+
+[paths]
+data_dir = "~/movie_data"
+logs_dir = "~/logs/data-importer"
+
+[defaults]
+save = false
+credits = true
+limit = 50
+```
+
 ***REMOVED******REMOVED*** Development
 
 ***REMOVED******REMOVED******REMOVED*** Project Structure
@@ -124,6 +214,20 @@ export OMDB_API_KEY="your_omdb_api_key_here"
   - `sync/`: Data synchronization logic
     - `movie_sync.py`: Movie synchronization functions
   - `config/`: Application configuration
+  - `models/`: Data models and transformations
+  - `db/`: Database operations
+
+***REMOVED******REMOVED******REMOVED*** Testing
+
+Run the test suite with:
+
+```bash
+***REMOVED*** Run all tests
+pytest
+
+***REMOVED*** Run with coverage report
+pytest --cov=data_importer
+```
 
 ***REMOVED******REMOVED******REMOVED*** Adding Support for New Data Sources
 
@@ -132,6 +236,14 @@ To add a new data source:
 1. Create a new client in the `services/` directory
 2. Update the sync functions to use the new source
 3. Add CLI commands to interact with the new source
+
+***REMOVED******REMOVED*** Troubleshooting
+
+Common issues and solutions:
+
+- **API Rate Limiting**: TMDB imposes rate limits. Use the `--sleep` option to add delay between requests.
+- **Database Connection Issues**: Ensure the database URL is correctly set in your environment.
+- **Missing Data**: Some movies may have incomplete data. Use the `--verbose` flag to see warnings.
 
 ***REMOVED******REMOVED*** License
 

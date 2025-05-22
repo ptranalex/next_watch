@@ -11,6 +11,8 @@ A FastAPI-based backend service for the Next Watch application.
 - Database health checking
 - User authentication with JWT
 - User registration and profile management
+- Rate limiting and performance monitoring
+- Comprehensive CLI for server management
 
 ***REMOVED******REMOVED*** Setup
 
@@ -70,6 +72,15 @@ poetry run backend-api server start --help  ***REMOVED*** Show all available opt
 ***REMOVED*** --reload / --no-reload      Enable auto-reload on code changes
 ***REMOVED*** --log-dir PATH              Directory to store log files
 ***REMOVED*** --sqlalchemy-level TEXT     Log level for SQLAlchemy
+
+***REMOVED*** Database management
+poetry run backend-api db migrate        ***REMOVED*** Run database migrations
+poetry run backend-api db reset          ***REMOVED*** Reset the database (caution!)
+poetry run backend-api db seed           ***REMOVED*** Seed the database with initial data
+
+***REMOVED*** Maintenance commands
+poetry run backend-api cache clear       ***REMOVED*** Clear application caches
+poetry run backend-api metrics report    ***REMOVED*** Generate performance report
 ```
 
 ***REMOVED******REMOVED*** Configuration
@@ -97,6 +108,8 @@ The backend API uses a structured configuration system:
 | `JWT_ALGORITHM`               | Algorithm for JWT token generation          | `HS256`                                                    |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Minutes until access token expires          | `30`                                                       |
 | `REFRESH_TOKEN_EXPIRE_DAYS`   | Days until refresh token expires            | `7`                                                        |
+| `RATE_LIMIT_PER_MINUTE`       | API rate limit per minute                   | `60`                                                       |
+| `ENABLE_DOCS`                 | Enable Swagger/ReDoc documentation          | `true`                                                     |
 
 ***REMOVED******REMOVED******REMOVED*** Configuration Structure
 
@@ -137,22 +150,41 @@ log_config = configure_logging(
 - `POST /api/v1/auth/login/json` - JSON-based login alternative
 - `POST /api/v1/auth/refresh` - Refresh access token
 - `GET /api/v1/auth/me` - Get current authenticated user details
+- `POST /api/v1/auth/logout` - Logout and invalidate tokens
+- `POST /api/v1/auth/password/reset` - Request password reset
+- `POST /api/v1/auth/password/change` - Change password with token
+
+***REMOVED******REMOVED******REMOVED*** Users
+
+- `GET /api/v1/users/me` - Get current user profile
+- `PATCH /api/v1/users/me` - Update current user profile
+- `GET /api/v1/users/me/preferences` - Get user preferences
+- `PATCH /api/v1/users/me/preferences` - Update user preferences
 
 ***REMOVED******REMOVED******REMOVED*** Movies
 
-- `GET /movies/` - List movies with pagination
-- `GET /movies/{movie_id}` - Get details for a specific movie
-- `GET /movies/tmdb/{tmdb_id}` - Get movie by TMDB ID
+- `GET /api/v1/movies/` - List movies with pagination
+- `GET /api/v1/movies/{movie_id}` - Get details for a specific movie
+- `GET /api/v1/movies/tmdb/{tmdb_id}` - Get movie by TMDB ID
+- `GET /api/v1/movies/search` - Search movies by title, actor, or genre
+- `POST /api/v1/movies/{movie_id}/like` - Like a movie
+- `DELETE /api/v1/movies/{movie_id}/like` - Unlike a movie
+- `POST /api/v1/movies/{movie_id}/watch` - Mark movie as watched
+- `DELETE /api/v1/movies/{movie_id}/watch` - Mark movie as not watched
+- `POST /api/v1/movies/{movie_id}/watchlist` - Add movie to watchlist
+- `DELETE /api/v1/movies/{movie_id}/watchlist` - Remove movie from watchlist
 
 ***REMOVED******REMOVED******REMOVED*** Genres
 
-- `GET /genres/` - List all genres
-- `GET /genres/{genre_id}` - Get details for a specific genre
-- `GET /genres/{genre_id}/movies` - Get movies for a specific genre
+- `GET /api/v1/genres/` - List all genres
+- `GET /api/v1/genres/{genre_id}` - Get details for a specific genre
+- `GET /api/v1/genres/{genre_id}/movies` - Get movies for a specific genre
 
 ***REMOVED******REMOVED******REMOVED*** Cast
 
-- `GET /cast/movie/{movie_id}` - Get cast and crew information for a specific movie
+- `GET /api/v1/cast/movie/{movie_id}` - Get cast and crew information for a specific movie
+- `GET /api/v1/cast/person/{person_id}` - Get person details
+- `GET /api/v1/cast/person/{person_id}/movies` - Get movies for a specific person
 
 ***REMOVED******REMOVED******REMOVED*** Health Checks
 
@@ -164,7 +196,14 @@ log_config = configure_logging(
 ***REMOVED******REMOVED******REMOVED*** Running Tests
 
 ```bash
+***REMOVED*** Run all tests
 poetry run pytest
+
+***REMOVED*** Run with specific test file
+poetry run pytest tests/api/test_movies.py
+
+***REMOVED*** Run with coverage report
+poetry run pytest --cov=backend_api
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Project Structure
@@ -177,16 +216,39 @@ backend-api/
 │       ├── schemas/      ***REMOVED*** Pydantic models for request/response
 │       ├── db/           ***REMOVED*** Database models and utilities
 │       ├── config/       ***REMOVED*** Configuration and settings
+│       ├── services/     ***REMOVED*** Business logic services
+│       ├── queries/      ***REMOVED*** Optimized read queries
+│       ├── auth/         ***REMOVED*** Authentication logic
+│       ├── cli/          ***REMOVED*** CLI commands
 │       └── main.py       ***REMOVED*** Application entry point
 ├── tests/                ***REMOVED*** Test cases
+│   ├── conftest.py       ***REMOVED*** Test fixtures
+│   ├── api/              ***REMOVED*** API tests
+│   ├── services/         ***REMOVED*** Service tests
+│   └── queries/          ***REMOVED*** Query tests
 └── README.md             ***REMOVED*** You are here
 ```
+
+***REMOVED******REMOVED******REMOVED*** Debug Mode
+
+For development with enhanced debugging:
+
+```bash
+poetry run backend-api server start --log-level DEBUG --sqlalchemy-level INFO
+```
+
+This enables:
+
+- Detailed API request/response logging
+- SQL query logging
+- Extended error information
 
 ***REMOVED******REMOVED*** Dependencies
 
 - FastAPI - Web framework
 - SQLModel - SQL database interaction
 - Pydantic - Data validation
+- Typer - CLI interface
 - movie-storage - Internal library for movie data storage
 
 ***REMOVED******REMOVED*** License
