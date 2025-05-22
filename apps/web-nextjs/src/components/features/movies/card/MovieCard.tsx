@@ -96,11 +96,11 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
     if (!value) return "hidden";
 
     if (value >= 8.0) {
-      return "feedback.success.emphasis";
+      return "colors.primary.darker";
     } else if (value >= 7.0) {
-      return "feedback.success";
+      return "colors.secondary.darker";
     } else if (value >= 6.0) {
-      return "colors.primary";
+      return "colors.tertiary.darker";
     }
     return "hidden";
   };
@@ -129,7 +129,7 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
     <Box
       position="relative"
       bg={bgColor}
-      borderRadius="0"
+      borderRadius={5}
       boxShadow="lg"
       overflow="hidden"
       onMouseEnter={() => {
@@ -158,6 +158,7 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
             onMouseEnter={prefetchMovieData}
           >
             <Image
+              borderRadius={5}
               zIndex={1}
               objectFit="cover"
               width="100%"
