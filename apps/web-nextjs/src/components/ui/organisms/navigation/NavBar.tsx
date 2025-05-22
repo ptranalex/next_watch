@@ -105,6 +105,7 @@ const NavBar: React.FC = () => {
         zIndex="sticky"
         backdropFilter="blur(10px)"
         backgroundColor="bg.primary"
+        boxShadow="xl"
         opacity="0.95"
         width="100%"
       >
