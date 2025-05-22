@@ -16,9 +16,9 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ProtectedRoute from "@/components/features/auth/ProtectedRoute";
 import { useEffect, useState } from "react";
-import ImportNetflixHistoryModal from "@/components/profile/ImportNetflixHistoryModal";
+import ImportNetflixHistoryModal from "@/components/features/profile/ImportNetflixHistoryModal";
 import { HiOutlineArrowUpTray } from "react-icons/hi2";
 import { createLogger } from "@/utils/logging";
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { memo, useEffect } from "react";
-import MovieGrid from "@/components/home/MovieGrid";
-import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
+import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
 import { useParams, useSearchParams, usePathname } from "next/navigation";
 import useMovieFilterStore from "@/store/movieFilterStore";
 import { Heading } from "@chakra-ui/react";

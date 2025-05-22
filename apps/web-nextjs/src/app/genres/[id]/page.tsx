@@ -1,11 +1,11 @@
 "use client";
 
-import MovieGrid from "@/components/home/MovieGrid";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { memo, useEffect } from "react";
-import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
+import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
 import { useGenre, useParams } from "@/hooks";
 import { createLogger } from "@/utils/logging";
-import PageHeading from "@/components/common/PageHeading";
+import PageHeading from "@/components/ui/atoms/PageHeading";
 
 // Create logger for this component
 const logger = createLogger("GenrePage");

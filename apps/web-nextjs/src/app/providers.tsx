@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import AuthProvider from "@/providers/AuthProvider";
+import { ResponsiveProvider } from "@/providers/ResponsiveContext";
+import theme from "@/theme";
+import { createLogger } from "@/utils/logging";
+import { ChakraProvider } from "@chakra-ui/react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import AuthProvider from "@/components/providers/AuthProvider";
-import { ChakraProvider } from "@chakra-ui/react";
-import theme from "@/theme";
-import { MovieQueryProvider } from "../context/MovieQueryContext";
-import { ResponsiveProvider } from "@/context/ResponsiveContext";
-import { createLogger } from "@/utils/logging";
+import React, { useEffect, useState } from "react";
 
 // Create logger for this component
 const logger = createLogger("Providers");
@@ -67,10 +66,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             >
               <AuthProvider>
                 {/* 5. Setup app-specific state */}
-                <MovieQueryProvider>
-                  {children}
-                  <ReactQueryDevtools initialIsOpen={false} />
-                </MovieQueryProvider>
+                {children}
+                <ReactQueryDevtools initialIsOpen={false} />
               </AuthProvider>
             </GoogleOAuthProvider>
           </QueryClientProvider>

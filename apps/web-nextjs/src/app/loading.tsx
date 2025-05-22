@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingIndicator from "@/components/commons/LoadingIndicator";
+import LoadingIndicator from "@/components/ui/molecules/LoadingIndicator";
 import { createLogger } from "@/utils/logging";
 import { useEffect } from "react";
 

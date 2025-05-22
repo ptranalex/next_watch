@@ -2,10 +2,10 @@
 
 import { memo, useEffect } from "react";
 import { Heading } from "@chakra-ui/react";
-import MovieGrid from "@/components/home/MovieGrid";
-import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
+import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
 import { createLogger } from "@/utils/logging";
-import { useResponsive } from "@/context/ResponsiveContext";
+import { useResponsive } from "@/providers/ResponsiveContext";
 
 // Create logger for this component
 const logger = createLogger("HomePage");

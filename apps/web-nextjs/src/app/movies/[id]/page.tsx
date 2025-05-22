@@ -3,9 +3,9 @@
 import React, { useCallback, useEffect } from "react";
 import { useAuth, useMovie, useParams } from "@/hooks";
 import { Movie } from "@/domain/entities";
-import MovieDetailView from "@/components/movieDetails/MovieDetailView";
+import MovieDetailView from "@/components/features/movies/detail/MovieDetailView";
 import { createLogger } from "@/utils/logging";
-import { useResponsive } from "@/context/ResponsiveContext";
+import { useResponsive } from "@/providers/ResponsiveContext";
 
 // Create logger for this component
 const logger = createLogger("MovieDetailPage");

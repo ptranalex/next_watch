@@ -11,26 +11,32 @@ NextWatch Web is the frontend application for the NextWatch platform, allowing u
 - View movie details, trailers, and cast information
 - Manage user profiles and preferences
 - Enjoy a mobile-optimized experience with touch-friendly interfaces
+- Filter and sort movies by various criteria
+- Receive personalized recommendations
 
 ***REMOVED******REMOVED*** 🚀 Getting Started
 
 ***REMOVED******REMOVED******REMOVED*** Prerequisites
 
-- Node.js 16+ and npm
+- Node.js 18+
+- pnpm 10+
 - Access to the NextWatch backend API (or mock data)
 
 ***REMOVED******REMOVED******REMOVED*** Installation
 
 ```bash
-***REMOVED*** Install dependencies
-npm install
+***REMOVED*** Navigate to the web app directory
+cd apps/web-nextjs
+
+***REMOVED*** Install dependencies with pnpm
+pnpm install
 
 ***REMOVED*** Set up environment variables
 cp .env.example .env.local
 ***REMOVED*** Edit .env.local to configure your environment
 
 ***REMOVED*** Start development server
-npm run dev
+pnpm dev
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Docker Deployment
@@ -59,14 +65,20 @@ The Docker setup uses a specially configured development mode that:
 - `NODE_ENV=development` - Uses development mode for best compatibility
 - `NEXT_TELEMETRY_DISABLED=1` - Disables Next.js telemetry
 - `PORT=3000` - Sets the internal container port
+- `NEXT_PUBLIC_API_URL` - URL of the NextWatch backend API
+- `NEXT_PUBLIC_TMDB_IMAGE_BASE_URL` - Base URL for TMDB images
+- `NEXT_PUBLIC_ENABLE_ANALYTICS` - Toggle analytics (true/false)
 
 ***REMOVED******REMOVED******REMOVED*** Available Scripts
 
-- `npm run dev` - Start the development server
-- `npm run build` - Build for production
-- `npm start` - Run the production build
-- `npm run lint` - Run ESLint
-- `npm run docker-build` - Custom build script optimized for Docker deployment
+- `pnpm dev` - Start the development server
+- `pnpm build` - Build for production
+- `pnpm start` - Run the production build
+- `pnpm lint` - Run ESLint
+- `pnpm test` - Run unit tests
+- `pnpm test:e2e` - Run end-to-end tests with Cypress
+- `pnpm storybook` - Start Storybook for component development
+- `pnpm docker-build` - Custom build script optimized for Docker deployment
 
 ***REMOVED******REMOVED*** 🏗️ Architecture
 
@@ -74,23 +86,34 @@ NextWatch follows **Clean Architecture** principles with a domain-driven approac
 
 ```
 src/
-├── app/               ***REMOVED*** Next.js App Router pages
-├── components/        ***REMOVED*** React components
-│   ├── mobile/        ***REMOVED*** Mobile-specific components
-│   │   ├── common/    ***REMOVED*** Shared mobile UI components
-│   │   ├── filters/   ***REMOVED*** Mobile filter components
-│   │   └── layout/    ***REMOVED*** Mobile layout components
-├── context/           ***REMOVED*** React context providers
+├── app/                ***REMOVED*** Next.js App Router pages and layouts
+├── components/         ***REMOVED*** React components
+│   ├── mobile/         ***REMOVED*** Mobile-specific components
+│   │   ├── common/     ***REMOVED*** Shared mobile UI components
+│   │   ├── filters/    ***REMOVED*** Mobile filter components
+│   │   └── layout/     ***REMOVED*** Mobile layout components
+│   ├── common/         ***REMOVED*** Shared components
+│   ├── layout/         ***REMOVED*** Layout components
+│   └── features/       ***REMOVED*** Feature-specific components
+├── context/            ***REMOVED*** React context providers
 │   └── ResponsiveContext.tsx  ***REMOVED*** Responsive design context
-├── domain/            ***REMOVED*** Domain entities and business logic
-│   └── entities/      ***REMOVED*** Core data structures and type definitions
-├── hooks/             ***REMOVED*** React hooks
-│   ├── core/          ***REMOVED*** App-wide hooks (auth, etc.)
-│   ├── domain/        ***REMOVED*** Domain-specific hooks
-│   └── ui/            ***REMOVED*** UI utility hooks
-├── services/          ***REMOVED*** External services integration
-├── store/             ***REMOVED*** Global state management
-└── utils/             ***REMOVED*** Utility functions
+├── domain/             ***REMOVED*** Domain entities and business logic
+│   ├── entities/       ***REMOVED*** Core data structures and type definitions
+│   └── models/         ***REMOVED*** Business models
+├── hooks/              ***REMOVED*** React hooks
+│   ├── core/           ***REMOVED*** App-wide hooks (auth, etc.)
+│   ├── domain/         ***REMOVED*** Domain-specific hooks
+│   └── ui/             ***REMOVED*** UI utility hooks
+├── services/           ***REMOVED*** External services integration
+│   ├── api/            ***REMOVED*** API client implementations
+│   └── storage/        ***REMOVED*** Local storage utilities
+├── store/              ***REMOVED*** Global state management
+│   ├── slices/         ***REMOVED*** State slices
+│   └── middleware/     ***REMOVED*** Redux middleware
+└── utils/              ***REMOVED*** Utility functions
+    ├── formatting/     ***REMOVED*** Date and text formatting
+    ├── validation/     ***REMOVED*** Form validation
+    └── analytics/      ***REMOVED*** Analytics utilities
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Key Architectural Concepts
@@ -123,6 +146,8 @@ NextWatch implements a mobile-first approach with these key features:
    - Skeleton loading screens for perceived performance
    - Lazy-loaded modal content
    - Touch event optimization
+   - Image optimization with Next.js Image component
+   - Code splitting for faster initial load
 
 ***REMOVED******REMOVED******REMOVED*** Mobile-First Development Guidelines
 
@@ -198,37 +223,83 @@ The codebase includes detailed documentation organized by feature area:
 ***REMOVED******REMOVED*** 🔄 Data Flow
 
 1. **Components** use **Hooks** to interact with data
-2. **Hooks** call **Services** to fetch or update data
-3. **Services** communicate with backend APIs
-4. Data is transformed to/from **Domain Entities** for use in the UI
+2. **Hooks** use **Services** to fetch data from APIs
+3. **Services** transform API responses into **Domain Entities**
+4. **Components** render UI based on Domain Entities
 
 ***REMOVED******REMOVED*** 🧪 Testing
 
-```bash
-***REMOVED*** Run tests
-npm test
+The application uses a comprehensive testing strategy:
 
-***REMOVED*** Run tests with coverage
-npm test -- --coverage
+- **Unit Tests**: Test individual components and hooks using React Testing Library and Jest
+- **Integration Tests**: Test interactions between components
+- **End-to-End Tests**: Test complete user flows with Cypress
+
+To run tests:
+
+```bash
+***REMOVED*** Run unit and integration tests
+pnpm test
+
+***REMOVED*** Run e2e tests
+pnpm test:e2e
+
+***REMOVED*** Run with coverage report
+pnpm test:coverage
 ```
 
-***REMOVED******REMOVED*** 📦 Dependencies
+***REMOVED******REMOVED*** 🖥️ Browser Support
 
-- [Next.js](https://nextjs.org/) - React framework
-- [Chakra UI](https://chakra-ui.com/) - Component library
-- [React Query](https://tanstack.com/query) - Data fetching and caching
-- [Zustand](https://github.com/pmndrs/zustand) - State management
+The application supports:
 
-***REMOVED******REMOVED*** 🤝 Contributing
+- Chrome (latest 2 versions)
+- Firefox (latest 2 versions)
+- Safari (latest 2 versions)
+- Edge (latest 2 versions)
+- iOS Safari (latest 2 versions)
+- Android Chrome (latest 2 versions)
 
-1. Ensure you understand the architecture and file organization
-2. Follow existing code patterns and conventions
-3. Add appropriate documentation for new features
-4. Verify all tests pass before submitting pull requests
+***REMOVED******REMOVED*** 📱 Progressive Web App (PWA)
 
-***REMOVED******REMOVED*** 📄 License
+NextWatch can be installed as a PWA on supported devices, providing:
 
-This project is licensed under the MIT License
+- Offline capability for core features
+- Home screen installation
+- Native-like experience
+
+***REMOVED******REMOVED*** 🔒 Authentication
+
+Authentication is handled using:
+
+- JSON Web Tokens (JWT)
+- Secure HTTP-only cookies
+- Protected routes with middleware
+- Session persistence across page refreshes
+
+***REMOVED******REMOVED*** 🌐 Internationalization
+
+The application supports multiple languages through:
+
+- React-intl for message formatting
+- Language detection and selection
+- RTL layout support for appropriate languages
+
+***REMOVED******REMOVED*** 🛡️ Security Measures
+
+- CSRF protection
+- Content Security Policy
+- XSS prevention
+- Input validation
+- Rate limiting
+- HTTPS only
+
+***REMOVED******REMOVED*** 👥 Contributing
+
+Please see the [Contributing Guide](../CONTRIBUTING.md) for details on how to contribute to this project.
+
+***REMOVED******REMOVED*** 📝 License
+
+MIT
 
 ***REMOVED******REMOVED*** URL Parameter Handling
 

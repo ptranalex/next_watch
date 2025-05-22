@@ -67,12 +67,7 @@ const SortOptionsBottomSheet: React.FC<SortOptionsBottomSheetProps> = ({
   };
 
   return (
-    <BottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Sort Movies"
-      size="md"
-    >
+    <BottomSheet isOpen={isOpen} onClose={onClose} height="60vh">
       <VStack spacing={0} align="stretch" color={textColor}>
         {sortOrders.map((order) => {
           const isActive =

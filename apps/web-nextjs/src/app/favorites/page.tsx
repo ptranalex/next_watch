@@ -1,8 +1,8 @@
 "use client";
 
-import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
-import MovieGrid from "@/components/home/MovieGrid";
-import PageHeading from "@/components/common/PageHeading";
+import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
+import PageHeading from "@/components/ui/atoms/PageHeading";
 import { memo } from "react";
 
 // Memoize components for better performance

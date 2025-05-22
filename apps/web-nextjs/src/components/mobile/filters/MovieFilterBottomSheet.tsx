@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Stack, useColorModeValue, useToast } from "@chakra-ui/react";
 import { HiArrowPath, HiArrowRight } from "react-icons/hi2";
-import RatingSliderGroup from "@/components/home/MovieFilter";
+import MovieFilter from "@/components/features/movies/filter/MovieFilter";
 import useMovieFilterStore from "@/store/movieFilterStore";
 import BottomSheet from "@/components/mobile/common/BottomSheet";
 import { createLogger } from "@/utils/logging";
@@ -73,14 +73,9 @@ const MovieFilterBottomSheet: React.FC<MovieFilterBottomSheetProps> = ({
   };
 
   return (
-    <BottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Movie Filters"
-      size="md"
-    >
+    <BottomSheet isOpen={isOpen} onClose={onClose} height="60vh">
       <Stack spacing={5} color={textColor}>
-        <RatingSliderGroup />
+        <MovieFilter />
         <Button
           colorScheme="blue"
           leftIcon={<HiArrowRight />}

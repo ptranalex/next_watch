@@ -1,9 +1,9 @@
 "use client";
 
 import { Heading } from "@chakra-ui/react";
-import MovieGrid from "@/components/home/MovieGrid";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { memo, useEffect } from "react";
-import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
+import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
 import { useParams } from "@/hooks";
 import { useActor } from "@/hooks/domain/actor/useActor";
 import { createLogger } from "@/utils/logging";

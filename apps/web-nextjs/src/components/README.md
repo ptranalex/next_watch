@@ -1,159 +1,60 @@
-***REMOVED*** UI Components
+***REMOVED*** Components
 
-This directory contains all the React components used throughout the application, organized by their domain and purpose.
+This directory contains all React components used in the application, organized following a structured approach that combines Atomic Design principles with domain-driven design.
 
-***REMOVED******REMOVED*** 📂 Directory Structure
+***REMOVED******REMOVED*** Directory Structure
 
 ```
 components/
-├── common/             ***REMOVED*** Common UI components used across features
-│   ├── Button.tsx      ***REMOVED*** Custom button component
-│   ├── Card.tsx        ***REMOVED*** Generic card component
-│   └── ...             ***REMOVED*** Other common components
-├── layout/             ***REMOVED*** Layout components for page structure
-│   ├── Navbar.tsx      ***REMOVED*** Top navigation bar
-│   ├── LeftNavBar.tsx  ***REMOVED*** Side navigation bar
-│   └── Footer.tsx      ***REMOVED*** Footer component
-├── movies/             ***REMOVED*** Movie-related components
-│   ├── MovieCard.tsx   ***REMOVED*** Movie card component
-│   ├── MovieDetail.tsx ***REMOVED*** Movie details component
-│   └── ...             ***REMOVED*** Other movie components
-├── actors/             ***REMOVED*** Actor-related components
-│   ├── ActorCard.tsx   ***REMOVED*** Actor card component
-│   └── ...             ***REMOVED*** Other actor components
-├── auth/               ***REMOVED*** Authentication-related components
-│   ├── LoginForm.tsx   ***REMOVED*** Login form component
-│   └── ...             ***REMOVED*** Other auth components
-└── user/               ***REMOVED*** User-related components
-    ├── ProfileView.tsx ***REMOVED*** User profile component
-    └── ...             ***REMOVED*** Other user components
+├── ui/               ***REMOVED*** Pure UI components (Atomic Design)
+│   ├── atoms/        ***REMOVED*** Basic building blocks (buttons, inputs)
+│   ├── molecules/    ***REMOVED*** Combinations of atoms (search bars, cards)
+│   ├── organisms/    ***REMOVED*** Complex UI sections (headers, forms)
+│   └── templates/    ***REMOVED*** Page layouts
+├── features/         ***REMOVED*** Feature-specific components
+│   ├── movies/       ***REMOVED*** All movie-related components
+│   ├── actors/       ***REMOVED*** Actor-related components
+│   ├── auth/         ***REMOVED*** Authentication components
+│   └── profile/      ***REMOVED*** Profile management components
+└── mobile/           ***REMOVED*** Mobile-specific components (legacy)
 ```
 
-***REMOVED******REMOVED*** 🧩 Component Categories
+***REMOVED******REMOVED*** Development Guidelines
 
-***REMOVED******REMOVED******REMOVED*** Layout Components
+***REMOVED******REMOVED******REMOVED*** Component Organization
 
-Layout components define the overall structure of pages:
+- **Separate presentation from logic**: Use hooks for data fetching and state management
+- **Use domain hooks**: Components should interact with the domain layer via hooks
+- **Responsive design**: Components should be responsive by default
+- **Device-specific variants**: When necessary, create device-specific variants in the feature directory
 
-- **Navbar**: Top navigation with search, user menu
-- **LeftNavBar**: Side navigation for main sections
-- **Footer**: Page footer with links and information
-- **MainLayout**: Wraps content with consistent layout
+***REMOVED******REMOVED******REMOVED*** Type Safety
 
-***REMOVED******REMOVED******REMOVED*** Feature Components
+- All components should have proper TypeScript interfaces for their props
+- Use descriptive prop names and appropriate defaults
+- Prefer domain entity types from `@/domain/entities`
 
-Feature components are specific to application domains:
+***REMOVED******REMOVED******REMOVED*** Performance
 
-- **Movie Components**: Movie cards, details, grids
-- **Actor Components**: Actor cards, filmography
-- **User Components**: User profile, watchlist
-- **Auth Components**: Login, signup, password reset
+- Use React.memo for pure components that render frequently
+- Leverage useCallback and useMemo for optimizing render performance
+- Implement code-splitting with dynamic imports for larger components
 
-***REMOVED******REMOVED******REMOVED*** Common Components
+***REMOVED******REMOVED******REMOVED*** Accessibility
 
-Common components are reusable across features:
+- All UI components must meet WCAG 2.1 AA standards
+- Use semantic HTML elements appropriately
+- Ensure keyboard navigation works correctly
 
-- **Buttons**: Standard, outline, icon buttons
-- **Cards**: Content cards with consistent styling
-- **Forms**: Input fields, dropdowns, checkboxes
-- **Feedback**: Alerts, toasts, loading indicators
+***REMOVED******REMOVED*** Interaction with Other Layers
 
-***REMOVED******REMOVED*** 🚀 Component Architecture
+- **Domain Layer**: Components consume domain entities via hooks
+- **Hooks Layer**: Components use hooks for data fetching and business logic
+- **Services Layer**: Components never call services directly; always use hooks
 
-Components follow these principles:
+***REMOVED******REMOVED*** Best Practices
 
-1. **Separation of Concerns**: Components should do one thing well
-2. **Composition Over Inheritance**: Build complex components via composition
-3. **Props Interface**: All components have explicit props interface
-4. **Pure Components**: Minimize side effects in components
-5. **Responsive Design**: Components adapt to different screen sizes
-
-***REMOVED******REMOVED******REMOVED*** Component Pattern Example
-
-```tsx
-import React from "react";
-import { Box, Text } from "@chakra-ui/react";
-import { Movie } from "@/domain/entities";
-
-interface MovieCardProps {
-  movie: Movie;
-  isFeatured?: boolean;
-  onClick?: (movie: Movie) => void;
-}
-
-export const MovieCard: React.FC<MovieCardProps> = ({
-  movie,
-  isFeatured = false,
-  onClick,
-}) => {
-  const handleClick = () => {
-    if (onClick) onClick(movie);
-  };
-
-  return (
-    <Box
-      borderWidth="1px"
-      borderRadius="lg"
-      p={4}
-      onClick={handleClick}
-      cursor={onClick ? "pointer" : "default"}
-      bg={isFeatured ? "blue.50" : "white"}
-    >
-      <Text fontWeight="bold">{movie.title}</Text>
-      <Text fontSize="sm">{movie.release_date}</Text>
-    </Box>
-  );
-};
-```
-
-***REMOVED******REMOVED*** 🔄 Data Flow
-
-Components interact with the application data flow:
-
-1. **Container Components**: Fetch data via hooks, handle state
-2. **Presentational Components**: Render data from props
-3. **Data Updates**: Pass callbacks to children for updates
-4. **Domain Entities**: Components receive domain entities from hooks
-
-***REMOVED******REMOVED*** 📝 Style Guidelines
-
-Components use Chakra UI for styling:
-
-1. **Theme-Based**: Use theme values for colors, spacing, etc.
-2. **Responsive Props**: Use responsive array syntax `{base: "value", md: "value"}`
-3. **Composition**: Use Chakra's composition pattern (Box, Flex, etc.)
-4. **Semantic Elements**: Use proper HTML elements for accessibility
-
-***REMOVED******REMOVED*** 🧪 Testing
-
-Component tests focus on user interactions:
-
-```tsx
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MovieCard } from "./MovieCard";
-
-describe("MovieCard", () => {
-  const mockMovie = {
-    id: 1,
-    title: "Test Movie",
-    release_date: "2023-01-01",
-  };
-
-  it("displays movie title", () => {
-    render(<MovieCard movie={mockMovie} />);
-    expect(screen.getByText("Test Movie")).toBeInTheDocument();
-  });
-
-  it("calls onClick when clicked", () => {
-    const handleClick = jest.fn();
-    render(<MovieCard movie={mockMovie} onClick={handleClick} />);
-    fireEvent.click(screen.getByText("Test Movie"));
-    expect(handleClick).toHaveBeenCalledWith(mockMovie);
-  });
-});
-```
-
-***REMOVED******REMOVED*** 📚 Related Documentation
-
-- [Domain Layer](../domain/README.md) - Domain entities used by components
-- [Hooks Layer](../hooks/README.md) - React hooks used in container components
+- Keep components focused on a single responsibility
+- Follow the container/presentational pattern for complex components
+- Write comprehensive documentation including props and usage examples
+- Create appropriate test coverage for each component

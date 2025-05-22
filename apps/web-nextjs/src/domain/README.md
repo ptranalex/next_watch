@@ -8,11 +8,22 @@ The domain layer represents the core business logic and data structures of the a
 src/domain/
 ├── entities/           ***REMOVED*** Domain entities (data structures with behavior)
 │   ├── movies/         ***REMOVED*** Movie domain entities
-│   ├── actors/         ***REMOVED*** Actor domain entities
-│   └── genres/         ***REMOVED*** Genre domain entities
-├── usecases/           ***REMOVED*** (Future) Application use cases/business logic
-├── repositories/       ***REMOVED*** (Future) Repository interfaces
-└── services/           ***REMOVED*** (Future) Domain service interfaces
+│   │   ├── Movie.ts    ***REMOVED*** Movie entity definition
+│   │   └── types.ts    ***REMOVED*** Movie-related types
+│   ├── users/          ***REMOVED*** User domain entities
+│   │   ├── User.ts     ***REMOVED*** User entity definition
+│   │   └── types.ts    ***REMOVED*** User-related types
+│   ├── genres/         ***REMOVED*** Genre domain entities
+│   │   ├── Genre.ts    ***REMOVED*** Genre entity definition
+│   │   └── types.ts    ***REMOVED*** Genre-related types
+│   └── index.ts        ***REMOVED*** Entity exports
+├── models/             ***REMOVED*** Domain models with business logic
+│   ├── movies/         ***REMOVED*** Movie domain models
+│   ├── users/          ***REMOVED*** User domain models
+│   └── genres/         ***REMOVED*** Genre domain models
+├── usecases/           ***REMOVED*** Application use cases/business logic
+├── repositories/       ***REMOVED*** Repository interfaces
+└── services/           ***REMOVED*** Domain service interfaces
 ```
 
 ***REMOVED******REMOVED*** 🧩 Core Concepts
@@ -24,6 +35,15 @@ Entities are the core data structures of the application's domain. They:
 1. Extend API service types with UI-specific properties
 2. Provide conversion utilities between API and UI representations
 3. Include type guards for runtime type checking
+4. Define core business rules for data validation
+
+***REMOVED******REMOVED******REMOVED*** Models
+
+Domain models extend entities by adding:
+
+1. Business logic operations (functions that operate on the data)
+2. Complex validation rules
+3. Relationships between different domain concepts
 
 ***REMOVED******REMOVED******REMOVED*** API and UI Separation
 
@@ -68,6 +88,22 @@ movie.genres.forEach((genre) => {
 });
 ```
 
+***REMOVED******REMOVED******REMOVED*** Working with Domain Models
+
+```typescript
+import { MovieModel } from "@/domain/models/movies";
+
+// Create a movie model from entity
+const movieModel = new MovieModel(movieEntity);
+
+// Perform business operations
+const relatedMovies = movieModel.findRelatedMovies();
+const isAppropriateForAge = movieModel.isAppropriateForAge(userAge);
+
+// Convert back to entity for UI rendering
+const updatedEntity = movieModel.toEntity();
+```
+
 ***REMOVED******REMOVED*** 🏛️ Architecture Background
 
 This project follows a Clean Architecture approach with these key principles:
@@ -75,6 +111,7 @@ This project follows a Clean Architecture approach with these key principles:
 1. **Separation of Concerns**: Domain logic is separated from technical implementations
 2. **Dependency Rule**: Inner layers don't depend on outer layers (domain doesn't depend on UI or services)
 3. **Use-Case Driven**: Organized around business capabilities, not technical frameworks
+4. **Entity-Centric**: Core business entities are at the center of the architecture
 
 ***REMOVED******REMOVED*** 🔄 Layer Organization
 
@@ -82,6 +119,7 @@ From inner to outer:
 
 1. **Domain Layer** (this directory): Core business concepts and logic
    - Entities: Data structures with behavior
+   - Models: Business logic operations on entities
    - Use Cases: Application business rules
    - Repository Interfaces: Data access abstractions
 2. **Services Layer**: Technical implementations of domain interfaces
@@ -105,7 +143,17 @@ describe("Movie Entity", () => {
 
     expect(entityMovie.liked).toBe(serviceMovie.is_liked);
     expect(entityMovie.watched).toBe(serviceMovie.is_watched);
-    expect(entityMovie.in_watchlist).toBe(serviceMovie.to_watch);
+    expect(entityMovie.inWatchlist).toBe(serviceMovie.to_watch);
+  });
+});
+
+describe("MovieModel", () => {
+  it("should calculate related movies correctly", () => {
+    const model = new MovieModel(movieEntity);
+    const related = model.findRelatedMovies();
+
+    expect(related).toHaveLength(5);
+    expect(related[0].genres).toEqual(expect.arrayContaining(movie.genres));
   });
 });
 ```
@@ -115,5 +163,5 @@ describe("Movie Entity", () => {
 For more detailed information about domain entities:
 
 - [Domain Entities README](./entities/README.md) - Specific entity implementations
-- [MIGRATION_PLAN.md](./entities/MIGRATION_PLAN.md) - How the domain layer evolved
-- [REMOVAL_PLAN.md](./entities/REMOVAL_PLAN.md) - Legacy code cleanup strategy
+- [Domain Models README](./models/README.md) - Business logic implementation
+- [MIGRATION_PLAN.md](./MIGRATION_PLAN.md) - How the domain layer evolved

@@ -1,8 +1,8 @@
 "use client";
 
 import { Heading } from "@chakra-ui/react";
-import MovieBrowseLayout from "@/components/layout/MovieBrowseLayout";
-import MovieGrid from "@/components/home/MovieGrid";
+import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { memo } from "react";
 
 // Memoize components for better performance

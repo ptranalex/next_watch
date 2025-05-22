@@ -3,7 +3,7 @@
  * Helps with testing mobile-first approach by providing device detection helpers
  */
 
-import { useResponsive } from "@/context/ResponsiveContext";
+import { useResponsive } from "@/providers/ResponsiveContext";
 import { useEffect } from "react";
 import { createLogger } from "@/utils/logging";
 
