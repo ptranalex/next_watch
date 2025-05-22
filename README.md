@@ -15,7 +15,7 @@ next_watch/
 │   └── web-nextjs/      ***REMOVED*** Next.js web application
 ├── libs/
 │   └── movie-storage/   ***REMOVED*** Shared Python library for movie data models
-└── tools/               ***REMOVED*** Various tools and scripts
+└── scripts/             ***REMOVED*** Various tools and scripts
 ```
 
 ***REMOVED******REMOVED*** Features
@@ -25,6 +25,7 @@ next_watch/
 - Movie recommendations based on user preferences
 - Movie search and discovery
 - Responsive design for mobile and desktop
+- Mobile-first approach with touch-friendly interfaces
 
 ***REMOVED******REMOVED*** Backend Architecture
 
@@ -79,14 +80,18 @@ This separation allows for specialized optimization of read and write paths.
 
 ***REMOVED******REMOVED******REMOVED*** Running the Applications
 
-**Backend:**
+**Backend API:**
 
 ```
 cd apps/backend-api
-python -m src.backend_api.main
+***REMOVED*** Using the CLI (recommended):
+poetry run backend-api server start
+
+***REMOVED*** Or with explicit options:
+poetry run backend-api server start --port 8080 --log-level DEBUG
 ```
 
-**Frontend:**
+**Web Frontend:**
 
 ```
 ***REMOVED*** From repository root
@@ -95,6 +100,17 @@ pnpm dev:web
 ***REMOVED*** Or from the web-nextjs directory
 cd apps/web-nextjs
 pnpm dev
+```
+
+**Data Importer:**
+
+```
+cd apps/data-importer
+***REMOVED*** Sync movies by year range
+data-importer sync movies 2022 2023 --credits --save
+
+***REMOVED*** Or run in interactive shell mode
+data-importer shell
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Building the Applications
@@ -114,6 +130,15 @@ pnpm build
 
 Once the backend is running, access the Swagger documentation at:
 `http://localhost:8000/docs`
+
+***REMOVED******REMOVED*** Documentation Structure
+
+Each package contains its own README with detailed information:
+
+- [Backend API Documentation](./apps/backend-api/README.md)
+- [Web App Documentation](./apps/web-nextjs/README.md)
+- [Data Importer Documentation](./apps/data-importer/README.md)
+- [Movie Storage Documentation](./libs/movie-storage/README.md)
 
 ***REMOVED******REMOVED*** Contributing
 
