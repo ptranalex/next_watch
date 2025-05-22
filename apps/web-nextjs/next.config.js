@@ -36,15 +36,15 @@ const nextConfig = {
   // Additional production optimizations
   productionBrowserSourceMaps: false, // Disable source maps in production
 
-  // Webpack config for pnpm
-  webpack: (config) => {
-    // Add additional webpack configuration for pnpm compatibility
-    config.module = {
-      ...config.module,
-      exprContextCritical: false, // Suppress warnings about dynamic requires
-    };
-    return config;
-  },
+  // // Webpack config for pnpm
+  // webpack: (config) => {
+  //   // Add additional webpack configuration for pnpm compatibility
+  //   config.module = {
+  //     ...config.module,
+  //     exprContextCritical: false, // Suppress warnings about dynamic requires
+  //   };
+  //   return config;
+  // },
 };
 
 module.exports = nextConfig;
