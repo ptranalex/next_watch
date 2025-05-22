@@ -514,6 +514,9 @@ const MovieGrid = React.memo(
             hasMore={!!hasNextPage}
             loader={null}
             scrollThreshold={0.5}
+            style={{
+              paddingTop: 2,
+            }}
             endMessage={
               <Text textAlign="center" py={4} color="text.tertiary">
                 {fetchedMoviesCount > 0
