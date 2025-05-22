@@ -98,8 +98,8 @@ const ActionPill: React.FC<ActionPillProps> = ({
     "rgba(33, 33, 33, 0.9)",
     "rgba(26, 32, 44, 0.9)"
   );
-  const textColor = useColorModeValue("white", "white");
-  const dividerColor = useColorModeValue("gray.600", "gray.600");
+  const textColor = "white";
+  const dividerColor = "gray.600";
   const activeButtonBg = useColorModeValue(
     "rgba(255, 255, 255, 0.1)",
     "rgba(255, 255, 255, 0.1)"

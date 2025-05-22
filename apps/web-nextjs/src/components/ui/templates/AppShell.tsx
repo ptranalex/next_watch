@@ -44,7 +44,7 @@ const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
     <Suspense
       fallback={
         <Box display="flex" justifyContent="center" py={10}>
-          <Spinner size="xl" />
+          <Spinner size="xl" color="colors.primary" />
         </Box>
       }
     >

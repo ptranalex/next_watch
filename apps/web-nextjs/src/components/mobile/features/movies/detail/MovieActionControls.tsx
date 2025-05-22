@@ -56,7 +56,7 @@ const MovieActionControls: React.FC<MovieActionControlsProps> = ({
       onClick: handleWatchedToggle,
       disabled: disabled,
       active: movie.watched,
-      activeColor: "***REMOVED***4299E1", // green
+      activeColor: "colors.primary", // Using semantic token
     },
     {
       id: "favorite",
@@ -65,7 +65,7 @@ const MovieActionControls: React.FC<MovieActionControlsProps> = ({
       onClick: handleLikedToggle,
       disabled: disabled,
       active: movie.liked,
-      activeColor: "***REMOVED***4299E1", // red
+      activeColor: "feedback.success", // Using semantic token
     },
     {
       id: "watchlist",
@@ -74,7 +74,7 @@ const MovieActionControls: React.FC<MovieActionControlsProps> = ({
       onClick: handleWatchlistToggle,
       disabled: disabled,
       active: movie.in_watchlist,
-      activeColor: "***REMOVED***4299E1", // blue
+      activeColor: "colors.secondary", // Using semantic token
     },
   ];
 

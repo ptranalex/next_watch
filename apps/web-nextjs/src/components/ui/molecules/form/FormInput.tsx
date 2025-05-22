@@ -9,7 +9,6 @@ import {
   Box,
   Flex,
   Icon,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import React, { useState } from "react";
@@ -42,7 +41,6 @@ const FormInput: React.FC<FormInputProps> = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
-  const errorColor = useColorModeValue("red.500", "red.300");
 
   return (
     <FormControl id={id} isRequired={isRequired}>
@@ -72,8 +70,8 @@ const FormInput: React.FC<FormInputProps> = ({
         <Box h="18px" mt="6px">
           {error && (
             <Flex alignItems="center" h="100%">
-              <Icon as={HiXCircle} color={errorColor} mr={1} boxSize={4} />
-              <Text fontSize="sm" color={errorColor} lineHeight="1.2">
+              <Icon as={HiXCircle} color="feedback.error" mr={1} boxSize={4} />
+              <Text fontSize="sm" color="feedback.error" lineHeight="1.2">
                 {error}
               </Text>
             </Flex>

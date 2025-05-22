@@ -72,7 +72,7 @@ const SessionExpiredModal: React.FC = () => {
           <ModalHeader display="flex" alignItems="center">
             <Icon
               as={HiExclamationCircle}
-              color="orange.500"
+              color="feedback.warning"
               boxSize={6}
               mr={2}
             />
@@ -84,7 +84,7 @@ const SessionExpiredModal: React.FC = () => {
               Your session has expired. Please log in again to continue using
               the application.
             </Text>
-            <Box mt={4} fontStyle="italic" fontSize="sm" color="gray.500">
+            <Box mt={4} fontStyle="italic" fontSize="sm" color="text.tertiary">
               Any unsaved changes may be lost.
             </Box>
           </ModalBody>
@@ -93,7 +93,12 @@ const SessionExpiredModal: React.FC = () => {
             <Button variant="ghost" mr={3} onClick={handleClose}>
               Close
             </Button>
-            <Button colorScheme="blue" onClick={handleLogin}>
+            <Button
+              bg="colors.primary"
+              color="text.inverse"
+              _hover={{ bg: "colors.primary.darker" }}
+              onClick={handleLogin}
+            >
               Log In Again
             </Button>
           </ModalFooter>

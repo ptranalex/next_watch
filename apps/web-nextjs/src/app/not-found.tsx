@@ -31,7 +31,12 @@ export default function NotFound() {
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </Text>
         <Link href="/" passHref>
-          <Button colorScheme="blue" size="lg">
+          <Button
+            bg="colors.primary"
+            color="text.inverse"
+            _hover={{ bg: "colors.secondary" }}
+            size="lg"
+          >
             Return to Home
           </Button>
         </Link>

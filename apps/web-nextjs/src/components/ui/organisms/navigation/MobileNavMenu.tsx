@@ -20,9 +20,7 @@ import {
   Divider,
   Box,
   IconButton,
-  HStack,
 } from "@chakra-ui/react";
-import Link from "next/link";
 import type { FC } from "react";
 import { useCallback, useState, useMemo } from "react";
 import type { IconType } from "react-icons";
@@ -113,9 +111,11 @@ const MobileNavMenu: FC = () => {
         key={item.path}
         variant="ghost"
         justifyContent="flex-start"
-        leftIcon={<Icon as={item.icon} />}
+        leftIcon={<Icon as={item.icon} color="text.secondary" />}
         onClick={() => handleNavigation(item.path)}
         width="100%"
+        color="text.primary"
+        _hover={{ bg: "bg.tertiary" }}
       >
         <Text>{item.label}</Text>
       </Button>
@@ -129,13 +129,20 @@ const MobileNavMenu: FC = () => {
         icon={<HiOutlineBars3 />}
         onClick={onOpen}
         fontSize={25}
+        variant="ghost"
+        color="text.secondary"
       />
 
       <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
         <DrawerOverlay />
-        <DrawerContent>
+        <DrawerContent bg="bg.primary">
           <DrawerCloseButton size="lg" />
-          <DrawerHeader borderBottomWidth="1px">Next Watch</DrawerHeader>
+          <DrawerHeader
+            borderBottomWidth="1px"
+            borderBottomColor="text.tertiary"
+          >
+            Next Watch
+          </DrawerHeader>
           <DrawerBody>
             <VStack spacing={4} align="stretch" pt={2}>
               {/* Main navigation */}
@@ -179,11 +186,13 @@ const MobileNavMenu: FC = () => {
 
           {/* Footer with profile button if authenticated */}
           {isAuthenticated && (
-            <DrawerFooter borderTopWidth="1px">
+            <DrawerFooter borderTopWidth="1px" borderTopColor="text.tertiary">
               <Button
                 leftIcon={<Icon as={HiUser} />}
                 width="100%"
-                colorScheme="blue"
+                bg="colors.primary"
+                color="text.inverse"
+                _hover={{ bg: "colors.primary.darker" }}
                 onClick={handleOpenProfileModal}
               >
                 Profile

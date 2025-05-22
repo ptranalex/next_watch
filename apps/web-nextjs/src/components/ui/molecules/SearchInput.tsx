@@ -104,7 +104,12 @@ const SearchBar = ({
     <Box position="relative" width="100%">
       <InputGroup>
         <InputLeftElement pointerEvents="none">
-          <Icon as={HiMiniMagnifyingGlass} w="20px" h="30px" />
+          <Icon
+            as={HiMiniMagnifyingGlass}
+            w="20px"
+            h="30px"
+            color="text.secondary"
+          />
         </InputLeftElement>
         <Input
           ref={inputRef}
@@ -148,7 +153,7 @@ const SearchBar = ({
             ref={dropdownRef}
             position="absolute"
             width="100%"
-            bg="gray.700"
+            bg="bg.secondary"
             boxShadow="md"
             borderRadius="md"
             zIndex="1000"
@@ -156,7 +161,7 @@ const SearchBar = ({
             overflow={"hidden"}
           >
             <List spacing={0}>
-              <ListItem key="search" padding={1} _hover={{ bg: "gray.600" }}>
+              <ListItem key="search" padding={1} _hover={{ bg: "bg.tertiary" }}>
                 <ChakraLink
                   as={Link}
                   href={`/search/${query}`}
@@ -171,9 +176,14 @@ const SearchBar = ({
                       alignItems="center"
                       justifyContent="center"
                     >
-                      <Icon as={HiMiniMagnifyingGlass} w="20px" h="30px" />
+                      <Icon
+                        as={HiMiniMagnifyingGlass}
+                        w="20px"
+                        h="30px"
+                        color="text.secondary"
+                      />
                     </Box>
-                    <Text>{query}</Text>
+                    <Text color="text.primary">{query}</Text>
                   </HStack>
                 </ChakraLink>
               </ListItem>
@@ -181,7 +191,7 @@ const SearchBar = ({
                 <ListItem
                   key={`${suggestion.type}-${suggestion.id || suggestion.text}`}
                   padding={1}
-                  _hover={{ bg: "gray.600" }}
+                  _hover={{ bg: "bg.tertiary" }}
                 >
                   <SuggestionItem
                     suggestion={suggestion}

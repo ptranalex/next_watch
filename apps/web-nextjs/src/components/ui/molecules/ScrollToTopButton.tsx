@@ -36,8 +36,10 @@ const ScrollToTopButton = () => {
       right={10}
       size="md"
       fontSize="xl"
-      variant={"solid"}
-      colorScheme="blue"
+      variant="solid"
+      bg="colors.primary"
+      color="text.inverse"
+      _hover={{ bg: "colors.primary.darker" }}
       onClick={scrollToTop}
       style={{ display: isVisible ? "inline" : "none" }}
     />

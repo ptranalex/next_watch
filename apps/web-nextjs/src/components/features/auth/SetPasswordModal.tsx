@@ -28,8 +28,8 @@ interface LoginModalProps {
 const apiClient = new APIClient("/users/set_password");
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
-  const textColor = useColorModeValue("black", "white");
-  const modalBgColor = useColorModeValue("gray.100", "gray.800");
+  const textColor = useColorModeValue("text.primary", "text.primary");
+  const modalBgColor = useColorModeValue("bg.secondary", "bg.tertiary");
   const [password, setPassword] = useState("");
   const [verifiedPassword, setVerifiedPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -111,7 +111,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   </Button>
                 </InputRightElement>
               </InputGroup>
-              {passwordError && <Text as="sub">{passwordError}</Text>}
+              {passwordError && (
+                <Text as="sub" color="feedback.error">
+                  {passwordError}
+                </Text>
+              )}
             </FormControl>
 
             <FormControl id="verified_password" isRequired>
@@ -125,13 +129,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 />
               </InputGroup>
               {verifiedPasswordError && (
-                <Text as="sub">{verifiedPasswordError}</Text>
+                <Text as="sub" color="feedback.error">
+                  {verifiedPasswordError}
+                </Text>
               )}
             </FormControl>
 
             <Button
               width="100%"
-              colorScheme="blue"
+              bg="colors.primary"
+              color="text.inverse"
+              _hover={{ bg: "colors.secondary" }}
               leftIcon={<HiKey fontSize="1.5rem" />}
               justifyContent="left"
               onClick={onPasswordSubmit}

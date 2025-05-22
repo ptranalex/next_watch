@@ -104,8 +104,8 @@ const NavBar: React.FC = () => {
         top="0"
         zIndex="sticky"
         backdropFilter="blur(10px)"
-        backgroundColor="rgba(255, 255, 255, 0.8)" // Adjust color and opacity as needed
-        _dark={{ backgroundColor: "rgba(26, 32, 44, 0.8)" }} // Adjust for dark mode
+        backgroundColor="bg.primary"
+        opacity="0.95"
         width="100%"
       >
         <HStack padding="20px" spacing="10px">
@@ -143,6 +143,8 @@ const NavBar: React.FC = () => {
               icon={<HiArrowLeftOnRectangle />}
               onClick={handleOpenLoginModal}
               fontSize={25}
+              variant="ghost"
+              color="text.secondary"
             />
           ) : (
             showUserIcon && (

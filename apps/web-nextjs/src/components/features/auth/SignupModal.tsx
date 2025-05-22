@@ -139,7 +139,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
     <BaseModal isOpen={isOpen} onClose={onClose} title="Create Your Account">
       <form onSubmit={handleSubmit}>
         <Stack spacing={4}>
-          <Text fontSize="sm" color="gray.500" mt={-4} mb={2}>
+          <Text fontSize="sm" color="text.secondary" mt={-4} mb={2}>
             Register to unlock special features, save your favorites, and
             enhance your experience.
           </Text>
@@ -201,7 +201,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
           </PrimaryCTA>
 
           {signupError && (
-            <Text as="sub" color="red.500">
+            <Text as="sub" color="feedback.error">
               {signupError}
             </Text>
           )}

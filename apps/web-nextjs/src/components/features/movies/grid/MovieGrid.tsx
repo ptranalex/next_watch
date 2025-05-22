@@ -453,7 +453,11 @@ const MovieGrid = React.memo(
     // Handle error states
     if (error) {
       logger.error("Error fetching movies:", error);
-      return <Text>Error loading movies. Please try again later.</Text>;
+      return (
+        <Text color="feedback.error">
+          Error loading movies. Please try again later.
+        </Text>
+      );
     }
 
     // Handle loading state
@@ -476,7 +480,7 @@ const MovieGrid = React.memo(
       fetchedMoviesCount === 0
     ) {
       logger.info("No movies found for current filters");
-      return <Text>No movies found</Text>;
+      return <Text color="text.tertiary">No movies found</Text>;
     }
 
     logger.debug(
@@ -490,7 +494,12 @@ const MovieGrid = React.memo(
           <SimpleGrid columns={columns} spacing={3} padding={1}>
             {movieList}
             {fetchedMoviesCount === 0 && (
-              <Text textAlign="center" py={4} gridColumn="1 / -1">
+              <Text
+                textAlign="center"
+                py={4}
+                gridColumn="1 / -1"
+                color="text.tertiary"
+              >
                 {source === "favorites"
                   ? "You haven't liked any movies yet"
                   : "Your watchlist is empty"}
@@ -506,7 +515,7 @@ const MovieGrid = React.memo(
             loader={null}
             scrollThreshold={0.5}
             endMessage={
-              <Text textAlign="center" py={4}>
+              <Text textAlign="center" py={4} color="text.tertiary">
                 {fetchedMoviesCount > 0
                   ? "No more movies to load"
                   : source === "watched"

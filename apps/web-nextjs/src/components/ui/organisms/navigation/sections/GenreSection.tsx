@@ -44,7 +44,7 @@ const NavLink = memo<NavItem>(({ icon, label, path, id }) => {
   return (
     <ChakraLink as={Link} href={path} onMouseEnter={handleHover}>
       <HStack marginBottom={3}>
-        <Icon as={icon} boxSize={6} color="gray.500" />
+        <Icon as={icon} boxSize={6} color="text.tertiary" />
         <Text>{label}</Text>
       </HStack>
     </ChakraLink>
@@ -81,11 +81,11 @@ const GenreContent = memo(() => {
   }
 
   if (error) {
-    return <Text color="red.400">Error loading genres</Text>;
+    return <Text color="feedback.error">Error loading genres</Text>;
   }
 
   if (!genres || genres.length === 0) {
-    return <Text color="gray.500">No genres available</Text>;
+    return <Text color="text.tertiary">No genres available</Text>;
   }
 
   return (

@@ -50,13 +50,15 @@ const MovieAttributes = ({ movie }: Props) => {
       </DefinitionItem>
       <DefinitionItem term="Cast">
         {isLoading ? (
-          <Spinner size="sm" />
+          <Spinner size="sm" color="colors.primary" />
         ) : (
           castData?.cast.map((actor) => (
             <ChakraLink
               as={Link}
               href={`/actors/${actor.actor_id}`}
               key={actor.id}
+              color="colors.primary"
+              _hover={{ color: "colors.secondary" }}
             >
               <Text>{actor.name}</Text>
             </ChakraLink>

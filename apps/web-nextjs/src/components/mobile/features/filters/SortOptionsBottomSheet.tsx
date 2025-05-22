@@ -37,9 +37,10 @@ const SortOptionsBottomSheet: React.FC<SortOptionsBottomSheetProps> = ({
   isOpen,
   onClose,
 }) => {
-  const textColor = useColorModeValue("black", "white");
-  const activeColor = useColorModeValue("blue.500", "blue.300");
-  const hoverBg = useColorModeValue("gray.100", "gray.700");
+  const textColor = useColorModeValue("text.primary", "text.primary");
+  const activeColor = useColorModeValue("colors.primary", "colors.primary");
+  const hoverBg = useColorModeValue("bg.subtle", "bg.subtle");
+  const borderColor = useColorModeValue("border.subtle", "border.subtle");
 
   // Get filters and the setSorting method from the store
   const { filters, setSorting } = useMovieFilterStore();
@@ -78,8 +79,7 @@ const SortOptionsBottomSheet: React.FC<SortOptionsBottomSheetProps> = ({
               alignItems="center"
               justifyContent="space-between"
               borderBottomWidth="1px"
-              borderColor="gray.200"
-              _dark={{ borderColor: "gray.700" }}
+              borderColor={borderColor}
               onClick={() => handleSortChange(order.value, order.desc ?? true)}
               cursor="pointer"
               bg={isActive ? hoverBg : "transparent"}

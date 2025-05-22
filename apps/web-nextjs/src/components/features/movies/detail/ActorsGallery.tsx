@@ -38,7 +38,7 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
   if (isLoading) {
     return (
       <Box textAlign="center" py={2}>
-        <Spinner size="sm" color="blue.500" mr={2} />
+        <Spinner size="sm" color="colors.primary" mr={2} />
         <Text display="inline" fontSize="sm">
           Loading cast...
         </Text>
@@ -49,7 +49,7 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
   // Handle error state
   if (error) {
     return (
-      <Text fontSize="sm" color="gray.500">
+      <Text fontSize="sm" color="text.tertiary">
         Unable to load cast
       </Text>
     );
@@ -116,10 +116,14 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
                         display="flex"
                         alignItems="center"
                         justifyContent="center"
-                        backgroundColor="blue.700"
+                        backgroundColor="colors.primary"
                         borderRadius={4}
                       >
-                        <Text fontSize="2xl" fontWeight="bold" color="white">
+                        <Text
+                          fontSize="2xl"
+                          fontWeight="bold"
+                          color="text.inverse"
+                        >
                           {getInitials(actor.name)}
                         </Text>
                       </Box>
@@ -135,10 +139,10 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
-                    backgroundColor="blue.700"
+                    backgroundColor="colors.primary"
                     borderRadius={4}
                   >
-                    <Text fontSize="2xl" fontWeight="bold" color="white">
+                    <Text fontSize="2xl" fontWeight="bold" color="text.inverse">
                       {getInitials(actor.name)}
                     </Text>
                   </Box>

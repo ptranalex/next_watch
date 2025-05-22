@@ -39,6 +39,9 @@ const FilterButton: React.FC = () => {
         variant="solid"
         fontSize="22px"
         ml={5}
+        bg="colors.primary"
+        color="text.inverse"
+        _hover={{ bg: "colors.primary.darker" }}
       />
       <MovieFilterModal isOpen={isOpen} onClose={onClose} />
     </>

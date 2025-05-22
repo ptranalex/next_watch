@@ -9,7 +9,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
-import { MdGraphicEq, MdLock } from "react-icons/md";
+import { MdGraphicEq } from "react-icons/md";
 import { RiLock2Line } from "react-icons/ri";
 import { createLogger } from "@/utils/logging";
 
@@ -86,7 +86,11 @@ const RatingSlider = ({
 
   return (
     <HStack marginBottom={3}>
-      <Icon as={icon} boxSize={6} color={isLocked ? "blue.500" : "gray.500"} />
+      <Icon
+        as={icon}
+        boxSize={6}
+        color={isLocked ? "colors.primary" : "text.tertiary"}
+      />
       <HStack width={10} position="relative">
         {sliderValue !== undefined ? (
           <Text>{sliderValue}</Text>
@@ -104,11 +108,14 @@ const RatingSlider = ({
         min={min}
         // isDisabled={isLocked}
       >
-        <SliderTrack bg={"blue.100"}>
-          <SliderFilledTrack bg={"blue.500"} />
+        <SliderTrack bg={"colors.primary.lighter"}>
+          <SliderFilledTrack bg={"colors.primary"} />
         </SliderTrack>
         <SliderThumb boxSize={5}>
-          <Box color="blue" as={isLocked ? RiLock2Line : MdGraphicEq} />
+          <Box
+            color="colors.primary"
+            as={isLocked ? RiLock2Line : MdGraphicEq}
+          />
         </SliderThumb>
       </Slider>
     </HStack>

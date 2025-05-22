@@ -26,7 +26,7 @@ interface Props {
 
 const MovieCard = ({ movie, onMovieUpdate }: Props) => {
   const { user } = useAuth();
-  const bgColor = useColorModeValue("gray.100", "gray.800");
+  const bgColor = useColorModeValue("bg.secondary", "bg.tertiary");
   const [isHovered, setIsHovered] = useState(false);
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -96,11 +96,11 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
     if (!value) return "hidden";
 
     if (value >= 8.0) {
-      return "***REMOVED***FFC107";
+      return "feedback.success.emphasis";
     } else if (value >= 7.0) {
-      return "***REMOVED***00E676";
+      return "feedback.success";
     } else if (value >= 6.0) {
-      return "***REMOVED***82B1FF";
+      return "colors.primary";
     }
     return "hidden";
   };

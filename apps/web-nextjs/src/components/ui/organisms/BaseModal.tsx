@@ -5,8 +5,6 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  Text,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import React from "react";
 
@@ -27,9 +25,6 @@ const BaseModal: React.FC<BaseModalProps> = ({
   size = "md",
   isCentered = true,
 }) => {
-  const textColor = useColorModeValue("black", "white");
-  const modalBgColor = useColorModeValue("gray.100", "gray.800");
-
   return (
     <Modal
       isCentered={isCentered}
@@ -41,11 +36,9 @@ const BaseModal: React.FC<BaseModalProps> = ({
         bg="blackAlpha.700"
         backdropFilter="blur(8px) hue-rotate(15deg)"
       />
-      <ModalContent bg={modalBgColor} color={textColor}>
-        <ModalHeader>
-          <Text fontSize="2xl" fontWeight="medium">
-            {title}
-          </Text>
+      <ModalContent bg="bg.secondary" color="text.primary">
+        <ModalHeader fontSize="2xl" fontWeight="medium">
+          {title}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody padding={6}>{children}</ModalBody>

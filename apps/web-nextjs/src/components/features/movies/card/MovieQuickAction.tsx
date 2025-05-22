@@ -1,7 +1,7 @@
 import CardToggleIconButton from "@/components/features/movies/card/CardToggleIconButton";
 import CopyToClipboardButton from "@/components/features/movies/card/CopyToClipBoardButton";
 import { Movie } from "@/domain/entities";
-import { Box, HStack, VStack } from "@chakra-ui/react";
+import { Box, HStack, VStack, useColorModeValue } from "@chakra-ui/react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
 
 interface Props {
@@ -20,6 +20,10 @@ const MovieQuickAction = ({
   isHovered: isBlurred,
 }: Props) => {
   const Stack = orientation === "vertical" ? VStack : HStack;
+  const overlayBg = useColorModeValue(
+    "rgba(0, 0, 0, 0.15)",
+    "rgba(0, 0, 0, 0.6)"
+  );
 
   const handleWatched = async () => {
     const updatedMovie = {
@@ -48,8 +52,8 @@ const MovieQuickAction = ({
   return (
     <Box
       flexGrow={1}
-      background={isBlurred ? "rgba(0, 0, 0, 0.3)" : "transparent"}
-      backdropFilter={isBlurred ? "blur(2x)" : "none"}
+      background={isBlurred ? overlayBg : "transparent"}
+      backdropFilter={isBlurred ? "blur(2px)" : "none"}
       transition="background 0.3s, backdrop-filter 0.3s"
       borderRadius="0"
       height="100%"

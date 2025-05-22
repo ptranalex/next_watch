@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Flex, useColorModeValue, Portal } from "@chakra-ui/react";
+import { Box, Flex, Portal } from "@chakra-ui/react";
 import { HiX } from "react-icons/hi";
 import { createLogger } from "@/utils/logging";
 import { MobileTertiaryCTA } from "../form/MobileFormCTA";
@@ -44,14 +44,6 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const currentY = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const overlayBg = useColorModeValue(
-    "rgba(0, 0, 0, 0.4)",
-    "rgba(0, 0, 0, 0.6)"
-  );
-  const titleColor = useColorModeValue("gray.700", "gray.200");
 
   // Apply haptic feedback with consistent patterns
   const triggerHaptics = (pattern: number | number[] = 20) => {
@@ -234,7 +226,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         left={0}
         right={0}
         bottom={0}
-        bg={overlayBg}
+        bg="blackAlpha.700"
+        backdropFilter="blur(8px) hue-rotate(15deg)"
         zIndex={1000}
         onClick={onClose}
         opacity={isOpen ? 1 : 0}
@@ -251,10 +244,10 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         bottom={0}
         maxHeight={isExpanded ? maxHeight : "auto"}
         minHeight={minHeight}
-        bg={bgColor}
+        bg="bg.primary"
         borderTopRadius="16px"
         borderTop="1px"
-        borderColor={borderColor}
+        borderColor="text.tertiary"
         shadow="xl"
         zIndex={1001}
         transform={isOpen ? "translateY(0)" : "translateY(100%)"}
@@ -273,7 +266,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           direction="column"
           position="relative"
           borderBottom={title ? "1px solid" : "none"}
-          borderColor={borderColor}
+          borderColor="text.tertiary"
           py={2}
           flexShrink={0}
         >
@@ -283,8 +276,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               w="36px"
               h="4px"
               borderRadius="full"
-              bg="gray.300"
-              _dark={{ bg: "gray.600" }}
+              bg="text.tertiary"
               my={1}
               onClick={handleIndicatorClick}
               cursor="grab"
@@ -293,7 +285,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
 
           {/* Optional title */}
           {title && (
-            <Box fontWeight="medium" fontSize="md" my={1} color={titleColor}>
+            <Box fontWeight="medium" fontSize="md" my={1} color="text.primary">
               {title}
             </Box>
           )}

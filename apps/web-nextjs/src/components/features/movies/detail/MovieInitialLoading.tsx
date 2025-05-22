@@ -12,7 +12,7 @@ const MovieInitialLoading: React.FC = () => {
       alignItems="center"
       height="300px"
     >
-      <Spinner size="xl" color="blue.500" />
+      <Spinner size="xl" color="colors.primary" />
       <Text ml={4}>Loading movie details...</Text>
     </Box>
   );

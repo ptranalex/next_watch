@@ -3,8 +3,8 @@
 import { extendTheme, type ThemeConfig } from "@chakra-ui/react";
 
 const config: ThemeConfig = {
-  initialColorMode: "dark",
-  useSystemColorMode: false,
+  initialColorMode: "system",
+  useSystemColorMode: true,
   cssVarPrefix: "nextwatch",
 };
 
@@ -88,6 +88,137 @@ const zIndices = {
   tooltip: 1800,
 };
 
+// Define the application's color palette
+const colors = {
+  // Brand colors
+  brand: {
+    primary: {
+      100: "***REMOVED***FFFFFF",
+      200: "***REMOVED***E2EEFC",
+      300: "***REMOVED***C6DCF9",
+      400: "***REMOVED***A9CBF6",
+      500: "***REMOVED***8CB9F3",
+      600: "***REMOVED***70A8F1",
+      700: "***REMOVED***5396EE",
+      800: "***REMOVED***3784EB",
+      900: "***REMOVED***1A73E8", // your brand blue
+    },
+    secondary: {
+      100: "***REMOVED***FFFFFF",
+      200: "***REMOVED***B3FEF8",
+      300: "***REMOVED***99F4ED",
+      400: "***REMOVED***80EAE2",
+      500: "***REMOVED***66E0D6",
+      600: "***REMOVED***4CD6CB",
+      700: "***REMOVED***33CCC0",
+      800: "***REMOVED***1AC2B4",
+      900: "***REMOVED***00B8A9", // secondary accent teal
+    },
+  },
+
+  // Semantic colors - these provide meaning to your interface elements
+  semantic: {
+    // Feedback and status colors
+    error: {
+      light: "red.500",
+      dark: "red.300",
+    },
+    success: {
+      light: "green.500",
+      dark: "green.300",
+    },
+    warning: {
+      light: "orange.500",
+      dark: "orange.300",
+    },
+    info: {
+      light: "blue.500",
+      dark: "blue.300",
+    },
+  },
+};
+
+// Define semantic tokens for easy reference
+const semanticTokens = {
+  colors: {
+    // Brand color tokens
+    "colors.primary": {
+      default: "brand.primary.900",
+      _dark: "brand.primary.400",
+    },
+    "colors.primary.lighter": {
+      default: "brand.primary.700",
+      _dark: "brand.primary.300",
+    },
+    "colors.primary.darker": {
+      default: "brand.primary.800",
+      _dark: "brand.primary.700",
+    },
+    "colors.secondary": {
+      default: "brand.secondary.900",
+      _dark: "brand.secondary.400",
+    },
+    "colors.secondary.lighter": {
+      default: "brand.secondary.700",
+      _dark: "brand.secondary.300",
+    },
+    "colors.secondary.darker": {
+      default: "brand.secondary.800",
+      _dark: "brand.secondary.700",
+    },
+
+    // Text colors
+    "text.primary": {
+      default: "gray.800",
+      _dark: "white",
+    },
+    "text.secondary": {
+      default: "gray.600",
+      _dark: "gray.300",
+    },
+    "text.tertiary": {
+      default: "gray.500",
+      _dark: "gray.400",
+    },
+    "text.inverse": {
+      default: "white",
+      _dark: "gray.800",
+    },
+
+    // Background colors
+    "bg.primary": {
+      default: "white",
+      _dark: "gray.900",
+    },
+    "bg.secondary": {
+      default: "gray.50",
+      _dark: "gray.800",
+    },
+    "bg.tertiary": {
+      default: "gray.100",
+      _dark: "gray.700",
+    },
+
+    // Feedback colors
+    "feedback.error": {
+      default: "semantic.error.light",
+      _dark: "semantic.error.dark",
+    },
+    "feedback.success": {
+      default: "semantic.success.light",
+      _dark: "semantic.success.dark",
+    },
+    "feedback.warning": {
+      default: "semantic.warning.light",
+      _dark: "semantic.warning.dark",
+    },
+    "feedback.info": {
+      default: "semantic.info.light",
+      _dark: "semantic.info.dark",
+    },
+  },
+};
+
 const theme = extendTheme({
   config,
   breakpoints,
@@ -96,20 +227,8 @@ const theme = extendTheme({
   textStyles,
   sizes,
   zIndices,
-  colors: {
-    // gray: {
-    //   50: "***REMOVED***f9f9f9",
-    //   100: "***REMOVED***ededed",
-    //   200: "***REMOVED***d3d3d3",
-    //   300: "***REMOVED***b3b3b3",
-    //   400: "***REMOVED***a0a0a0",
-    //   500: "***REMOVED***898989",
-    //   600: "***REMOVED***6c6c6c",
-    //   700: "***REMOVED***202020",
-    //   800: "***REMOVED***121212",
-    //   900: "***REMOVED***111",
-    // },
-  },
+  semanticTokens,
+  colors,
   components: {
     // Add Box component definition first
     Box: {
@@ -138,9 +257,6 @@ const theme = extendTheme({
           fontSize: "md",
           px: 4,
         },
-      },
-      defaultProps: {
-        size: "md",
       },
     },
     IconButton: {
@@ -217,14 +333,14 @@ const theme = extendTheme({
     global: {
       // Base styles applied to the entire app
       html: {
-        bg: "gray.900",
-        color: "whiteAlpha.900",
+        bg: "bg.primary",
+        color: "text.primary",
         height: "100%", // Explicit height helps with positioning context
         // Removing overflowX: "hidden" to fix sticky navbar positioning
       },
       body: {
-        bg: "gray.900",
-        color: "whiteAlpha.900",
+        bg: "bg.primary",
+        color: "text.primary",
         minHeight: "100%",
         // We MUST NOT set overflowX: "hidden" here - it breaks sticky positioning by creating a new containing block
         // that prevents elements with position: sticky from working properly

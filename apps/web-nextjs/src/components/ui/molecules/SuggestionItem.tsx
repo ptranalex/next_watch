@@ -50,15 +50,15 @@ const SuggestionItem = ({ suggestion, onClick }: SuggestionItemProps) => {
   const getMatchIndicator = () => {
     switch (suggestion.search_type) {
       case "exact":
-        return { color: "green.400", text: "Exact" };
+        return { color: "feedback.success", text: "Exact" };
       case "prefix":
-        return { color: "blue.400", text: "Prefix" };
+        return { color: "feedback.info", text: "Prefix" };
       case "word":
         return { color: "purple.400", text: "Word" };
       case "contains":
-        return { color: "orange.400", text: "Contains" };
+        return { color: "feedback.warning", text: "Contains" };
       default:
-        return { color: "gray.400", text: "" };
+        return { color: "text.tertiary", text: "" };
     }
   };
 
@@ -69,10 +69,10 @@ const SuggestionItem = ({ suggestion, onClick }: SuggestionItemProps) => {
     const voteAverage = suggestion.additional_info?.vote_average;
     if (!voteAverage) return null;
 
-    let color = "gray.400";
-    if (voteAverage >= 8.0) color = "***REMOVED***FFC107";
-    else if (voteAverage >= 7.0) color = "***REMOVED***00E676";
-    else if (voteAverage >= 6.0) color = "***REMOVED***82B1FF";
+    let color = "text.tertiary";
+    if (voteAverage >= 8.0) color = "yellow.400";
+    else if (voteAverage >= 7.0) color = "green.400";
+    else if (voteAverage >= 6.0) color = "blue.400";
 
     return (
       <Text color={color} fontWeight="bold" fontSize="sm">
@@ -114,7 +114,7 @@ const SuggestionItem = ({ suggestion, onClick }: SuggestionItemProps) => {
             alignItems="center"
             justifyContent="center"
           >
-            <Icon as={getIcon()} w="20px" h="30px" />
+            <Icon as={getIcon()} w="20px" h="30px" color="text.secondary" />
           </Box>
         )}
 
@@ -122,6 +122,7 @@ const SuggestionItem = ({ suggestion, onClick }: SuggestionItemProps) => {
         <Box flex="1">
           <Text
             fontWeight={suggestion.search_type === "exact" ? "bold" : "normal"}
+            color="text.primary"
           >
             {displayText}
             {yearText}
@@ -129,7 +130,7 @@ const SuggestionItem = ({ suggestion, onClick }: SuggestionItemProps) => {
 
           {/* Additional details like type */}
           {suggestion.type && (
-            <Text fontSize="xs" color="gray.400">
+            <Text fontSize="xs" color="text.tertiary">
               {suggestion.type.charAt(0).toUpperCase() +
                 suggestion.type.slice(1)}
             </Text>

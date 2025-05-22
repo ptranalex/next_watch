@@ -7,7 +7,6 @@ import {
   VStack,
   Box,
   Text,
-  useColorModeValue,
   SimpleGrid,
   Flex,
 } from "@chakra-ui/react";
@@ -27,10 +26,6 @@ interface MobileGenreSectionProps {
    */
   layout?: "vertical" | "grid" | "chips";
   /**
-   * Maximum number of genres to display before "See More" (for chips layout)
-   */
-  maxDisplayed?: number;
-  /**
    * Custom onClose handler for the drawer (optional)
    */
   onClose?: () => void;
@@ -38,13 +33,10 @@ interface MobileGenreSectionProps {
 
 const MobileGenreSection: FC<MobileGenreSectionProps> = ({
   layout = "vertical",
-  maxDisplayed = 12,
   onClose,
 }) => {
   const { genres, isLoading, error } = useAllGenres();
   const router = useRouter();
-  const bgColor = useColorModeValue("gray.100", "gray.700");
-  const activeBgColor = useColorModeValue("blue.100", "blue.700");
 
   const handleGenreClick = useCallback(
     (genreId: number) => {
@@ -67,7 +59,7 @@ const MobileGenreSection: FC<MobileGenreSectionProps> = ({
   if (error) {
     return (
       <VStack spacing={2} align="stretch">
-        <Text color="red.400">Error loading genres</Text>
+        <Text color="feedback.error">Error loading genres</Text>
       </VStack>
     );
   }
@@ -75,7 +67,7 @@ const MobileGenreSection: FC<MobileGenreSectionProps> = ({
   if (!genres || genres.length === 0) {
     return (
       <VStack spacing={2} align="stretch">
-        <Text>No genres available</Text>
+        <Text color="text.tertiary">No genres available</Text>
       </VStack>
     );
   }
@@ -94,6 +86,8 @@ const MobileGenreSection: FC<MobileGenreSectionProps> = ({
             onClick={() => handleGenreClick(genre.id)}
             px={4}
             py={2}
+            colorScheme="gray"
+            _hover={{ bg: "bg.tertiary" }}
           >
             {genre.name}
           </Button>
@@ -115,6 +109,8 @@ const MobileGenreSection: FC<MobileGenreSectionProps> = ({
             onClick={() => handleGenreClick(genre.id)}
             whiteSpace="normal"
             textAlign="center"
+            colorScheme="gray"
+            _hover={{ bg: "bg.tertiary" }}
           >
             {genre.name}
           </Button>
@@ -132,12 +128,14 @@ const MobileGenreSection: FC<MobileGenreSectionProps> = ({
             key={genre.id}
             size="lg"
             variant="solid"
-            colorScheme="blue"
+            bg="colors.primary"
+            color="text.inverse"
             borderRadius="full"
             cursor="pointer"
             py={2}
             px={4}
             onClick={() => handleGenreClick(genre.id)}
+            _hover={{ bg: "colors.primary.darker" }}
           >
             {genre.name}
           </Tag>

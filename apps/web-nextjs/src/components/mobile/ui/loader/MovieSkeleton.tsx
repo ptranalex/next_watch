@@ -5,6 +5,7 @@ import {
   Skeleton,
   SkeletonText,
   useBreakpointValue,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { createLogger } from "@/utils/logging";
 
@@ -29,6 +30,12 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
   // Determine if we show in grid or list mode
   const displayAsGrid = isGrid ?? isDesktop;
 
+  // Use semantic colors for skeletons
+  const startColor = useColorModeValue("gray.100", "gray.600");
+  const endColor = useColorModeValue("gray.300", "gray.800");
+  const cardBg = useColorModeValue("bg.secondary", "bg.tertiary");
+  const borderColor = useColorModeValue("border.subtle", "border.subtle");
+
   // Log component rendering
   logger.debug(
     `Rendering MovieSkeleton - count: ${count}, displayAsGrid: ${displayAsGrid}`
@@ -51,19 +58,13 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
           {Array(count)
             .fill(0)
             .map((_, index) => (
-              <Box
-                key={index}
-                borderRadius="lg"
-                overflow="hidden"
-                bg="gray.700"
-                _dark={{ bg: "gray.800" }}
-              >
+              <Box key={index} borderRadius="lg" overflow="hidden" bg={cardBg}>
                 {/* Movie poster skeleton */}
                 <Skeleton
                   height="260px"
                   width="100%"
-                  startColor="gray.500"
-                  endColor="gray.700"
+                  startColor={startColor}
+                  endColor={endColor}
                   speed={1.2}
                 />
 
@@ -74,8 +75,8 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
                     noOfLines={1}
                     spacing="2"
                     skeletonHeight="4"
-                    startColor="gray.600"
-                    endColor="gray.700"
+                    startColor={startColor}
+                    endColor={endColor}
                   />
                   <SkeletonText
                     mt={2}
@@ -83,8 +84,8 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
                     spacing="2"
                     skeletonHeight="3"
                     width="60%"
-                    startColor="gray.600"
-                    endColor="gray.700"
+                    startColor={startColor}
+                    endColor={endColor}
                   />
                 </Box>
               </Box>
@@ -101,10 +102,9 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
                 p={3}
                 mb={2}
                 borderWidth="1px"
-                borderColor="gray.700"
+                borderColor={borderColor}
                 borderRadius="md"
-                bg="gray.700"
-                _dark={{ bg: "gray.800" }}
+                bg={cardBg}
               >
                 <Flex>
                   {/* Movie poster skeleton */}
@@ -112,8 +112,8 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
                     width="80px"
                     height="120px"
                     borderRadius="md"
-                    startColor="gray.500"
-                    endColor="gray.700"
+                    startColor={startColor}
+                    endColor={endColor}
                     speed={1.2}
                   />
 
@@ -129,8 +129,8 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
                         noOfLines={1}
                         spacing="2"
                         skeletonHeight="4"
-                        startColor="gray.600"
-                        endColor="gray.700"
+                        startColor={startColor}
+                        endColor={endColor}
                       />
                       <SkeletonText
                         mt={2}
@@ -138,8 +138,8 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
                         spacing="2"
                         skeletonHeight="3"
                         width="30%"
-                        startColor="gray.600"
-                        endColor="gray.700"
+                        startColor={startColor}
+                        endColor={endColor}
                       />
                     </Box>
 
@@ -148,22 +148,22 @@ const MovieSkeleton: React.FC<MovieSkeletonProps> = ({ count = 6, isGrid }) => {
                       <Skeleton
                         height="8"
                         width="8"
-                        startColor="gray.600"
-                        endColor="gray.700"
+                        startColor={startColor}
+                        endColor={endColor}
                         borderRadius="md"
                       />
                       <Skeleton
                         height="8"
                         width="8"
-                        startColor="gray.600"
-                        endColor="gray.700"
+                        startColor={startColor}
+                        endColor={endColor}
                         borderRadius="md"
                       />
                       <Skeleton
                         height="8"
                         width="8"
-                        startColor="gray.600"
-                        endColor="gray.700"
+                        startColor={startColor}
+                        endColor={endColor}
                         borderRadius="md"
                       />
                     </Flex>

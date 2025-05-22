@@ -23,7 +23,9 @@ const ExpandableText = ({ children }: Props) => {
         marginLeft={1}
         size="xs"
         fontWeight="bold"
-        colorScheme="yellow"
+        bg="colors.secondary"
+        color="text.inverse"
+        _hover={{ bg: "colors.secondary.darker" }}
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? "Show less" : "Show more"}

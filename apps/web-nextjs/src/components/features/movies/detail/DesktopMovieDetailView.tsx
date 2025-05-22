@@ -30,12 +30,12 @@ const TrailerFallback = () => (
   <Box
     height="300px"
     width="100%"
-    bg="gray.700"
+    bg="bg.tertiary"
     display="flex"
     alignItems="center"
     justifyContent="center"
   >
-    <Text color="gray.400">Trailer unavailable</Text>
+    <Text color="text.tertiary">Trailer unavailable</Text>
   </Box>
 );
 
@@ -47,7 +47,7 @@ const TrailerCard = dynamic(() => import("./TrailerCard"), {
       <Box
         height="300px"
         width="100%"
-        bg="gray.700"
+        bg="bg.tertiary"
         display="flex"
         alignItems="center"
         justifyContent="center"

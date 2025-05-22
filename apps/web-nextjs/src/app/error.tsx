@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Center, VStack, Heading, Text, Button } from "@chakra-ui/react";
 import { createLogger } from "@/utils/logging";
 import { useEffect } from "react";
@@ -33,21 +34,16 @@ export default function Error({
   return (
     <Center minH="70vh" width="100%">
       <VStack spacing={8} textAlign="center">
-        <Heading
-          as="h1"
-          size="2xl"
-          bgGradient="linear(to-r, red.400, red.600)"
-          backgroundClip="text"
-        >
+        <Heading as="h1" size="2xl" color="feedback.error">
           Something went wrong
         </Heading>
         <Text fontSize="xl">
           {error.message || "An unexpected error occurred."}
         </Text>
         <Button
-          colorScheme="red"
-          bgGradient="linear(to-r, red.400, red.500, red.600)"
-          color="white"
+          bg="feedback.error"
+          color="text.inverse"
+          _hover={{ bg: "feedback.error.emphasis" }}
           onClick={handleReset}
           size="lg"
         >

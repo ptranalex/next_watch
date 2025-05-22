@@ -25,14 +25,52 @@ const ToggleIconButton: React.FC<ToggleIconButtonProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  // Get appropriate colors based on state
+  const getButtonProps = () => {
+    if (isHovered) {
+      if (isActive) {
+        // Hover on active - remove action
+        return {
+          bg: "feedback.error",
+          color: "text.inverse",
+          variant: "solid",
+        };
+      } else {
+        // Hover on inactive - add action
+        return {
+          bg: "colors.secondary",
+          color: "text.inverse",
+          variant: "solid",
+        };
+      }
+    } else {
+      if (isActive) {
+        // Active state
+        return {
+          bg: "colors.primary",
+          color: "text.inverse",
+          variant: "solid",
+        };
+      } else {
+        // Inactive state
+        return {
+          bg: "transparent",
+          color: "text.secondary",
+          variant: "ghost",
+        };
+      }
+    }
+  };
+
+  const buttonProps = getButtonProps();
+
   return (
     <IconButton
       aria-label={label}
       size={size}
-      variant={!isActive && !isHovered ? "ghost" : "solid"}
-      colorScheme={
-        isHovered ? (isActive ? "red" : "orange") : isActive ? "blue" : "gray"
-      }
+      variant={buttonProps.variant}
+      bg={buttonProps.bg}
+      color={buttonProps.color}
       icon={isHovered ? isActive ? <TiMinus /> : <TiPlus /> : icon}
       fontSize={size}
       onClick={onToggle}

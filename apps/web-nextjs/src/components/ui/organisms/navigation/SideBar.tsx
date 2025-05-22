@@ -9,19 +9,16 @@ import {
   HStack,
   Icon,
   Text,
-  VStack,
   useBreakpointValue,
-  Divider,
 } from "@chakra-ui/react";
 import Link from "next/link";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useMemo } from "react";
 import { GiCalendar, GiLaurelCrown, GiTrophy } from "react-icons/gi";
 import {
   HiBookmark,
   HiCheckBadge,
   HiDocumentCheck,
   HiHeart,
-  HiAdjustmentsHorizontal,
 } from "react-icons/hi2";
 import MovieFilter from "@/components/features/movies/filter/MovieFilter";
 import { GenreSection } from "./sections";
@@ -36,7 +33,7 @@ interface NavItem {
 const NavLink = memo<NavItem>(({ icon, label, path }) => (
   <ChakraLink as={Link} href={path}>
     <HStack marginBottom={3}>
-      <Icon as={icon} boxSize={6} color="gray.500" />
+      <Icon as={icon} boxSize={6} color="text.tertiary" />
       <Text>{label}</Text>
     </HStack>
   </ChakraLink>
@@ -45,8 +42,8 @@ NavLink.displayName = "NavLink";
 
 // Filter section wrapper - DON'T memoize this component as it needs to respond to filter changes
 const FilterSection = () => {
-  // Get current filter values from store to force re-renders when they change
-  const { filters } = useMovieFilterStore();
+  // Access store to force re-renders when filters change, we don't use the filters directly
+  useMovieFilterStore();
 
   return (
     <>

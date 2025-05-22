@@ -46,18 +46,18 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const toast = useToast();
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const bgColor = useColorModeValue("bg.primary", "bg.tertiary");
+  const borderColor = useColorModeValue("border.subtle", "border.subtle");
 
   const getColor = (value: number | undefined) => {
     if (!value) return "hidden";
 
     if (value >= 8.0) {
-      return "***REMOVED***FFC107";
+      return "feedback.success.emphasis";
     } else if (value >= 7.0) {
-      return "***REMOVED***00E676";
+      return "feedback.success";
     } else if (value >= 6.0) {
-      return "***REMOVED***82B1FF";
+      return "colors.primary";
     }
     return "hidden";
   };
@@ -233,14 +233,14 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
   const leftSwipeAction: SwipeActionOption = {
     icon: movie.liked ? HiHeart : HiOutlineHeart,
     label: movie.liked ? "Unfavorite" : "Favorite",
-    color: "red.500",
+    color: "feedback.error",
     action: handleToggleLiked,
   };
 
   const rightSwipeAction: SwipeActionOption = {
     icon: movie.in_watchlist ? HiBookmark : HiOutlineBookmark,
     label: movie.in_watchlist ? "Remove" : "Watchlist",
-    color: "blue.500",
+    color: "colors.primary",
     action: handleToggleWatchlist,
   };
 
@@ -299,11 +299,13 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
               onTouchStart={prefetchMovieData}
             >
               <Text fontWeight="bold" fontSize="md" noOfLines={2}>
-                {movie.title}
+                {typeof movie.title === "string"
+                  ? movie.title
+                  : "Untitled Movie"}
               </Text>
             </Link>
 
-            <Text fontSize="sm" color="gray.500" mt={1}>
+            <Text fontSize="sm" color="text.secondary" mt={1}>
               {typeof movie.release_date === "string"
                 ? movie.release_date.substring(0, 4)
                 : ""}
@@ -316,9 +318,8 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
               onClick={handleToggleWatched}
               p={2}
               borderRadius="md"
-              bg={movie.watched ? "green.50" : "transparent"}
-              _dark={{ bg: movie.watched ? "green.900" : "transparent" }}
-              color={movie.watched ? "green.500" : "gray.500"}
+              bg={movie.watched ? "feedback.success.subtle" : "transparent"}
+              color={movie.watched ? "feedback.success" : "text.secondary"}
             >
               <Icon as={movie.watched ? HiCheck : HiOutlineCheck} boxSize={5} />
             </Box>
@@ -327,9 +328,8 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
               onClick={handleToggleLiked}
               p={2}
               borderRadius="md"
-              bg={movie.liked ? "red.50" : "transparent"}
-              _dark={{ bg: movie.liked ? "red.900" : "transparent" }}
-              color={movie.liked ? "red.500" : "gray.500"}
+              bg={movie.liked ? "feedback.error.subtle" : "transparent"}
+              color={movie.liked ? "feedback.error" : "text.secondary"}
             >
               <Icon as={movie.liked ? HiHeart : HiOutlineHeart} boxSize={5} />
             </Box>
@@ -338,9 +338,8 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
               onClick={handleToggleWatchlist}
               p={2}
               borderRadius="md"
-              bg={movie.in_watchlist ? "blue.50" : "transparent"}
-              _dark={{ bg: movie.in_watchlist ? "blue.900" : "transparent" }}
-              color={movie.in_watchlist ? "blue.500" : "gray.500"}
+              bg={movie.in_watchlist ? "colors.primary.subtle" : "transparent"}
+              color={movie.in_watchlist ? "colors.primary" : "text.secondary"}
             >
               <Icon
                 as={movie.in_watchlist ? HiBookmark : HiOutlineBookmark}

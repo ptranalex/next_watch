@@ -35,7 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <Center h="100vh">
         <VStack spacing={4}>
-          <Spinner size="xl" color="blue.500" thickness="4px" />
+          <Spinner size="xl" color="colors.primary" thickness="4px" />
           <Text>Checking authorization...</Text>
         </VStack>
       </Center>

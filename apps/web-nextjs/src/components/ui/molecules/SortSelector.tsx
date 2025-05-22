@@ -28,16 +28,25 @@ const SortSelector = () => {
 
   return (
     <Menu>
-      <MenuButton as={Button} rightIcon={<BsChevronDown />}>
+      <MenuButton
+        as={Button}
+        rightIcon={<BsChevronDown />}
+        bg="bg.secondary"
+        color="text.primary"
+        _hover={{ bg: "bg.tertiary" }}
+        _active={{ bg: "bg.tertiary" }}
+      >
         Order by: {currentSortOrder?.label || "Release date"}
       </MenuButton>
-      <MenuList>
+      <MenuList bg="bg.secondary" borderColor="text.tertiary">
         {sortOrders.map((order) => (
           <MenuItem
             onClick={() => {
               setSorting(order.value, order.desc ?? true);
             }}
             key={`${order.value}-${order.desc ? "desc" : "asc"}`}
+            _hover={{ bg: "bg.tertiary" }}
+            _focus={{ bg: "bg.tertiary" }}
           >
             {order.label}
           </MenuItem>

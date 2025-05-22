@@ -10,7 +10,6 @@ import {
   ModalOverlay,
   Stack,
   Text,
-  useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
 import React from "react";
@@ -29,10 +28,7 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const textColor = useColorModeValue("black", "white");
-  const modalBgColor = useColorModeValue("gray.100", "gray.800");
   const toast = useToast();
-
   const { resetFilters } = useMovieFilterStore();
 
   const onApply = () => {
@@ -65,7 +61,7 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
         backdropFilter="auto"
         backdropBlur="4px"
       />
-      <ModalContent bg={modalBgColor} color={textColor} mx={2}>
+      <ModalContent bg="bg.secondary" color="text.primary" mx={2}>
         <ModalHeader>
           <Text fontSize="xl">Movie Filter</Text>
         </ModalHeader>
@@ -74,7 +70,9 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
           <Stack spacing={4}>
             <MovieFilter />
             <Button
-              colorScheme="blue"
+              bg="colors.primary"
+              color="text.inverse"
+              _hover={{ bg: "colors.primary.darker" }}
               leftIcon={<HiArrowRight />}
               onClick={onApply}
               width="100%"
@@ -83,12 +81,13 @@ const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
               Apply
             </Button>
             <Button
-              colorScheme="gray"
+              variant="outline"
               leftIcon={<HiArrowPath />}
               onClick={onReset}
               width="100%"
               justifyContent="left"
-              variant="outline"
+              borderColor="text.tertiary"
+              _hover={{ bg: "bg.tertiary" }}
             >
               Reset
             </Button>

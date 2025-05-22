@@ -36,11 +36,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en">
       <head>
         <ThemeScript />
       </head>
-      <body className={`${inter.className} chakra-ui-dark`}>
+      <body className={inter.className}>
         <Providers>
           <ResponsiveShell>{children}</ResponsiveShell>
         </Providers>

@@ -10,6 +10,7 @@ import {
   useColorMode,
   Tooltip,
   HStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import {
   HiArrowLeftOnRectangle,
@@ -43,6 +44,11 @@ const MobileHeader: React.FC = () => {
   const { colorMode } = useColorMode();
   const logo = colorMode === "light" ? logoLight : logoDark;
   const { isAuthenticated, user } = useAuth();
+
+  // Use semantic color tokens
+  const activeNavColor = useColorModeValue("colors.primary", "colors.primary");
+  const headerBgLight = useColorModeValue("rgba(255, 255, 255, 0.8)", "");
+  const headerBgDark = useColorModeValue("", "rgba(26, 32, 44, 0.8)");
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -106,8 +112,8 @@ const MobileHeader: React.FC = () => {
         top="0"
         zIndex="sticky"
         backdropFilter="blur(10px)"
-        backgroundColor="rgba(255, 255, 255, 0.8)"
-        _dark={{ backgroundColor: "rgba(26, 32, 44, 0.8)" }}
+        backgroundColor={headerBgLight}
+        _dark={{ backgroundColor: headerBgDark }}
         width="100%"
         boxShadow="sm"
         sx={{
@@ -143,7 +149,7 @@ const MobileHeader: React.FC = () => {
                 icon={<HiHome />}
                 fontSize={20}
                 variant="ghost"
-                color={isActive("/") ? "blue.500" : undefined}
+                color={isActive("/") ? activeNavColor : undefined}
                 onClick={() => handleNavigation("/")}
               />
             </Tooltip>
@@ -154,7 +160,7 @@ const MobileHeader: React.FC = () => {
                 icon={<HiMagnifyingGlass />}
                 fontSize={20}
                 variant="ghost"
-                color={isActive("/search") ? "blue.500" : undefined}
+                color={isActive("/search") ? activeNavColor : undefined}
                 onClick={toggleSearchBar}
               />
             </Tooltip>
@@ -167,7 +173,7 @@ const MobileHeader: React.FC = () => {
                     icon={<HiBookmark />}
                     fontSize={20}
                     variant="ghost"
-                    color={isActive("/watchlist") ? "blue.500" : undefined}
+                    color={isActive("/watchlist") ? activeNavColor : undefined}
                     onClick={() => handleNavigation("/watchlist")}
                   />
                 </Tooltip>
@@ -178,7 +184,7 @@ const MobileHeader: React.FC = () => {
                     icon={<HiHeart />}
                     fontSize={20}
                     variant="ghost"
-                    color={isActive("/favorites") ? "blue.500" : undefined}
+                    color={isActive("/favorites") ? activeNavColor : undefined}
                     onClick={() => handleNavigation("/favorites")}
                   />
                 </Tooltip>

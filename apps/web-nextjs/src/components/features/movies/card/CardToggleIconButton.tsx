@@ -98,19 +98,58 @@ const CardToggleIconButton: React.FC<ToggleIconButtonProps> = ({
   const borderColor = useColorModeValue(
     isHovered
       ? isActive
-        ? "red.500"
-        : "blue.500"
+        ? "feedback.error"
+        : "colors.primary"
       : isActive
-      ? "blue.500"
-      : "gray.200",
+      ? "colors.primary"
+      : "bg.tertiary",
     isHovered
       ? isActive
-        ? "red.300"
-        : "blue.300"
+        ? "feedback.error"
+        : "colors.primary"
       : isActive
-      ? "blue.300"
-      : "gray.600"
+      ? "colors.primary"
+      : "bg.secondary"
   );
+
+  // Get button styles based on state
+  const getButtonStyles = () => {
+    if (isHovered) {
+      if (isActive) {
+        // Hover on active - remove action
+        return {
+          bg: "feedback.error",
+          color: "text.inverse",
+          variant: "solid",
+        };
+      } else {
+        // Hover on inactive - add action
+        return {
+          bg: "colors.secondary",
+          color: "text.inverse",
+          variant: "solid",
+        };
+      }
+    } else {
+      if (isActive) {
+        // Active state
+        return {
+          bg: "colors.primary",
+          color: "text.inverse",
+          variant: "solid",
+        };
+      } else {
+        // Inactive state
+        return {
+          bg: "transparent",
+          color: "text.secondary",
+          variant: "ghost",
+        };
+      }
+    }
+  };
+
+  const buttonStyles = getButtonStyles();
 
   return (
     <Box
@@ -129,10 +168,9 @@ const CardToggleIconButton: React.FC<ToggleIconButtonProps> = ({
         width="100%"
         flexGrow={1}
         borderRadius={0}
-        variant={isHovered ? "solid" : "ghost"}
-        colorScheme={
-          isHovered ? (isActive ? "red" : "blue") : isActive ? "blue" : "gray"
-        }
+        variant={buttonStyles.variant}
+        bg={buttonStyles.bg}
+        color={buttonStyles.color}
         icon={
           isEnabled ? (
             isHovered ? (

@@ -30,14 +30,19 @@ const DefaultUnauthorized: React.FC<{ redirectTo?: string }> = ({
 
   return (
     <Box p={8} textAlign="center">
-      <Heading size="lg" mb={4} color="red.500">
+      <Heading size="lg" mb={4} color="feedback.error">
         Access Denied
       </Heading>
       <Text mb={6}>
         You don&apos;t have permission to access this resource.
       </Text>
       {redirectTo && (
-        <Button colorScheme="blue" onClick={() => router.push(redirectTo)}>
+        <Button
+          bg="colors.primary"
+          color="text.inverse"
+          _hover={{ bg: "colors.secondary" }}
+          onClick={() => router.push(redirectTo)}
+        >
           Go Back
         </Button>
       )}
