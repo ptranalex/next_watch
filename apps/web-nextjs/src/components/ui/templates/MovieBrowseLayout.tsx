@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MovieAPI, GenreAPI, ActorAPI } from "@/services/api";
 import { useResponsive } from "@/providers/ResponsiveContext";
 import { createLogger } from "@/utils/logging";
+import { MobileMovieBrowseLayout } from "@/components/mobile/core/layout/movie-browse";
 
 // Create logger for this component
 const logger = createLogger("MovieBrowseLayout");
@@ -114,25 +115,11 @@ const MovieBrowseLayout: React.FC<MovieBrowseLayoutProps> = ({
   }
 
   // Only render mobile layout after hydration is complete and we've confirmed mobile device
+  // Use the specialized MobileMovieBrowseLayout for optimized mobile experience
   return (
-    <Box className="mobile-movie-browse-layout">
-      <Box marginY={3}>
-        {title}
-        <Box marginY={3}>
-          {rightHeader || (
-            <Flex
-              alignItems="center"
-              justifyContent="space-between"
-              flexDirection="row"
-            >
-              <MemoizedSortSelector />
-              <MemoizedFilterButton />
-            </Flex>
-          )}
-        </Box>
-      </Box>
+    <MobileMovieBrowseLayout title={title} prefetchIds={prefetchIds}>
       {children}
-    </Box>
+    </MobileMovieBrowseLayout>
   );
 };
 

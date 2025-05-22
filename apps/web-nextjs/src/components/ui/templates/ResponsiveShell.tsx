@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import AppShell from "@/components/ui/templates/AppShell";
-import MobileAppShell from "@/components/ui/templates/mobile/MobileAppShell";
+import { MobileAppShell } from "@/components/mobile/core/layout";
 import { useResponsive } from "@/providers/ResponsiveContext";
 import { createLogger } from "@/utils/logging";
 

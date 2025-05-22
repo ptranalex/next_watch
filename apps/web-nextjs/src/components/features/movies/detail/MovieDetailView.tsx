@@ -2,7 +2,7 @@ import React, { useEffect, memo } from "react";
 import { createLogger } from "@/utils/logging";
 import { useResponsive } from "@/providers/ResponsiveContext";
 import DesktopMovieDetailView from "./DesktopMovieDetailView";
-import MobileMovieDetailView from "@/components/features/movies/detail/MobileMovieDetailView";
+import MobileMovieDetailView from "@/components/mobile/features/movies/detail/MobileMovieDetailView";
 import { MovieDetailViewProps } from "./types";
 
 // Create logger for this component
