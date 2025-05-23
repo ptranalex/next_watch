@@ -2,7 +2,7 @@
 
 import logoLight from "@/assets/logo-light.jpeg";
 import logoDark from "@/assets/logo.jpeg";
-import LoginModal from "@/components/features/auth/LoginModal";
+import { LoginModal } from "@/components/features/auth";
 import ColorModeSwitch from "@/components/ui/atoms/ColorModeSwitch";
 import MobileNavMenu from "@/components/ui/organisms/navigation/MobileNavMenu";
 import SearchInput from "@/components/ui/molecules/SearchInput";

@@ -20,7 +20,7 @@ import {
   HiDocumentCheck,
   HiHeart,
 } from "react-icons/hi2";
-import MovieFilter from "@/components/features/movies/filter/MovieFilter";
+import { MovieFilter } from "@/components/features/movies/filter";
 import { GenreSection } from "./sections";
 
 interface NavItem {

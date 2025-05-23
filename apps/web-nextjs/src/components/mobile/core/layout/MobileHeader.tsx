@@ -23,7 +23,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks";
 import MobileNavMenu from "@/components/ui/organisms/navigation/MobileNavMenu";
-import LoginModal from "@/components/features/auth/LoginModal";
+import { LoginModal } from "@/components/features/auth";
 import ProfileModal from "@/components/features/profile/ProfileModal";
 import SearchInput from "@/components/ui/molecules/SearchInput";
 import { createLogger } from "@/utils/logging";

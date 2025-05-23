@@ -1,11 +1,8 @@
 "use client";
 
-import MovieFilterModal from "@/components/features/movies/filter/MovieFilterModal";
-import {
-  IconButton,
-  useDisclosure,
-  useBreakpointValue,
-} from "@chakra-ui/react";
+import { useDisclosure } from "@chakra-ui/react";
+import MovieFilterModal from "./MovieFilterModal";
+import { IconButton, useBreakpointValue } from "@chakra-ui/react";
 import React from "react";
 import { HiAdjustmentsHorizontal } from "react-icons/hi2";
 import { createLogger } from "@/utils/logging";

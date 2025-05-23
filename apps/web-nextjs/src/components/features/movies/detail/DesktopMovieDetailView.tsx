@@ -20,7 +20,7 @@ import MovieQuickAction from "./MovieQuickAction";
 import RatingGroup from "./RatingGroup";
 import { ExpandableText } from "@/components/ui/molecules/display";
 import MovieGrid from "@/components/features/movies/grid/MovieGrid";
-import { MovieDetailViewProps } from "@/components/features/movies/detail/types";
+import { MovieDetailViewProps } from "./types";
 
 // Create logger for this component
 const logger = createLogger("DesktopMovieDetailView");

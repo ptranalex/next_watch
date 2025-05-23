@@ -1,12 +1,12 @@
 "use client";
 
 import SortSelector from "@/components/ui/molecules/SortSelector";
-import FilterButton from "@/components/features/movies/filter/FilterButton";
+import { FilterButton } from "@/components/features/movies/filter";
 import { Box, Flex } from "@chakra-ui/react";
 import React, { memo, ReactNode, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MovieAPI, GenreAPI, ActorAPI } from "@/services/api";
-import { useResponsive } from "@/providers/ResponsiveContext";
+import { useResponsive } from "@/providers";
 import { createLogger } from "@/utils/logging";
 import { MobileMovieBrowseLayout } from "@/components/mobile/core/layout/movie-browse";
 

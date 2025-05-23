@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useCallback } from "react";
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore } from "@/store";
 import SessionExpiredModal from "@/components/ui/molecules/SessionExpiredModal";
 import AuthTokenManager from "@/utils/auth/authTokenManager";
+import { createLogger } from "@/utils/logging";
+
+// Create logger for this component
+const logger = createLogger("AuthProvider");
 
 /**
  * Auth provider component that handles auth initialization and recovery
@@ -34,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // If we've already tried too many times, don't attempt again
     if (recoveryAttemptCount.current >= MAX_RECOVERY_ATTEMPTS) {
-      console.warn(
+      logger.warn(
         `Auth: Max recovery attempts (${MAX_RECOVERY_ATTEMPTS}) reached, giving up`
       );
       return false;
@@ -56,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (!isTokenError) return false;
 
-    console.log(
+    logger.debug(
       `Auth: Attempting recovery ***REMOVED***${
         recoveryAttemptCount.current + 1
       } for error: ${error}`
@@ -66,20 +70,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Try refresh token using the centralized method
       if (AuthTokenManager.hasRefreshToken()) {
-        console.log("Auth: Attempting token refresh as recovery");
+        logger.debug("Auth: Attempting token refresh as recovery");
         const success = await attemptTokenRefresh();
 
         if (success) {
-          console.log("Auth: Recovery successful - token refreshed");
+          logger.debug("Auth: Recovery successful - token refreshed");
           await checkAuthStatus();
           return true;
         }
       }
 
-      console.log("Auth: Recovery failed - could not refresh token");
+      logger.debug("Auth: Recovery failed - could not refresh token");
       return false;
     } catch (e) {
-      console.error("Auth: Error during recovery attempt", e);
+      logger.error("Auth: Error during recovery attempt", e);
       return false;
     }
   }, [isAuthenticated, error, checkAuthStatus, attemptTokenRefresh]);
@@ -93,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           recoveryAttemptCount.current >= MAX_RECOVERY_ATTEMPTS
         ) {
           // All recovery attempts failed, trigger a definitive session expired
-          console.log(
+          logger.debug(
             "Auth: All recovery attempts failed, session truly expired"
           );
           handleTokenExpired();
@@ -114,12 +118,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const cleanupRefresh = setupTokenRefresh();
 
     // Setup debug logging for authentication state
-    console.debug("Auth: Provider initialized, background refresh active");
+    logger.debug("Auth: Provider initialized, background refresh active");
 
     // Clean up on unmount
     return () => {
       cleanupRefresh();
-      console.debug("Auth: Provider cleanup, background refresh stopped");
+      logger.debug("Auth: Provider cleanup, background refresh stopped");
     };
   }, [checkAuthStatus, setupTokenRefresh]);
 

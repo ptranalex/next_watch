@@ -1,5 +1,5 @@
-import CardToggleIconButton from "@/components/features/movies/card/CardToggleIconButton";
-import CopyToClipboardButton from "@/components/features/movies/card/CopyToClipBoardButton";
+import CardToggleIconButton from "./CardToggleIconButton";
+import CopyToClipboardButton from "./CopyToClipBoardButton";
 import { Movie } from "@/domain/entities";
 import { Box, HStack, VStack, useColorModeValue } from "@chakra-ui/react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";

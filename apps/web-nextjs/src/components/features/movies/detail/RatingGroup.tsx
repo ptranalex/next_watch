@@ -1,4 +1,4 @@
-import CriticScore from "@/components/features/movies/detail/CriticScore";
+import CriticScore from "./CriticScore";
 import { HStack } from "@chakra-ui/react";
 
 interface Props {

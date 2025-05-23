@@ -1,8 +1,8 @@
 "use client";
 
-import RatingSlider from "@/components/features/movies/filter/RatingSlider";
-import useMovieFilterStore from "@/store/movieFilterStore";
-import { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
+import RatingSlider from "./RatingSlider";
+import { useMovieFilterStore } from "@/store";
 import { FaImdb } from "react-icons/fa";
 import { HiCalendarDays } from "react-icons/hi2";
 import { MdAssessment } from "react-icons/md";
@@ -11,14 +11,6 @@ import { createLogger } from "@/utils/logging";
 
 // Create logger for this component
 const logger = createLogger("MovieFilter");
-
-// Define the filter param types
-type FilterParams = Record<string, number | null> & {
-  rating_imdb: number | null;
-  rating_rotten_tomatoes: number | null;
-  rating_metacritic: number | null;
-  year: number | null;
-};
 
 const MovieFilter = () => {
   // Get store filters and actions

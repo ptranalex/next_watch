@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect } from "react";
 import { useAuth, useMovie, useParams } from "@/hooks";
 import { Movie } from "@/domain/entities";
-import MovieDetailView from "@/components/features/movies/detail/MovieDetailView";
+import { MovieDetailView } from "@/components/features/movies/detail";
 import { createLogger } from "@/utils/logging";
 import { useResponsive } from "@/providers/ResponsiveContext";
 
@@ -30,7 +30,7 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
   const movieId = resolvedParams?.id ? Number(resolvedParams.id) : 0;
 
   // Use the centralized responsive context instead of direct media queries
-  const { isMobile, isHydrated } = useResponsive();
+  const { isHydrated } = useResponsive();
 
   // Log the extracted movie ID
   useEffect(() => {
@@ -41,14 +41,8 @@ const MovieDetailPage = ({ params }: MovieDetailPageProps) => {
 
   const { isAuthenticated } = useAuth();
 
-  const {
-    movie,
-    isLoading,
-    error,
-    toggleWatched,
-    toggleLiked,
-    toggleWatchlist,
-  } = useMovie(movieId);
+  const { movie, error, toggleWatched, toggleLiked, toggleWatchlist } =
+    useMovie(movieId);
 
   // Log movie data and errors
   useEffect(() => {

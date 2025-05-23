@@ -1,6 +1,7 @@
 "use client";
 
-import LoginModal from "@/components/features/auth/LoginModal";
+import React from "react";
+import { LoginModal } from "@/components/features/auth";
 import { useAuth } from "@/hooks";
 import {
   Box,
@@ -16,7 +17,6 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
 import { HiExclamationCircle } from "react-icons/hi";
 
 // The definitive session expired messages that should trigger this modal
@@ -34,10 +34,10 @@ const DEFINITIVE_SESSION_ERRORS = [
 const SessionExpiredModal: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { error, clearError } = useAuth();
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = React.useState(false);
 
   // Only show for definitive session expired errors
-  useEffect(() => {
+  React.useEffect(() => {
     if (error && DEFINITIVE_SESSION_ERRORS.some((msg) => error.includes(msg))) {
       onOpen();
     }

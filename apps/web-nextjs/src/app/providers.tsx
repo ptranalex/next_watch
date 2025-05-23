@@ -1,7 +1,6 @@
 "use client";
 
-import AuthProvider from "@/providers/AuthProvider";
-import { ResponsiveProvider } from "@/providers/ResponsiveContext";
+import { AuthProvider, ResponsiveProvider } from "@/providers";
 import theme from "@/theme";
 import { createLogger } from "@/utils/logging";
 import { ChakraProvider } from "@chakra-ui/react";

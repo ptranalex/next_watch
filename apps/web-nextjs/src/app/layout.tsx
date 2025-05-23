@@ -1,8 +1,8 @@
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "./providers";
-import type { Metadata, Viewport } from "next";
+import { ThemeScript } from "@/providers";
 import ResponsiveShell from "@/components/ui/templates/ResponsiveShell";
-import ThemeScript from "@/providers/ThemeScript";
 import "./globals.css";
 
 // Load Inter font

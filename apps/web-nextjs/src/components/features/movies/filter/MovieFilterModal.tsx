@@ -1,4 +1,4 @@
-import MovieFilter from "@/components/features/movies/filter/MovieFilter";
+import MovieFilter from "./MovieFilter";
 import useMovieFilterStore from "@/store/movieFilterStore";
 import {
   Button,

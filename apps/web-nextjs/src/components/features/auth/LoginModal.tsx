@@ -7,7 +7,7 @@ import {
 import { Stack } from "@chakra-ui/react";
 import { useAuth } from "@/hooks";
 import { useToast } from "@chakra-ui/react";
-import SignupModal from "@/components/features/auth/SignupModal";
+import SignupModal from "./SignupModal";
 import BaseModal from "@/components/ui/organisms/BaseModal";
 import FormInput from "@/components/ui/molecules/form/FormInput";
 import {

@@ -1,14 +1,16 @@
 import MovieGrid from "@/components/features/movies/grid/MovieGrid";
-import ActorsGallery from "@/components/features/movies/detail/ActorsGallery";
-import MovieAttributes from "@/components/features/movies/detail/MovieAttributes";
+import {
+  ActorsGallery,
+  MovieAttributes,
+  RatingGroup,
+  MovieDetailViewProps,
+} from "@/components/features/movies/detail";
 import { ExpandableText } from "@/components/ui/molecules/display";
-import RatingGroup from "@/components/features/movies/detail/RatingGroup";
 import { FEATURES } from "@/config/features";
 import { createLogger } from "@/utils/logging";
 import { Box, GridItem, Heading, SimpleGrid, Text } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import React, { Suspense, useEffect } from "react";
-import { MovieDetailViewProps } from "@/components/features/movies/detail/types";
 import { movieUtils } from "@/utils/movie/movieDataUtils";
 import { ErrorBoundary } from "@/components/ui/molecules/feedback";
 import MovieActionControls from "./MovieActionControls";

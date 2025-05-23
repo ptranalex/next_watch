@@ -1,11 +1,9 @@
-import MovieQuickAction from "@/components/features/movies/card/MovieQuickAction";
 import { Movie } from "@/domain/entities";
 import { useAuth } from "@/hooks";
 import { fetchData, userInteractionAPI } from "@/services/api";
 import {
   Box,
   Card,
-  Icon,
   Image,
   useColorModeValue,
   useToast,
@@ -13,8 +11,9 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HiMiniStar } from "react-icons/hi2";
 import { createLogger } from "@/utils/logging";
+import MovieQuickAction from "./MovieQuickAction";
+import MovieRatingIndicator from "./MovieRatingIndicator";
 
 // Create logger for this component
 const logger = createLogger("MovieCard");
@@ -92,23 +91,6 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
     }
   };
 
-  const getColor = (value: number | undefined) => {
-    if (!value) return "hidden";
-
-    if (value >= 8.0) {
-      return "colors.primary.darker";
-    } else if (value >= 7.0) {
-      return "colors.secondary.darker";
-    } else if (value >= 6.0) {
-      return "colors.tertiary.darker";
-    }
-    return "hidden";
-  };
-
-  const color = getColor(
-    typeof movie.imdb_rating === "number" ? movie.imdb_rating : undefined
-  );
-
   const prefetchMovieData = () => {
     if (typeof movie.id !== "number") return;
 
@@ -168,18 +150,14 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
               alt={`${movie.title} Poster`}
             />
           </Link>
-          <Box
-            marginBottom={2}
-            marginTop={2}
-            position="absolute"
-            zIndex={0}
-            left={2}
-            top={0}
-          >
-            {color !== "hidden" && (
-              <Icon as={HiMiniStar} boxSize={6} color={color} />
-            )}
-          </Box>
+
+          {/* Modular rating indicator component */}
+          <MovieRatingIndicator
+            rating={
+              typeof movie.imdb_rating === "number" ? movie.imdb_rating : null
+            }
+          />
+
           {user && (
             <Box
               position="absolute"

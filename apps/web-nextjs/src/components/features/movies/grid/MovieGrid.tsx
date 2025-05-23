@@ -1,9 +1,11 @@
 "use client";
 
 import ScrollToTopButton from "@/components/ui/molecules/ScrollToTopButton";
-import MovieCard from "@/components/features/movies/card/MovieCard";
-import MovieCardContainer from "@/components/features/movies/card/MovieCardContainer";
-import MovieCardSkeleton from "@/components/features/movies/card/MovieCardSkeleton";
+import {
+  MovieCard,
+  MovieCardContainer,
+  MovieCardSkeleton,
+} from "@/components/features/movies/card";
 import { Movie } from "@/domain/entities";
 import { useMovies } from "@/hooks";
 import useMovieFilterStore from "@/store/movieFilterStore";

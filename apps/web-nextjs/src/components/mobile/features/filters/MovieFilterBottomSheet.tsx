@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Stack, Flex, useColorModeValue, useToast } from "@chakra-ui/react";
 import { HiArrowPath, HiCheck } from "react-icons/hi2";
-import MovieFilter from "@/components/features/movies/filter/MovieFilter";
+import { MovieFilter } from "@/components/features/movies/filter";
 import useMovieFilterStore from "@/store/movieFilterStore";
 import { BottomSheet } from "@/components/mobile/ui/bottom-sheet";
 import {
