@@ -26,23 +26,66 @@ import { SwipeAction, SwipeActionOption } from "@/components/mobile/ui/swipe";
 import { useAuth } from "@/hooks";
 import { createLogger } from "@/utils/logging";
 import { getPosterUrl } from "@/utils/media";
+import type { MovieCardBaseProps } from "@/components/features/movies/types";
+import type { MobileCardProps } from "@/components/mobile/types";
 
 // Create logger for this component
 const logger = createLogger("MobileMovieCard");
 
-interface MobileMovieCardProps {
-  movie: Movie;
-  onMovieUpdate: (movie: Movie) => void;
+/**
+ * MobileMovieCard Props
+ *
+ * Extends shared MovieCardBaseProps and MobileCardProps with mobile-specific features
+ */
+interface MobileMovieCardProps
+  extends MovieCardBaseProps,
+    Omit<MobileCardProps, "children" | "onPress"> {
+  /** Whether to enable swipe actions */
+  enableSwipeActions?: boolean;
+  /** Whether to show quick action buttons */
+  showQuickActions?: boolean;
+  /** Callback when card is long pressed */
+  onLongPress?: () => void;
+  /** Custom swipe action options */
+  customSwipeActions?: SwipeActionOption[];
 }
 
 /**
- * MobileMovieCard component
- * Touch-optimized movie card with swipe actions for quick interactions
- * Swipe left to like, swipe right to add to watchlist
+ * MobileMovieCard component using shared MovieCardBaseProps and MobileCardProps
+ *
+ * Touch-optimized movie card with swipe actions for quick interactions.
+ * Swipe left to like, swipe right to add to watchlist.
+ *
+ * Features:
+ * - Swipe actions for quick movie interactions
+ * - Optimistic UI updates with error recovery
+ * - Touch-friendly design with proper hit targets
+ * - Configurable through shared card and mobile props
+ * - Data prefetching on card interaction
+ * - Haptic feedback for better user experience
+ *
+ * @param movie - Movie data to display
+ * @param onMovieUpdate - Callback when movie data changes
+ * @param size - Card size (default: "md")
+ * @param orientation - Card orientation (default: "vertical")
+ * @param showQuickActions - Whether to show quick action buttons (default: true)
+ * @param isSelected - Whether the card is selected
+ * @param enableSwipeActions - Whether to enable swipe actions (default: true)
+ * @param onLongPress - Callback when card is long pressed
+ * @param customSwipeActions - Custom swipe action options
+ * @param padding - Card padding (default: "md")
  */
 const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
   movie,
   onMovieUpdate,
+  size = "md",
+  orientation = "vertical",
+  showQuickActions = true,
+  isSelected = false,
+  enableSwipeActions = true,
+  onLongPress,
+  customSwipeActions,
+  padding = "md",
 }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -91,7 +134,7 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
 
     try {
       // First update local state for immediate UI feedback
-      onMovieUpdate(updatedMovie);
+      onMovieUpdate?.(updatedMovie);
 
       // Then update server state
       logger.info(`Toggling liked state for movie ${movie.id}`, {
@@ -128,7 +171,7 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
       });
 
       // Revert local state
-      onMovieUpdate(movie);
+      onMovieUpdate?.(movie);
     }
   };
 
@@ -140,7 +183,7 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
 
     try {
       // First update local state for immediate UI feedback
-      onMovieUpdate(updatedMovie);
+      onMovieUpdate?.(updatedMovie);
 
       // Then update server state
       logger.info(`Toggling watchlist state for movie ${movie.id}`, {
@@ -177,7 +220,7 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
       });
 
       // Revert local state
-      onMovieUpdate(movie);
+      onMovieUpdate?.(movie);
     }
   };
 
@@ -189,7 +232,7 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
 
     try {
       // First update local state for immediate UI feedback
-      onMovieUpdate(updatedMovie);
+      onMovieUpdate?.(updatedMovie);
 
       // Then update server state
       logger.info(`Toggling watched state for movie ${movie.id}`, {
@@ -226,7 +269,7 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
       });
 
       // Revert local state
-      onMovieUpdate(movie);
+      onMovieUpdate?.(movie);
     }
   };
 

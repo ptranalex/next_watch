@@ -10,10 +10,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import React from "react";
-
-interface MovieSkeletonProps {
-  isSmallerScreen: boolean;
-}
+import type { MovieSkeletonProps } from "./types";
 
 /**
  * Skeleton loading state for movie details

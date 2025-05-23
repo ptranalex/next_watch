@@ -12,19 +12,10 @@ import React, { useState, useEffect } from "react";
 import { MdGraphicEq } from "react-icons/md";
 import { RiLock2Line } from "react-icons/ri";
 import { createLogger } from "@/utils/logging";
+import type { RatingSliderProps } from "./types";
 
 // Create logger for this component
 const logger = createLogger("RatingSlider");
-
-interface RatingSliderProps {
-  step: number;
-  max: number;
-  min: number;
-  value?: number;
-  setValue: (val: number) => void;
-  icon: React.ElementType;
-  isLocked?: boolean;
-}
 
 const RatingSlider = ({
   value,

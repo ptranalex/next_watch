@@ -1,16 +1,8 @@
 import CriticScore from "./CriticScore";
 import { HStack } from "@chakra-ui/react";
+import type { RatingGroupProps } from "./types";
 
-interface Props {
-  movie: {
-    imdb_rating?: number | null;
-    rotten_tomatoes_rating?: number | null;
-    metacritic_rating?: number | null;
-  };
-  scale_up?: number;
-}
-
-const RatingGroup = ({ movie, scale_up = 1 }: Props) => {
+const RatingGroup = ({ movie, scale_up = 1 }: RatingGroupProps) => {
   return (
     <HStack marginBottom={3}>
       <CriticScore

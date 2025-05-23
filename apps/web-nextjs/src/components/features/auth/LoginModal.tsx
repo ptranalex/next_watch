@@ -16,18 +16,13 @@ import {
   TertiaryCTA,
   Divider,
 } from "@/components/ui/molecules/form/FormCTA";
-
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import type { LoginModalProps, AuthFormValidation } from "./types";
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const { login, error, clearError } = useAuth();
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [validation, setValidation] = useState<AuthFormValidation>({});
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const toast = useToast();
 
@@ -39,17 +34,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) {
       setUsername("");
       setPassword("");
-      setEmailError(null);
-      setPasswordError(null);
+      setValidation({});
     }
   }, [isOpen, clearError]);
 
   const validatePassword = (password: string) => {
     if (password.trim()) {
-      setPasswordError(null);
+      setValidation((prev) => ({ ...prev, password: undefined }));
       return true;
     } else {
-      setPasswordError("Password is required");
+      setValidation((prev) => ({ ...prev, password: "Password is required" }));
       return false;
     }
   };
@@ -57,10 +51,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const validateEmail = (email: string) => {
     const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (re.test(String(email).toLowerCase())) {
-      setEmailError(null);
+      setValidation((prev) => ({ ...prev, email: undefined }));
       return true;
     } else {
-      setEmailError("Invalid email address");
+      setValidation((prev) => ({ ...prev, email: "Invalid email address" }));
       return false;
     }
   };
@@ -81,7 +75,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         isClosable: true,
       });
     } else if (error) {
-      setPasswordError(error);
+      setValidation((prev) => ({ ...prev, general: error }));
     }
   };
 
@@ -117,7 +111,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             onChange={setUsername}
             onBlur={() => validateEmail(username)}
             onKeyDown={handleKeyDown}
-            error={emailError}
+            error={validation.email}
           />
 
           <FormInput
@@ -129,7 +123,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             onChange={setPassword}
             onBlur={() => validatePassword(password)}
             onKeyDown={handleKeyDown}
-            error={passwordError}
+            error={validation.password || validation.general}
           />
 
           <PrimaryCTA onClick={onSignInPassword} icon={HiArrowLeftOnRectangle}>

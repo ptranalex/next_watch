@@ -7,17 +7,28 @@ import {
   ModalOverlay,
 } from "@chakra-ui/react";
 import React from "react";
+import type { BaseModalProps } from "./types";
 
-interface BaseModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "full";
+/**
+ * Extended BaseModal Props
+ *
+ * Extends the shared BaseModalProps with additional modal-specific options
+ */
+interface ExtendedBaseModalProps extends BaseModalProps {
   isCentered?: boolean;
 }
 
-const BaseModal: React.FC<BaseModalProps> = ({
+/**
+ * BaseModal - A foundational modal component
+ *
+ * @param isOpen - Whether the modal is open
+ * @param onClose - Callback to close the modal
+ * @param title - Modal title (optional)
+ * @param children - Modal content
+ * @param size - Modal size variant
+ * @param isCentered - Whether to center the modal vertically
+ */
+const BaseModal: React.FC<ExtendedBaseModalProps> = ({
   isOpen,
   onClose,
   title,
@@ -37,9 +48,11 @@ const BaseModal: React.FC<BaseModalProps> = ({
         backdropFilter="blur(8px) hue-rotate(15deg)"
       />
       <ModalContent bg="bg.secondary" color="text.primary">
-        <ModalHeader fontSize="2xl" fontWeight="medium">
-          {title}
-        </ModalHeader>
+        {title && (
+          <ModalHeader fontSize="2xl" fontWeight="medium">
+            {title}
+          </ModalHeader>
+        )}
         <ModalCloseButton />
         <ModalBody padding={6}>{children}</ModalBody>
       </ModalContent>

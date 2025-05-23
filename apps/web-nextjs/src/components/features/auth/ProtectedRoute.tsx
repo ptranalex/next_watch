@@ -1,15 +1,9 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React from "react";
 import { useProtectedRoute } from "@/hooks";
 import { Spinner, Center, VStack, Text } from "@chakra-ui/react";
-
-interface ProtectedRouteProps {
-  children: ReactNode;
-  redirectUrl?: string;
-  requiredPermission?: string;
-  loadingComponent?: ReactNode;
-}
+import type { ProtectedRouteProps } from "./types";
 
 /**
  * Component that protects routes requiring authentication
@@ -17,19 +11,19 @@ interface ProtectedRouteProps {
  */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
-  redirectUrl,
-  requiredPermission,
-  loadingComponent,
+  requireAuth = true,
+  requiredRoles = [],
+  fallback,
 }) => {
   const { isLoading, isAuthorized } = useProtectedRoute({
-    redirectUrl,
-    requiredPermission,
+    redirectUrl: undefined, // Can be enhanced to support custom redirect URLs
+    requiredPermission: requiredRoles[0], // For now, use first role as permission
   });
 
   // Show loading state
   if (isLoading) {
-    if (loadingComponent) {
-      return <>{loadingComponent}</>;
+    if (fallback) {
+      return <>{fallback}</>;
     }
 
     return (
@@ -44,7 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // User is not authorized but useProtectedRoute will handle redirect
   // Just render nothing until redirect happens
-  if (!isAuthorized) {
+  if (requireAuth && !isAuthorized) {
     return null;
   }
 

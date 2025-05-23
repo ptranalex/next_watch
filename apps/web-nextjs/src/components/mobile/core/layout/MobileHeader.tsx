@@ -22,11 +22,12 @@ import {
 } from "react-icons/hi2";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks";
-import MobileNavMenu from "@/components/ui/organisms/navigation/MobileNavMenu";
+import { MobileNavMenu } from "@/components/mobile/navigation";
 import { LoginModal } from "@/components/features/auth";
 import ProfileModal from "@/components/features/profile/ProfileModal";
 import SearchInput from "@/components/ui/molecules/SearchInput";
 import { createLogger } from "@/utils/logging";
+import type { MobileHeaderProps } from "@/components/mobile/types";
 import logoLight from "@/assets/logo-light.jpeg";
 import logoDark from "@/assets/logo.jpeg";
 
@@ -34,15 +35,70 @@ import logoDark from "@/assets/logo.jpeg";
 const logger = createLogger("MobileHeader");
 
 /**
- * MobileHeader component
- * Enhanced header bar for mobile with app icon, common navigation buttons, and user menu
- * Search icon now toggles an integrated search bar
+ * Enhanced MobileHeader Props
+ *
+ * Extends shared MobileHeaderProps with app-specific features
  */
-const MobileHeader: React.FC = () => {
+interface AppMobileHeaderProps extends MobileHeaderProps {
+  /** Whether to show search functionality */
+  showSearch?: boolean;
+  /** Whether to show authenticated user navigation */
+  showUserNav?: boolean;
+  /** Custom logo source */
+  logoSrc?: string;
+  /** Custom logo dark mode source */
+  logoSrcDark?: string;
+  /** Callback when search is toggled */
+  onSearchToggle?: (isOpen: boolean) => void;
+}
+
+/**
+ * MobileHeader component using shared MobileHeaderProps
+ *
+ * Enhanced header bar for mobile with app icon, common navigation buttons, and user menu.
+ * Search icon now toggles an integrated search bar.
+ *
+ * Features:
+ * - Logo click navigation to home
+ * - Quick navigation buttons (Home, Search, Watchlist, Favorites)
+ * - Authentication-aware user menu
+ * - Integrated search bar toggle
+ * - Safe area support for notched devices
+ * - Configurable through shared mobile header props
+ *
+ * @param title - Header title (optional)
+ * @param showBackButton - Whether to show back button (default: false)
+ * @param onBackPress - Callback for back button press
+ * @param rightAction - Custom right action component
+ * @param leftAction - Custom left action component (overrides nav menu)
+ * @param sticky - Whether header should be sticky (default: true)
+ * @param showSearch - Whether to show search functionality (default: true)
+ * @param showUserNav - Whether to show user navigation (default: true)
+ * @param logoSrc - Custom logo source
+ * @param logoSrcDark - Custom logo dark mode source
+ * @param onSearchToggle - Callback when search is toggled
+ */
+const MobileHeader: React.FC<AppMobileHeaderProps> = ({
+  title,
+  showBackButton = false,
+  onBackPress,
+  rightAction,
+  leftAction,
+  sticky = true,
+  showSearch = true,
+  showUserNav = true,
+  logoSrc,
+  logoSrcDark,
+  onSearchToggle,
+}) => {
   const router = useRouter();
   const pathname = usePathname();
   const { colorMode } = useColorMode();
-  const logo = colorMode === "light" ? logoLight : logoDark;
+  const defaultLogo = colorMode === "light" ? logoLight : logoDark;
+  const customLogo = colorMode === "light" ? logoSrc : logoSrcDark;
+  const selectedLogo = customLogo || defaultLogo;
+  const logoSrcUrl =
+    typeof selectedLogo === "string" ? selectedLogo : selectedLogo.src;
   const { isAuthenticated, user } = useAuth();
 
   // Use semantic color tokens
@@ -53,6 +109,14 @@ const MobileHeader: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
+
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      router.back();
+    }
+  };
 
   const handleLogoClick = () => {
     logger.debug("Logo clicked, navigating to home page");
@@ -65,8 +129,10 @@ const MobileHeader: React.FC = () => {
   };
 
   const toggleSearchBar = () => {
+    const newState = !showSearchBar;
     logger.debug(`${showSearchBar ? "Closing" : "Opening"} search bar`);
-    setShowSearchBar(!showSearchBar);
+    setShowSearchBar(newState);
+    onSearchToggle?.(newState);
   };
 
   const handleOpenLoginModal = () => {
@@ -129,109 +195,152 @@ const MobileHeader: React.FC = () => {
           display={showSearchBar ? "none" : "flex"}
         >
           <Flex align="center">
-            <MobileNavMenu />
-            <Image
-              src={logo.src}
-              alt="Next Watch Logo"
-              boxSize="40px"
-              objectFit="cover"
-              borderRadius="full"
-              ml={3}
-              onClick={handleLogoClick}
-              cursor="pointer"
-            />
-          </Flex>
-
-          <HStack spacing={2}>
-            <Tooltip label="Home" openDelay={500}>
+            {leftAction ? (
+              leftAction
+            ) : showBackButton ? (
               <IconButton
-                aria-label="Home"
-                icon={<HiHome />}
+                aria-label="Go back"
+                icon={<HiArrowLeftOnRectangle />}
                 fontSize={20}
                 variant="ghost"
-                color={isActive("/") ? activeNavColor : undefined}
-                onClick={() => handleNavigation("/")}
-              />
-            </Tooltip>
-
-            <Tooltip label="Search" openDelay={500}>
-              <IconButton
-                aria-label="Search"
-                icon={<HiMagnifyingGlass />}
-                fontSize={20}
-                variant="ghost"
-                color={isActive("/search") ? activeNavColor : undefined}
-                onClick={toggleSearchBar}
-              />
-            </Tooltip>
-
-            {isAuthenticated && (
-              <>
-                <Tooltip label="Watchlist" openDelay={500}>
-                  <IconButton
-                    aria-label="Watchlist"
-                    icon={<HiBookmark />}
-                    fontSize={20}
-                    variant="ghost"
-                    color={isActive("/watchlist") ? activeNavColor : undefined}
-                    onClick={() => handleNavigation("/watchlist")}
-                  />
-                </Tooltip>
-
-                <Tooltip label="Favorites" openDelay={500}>
-                  <IconButton
-                    aria-label="Favorites"
-                    icon={<HiHeart />}
-                    fontSize={20}
-                    variant="ghost"
-                    color={isActive("/favorites") ? activeNavColor : undefined}
-                    onClick={() => handleNavigation("/favorites")}
-                  />
-                </Tooltip>
-              </>
-            )}
-
-            {isAuthenticated && user ? (
-              <Avatar
-                size="sm"
-                name={user.username || user.email}
-                cursor="pointer"
-                onClick={handleOpenProfileModal}
+                onClick={handleBackPress}
+                mr={2}
               />
             ) : (
-              <IconButton
-                aria-label="Login"
-                icon={<HiArrowLeftOnRectangle />}
-                onClick={handleOpenLoginModal}
-                fontSize={20}
-                variant="ghost"
+              <MobileNavMenu />
+            )}
+
+            {!leftAction && (
+              <Image
+                src={logoSrcUrl}
+                alt="Next Watch Logo"
+                boxSize="40px"
+                objectFit="cover"
+                borderRadius="full"
+                ml={showBackButton ? 2 : 3}
+                onClick={handleLogoClick}
+                cursor="pointer"
               />
             )}
-          </HStack>
+
+            {title && (
+              <Box
+                ml={3}
+                fontSize="lg"
+                fontWeight="semibold"
+                color="text.primary"
+              >
+                {title}
+              </Box>
+            )}
+          </Flex>
+
+          {rightAction ? (
+            rightAction
+          ) : (
+            <HStack spacing={2}>
+              {showSearch && (
+                <Tooltip label="Search" openDelay={500}>
+                  <IconButton
+                    aria-label="Search"
+                    icon={<HiMagnifyingGlass />}
+                    fontSize={20}
+                    variant="ghost"
+                    color={isActive("/search") ? activeNavColor : undefined}
+                    onClick={toggleSearchBar}
+                  />
+                </Tooltip>
+              )}
+
+              {showUserNav && (
+                <>
+                  <Tooltip label="Home" openDelay={500}>
+                    <IconButton
+                      aria-label="Home"
+                      icon={<HiHome />}
+                      fontSize={20}
+                      variant="ghost"
+                      color={isActive("/") ? activeNavColor : undefined}
+                      onClick={() => handleNavigation("/")}
+                    />
+                  </Tooltip>
+
+                  {isAuthenticated && (
+                    <>
+                      <Tooltip label="Watchlist" openDelay={500}>
+                        <IconButton
+                          aria-label="Watchlist"
+                          icon={<HiBookmark />}
+                          fontSize={20}
+                          variant="ghost"
+                          color={
+                            isActive("/watchlist") ? activeNavColor : undefined
+                          }
+                          onClick={() => handleNavigation("/watchlist")}
+                        />
+                      </Tooltip>
+
+                      <Tooltip label="Favorites" openDelay={500}>
+                        <IconButton
+                          aria-label="Favorites"
+                          icon={<HiHeart />}
+                          fontSize={20}
+                          variant="ghost"
+                          color={
+                            isActive("/favorites") ? activeNavColor : undefined
+                          }
+                          onClick={() => handleNavigation("/favorites")}
+                        />
+                      </Tooltip>
+                    </>
+                  )}
+
+                  {isAuthenticated && user ? (
+                    <Avatar
+                      size="sm"
+                      name={user.username || user.email}
+                      cursor="pointer"
+                      onClick={handleOpenProfileModal}
+                    />
+                  ) : (
+                    <IconButton
+                      aria-label="Login"
+                      icon={<HiArrowLeftOnRectangle />}
+                      onClick={handleOpenLoginModal}
+                      fontSize={20}
+                      variant="ghost"
+                    />
+                  )}
+                </>
+              )}
+            </HStack>
+          )}
         </Flex>
 
         {/* Search bar section - appears when search icon is clicked */}
-        <Flex
-          align="center"
-          justify="space-between"
-          padding="16px"
-          height="64px"
-          display={showSearchBar ? "flex" : "none"}
-        >
-          <IconButton
-            aria-label="Close search"
-            icon={<HiXMark />}
-            fontSize={20}
-            variant="ghost"
-            onClick={toggleSearchBar}
-          />
-          <Box flex="1" mx={3}>
-            <SearchInput
-              onFocus={handleSearchFocus}
-              onBlur={handleSearchBlur}
+        {showSearch && (
+          <Flex
+            align="center"
+            justify="space-between"
+            padding="16px"
+            height="64px"
+            display={showSearchBar ? "flex" : "none"}
+          >
+            <IconButton
+              aria-label="Close search"
+              icon={<HiXMark />}
+              fontSize={20}
+              variant="ghost"
+              onClick={toggleSearchBar}
             />
-          </Box>
-        </Flex>
+            <Box flex="1" mx={3}>
+              <SearchInput
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+              />
+            </Box>
+          </Flex>
+        )}
       </Box>
 
       {/* Modals */}

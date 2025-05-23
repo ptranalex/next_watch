@@ -1,9 +1,6 @@
 import { Box, Heading, Text } from "@chakra-ui/react";
 import React from "react";
-
-interface MovieErrorStateProps {
-  error?: Error | string;
-}
+import type { MovieErrorStateProps } from "./types";
 
 /**
  * Error state display for movie details

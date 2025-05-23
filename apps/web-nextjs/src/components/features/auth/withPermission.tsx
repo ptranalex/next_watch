@@ -21,31 +21,37 @@ interface WithPermissionOptions {
 }
 
 /**
- * Default unauthorized component
+ * Default unauthorized component with consistent theming
  */
 const DefaultUnauthorized: React.FC<{ redirectTo?: string }> = ({
   redirectTo,
 }) => {
   const router = useRouter();
 
+  const handleGoBack = () => {
+    if (redirectTo) {
+      router.push(redirectTo);
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <Box p={8} textAlign="center">
       <Heading size="lg" mb={4} color="feedback.error">
         Access Denied
       </Heading>
-      <Text mb={6}>
+      <Text mb={6} color="text.secondary">
         You don&apos;t have permission to access this resource.
       </Text>
-      {redirectTo && (
-        <Button
-          bg="colors.primary"
-          color="text.inverse"
-          _hover={{ bg: "colors.secondary" }}
-          onClick={() => router.push(redirectTo)}
-        >
-          Go Back
-        </Button>
-      )}
+      <Button
+        bg="colors.primary"
+        color="text.inverse"
+        _hover={{ bg: "colors.secondary" }}
+        onClick={handleGoBack}
+      >
+        {redirectTo ? "Go Back" : "Return"}
+      </Button>
     </Box>
   );
 };
@@ -53,10 +59,18 @@ const DefaultUnauthorized: React.FC<{ redirectTo?: string }> = ({
 /**
  * Higher-order component that restricts access based on permissions
  *
+ * @example
+ * ```tsx
+ * const ProtectedComponent = withPermission(MyComponent, {
+ *   requiredPermission: 'admin',
+ *   redirectTo: '/login'
+ * });
+ * ```
+ *
  * @param Component The component to protect
  * @param options Permission options
  */
-export function withPermission<P extends object>(
+export function withPermission<P extends Record<string, unknown>>(
   Component: React.ComponentType<P>,
   options: WithPermissionOptions
 ) {
@@ -74,20 +88,29 @@ export function withPermission<P extends object>(
 
     // Handle redirects in useEffect to ensure they only happen client-side
     useEffect(() => {
-      // Check if user is authenticated and has permission
-      const hasAccess = isAuthenticated && hasPermission(requiredPermission);
-
       // Only redirect if user doesn't have access and redirectTo is set
-      if (!hasAccess && redirectTo && !fallback) {
+      if (!isLoading && !isAuthenticated && redirectTo && !fallback) {
+        router.push(redirectTo);
+        return;
+      }
+
+      // Check if authenticated user has permission
+      if (
+        !isLoading &&
+        isAuthenticated &&
+        !hasPermission(requiredPermission) &&
+        redirectTo &&
+        !fallback
+      ) {
         router.push(redirectTo);
       }
-    }, [isAuthenticated, hasPermission, router]);
+    }, [isAuthenticated, hasPermission, isLoading, router]);
 
     // Handle loading state
     if (showLoading && isLoading) {
       return (
         <Box p={8} textAlign="center">
-          <Text>Checking permissions...</Text>
+          <Text color="text.secondary">Checking permissions...</Text>
         </Box>
       );
     }

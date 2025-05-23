@@ -8,6 +8,7 @@ import { useSyncFilterToUrl } from "@/hooks/filter/useSyncFilterToUrl";
 import { useFilterResetOnRouteChange } from "@/hooks/filter/useFilterResetOnRouteChange";
 import { useMovieFilterRehydration } from "@/hooks/filter/useMovieFilterRehydration";
 import { createLogger } from "@/utils/logging";
+import type { AppShellProps } from "./types";
 
 // Create logger for this component
 const logger = createLogger("AppShell");
@@ -54,11 +55,26 @@ const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
 };
 
 /**
- * AppShell component
- * Responsible for the UI shell of the application
- * Memoized client component that provides the main layout structure
+ * AppShell component using shared AppShellProps
+ *
+ * Provides the main application layout structure with flexible header,
+ * sidebar, footer, and content areas.
+ *
+ * @param children - Main content area
+ * @param header - Header content (defaults to NavBar)
+ * @param sidebar - Sidebar content (defaults to SideBar)
+ * @param footer - Footer content (optional)
+ * @param isSidebarOpen - Whether sidebar is open (responsive behavior)
+ * @param onSidebarToggle - Callback for sidebar toggle
  */
-function AppShell({ children }: { children: React.ReactNode }) {
+function AppShell({
+  children,
+  header,
+  sidebar,
+  footer,
+  isSidebarOpen,
+  onSidebarToggle,
+}: AppShellProps) {
   // Log app shell rendering
   useEffect(() => {
     logger.info("AppShell mounted - rendering main application layout");
@@ -68,15 +84,21 @@ function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Default components using existing implementation
+  const defaultHeader = header || <MemoizedNavBar />;
+  const defaultSidebar = sidebar || <MemoizedSideBar />;
+
   return (
     <>
-      <MemoizedNavBar />
+      {/* Header area */}
+      {defaultHeader}
 
-      {/* Suspense for filter hooks */}
+      {/* Filter hooks provider */}
       <Suspense fallback={null}>
         <FilterHooksProvider />
       </Suspense>
 
+      {/* Main layout container */}
       <Box px={{ base: 0, xl: 32 }} maxW="1600px" mx="auto" paddingX={5}>
         <Grid
           templateAreas={{
@@ -85,16 +107,22 @@ function AppShell({ children }: { children: React.ReactNode }) {
           }}
           templateColumns={{ base: "1fr", lg: "200px 1fr" }}
         >
+          {/* Sidebar area - responsive */}
           <Show above="lg">
             <GridItem area="aside" paddingRight={5}>
-              <MemoizedSideBar />
+              {defaultSidebar}
             </GridItem>
           </Show>
+
+          {/* Main content area */}
           <GridItem area="main">
             <ContentWithSuspense>{children}</ContentWithSuspense>
           </GridItem>
         </Grid>
       </Box>
+
+      {/* Footer area */}
+      {footer && <Box mt={8}>{footer}</Box>}
     </>
   );
 }

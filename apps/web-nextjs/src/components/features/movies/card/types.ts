@@ -1,44 +1,83 @@
+import {
+  MovieUpdateCallback,
+  MovieInteractionEndpoint,
+  ToggleableMovieAttribute,
+  MovieCardOrientation,
+  MovieCardBaseProps,
+  MovieInteractionProps,
+} from "../types";
+import { ComponentSize } from "../../../ui/types";
 import { Movie } from "@/domain/entities";
 
 /**
- * Common types for movie card components
+ * Movie Card Component Types
+ *
+ * Specific types for movie card components, extending shared feature types.
  */
 
-// Common size variant used across card components
-export type CardComponentSize = "sm" | "md" | "lg";
+// Re-export shared types for convenience
+export type {
+  MovieUpdateCallback,
+  MovieInteractionEndpoint,
+  ToggleableMovieAttribute,
+  MovieCardOrientation,
+  ComponentSize,
+  MovieCardBaseProps,
+  MovieInteractionProps,
+};
 
-// Common orientation for card layouts
-export type CardOrientation = "vertical" | "horizontal";
+// ============================================================================
+// Card-Specific Component Props
+// ============================================================================
 
-// Movie update callback - used by MovieCard, MovieQuickAction
-export type MovieUpdateCallback = (updatedMovie: Movie) => void;
-
-// Toggle callback - used by CardToggleIconButton and similar components
-export type ToggleCallback = (isActive: boolean) => void;
-
-// Movie attributes that can be toggled
-export type ToggleableMovieAttribute = "watched" | "liked" | "in_watchlist";
-
-// API endpoints for movie interactions
-export type MovieInteractionEndpoint = "watched" | "liked" | "towatch";
-
-// Props for movie card components that need movie and update callback
-export interface MovieCardBaseProps {
+/** Movie card component props */
+export interface MovieCardProps {
   movie: Movie;
   onMovieUpdate: MovieUpdateCallback;
 }
 
-// Props for components that handle movie interactions
-export interface MovieInteractionProps extends MovieCardBaseProps {
-  size?: CardComponentSize;
-  orientation?: CardOrientation;
+/** Movie card container props */
+export interface MovieCardContainerProps {
+  children: React.ReactNode;
 }
 
-// Props for toggle-based components
-export interface ToggleComponentProps {
+/** Movie rating indicator props for cards */
+export interface MovieRatingIndicatorProps {
+  rating?: number | null;
+  position?: {
+    top?: string | number;
+    left?: string | number;
+    bottom?: string | number;
+    right?: string | number;
+  };
+  iconSize?: number | string;
+  zIndex?: number;
+}
+
+/** Card toggle icon button props */
+export interface CardToggleIconButtonProps {
   movie: Movie;
   attribute: ToggleableMovieAttribute;
-  endpoint: MovieInteractionEndpoint;
-  onToggle: ToggleCallback;
-  size?: CardComponentSize;
+  endpoint: "watched" | "liked" | "towatch";
+  onToggle: (value: boolean) => void;
+  icon: React.ReactElement;
+  label: string;
+  size?: ComponentSize;
+  isEnabled: boolean;
+}
+
+/** Copy to clipboard button props for cards */
+export interface CopyToClipboardButtonProps {
+  textToCopy: string;
+  label: string;
+  size?: ComponentSize;
+}
+
+/** Movie quick action props for cards */
+export interface MovieQuickActionProps {
+  movie: Movie;
+  onMovieUpdate: MovieUpdateCallback;
+  size?: ComponentSize;
+  orientation?: MovieCardOrientation;
+  isHovered?: boolean;
 }

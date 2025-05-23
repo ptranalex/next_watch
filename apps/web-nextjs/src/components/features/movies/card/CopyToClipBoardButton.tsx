@@ -1,12 +1,7 @@
 import { IconButton } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { HiCloudArrowDown, HiLink } from "react-icons/hi2";
-
-interface CopyToClipboardButtonProps {
-  textToCopy: string;
-  label: string; // Aria label for the button
-  size?: "sm" | "md" | "lg";
-}
+import type { CopyToClipboardButtonProps } from "./types";
 
 const CopyToClipboardButton: React.FC<CopyToClipboardButtonProps> = ({
   textToCopy,

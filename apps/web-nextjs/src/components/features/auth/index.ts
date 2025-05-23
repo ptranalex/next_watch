@@ -5,6 +5,25 @@
  * including modals, protection utilities, and permission management.
  */
 
+// ============================================================================
+// Types
+// ============================================================================
+
+export type {
+  // Auth modal types from local types file
+  AuthModalBaseProps,
+  LoginModalProps,
+  SignupModalProps,
+  SetPasswordModalProps,
+  PermissionGuardProps,
+  ProtectedRouteProps,
+  AuthFormValidation,
+} from "./types";
+
+// ============================================================================
+// Components
+// ============================================================================
+
 // Authentication modals
 export { default as LoginModal } from "./LoginModal";
 export { default as SignupModal } from "./SignupModal";

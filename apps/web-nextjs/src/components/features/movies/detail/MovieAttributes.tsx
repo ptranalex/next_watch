@@ -1,4 +1,4 @@
-import { Genre, Movie } from "@/domain/entities";
+import { Genre } from "@/domain/entities";
 import { useMovieCast } from "@/hooks";
 import {
   Link as ChakraLink,
@@ -8,12 +8,9 @@ import {
 } from "@chakra-ui/react";
 import Link from "next/link";
 import DefinitionItem from "@/components/ui/atoms/DefinitionItem";
+import type { MovieAttributesProps } from "./types";
 
-interface Props {
-  movie: Movie;
-}
-
-const MovieAttributes = ({ movie }: Props) => {
+const MovieAttributes = ({ movie }: MovieAttributesProps) => {
   // Use optional chaining and nullish coalescing to safely access movie.id
   const movieId = typeof movie.id === "number" ? movie.id : 0;
   const { data: castData, isLoading } = useMovieCast(movieId);

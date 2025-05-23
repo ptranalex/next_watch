@@ -14,29 +14,44 @@ import {
   HiXCircle,
 } from "react-icons/hi2";
 import { IconType } from "react-icons";
+import type { BannerProps } from "./types";
 
-export type InfoBannerVariant = "info" | "warning" | "error" | "success";
-
-interface InfoBannerProps {
-  variant?: InfoBannerVariant;
-  children: React.ReactNode;
-  icon?: IconType;
-  onClose?: () => void;
+/**
+ * InfoBanner Props
+ *
+ * Extends the shared BannerProps with InfoBanner-specific functionality
+ */
+interface InfoBannerProps extends Omit<BannerProps, "message"> {
+  children: React.ReactNode; // Use children instead of message for flexibility
+  icon?: IconType; // Override with specific icon type
 }
 
 // Define variant icons outside component as they don't depend on color mode
-const variantIcons: Record<InfoBannerVariant, IconType> = {
+const variantIcons: Record<Required<BannerProps>["variant"], IconType> = {
   info: HiInformationCircle,
   warning: HiExclamationTriangle,
   error: HiXCircle,
   success: HiCheckCircle,
 };
 
+/**
+ * InfoBanner - A flexible banner component for displaying contextual information
+ *
+ * @param variant - Banner variant from shared BannerProps (info, warning, error, success)
+ * @param children - Banner content (flexible alternative to message prop)
+ * @param icon - Optional custom icon (defaults to variant-based icon)
+ * @param onClose - Optional close handler from shared BannerProps
+ * @param isClosable - Whether banner can be closed (derived from onClose presence)
+ * @param title - Optional title from shared BannerProps
+ * @param action - Optional action element from shared BannerProps
+ */
 const InfoBanner: React.FC<InfoBannerProps> = ({
   variant = "info",
   children,
   icon,
   onClose,
+  title,
+  action,
 }) => {
   // Define variant styles inside component to use hooks properly
   const variantStyles = {
@@ -82,9 +97,17 @@ const InfoBanner: React.FC<InfoBannerProps> = ({
     >
       <Flex alignItems="start">
         <Icon as={BannerIcon} boxSize={5} mr={3} mt={1} />
-        <Text fontSize="sm" lineHeight="1.5" flex="1">
-          {children}
-        </Text>
+        <Box flex="1">
+          {title && (
+            <Text fontSize="sm" fontWeight="semibold" mb={1}>
+              {title}
+            </Text>
+          )}
+          <Text fontSize="sm" lineHeight="1.5">
+            {children}
+          </Text>
+          {action && <Box mt={2}>{action}</Box>}
+        </Box>
         {onClose && (
           <CloseButton
             size="sm"
@@ -100,5 +123,8 @@ const InfoBanner: React.FC<InfoBannerProps> = ({
     </Box>
   );
 };
+
+// Export the variant type for backward compatibility
+export type InfoBannerVariant = Required<BannerProps>["variant"];
 
 export default InfoBanner;

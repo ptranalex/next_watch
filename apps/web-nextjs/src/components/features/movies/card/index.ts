@@ -7,15 +7,18 @@
 
 // Types
 export type {
-  CardComponentSize,
-  CardOrientation,
+  ComponentSize,
+  MovieCardOrientation,
   MovieUpdateCallback,
-  ToggleCallback,
   ToggleableMovieAttribute,
   MovieInteractionEndpoint,
   MovieCardBaseProps,
   MovieInteractionProps,
-  ToggleComponentProps,
+  MovieCardProps,
+  MovieCardContainerProps,
+  MovieRatingIndicatorProps,
+  CardToggleIconButtonProps,
+  CopyToClipboardButtonProps,
 } from "./types";
 
 // Main card components

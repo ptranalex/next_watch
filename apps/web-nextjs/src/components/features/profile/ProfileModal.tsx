@@ -1,27 +1,22 @@
-import {
-  Avatar,
-  Button,
-  Flex,
-  Heading,
-  Icon,
-  Stack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Avatar, Flex, Heading, Stack, Text, VStack } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { HiArrowRightOnRectangle, HiOutlineArrowUpTray } from "react-icons/hi2";
 import { useAuth } from "@/hooks";
 import { useRouter } from "next/navigation";
 import ImportNetflixHistoryModal from "@/components/features/profile/ImportNetflixHistoryModal";
 import BaseModal from "@/components/ui/organisms/BaseModal";
-import { PrimaryCTA, TertiaryCTA, Divider } from "@/components/ui/molecules/form/FormCTA";
+import {
+  PrimaryCTA,
+  TertiaryCTA,
+  Divider,
+} from "@/components/ui/molecules/form/FormCTA";
+import type { ProfileModalProps } from "./types";
 
-interface ProfileModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({
+  isOpen,
+  onClose,
+  // activeTab functionality to be implemented
+}) => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);

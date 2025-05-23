@@ -4,16 +4,16 @@ import { Movie } from "@/domain/entities";
 import { Box, HStack, VStack, useColorModeValue } from "@chakra-ui/react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
 import type {
-  CardComponentSize,
-  CardOrientation,
+  ComponentSize,
+  MovieCardOrientation,
   MovieUpdateCallback,
 } from "./types";
 
 interface Props {
   movie: Movie;
   onMovieUpdate: MovieUpdateCallback;
-  size?: CardComponentSize;
-  orientation?: CardOrientation;
+  size?: ComponentSize;
+  orientation?: MovieCardOrientation;
   isHovered: boolean; // Prop to indicate blur effect
 }
 

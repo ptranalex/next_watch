@@ -1,35 +1,6 @@
 import { Box, Icon } from "@chakra-ui/react";
 import { HiMiniStar } from "react-icons/hi2";
-
-interface MovieRatingIndicatorProps {
-  /**
-   * The IMDB rating value to display
-   * If undefined or null, no indicator is shown
-   */
-  rating?: number | null;
-
-  /**
-   * Custom positioning props - allows override of default positioning
-   */
-  position?: {
-    top?: string | number;
-    left?: string | number;
-    bottom?: string | number;
-    right?: string | number;
-  };
-
-  /**
-   * Size of the star icon
-   * @default 6
-   */
-  iconSize?: number | string;
-
-  /**
-   * Z-index for layering control
-   * @default 0
-   */
-  zIndex?: number;
-}
+import type { MovieRatingIndicatorProps } from "./types";
 
 /**
  * MovieRatingIndicator - Displays a color-coded star indicator for movie ratings

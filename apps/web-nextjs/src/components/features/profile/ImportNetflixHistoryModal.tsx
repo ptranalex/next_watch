@@ -1,37 +1,26 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
   Stack,
   Text,
   useToast,
   Box,
   Progress,
-  Icon,
-  Flex,
   ListItem,
   UnorderedList,
 } from "@chakra-ui/react";
-import {
-  HiDocumentArrowUp,
-  HiInformationCircle,
-  HiExclamationTriangle,
-} from "react-icons/hi2";
+import { HiDocumentArrowUp, HiExclamationTriangle } from "react-icons/hi2";
 import userAPI from "@/services/api/user/user-api";
 import { NetflixImportResult } from "@/services/api/user/types";
 import BaseModal from "@/components/ui/organisms/BaseModal";
-import { PrimaryCTA, SecondaryCTA } from "@/components/ui/molecules/form/FormCTA";
+import {
+  PrimaryCTA,
+  SecondaryCTA,
+} from "@/components/ui/molecules/form/FormCTA";
 import InfoBanner from "@/components/ui/molecules/InfoBanner";
 import FileInput from "@/components/ui/molecules/form/FileInput";
+import type { BaseModalProps } from "@/components/ui/types";
 
-interface ImportNetflixHistoryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const ImportNetflixHistoryModal: React.FC<ImportNetflixHistoryModalProps> = ({
+const ImportNetflixHistoryModal: React.FC<BaseModalProps> = ({
   isOpen,
   onClose,
 }) => {

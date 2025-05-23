@@ -1,28 +1,21 @@
 import ToggleIconButton from "@/components/ui/molecules/ToggleIconButton";
 import CopyToClipboardButton from "@/components/features/movies/card/CopyToClipBoardButton";
-import { Movie } from "@/domain/entities";
 import userInteractionAPI from "@/services/api/user/user-interaction-api";
 import { HStack, useToast, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
 import { createLogger } from "@/utils/logging";
+import type { MovieDetailQuickActionProps } from "./types";
 
 // Create logger for this component
 const logger = createLogger("MovieQuickAction");
 
-interface Props {
-  movie: Movie;
-  onMovieUpdate: (updatedMovie: Movie) => void;
-  size?: "sm" | "md" | "lg";
-  orientation?: "vertical" | "horizontal";
-}
-
 const MovieQuickAction = ({
   movie,
-  onMovieUpdate,
+  onUpdateMovie,
   size = "sm",
   orientation = "vertical",
-}: Props) => {
+}: MovieDetailQuickActionProps) => {
   const Stack = orientation === "vertical" ? VStack : HStack;
   const toast = useToast();
   const [isLoadingWatched, setIsLoadingWatched] = useState(false);
@@ -54,7 +47,7 @@ const MovieQuickAction = ({
     try {
       // Optimistic update
       const updatedMovie = { ...movie, watched: newValue };
-      onMovieUpdate(updatedMovie);
+      onUpdateMovie(updatedMovie);
       logger.debug(`Optimistic update applied for watched status: ${newValue}`);
 
       // API call
@@ -82,7 +75,7 @@ const MovieQuickAction = ({
         error
       );
       const revertedMovie = { ...movie, watched: !newValue };
-      onMovieUpdate(revertedMovie);
+      onUpdateMovie(revertedMovie);
       logger.debug(
         `Optimistic update reverted for watched status to: ${!newValue}`
       );
@@ -117,7 +110,7 @@ const MovieQuickAction = ({
     try {
       // Optimistic update
       const updatedMovie = { ...movie, liked: newValue };
-      onMovieUpdate(updatedMovie);
+      onUpdateMovie(updatedMovie);
       logger.debug(`Optimistic update applied for liked status: ${newValue}`);
 
       // API call
@@ -145,7 +138,7 @@ const MovieQuickAction = ({
         error
       );
       const revertedMovie = { ...movie, liked: !newValue };
-      onMovieUpdate(revertedMovie);
+      onUpdateMovie(revertedMovie);
       logger.debug(
         `Optimistic update reverted for liked status to: ${!newValue}`
       );
@@ -182,7 +175,7 @@ const MovieQuickAction = ({
     try {
       // Optimistic update
       const updatedMovie = { ...movie, in_watchlist: newValue };
-      onMovieUpdate(updatedMovie);
+      onUpdateMovie(updatedMovie);
       logger.debug(
         `Optimistic update applied for watchlist status: ${newValue}`
       );
@@ -212,7 +205,7 @@ const MovieQuickAction = ({
         error
       );
       const revertedMovie = { ...movie, in_watchlist: !newValue };
-      onMovieUpdate(revertedMovie);
+      onUpdateMovie(revertedMovie);
       logger.debug(
         `Optimistic update reverted for watchlist status to: ${!newValue}`
       );

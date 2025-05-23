@@ -15,15 +15,12 @@ export { default as CriticScore } from "./CriticScore";
 export { default as ActorsGallery } from "./ActorsGallery";
 export { default as TrailerCard } from "./TrailerCard";
 export { default as RatingGroup } from "./RatingGroup";
+export { default as MovieQuickAction } from "./MovieQuickAction";
 
 // Loading and state components
 export { default as MovieSkeleton } from "./MovieSkeleton";
 export { default as MovieErrorState } from "./MovieErrorState";
 export { default as MovieNotFoundState } from "./MovieNotFoundState";
-
-// Utility components
-export { default as ForceSyncButton } from "./ForceSyncButton";
-export { default as FshareButton } from "./FshareButton";
 
 // Types
 export * from "./types";

@@ -1,12 +1,7 @@
 import { CircularProgress, CircularProgressLabel } from "@chakra-ui/react";
+import type { CriticScoreProps } from "./types";
 
-interface Props {
-  source: string;
-  value: number | null | undefined;
-  scale_up?: number;
-}
-
-const CriticScore = ({ source, value, scale_up = 1 }: Props) => {
+const CriticScore = ({ source, value, scale_up = 1 }: CriticScoreProps) => {
   const getColor = (source: string, value: number | null | undefined) => {
     let color: string;
     let progress_display: number;

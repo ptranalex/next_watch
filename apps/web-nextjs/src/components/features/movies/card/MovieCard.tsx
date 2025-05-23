@@ -15,16 +15,12 @@ import { createLogger } from "@/utils/logging";
 import MovieQuickAction from "./MovieQuickAction";
 import MovieRatingIndicator from "./MovieRatingIndicator";
 import { getPosterUrl } from "@/utils/media";
+import type { MovieCardProps } from "./types";
 
 // Create logger for this component
 const logger = createLogger("MovieCard");
 
-interface Props {
-  movie: Movie;
-  onMovieUpdate: (movie: Movie) => void;
-}
-
-const MovieCard = ({ movie, onMovieUpdate }: Props) => {
+const MovieCard = ({ movie, onMovieUpdate }: MovieCardProps) => {
   const { user } = useAuth();
   const bgColor = useColorModeValue("bg.secondary", "bg.tertiary");
   const [isHovered, setIsHovered] = useState(false);

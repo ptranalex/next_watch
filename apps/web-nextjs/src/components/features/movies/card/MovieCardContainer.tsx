@@ -1,11 +1,8 @@
 import { Box } from "@chakra-ui/react";
-import React, { ReactNode } from "react";
+import React from "react";
+import type { MovieCardContainerProps } from "./types";
 
-interface Props {
-  children: ReactNode;
-}
-
-const MovieCardContainer = ({ children }: Props) => {
+const MovieCardContainer = ({ children }: MovieCardContainerProps) => {
   return (
     <Box
       _hover={{

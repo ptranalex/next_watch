@@ -1,10 +1,7 @@
 import { useMovieTrailer } from "@/hooks";
 import { Box, Spinner, Text, VStack } from "@chakra-ui/react";
 import React from "react";
-
-interface TrailerCardProps {
-  movieId: number;
-}
+import type { TrailerCardProps } from "./types";
 
 const TrailerCard: React.FC<TrailerCardProps> = ({ movieId }) => {
   // Call hook unconditionally first

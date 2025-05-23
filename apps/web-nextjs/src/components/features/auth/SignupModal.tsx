@@ -8,83 +8,82 @@ import { ValidationError } from "@/services/api";
 import BaseModal from "@/components/ui/organisms/BaseModal";
 import FormInput from "@/components/ui/molecules/form/FormInput";
 import { PrimaryCTA } from "@/components/ui/molecules/form/FormCTA";
+import type { SignupModalProps, AuthFormValidation } from "./types";
 
-interface SignupModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
+const SignupModal: React.FC<SignupModalProps> = ({
+  isOpen,
+  onClose,
+  requireEmailVerification = false,
+  allowLogin = true,
+  onSuccess,
+}) => {
   const { register, isLoading, error } = useAuth();
-  const [full_name, setFull_name] = useState("");
+  const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [verifiedPassword, setVerifiedPassword] = useState("");
-  const [fullNameError, setFullNameError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [verifiedPasswordError, setVerifiedPasswordError] = useState<
-    string | null
-  >(null);
-  const [signupError, setSignupError] = useState<string | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [validation, setValidation] = useState<AuthFormValidation>({});
   const toast = useToast();
 
   useEffect(() => {
     if (!isOpen) {
       setUsername("");
       setPassword("");
-      setVerifiedPassword("");
-      setFull_name("");
-      setFullNameError(null);
-      setEmailError(null);
-      setPasswordError(null);
-      setVerifiedPasswordError(null);
-      setSignupError(null);
+      setConfirmPassword("");
+      setFullName("");
+      setValidation({});
     }
   }, [isOpen]);
 
-  const validatePassword = () => {
+  const validatePassword = (password: string) => {
     const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
     if (re.test(password)) {
-      setPasswordError(null);
+      setValidation((prev) => ({ ...prev, password: undefined }));
       return true;
     } else {
-      setPasswordError(
-        "Password should be at least 8 characters long, contain at least one number, one lowercase and one uppercase letter"
-      );
+      setValidation((prev) => ({
+        ...prev,
+        password:
+          "Password should be at least 8 characters long, contain at least one number, one lowercase and one uppercase letter",
+      }));
       return false;
     }
   };
 
-  const validateVerifiedPassword = () => {
-    if (password === verifiedPassword) {
-      setVerifiedPasswordError(null);
+  const validateConfirmPassword = (confirmPass: string) => {
+    if (password === confirmPass) {
+      setValidation((prev) => ({ ...prev, confirmPassword: undefined }));
       return true;
     } else {
-      setVerifiedPasswordError(
-        "Re-entered password does not match the first password"
-      );
+      setValidation((prev) => ({
+        ...prev,
+        confirmPassword:
+          "Re-entered password does not match the first password",
+      }));
       return false;
     }
   };
 
-  const validateFullname = () => {
-    if (full_name.length > 0) {
-      setFullNameError(null);
+  const validateFullName = (name: string) => {
+    if (name.trim().length > 0) {
+      setValidation((prev) => ({ ...prev, fullName: undefined }));
       return true;
     } else {
-      setFullNameError("Full name cannot be empty");
+      setValidation((prev) => ({
+        ...prev,
+        fullName: "Full name cannot be empty",
+      }));
       return false;
     }
   };
 
-  const validateEmail = () => {
+  const validateEmail = (email: string) => {
     const re = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    if (re.test(String(username).toLowerCase())) {
-      setEmailError(null);
+    if (re.test(String(email).toLowerCase())) {
+      setValidation((prev) => ({ ...prev, email: undefined }));
       return true;
     } else {
-      setEmailError("Invalid email address");
+      setValidation((prev) => ({ ...prev, email: "Invalid email address" }));
       return false;
     }
   };
@@ -92,17 +91,21 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !validateEmail() ||
-      !validatePassword() ||
-      !validateVerifiedPassword() ||
-      !validateFullname()
-    ) {
-      return;
-    }
+    // Clear general error
+    setValidation((prev) => ({ ...prev, general: undefined }));
 
-    if (password !== verifiedPassword) {
-      setPasswordError("Passwords do not match");
+    // Validate all fields
+    const isEmailValid = validateEmail(username);
+    const isPasswordValid = validatePassword(password);
+    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
+    const isFullNameValid = validateFullName(fullName);
+
+    if (
+      !isEmailValid ||
+      !isPasswordValid ||
+      !isConfirmPasswordValid ||
+      !isFullNameValid
+    ) {
       return;
     }
 
@@ -110,28 +113,43 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
       const success = await register({
         email: username,
         password: password,
-        password_confirm: verifiedPassword,
-        username: full_name || undefined,
+        password_confirm: confirmPassword,
+        username: fullName || undefined,
       });
 
       if (success) {
         onClose();
+
+        const successMessage = requireEmailVerification
+          ? "Account created! Please check your email to verify your account."
+          : "Your account has been created successfully!";
+
         toast({
           title: "Account created!",
-          description: "Your account has been created successfully",
+          description: successMessage,
           status: "success",
           duration: 5000,
           isClosable: true,
         });
+
+        onSuccess?.();
       } else if (error) {
-        setSignupError(error);
+        setValidation((prev) => ({ ...prev, general: error }));
       }
     } catch (err) {
+      let errorMessage = "An unexpected error occurred";
+
       if (err instanceof ValidationError) {
-        setSignupError(err.message);
-      } else {
-        setSignupError("An unexpected error occurred");
+        errorMessage = err.message;
       }
+
+      setValidation((prev) => ({ ...prev, general: errorMessage }));
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !isLoading) {
+      handleSubmit(event as React.FormEvent);
     }
   };
 
@@ -149,10 +167,11 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
             label="Full Name"
             type="text"
             placeholder="Firstname Lastname"
-            value={full_name}
-            onChange={setFull_name}
-            onBlur={validateFullname}
-            error={fullNameError}
+            value={fullName}
+            onChange={setFullName}
+            onBlur={() => validateFullName(fullName)}
+            onKeyDown={handleKeyDown}
+            error={validation.fullName}
             isRequired
           />
 
@@ -163,8 +182,9 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
             placeholder="Email"
             value={username}
             onChange={setUsername}
-            onBlur={validateEmail}
-            error={emailError}
+            onBlur={() => validateEmail(username)}
+            onKeyDown={handleKeyDown}
+            error={validation.email}
             isRequired
           />
 
@@ -175,20 +195,22 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
             placeholder="Password"
             value={password}
             onChange={setPassword}
-            onBlur={validatePassword}
-            error={passwordError}
+            onBlur={() => validatePassword(password)}
+            onKeyDown={handleKeyDown}
+            error={validation.password}
             isRequired
           />
 
           <FormInput
-            id="verified_password"
+            id="confirm_password"
             label="Re-enter Password"
             type="password"
             placeholder="Password"
-            value={verifiedPassword}
-            onChange={setVerifiedPassword}
-            onBlur={validateVerifiedPassword}
-            error={verifiedPasswordError}
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            onBlur={() => validateConfirmPassword(confirmPassword)}
+            onKeyDown={handleKeyDown}
+            error={validation.confirmPassword}
             isRequired
           />
 
@@ -196,13 +218,29 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
             type="submit"
             isLoading={isLoading}
             icon={HiArrowLeftOnRectangle}
+            isDisabled={
+              !fullName ||
+              !username ||
+              !password ||
+              !confirmPassword ||
+              isLoading
+            }
           >
-            Sign up
+            Create Account
           </PrimaryCTA>
 
-          {signupError && (
+          {validation.general && (
             <Text as="sub" color="feedback.error">
-              {signupError}
+              {validation.general}
+            </Text>
+          )}
+
+          {allowLogin && (
+            <Text fontSize="sm" color="text.secondary" textAlign="center">
+              Already have an account?{" "}
+              <Text as="span" color="colors.primary" cursor="pointer">
+                Sign in here
+              </Text>
             </Text>
           )}
         </Stack>

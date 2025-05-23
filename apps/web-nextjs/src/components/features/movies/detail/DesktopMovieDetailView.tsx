@@ -166,7 +166,7 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
             >
               <MovieQuickAction
                 movie={movie}
-                onMovieUpdate={onUpdateMovie}
+                onUpdateMovie={onUpdateMovie}
                 orientation="horizontal"
                 size="md"
               />

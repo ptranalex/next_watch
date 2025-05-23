@@ -1,14 +1,26 @@
 /**
  * Movie Filter Components
  *
- * This module exports all components related to movie filtering functionality,
- * including filter interfaces, controls, and reusable filter sub-components.
+ * Components for filtering and sorting movies including buttons,
+ * modals, sliders, and genre selection.
  */
 
-// Main filter components
-export { default as MovieFilter } from "./MovieFilter";
-export { default as MovieFilterModal } from "./MovieFilterModal";
+// ============================================================================
+// Types
+// ============================================================================
 
-// Reusable filter controls
+export type {
+  FilterButtonProps,
+  MovieFilterModalProps,
+  RatingSliderProps,
+  GenreFilterProps,
+} from "./types";
+
+// ============================================================================
+// Components
+// ============================================================================
+
+export { default as MovieFilter } from "./MovieFilter";
 export { default as FilterButton } from "./FilterButton";
+export { default as MovieFilterModal } from "./MovieFilterModal";
 export { default as RatingSlider } from "./RatingSlider";

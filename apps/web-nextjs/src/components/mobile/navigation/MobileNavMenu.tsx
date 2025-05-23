@@ -1,7 +1,7 @@
 "use client";
 
 import ProfileModal from "@/components/features/profile/ProfileModal";
-import { MobileGenreSection } from "@/components/ui/organisms/navigation/sections";
+import { MobileGenreSection } from "@/components/mobile/navigation/sections";
 import { useAuth } from "@/hooks";
 import {
   Button,

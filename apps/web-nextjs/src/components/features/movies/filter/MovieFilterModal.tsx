@@ -15,14 +15,10 @@ import {
 import React from "react";
 import { HiArrowPath, HiArrowRight } from "react-icons/hi2";
 import { createLogger } from "@/utils/logging";
+import type { MovieFilterModalProps } from "./types";
 
 // Create logger for this component
 const logger = createLogger("MovieFilterModal");
-
-interface MovieFilterModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
 const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
   isOpen,

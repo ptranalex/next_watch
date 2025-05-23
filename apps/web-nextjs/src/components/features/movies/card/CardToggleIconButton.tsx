@@ -1,4 +1,3 @@
-import { Movie } from "@/domain/entities";
 import userInteractionAPI from "@/services/api/user/user-interaction-api";
 import {
   Box,
@@ -9,19 +8,9 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { TiMinus, TiPlus } from "react-icons/ti";
+import type { CardToggleIconButtonProps } from "./types";
 
-interface ToggleIconButtonProps {
-  movie: Movie;
-  attribute: "watched" | "liked" | "in_watchlist"; // The attribute to toggle
-  endpoint: "watched" | "liked" | "towatch"; // The API endpoint to use
-  onToggle: (value: boolean) => void;
-  icon: React.ReactElement; // Icon to show when the attribute is true
-  label: string; // Aria label for the button
-  size?: "sm" | "md" | "lg";
-  isEnabled: boolean; // Prop to indicate blur effect
-}
-
-const CardToggleIconButton: React.FC<ToggleIconButtonProps> = ({
+const CardToggleIconButton: React.FC<CardToggleIconButtonProps> = ({
   movie,
   attribute,
   endpoint,

@@ -4,10 +4,9 @@ import logoLight from "@/assets/logo-light.jpeg";
 import logoDark from "@/assets/logo.jpeg";
 import { LoginModal } from "@/components/features/auth";
 import ColorModeSwitch from "@/components/ui/atoms/ColorModeSwitch";
-import MobileNavMenu from "@/components/ui/organisms/navigation/MobileNavMenu";
 import SearchInput from "@/components/ui/molecules/SearchInput";
 import ProfileModal from "@/components/features/profile/ProfileModal";
-import { useAuth, useDevice } from "@/hooks";
+import { useAuth } from "@/hooks";
 import {
   Avatar,
   Box,
@@ -21,38 +20,64 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
 import { createLogger } from "@/utils/logging";
+import type { NavBarProps } from "../types";
 
 // Create logger for this component
 const logger = createLogger("NavBar");
 
-const NavBar: React.FC = () => {
+/**
+ * NavBar component using shared NavBarProps
+ *
+ * Desktop/tablet navigation bar with flexible customization options.
+ * Mobile navigation is handled by a separate mobile component.
+ *
+ * @param logo - Custom logo element (defaults to Next Watch logo)
+ * @param title - Navigation title (defaults to "Next Watch")
+ * @param showSearch - Whether to show search input (default: true)
+ * @param showUserActions - Whether to show user login/profile actions (default: true)
+ * @param showColorMode - Whether to show color mode switch (default: true)
+ * @param onLogoClick - Custom logo click handler (defaults to home navigation)
+ * @param customActions - Additional action elements to display
+ * @param className - CSS class name for styling
+ */
+const NavBar: React.FC<NavBarProps> = ({
+  logo,
+  title = "Next Watch",
+  showSearch = true,
+  showUserActions = true,
+  showColorMode = true,
+  onLogoClick,
+  customActions,
+  className,
+}) => {
   const { colorMode } = useColorMode();
-  const logo = colorMode === "light" ? logoLight : logoDark;
+  const defaultLogo = colorMode === "light" ? logoLight : logoDark;
   const router = useRouter();
-  const { isMobile } = useDevice();
-
   const { isAuthenticated, user } = useAuth();
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Log component initialization and auth state
   useEffect(() => {
     logger.debug(
-      `NavBar initialized: auth=${isAuthenticated}, mobile=${isMobile}, colorMode=${colorMode}`
+      `NavBar initialized: auth=${isAuthenticated}, colorMode=${colorMode}`
     );
 
     if (isAuthenticated && user) {
       logger.debug(`User authenticated: ${user.email}`);
     }
-  }, [isAuthenticated, user, isMobile, colorMode]);
+  }, [isAuthenticated, user, colorMode]);
 
   const handleLogoClick = useCallback(() => {
-    // Navigate to home page
-    logger.debug("Logo clicked, navigating to home page");
-    router.push("/");
-  }, [router]);
-
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    if (onLogoClick) {
+      onLogoClick();
+    } else {
+      // Default behavior: Navigate to home page
+      logger.debug("Logo clicked, navigating to home page");
+      router.push("/");
+    }
+  }, [onLogoClick, router]);
 
   const handleOpenLoginModal = () => {
     logger.info("Opening login modal");
@@ -74,28 +99,20 @@ const NavBar: React.FC = () => {
     setIsProfileModalOpen(false);
   };
 
-  const handleSearchFocus = () => {
-    logger.debug("Search input focused");
-    setIsSearchFocused(true);
-  };
-
-  const handleSearchBlur = () => {
-    logger.debug("Search input blurred");
-    setIsSearchFocused(false);
-  };
-
-  // Log layout changes
-  useEffect(() => {
-    if (isSearchFocused) {
-      logger.debug("Layout changed to search-focused mode");
-    }
-  }, [isSearchFocused]);
-
-  // Element visibility based on combined conditions
-  const showMobileNav = !isSearchFocused && isMobile;
-  const showLogo = !isSearchFocused;
-  const showHeading = !isSearchFocused && !isMobile;
-  const showUserIcon = !isSearchFocused;
+  // Render logo element
+  const logoElement = logo || (
+    <Image
+      src={defaultLogo.src}
+      alt="Next Watch Logo"
+      boxSize="40px"
+      objectFit="cover"
+      borderRadius="full"
+      margin="0"
+      padding="0"
+      onClick={handleLogoClick}
+      cursor="pointer"
+    />
+  );
 
   return (
     <>
@@ -108,53 +125,40 @@ const NavBar: React.FC = () => {
         boxShadow="xl"
         opacity="0.95"
         width="100%"
+        className={className}
       >
         <HStack padding="20px" spacing="10px">
-          {showMobileNav && <MobileNavMenu />}
-          {showLogo && (
-            <Image
-              src={logo.src}
-              alt="Next Watch Logo"
-              boxSize="40px"
-              objectFit="cover"
-              borderRadius="full"
-              margin="0"
-              padding="0"
-              onClick={handleLogoClick}
-              cursor="pointer"
-            />
-          )}
-          {showHeading && (
+          {logoElement}
+          {title && (
             <Heading size="sm" marginRight={10} whiteSpace="nowrap">
-              Next Watch
+              {title}
             </Heading>
           )}
-          <SearchInput onFocus={handleSearchFocus} onBlur={handleSearchBlur} />
-          {isAuthenticated && user && showUserIcon ? (
-            <Box
-              cursor="pointer"
-              onClick={handleOpenProfileModal}
-              ml={{ base: 0, md: 2 }}
-            >
-              <Avatar size="sm" name={user.username || user.email} />
-            </Box>
-          ) : !isSearchFocused ? (
-            <IconButton
-              aria-label="Login"
-              icon={<HiArrowLeftOnRectangle />}
-              onClick={handleOpenLoginModal}
-              fontSize={25}
-              variant="ghost"
-              color="text.secondary"
-            />
-          ) : (
-            showUserIcon && (
-              <Box ml={{ base: 0, md: 2 }}>
-                <Avatar size="sm" />
-              </Box>
-            )
+          {showSearch && <SearchInput onFocus={() => {}} onBlur={() => {}} />}
+          {showUserActions && (
+            <>
+              {isAuthenticated && user ? (
+                <Box
+                  cursor="pointer"
+                  onClick={handleOpenProfileModal}
+                  ml={{ base: 0, md: 2 }}
+                >
+                  <Avatar size="sm" name={user.username || user.email} />
+                </Box>
+              ) : (
+                <IconButton
+                  aria-label="Login"
+                  icon={<HiArrowLeftOnRectangle />}
+                  onClick={handleOpenLoginModal}
+                  fontSize={25}
+                  variant="ghost"
+                  color="text.secondary"
+                />
+              )}
+            </>
           )}
-          {!isSearchFocused && <ColorModeSwitch />}
+          {showColorMode && <ColorModeSwitch />}
+          {customActions && <Box ml={2}>{customActions}</Box>}
         </HStack>
       </Box>
       <LoginModal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} />

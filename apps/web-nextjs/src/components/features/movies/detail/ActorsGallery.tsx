@@ -3,12 +3,13 @@ import { Box, Image, Grid, Spinner, Text, Tooltip } from "@chakra-ui/react";
 import Link from "next/link";
 import React, { useState } from "react";
 import { getProfileUrl } from "@/utils/media";
+import type { ActorGalleryProps } from "../../actors/types";
 
-interface ActorsGalleryProps {
-  movieId: number;
-}
-
-const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
+const ActorsGallery: React.FC<ActorGalleryProps> = ({
+  movieId,
+  maxActors = 6,
+  showAllButton = false,
+}) => {
   // Fetch cast data using React Query
   const { data: castData, isLoading, error } = useMovieCast(movieId);
 
@@ -61,7 +62,7 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
   return (
     <Box width="100%">
       <Grid templateColumns="repeat(3, 1fr)" gap={2} width="100%">
-        {castData.cast.slice(0, 6).map((actor) => (
+        {castData.cast.slice(0, maxActors).map((actor) => (
           <Tooltip
             key={actor.id}
             label={actor.name}
@@ -152,6 +153,45 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
             </Box>
           </Tooltip>
         ))}
+
+        {/* Show "View All" button if there are more actors and showAllButton is true */}
+        {showAllButton && castData.cast.length > maxActors && (
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            borderRadius={4}
+            border="2px dashed"
+            borderColor="colors.primary"
+            _hover={{
+              bg: "bg.tertiary",
+              transform: "scale(1.05)",
+              transition: "all 0.2s ease-in-out",
+            }}
+            position="relative"
+            paddingBottom="150%"
+            w="100%"
+          >
+            <Link
+              href={`/movies/${movieId}/cast`}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text fontSize="sm" color="colors.primary" textAlign="center">
+                View All
+                <br />({castData.cast.length})
+              </Text>
+            </Link>
+          </Box>
+        )}
       </Grid>
     </Box>
   );
