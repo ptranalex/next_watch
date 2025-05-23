@@ -85,7 +85,7 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
   // For performance - extract only the needed rating data
   const ratings = React.useMemo(
     () => movieUtils.extractRatings(movie),
-    [movie.imdb_rating, movie.rotten_tomatoes_rating, movie.metacritic_rating]
+    [movie]
   );
 
   // Safely extract poster URL and title
