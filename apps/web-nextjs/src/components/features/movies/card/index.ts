@@ -5,6 +5,19 @@
  * including the main card component, rating indicators, and supporting utilities.
  */
 
+// Types
+export type {
+  CardComponentSize,
+  CardOrientation,
+  MovieUpdateCallback,
+  ToggleCallback,
+  ToggleableMovieAttribute,
+  MovieInteractionEndpoint,
+  MovieCardBaseProps,
+  MovieInteractionProps,
+  ToggleComponentProps,
+} from "./types";
+
 // Main card components
 export { default as MovieCard } from "./MovieCard";
 export { default as MovieCardContainer } from "./MovieCardContainer";

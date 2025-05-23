@@ -3,12 +3,17 @@ import CopyToClipboardButton from "./CopyToClipBoardButton";
 import { Movie } from "@/domain/entities";
 import { Box, HStack, VStack, useColorModeValue } from "@chakra-ui/react";
 import { HiBookmark, HiDocumentCheck, HiHeart } from "react-icons/hi2";
+import type {
+  CardComponentSize,
+  CardOrientation,
+  MovieUpdateCallback,
+} from "./types";
 
 interface Props {
   movie: Movie;
-  onMovieUpdate: (updatedMovie: Movie) => void;
-  size?: "sm" | "md" | "lg";
-  orientation?: "vertical" | "horizontal";
+  onMovieUpdate: MovieUpdateCallback;
+  size?: CardComponentSize;
+  orientation?: CardOrientation;
   isHovered: boolean; // Prop to indicate blur effect
 }
 

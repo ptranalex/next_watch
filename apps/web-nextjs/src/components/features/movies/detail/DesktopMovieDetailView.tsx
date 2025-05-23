@@ -1,4 +1,10 @@
-import React, { useEffect } from "react";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
+import { ExpandableText } from "@/components/ui/molecules/display";
+import { ErrorBoundary } from "@/components/ui/molecules/feedback";
+import { FEATURES } from "@/config/features";
+import { createLogger } from "@/utils/logging";
+import { getPosterUrl } from "@/utils/media";
+import { movieUtils } from "@/utils/movie/movieDataUtils";
 import {
   Box,
   GridItem,
@@ -8,20 +14,13 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { createLogger } from "@/utils/logging";
-import { movieUtils } from "@/utils/movie/movieDataUtils";
-import { FEATURES } from "@/config/features";
 import dynamic from "next/dynamic";
-import { Suspense } from "react";
-import { ErrorBoundary } from "@/components/ui/molecules/feedback";
+import React, { Suspense, useEffect } from "react";
 import ActorsGallery from "./ActorsGallery";
 import MovieAttributes from "./MovieAttributes";
 import MovieQuickAction from "./MovieQuickAction";
 import RatingGroup from "./RatingGroup";
-import { ExpandableText } from "@/components/ui/molecules/display";
-import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { MovieDetailViewProps } from "./types";
-import { getPosterUrl } from "@/utils/media";
 
 // Create logger for this component
 const logger = createLogger("DesktopMovieDetailView");
