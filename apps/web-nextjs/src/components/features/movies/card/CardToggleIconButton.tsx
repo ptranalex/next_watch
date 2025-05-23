@@ -1,6 +1,12 @@
 import { Movie } from "@/domain/entities";
 import userInteractionAPI from "@/services/api/user/user-interaction-api";
-import { Box, IconButton, useColorModeValue, useToast } from "@chakra-ui/react";
+import {
+  Box,
+  IconButton,
+  useColorModeValue,
+  useToast,
+  useTheme,
+} from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { TiMinus, TiPlus } from "react-icons/ti";
 
@@ -22,13 +28,14 @@ const CardToggleIconButton: React.FC<ToggleIconButtonProps> = ({
   onToggle,
   icon,
   label,
-  size = "sm",
+  size = "md", // Changed default to md for better touch targets
   isEnabled,
 }) => {
   const [isActive, setIsActive] = useState(movie[attribute]);
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
+  const theme = useTheme();
 
   const toggleAttribute = async (isActive: boolean) => {
     // Call the onToggle callback to update UI state immediately for responsive UI
@@ -95,61 +102,34 @@ const CardToggleIconButton: React.FC<ToggleIconButtonProps> = ({
     setIsActive(movie[attribute]);
   }, [movie, attribute]);
 
+  // Use semantic tokens and brand colors from theme
   const borderColor = useColorModeValue(
     isHovered
       ? isActive
-        ? "feedback.error"
-        : "colors.primary"
+        ? "feedback.error" // Use semantic error color for removal
+        : "colors.primary" // Use brand primary for addition
       : isActive
-      ? "colors.primary"
-      : "bg.tertiary",
+      ? "colors.primary" // Active state uses brand primary
+      : "text.tertiary", // Inactive state uses tertiary text color
     isHovered
       ? isActive
         ? "feedback.error"
         : "colors.primary"
       : isActive
       ? "colors.primary"
-      : "bg.secondary"
+      : "text.tertiary"
   );
 
-  // Get button styles based on state
-  const getButtonStyles = () => {
+  // Define color scheme based on state using theme colors
+  const getColorScheme = () => {
     if (isHovered) {
-      if (isActive) {
-        // Hover on active - remove action
-        return {
-          bg: "feedback.error",
-          color: "text.inverse",
-          variant: "solid",
-        };
-      } else {
-        // Hover on inactive - add action
-        return {
-          bg: "colors.secondary",
-          color: "text.inverse",
-          variant: "solid",
-        };
-      }
-    } else {
-      if (isActive) {
-        // Active state
-        return {
-          bg: "colors.primary",
-          color: "text.inverse",
-          variant: "solid",
-        };
-      } else {
-        // Inactive state
-        return {
-          bg: "transparent",
-          color: "text.secondary",
-          variant: "ghost",
-        };
-      }
+      return isActive ? "red" : "blue";
     }
+    return isActive ? "blue" : "gray";
   };
 
-  const buttonStyles = getButtonStyles();
+  // Ensure minimum touch target size from theme
+  const minTouchSize = theme.sizes.touch || "44px";
 
   return (
     <Box
@@ -159,18 +139,21 @@ const CardToggleIconButton: React.FC<ToggleIconButtonProps> = ({
       flexGrow={1}
       height="100%"
       width="100%"
+      minHeight={minTouchSize} // Ensure touch-friendly minimum height
       borderRight={isActive ? "3px solid" : "none"}
       borderRightColor={borderColor}
+      transition="all 0.2s ease-in-out" // Smooth transitions for better UX
     >
       <IconButton
         aria-label={label}
         height="100%"
         width="100%"
+        minHeight={minTouchSize} // Touch-friendly minimum size
+        minWidth={minTouchSize}
         flexGrow={1}
         borderRadius={0}
-        variant={buttonStyles.variant}
-        bg={buttonStyles.bg}
-        color={buttonStyles.color}
+        variant={isHovered ? "solid" : "ghost"}
+        colorScheme={getColorScheme()}
         icon={
           isEnabled ? (
             isHovered ? (
@@ -191,6 +174,22 @@ const CardToggleIconButton: React.FC<ToggleIconButtonProps> = ({
         onClick={() => toggleAttribute(!isActive)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        // Enhanced touch interactions for mobile
+        onTouchStart={() => setIsHovered(true)}
+        onTouchEnd={() => setIsHovered(false)}
+        // Use semantic color for focus states
+        _focus={{
+          boxShadow: `0 0 0 3px ${useColorModeValue(
+            theme.colors.brand.primary[300],
+            theme.colors.brand.primary[600]
+          )}66`, // 40% opacity
+        }}
+        // Improved active state for touch devices
+        _active={{
+          transform: "scale(0.95)",
+          transition: "transform 0.1s ease-in-out",
+        }}
+        transition="all 0.2s ease-in-out"
       />
     </Box>
   );
