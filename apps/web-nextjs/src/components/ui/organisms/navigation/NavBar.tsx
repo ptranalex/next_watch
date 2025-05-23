@@ -39,6 +39,8 @@ const logger = createLogger("NavBar");
  * @param onLogoClick - Custom logo click handler (defaults to home navigation)
  * @param customActions - Additional action elements to display
  * @param className - CSS class name for styling
+ * @param isSearchFocused - Whether search input is currently focused (affects opacity)
+ * @param onSearchFocusChange - Callback when search focus state changes
  */
 const NavBar: React.FC<NavBarProps> = ({
   logo,
@@ -49,6 +51,8 @@ const NavBar: React.FC<NavBarProps> = ({
   onLogoClick,
   customActions,
   className,
+  isSearchFocused: controlledSearchFocused,
+  onSearchFocusChange,
 }) => {
   const { colorMode } = useColorMode();
   const defaultLogo = colorMode === "light" ? logoLight : logoDark;
@@ -58,16 +62,25 @@ const NavBar: React.FC<NavBarProps> = ({
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  // Internal search focus state management
+  const [internalSearchFocused, setInternalSearchFocused] = useState(false);
+
+  // Determine if component is controlled for search focus
+  const isSearchFocusControlled = controlledSearchFocused !== undefined;
+  const isSearchFocused = isSearchFocusControlled
+    ? controlledSearchFocused
+    : internalSearchFocused;
+
   // Log component initialization and auth state
   useEffect(() => {
     logger.debug(
-      `NavBar initialized: auth=${isAuthenticated}, colorMode=${colorMode}`
+      `NavBar initialized: auth=${isAuthenticated}, colorMode=${colorMode}, searchFocused=${isSearchFocused}`
     );
 
     if (isAuthenticated && user) {
       logger.debug(`User authenticated: ${user.email}`);
     }
-  }, [isAuthenticated, user, colorMode]);
+  }, [isAuthenticated, user, colorMode, isSearchFocused]);
 
   const handleLogoClick = useCallback(() => {
     if (onLogoClick) {
@@ -78,6 +91,22 @@ const NavBar: React.FC<NavBarProps> = ({
       router.push("/");
     }
   }, [onLogoClick, router]);
+
+  // Handle search focus state changes
+  const handleSearchFocusChange = useCallback(
+    (isFocused: boolean) => {
+      logger.debug(`Search focus changed: ${isFocused}`);
+
+      if (onSearchFocusChange) {
+        onSearchFocusChange(isFocused);
+      }
+
+      if (!isSearchFocusControlled) {
+        setInternalSearchFocused(isFocused);
+      }
+    },
+    [onSearchFocusChange, isSearchFocusControlled]
+  );
 
   const handleOpenLoginModal = () => {
     logger.info("Opening login modal");
@@ -98,6 +127,9 @@ const NavBar: React.FC<NavBarProps> = ({
     logger.debug("Closing profile modal");
     setIsProfileModalOpen(false);
   };
+
+  // Calculate opacity based on search focus state
+  const navbarOpacity = isSearchFocused ? 1.0 : 0.95;
 
   // Render logo element
   const logoElement = logo || (
@@ -123,9 +155,10 @@ const NavBar: React.FC<NavBarProps> = ({
         backdropFilter="blur(10px)"
         backgroundColor="bg.primary"
         boxShadow="xl"
-        opacity="0.95"
+        opacity={navbarOpacity}
         width="100%"
         className={className}
+        transition="opacity 0.2s ease-in-out"
       >
         <HStack padding="20px" spacing="10px">
           {logoElement}
@@ -134,7 +167,12 @@ const NavBar: React.FC<NavBarProps> = ({
               {title}
             </Heading>
           )}
-          {showSearch && <SearchInput onFocus={() => {}} onBlur={() => {}} />}
+          {showSearch && (
+            <SearchInput
+              onFocus={() => handleSearchFocusChange(true)}
+              onBlur={() => handleSearchFocusChange(false)}
+            />
+          )}
           {showUserActions && (
             <>
               {isAuthenticated && user ? (

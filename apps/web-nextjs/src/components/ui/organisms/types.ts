@@ -64,6 +64,10 @@ export interface NavBarProps {
   customActions?: React.ReactNode;
   /** CSS class name for styling */
   className?: string;
+  /** Whether search input is currently focused (affects navbar opacity) */
+  isSearchFocused?: boolean;
+  /** Callback when search focus state changes */
+  onSearchFocusChange?: (isFocused: boolean) => void;
 }
 
 /** Section-based navigation bar props (alternative pattern) */

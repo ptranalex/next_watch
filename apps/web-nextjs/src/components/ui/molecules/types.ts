@@ -56,14 +56,50 @@ export interface NavLinkProps {
 
 /** Search input component props */
 export interface SearchInputProps {
-  value: string;
-  onChange: (value: string) => void;
+  /** Current search value */
+  value?: string;
+  /** Callback when search value changes */
+  onChange?: (value: string) => void;
+  /** Input placeholder text (default: "Search movies...") */
   placeholder?: string;
+  /** Callback when search is performed */
   onSearch?: (value: string) => void;
+  /** Callback when input is cleared */
   onClear?: () => void;
+  /** Whether search is loading */
   isLoading?: boolean;
+  /** Search suggestions array */
   suggestions?: string[];
+  /** Component size (default: "md") */
   size?: ComponentSize;
+  /** Callback when input gains focus */
+  onFocus?: () => void;
+  /** Callback when input loses focus */
+  onBlur?: () => void;
+  /** Whether to show keyboard shortcut hint (default: responsive) */
+  showHotkey?: boolean;
+  /** Custom hotkey combination (default: "meta+k") */
+  hotkey?: string;
+  /** Whether to enable search suggestions dropdown (default: true) */
+  enableSuggestions?: boolean;
+  /** Maximum number of suggestions to show (default: 8) */
+  maxSuggestions?: number;
+  /** Whether to show on mobile devices (default: true) */
+  showOnMobile?: boolean;
+  /** Custom search icon */
+  searchIcon?: React.ElementType;
+  /** Whether to enable haptic feedback on mobile (default: true) */
+  enableHaptics?: boolean;
+  /** Debounce delay for search queries in ms (default: 300) */
+  debounceDelay?: number;
+  /** Custom z-index for dropdown (default: 1000) */
+  dropdownZIndex?: number;
+  /** Whether to animate the dropdown (default: true) */
+  animated?: boolean;
+  /** Whether the input is disabled */
+  isDisabled?: boolean;
+  /** Error message to display */
+  error?: string;
 }
 
 // ============================================================================
