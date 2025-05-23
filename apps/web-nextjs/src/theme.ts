@@ -144,27 +144,27 @@ const semanticTokens = {
     // Brand color tokens
     "colors.primary": {
       default: "brand.primary.900",
-      _dark: "brand.primary.400",
+      _dark: "brand.primary.500",
     },
     "colors.primary.lighter": {
       default: "brand.primary.700",
-      _dark: "brand.primary.300",
+      _dark: "brand.primary.400",
     },
     "colors.primary.darker": {
       default: "brand.primary.800",
-      _dark: "brand.primary.700",
+      _dark: "brand.primary.600",
     },
     "colors.secondary": {
       default: "brand.secondary.900",
-      _dark: "brand.secondary.400",
+      _dark: "brand.secondary.500",
     },
     "colors.secondary.lighter": {
       default: "brand.secondary.700",
-      _dark: "brand.secondary.300",
+      _dark: "brand.secondary.400",
     },
     "colors.secondary.darker": {
       default: "brand.secondary.800",
-      _dark: "brand.secondary.700",
+      _dark: "brand.secondary.600",
     },
 
     // Text colors
@@ -187,16 +187,16 @@ const semanticTokens = {
 
     // Background colors
     "bg.primary": {
-      default: "white",
-      _dark: "gray.900",
-    },
-    "bg.secondary": {
       default: "gray.50",
       _dark: "gray.800",
     },
-    "bg.tertiary": {
+    "bg.secondary": {
       default: "gray.100",
       _dark: "gray.700",
+    },
+    "bg.tertiary": {
+      default: "gray.200",
+      _dark: "gray.600",
     },
 
     // Feedback colors
