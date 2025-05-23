@@ -2,9 +2,7 @@ import { useMovieCast } from "@/hooks/domain/movie/useMovieCast";
 import { Box, Image, Grid, Spinner, Text, Tooltip } from "@chakra-ui/react";
 import Link from "next/link";
 import React, { useState } from "react";
-
-// TMDB image base URL - use w300 for better quality
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w300";
+import { getProfileUrl } from "@/utils/media";
 
 interface ActorsGalleryProps {
   movieId: number;
@@ -96,7 +94,10 @@ const ActorsGallery: React.FC<ActorsGalleryProps> = ({ movieId }) => {
               >
                 {actor.profile_path && !failedImages[actor.id] ? (
                   <Image
-                    src={`${TMDB_IMAGE_BASE}${actor.profile_path}`}
+                    src={
+                      getProfileUrl(actor.profile_path) ||
+                      `https://image.tmdb.org/t/p/w300${actor.profile_path}`
+                    }
                     alt={actor.name}
                     position="absolute"
                     top={0}

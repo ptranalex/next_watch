@@ -142,7 +142,7 @@ export const validateConfig = (): string[] => {
 };
 
 // Export a default config object that combines all config sections
-export default {
+const config = {
   api: API_CONFIG,
   features: FEATURES,
   auth: AUTH_CONFIG,
@@ -152,3 +152,5 @@ export default {
   isProduction,
   isTest,
 };
+
+export default config;

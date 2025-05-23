@@ -1,4 +1,4 @@
-import config from "../config";
+import config from "@/config";
 
 /**
  * Returns a complete poster image URL

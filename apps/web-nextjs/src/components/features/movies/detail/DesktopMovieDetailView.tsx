@@ -21,6 +21,7 @@ import RatingGroup from "./RatingGroup";
 import { ExpandableText } from "@/components/ui/molecules/display";
 import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { MovieDetailViewProps } from "./types";
+import { getPosterUrl } from "@/utils/media";
 
 // Create logger for this component
 const logger = createLogger("DesktopMovieDetailView");
@@ -90,7 +91,8 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
 
   // Safely extract poster URL and title
   const posterUrl =
-    typeof movie.poster_url === "string" ? movie.poster_url : "";
+    getPosterUrl(movie.poster_path as string) ||
+    (typeof movie.poster_url === "string" ? movie.poster_url : "");
   const title = typeof movie.title === "string" ? movie.title : "Movie poster";
   const overview = typeof movie.overview === "string" ? movie.overview : "";
 

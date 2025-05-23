@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { createLogger } from "@/utils/logging";
 import MovieQuickAction from "./MovieQuickAction";
 import MovieRatingIndicator from "./MovieRatingIndicator";
+import { getPosterUrl } from "@/utils/media";
 
 // Create logger for this component
 const logger = createLogger("MovieCard");
@@ -146,7 +147,10 @@ const MovieCard = ({ movie, onMovieUpdate }: Props) => {
               width="100%"
               height="100%"
               aspectRatio="2 / 3"
-              src={movie.poster_url as string}
+              src={
+                getPosterUrl(movie.poster_path as string) ||
+                (movie.poster_url as string)
+              }
               alt={`${movie.title} Poster`}
             />
           </Link>

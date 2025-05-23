@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { DefinitionItem } from "@/components/ui/atoms/display";
 import { Actor } from "@/domain/entities";
+import { getProfileUrl } from "@/utils/media";
 
 interface ActorDetailContentProps {
   actorId: string;
@@ -36,8 +37,7 @@ export default function ActorDetailContent({
           id: parseInt(actorId),
           actor_id: parseInt(actorId),
           name: "Morgan Freeman",
-          profile_path:
-            "https://image.tmdb.org/t/p/w500/oIciQWr8VwKoR8TmAw1owaiZFyb.jpg",
+          profile_path: "/oIciQWr8VwKoR8TmAw1owaiZFyb.jpg",
           birth_date: "1937-06-01",
           place_of_birth: "Memphis, Tennessee, USA",
           biography:
@@ -109,7 +109,7 @@ export default function ActorDetailContent({
         flexWrap={{ base: "wrap", md: "nowrap" }}
       >
         <Image
-          src={actor.profile_path}
+          src={getProfileUrl(actor.profile_path) || actor.profile_path}
           alt={actor.name}
           borderRadius="md"
           maxW={{ base: "100%", md: "250px" }}

@@ -25,6 +25,7 @@ import {
 import { SwipeAction, SwipeActionOption } from "@/components/mobile/ui/swipe";
 import { useAuth } from "@/hooks";
 import { createLogger } from "@/utils/logging";
+import { getPosterUrl } from "@/utils/media";
 
 // Create logger for this component
 const logger = createLogger("MobileMovieCard");
@@ -263,7 +264,10 @@ const MobileMovieCard: React.FC<MobileMovieCardProps> = ({
         >
           <Box position="relative" flexShrink={0}>
             <Image
-              src={movie.poster_url as string}
+              src={
+                getPosterUrl(movie.poster_path as string) ||
+                (movie.poster_url as string)
+              }
               alt={`${movie.title} Poster`}
               width="80px"
               height="120px"
