@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Any
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from bff.config import Config
+from bff_api.config.app import Config
 
 logger = logging.getLogger(__name__)
 

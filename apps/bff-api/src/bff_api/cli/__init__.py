@@ -1,4 +1,4 @@
-"""CLI package for BFF application."""
+"""CLI package for BFF API application."""
 
 from .main import main
 

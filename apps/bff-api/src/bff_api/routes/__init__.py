@@ -1,4 +1,4 @@
-"""Routes package for BFF application."""
+"""Routes package for BFF API application."""
 
 from .bff import router as bff_router
 from .health import router as health_router

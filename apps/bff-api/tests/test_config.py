@@ -4,7 +4,7 @@ import os
 import pytest
 from unittest.mock import patch
 
-from bff.config import Config
+from bff_api.config import Config
 
 
 class TestConfig:

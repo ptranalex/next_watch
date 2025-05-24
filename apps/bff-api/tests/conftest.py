@@ -5,9 +5,9 @@ from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, Mock
 import httpx
 
-from bff.main import create_app
-from bff.config import Config
-from bff.services.backend_client import BackendClient
+from bff_api.main import create_app
+from bff_api.config import Config
+from bff_api.services.backend_client import BackendClient
 
 
 @pytest.fixture
@@ -19,7 +19,6 @@ def test_config():
         redis_url="redis://test-redis:6379",
         cache_ttl=60,
         jwt_secret="test-secret",
-        environment="test",
         debug=True,
     )
 
@@ -45,7 +44,7 @@ def mock_httpx_client():
 @pytest.fixture
 def app(test_config, mock_backend_client):
     """FastAPI test application fixture."""
-    app = create_app(config=test_config)
+    app = create_app()
 
     ***REMOVED*** Override dependencies
     app.dependency_overrides = {

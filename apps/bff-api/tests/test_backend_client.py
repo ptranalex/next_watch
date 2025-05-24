@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import Mock
 
-from bff.services.backend_client import BackendClient
+from bff_api.services.backend_client import BackendClient
 
 
 class TestBackendClient:

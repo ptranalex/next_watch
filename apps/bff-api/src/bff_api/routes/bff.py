@@ -5,7 +5,7 @@ from typing import Dict, List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from pydantic import BaseModel
 
-from bff.services.backend_client import BackendClient, BackendClientError
+from bff_api.services.backend_client import BackendClient, BackendClientError
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -54,9 +54,9 @@ class GenreScreenData(BaseModel):
 def get_backend_client() -> BackendClient:
     """Dependency to get backend client."""
     ***REMOVED*** This will be replaced by dependency injection in main.py
-    from bff.config import Config
+    from bff_api.config.app import settings
 
-    return BackendClient(Config.get_instance())
+    return BackendClient(settings)
 
 
 @router.get("/home", response_model=HomeScreenData)

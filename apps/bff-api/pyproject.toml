@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "bff"
+name = "bff-api"
 version = "0.1.0"
-description = "Backend for Frontend - Aggregation layer for next_watch UI"
+description = "Backend for Frontend API - Aggregation layer for next_watch UI"
 authors = ["Your Name <your.email@example.com>"]
-packages = [{include = "bff", from = "src"}]
-include = ["src/bff/py.typed"]
+packages = [{include = "bff_api", from = "src"}]
+include = ["src/bff_api/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -32,7 +32,7 @@ mypy = "^1.7.0"
 respx = "^0.20.2"
 
 [tool.poetry.scripts]
-bff = "bff.cli.main:main"
+bff-api = "bff_api.cli.main:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

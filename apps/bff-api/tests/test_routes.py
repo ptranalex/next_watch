@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import AsyncMock
 
-from bff.services.backend_client import BackendClientError
+from bff_api.services.backend_client import BackendClientError
 
 
 class TestHealthRoutes:

@@ -9,22 +9,21 @@ import uvicorn
 from rich.console import Console
 from rich.table import Table
 
-from bff.config import Config, configure_logging, with_logging
-from bff.main import create_app
+from bff_api.config.app import settings, Config
+from bff_api.main import create_app
 
 console = Console()
 logger = logging.getLogger(__name__)
 
 ***REMOVED*** Create main Typer app
 app = typer.Typer(
-    name="bff",
-    help="Backend for Frontend service for Next Watch movie platform",
+    name="bff-api",
+    help="Backend for Frontend API service for Next Watch movie platform",
     add_completion=False,
 )
 
 
 @app.command()
-@with_logging()
 def serve(
     host: str = typer.Option(
         None,
@@ -58,7 +57,7 @@ def serve(
         help="Enable verbose logging",
     ),
 ) -> None:
-    """Start the BFF server."""
+    """Start the BFF API server."""
 
     ***REMOVED*** Create configuration
     config_kwargs: Dict[str, Any] = {}
@@ -69,19 +68,21 @@ def serve(
     if log_level:
         config_kwargs["log_level"] = log_level
 
-    config = Config(**config_kwargs)
-
-    ***REMOVED*** Configure logging
-    configure_logging(config, verbose=verbose)
+    ***REMOVED*** Update global settings if any CLI overrides are provided
+    if config_kwargs:
+        ***REMOVED*** For CLI usage, we'd need to create a new Config instance
+        config = Config(**config_kwargs)
+    else:
+        config = settings
 
     ***REMOVED*** Display configuration
     _display_config(config)
 
-    ***REMOVED*** Create FastAPI app
-    fastapi_app = create_app(config)
+    ***REMOVED*** Create FastAPI app (no longer accepts config parameter)
+    fastapi_app = create_app()
 
     ***REMOVED*** Start server
-    logger.info(f"Starting BFF server on {config.host}:{config.port}")
+    logger.info(f"Starting BFF API server on {config.host}:{config.port}")
 
     uvicorn.run(
         fastapi_app,
@@ -103,8 +104,7 @@ def config(
 ) -> None:
     """Display current configuration."""
 
-    config = Config.get_instance()
-    _display_config(config, show_secrets=show_secrets)
+    _display_config(settings, show_secrets=show_secrets)
 
 
 @app.command()
@@ -118,7 +118,7 @@ def health_check(
 ) -> None:
     """Check health of backend services."""
 
-    config = Config.get_instance()
+    config = settings
     if backend_api_url:
         config.backend_api_url = backend_api_url
 

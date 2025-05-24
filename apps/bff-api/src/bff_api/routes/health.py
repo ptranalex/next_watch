@@ -5,8 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, Any
 import time
 
-from bff.config import Config
-from bff.config.app import get_config
+from bff_api.config.app import settings
 
 router = APIRouter()
 
@@ -22,7 +21,7 @@ class HealthResponse(BaseModel):
 
 
 @router.get("/", response_model=HealthResponse)
-async def health_check(config: Config = Depends(get_config)) -> HealthResponse:
+async def health_check() -> HealthResponse:
     """Basic health check endpoint.
 
     Returns:
@@ -32,13 +31,13 @@ async def health_check(config: Config = Depends(get_config)) -> HealthResponse:
         status="healthy",
         timestamp=time.time(),
         version="0.1.0",
-        environment=config.environment,
-        backend_api_url=config.backend_api_url,
+        environment=settings.environment,
+        backend_api_url=settings.backend_api_url,
     )
 
 
 @router.get("/ready")
-async def readiness_check(config: Config = Depends(get_config)) -> Dict[str, Any]:
+async def readiness_check() -> Dict[str, Any]:
     """Readiness check for Kubernetes/Docker.
 
     Returns:

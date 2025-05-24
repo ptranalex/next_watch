@@ -1,19 +1,49 @@
 """Main FastAPI application for BFF service."""
 
+import os
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import Optional
 
+***REMOVED*** Setup basic logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+***REMOVED*** Load environment variables
+try:
+    from dotenv import load_dotenv
+
+    ***REMOVED*** Only load .env files if we're not in production
+    if os.getenv("ENVIRONMENT") != "production":
+        ***REMOVED*** Try multiple locations to find the .env.local file
+        possible_paths = [
+            Path(__file__).resolve().parents[3] / ".env.local",
+            Path.cwd() / ".env.local",
+        ]
+
+        for path in possible_paths:
+            if path.exists():
+                logger.info(f"Loading environment variables from {path}")
+                load_dotenv(dotenv_path=path, override=True)
+                break
+except ImportError:
+    pass  ***REMOVED*** Continue without dotenv if not installed
+
+***REMOVED*** Log environment
+logger.info(f"Running in environment: {os.getenv('ENVIRONMENT', 'development')}")
+
+***REMOVED*** Import configuration after environment variables are loaded
+from bff_api.config.app import settings
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
-from bff.config import Config, configure_logging
-from bff.routes import bff_router, health_router
-from bff.middlewares.logging import LoggingMiddleware
-from bff.middlewares.auth import AuthMiddleware
-from bff.services.backend_client import BackendClient
+from bff_api.routes import bff_router, health_router
+from bff_api.middlewares.logging import LoggingMiddleware
+from bff_api.middlewares.auth import AuthMiddleware
+from bff_api.services.backend_client import BackendClient
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +52,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     ***REMOVED*** Startup
-    config = app.state.config
-    logger.info(f"Starting BFF service with config: {config}")
+    logger.info(f"Starting BFF service with config: {settings}")
 
     ***REMOVED*** Initialize backend client
-    backend_client = BackendClient(config)
+    backend_client = BackendClient(settings)
     app.state.backend_client = backend_client
 
     yield
@@ -37,32 +66,20 @@ async def lifespan(app: FastAPI):
         await app.state.backend_client.close()
 
 
-def create_app(config: Optional[Config] = None) -> FastAPI:
+def create_app() -> FastAPI:
     """Create and configure FastAPI application.
-
-    Args:
-        config: Optional configuration instance
 
     Returns:
         Configured FastAPI application
     """
-    if config is None:
-        config = Config.get_instance()
-
-    ***REMOVED*** Configure logging
-    configure_logging(config)
-
     ***REMOVED*** Create FastAPI app
     app = FastAPI(
         title="Next Watch BFF",
         description="Backend for Frontend aggregation layer for Next Watch movie platform",
         version="0.1.0",
-        debug=config.debug,
+        debug=settings.debug,
         lifespan=lifespan,
     )
-
-    ***REMOVED*** Store config in app state
-    app.state.config = config
 
     ***REMOVED*** Add middleware
     app.add_middleware(
@@ -73,10 +90,10 @@ def create_app(config: Optional[Config] = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    if config.is_production:
+    if settings.is_production:
         app.add_middleware(
             TrustedHostMiddleware,
-            allowed_hosts=["localhost", "127.0.0.1", config.host],
+            allowed_hosts=["localhost", "127.0.0.1", settings.host],
         )
 
     app.add_middleware(LoggingMiddleware)
