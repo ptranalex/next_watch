@@ -13,8 +13,8 @@
 export * from "./api";
 
 // Re-export default API client
-import apiClient from "./api";
-export { apiClient as default };
+import { APIClient } from "./api";
+export { APIClient as default };
 
 // =============================================================================
 // Legacy compatibility exports - these will be removed in future versions

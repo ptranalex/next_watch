@@ -21,7 +21,8 @@ import {
   HiXMark,
 } from "react-icons/hi2";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@/services/hooks";
+import { useSidebarData } from "@/services/hooks/navigation/useSidebarData";
 import { MobileNavMenu } from "@/components/mobile/navigation";
 import { LoginModal } from "@/components/features/auth";
 import ProfileModal from "@/components/features/profile/ProfileModal";
@@ -57,12 +58,14 @@ interface AppMobileHeaderProps extends MobileHeaderProps {
  *
  * Enhanced header bar for mobile with app icon, common navigation buttons, and user menu.
  * Search icon now toggles an integrated search bar.
+ * Integrates with useSidebarData to provide dynamic navigation data to MobileNavMenu.
  *
  * Features:
  * - Logo click navigation to home
  * - Quick navigation buttons (Home, Search, Watchlist, Favorites)
  * - Authentication-aware user menu
  * - Integrated search bar toggle
+ * - Dynamic navigation data from BFF API
  * - Safe area support for notched devices
  * - Configurable through shared mobile header props
  *
@@ -71,7 +74,6 @@ interface AppMobileHeaderProps extends MobileHeaderProps {
  * @param onBackPress - Callback for back button press
  * @param rightAction - Custom right action component
  * @param leftAction - Custom left action component (overrides nav menu)
- * @param sticky - Whether header should be sticky (default: true)
  * @param showSearch - Whether to show search functionality (default: true)
  * @param showUserNav - Whether to show user navigation (default: true)
  * @param logoSrc - Custom logo source
@@ -84,7 +86,6 @@ const MobileHeader: React.FC<AppMobileHeaderProps> = ({
   onBackPress,
   rightAction,
   leftAction,
-  sticky = true,
   showSearch = true,
   showUserNav = true,
   logoSrc,
@@ -100,6 +101,9 @@ const MobileHeader: React.FC<AppMobileHeaderProps> = ({
   const logoSrcUrl =
     typeof selectedLogo === "string" ? selectedLogo : selectedLogo.src;
   const { isAuthenticated, user } = useAuth();
+
+  // Fetch sidebar data for dynamic navigation
+  const { data: sidebarData, isLoading: isSidebarLoading } = useSidebarData();
 
   // Use semantic color tokens
   const activeNavColor = useColorModeValue("colors.primary", "colors.primary");
@@ -120,7 +124,9 @@ const MobileHeader: React.FC<AppMobileHeaderProps> = ({
 
   const handleLogoClick = () => {
     logger.debug("Logo clicked, navigating to home page");
-    router.push("/");
+    // Use dynamic home path from sidebar data or fallback to "/"
+    const homePath = sidebarData?.home?.href || "/";
+    router.push(homePath);
   };
 
   const handleNavigation = (path: string) => {
@@ -207,7 +213,10 @@ const MobileHeader: React.FC<AppMobileHeaderProps> = ({
                 mr={2}
               />
             ) : (
-              <MobileNavMenu />
+              <MobileNavMenu
+                sidebarData={sidebarData}
+                isLoading={isSidebarLoading}
+              />
             )}
 
             {!leftAction && (
@@ -260,8 +269,14 @@ const MobileHeader: React.FC<AppMobileHeaderProps> = ({
                       icon={<HiHome />}
                       fontSize={20}
                       variant="ghost"
-                      color={isActive("/") ? activeNavColor : undefined}
-                      onClick={() => handleNavigation("/")}
+                      color={
+                        isActive(sidebarData?.home?.href || "/")
+                          ? activeNavColor
+                          : undefined
+                      }
+                      onClick={() =>
+                        handleNavigation(sidebarData?.home?.href || "/")
+                      }
                     />
                   </Tooltip>
 

@@ -1,125 +1,88 @@
 "use client";
 
-import { memo, useEffect } from "react";
-import MovieGrid from "@/components/features/movies/grid/MovieGrid";
-import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
-import { useParams, useSearchParams, usePathname } from "next/navigation";
-import useMovieFilterStore from "@/store/movieFilterStore";
-import { Heading } from "@chakra-ui/react";
+import { memo, useState, useEffect, useMemo } from "react";
+import { TopMoviesPage } from "@/components/features/movies/top";
 import { createLogger } from "@/utils/logging";
 
-// Create a logger for this component
-const logger = createLogger("TopMoviesPage");
+// Create logger for this route
+const logger = createLogger("TopMoviesPageRoute");
 
 // Make the page dynamic to avoid prerendering issues
 export const dynamic = "force-dynamic";
 
-// Memoize components
-const MemoizedMovieGrid = memo(MovieGrid);
+interface TopMoviesPageRouteProps {
+  params: Promise<{ year: string }> | { year: string };
+}
 
 /**
- * TopMoviesByYearPage component - Shows top movies for a specific year
+ * Top Movies Page Route - /top/[year]
  *
- * Route: /top/[year]
- * Displays movies from the specified year sorted by IMDb rating
- * Special cases:
+ * Route-level component that:
+ * 1. Parses route parameters (year)
+ * 2. Delegates rendering to the TopMoviesPage feature component
+ *
+ * This follows the architecture pattern where route files only handle
+ * parameter parsing and delegate business logic to feature components.
+ *
+ * Special cases handled:
  * - top/current-year: Uses the current year and locks it
  * - top/all-time: Shows all years, no year filter is locked
  */
-const TopMoviesByYearPage: React.FC = () => {
-  const params = useParams<{ year: string }>();
-  const yearParam = params?.year || "";
-  const currentYear = new Date().getFullYear();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
+const TopMoviesPageRoute = memo(
+  ({ params: paramsPromise }: TopMoviesPageRouteProps) => {
+    // Log route initialization
+    logger.debug("TopMoviesPageRoute initializing");
 
-  const { setFilter, lockFilters, unlockAllFilters } = useMovieFilterStore();
+    // Handle both Promise and direct params (Next.js 15 compatibility)
+    const [resolvedParams, setResolvedParams] = useState<{
+      year: string;
+    } | null>(null);
+    const [paramsResolved, setParamsResolved] = useState(false);
 
-  // Set and lock the filters when the component mounts or year changes
-  useEffect(() => {
-    // Special cases handling
-    if (yearParam === "current-year") {
-      logger.info(`Setting top movies for current year: ${currentYear}`);
+    // Resolve params if they're a Promise
+    useEffect(() => {
+      const resolveParams = async () => {
+        try {
+          const params = await Promise.resolve(paramsPromise);
+          setResolvedParams(params);
+          setParamsResolved(true);
+          logger.debug("Route params resolved", { params });
+        } catch (error) {
+          logger.error("Error resolving params:", error);
+          setParamsResolved(true);
+        }
+      };
 
-      unlockAllFilters();
-      setFilter("year", currentYear);
-      setFilter("sortOrder", "imdb_rating");
-      setFilter("sortDesc", true);
-      lockFilters(["year", "sortOrder"]);
-    } else if (yearParam === "all-time") {
-      logger.info("Setting top movies of all time");
+      resolveParams();
+    }, [paramsPromise]);
 
-      unlockAllFilters();
-      // Clear year filter for all-time
-      setFilter("year", undefined);
-      setFilter("sortOrder", "imdb_rating");
-      setFilter("sortDesc", true);
-      lockFilters(["sortOrder"]); // Only lock sort order, not year
-    } else {
-      // Normal numeric year handling
-      const year = parseInt(yearParam, 10);
-      logger.info(`Setting top movies for year: ${year}`);
+    // Parse year parameter from route
+    const yearParam = useMemo(() => {
+      return resolvedParams?.year || "";
+    }, [resolvedParams?.year]);
 
-      unlockAllFilters();
-      setFilter("year", year);
-      setFilter("sortOrder", "imdb_rating");
-      setFilter("sortDesc", true);
-      lockFilters(["year", "sortOrder"]);
-    }
+    // Log the extracted year parameter
+    useEffect(() => {
+      if (yearParam) {
+        logger.info(`Route resolved year parameter: ${yearParam}`);
+      }
+    }, [yearParam]);
 
-    // Cleanup function: unlock filters when component unmounts or before re-running effect
-    return () => {
-      logger.debug(
-        "🔓 Cleaning up: unlocking filters when leaving top/[year] page"
+    // Show loading state during initial params resolution
+    if (!paramsResolved) {
+      logger.debug("Waiting for params to resolve");
+      return (
+        <div className="text-center py-10">
+          <p>Loading...</p>
+        </div>
       );
-      unlockAllFilters();
-    };
-  }, [
-    yearParam,
-    pathname,
-    setFilter,
-    lockFilters,
-    unlockAllFilters,
-    currentYear,
-  ]);
-
-  // Track search params for hydration
-  useEffect(() => {
-    // This forces React to include searchParams in hydration
-    if (searchParams) {
-      // Just accessing searchParams is enough to make React track it
-      logger.debugOnce("Including searchParams in hydration");
     }
-  }, [searchParams]);
 
-  // Determine the title based on the route parameter
-  let titleText = "";
-  if (yearParam === "current-year") {
-    titleText = `Top Movies of ${currentYear} (Current Year)`;
-  } else if (yearParam === "all-time") {
-    titleText = "Top Movies of All Time";
-  } else {
-    // Normal year handling
-    const year = parseInt(yearParam, 10);
-    titleText = `Top Movies from ${year || currentYear}`;
+    // Delegate to the feature component
+    return <TopMoviesPage yearParam={yearParam} />;
   }
+);
 
-  logger.debug(`Rendering page with title: ${titleText}`);
+TopMoviesPageRoute.displayName = "TopMoviesPageRoute";
 
-  const title = (
-    <Heading as="h1" marginY={5}>
-      {titleText}
-    </Heading>
-  );
-
-  return (
-    <MovieBrowseLayout title={title}>
-      <MemoizedMovieGrid
-        columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
-        source="movie_listing"
-      />
-    </MovieBrowseLayout>
-  );
-};
-
-export default TopMoviesByYearPage;
+export default TopMoviesPageRoute;

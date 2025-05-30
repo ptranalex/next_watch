@@ -1,45 +1,66 @@
 /**
- * API Domain re-exports
+ * API Services
+ *
+ * This module exports all API-related services and utilities.
+ * We've consolidated our API clients to use a single client that
+ * communicates with the BFF API.
  */
 
-// Movie-related exports
-export * from "./movies/types";
-export * from "./movies/movie-api";
-
-// Genre-related exports
-export * from "./genres/types";
-export * from "./genres/genre-api";
-
-// Actor-related exports
-export * from "./actors/types";
-export * from "./actors/actor-api";
-
-// Search-related exports
-export * from "./search/types";
-export * from "./search/search-api";
-
-// Auth-related exports
-export * from "./auth/types";
-export * from "./auth/auth-api";
-
-// User interaction exports
-export * from "./user/types";
+// Re-export the core API client and utilities
 export {
-  default as userInteractionAPI,
-  mapApiInteractionToUi,
-  mapUiInteractionToApi,
-} from "./user/user-interaction-api";
-
-// Core API utilities
-export {
-  APIClient,
+  apiClient,
   fetchData,
   postData,
   putData,
   deleteData,
+  uploadFormData,
+  APIClient,
+  isTokenValid,
 } from "./core/api-client";
-export * from "./core/errors";
 
-// Export the API client as default
-import apiClient from "./core/api-client";
-export default apiClient;
+// Export error types
+export {
+  APIError,
+  NetworkError,
+  ValidationError,
+  AuthError,
+  CacheHitError,
+} from "./core/errors";
+
+// Export domain-specific APIs
+export { AuthAPI } from "./auth/auth-api";
+export { default as UserAPI } from "./user/user-api";
+export { default as userInteractionAPI } from "./user/user-interaction-api";
+export { MovieAPI } from "./movies/movie-api";
+export { MoviesAPI } from "./movies/movies-api";
+export { GenreAPI } from "./genres/genre-api";
+export { ActorAPI } from "./actors/actor-api";
+export { SearchAPI } from "./search/search-api";
+
+// Re-export BFF API for backward compatibility (deprecated)
+export {
+  bffFetchData,
+  bffPostData,
+  bffPutData,
+  bffDeleteData,
+  bffUploadFormData,
+  createBFFClient,
+} from "./core/api-client";
+
+// Export types
+export type { Actor } from "./common/types";
+export type { Movie, MovieListResponse } from "./movies/types";
+export type { ActorResponse, ActorScreenData } from "./actors/types";
+export type { Genre, GenreResponse, GenreScreenData } from "./genres/types";
+export type { User, UserMovieInteractionResponse } from "./user/types";
+export type {
+  SuggestionsResponse,
+  TextSuggestionsResponse,
+  MovieSearchResponse,
+} from "./search/types";
+export type {
+  LoginCredentials,
+  RegisterData,
+  AuthTokens,
+  UserData,
+} from "./auth/types";

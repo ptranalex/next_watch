@@ -12,6 +12,12 @@ import { ComponentSize } from "../../ui/types";
 // Actor Component Props
 // ============================================================================
 
+/** Actor page props */
+export interface ActorPageProps {
+  /** Actor ID to display movies for */
+  actorId: number;
+}
+
 /** Actor detail props */
 export interface ActorDetailProps {
   actor: Actor;
@@ -19,9 +25,24 @@ export interface ActorDetailProps {
   showBiography?: boolean;
 }
 
+/** Cast member type for the ActorGallery component */
+export interface CastMember {
+  id: number;
+  name: string;
+  actor_id: number;
+  profile_path?: string;
+  character?: string;
+}
+
+/** Cast data type for the ActorGallery component */
+export interface CastData {
+  cast: CastMember[];
+}
+
 /** Actor gallery props */
 export interface ActorGalleryProps {
   movieId: number;
+  castData: CastData;
   maxActors?: number;
   showAllButton?: boolean;
 }

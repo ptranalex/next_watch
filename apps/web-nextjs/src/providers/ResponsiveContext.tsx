@@ -47,20 +47,24 @@ export const ResponsiveProvider: React.FC<ResponsiveProviderProps> = ({
   // Track if we've hydrated the component on the client side
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Options for breakpoint detection
+  // Options for breakpoint detection - ensure consistent SSR behavior
   const breakpointOptions: UseBreakpointOptions = {
     ssr: true,
-    fallback: "base",
+    fallback: "lg", // Default to desktop during SSR for consistency
   };
 
-  // Use breakpoint values to determine device type
-  const isMobile =
+  // Use breakpoint values to determine device type - hooks called unconditionally
+  const mobileBreakpoint =
     useBreakpointValue({ base: true, sm: false }, breakpointOptions) ?? false;
-
-  const isTablet =
+  const tabletBreakpoint =
     useBreakpointValue({ sm: true, lg: false }, breakpointOptions) ?? false;
+  const desktopBreakpoint =
+    useBreakpointValue({ lg: true }, breakpointOptions) ?? true;
 
-  const isDesktop = useBreakpointValue({ lg: true }, breakpointOptions) ?? true;
+  // Apply hydration safety - only use computed values after hydration
+  const isMobile = isHydrated ? mobileBreakpoint : false; // Default to false during SSR
+  const isTablet = isHydrated ? tabletBreakpoint : false; // Default to false during SSR
+  const isDesktop = isHydrated ? desktopBreakpoint : true; // Default to true during SSR
 
   // State for touch screen detection
   const [hasTouchScreen, setHasTouchScreen] = useState(false);

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Stack, Text, useToast } from "@chakra-ui/react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@/services/hooks";
 import { ValidationError } from "@/services/api";
 import BaseModal from "@/components/ui/organisms/BaseModal";
 import FormInput from "@/components/ui/molecules/form/FormInput";
@@ -136,11 +136,16 @@ const SignupModal: React.FC<SignupModalProps> = ({
       } else if (error) {
         setValidation((prev) => ({ ...prev, general: error }));
       }
-    } catch (err) {
+    } catch (err: unknown) {
       let errorMessage = "An unexpected error occurred";
 
+      // Handle different error types with proper type guards
       if (err instanceof ValidationError) {
         errorMessage = err.message;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "object" && err !== null && "message" in err) {
+        errorMessage = String(err.message);
       }
 
       setValidation((prev) => ({ ...prev, general: errorMessage }));

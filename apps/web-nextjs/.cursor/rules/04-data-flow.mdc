@@ -1,0 +1,395 @@
+***REMOVED*** Next Watch - Data Flow Patterns
+
+***REMOVED******REMOVED*** 🔗 Hooks-Based Architecture
+
+**MANDATORY** hooks organization by responsibility:
+
+```typescript
+// Import pattern
+import { useMovie, useAuth, useDebounce } from "@/hooks";
+
+// Hook categories and responsibilities:
+// - core/: Authentication, settings, route protection
+// - domain/: Business logic (movies, users, actors)
+// - ui/: Presentation utilities (debounce, media queries)
+// - performance/: Optimization hooks
+// - navigation/: Routing utilities
+// - filter/: Data filtering and sorting
+```
+
+***REMOVED******REMOVED*** 🏪 State Management Strategy
+
+**STRICT** separation of concerns across different state management solutions:
+
+***REMOVED******REMOVED******REMOVED*** 1. React Query - Server State
+
+**USE FOR**: Data fetching, caching, synchronization with server
+
+```typescript
+// ✅ CORRECT - Server state management
+const useMovie = (id: string) => {
+  return useQuery({
+    queryKey: ["movie", id],
+    queryFn: () => movieAPI.getById(id),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!id,
+  });
+};
+
+const useMovies = (filters: MovieFilters) => {
+  return useInfiniteQuery({
+    queryKey: ["movies", filters],
+    queryFn: ({ pageParam = 1 }) => movieAPI.getMovies(filters, pageParam),
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+  });
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Zustand - Client State
+
+**USE FOR**: UI preferences, filters, local application state
+
+```typescript
+// ✅ CORRECT - Client state management
+interface MovieFilterStore {
+  filters: MovieFilters;
+  setFilter: (key: keyof MovieFilters, value: any) => void;
+  resetFilters: () => void;
+  applyPreset: (preset: FilterPreset) => void;
+}
+
+const useMovieFilterStore = create<MovieFilterStore>((set) => ({
+  filters: defaultFilters,
+  setFilter: (key, value) =>
+    set((state) => ({
+      filters: { ...state.filters, [key]: value },
+    })),
+  resetFilters: () => set({ filters: defaultFilters }),
+  applyPreset: (preset) => set({ filters: preset.filters }),
+}));
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Context Providers - App-Wide Concerns
+
+**USE FOR**: Authentication, theme, responsive state, global configuration
+
+```typescript
+// ✅ CORRECT - App-wide state via context
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Auth logic here
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+```
+
+***REMOVED******REMOVED*** 🎯 Data Flow Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Component Data Access Pattern
+
+```typescript
+// ✅ CORRECT - Proper separation of concerns
+function MovieComponent({ movieId }: { movieId: string }) {
+  // Server state - data fetching
+  const { movie, isLoading, error } = useMovie(movieId);
+
+  // Client state - UI preferences
+  const { filters, setFilter } = useMovieFilterStore();
+
+  // App context - global concerns
+  const { user, isAuthenticated } = useAuth();
+  const { isMobile } = useResponsive();
+
+  // Local component state - component-specific UI
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Derived state
+  const canEdit = useMemo(
+    () => isAuthenticated && user?.permissions?.includes("edit"),
+    [isAuthenticated, user]
+  );
+
+  if (isLoading) return <MovieSkeleton />;
+  if (error) return <ErrorDisplay error={error} />;
+
+  return <MovieCard movie={movie} canEdit={canEdit} isMobile={isMobile} />;
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Optimistic Updates Pattern
+
+**REQUIRED** for better user experience:
+
+```typescript
+const useMovieActions = (movieId: string) => {
+  const queryClient = useQueryClient();
+  const toast = useToast();
+
+  const toggleWatched = useMutation({
+    mutationFn: (watched: boolean) =>
+      userInteractionAPI.toggleWatched(movieId, watched),
+
+    onMutate: async (watched) => {
+      // 1. Cancel outgoing queries
+      await queryClient.cancelQueries(["movie", movieId]);
+
+      // 2. Snapshot previous value
+      const previousMovie = queryClient.getQueryData(["movie", movieId]);
+
+      // 3. Optimistically update
+      queryClient.setQueryData(["movie", movieId], (old: Movie) => ({
+        ...old,
+        watched,
+      }));
+
+      return { previousMovie };
+    },
+
+    onError: (error, variables, context) => {
+      // 4. Revert on error
+      queryClient.setQueryData(["movie", movieId], context?.previousMovie);
+      toast.error("Failed to update movie status");
+    },
+
+    onSuccess: () => {
+      // 5. Invalidate related queries
+      queryClient.invalidateQueries(["movies"]);
+      queryClient.invalidateQueries(["user", "stats"]);
+    },
+  });
+
+  return { toggleWatched };
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Data Synchronization Pattern
+
+```typescript
+// ✅ CORRECT - Coordinated updates across components
+const useMovieSync = () => {
+  const queryClient = useQueryClient();
+
+  const updateMovie = useCallback(
+    (updatedMovie: Movie) => {
+      // Update individual movie queries
+      queryClient.setQueryData(["movie", updatedMovie.id], updatedMovie);
+
+      // Update movie list queries
+      queryClient.setQueriesData({ queryKey: ["movies"] }, (old: any) => {
+        if (!old?.pages) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            items: page.items.map((movie: Movie) =>
+              movie.id === updatedMovie.id ? updatedMovie : movie
+            ),
+          })),
+        };
+      });
+    },
+    [queryClient]
+  );
+
+  return { updateMovie };
+};
+```
+
+***REMOVED******REMOVED*** 🎣 Custom Hooks Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Domain Hook Structure
+
+```typescript
+// hooks/domain/movie/useMovie.ts
+export const useMovie = (id: string) => {
+  const logger = createLogger("useMovie");
+
+  const query = useQuery({
+    queryKey: ["movie", id],
+    queryFn: async () => {
+      logger.debug(`Fetching movie: ${id}`);
+      return movieAPI.getById(id);
+    },
+    enabled: !!id,
+    staleTime: 10 * 60 * 1000,
+    onError: (error) => {
+      logger.error(`Failed to fetch movie ${id}:`, error);
+    },
+  });
+
+  const { updateMovie } = useMovieSync();
+
+  return {
+    ...query,
+    updateMovie: (movie: Movie) => updateMovie(movie),
+  };
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Composite Hook Pattern
+
+```typescript
+// hooks/domain/movie/useMovieFilters.ts
+export const useMovieFilters = () => {
+  const { params, updateParams } = useQueryParams();
+  const { genres } = useGenres();
+
+  // Sync filters with URL
+  const filters = useMemo(
+    () => ({
+      genre: params.genre ? params.genre.split(",") : [],
+      year: params.year ? parseInt(params.year) : null,
+      rating: params.rating ? parseFloat(params.rating) : 0,
+    }),
+    [params]
+  );
+
+  const setFilter = useCallback(
+    (key: string, value: any) => {
+      updateParams({ [key]: value });
+    },
+    [updateParams]
+  );
+
+  const resetFilters = useCallback(() => {
+    updateParams({}, { replace: true });
+  }, [updateParams]);
+
+  return {
+    filters,
+    setFilter,
+    resetFilters,
+    availableGenres: genres,
+  };
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Performance Hook Pattern
+
+```typescript
+// hooks/performance/useDebouncedEffect.ts
+export const useDebouncedEffect = (
+  effect: () => void,
+  delay: number,
+  deps: DependencyList
+) => {
+  const logger = createLogger("useDebouncedEffect");
+
+  useEffect(() => {
+    logger.debug(`Setting up debounced effect with delay: ${delay}ms`);
+
+    const timer = setTimeout(() => {
+      logger.debug("Executing debounced effect");
+      effect();
+    }, delay);
+
+    return () => {
+      logger.debug("Clearing debounced effect timer");
+      clearTimeout(timer);
+    };
+  }, [...deps, delay]);
+};
+```
+
+***REMOVED******REMOVED*** 🔄 Error Handling Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Query Error Handling
+
+```typescript
+// ✅ CORRECT - Comprehensive error handling
+const useMovieWithErrorHandling = (id: string) => {
+  const toast = useToast();
+  const logger = createLogger("useMovieWithErrorHandling");
+
+  return useQuery({
+    queryKey: ["movie", id],
+    queryFn: () => movieAPI.getById(id),
+    retry: (failureCount, error) => {
+      // Custom retry logic
+      if (error.status === 404) return false;
+      return failureCount < 3;
+    },
+    onError: (error) => {
+      logger.error(`Failed to load movie ${id}:`, error);
+
+      if (error.status === 404) {
+        toast.error("Movie not found");
+      } else if (error.status >= 500) {
+        toast.error("Server error. Please try again later.");
+      } else {
+        toast.error("Failed to load movie");
+      }
+    },
+  });
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Mutation Error Handling
+
+```typescript
+// ✅ CORRECT - Mutation with error recovery
+const useMovieMutation = () => {
+  const toast = useToast();
+  const logger = createLogger("useMovieMutation");
+
+  return useMutation({
+    mutationFn: updateMovieAPI,
+    onError: (error, variables, context) => {
+      logger.error("Movie update failed:", error, { variables, context });
+
+      // Revert optimistic update
+      if (context?.rollback) {
+        context.rollback();
+      }
+
+      // User feedback
+      toast.error("Failed to update movie. Changes have been reverted.");
+    },
+    onSuccess: (data) => {
+      logger.info("Movie updated successfully:", data.id);
+      toast.success("Movie updated successfully");
+    },
+  });
+};
+```
+
+***REMOVED******REMOVED*** 🚨 Data Flow Anti-Patterns
+
+***REMOVED******REMOVED******REMOVED*** Forbidden Practices
+
+```typescript
+// ❌ NEVER - Direct API calls in components
+const Component = () => {
+  useEffect(() => {
+    fetch("/api/movies"); // Use hooks instead
+  }, []);
+};
+
+// ❌ NEVER - Mixing state management approaches incorrectly
+const Component = () => {
+  const [serverData, setServerData] = useState(); // Use React Query
+  const [filters] = useContext(FilterContext); // Use Zustand for filters
+};
+
+// ❌ NEVER - Missing error boundaries for async operations
+<AsyncComponent />; // Wrap with ErrorBoundary
+
+// ❌ NEVER - Unhandled promise rejections
+const handleClick = () => {
+  updateMovie(data); // Add .catch() or use try/catch
+};
+
+// ❌ NEVER - Directly mutating query cache without proper patterns
+queryClient.setQueryData(["movies"], newData); // Use proper sync patterns
+```
+
+---
+
+_Related Rules: [Architecture](./01-architecture.md) | [TypeScript](./03-typescript.md) | [Components](./02-components.md)_

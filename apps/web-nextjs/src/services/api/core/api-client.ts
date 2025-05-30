@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import {
   APIError,
   NetworkError,
@@ -9,7 +9,7 @@ import {
 
 // Import config properly with ES modules
 import defaultConfig from "../../../config";
-import { createLogger, apiLogger } from "@/utils/logging";
+import { createLogger } from "@/utils/logging";
 
 // Create dedicated logger for API client
 const logger = createLogger("APIClient");
@@ -24,7 +24,7 @@ try {
   config = {
     api: {
       timeout: 10000, // 10 seconds
-      baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+      bffUrl: process.env.NEXT_PUBLIC_BFF_API_URL || "http://localhost:8001",
     },
     auth: {
       tokenKey: "auth_token",
@@ -32,10 +32,19 @@ try {
   } as typeof defaultConfig;
 }
 
+// API configuration
+export const API_CONFIG = {
+  baseUrl:
+    config.api.bffUrl ||
+    process.env.NEXT_PUBLIC_BFF_API_URL ||
+    "http://localhost:8001",
+  timeout: config.api.timeout || 10000,
+};
+
 // Create API client instance with retry config
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || config.api.baseUrl,
-  timeout: config.api.timeout,
+  baseURL: API_CONFIG.baseUrl,
+  timeout: API_CONFIG.timeout,
   headers: {
     "Content-Type": "application/json",
   },
@@ -129,7 +138,7 @@ apiClient.interceptors.response.use(
     // Handle cache hits
     if (error instanceof CacheHitError) {
       const cacheError = error as CacheHitError;
-      return Promise.resolve({ data: cacheError.data });
+      return Promise.resolve({ data: cacheError.data } as AxiosResponse);
     }
 
     // Type guard to ensure we're handling AxiosError
@@ -224,7 +233,7 @@ export const fetchData = async <T>(
 // Generic post function
 export const postData = async <T>(
   endpoint: string,
-  data: Record<string, unknown>,
+  data: unknown,
   config?: AxiosRequestConfig
 ): Promise<T> => {
   try {
@@ -240,7 +249,7 @@ export const postData = async <T>(
 // Generic put function
 export const putData = async <T>(
   endpoint: string,
-  data: Record<string, unknown>,
+  data: unknown,
   config?: AxiosRequestConfig
 ): Promise<T> => {
   try {
@@ -403,6 +412,18 @@ export class APIClient<T> {
   };
 }
 
+// For backward compatibility, expose same function names used in BFF client
+export const bffFetchData = fetchData;
+export const bffPostData = postData;
+export const bffPutData = putData;
+export const bffDeleteData = deleteData;
+export const bffUploadFormData = uploadFormData;
+
+// For backward compatibility, create a BFF client creator that just uses the standard client
+export const createBFFClient = <T>(endpoint: string): APIClient<T> => {
+  return new APIClient<T>(endpoint);
+};
+
 // Check token validity
 export const isTokenValid = (): boolean => {
   if (typeof window === "undefined") return false;
@@ -428,5 +449,6 @@ export const isTokenValid = (): boolean => {
   }
 };
 
-// Export apiClient as default
+// Export apiClient as default and also as a named export
 export default apiClient;
+export { apiClient };

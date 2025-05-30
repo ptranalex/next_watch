@@ -1,0 +1,388 @@
+***REMOVED*** Next Watch - TypeScript Type Organization
+
+***REMOVED******REMOVED*** 🔧 Type System Strategy
+
+**STRICT RULES** for comprehensive type organization following atomic design principles.
+
+***REMOVED******REMOVED*** 📊 Type Hierarchy by Atomic Level
+
+***REMOVED******REMOVED******REMOVED*** Atoms Types (`./atoms/types.ts`)
+
+Basic, indivisible types that serve as building blocks:
+
+```typescript
+// Basic component sizes
+export type ComponentSize = "xs" | "sm" | "md" | "lg" | "xl";
+export type ExtendedComponentSize = ComponentSize | "2xl";
+
+// Fundamental callbacks
+export type VoidCallback = () => void;
+export type AsyncCallback = () => Promise<void>;
+export type ChangeHandler<T> = (value: T) => void;
+
+// Loading and error states
+export interface LoadingStateProps {
+  isLoading?: boolean;
+  loadingText?: string;
+}
+
+export interface ErrorStateProps {
+  error?: string | null;
+  onRetry?: VoidCallback;
+}
+
+// Base interactive elements
+export interface BaseToggleProps extends LoadingStateProps {
+  isActive: boolean;
+  size?: ComponentSize;
+  ariaLabel?: string;
+  onToggle: VoidCallback;
+}
+
+// Utility types
+export interface WithChildren {
+  children: React.ReactNode;
+}
+
+export interface WithOptionalChildren {
+  children?: React.ReactNode;
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** Molecules Types (`./molecules/types.ts`)
+
+Types for components that combine atoms into focused functionality:
+
+```typescript
+import type {
+  ComponentSize,
+  ChangeHandler,
+  VoidCallback,
+  ErrorStateProps,
+} from "../atoms/types";
+
+// Form patterns
+export interface BaseFormInputProps extends ErrorStateProps {
+  label: string;
+  helpText?: string;
+  size?: ComponentSize;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+}
+
+export interface FormValidationState {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+// Navigation elements
+export interface NavLinkProps {
+  href: string;
+  label: string;
+  isActive?: boolean;
+  icon?: React.ReactElement;
+}
+
+export interface SearchInputProps extends BaseFormInputProps {
+  value: string;
+  onChange: ChangeHandler<string>;
+  onSearch?: (query: string) => void;
+  placeholder?: string;
+}
+
+// Content display
+export interface BaseCardProps {
+  title?: string;
+  subtitle?: string;
+  variant?: "elevated" | "outlined" | "filled";
+}
+
+export interface ExpandableContentProps {
+  isExpanded: boolean;
+  onToggle: VoidCallback;
+  maxLines?: number;
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** Organisms Types (`./organisms/types.ts`)
+
+Types for complex interface sections:
+
+```typescript
+import type { VoidCallback, WithChildren, ComponentSize } from "../atoms/types";
+
+// Modal and overlay patterns
+export interface BaseModalProps extends WithChildren {
+  isOpen: boolean;
+  onClose: VoidCallback;
+  title?: string;
+  size?: ComponentSize | "full";
+  isCentered?: boolean;
+  closeOnOverlayClick?: boolean;
+}
+
+export interface BaseDrawerProps extends WithChildren {
+  isOpen: boolean;
+  onClose: VoidCallback;
+  placement?: "top" | "right" | "bottom" | "left";
+  size?: ComponentSize | "full";
+}
+
+// Navigation systems
+export interface NavBarProps {
+  brand?: React.ReactNode;
+  items: NavLinkProps[];
+  actions?: React.ReactNode;
+  isFixed?: boolean;
+}
+
+export interface MobileNavMenuProps {
+  isOpen: boolean;
+  onClose: VoidCallback;
+  items: NavLinkProps[];
+}
+
+// Data display
+export interface DataTableProps<T> {
+  data: T[];
+  columns: TableColumn<T>[];
+  isLoading?: boolean;
+  onRowClick?: (item: T) => void;
+}
+
+export interface ContentGridProps<T> {
+  items: T[];
+  renderItem: (item: T) => React.ReactNode;
+  columns?: number | Record<string, number>;
+  gap?: ComponentSize;
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** Templates Types (`./templates/types.ts`)
+
+Types for complete page layouts:
+
+```typescript
+import type { WithChildren } from "../atoms/types";
+import type { NavBarProps } from "../organisms/types";
+
+// Layout containers
+export interface BaseContainerProps extends WithChildren {
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  centerContent?: boolean;
+  px?: number | Record<string, number>;
+  py?: number | Record<string, number>;
+}
+
+export interface AppShellProps extends WithChildren {
+  navbar?: NavBarProps;
+  sidebar?: React.ReactNode;
+  footer?: React.ReactNode;
+}
+
+// Page templates
+export interface BrowseLayoutProps extends WithChildren {
+  title: string;
+  filters?: React.ReactNode;
+  actions?: React.ReactNode;
+}
+
+export interface DetailLayoutProps extends WithChildren {
+  breadcrumbs?: React.ReactNode;
+  actions?: React.ReactNode;
+  sidebar?: React.ReactNode;
+}
+
+// Specialized layouts
+export interface AuthLayoutProps extends WithChildren {
+  title: string;
+  subtitle?: string;
+  illustration?: React.ReactNode;
+}
+
+export interface ErrorLayoutProps {
+  title: string;
+  message: string;
+  action?: React.ReactNode;
+}
+```
+
+***REMOVED******REMOVED*** 🎯 Domain-Specific Types
+
+***REMOVED******REMOVED******REMOVED*** Feature Types Organization
+
+```typescript
+// features/movies/types.ts
+import type { VoidCallback, AsyncCallback } from "@/components/ui/atoms/types";
+import type { Movie } from "@/domain/entities";
+
+// Domain callbacks
+export type MovieUpdateCallback = (movie: Movie) => void;
+export type MovieActionCallback = (movieId: string) => Promise<void>;
+
+// Component-specific types
+export interface MovieCardProps {
+  movie: Movie;
+  onMovieUpdate: MovieUpdateCallback;
+  size?: ComponentSize;
+  showQuickActions?: boolean;
+}
+
+export interface MovieDetailViewProps {
+  movie: Movie;
+  isSignedIn: boolean;
+  onUpdateMovie: MovieUpdateCallback;
+}
+
+// Feature-specific enums
+export type MovieCardOrientation = "vertical" | "horizontal";
+export type MovieSortOption = "title" | "rating" | "year" | "popularity";
+```
+
+***REMOVED******REMOVED*** ✅ Type Usage Rules
+
+***REMOVED******REMOVED******REMOVED*** 1. Shared Type Priority
+
+**ALWAYS** use shared types instead of local interfaces:
+
+```typescript
+// ✅ CORRECT - Use shared types
+import type { BaseModalProps } from "../organisms/types";
+import type { VoidCallback, AsyncCallback } from "../atoms/types";
+
+interface ConfirmationModalProps extends BaseModalProps {
+  onConfirm: AsyncCallback;
+  onCancel: VoidCallback;
+  confirmText?: string;
+  cancelText?: string;
+}
+
+// ❌ FORBIDDEN - Local interfaces when shared types exist
+interface LocalModalProps {
+  isOpen: boolean; // BaseModalProps already exists
+  onClose: () => void; // VoidCallback already exists
+  title?: string; // BaseModalProps already has this
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Proper Type Extension
+
+```typescript
+// ✅ CORRECT - Extend and refine shared types
+interface MovieCardProps extends Omit<BaseCardProps, "variant"> {
+  movie: Movie;
+  onMovieUpdate: MovieUpdateCallback;
+  variant?: "compact" | "detailed"; // Movie-specific variants
+}
+
+// ✅ CORRECT - Use generic shared types
+interface SearchMoviesProps {
+  onSearch: ChangeHandler<string>; // Instead of (query: string) => void
+  onClear: VoidCallback; // Instead of () => void
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Callback Type Standardization
+
+**MANDATORY** callback types to use:
+
+```typescript
+// From atoms/types.ts - ALWAYS use these
+type VoidCallback = () => void;
+type AsyncCallback = () => Promise<void>;
+type ChangeHandler<T> = (value: T) => void;
+type ErrorHandler = (error: Error) => void;
+
+// Domain-specific callbacks
+type MovieUpdateCallback = (movie: Movie) => void;
+type UserActionCallback = (action: string) => Promise<void>;
+
+// Usage in component props
+interface ComponentProps {
+  onSave: AsyncCallback; // ✅ Instead of () => Promise<void>
+  onCancel: VoidCallback; // ✅ Instead of () => void
+  onMovieUpdate: MovieUpdateCallback; // ✅ Instead of (movie: Movie) => void
+  onError: ErrorHandler; // ✅ Instead of (error: Error) => void
+}
+```
+
+***REMOVED******REMOVED*** 📦 Import Patterns
+
+***REMOVED******REMOVED******REMOVED*** Recommended Import Strategy
+
+```typescript
+// ✅ CORRECT - Import from specific atomic levels
+import type {
+  ComponentSize,
+  LoadingStateProps,
+  VoidCallback,
+} from "@/components/ui/atoms/types";
+
+import type {
+  BaseFormInputProps,
+  SearchInputProps,
+} from "@/components/ui/molecules/types";
+
+import type {
+  BaseModalProps,
+  DataTableProps,
+} from "@/components/ui/organisms/types";
+
+// ✅ CORRECT - Domain-specific imports
+import type {
+  MovieUpdateCallback,
+  MovieCardProps,
+} from "@/components/features/movies/types";
+```
+
+***REMOVED******REMOVED******REMOVED*** Legacy Type Migration
+
+```typescript
+// ❌ AVOID - Legacy import patterns (being phased out)
+import type { BaseModalProps } from "@/components/ui/types";
+
+// ✅ MIGRATE TO - Atomic-level imports
+import type { BaseModalProps } from "@/components/ui/organisms/types";
+```
+
+***REMOVED******REMOVED*** 🚨 Type Anti-Patterns
+
+***REMOVED******REMOVED******REMOVED*** Forbidden Practices
+
+```typescript
+// ❌ NEVER - Using 'any' type
+interface BadProps {
+  data: any; // Use proper typing
+  callback: any; // Use specific callback types
+}
+
+// ❌ NEVER - Inline callback types when shared types exist
+interface BadCallbackProps {
+  onClick: () => void; // Use VoidCallback
+  onSubmit: () => Promise<void>; // Use AsyncCallback
+  onChange: (value: string) => void; // Use ChangeHandler<string>
+}
+
+// ❌ NEVER - Duplicating existing interfaces
+interface LocalButtonProps {
+  size: "sm" | "md" | "lg"; // ComponentSize already exists
+  onClick: () => void; // VoidCallback already exists
+}
+
+// ❌ NEVER - Missing generic constraints
+interface BadGenericProps<T> {
+  items: T[]; // What kind of T? Add constraints
+  onSelect: (item: T) => void;
+}
+
+// ✅ CORRECT - Proper generic constraints
+interface GoodGenericProps<T extends { id: string }> {
+  items: T[];
+  onSelect: ChangeHandler<T>;
+}
+```
+
+---
+
+_Related Rules: [Architecture](./01-architecture.md) | [Components](./02-components.md) | [Data Flow](./04-data-flow.md)_

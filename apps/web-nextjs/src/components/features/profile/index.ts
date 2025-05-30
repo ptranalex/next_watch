@@ -19,6 +19,10 @@ export type {
 // Components
 // ============================================================================
 
+// Main profile page component
+export { default as ProfilePage } from "./ProfilePage";
+
+// Profile-related components
 export { default as ProfileModal } from "./ProfileModal";
 export { default as ImportNetflixHistoryModal } from "./ImportNetflixHistoryModal";
 

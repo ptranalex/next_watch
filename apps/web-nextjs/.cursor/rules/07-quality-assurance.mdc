@@ -1,0 +1,542 @@
+***REMOVED*** Next Watch - Quality Assurance & Workflow
+
+***REMOVED******REMOVED*** 🚀 Feature Development Workflow
+
+***REMOVED******REMOVED******REMOVED*** 1. New Feature Checklist
+
+When adding a new feature, follow this **mandatory** process:
+
+```markdown
+***REMOVED******REMOVED*** Feature Development Checklist
+
+***REMOVED******REMOVED******REMOVED*** 📁 Setup Phase
+
+- [ ] Create domain directory in `components/features/[domain]/`
+- [ ] Define types in `types.ts` at appropriate level
+- [ ] Create barrel export `index.ts` file
+- [ ] Update parent index exports if needed
+
+***REMOVED******REMOVED******REMOVED*** 🧰 Implementation Phase
+
+- [ ] Create atomic components if needed
+- [ ] Implement feature components with proper structure
+- [ ] Add proper TypeScript interfaces
+- [ ] Implement hooks for business logic
+- [ ] Add comprehensive logging
+- [ ] Implement error boundaries
+- [ ] Add responsive design
+- [ ] Ensure accessibility compliance
+
+***REMOVED******REMOVED******REMOVED*** 🔍 Quality Phase
+
+- [ ] Zero ESLint warnings
+- [ ] Zero TypeScript errors
+- [ ] Zero unused imports
+- [ ] Proper error handling
+- [ ] Performance optimization
+- [ ] Mobile responsiveness
+- [ ] Dark mode support
+
+***REMOVED******REMOVED******REMOVED*** 📚 Documentation Phase
+
+- [ ] Update component documentation
+- [ ] Add usage examples
+- [ ] Update README if needed
+- [ ] Document any new patterns
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Component Creation Process
+
+**MANDATORY** step-by-step process:
+
+```typescript
+// Step 1: Create types file
+// features/[domain]/types.ts
+import type { VoidCallback, AsyncCallback } from "@/components/ui/atoms/types";
+import type { DomainEntity } from "@/domain/entities";
+
+export interface FeatureComponentProps {
+  data: DomainEntity;
+  onUpdate: DomainUpdateCallback;
+  size?: ComponentSize;
+  isLoading?: boolean;
+}
+
+export type DomainUpdateCallback = (entity: DomainEntity) => void;
+export type DomainActionCallback = (action: string) => Promise<void>;
+
+// Step 2: Create component with proper structure
+// features/[domain]/FeatureComponent.tsx
+import React, { useEffect, useCallback } from "react";
+import { Box, Button } from "@chakra-ui/react";
+import { createLogger } from "@/utils/logging";
+import type { FeatureComponentProps } from "./types";
+
+const logger = createLogger("FeatureComponent");
+
+const FeatureComponent: React.FC<FeatureComponentProps> = ({
+  data,
+  onUpdate,
+  size = "md",
+  isLoading = false,
+}) => {
+  // Required initialization logging
+  useEffect(() => {
+    logger.debug("FeatureComponent initialized", {
+      dataId: data.id,
+      size,
+      isLoading,
+    });
+  }, [data.id, size, isLoading]);
+
+  // Memoized handlers
+  const handleAction = useCallback(() => {
+    logger.info("Feature action triggered", { dataId: data.id });
+    onUpdate(data);
+  }, [data, onUpdate]);
+
+  return (
+    <Box>
+      <Button onClick={handleAction} isLoading={isLoading} size={size}>
+        Action
+      </Button>
+    </Box>
+  );
+};
+
+export default FeatureComponent;
+
+// Step 3: Create barrel export
+// features/[domain]/index.ts
+// Main components (public API)
+export { default as FeatureComponent } from "./FeatureComponent";
+
+// Types (public API)
+export type {
+  FeatureComponentProps,
+  DomainUpdateCallback,
+  DomainActionCallback,
+} from "./types";
+
+// Internal components (not exported - used only within this module)
+// - InternalComponent (internal to FeatureComponent)
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Hook Development Process
+
+```typescript
+// Step 1: Create domain hook
+// hooks/domain/[domain]/useDomainEntity.ts
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createLogger } from "@/utils/logging";
+import { domainAPI } from "@/services/api";
+import type { DomainEntity } from "@/domain/entities";
+
+const logger = createLogger("useDomainEntity");
+
+export const useDomainEntity = (id: string) => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["domain-entity", id],
+    queryFn: async () => {
+      logger.debug(`Fetching domain entity: ${id}`);
+      return domainAPI.getById(id);
+    },
+    enabled: !!id,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    onError: (error) => {
+      logger.error(`Failed to fetch domain entity ${id}`, {
+        error: error.message,
+        entityId: id,
+      });
+    },
+  });
+
+  const updateEntity = useCallback(
+    (entity: DomainEntity) => {
+      logger.info("Updating domain entity in cache", { entityId: entity.id });
+      queryClient.setQueryData(["domain-entity", id], entity);
+    },
+    [queryClient, id]
+  );
+
+  return {
+    ...query,
+    updateEntity,
+  };
+};
+
+// Step 2: Export from hooks index
+// hooks/index.ts
+export { useDomainEntity } from "./domain/[domain]/useDomainEntity";
+```
+
+***REMOVED******REMOVED*** 🛡️ Quality Assurance Rules
+
+***REMOVED******REMOVED******REMOVED*** 1. Code Quality Requirements
+
+**ZERO TOLERANCE** standards:
+
+```typescript
+// ✅ REQUIRED - All these must pass
+interface QualityStandards {
+  eslintWarnings: 0;        // Zero ESLint warnings
+  typescriptErrors: 0;      // Zero TypeScript errors
+  unusedImports: 0;         // Zero unused imports
+  consoleStatements: 0;     // No console.log in production
+  anyTypes: 0;              // No 'any' types
+  missingErrorBoundaries: 0; // All async components wrapped
+  missingLogging: 0;        // All components have logging
+  missingAccessibility: 0;  // All interactive elements accessible
+}
+
+// ✅ AUTOMATED CHECKS - Run before commit
+"scripts": {
+  "lint": "next lint --max-warnings 0",
+  "type-check": "tsc --noEmit",
+  "quality-check": "npm run lint && npm run type-check"
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Performance Requirements
+
+**MANDATORY** performance standards:
+
+```typescript
+// Component size limits
+interface PerformanceStandards {
+  maxComponentLines: 200; // Split if larger
+  maxFunctionParameters: 5; // Use object if more
+  maxNestingDepth: 4; // Refactor if deeper
+  maxCyclomaticComplexity: 10; // Simplify if higher
+}
+
+// ✅ CORRECT - Performance optimized component
+const OptimizedComponent = React.memo(({ data, onAction }) => {
+  // Memoized expensive calculations
+  const processedData = useMemo(() => {
+    return expensiveProcessing(data);
+  }, [data]);
+
+  // Stable callback references
+  const handleAction = useCallback(
+    (item) => {
+      onAction(item);
+    },
+    [onAction]
+  );
+
+  // Early returns for performance
+  if (!data?.length) return <EmptyState />;
+
+  return <OptimizedRendering data={processedData} />;
+});
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Accessibility Requirements
+
+**MANDATORY** accessibility standards:
+
+```typescript
+// ✅ REQUIRED - WCAG 2.1 AA compliance
+interface AccessibilityStandards {
+  semanticHTML: true; // Use proper HTML elements
+  keyboardNavigation: true; // Full keyboard support
+  screenReaderSupport: true; // Proper ARIA labels
+  colorContrast: "AA"; // WCAG contrast ratios
+  touchTargetSize: "44px"; // Minimum touch targets
+  focusIndicators: true; // Visible focus states
+}
+
+// ✅ CORRECT - Fully accessible component
+const AccessibleComponent = ({ items, onSelect }) => {
+  return (
+    <Box role="listbox" aria-label="Movie selection">
+      {items.map((item, index) => (
+        <Box
+          key={item.id}
+          role="option"
+          tabIndex={0}
+          aria-selected={item.selected}
+          aria-describedby={`item-description-${item.id}`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelect(item);
+            }
+          }}
+          _focus={{
+            boxShadow: "outline",
+            outline: "2px solid",
+            outlineColor: "colors.primary",
+          }}
+        >
+          <VisuallyHidden id={`item-description-${item.id}`}>
+            {item.description}
+          </VisuallyHidden>
+          {item.title}
+        </Box>
+      ))}
+    </Box>
+  );
+};
+```
+
+***REMOVED******REMOVED*** 🧪 Testing Strategy
+
+***REMOVED******REMOVED******REMOVED*** 1. Component Testing Structure
+
+```typescript
+// ✅ CORRECT - Testable component design
+const TestableComponent = ({ data, onAction }: ComponentProps) => {
+  const logger = createLogger("TestableComponent");
+
+  // Extracted business logic for easier testing
+  const isValid = useMemo(() => validateData(data), [data]);
+  const canPerformAction = useMemo(
+    () => isValid && user?.permissions?.includes("action"),
+    [isValid, user]
+  );
+
+  // Separated handlers for unit testing
+  const handleAction = useCallback(() => {
+    if (!canPerformAction) {
+      logger.warn("Action attempted without permission");
+      return;
+    }
+
+    logger.info("Action performed", { dataId: data.id });
+    onAction(data);
+  }, [canPerformAction, data, onAction]);
+
+  return (
+    <Box data-testid="testable-component">
+      <Button
+        data-testid="action-button"
+        onClick={handleAction}
+        disabled={!canPerformAction}
+        aria-label={`Perform action on ${data.name}`}
+      >
+        Perform Action
+      </Button>
+    </Box>
+  );
+};
+
+// Test structure example
+describe("TestableComponent", () => {
+  it("should perform action when user has permission", () => {
+    // Test implementation
+  });
+
+  it("should disable action when user lacks permission", () => {
+    // Test implementation
+  });
+
+  it("should log action attempts appropriately", () => {
+    // Test implementation
+  });
+});
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Integration Testing Patterns
+
+```typescript
+// ✅ CORRECT - Integration test friendly structure
+const IntegratedFeature = () => {
+  const { data, isLoading, error } = useDomainData();
+  const { user } = useAuth();
+
+  // Testable error states
+  if (error) {
+    return <ErrorDisplay error={error} data-testid="error-display" />;
+  }
+
+  // Testable loading states
+  if (isLoading) {
+    return <LoadingSpinner data-testid="loading-spinner" />;
+  }
+
+  // Testable success state
+  return (
+    <Box data-testid="integrated-feature">
+      <FeatureComponent
+        data={data}
+        onUpdate={handleUpdate}
+        data-testid="feature-component"
+      />
+    </Box>
+  );
+};
+```
+
+***REMOVED******REMOVED*** 🚨 Comprehensive Anti-Patterns
+
+***REMOVED******REMOVED******REMOVED*** Architectural Anti-Patterns
+
+```typescript
+// ❌ NEVER - Violating layer boundaries
+const Component = () => {
+  useEffect(() => {
+    // Direct API call bypassing hooks layer
+    fetch("/api/movies").then(setMovies);
+  }, []);
+};
+
+// ❌ NEVER - Mixed responsibilities
+const BadComponent = () => {
+  // UI rendering, API calls, and business logic all mixed
+  const [data, setData] = useState();
+
+  useEffect(() => {
+    fetch("/api/data").then(setData);
+  }, []);
+
+  const processData = (rawData) => {
+    // Complex business logic in UI component
+    return complexBusinessLogic(rawData);
+  };
+
+  return <div>{processData(data)}</div>;
+};
+
+// ✅ CORRECT - Proper separation
+const GoodComponent = () => {
+  // Clear separation of concerns
+  const { data, isLoading } = useDomainData(); // Data layer
+  const processedData = useProcessedData(data); // Business logic layer
+
+  return <PresentationComponent data={processedData} />; // UI layer
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** State Management Anti-Patterns
+
+```typescript
+// ❌ NEVER - Mixing state management approaches incorrectly
+const BadStateComponent = () => {
+  const [serverData, setServerData] = useState(); // Should use React Query
+  const [localFilters] = useContext(FilterContext); // Should use Zustand
+  const { user } = useAuth(); // Correct - Context for app-wide state
+};
+
+// ❌ NEVER - Prop drilling beyond 3 levels
+const Level1 = ({ data }) => <Level2 data={data} />;
+const Level2 = ({ data }) => <Level3 data={data} />;
+const Level3 = ({ data }) => <Level4 data={data} />; // Too deep!
+
+// ✅ CORRECT - Use context or state management
+const Level1 = ({ data }) => (
+  <DataProvider value={data}>
+    <Level2 />
+  </DataProvider>
+);
+```
+
+***REMOVED******REMOVED******REMOVED*** Performance Anti-Patterns
+
+```typescript
+// ❌ NEVER - Expensive operations without memoization
+const BadPerformanceComponent = ({ items, filters }) => {
+  // Recalculates on every render
+  const filteredItems = items.filter((item) => applyFilters(item, filters));
+
+  // Creates new function on every render
+  const handleClick = (item) => {
+    processItem(item);
+  };
+
+  return (
+    <div>
+      {filteredItems.map((item) => (
+        <Item key={item.id} data={item} onClick={handleClick} />
+      ))}
+    </div>
+  );
+};
+
+// ✅ CORRECT - Proper memoization
+const GoodPerformanceComponent = ({ items, filters }) => {
+  const filteredItems = useMemo(
+    () => items.filter((item) => applyFilters(item, filters)),
+    [items, filters]
+  );
+
+  const handleClick = useCallback((item) => {
+    processItem(item);
+  }, []);
+
+  return (
+    <div>
+      {filteredItems.map((item) => (
+        <Item key={item.id} data={item} onClick={handleClick} />
+      ))}
+    </div>
+  );
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** TypeScript Anti-Patterns
+
+```typescript
+// ❌ NEVER - Type safety violations
+interface BadTypes {
+  data: any; // No type safety
+  callback: Function; // Too generic
+  config: object; // Vague typing
+}
+
+// ❌ NEVER - Ignoring type errors
+const badFunction = (data: Movie) => {
+  // @ts-ignore - Never ignore type errors
+  return data.invalidProperty;
+};
+
+// ✅ CORRECT - Proper typing
+interface GoodTypes {
+  data: Movie;
+  callback: MovieUpdateCallback;
+  config: ComponentConfig;
+}
+
+const goodFunction = (data: Movie): string => {
+  // Type-safe property access
+  return data.title || "Unknown Movie";
+};
+```
+
+***REMOVED******REMOVED*** 📊 Quality Metrics
+
+***REMOVED******REMOVED******REMOVED*** Monitoring Standards
+
+```typescript
+// Required quality metrics to track
+interface QualityMetrics {
+  // Code quality
+  typeScriptStrict: true;
+  eslintScore: 100;
+  testCoverage: ">= 80%";
+
+  // Performance
+  bundleSize: "< 1MB";
+  loadTime: "< 3s";
+  renderTime: "< 100ms";
+
+  // Accessibility
+  axeViolations: 0;
+  keyboardNavigation: "100%";
+  screenReaderCompat: "100%";
+
+  // User experience
+  mobileResponsive: true;
+  darkModeSupport: true;
+  errorRecovery: true;
+}
+```
+
+This comprehensive quality assurance framework ensures consistent, maintainable, and high-quality development across the Next.js application.
+
+---
+
+_Related Rules: [Architecture](./01-architecture.md) | [Best Practices](./06-best-practices.md) | [Overview](./README.md)_

@@ -1,8 +1,6 @@
-"use client";
-
 import { ColorModeScript } from "@chakra-ui/react";
-import theme from "@/theme";
+import { themeConfig } from "@/config/theme-config";
 
 export default function ThemeScript() {
-  return <ColorModeScript initialColorMode={theme.config.initialColorMode} />;
+  return <ColorModeScript initialColorMode={themeConfig.initialColorMode} />;
 }

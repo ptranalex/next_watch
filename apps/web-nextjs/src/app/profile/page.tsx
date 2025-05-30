@@ -1,138 +1,31 @@
 "use client";
 
-import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  VStack,
-  Avatar,
-  Button,
-  useColorModeValue,
-  Divider,
-  Flex,
-  Icon,
-  HStack,
-} from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks";
-import { ProtectedRoute } from "@/components/features/auth";
-import { useEffect, useState } from "react";
-import ImportNetflixHistoryModal from "@/components/features/profile/ImportNetflixHistoryModal";
-import { HiOutlineArrowUpTray } from "react-icons/hi2";
+import { memo } from "react";
+import { ProfilePage } from "@/components/features/profile";
 import { createLogger } from "@/utils/logging";
 
-// Create logger for this component
-const logger = createLogger("ProfilePage");
+// Create logger for this route
+const logger = createLogger("ProfilePageRoute");
 
 // Make the page dynamic to avoid prerendering issues
 export const dynamic = "force-dynamic";
 
-export default function ProfilePage() {
-  // Log component initialization
-  logger.debug("ProfilePage initializing");
+/**
+ * Profile Page Route - /profile
+ *
+ * Route-level component that delegates rendering to the ProfilePage feature component.
+ *
+ * This follows the architecture pattern where route files only handle
+ * parameter parsing (none needed here) and delegate business logic to feature components.
+ */
+const ProfilePageRoute = memo(() => {
+  // Log route initialization
+  logger.debug("ProfilePageRoute initializing");
 
-  return (
-    <ProtectedRoute>
-      <ProfileContent />
-    </ProtectedRoute>
-  );
-}
+  // Delegate to the feature component
+  return <ProfilePage />;
+});
 
-// Separate component for the profile content
-function ProfileContent() {
-  // Create specific logger for profile content
-  const contentLogger = createLogger("ProfileContent");
+ProfilePageRoute.displayName = "ProfilePageRoute";
 
-  const { user, logout } = useAuth();
-  const router = useRouter();
-  const bgColor = useColorModeValue("gray.50", "gray.900");
-  const cardBgColor = useColorModeValue("white", "gray.800");
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
-  // Log when user data is loaded
-  useEffect(() => {
-    if (user) {
-      contentLogger.info(`Profile loaded for user: ${user.email}`);
-    }
-  }, [user]);
-
-  const handleLogout = () => {
-    contentLogger.info("User initiated logout from profile page");
-    logout();
-    router.push("/");
-  };
-
-  const openImportModal = () => {
-    contentLogger.info("User opened Netflix history import modal");
-    setIsImportModalOpen(true);
-  };
-
-  const closeImportModal = () => {
-    contentLogger.debug("User closed Netflix history import modal");
-    setIsImportModalOpen(false);
-  };
-
-  if (!user) {
-    contentLogger.warn("ProfileContent rendered without user data");
-    return null; // This shouldn't happen due to ProtectedRoute, but just in case
-  }
-
-  return (
-    <Box bg={bgColor} minH="calc(100vh - 60px)" py={10}>
-      <Container maxW="container.md">
-        <VStack
-          spacing={8}
-          align="stretch"
-          bg={cardBgColor}
-          p={8}
-          borderRadius="lg"
-          boxShadow="md"
-        >
-          <Flex justifyContent="center">
-            <Avatar size="2xl" name={user.username || user.email} mb={4} />
-          </Flex>
-
-          <VStack align="center" spacing={1}>
-            <Heading as="h1" size="xl">
-              {user.username || "User"}
-            </Heading>
-            <Text color="gray.500">{user.email}</Text>
-          </VStack>
-
-          <Divider />
-
-          <Heading as="h3" size="md" alignSelf="center" mb={2}>
-            Your Watch History
-          </Heading>
-
-          <HStack justifyContent="center" spacing={4}>
-            <Button
-              colorScheme="teal"
-              leftIcon={<Icon as={HiOutlineArrowUpTray} />}
-              onClick={openImportModal}
-            >
-              Import Netflix History
-            </Button>
-          </HStack>
-
-          <Divider />
-
-          <Button
-            colorScheme="red"
-            variant="outline"
-            onClick={handleLogout}
-            alignSelf="center"
-          >
-            Logout
-          </Button>
-        </VStack>
-      </Container>
-
-      <ImportNetflixHistoryModal
-        isOpen={isImportModalOpen}
-        onClose={closeImportModal}
-      />
-    </Box>
-  );
-}
+export default ProfilePageRoute;

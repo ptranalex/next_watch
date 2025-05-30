@@ -1,18 +1,15 @@
-import { useMovieCast } from "@/hooks/domain/movie/useMovieCast";
-import { Box, Image, Grid, Spinner, Text, Tooltip } from "@chakra-ui/react";
+import { getProfileUrl } from "@/utils/media";
+import { Box, Grid, Image, Text, Tooltip } from "@chakra-ui/react";
 import Link from "next/link";
 import React, { useState } from "react";
-import { getProfileUrl } from "@/utils/media";
-import type { ActorGalleryProps } from "../../actors/types";
+import type { ActorGalleryProps, CastMember } from "../../actors/types";
 
 const ActorsGallery: React.FC<ActorGalleryProps> = ({
   movieId,
+  castData,
   maxActors = 6,
   showAllButton = false,
 }) => {
-  // Fetch cast data using React Query
-  const { data: castData, isLoading, error } = useMovieCast(movieId);
-
   // Keep track of images that failed to load
   const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
 
@@ -33,27 +30,6 @@ const ActorsGallery: React.FC<ActorGalleryProps> = ({
     }));
   };
 
-  // Handle loading state
-  if (isLoading) {
-    return (
-      <Box textAlign="center" py={2}>
-        <Spinner size="sm" color="colors.primary" mr={2} />
-        <Text display="inline" fontSize="sm">
-          Loading cast...
-        </Text>
-      </Box>
-    );
-  }
-
-  // Handle error state
-  if (error) {
-    return (
-      <Text fontSize="sm" color="text.tertiary">
-        Unable to load cast
-      </Text>
-    );
-  }
-
   // Handle no cast data
   if (!castData?.cast?.length) {
     return null;
@@ -62,7 +38,7 @@ const ActorsGallery: React.FC<ActorGalleryProps> = ({
   return (
     <Box width="100%">
       <Grid templateColumns="repeat(3, 1fr)" gap={2} width="100%">
-        {castData.cast.slice(0, maxActors).map((actor) => (
+        {castData.cast.slice(0, maxActors).map((actor: CastMember) => (
           <Tooltip
             key={actor.id}
             label={actor.name}

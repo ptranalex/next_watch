@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Providers } from "./providers";
 import { ThemeScript } from "@/providers";
-import ResponsiveShell from "@/components/ui/templates/ResponsiveShell";
+import ResponsiveShell from "@/components/ui/layout/ResponsiveShell";
+import NavigationTracker from "@/components/analytics/NavigationTracker";
 import "./globals.css";
 
 // Load Inter font
@@ -44,6 +46,10 @@ export default function RootLayout({
         <Providers>
           <ResponsiveShell>{children}</ResponsiveShell>
         </Providers>
+        {/* Google Analytics - Modern Next.js approach */}
+        <GoogleAnalytics gaId="G-KEFGRJ4SLR" />
+        {/* Navigation Tracking */}
+        <NavigationTracker />
       </body>
     </html>
   );

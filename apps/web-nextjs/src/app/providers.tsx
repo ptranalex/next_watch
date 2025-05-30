@@ -7,6 +7,11 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import {
+  CacheConfig,
+  createCacheManager,
+  GlobalCacheUtils,
+} from "@/services/cache";
 import React, { useEffect, useState } from "react";
 
 // Create logger for this component
@@ -28,18 +33,39 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   const [queryClient] = useState(() => {
-    logger.debug("Creating QueryClient with default configuration");
-    return new QueryClient({
+    logger.debug("Creating QueryClient with optimized cache configuration");
+
+    const client = new QueryClient({
       defaultOptions: {
         queries: {
-          staleTime: 10 * 60 * 1000, // 10 minutes
-          cacheTime: 60 * 60 * 1000, // 60 minutes
+          staleTime: CacheConfig.defaultStaleTime, // 2 minutes
+          cacheTime: CacheConfig.defaultGcTime, // 10 minutes (will be gcTime in v5)
           refetchOnWindowFocus: false,
           refetchOnMount: false,
           retry: 1,
         },
+        mutations: {
+          retry: 1,
+        },
       },
     });
+
+    // Initialize cache manager for advanced cache operations
+    const cacheManager = createCacheManager(client);
+    logger.debug("Cache manager initialized", {
+      staleTime: CacheConfig.defaultStaleTime,
+      cacheTime: CacheConfig.defaultGcTime,
+    });
+
+    // Store cache manager on client for global access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).cacheManager = cacheManager;
+
+    // Initialize global cache utilities for non-React usage
+    GlobalCacheUtils.initialize(cacheManager);
+    logger.debug("Global cache utilities initialized");
+
+    return client;
   });
 
   // Check for required environment variables
@@ -57,7 +83,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ChakraProvider theme={theme} resetCSS={true}>
         {/* 2. Setup responsive detection */}
         <ResponsiveProvider>
-          {/* 3. Setup data fetching */}
+          {/* 3. Setup data fetching with enhanced cache system */}
           <QueryClientProvider client={queryClient}>
             {/* 4. Setup authentication */}
             <GoogleOAuthProvider

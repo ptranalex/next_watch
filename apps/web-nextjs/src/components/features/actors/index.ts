@@ -9,16 +9,19 @@
 // ============================================================================
 
 export type {
+  ActorPageProps,
   ActorDetailProps,
   ActorGalleryProps,
   ActorCardProps,
 } from "./types";
 
 // ============================================================================
-// Components will be added here when they exist
+// Components
 // ============================================================================
 
-// TODO: Export actor components when they are created
+export { default as ActorPage } from "./ActorPage";
+
+// TODO: Export additional actor components when they are created
 // export { default as ActorCard } from "./ActorCard";
 // export { default as ActorDetail } from "./ActorDetail";
 // export { default as ActorGallery } from "./ActorGallery";

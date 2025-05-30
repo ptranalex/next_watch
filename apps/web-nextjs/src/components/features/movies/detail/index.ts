@@ -6,7 +6,7 @@
  */
 
 // Main detail view components
-export { default as MovieDetailView } from "./MovieDetailView";
+export { default as MovieDetailPage } from "./MovieDetailPage";
 export { default as DesktopMovieDetailView } from "./DesktopMovieDetailView";
 
 // Reusable sub-components

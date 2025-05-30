@@ -1,4 +1,3 @@
-import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { ExpandableText } from "@/components/ui/molecules/display";
 import { ErrorBoundary } from "@/components/ui/molecules/feedback";
 import { FEATURES } from "@/config/features";
@@ -15,7 +14,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useMemo } from "react";
 import ActorsGallery from "./ActorsGallery";
 import MovieAttributes from "./MovieAttributes";
 import MovieQuickAction from "./MovieQuickAction";
@@ -62,11 +61,11 @@ const TrailerCard = dynamic(() => import("./TrailerCard"), {
 /**
  * Desktop/tablet version of the movie detail view
  */
-const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
-  movie,
-  isSignedIn,
-  onUpdateMovie,
-}) => {
+const DesktopMovieDetailView: React.FC<{
+  movie: MovieDetailViewProps["movie"];
+  isSignedIn: boolean;
+  toggleFunctions?: MovieDetailViewProps["toggleFunctions"];
+}> = ({ movie, isSignedIn, toggleFunctions }) => {
   // Log component initialization
   useEffect(() => {
     logger.info(
@@ -87,6 +86,20 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
     () => movieUtils.extractRatings(movie),
     [movie]
   );
+
+  // Format cast data for ActorsGallery
+  const castData = useMemo(() => {
+    return {
+      cast:
+        movie.cast?.map((actor) => ({
+          id: actor.id,
+          name: actor.name,
+          actor_id: actor.id,
+          profile_path: actor.profile_path,
+          character: actor.character,
+        })) || [],
+    };
+  }, [movie.cast]);
 
   // Safely extract poster URL and title
   const posterUrl =
@@ -110,7 +123,13 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
               fallback={<Text>Unable to load actors</Text>}
               componentName="ActorsGallery"
             >
-              <ActorsGallery movieId={movieId} />
+              {movie.cast && movie.cast.length > 0 ? (
+                <ActorsGallery movieId={movieId} castData={castData} />
+              ) : (
+                <Text fontSize="sm" color="text.tertiary">
+                  No cast information available
+                </Text>
+              )}
             </ErrorBoundary>
           </Stack>
         </Box>
@@ -128,7 +147,7 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
             componentName="TrailerCard"
           >
             <Suspense fallback={<TrailerFallback />}>
-              <TrailerCard movieId={movieId} />
+              <TrailerCard movieId={movieId} trailers={movie.trailers} />
             </Suspense>
           </ErrorBoundary>
         </Box>
@@ -166,9 +185,9 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
             >
               <MovieQuickAction
                 movie={movie}
-                onUpdateMovie={onUpdateMovie}
                 orientation="horizontal"
                 size="md"
+                toggleFunctions={toggleFunctions}
               />
             </ErrorBoundary>
           </Box>
@@ -191,7 +210,7 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
             <Heading size="lg" marginBottom={2} marginTop={5}>
               More Like This
             </Heading>
-            <ErrorBoundary
+            {/* <ErrorBoundary
               fallback={<Text>Similar movies unavailable</Text>}
               componentName="SimilarMovies"
             >
@@ -200,7 +219,7 @@ const DesktopMovieDetailView: React.FC<MovieDetailViewProps> = ({
                 source="more_like_this"
                 movie_id={movieId}
               />
-            </ErrorBoundary>
+            </ErrorBoundary> */}
           </>
         )}
       </GridItem>

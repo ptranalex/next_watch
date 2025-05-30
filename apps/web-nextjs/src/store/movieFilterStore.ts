@@ -71,8 +71,9 @@ const useMovieFilterStore = create<MovieFilterStore>()(
           // Preserve values for locked filters
           state.lockedFilters.forEach((lockedKey) => {
             if (state.filters[lockedKey] !== undefined) {
-              // Cast to handle the type safely
-              (newFilters as any)[lockedKey] = state.filters[lockedKey];
+              // Type-safe approach to set the value
+              (newFilters as Record<keyof MovieFilters, unknown>)[lockedKey] =
+                state.filters[lockedKey];
               logger.debug(
                 `Preserving locked filter ${String(lockedKey)}: ${
                   state.filters[lockedKey]

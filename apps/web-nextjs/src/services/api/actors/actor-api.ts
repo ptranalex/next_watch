@@ -1,8 +1,9 @@
-import { APIClient, fetchData } from "../core/api-client";
-import { ActorResponse } from "./types";
+import { APIClient } from "../core/api-client";
+import { ActorResponse, ActorScreenData } from "./types";
 import { MovieListResponse } from "../movies/types";
 import { MovieAPI } from "../movies/movie-api";
 import { Actor } from "../common/types";
+import { fetchData } from "../core/api-client";
 
 /**
  * Client for actor-related API operations
@@ -33,14 +34,14 @@ export const ActorAPI = {
     if (params.sort_desc !== undefined)
       queryParams.append("sort_desc", params.sort_desc.toString());
 
-    return fetchData<ActorResponse>(`/api/v1/actors?${queryParams.toString()}`);
+    return fetchData<ActorResponse>(`/bff/v1/actors?${queryParams.toString()}`);
   },
 
   /**
-   * Get a single actor by ID
+   * Get a single actor by ID with their movies
    */
-  getById: async (id: number): Promise<Actor> => {
-    return actorsClient.getById(id);
+  getById: async (id: number): Promise<ActorScreenData> => {
+    return fetchData<ActorScreenData>(`/bff/v1/actors/${id}`);
   },
 
   /**
@@ -48,7 +49,7 @@ export const ActorAPI = {
    */
   getPopularActors: async (limit: number = 10): Promise<Actor[]> => {
     const response = await fetchData<ActorResponse>(
-      `/api/v1/actors/popular?limit=${limit}`
+      `/bff/v1/actors/popular?limit=${limit}`
     );
     return response.actors;
   },
@@ -76,7 +77,7 @@ export const ActorAPI = {
 
     queryParams.append("search", query);
 
-    return fetchData<ActorResponse>(`/api/v1/actors?${queryParams.toString()}`);
+    return fetchData<ActorResponse>(`/bff/v1/actors?${queryParams.toString()}`);
   },
 
   /**

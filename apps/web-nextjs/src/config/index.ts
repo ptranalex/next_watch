@@ -11,10 +11,15 @@ export const isTest = process.env.NODE_ENV === "test";
 // API Configuration
 export const API_CONFIG = {
   /**
-   * Base URL for the API
+   * Base URL for the backend API (direct access)
    * In browser contexts, this must be prefixed with NEXT_PUBLIC_
    */
   baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+
+  /**
+   * Base URL for the BFF API (preferred)
+   */
+  bffUrl: process.env.NEXT_PUBLIC_BFF_API_URL || "http://localhost:8001",
 
   /**
    * API version
@@ -25,6 +30,11 @@ export const API_CONFIG = {
    * Timeout for API requests in milliseconds
    */
   timeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 10000),
+
+  /**
+   * Timeout for BFF API requests in milliseconds (typically longer due to aggregation)
+   */
+  bffTimeout: Number(process.env.NEXT_PUBLIC_BFF_API_TIMEOUT || 15000),
 };
 
 // Feature Flags

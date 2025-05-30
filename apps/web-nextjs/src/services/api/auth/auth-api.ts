@@ -20,11 +20,11 @@ export const AuthAPI = {
     logger.info(`Registering new user with email: ${data.email}`);
 
     try {
-      const userData = await postData<UserData>("/api/v1/auth/signup/", {
+      const userData = await postData<UserData>("/bff/v1/auth/register", {
         email: data.email,
-        username: data.username,
+        name: data.username, // BFF expects 'name' field, not 'username'
         password: data.password,
-        password_confirm: data.password_confirm,
+        // Note: BFF doesn't expect password_confirm, backend handles validation
       });
 
       logger.info(`Successfully registered user: ${data.email}`);
@@ -47,28 +47,24 @@ export const AuthAPI = {
     logger.info(`Attempting login for user: ${credentials.email}`);
 
     try {
-      // Convert credentials to form data format
+      // Convert credentials to form data format as expected by BFF/backend
       const formData = new URLSearchParams();
       formData.append("username", credentials.email);
       formData.append("password", credentials.password);
 
-      // Using postData directly with special content type header
+      logger.debug(
+        "Sending login request with form data for user:",
+        credentials.email
+      );
+
+      // Use BFF client with form data and proper content type
       const tokens = await postData<AuthTokens>(
-        "/api/v1/auth/login",
-        { username: credentials.email, password: credentials.password },
+        "/bff/v1/auth/login",
+        formData,
         {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          transformRequest: [
-            (data) => {
-              const formData = new URLSearchParams();
-              for (const key in data) {
-                formData.append(key, data[key]);
-              }
-              return formData.toString();
-            },
-          ],
         }
       );
 
@@ -104,8 +100,8 @@ export const AuthAPI = {
     }
 
     try {
-      // Using the API client which already handles auth headers
-      const userData = await fetchData<UserData>("/api/v1/auth/me/");
+      // Using the BFF client which already handles auth headers
+      const userData = await fetchData<UserData>("/bff/v1/auth/me");
       logger.debug(`Current user data retrieved for ID: ${userData.id}`);
       return userData;
     } catch (error) {
@@ -153,8 +149,8 @@ export const AuthAPI = {
     logger.debug("Refresh attempt marked");
 
     try {
-      // Use the API client for the refresh token request
-      const tokens = await postData<AuthTokens>("/api/v1/auth/refresh", {
+      // Use the BFF client for the refresh token request
+      const tokens = await postData<AuthTokens>("/bff/v1/auth/refresh", {
         refresh_token: refreshToken,
       });
 
@@ -175,7 +171,8 @@ export const AuthAPI = {
       }
 
       if (error instanceof APIError) {
-        const statusCode = (error as any)?.statusCode || 0;
+        const statusCode =
+          (error as APIError & { statusCode?: number })?.statusCode || 0;
 
         if (statusCode >= 500) {
           logger.error(

@@ -1,26 +1,28 @@
 "use client";
 
-import { Heading } from "@chakra-ui/react";
-import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
-import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { memo } from "react";
+import { WatchlistPage } from "@/components/features/movies/watchlist";
+import { createLogger } from "@/utils/logging";
 
-// Memoize components for better performance
-const MemoizedMovieGrid = memo(MovieGrid);
+// Create logger for this route
+const logger = createLogger("WatchlistPageRoute");
 
-export default function WatchlistPage() {
-  const title = (
-    <Heading as="h1" marginY={5}>
-      Your Watchlist
-    </Heading>
-  );
+/**
+ * Watchlist Page Route - /watchlist
+ *
+ * Route-level component that delegates rendering to the WatchlistPage feature component.
+ *
+ * This follows the architecture pattern where route files only handle
+ * parameter parsing (none needed here) and delegate business logic to feature components.
+ */
+const WatchlistPageRoute = memo(() => {
+  // Log route initialization
+  logger.debug("WatchlistPageRoute initializing");
 
-  return (
-    <MovieBrowseLayout title={title}>
-      <MemoizedMovieGrid
-        columns={{ base: 3, sm: 3, md: 4, lg: 6 }}
-        source="watchlist"
-      />
-    </MovieBrowseLayout>
-  );
-}
+  // Delegate to the feature component
+  return <WatchlistPage />;
+});
+
+WatchlistPageRoute.displayName = "WatchlistPageRoute";
+
+export default WatchlistPageRoute;

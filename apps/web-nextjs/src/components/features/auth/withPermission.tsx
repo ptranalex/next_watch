@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Box, Heading, Text, Button } from "@chakra-ui/react";
-import { useAuth, Permission } from "@/hooks/";
+import { useAuth, Permission } from "@/services/hooks";
 
 /**
  * Options for the withPermission HOC

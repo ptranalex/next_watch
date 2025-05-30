@@ -2,6 +2,7 @@
  * Types for Movie API domain
  */
 import { Genre, Actor } from "../common/types";
+import { Trailer } from "../bff/types";
 
 export interface Movie {
   id: number;
@@ -62,6 +63,7 @@ export type MovieProperty =
   | Genre[]
   | ProductionCountry[]
   | ProductionCompany[]
+  | Trailer[]
   | undefined;
 
 export interface ProductionCountry {
@@ -76,10 +78,13 @@ export interface ProductionCompany {
 }
 
 export interface MovieListResponse {
-  movies: Movie[];
   total: number;
   page: number;
-  page_size: number;
+  per_page: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+  results: Movie[];
 }
 
 export interface MoviesQueryParams {
@@ -89,7 +94,7 @@ export interface MoviesQueryParams {
   genre_id?: number;
   actor_id?: number;
   search?: string;
-  sortBy?: string;
+  sort_by?: string;
   sort_desc?: boolean;
   year?: number;
   imdb_rating?: number;

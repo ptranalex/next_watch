@@ -1,4 +1,4 @@
-import { APIClient, fetchData, postData, deleteData } from "../core/api-client";
+import { APIClient, fetchData, deleteData, putData } from "../core/api-client";
 import { UserMovieInteractionResponse, UserMovieDetail } from "./types";
 
 /**
@@ -30,7 +30,6 @@ export const mapApiInteractionToUi = (
  * @returns API-formatted interaction data
  */
 export const mapUiInteractionToApi = (uiInteraction: {
-  id?: number;
   user_id?: number;
   movie_id: number;
   is_liked?: boolean;
@@ -41,7 +40,6 @@ export const mapUiInteractionToApi = (uiInteraction: {
   [key: string]: unknown;
 }): UserMovieInteractionResponse => {
   return {
-    id: uiInteraction.id || 0,
     user_id: uiInteraction.user_id || 0,
     movie_id: uiInteraction.movie_id,
     liked: uiInteraction.is_liked || false,
@@ -60,7 +58,7 @@ export const mapUiInteractionToApi = (uiInteraction: {
  */
 class UserInteractionAPI extends APIClient<UserMovieInteractionResponse> {
   constructor() {
-    super("/api/v1/user/movies");
+    super("/bff/v1/user/interactions");
   }
 
   /**
@@ -70,51 +68,87 @@ class UserInteractionAPI extends APIClient<UserMovieInteractionResponse> {
     movieId: number
   ): Promise<UserMovieInteractionResponse | null> => {
     return fetchData<UserMovieInteractionResponse | null>(
-      `${this.endpoint}/${movieId}/interaction`
+      `${this.endpoint}/movies/${movieId}`
     );
   };
 
   /**
    * Toggle movie in user's watchlist
+   *
+   * Uses PUT to add to watchlist or DELETE to remove from watchlist
+   * based on the current state
    */
   toggleWatchlist = async (
-    movieId: number
+    movieId: number,
+    currentState: boolean = false
   ): Promise<UserMovieInteractionResponse> => {
-    return postData<UserMovieInteractionResponse>(
-      `${this.endpoint}/${movieId}/watchlist`,
-      {}
-    );
+    if (currentState) {
+      // If already in watchlist, remove it
+      return deleteData<UserMovieInteractionResponse>(
+        `${this.endpoint}/movies/${movieId}/watchlist`
+      );
+    } else {
+      // If not in watchlist, add it
+      return putData<UserMovieInteractionResponse>(
+        `${this.endpoint}/movies/${movieId}/watchlist`,
+        {}
+      );
+    }
   };
 
   /**
    * Toggle movie in user's watched list
+   *
+   * Uses PUT to mark as watched or DELETE to unmark as watched
+   * based on the current state
    */
   toggleWatched = async (
-    movieId: number
+    movieId: number,
+    currentState: boolean = false
   ): Promise<UserMovieInteractionResponse> => {
-    return postData<UserMovieInteractionResponse>(
-      `${this.endpoint}/${movieId}/watched`,
-      {}
-    );
+    if (currentState) {
+      // If already watched, unmark it
+      return deleteData<UserMovieInteractionResponse>(
+        `${this.endpoint}/movies/${movieId}/watched`
+      );
+    } else {
+      // If not watched, mark it
+      return putData<UserMovieInteractionResponse>(
+        `${this.endpoint}/movies/${movieId}/watched`,
+        {}
+      );
+    }
   };
 
   /**
    * Toggle movie in user's liked list
+   *
+   * Uses PUT to like or DELETE to unlike
+   * based on the current state
    */
   toggleLiked = async (
-    movieId: number
+    movieId: number,
+    currentState: boolean = false
   ): Promise<UserMovieInteractionResponse> => {
-    return postData<UserMovieInteractionResponse>(
-      `${this.endpoint}/${movieId}/liked`,
-      {}
-    );
+    if (currentState) {
+      // If already liked, unlike it
+      return deleteData<UserMovieInteractionResponse>(
+        `${this.endpoint}/movies/${movieId}/liked`
+      );
+    } else {
+      // If not liked, like it
+      return putData<UserMovieInteractionResponse>(
+        `${this.endpoint}/movies/${movieId}/liked`,
+        {}
+      );
+    }
   };
 
   /**
    * Delete all interactions with a movie
    */
   deleteInteraction = async (movieId: number): Promise<void> => {
-    return deleteData<void>(`${this.endpoint}/${movieId}/interaction`);
+    return deleteData<void>(`${this.endpoint}/movies/${movieId}`);
   };
 
   /**
@@ -125,7 +159,7 @@ class UserInteractionAPI extends APIClient<UserMovieInteractionResponse> {
     offset: number = 0
   ): Promise<UserMovieInteractionResponse[]> => {
     return fetchData<UserMovieInteractionResponse[]>(
-      `${this.endpoint}/watchlist?limit=${limit}&offset=${offset}`
+      `${this.endpoint}/movies?category=watchlist&limit=${limit}&offset=${offset}`
     );
   };
 
@@ -137,7 +171,7 @@ class UserInteractionAPI extends APIClient<UserMovieInteractionResponse> {
     offset: number = 0
   ): Promise<UserMovieInteractionResponse[]> => {
     return fetchData<UserMovieInteractionResponse[]>(
-      `${this.endpoint}/watched?limit=${limit}&offset=${offset}`
+      `${this.endpoint}/movies?category=watched&limit=${limit}&offset=${offset}`
     );
   };
 
@@ -149,7 +183,7 @@ class UserInteractionAPI extends APIClient<UserMovieInteractionResponse> {
     offset: number = 0
   ): Promise<UserMovieInteractionResponse[]> => {
     return fetchData<UserMovieInteractionResponse[]>(
-      `${this.endpoint}/liked?limit=${limit}&offset=${offset}`
+      `${this.endpoint}/movies?category=liked&limit=${limit}&offset=${offset}`
     );
   };
 
@@ -168,7 +202,7 @@ class UserInteractionAPI extends APIClient<UserMovieInteractionResponse> {
     offset: number = 0
   ): Promise<UserMovieDetail[]> => {
     return fetchData<UserMovieDetail[]>(
-      `${this.endpoint}/movies/${category}?limit=${limit}&offset=${offset}`
+      `${this.endpoint}/movies?category=${category}&limit=${limit}&offset=${offset}`
     );
   };
 }

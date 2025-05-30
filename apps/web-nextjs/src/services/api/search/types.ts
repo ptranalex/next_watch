@@ -8,6 +8,8 @@ import {
   TextSuggestionsResponse,
 } from "../common/types";
 
+export type { MovieSearchResponse } from "./search-api";
+
 export type {
   Suggestion,
   SuggestionsResponse,

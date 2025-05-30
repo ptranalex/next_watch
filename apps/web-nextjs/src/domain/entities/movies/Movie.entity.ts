@@ -1,4 +1,5 @@
 import { Movie as ServiceMovie } from "@/services/api/movies/types";
+import { Actor, Trailer } from "@/services/api/bff/types";
 
 /**
  * UI-friendly Movie entity extending the API service type.
@@ -63,6 +64,20 @@ export interface Movie
    * @memberof Movie
    */
   displayOrder?: number;
+
+  /**
+   * Cast members for the movie
+   * @type {Actor[]}
+   * @memberof Movie
+   */
+  cast?: Actor[];
+
+  /**
+   * Trailers for the movie
+   * @type {Trailer[]}
+   * @memberof Movie
+   */
+  trailers?: Trailer[];
 }
 
 /**
@@ -91,16 +106,26 @@ export function toMovieEntity(serviceMovie: ServiceMovie): Movie {
  * @returns {Partial<ServiceMovie>} A service-compatible movie object
  */
 export function toServiceMovie(movie: Movie): Partial<ServiceMovie> {
-  const { liked, watched, in_watchlist, ...rest } = movie;
-
-  // Only include properties that exist in the movie entity
-  // This prevents TypeScript errors for missing required properties
+  // Only map the properties that the service expects
   return {
-    ...rest,
-    // Map API naming to service movie properties
-    is_liked: liked ?? false,
-    is_watched: watched ?? false,
-    to_watch: in_watchlist ?? false,
+    ...Object.fromEntries(
+      Object.entries(movie).filter(
+        ([key]) =>
+          ![
+            "liked",
+            "watched",
+            "in_watchlist",
+            "cast",
+            "trailers",
+            "isSelected",
+            "displayOrder",
+          ].includes(key)
+      )
+    ),
+    // Map UI naming to service properties
+    is_liked: movie.liked ?? false,
+    is_watched: movie.watched ?? false,
+    to_watch: movie.in_watchlist ?? false,
     is_recommended: movie.is_recommended ?? false,
   };
 }

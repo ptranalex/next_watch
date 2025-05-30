@@ -1,0 +1,433 @@
+***REMOVED*** Next Watch - Design System Rules
+
+***REMOVED******REMOVED*** 🎨 Chakra UI Integration Rules
+
+**MANDATORY** usage patterns for consistent design system implementation.
+
+***REMOVED******REMOVED******REMOVED*** 1. Semantic Token Usage
+
+**ALWAYS** use semantic tokens instead of direct color values:
+
+```typescript
+// ✅ CORRECT - Use semantic tokens
+<Box
+  bg="bg.secondary"
+  color="text.primary"
+  borderColor="bg.tertiary"
+  _hover={{ bg: "bg.tertiary" }}
+>
+  Content
+</Box>
+
+// ❌ FORBIDDEN - Direct color values
+<Box bg="gray.100" color="black" borderColor="gray.200">
+  Content
+</Box>
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Required Semantic Color Tokens
+
+**MANDATORY** color tokens to use throughout the application:
+
+```typescript
+// Brand colors
+"colors.primary"; // Main brand color (***REMOVED***1A73E8)
+"colors.primary.lighter"; // Lighter brand variant
+"colors.primary.darker"; // Darker brand variant
+"colors.secondary"; // Secondary brand color (***REMOVED***00B8A9)
+"colors.secondary.lighter"; // Lighter secondary variant
+"colors.secondary.darker"; // Darker secondary variant
+
+// Text colors
+"text.primary"; // Primary text (dark: gray.800, light: white)
+"text.secondary"; // Secondary text (dark: gray.600, light: gray.300)
+"text.tertiary"; // Tertiary text (dark: gray.500, light: gray.400)
+"text.inverse"; // Inverse text (dark: white, light: gray.800)
+
+// Background colors
+"bg.primary"; // Primary background (dark: gray.50, light: gray.800)
+"bg.secondary"; // Secondary background (dark: gray.100, light: gray.700)
+"bg.tertiary"; // Tertiary background (dark: gray.200, light: gray.600)
+
+// Interactive states
+"bg.hover"; // Hover background
+"bg.active"; // Active background
+"bg.disabled"; // Disabled background
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Spacing and Layout Tokens
+
+```typescript
+// ✅ CORRECT - Use theme spacing
+<Box
+  p={{ base: 2, md: 4, lg: 6 }}
+  m={{ base: 1, md: 2 }}
+  gap={4}
+>
+
+// Touch-friendly sizing
+<Button minH="touch" minW="touch"> // 44px minimum touch target
+
+// Responsive spacing
+<Stack spacing={{ base: 2, md: 4, lg: 6 }}>
+```
+
+***REMOVED******REMOVED*** 📱 Responsive Design Rules
+
+***REMOVED******REMOVED******REMOVED*** 1. Mobile-First Approach
+
+**REQUIRED** mobile-first responsive design:
+
+```typescript
+// ✅ CORRECT - Mobile-first breakpoints
+<Box
+  fontSize={{ base: "sm", md: "md", lg: "lg" }}
+  p={{ base: 2, md: 4, lg: 6 }}
+  display={{ base: "block", md: "flex" }}
+  flexDirection={{ base: "column", lg: "row" }}
+>
+
+// ✅ CORRECT - Responsive component visibility
+<Show above="md">
+  <DesktopOnlyComponent />
+</Show>
+
+<Hide above="md">
+  <MobileOnlyComponent />
+</Hide>
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Breakpoint System
+
+**MANDATORY** breakpoint usage:
+
+```typescript
+// Breakpoint definitions (from theme)
+const breakpoints = {
+  base: "0em",    // 0px (mobile)
+  sm: "30em",     // 480px (mobile landscape)
+  md: "48em",     // 768px (tablet)
+  lg: "62em",     // 992px (desktop)
+  xl: "80em",     // 1280px (large desktop)
+  "2xl": "96em",  // 1536px (extra large desktop)
+};
+
+// Usage in components
+<Grid
+  templateColumns={{
+    base: "1fr",
+    md: "repeat(2, 1fr)",
+    lg: "repeat(3, 1fr)",
+    xl: "repeat(4, 1fr)"
+  }}
+  gap={{ base: 4, md: 6, lg: 8 }}
+>
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Touch-Friendly Design
+
+**REQUIRED** for mobile optimization:
+
+```typescript
+// ✅ CORRECT - Touch targets
+<IconButton
+  minH="touch"      // 44px minimum
+  minW="touch"      // 44px minimum
+  aria-label="Action"
+  size="lg"         // Larger for touch
+/>
+
+// ✅ CORRECT - Touch-friendly spacing
+<Stack spacing="touch"> // 44px spacing for touch areas
+
+// ✅ CORRECT - Swipe gesture support
+const { swipeHandlers } = useSwipe({
+  onSwipeLeft: handleNext,
+  onSwipeRight: handlePrevious,
+});
+
+<Box {...swipeHandlers}>
+  <SwipeableContent />
+</Box>
+```
+
+***REMOVED******REMOVED*** 🎭 Theme Customization Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Component Style Overrides
+
+```typescript
+// theme.ts - Component customizations
+const components = {
+  Button: {
+    baseStyle: {
+      fontWeight: "semibold",
+      borderRadius: "md",
+    },
+    variants: {
+      primary: {
+        bg: "colors.primary",
+        color: "text.inverse",
+        _hover: {
+          bg: "colors.primary.darker",
+        },
+      },
+      secondary: {
+        bg: "colors.secondary",
+        color: "text.inverse",
+        _hover: {
+          bg: "colors.secondary.darker",
+        },
+      },
+    },
+    sizes: {
+      touch: {
+        minH: "touch",
+        minW: "touch",
+        fontSize: "md",
+      },
+    },
+  },
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Dark Mode Support
+
+**REQUIRED** dark mode implementation:
+
+```typescript
+// ✅ CORRECT - Dark mode aware components
+<Box
+  bg={{ base: "white", _dark: "gray.800" }}
+  color={{ base: "gray.800", _dark: "white" }}
+  borderColor={{ base: "gray.200", _dark: "gray.600" }}
+>
+
+// ✅ CORRECT - Using semantic tokens (automatically dark mode aware)
+<Box bg="bg.primary" color="text.primary">
+  Automatically supports dark mode
+</Box>
+
+// ✅ CORRECT - Custom dark mode variants
+const cardStyle = useColorModeValue(
+  {
+    bg: "white",
+    shadow: "sm",
+  },
+  {
+    bg: "gray.800",
+    shadow: "dark-lg",
+  }
+);
+```
+
+***REMOVED******REMOVED*** 🧩 Component Styling Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Style Props Pattern
+
+```typescript
+// ✅ CORRECT - Chakra UI style props
+<Box
+  p={4}
+  m={2}
+  bg="bg.secondary"
+  borderRadius="md"
+  boxShadow="sm"
+  _hover={{
+    bg: "bg.tertiary",
+    transform: "translateY(-2px)",
+  }}
+  _focus={{
+    boxShadow: "outline",
+  }}
+  transition="all 0.2s"
+>
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Variant-Based Styling
+
+```typescript
+// ✅ CORRECT - Variant-based component design
+interface CardProps {
+  variant?: "elevated" | "outlined" | "filled";
+  size?: ComponentSize;
+}
+
+const Card = ({ variant = "elevated", size = "md", children }) => {
+  const variantStyles = {
+    elevated: {
+      bg: "bg.primary",
+      boxShadow: "md",
+    },
+    outlined: {
+      bg: "transparent",
+      border: "1px solid",
+      borderColor: "bg.tertiary",
+    },
+    filled: {
+      bg: "bg.secondary",
+    },
+  };
+
+  return (
+    <Box
+      {...variantStyles[variant]}
+      p={size === "sm" ? 3 : size === "lg" ? 6 : 4}
+      borderRadius="md"
+    >
+      {children}
+    </Box>
+  );
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Animation and Transitions
+
+```typescript
+// ✅ CORRECT - Consistent animations
+<Box
+  transition="all 0.2s ease-in-out"
+  _hover={{
+    transform: "scale(1.02)",
+    boxShadow: "lg",
+  }}
+  _active={{
+    transform: "scale(0.98)",
+  }}
+>
+
+// ✅ CORRECT - Loading animations
+<Skeleton
+  height="200px"
+  borderRadius="md"
+  startColor="bg.secondary"
+  endColor="bg.tertiary"
+/>
+
+// ✅ CORRECT - Framer Motion integration
+<MotionBox
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -20 }}
+  transition={{ duration: 0.2 }}
+>
+```
+
+***REMOVED******REMOVED*** 📐 Layout Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Container and Grid Systems
+
+```typescript
+// ✅ CORRECT - Responsive containers
+<Container
+  maxW={{ base: "100%", md: "container.md", lg: "container.lg" }}
+  px={{ base: 4, md: 6, lg: 8 }}
+>
+
+// ✅ CORRECT - Responsive grids
+<SimpleGrid
+  columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+  spacing={{ base: 4, md: 6 }}
+  p={4}
+>
+
+// ✅ CORRECT - Complex responsive layouts
+<Grid
+  templateAreas={{
+    base: `"header"
+           "main"
+           "footer"`,
+    lg: `"header header"
+         "sidebar main"
+         "footer footer"`,
+  }}
+  templateColumns={{ base: "1fr", lg: "250px 1fr" }}
+  templateRows="auto 1fr auto"
+  minH="100vh"
+  gap={4}
+>
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Flexible Layouts
+
+```typescript
+// ✅ CORRECT - Responsive flex layouts
+<Flex
+  direction={{ base: "column", md: "row" }}
+  align={{ base: "stretch", md: "center" }}
+  justify="space-between"
+  gap={{ base: 4, md: 6 }}
+  wrap={{ base: "nowrap", lg: "wrap" }}
+>
+
+// ✅ CORRECT - Stack patterns
+<VStack
+  spacing={{ base: 3, md: 4 }}
+  align="stretch"
+  divider={<StackDivider borderColor="bg.tertiary" />}
+>
+```
+
+***REMOVED******REMOVED*** 🚨 Design System Anti-Patterns
+
+***REMOVED******REMOVED******REMOVED*** Forbidden Practices
+
+```typescript
+// ❌ NEVER - Direct color values
+<Box bg="gray.100" color="black">
+
+// ❌ NEVER - Inline styles
+<div style={{ marginTop: '10px', backgroundColor: '***REMOVED***f0f0f0' }}>
+
+// ❌ NEVER - Non-responsive designs
+<Box width="300px" height="200px"> // Use responsive values
+
+// ❌ NEVER - Custom CSS classes instead of Chakra props
+<div className="custom-button"> // Use Chakra Button component
+
+// ❌ NEVER - Hardcoded pixel values
+<Box p="10px" m="5px"> // Use theme spacing tokens
+
+// ❌ NEVER - Ignoring dark mode
+<Box bg="white" color="black"> // Use semantic tokens
+
+// ❌ NEVER - Touch targets smaller than 44px
+<IconButton size="xs"> // Use size="md" or larger for touch
+
+// ❌ NEVER - Missing hover/focus states
+<Box cursor="pointer"> // Add proper interactive states
+```
+
+***REMOVED******REMOVED******REMOVED*** Required Accessibility
+
+```typescript
+// ✅ CORRECT - Proper accessibility
+<Button
+  aria-label="Save movie"
+  aria-describedby="save-help-text"
+  role="button"
+  tabIndex={0}
+>
+
+// ✅ CORRECT - Focus management
+<Box
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleClick();
+    }
+  }}
+  _focus={{
+    boxShadow: "outline",
+  }}
+>
+
+// ✅ CORRECT - Screen reader support
+<VisuallyHidden>
+  Additional context for screen readers
+</VisuallyHidden>
+```
+
+---
+
+_Related Rules: [Components](./02-components.md) | [Architecture](./01-architecture.md) | [Best Practices](./06-best-practices.md)_

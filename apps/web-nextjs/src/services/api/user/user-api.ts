@@ -9,7 +9,7 @@ import { User, NetflixImportResult } from "./types";
  */
 class UserAPI extends APIClient<User> {
   constructor() {
-    super("/api/v1/users");
+    super("/bff/v1/users");
   }
 
   /**
@@ -38,7 +38,7 @@ class UserAPI extends APIClient<User> {
 
     // Use the API client's new uploadForm method
     return this.uploadForm<NetflixImportResult>(
-      "/api/v1/user/movies/import/netflix",
+      "/bff/v1/user/movies/import/netflix",
       formData
     );
   };

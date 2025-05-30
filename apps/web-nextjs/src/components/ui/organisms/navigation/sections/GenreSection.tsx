@@ -1,7 +1,6 @@
 "use client";
 
 import { Genre } from "@/domain/entities";
-import { useAllGenres } from "@/hooks";
 import {
   Box,
   Link as ChakraLink,
@@ -12,7 +11,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import Link from "next/link";
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import {
   GiAlienSkull,
   GiFairyWand,
@@ -23,7 +22,6 @@ import {
 } from "react-icons/gi";
 import { MdOutlineTheaterComedy } from "react-icons/md";
 import { PiMaskSad } from "react-icons/pi";
-import { usePrefetch } from "@/hooks/performance/usePrefetch";
 
 interface NavItem {
   icon: React.ElementType;
@@ -33,16 +31,9 @@ interface NavItem {
 }
 
 // Memoized NavLink component with prefetching to prevent unnecessary re-renders
-const NavLink = memo<NavItem>(({ icon, label, path, id }) => {
-  const { prefetchGenre } = usePrefetch();
-
-  // Start prefetching on mouse hover
-  const handleHover = useCallback(() => {
-    prefetchGenre(id);
-  }, [id, prefetchGenre]);
-
+const NavLink = memo<NavItem>(({ icon, label, path }) => {
   return (
-    <ChakraLink as={Link} href={path} onMouseEnter={handleHover}>
+    <ChakraLink as={Link} href={path}>
       <HStack marginBottom={3}>
         <Icon as={icon} boxSize={6} color="text.tertiary" />
         <Text>{label}</Text>
@@ -64,11 +55,14 @@ const genreIcons: Record<string, React.ElementType> = {
   "Sci-Fi": GiAlienSkull,
 };
 
-// Memoized genre content component - follows the pattern of other sections in SideBar
-const GenreContent = memo(() => {
-  // Use our custom hook to get all genres
-  const { genres, isLoading, error } = useAllGenres();
+interface GenreContentProps {
+  genres: Genre[];
+  isLoading?: boolean;
+  error?: Error | null;
+}
 
+// Memoized genre content component - follows the pattern of other sections in SideBar
+const GenreContent = memo<GenreContentProps>(({ genres, isLoading, error }) => {
   // Default icon for genres without a specific icon
   const defaultIcon = GiPunch;
 
@@ -104,14 +98,20 @@ const GenreContent = memo(() => {
 });
 GenreContent.displayName = "GenreContent";
 
+interface GenreSectionProps {
+  genres: Genre[];
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
 // Genre section wrapper with consistent style matching other SideBar sections
-const GenreSection = memo(() => {
+const GenreSection = memo<GenreSectionProps>(({ genres, isLoading, error }) => {
   return (
     <>
       <Heading fontSize="xl" marginTop={5} marginBottom={3}>
         Genres
       </Heading>
-      <GenreContent />
+      <GenreContent genres={genres} isLoading={isLoading} error={error} />
     </>
   );
 });

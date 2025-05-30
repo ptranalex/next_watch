@@ -5,7 +5,7 @@ import {
   HiMiniPlus,
 } from "react-icons/hi2";
 import { Stack } from "@chakra-ui/react";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@/services/hooks";
 import { useToast } from "@chakra-ui/react";
 import SignupModal from "./SignupModal";
 import BaseModal from "@/components/ui/organisms/BaseModal";

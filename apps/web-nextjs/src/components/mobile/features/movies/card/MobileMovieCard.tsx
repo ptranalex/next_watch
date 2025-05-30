@@ -23,7 +23,7 @@ import {
   HiCheck,
 } from "react-icons/hi";
 import { SwipeAction, SwipeActionOption } from "@/components/mobile/ui/swipe";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@/services/hooks";
 import { createLogger } from "@/utils/logging";
 import { getPosterUrl } from "@/utils/media";
 import type { MovieCardBaseProps } from "@/components/features/movies/types";

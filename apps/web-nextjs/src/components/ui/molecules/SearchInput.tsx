@@ -28,58 +28,25 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useHotkeys } from "react-hotkeys-hook";
 import { HiMiniMagnifyingGlass, HiXMark } from "react-icons/hi2";
 import SuggestionItem from "@/components/ui/molecules/SuggestionItem";
-import { useSearchSuggestions } from "@/hooks";
+import { useSearchSuggestions } from "@/services/hooks";
 import { TextSuggestion } from "@/services/api/search/types";
-import { createLogger } from "@/utils/logging";
-import { useDebounce } from "@/hooks/ui/useDebounce";
+import { useDebounce } from "@/services/hooks/ui/useDebounce";
 import type { SearchInputProps } from "./types";
-
-// Create logger for this component
-const logger = createLogger("SearchInput");
 
 /**
  * SearchInput component with enhanced functionality and mobile support
  *
- * A powerful search input with real-time suggestions, keyboard shortcuts,
- * mobile optimizations, and comprehensive accessibility features.
- *
  * Features:
  * - Real-time search suggestions with debouncing
- * - Keyboard shortcuts with customizable hotkeys
+ * - Keyboard shortcuts and navigation
  * - Mobile-optimized with haptic feedback
- * - Comprehensive accessibility (ARIA, keyboard navigation)
- * - Performance optimized with proper memoization
+ * - Comprehensive accessibility support
  * - Error handling and loading states
- * - Responsive design with breakpoint-aware features
- * - Configurable through comprehensive props interface
- *
- * @example
- * ```tsx
- * // Basic usage
- * <SearchInput />
- *
- * // Controlled with custom configuration
- * <SearchInput
- *   value={searchValue}
- *   onChange={setSearchValue}
- *   onFocus={handleFocus}
- *   onBlur={handleBlur}
- *   enableSuggestions={true}
- *   maxSuggestions={5}
- *   debounceDelay={500}
- * />
- *
- * // Mobile-optimized configuration
- * <SearchInput
- *   showOnMobile={true}
- *   enableHaptics={true}
- *   animated={true}
- *   showHotkey={false}
- * />
- * ```
+ * - Responsive design
  */
 const SearchInput: React.FC<SearchInputProps> = ({
   value: controlledValue,
@@ -100,7 +67,11 @@ const SearchInput: React.FC<SearchInputProps> = ({
   isDisabled = false,
   error,
   size = "md",
+  clearOnNavigation = true,
 }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   // Internal state for uncontrolled usage
   const [internalValue, setInternalValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -114,7 +85,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   // Debounce search query for API calls
   const debouncedQuery = useDebounce(value, debounceDelay);
 
-  // Responsive breakpoint detection (must be called before any conditional logic)
+  // Responsive breakpoint detection
   const responsiveShowHotkey = useBreakpointValue({ base: false, md: true });
   const showHotkey = propShowHotkey ?? responsiveShowHotkey;
 
@@ -148,8 +119,6 @@ const SearchInput: React.FC<SearchInputProps> = ({
         if (isDisabled) return;
 
         event.preventDefault();
-        logger.debug(`Search hotkey triggered: ${hotkey}`);
-
         if (inputRef.current) {
           inputRef.current.focus();
 
@@ -158,12 +127,12 @@ const SearchInput: React.FC<SearchInputProps> = ({
             try {
               navigator.vibrate(25);
             } catch (error) {
-              logger.warn("Haptic feedback not supported", error);
+              console.warn("Haptic feedback not supported", error);
             }
           }
         }
       },
-      [hotkey, isDisabled, enableHaptics]
+      [isDisabled, enableHaptics]
     )
   );
 
@@ -171,14 +140,10 @@ const SearchInput: React.FC<SearchInputProps> = ({
   const handleInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = event.target.value;
-
       if (onChange) {
         onChange(newValue);
       }
-
       setFocusedSuggestionIndex(-1);
-
-      logger.debug("Search input changed", { value: newValue });
     },
     [onChange]
   );
@@ -186,13 +151,9 @@ const SearchInput: React.FC<SearchInputProps> = ({
   // Handle input focus
   const handleInputFocus = useCallback(() => {
     if (isDisabled) return;
-
-    logger.debug("Search input focused");
-
     if (value.length > 0 && enableSuggestions) {
       setShowDropdown(true);
     }
-
     if (onFocus) {
       onFocus();
     }
@@ -201,68 +162,81 @@ const SearchInput: React.FC<SearchInputProps> = ({
   // Handle input blur
   const handleInputBlur = useCallback(() => {
     if (isDisabled) return;
-
-    logger.debug("Search input blurred");
-
     if (onBlur) {
       onBlur();
     }
   }, [onBlur, isDisabled]);
 
-  // Handle suggestion selection
+  // Handle suggestion selection (clears input and closes dropdown)
   const handleSuggestionSelect = useCallback(() => {
     setShowDropdown(false);
     setFocusedSuggestionIndex(-1);
-
     if (onChange) {
       onChange("");
     }
-
     if (onBlur) {
       onBlur();
     }
-
-    logger.debug("Suggestion selected");
   }, [onChange, onBlur]);
+
+  // Handle direct search click (keeps input value)
+  const handleDirectSearchClick = useCallback(() => {
+    setShowDropdown(false);
+    setFocusedSuggestionIndex(-1);
+  }, []);
 
   // Handle clear button click
   const handleClear = useCallback(() => {
     if (isDisabled) return;
-
     if (onChange) {
       onChange("");
     }
-
     setShowDropdown(false);
     setFocusedSuggestionIndex(-1);
-
     if (inputRef.current) {
       inputRef.current.focus();
     }
-
-    logger.debug("Search input cleared");
   }, [onChange, isDisabled]);
+
+  // Navigate to search results
+  const navigateToSearch = useCallback(
+    (query: string) => {
+      if (query.trim().length > 0) {
+        const searchUrl = `/search?q=${encodeURIComponent(query.trim())}`;
+        setShowDropdown(false);
+        setFocusedSuggestionIndex(-1);
+        router.push(searchUrl);
+      }
+    },
+    [router]
+  );
 
   // Keyboard navigation for suggestions
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
-      if (!showDropdown || suggestions.length === 0) return;
-
       switch (event.key) {
         case "ArrowDown":
+          if (!showDropdown || suggestions.length === 0) return;
           event.preventDefault();
           setFocusedSuggestionIndex((prev) =>
             prev < suggestions.length ? prev + 1 : prev
           );
           break;
         case "ArrowUp":
+          if (!showDropdown || suggestions.length === 0) return;
           event.preventDefault();
           setFocusedSuggestionIndex((prev) => (prev > -1 ? prev - 1 : -1));
           break;
         case "Enter":
-          if (focusedSuggestionIndex >= 0) {
-            event.preventDefault();
+          event.preventDefault();
+          if (
+            showDropdown &&
+            suggestions.length > 0 &&
+            focusedSuggestionIndex >= 0
+          ) {
             handleSuggestionSelect();
+          } else {
+            navigateToSearch(value);
           }
           break;
         case "Escape":
@@ -279,6 +253,8 @@ const SearchInput: React.FC<SearchInputProps> = ({
       suggestions.length,
       focusedSuggestionIndex,
       handleSuggestionSelect,
+      navigateToSearch,
+      value,
     ]
   );
 
@@ -316,6 +292,21 @@ const SearchInput: React.FC<SearchInputProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Clear input when navigating away from search pages
+  useEffect(() => {
+    // Clear dropdown and suggestions when leaving any page
+    if (pathname !== "/search") {
+      setShowDropdown(false);
+      setFocusedSuggestionIndex(-1);
+
+      // Clear input value when navigating away from search pages
+      // This provides a clean slate when user returns to search
+      if (onChange && !isControlled && clearOnNavigation) {
+        onChange("");
+      }
+    }
+  }, [pathname, onChange, isControlled, clearOnNavigation]);
 
   // Don't render if configured to hide on mobile
   if (!showOnMobile && typeof window !== "undefined") {
@@ -450,10 +441,10 @@ const SearchInput: React.FC<SearchInputProps> = ({
                 >
                   <ChakraLink
                     as={Link}
-                    href={`/search/${encodeURIComponent(value)}`}
+                    href={`/search?q=${encodeURIComponent(value)}`}
                     textDecoration="none"
                     _hover={{ textDecoration: "none" }}
-                    onClick={handleSuggestionSelect}
+                    onClick={handleDirectSearchClick}
                     role="option"
                     aria-selected={focusedSuggestionIndex === -1}
                   >

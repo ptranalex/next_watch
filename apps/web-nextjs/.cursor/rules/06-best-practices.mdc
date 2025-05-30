@@ -1,0 +1,511 @@
+***REMOVED*** Next Watch - Development Best Practices
+
+***REMOVED******REMOVED*** 📝 Logging Requirements
+
+**MANDATORY** structured logging for all components and hooks.
+
+***REMOVED******REMOVED******REMOVED*** 1. Logger Creation and Usage
+
+```typescript
+// Required logger creation for every component
+import { createLogger } from "@/utils/logging";
+
+const logger = createLogger("ComponentName");
+
+// Required initialization logging
+useEffect(() => {
+  logger.debug(`ComponentName initialized with: ${JSON.stringify(props)}`);
+
+  return () => {
+    logger.debug(`ComponentName unmounting`);
+  };
+}, []);
+
+// Required action logging
+const handleAction = useCallback(
+  (actionType: string) => {
+    logger.info(`Action performed: ${actionType}`, {
+      componentName: "ComponentName",
+      userId: user?.id,
+      timestamp: new Date().toISOString(),
+    });
+  },
+  [user]
+);
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Log Levels and Usage
+
+```typescript
+// DEBUG - Development information
+logger.debug("Component state updated", { newState });
+
+// INFO - Important business events
+logger.info("Movie added to watchlist", { movieId, userId });
+
+// WARN - Recoverable issues
+logger.warn("API response is slow", { responseTime: 2000 });
+
+// ERROR - Error conditions that need attention
+logger.error("Failed to save movie", { error, movieId, context });
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Structured Logging Format
+
+```typescript
+// ✅ CORRECT - Structured logging with context
+logger.info("User action completed", {
+  action: "add_to_watchlist",
+  movieId: movie.id,
+  userId: user.id,
+  component: "MovieCard",
+  sessionId: getSessionId(),
+  timestamp: new Date().toISOString(),
+});
+
+// ❌ AVOID - Unstructured logging
+logger.info("User added movie to watchlist");
+```
+
+***REMOVED******REMOVED*** 🛡️ Error Handling Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Component-Level Error Boundaries
+
+**REQUIRED** for all async components:
+
+```typescript
+// ✅ CORRECT - Wrap async components
+<ErrorBoundary
+  fallback={<ComponentSkeleton />}
+  onError={(error, errorInfo) => {
+    logger.error("Component error boundary triggered", {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+    });
+  }}
+>
+  <AsyncComponent />
+</ErrorBoundary>
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Hook-Level Error Handling
+
+```typescript
+// ✅ CORRECT - Comprehensive error handling in hooks
+const useMovieWithErrorHandling = (id: string) => {
+  const toast = useToast();
+  const logger = createLogger("useMovieWithErrorHandling");
+
+  return useQuery({
+    queryKey: ["movie", id],
+    queryFn: () => movieAPI.getById(id),
+    retry: (failureCount, error) => {
+      logger.warn(`Retry attempt ${failureCount} for movie ${id}`, { error });
+
+      // Don't retry 4xx errors
+      if (error.status >= 400 && error.status < 500) {
+        return false;
+      }
+
+      return failureCount < 3;
+    },
+    onError: (error) => {
+      logger.error(`Failed to load movie ${id}`, {
+        error: error.message,
+        status: error.status,
+        movieId: id,
+      });
+
+      // User-friendly error messages
+      if (error.status === 404) {
+        toast.error("Movie not found");
+      } else if (error.status >= 500) {
+        toast.error("Server error. Please try again later.");
+      } else {
+        toast.error("Failed to load movie");
+      }
+    },
+  });
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Async Error Handling
+
+```typescript
+// ✅ CORRECT - Proper async error handling
+const handleAsyncAction = useCallback(async (movieId: string) => {
+  try {
+    logger.info("Starting async action", { movieId });
+
+    const result = await movieAPI.updateMovie(movieId, data);
+
+    logger.info("Async action completed", { movieId, result });
+    toast.success("Movie updated successfully");
+  } catch (error) {
+    logger.error("Async action failed", {
+      error: error.message,
+      movieId,
+      stack: error.stack,
+    });
+
+    toast.error("Failed to update movie");
+    throw error; // Re-throw for upstream handling
+  }
+}, []);
+
+// ❌ NEVER - Unhandled promises
+const handleBadAction = () => {
+  updateMovie(data); // Missing error handling
+};
+```
+
+***REMOVED******REMOVED*** ⚡ Performance Optimization Rules
+
+***REMOVED******REMOVED******REMOVED*** 1. Memoization Patterns
+
+**MANDATORY** for expensive operations:
+
+```typescript
+// ✅ CORRECT - React.memo for expensive components
+const ExpensiveComponent = React.memo(
+  ({ data, onAction }) => {
+    const logger = createLogger("ExpensiveComponent");
+
+    useEffect(() => {
+      logger.debug("ExpensiveComponent rendered", { dataLength: data.length });
+    });
+
+    return <ComplexRendering data={data} />;
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison for complex props
+    return (
+      prevProps.data.length === nextProps.data.length &&
+      prevProps.onAction === nextProps.onAction
+    );
+  }
+);
+
+// ✅ CORRECT - useMemo for expensive calculations
+const Component = ({ movies, filters }) => {
+  const filteredMovies = useMemo(() => {
+    logger.debug("Recalculating filtered movies", {
+      moviesCount: movies.length,
+      filtersApplied: Object.keys(filters).length,
+    });
+
+    return movies.filter((movie) => applyFilters(movie, filters));
+  }, [movies, filters]);
+
+  // ✅ CORRECT - useCallback for stable references
+  const handleMovieSelect = useCallback(
+    (movieId: string) => {
+      logger.info("Movie selected", { movieId });
+      onMovieSelect(movieId);
+    },
+    [onMovieSelect]
+  );
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Dynamic Loading Patterns
+
+```typescript
+// ✅ CORRECT - Dynamic imports for large components
+const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
+  loading: () => {
+    logger.debug("Loading HeavyComponent dynamically");
+    return <LoadingSkeleton />;
+  },
+  ssr: false,
+});
+
+// ✅ CORRECT - Conditional loading
+const ConditionalComponent = ({ shouldLoad, ...props }) => {
+  if (!shouldLoad) {
+    logger.debug("ConditionalComponent not loaded");
+    return null;
+  }
+
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <HeavyComponent {...props} />
+    </Suspense>
+  );
+};
+
+// ✅ CORRECT - Lazy loading with intersection observer
+const LazyImage = ({ src, alt }) => {
+  const [isInView, setIsInView] = useState(false);
+  const imgRef = useRef();
+
+  useIntersectionObserver(imgRef, {
+    onIntersect: () => {
+      logger.debug("Image coming into view", { src });
+      setIsInView(true);
+    },
+  });
+
+  return (
+    <Box ref={imgRef}>
+      {isInView ? <Image src={src} alt={alt} /> : <Skeleton height="200px" />}
+    </Box>
+  );
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Bundle Optimization
+
+```typescript
+// ✅ CORRECT - Selective imports
+import { Box, Button, Text } from "@chakra-ui/react";
+import { HiHeart, HiBookmark } from "react-icons/hi2";
+
+// ❌ AVOID - Importing entire libraries
+import * as ChakraUI from "@chakra-ui/react";
+import * as ReactIcons from "react-icons/hi2";
+
+// ✅ CORRECT - Tree-shakable utilities
+import { debounce } from "lodash/debounce";
+import { format } from "date-fns/format";
+
+// ❌ AVOID - Importing entire utility libraries
+import _ from "lodash";
+import * as dateFns from "date-fns";
+```
+
+***REMOVED******REMOVED*** 📦 Import Organization Rules
+
+**STRICT** import order and grouping:
+
+```typescript
+// 1. React and core libraries
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+// 2. Third-party libraries (alphabetical)
+import { Box, Button, Text, useToast } from "@chakra-ui/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { HiHeart, HiBookmark } from "react-icons/hi2";
+
+// 3. Internal services and APIs (alphabetical)
+import { movieAPI, userInteractionAPI } from "@/services/api";
+import { createLogger } from "@/utils/logging";
+import { getPosterUrl } from "@/utils/media";
+
+// 4. Internal hooks (alphabetical)
+import { useAuth, useMovie, useResponsive } from "@/hooks";
+
+// 5. Local components (alphabetical)
+import ErrorBoundary from "./ErrorBoundary";
+import LoadingSkeleton from "./LoadingSkeleton";
+import MovieCard from "./MovieCard";
+
+// 6. Types (always last, with 'type' prefix)
+import type { Movie } from "@/domain/entities";
+import type { MovieCardProps, MovieUpdateCallback } from "./types";
+```
+
+***REMOVED******REMOVED******REMOVED*** Import Grouping Rules
+
+```typescript
+// ✅ CORRECT - Grouped and organized imports
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+import { Box, Button } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
+
+import { movieAPI } from "@/services/api";
+import { createLogger } from "@/utils/logging";
+
+import { useAuth } from "@/hooks";
+
+import MovieCard from "./MovieCard";
+
+import type { Movie } from "@/domain/entities";
+import type { ComponentProps } from "./types";
+
+// ❌ NEVER - Mixed import groups
+import React from "react";
+import { Box } from "@chakra-ui/react";
+import { useAuth } from "@/hooks";
+import { useState } from "react";
+import type { Movie } from "@/domain/entities";
+import { movieAPI } from "@/services/api";
+```
+
+***REMOVED******REMOVED*** 🔍 Code Quality Rules
+
+***REMOVED******REMOVED******REMOVED*** 1. TypeScript Strictness
+
+```typescript
+// ✅ CORRECT - Comprehensive type safety
+interface ComponentProps {
+  movie: Movie;
+  onUpdate: (movie: Movie) => void;
+  size?: ComponentSize;
+  isLoading?: boolean;
+}
+
+const Component: React.FC<ComponentProps> = ({
+  movie,
+  onUpdate,
+  size = "md",
+  isLoading = false,
+}) => {
+  // All variables properly typed
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  const handleUpdate = useCallback(
+    (updatedMovie: Movie) => {
+      logger.info("Movie updated", { movieId: updatedMovie.id });
+      onUpdate(updatedMovie);
+    },
+    [onUpdate]
+  );
+};
+
+// ❌ NEVER - Using 'any' or missing types
+const BadComponent = ({ data, callback }: any) => {
+  // Missing proper types
+  const handleClick = () => {
+    callback(data); // No type safety
+  };
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Accessibility Requirements
+
+```typescript
+// ✅ CORRECT - Full accessibility support
+<Button
+  aria-label="Add movie to watchlist"
+  aria-describedby="watchlist-help"
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleAddToWatchlist();
+    }
+  }}
+  _focus={{
+    boxShadow: "outline",
+  }}
+>
+  Add to Watchlist
+</Button>
+
+// ✅ CORRECT - Screen reader support
+<VisuallyHidden id="watchlist-help">
+  This will add the movie to your personal watchlist
+</VisuallyHidden>
+
+// ✅ CORRECT - Semantic HTML
+<main role="main" aria-label="Movie listings">
+  <section aria-labelledby="popular-movies">
+    <Heading id="popular-movies" as="h2">
+      Popular Movies
+    </Heading>
+  </section>
+</main>
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Testing Considerations
+
+```typescript
+// ✅ CORRECT - Testable component structure
+const MovieCard = ({ movie, onUpdate }: MovieCardProps) => {
+  const logger = createLogger("MovieCard");
+
+  // Separate business logic for easier testing
+  const isWatched = useMemo(() => movie.watched, [movie.watched]);
+  const canEdit = useMemo(() => user?.permissions?.includes("edit"), [user]);
+
+  // Extract handlers for testing
+  const handleToggleWatched = useCallback(() => {
+    logger.info("Toggling watched status", { movieId: movie.id });
+    onUpdate({ ...movie, watched: !movie.watched });
+  }, [movie, onUpdate]);
+
+  return (
+    <Box data-testid={`movie-card-${movie.id}`}>
+      <Button
+        data-testid="toggle-watched-button"
+        onClick={handleToggleWatched}
+        aria-label={isWatched ? "Mark as unwatched" : "Mark as watched"}
+      >
+        {isWatched ? "Watched" : "Watch"}
+      </Button>
+    </Box>
+  );
+};
+```
+
+***REMOVED******REMOVED*** 🚨 Development Anti-Patterns
+
+***REMOVED******REMOVED******REMOVED*** Forbidden Practices
+
+```typescript
+// ❌ NEVER - Missing error handling
+const Component = () => {
+  useEffect(() => {
+    fetch("/api/movies"); // No error handling
+  }, []);
+};
+
+// ❌ NEVER - Missing logging
+const Component = () => {
+  // No logger = debugging nightmare
+  const handleClick = () => {
+    // No logging of user actions
+  };
+};
+
+// ❌ NEVER - Unhandled promises
+const handleSubmit = () => {
+  submitData(formData); // Missing .catch() or try/catch
+};
+
+// ❌ NEVER - Console.log in production code
+const Component = () => {
+  console.log("Debug info"); // Use logger instead
+};
+
+// ❌ NEVER - Magic numbers or strings
+const Component = () => {
+  setTimeout(() => {}, 5000); // Use named constants
+  if (status === "pending") {
+  } // Use enums or constants
+};
+
+// ❌ NEVER - Deeply nested ternary operators
+const Component = ({ status }) => {
+  return (
+    <div>
+      {status === "loading" ? (
+        <Spinner />
+      ) : status === "error" ? (
+        <ErrorMessage />
+      ) : status === "success" ? (
+        <SuccessMessage />
+      ) : null}
+    </div>
+  );
+};
+
+// ✅ CORRECT - Early returns or switch statements
+const Component = ({ status }) => {
+  if (status === "loading") return <Spinner />;
+  if (status === "error") return <ErrorMessage />;
+  if (status === "success") return <SuccessMessage />;
+  return null;
+};
+```
+
+---
+
+_Related Rules: [Components](./02-components.md) | [Data Flow](./04-data-flow.md) | [Design System](./05-design-system.md)_

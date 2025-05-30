@@ -1,6 +1,6 @@
 import React from "react";
 import type { PermissionGuardProps } from "./types";
-import { usePermission, Permission } from "@/hooks";
+import { usePermission, Permission } from "@/services/hooks";
 
 /**
  * Component that conditionally renders children based on user permissions

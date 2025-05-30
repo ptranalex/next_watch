@@ -6,7 +6,8 @@ import { LoginModal } from "@/components/features/auth";
 import ColorModeSwitch from "@/components/ui/atoms/ColorModeSwitch";
 import SearchInput from "@/components/ui/molecules/SearchInput";
 import ProfileModal from "@/components/features/profile/ProfileModal";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@/services/hooks";
+import { useResponsive } from "@/providers/ResponsiveContext";
 import {
   Avatar,
   Box,
@@ -55,6 +56,7 @@ const NavBar: React.FC<NavBarProps> = ({
   onSearchFocusChange,
 }) => {
   const { colorMode } = useColorMode();
+  const { isHydrated } = useResponsive();
   const defaultLogo = colorMode === "light" ? logoLight : logoDark;
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
@@ -128,8 +130,8 @@ const NavBar: React.FC<NavBarProps> = ({
     setIsProfileModalOpen(false);
   };
 
-  // Calculate opacity based on search focus state
-  const navbarOpacity = isSearchFocused ? 1.0 : 0.95;
+  // Calculate opacity based on search focus state - hydration-safe
+  const navbarOpacity = isHydrated ? (isSearchFocused ? 1.0 : 0.95) : 0.95; // Default opacity during SSR to match most common state
 
   // Render logo element
   const logoElement = logo || (

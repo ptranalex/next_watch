@@ -1,64 +1,70 @@
 "use client";
 
-import MovieGrid from "@/components/features/movies/grid/MovieGrid";
-import { memo, useEffect } from "react";
-import MovieBrowseLayout from "@/components/ui/templates/MovieBrowseLayout";
-import { useGenre, useParams } from "@/hooks";
+import { memo, useState, useEffect } from "react";
+import { useParams } from "@/services/hooks";
+import { GenrePage } from "@/components/features/genres";
 import { createLogger } from "@/utils/logging";
-import PageHeading from "@/components/ui/atoms/PageHeading";
 
-// Create logger for this component
-const logger = createLogger("GenrePage");
+// Create logger for this route
+const logger = createLogger("GenreRoute");
 
-// // Make the page dynamic to avoid prerendering issues
-// export const dynamic = "force-dynamic";
-
-// Memoize components to prevent unnecessary re-renders
-const MemoizedMovieGrid = memo(MovieGrid);
-
-// Genre page props interface
-interface GenrePageProps {
+// Genre page route props interface
+interface GenrePageRouteProps {
   params: Promise<{ id: string }> | { id: string };
 }
 
 /**
- * GenrePage component - Displays movies filtered by genre
+ * Genre Page Route - /genres/[id]
  *
- * Uses the shared MovieBrowseLayout for consistent UI with home page
+ * Route-level component that:
+ * 1. Parses route parameters
+ * 2. Delegates rendering to the GenrePage feature component
+ *
+ * This follows the architecture pattern where route files only handle
+ * parameter parsing and delegate business logic to feature components.
  */
-const GenrePage = ({ params: paramsPromise }: GenrePageProps) => {
-  // Log component initialization
-  logger.debug("GenrePage initializing");
+const GenrePageRoute = memo(
+  ({ params: paramsPromise }: GenrePageRouteProps) => {
+    // Log route initialization
+    logger.debug("GenrePageRoute initializing");
 
-  const params = useParams(paramsPromise);
-  const genreId = params?.id ? Number(params.id) : 0;
+    // Safely unwrap params and extract genre ID
+    const params = useParams(paramsPromise);
+    const [paramsResolved, setParamsResolved] = useState(false);
 
-  // Log the extracted genre ID
-  useEffect(() => {
-    logger.info(`Rendering genre page for genre ID: ${genreId}`);
-  }, [genreId]);
+    // Track when params are resolved for initial loading state
+    useEffect(() => {
+      if (params && Object.keys(params).length > 0) {
+        setParamsResolved(true);
+        logger.debug("Route params resolved", { params });
+      }
+    }, [params]);
 
-  // Use the domain hook to access genre data
-  const { genre } = useGenre(genreId);
+    // Parse genre ID from route parameters
+    const genreId = params?.id ? Number(params.id) : 0;
 
-  // Log when genre data changes
-  useEffect(() => {
-    if (genre) {
-      logger.info(`Genre data loaded: ${genre.name} (ID: ${genreId})`);
+    // Log the extracted genre ID
+    useEffect(() => {
+      if (genreId) {
+        logger.info(`Route resolved genre ID: ${genreId}`);
+      }
+    }, [genreId]);
+
+    // Show loading state during initial params resolution
+    if (!paramsResolved) {
+      logger.debug("Waiting for params to resolve");
+      return (
+        <div className="text-center py-10">
+          <p>Loading...</p>
+        </div>
+      );
     }
-  }, [genre, genreId]);
 
-  const genreTitle = <PageHeading>{genre?.name || "Genre"}</PageHeading>;
+    // Delegate to the feature component
+    return <GenrePage genreId={genreId} />;
+  }
+);
 
-  return (
-    <MovieBrowseLayout title={genreTitle}>
-      <MemoizedMovieGrid
-        columns={{ base: 2, sm: 3, md: 4, lg: 6 }}
-        source="movie_listing"
-        genre_id={genreId}
-      />
-    </MovieBrowseLayout>
-  );
-};
+GenrePageRoute.displayName = "GenrePageRoute";
 
-export default GenrePage;
+export default GenrePageRoute;

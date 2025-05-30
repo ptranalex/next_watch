@@ -1,108 +1,38 @@
 import { Movie } from "@/domain/entities";
-import { useAuth } from "@/hooks";
-import { fetchData, userInteractionAPI } from "@/services/api";
-import {
-  Box,
-  Card,
-  Image,
-  useColorModeValue,
-  useToast,
-} from "@chakra-ui/react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/services/hooks";
+import { useMovieInteractions } from "@/services/hooks/domain/movie/useMovieInteractions";
+import { Box, Card, Image, useColorModeValue } from "@chakra-ui/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createLogger } from "@/utils/logging";
 import MovieQuickAction from "./MovieQuickAction";
 import MovieRatingIndicator from "./MovieRatingIndicator";
 import { getPosterUrl } from "@/utils/media";
-import type { MovieCardProps } from "./types";
 
 // Create logger for this component
 const logger = createLogger("MovieCard");
 
-const MovieCard = ({ movie, onMovieUpdate }: MovieCardProps) => {
+interface MovieCardProps {
+  movie: Movie;
+  onMovieUpdate: (movie: Movie) => void; // Keep for compatibility but not used
+}
+
+const MovieCard = ({ movie }: MovieCardProps) => {
   const { user } = useAuth();
   const bgColor = useColorModeValue("bg.secondary", "bg.tertiary");
-  const [isHovered, setIsHovered] = useState(false);
-  const queryClient = useQueryClient();
-  const toast = useToast();
+
+  // Use the same interaction hook pattern as movie details
+  const movieInteractions = useMovieInteractions({
+    movieId:
+      typeof movie.id === "number" ? movie.id : parseInt(String(movie.id)),
+    movie,
+    additionalInvalidateKeys: ["home_page", "search", "infinite-search"],
+  });
 
   // Log component rendering
   useEffect(() => {
     logger.debug(`Rendering MovieCard for: ${movie.title} (ID: ${movie.id})`);
   }, [movie.id, movie.title]);
-
-  // This handler is called by the MovieQuickAction child component
-  const handleMovieUpdate = async (updatedMovie: Movie) => {
-    try {
-      logger.info(`Updating movie ${movie.id} (${movie.title})`, {
-        watched: `${movie.watched} → ${updatedMovie.watched}`,
-        liked: `${movie.liked} → ${updatedMovie.liked}`,
-        in_watchlist: `${movie.in_watchlist} → ${updatedMovie.in_watchlist}`,
-      });
-
-      // First update local state for immediate UI feedback
-      onMovieUpdate(updatedMovie);
-
-      // Ensure movie.id is a number
-      if (typeof movie.id !== "number") {
-        logger.error(`Invalid movie ID for ${movie.title}`);
-        throw new Error("Invalid movie ID");
-      }
-
-      // Then update the server state using the correct API endpoints
-      if (updatedMovie.watched !== movie.watched) {
-        logger.debug(`Calling toggleWatched API for movie ${movie.id}`);
-        await userInteractionAPI.toggleWatched(movie.id);
-      }
-
-      if (updatedMovie.liked !== movie.liked) {
-        logger.debug(`Calling toggleLiked API for movie ${movie.id}`);
-        await userInteractionAPI.toggleLiked(movie.id);
-      }
-
-      if (updatedMovie.in_watchlist !== movie.in_watchlist) {
-        logger.debug(`Calling toggleWatchlist API for movie ${movie.id}`);
-        await userInteractionAPI.toggleWatchlist(movie.id);
-      }
-
-      // Invalidate relevant queries to refetch data
-      logger.debug(`Invalidating queries for movie ${movie.id}`);
-      queryClient.invalidateQueries(["movie", movie.id]);
-    } catch (error) {
-      logger.error(
-        `Failed to update movie interaction for ${movie.id}:`,
-        error
-      );
-      toast({
-        title: "Update failed",
-        description: "Failed to update movie status. Please try again.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-
-      // Revert the local state on error
-      logger.debug(`Reverting local state for movie ${movie.id}`);
-      onMovieUpdate(movie);
-    }
-  };
-
-  const prefetchMovieData = () => {
-    if (typeof movie.id !== "number") return;
-
-    logger.debug(`Prefetching data for movie ${movie.id}`);
-
-    queryClient.prefetchQuery({
-      queryKey: ["movie", movie.id],
-      queryFn: () => fetchData(`/api/v1/movies/${movie.id}`),
-    });
-
-    queryClient.prefetchQuery({
-      queryKey: ["movie", movie.id, "trailers"],
-      queryFn: () => fetchData(`/api/v1/movies/${movie.id}/trailers`),
-    });
-  };
 
   return (
     <Box
@@ -111,14 +41,6 @@ const MovieCard = ({ movie, onMovieUpdate }: MovieCardProps) => {
       borderRadius={5}
       boxShadow="lg"
       overflow="hidden"
-      onMouseEnter={() => {
-        setIsHovered(true);
-        logger.debug(`MovieCard hovered: ${movie.id} (${movie.title})`);
-      }}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        logger.debug(`MovieCard hover exited: ${movie.id} (${movie.title})`);
-      }}
     >
       <Card
         direction={{ base: "row", md: "row" }}
@@ -131,11 +53,7 @@ const MovieCard = ({ movie, onMovieUpdate }: MovieCardProps) => {
           display="flex"
           flexDirection="column"
         >
-          <Link
-            href={`/movies/${movie.id}`}
-            style={{ textDecoration: "none" }}
-            onMouseEnter={prefetchMovieData}
-          >
+          <Link href={`/movies/${movie.id}`} style={{ textDecoration: "none" }}>
             <Image
               borderRadius={5}
               zIndex={1}
@@ -173,8 +91,13 @@ const MovieCard = ({ movie, onMovieUpdate }: MovieCardProps) => {
             >
               <MovieQuickAction
                 movie={movie}
-                onMovieUpdate={handleMovieUpdate}
-                isHovered={isHovered}
+                toggleFunctions={{
+                  toggleWatched: () =>
+                    movieInteractions.toggleWatched(undefined),
+                  toggleLiked: () => movieInteractions.toggleLiked(undefined),
+                  toggleWatchlist: () =>
+                    movieInteractions.toggleWatchlist(undefined),
+                }}
               />
             </Box>
           )}

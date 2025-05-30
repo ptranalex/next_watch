@@ -58,12 +58,12 @@ export interface MovieRatingIndicatorProps {
 export interface CardToggleIconButtonProps {
   movie: Movie;
   attribute: ToggleableMovieAttribute;
-  endpoint: "watched" | "liked" | "towatch";
-  onToggle: (value: boolean) => void;
+  onToggle: (variables?: unknown) => Promise<void>;
   icon: React.ReactElement;
   label: string;
   size?: ComponentSize;
   isEnabled: boolean;
+  isLoading?: boolean;
 }
 
 /** Copy to clipboard button props for cards */

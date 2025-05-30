@@ -7,10 +7,7 @@ import {
   MovieCardSkeleton,
 } from "@/components/features/movies/card";
 import { Movie } from "@/domain/entities";
-import { useMovies } from "@/hooks";
-import useMovieFilterStore from "@/store/movieFilterStore";
 import { Box, SimpleGrid, Text, useBreakpointValue } from "@chakra-ui/react";
-import { usePathname } from "next/navigation";
 import React, {
   useCallback,
   useEffect,
@@ -20,10 +17,13 @@ import React, {
 } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { createLogger } from "@/utils/logging";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/services/hooks";
 
 // Create logger for this component
 const logger = createLogger("MovieGrid");
 
+// Column breakpoints type
 type ColumnBreakpoints =
   | {
       [key in "base" | "sm" | "md" | "lg" | "xl"]?: number;
@@ -32,20 +32,31 @@ type ColumnBreakpoints =
   | number[];
 
 interface MovieGridProps {
+  // Data props
+  movies: Movie[];
+  totalMovies: number;
+  fetchedMoviesCount: number;
+
+  // Loading states
+  isLoading: boolean;
+  isFetchingNextPage: boolean;
+
+  // Pagination
+  hasNextPage?: boolean;
+  onLoadMore?: () => void;
+
+  // Error handling
+  error?: Error | null;
+
+  // UI props
   columns: ColumnBreakpoints;
-  source:
-    | "movie_listing"
-    | "more_like_this"
-    | "by_actor"
-    | "watchlist"
-    | "favorites"
-    | "watched";
-  movie_id?: number;
-  actor_id?: number;
-  genre_id?: number;
+  source?: string; // For logging purposes
+
+  // Empty state message
+  emptyMessage?: string;
 }
 
-// First, let's change the MovieSkeletonGrid component to support inline rendering
+// Memoized skeleton grid component
 const MovieSkeletonGrid = React.memo(
   ({
     columns,
@@ -85,319 +96,126 @@ const MovieSkeletonGrid = React.memo(
 );
 MovieSkeletonGrid.displayName = "MovieSkeletonGrid";
 
-// Main component - memoized to prevent unnecessary re-renders from parent
-const MovieGrid = React.memo(
-  ({ columns, source, movie_id, actor_id, genre_id }: MovieGridProps) => {
+/**
+ * MovieGrid component - Pure UI component for displaying movies
+ *
+ * This component receives movies as props and handles only the rendering concerns.
+ * Data fetching is handled by the parent component using appropriate hooks.
+ */
+const MovieGrid = React.memo<MovieGridProps>(
+  ({
+    movies,
+    totalMovies,
+    fetchedMoviesCount,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    onLoadMore,
+    error,
+    columns,
+    source = "unknown",
+    emptyMessage = "No movies found",
+  }) => {
     const [loadingNextPage, setLoadingNextPage] = useState(false);
-    const [screenItemCapacity, setScreenItemCapacity] = useState(0);
-    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-    // Start as true for consistent server/client rendering, manage in useEffect
-    const [initialDataLoaded, setInitialDataLoaded] = useState(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const pathname = usePathname();
+    const queryClient = useQueryClient();
+    const { isAuthenticated } = useAuth();
 
-    // Get store filters to watch for changes
-    const { filters } = useMovieFilterStore();
-
-    // Log component initialization with source and ID details
-    useEffect(() => {
-      logger.info(`MovieGrid initialized - source: ${source}`, {
-        movie_id,
-        actor_id,
-        genre_id,
-        filters,
-      });
-
-      return () => {
-        logger.debug("MovieGrid unmounting");
-      };
-    }, [source, movie_id, actor_id, genre_id, filters]);
-
-    // Server-side compatible hydration - use useEffect for client-only behavior
-    useEffect(() => {
-      // Only on client, we can afford to show loading temporarily
-      if (typeof window !== "undefined") {
-        setInitialDataLoaded(false);
-        const timer = setTimeout(() => {
-          setInitialDataLoaded(true);
-          logger.debug("Initial data loading state reset after hydration");
-        }, 50);
-        return () => clearTimeout(timer);
-      }
-    }, []);
-
-    // Check URL path for year parameter in the /top/[year] pattern
-    const topYearPattern = /^\/top\/(\d{4})$/;
-    const yearMatch = pathname ? pathname.match(topYearPattern) : null;
-    const yearFromPath = yearMatch ? parseInt(yearMatch[1], 10) : null;
-
-    if (yearFromPath) {
-      logger.debug(`Year from path detected: ${yearFromPath}`);
-    }
-
-    // Memoize these values to prevent recalculation on every render
-    const safeIds = useMemo(
-      () => ({
-        movieId:
-          typeof movie_id === "number" && movie_id > 0 ? movie_id : undefined,
-        actorId:
-          typeof actor_id === "number" && actor_id > 0 ? actor_id : undefined,
-        genreId:
-          typeof genre_id === "number" && genre_id > 0 ? genre_id : undefined,
-      }),
-      [movie_id, actor_id, genre_id]
-    );
-
-    // Reset initialLoadComplete when source/ids/filters change
-    useEffect(() => {
-      // Only run on the client side
-      if (typeof window === "undefined") return;
-
-      // Reset both states when filters or source changes
-      setInitialLoadComplete(false);
-      // Also reset initial data loaded to trigger fresh skeleton loading state
-      setInitialDataLoaded(false);
-
-      logger.info("Resetting grid for new filter/source", {
-        source,
-        movieId: safeIds.movieId,
-        actorId: safeIds.actorId,
-        genreId: safeIds.genreId,
-        filters: {
-          imdb_rating: filters.imdb_rating,
-          rotten_tomatoes_rating: filters.rotten_tomatoes_rating,
-          metacritic_rating: filters.metacritic_rating,
-          year: filters.year,
-          sortOrder: filters.sortOrder,
-        },
-      });
-
-      // Re-enable initial data loaded after a short delay
-      const timer = setTimeout(() => {
-        setInitialDataLoaded(true);
-      }, 50);
-
-      return () => clearTimeout(timer);
-    }, [
-      // Reset when filters change too
-      filters.imdb_rating,
-      filters.rotten_tomatoes_rating,
-      filters.metacritic_rating,
-      filters.year,
-      filters.sortOrder,
-      // Reset when source or IDs change
-      source,
-      safeIds.movieId,
-      safeIds.actorId,
-      safeIds.genreId,
-    ]);
-
-    const { data, isLoading, fetchNextPage, hasNextPage, updateMovie, error } =
-      useMovies({
-        source,
-        movie_id: safeIds.movieId,
-        actor_id: safeIds.actorId,
-        genre_id: safeIds.genreId,
-      });
-
-    // Log when data changes or errors
-    useEffect(() => {
-      if (error) {
-        logger.error("Error fetching movies:", error);
-      } else if (data?.pages) {
-        const movieCount = data.pages.reduce(
-          (count, page) => count + (page.movies?.length || 0),
-          0
-        );
-        logger.info(
-          `Movies data loaded: ${movieCount} movies across ${data.pages.length} pages`
-        );
-      }
-    }, [data?.pages, error]);
-
+    // Get responsive column count
     const breakpointColumns = useBreakpointValue(
-      columns as Record<string, number>
+      typeof columns === "object" && !Array.isArray(columns)
+        ? columns
+        : { base: 4 }
     );
 
-    // Log when breakpoints change
+    // Log component initialization
     useEffect(() => {
-      logger.debug(`Grid columns updated: ${breakpointColumns}`);
-    }, [breakpointColumns]);
+      logger.info(`MovieGrid initialized for source: ${source}`, {
+        moviesCount: movies.length,
+        totalMovies,
+        fetchedMoviesCount,
+      });
+    }, [source, movies.length, totalMovies, fetchedMoviesCount]);
 
-    // Memoize the skeleton counts
-    const skeletonCounts = useMemo(() => {
-      const numCols =
-        typeof breakpointColumns === "number" ? breakpointColumns : 4;
-
-      // Fixed constants instead of window-dependent calculations for server/client consistency
-      // These values are used only for initial rendering before hydration
-      const initialRows = 6; // Use a fixed number of rows for initial server render
-
-      return {
-        // Fixed number for server rendering to prevent hydration mismatch
-        initial: numCols * initialRows,
-        // Next page loads should be at least one row
-        next: Math.max(numCols, 2 * numCols - (numCols % 2)),
-      };
-    }, [breakpointColumns]);
-
-    // Calculate screen capacity on mount and resize - memoized calculation
-    useEffect(() => {
-      // Skip on server-side
-      if (typeof window === "undefined") return;
-
-      const calculateCapacity = () => {
-        // Get viewport height (subtract some space for headers)
-        const viewportHeight = window.innerHeight - 200;
-        // Estimate movie card height (adjust based on your specific card)
-        const estimatedItemHeight = 350;
-        // Get number of columns
-        const cols =
-          typeof breakpointColumns === "number" ? breakpointColumns : 4;
-        // Calculate how many rows would fit in viewport
-        const rows = Math.ceil(viewportHeight / estimatedItemHeight);
-        // Total items capacity = rows * columns
-        const capacity = rows * cols;
-
-        logger.debug(
-          `Screen capacity calculated: ${capacity} items (${rows} rows × ${cols} columns)`
-        );
-        setScreenItemCapacity(capacity);
-      };
-
-      // Calculate initially
-      calculateCapacity();
-
-      // Debounce resize calculation for better performance
-      let resizeTimer: NodeJS.Timeout;
-      const handleResize = () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(calculateCapacity, 100);
-      };
-
-      // Recalculate on resize
-      window.addEventListener("resize", handleResize);
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        clearTimeout(resizeTimer);
-      };
-    }, [breakpointColumns]);
-
-    // Track number of pages loaded
-    const [pagesLoaded, setPagesLoaded] = useState(0);
-
-    // Update pagesLoaded when data changes
-    useEffect(() => {
-      if (data?.pages) {
-        setPagesLoaded(data.pages.length);
-      }
-    }, [data?.pages?.length]);
-
-    // Handle fetchNextPage
-    const handleFetchNextPage = useCallback(async () => {
-      if (!fetchNextPage || loadingNextPage) return;
-
-      logger.info("Fetching next page of movies");
-      setLoadingNextPage(true);
-      await fetchNextPage();
-      setLoadingNextPage(false);
-    }, [fetchNextPage, loadingNextPage]);
-
-    // Calculate fetchedMoviesCount when data is available
-    const fetchedMoviesCount = useMemo(
-      () =>
-        data?.pages?.reduce(
-          (total, page) =>
-            total + (Array.isArray(page.movies) ? page.movies.length : 0),
-          0
-        ) || 0,
-      [data?.pages]
-    );
-
-    // Memoize movie update handler
+    // Handle movie updates (for user interactions like like/watchlist)
     const handleMovieUpdate = useCallback(
-      (movie: Movie) => {
-        if (typeof updateMovie === "function") {
-          logger.debug(`Movie updated: ${movie.id} - ${movie.title}`);
-          updateMovie(movie);
+      async (updatedMovie: Movie) => {
+        if (!isAuthenticated) {
+          logger.warn("User not authenticated, cannot update movie");
+          return;
+        }
+
+        try {
+          logger.debug(`Updating movie ${updatedMovie.id}:`, updatedMovie);
+
+          // The movie update logic will be handled by the MovieCard component
+          // This is just for invalidating queries after updates
+          queryClient.invalidateQueries({ queryKey: ["bff-movies"] });
+          queryClient.invalidateQueries({
+            queryKey: ["movieInteraction", updatedMovie.id],
+          });
+
+          logger.info(`Movie ${updatedMovie.id} updated successfully`);
+        } catch (error) {
+          logger.error(`Failed to update movie ${updatedMovie.id}:`, error);
+          throw error;
         }
       },
-      [updateMovie]
+      [isAuthenticated, queryClient]
     );
 
-    // Prefetch logic to ensure screen has enough content
-    useEffect(() => {
-      // Skip prefetching for watchlist and favorites since we load everything at once
-      if (source === "watchlist" || source === "favorites") return;
-
-      // Only run if we have initial data, have more to load, aren't already loading,
-      // haven't completed initial loading, and know screen capacity
+    // Handle infinite scroll loading
+    const handleFetchNextPage = useCallback(async () => {
       if (
-        data &&
-        hasNextPage &&
-        !loadingNextPage &&
-        !initialLoadComplete &&
-        screenItemCapacity > 0 &&
-        !isLoading
+        !hasNextPage ||
+        loadingNextPage ||
+        isFetchingNextPage ||
+        !onLoadMore
       ) {
-        // Always load at least 2 pages for initial data (minimum standard)
-        const needsMorePages = pagesLoaded < 2;
-
-        // Check if content doesn't fill screen based on item count
-        const needsMoreContent = fetchedMoviesCount < screenItemCapacity * 1.5;
-
-        // Fetch more if either condition is met
-        if (needsMorePages || needsMoreContent) {
-          logger.info("Prefetching more content:", {
-            pagesLoaded,
-            fetchedMoviesCount,
-            screenItemCapacity,
-            needsMorePages,
-            needsMoreContent,
-          });
-
-          handleFetchNextPage().then(() => {
-            // Only mark as complete if we have enough pages AND content
-            if (
-              pagesLoaded >= 2 &&
-              fetchedMoviesCount >= screenItemCapacity * 1.5
-            ) {
-              logger.debug("Setting initial load complete");
-              setInitialLoadComplete(true);
-            }
-          });
-        } else {
-          // We already have enough content
-          logger.debug("Already have enough content");
-          setInitialLoadComplete(true);
-        }
+        return;
       }
-    }, [
-      data,
-      fetchedMoviesCount,
-      screenItemCapacity,
-      hasNextPage,
-      isLoading,
-      loadingNextPage,
-      initialLoadComplete,
-      handleFetchNextPage,
-      source,
-      pagesLoaded,
-    ]);
 
-    // After the existing useEffect for prefetching content, add this new effect
-    // Check if content fills the screen after rendering and fetch more if needed
+      logger.debug("Fetching next page of movies");
+      setLoadingNextPage(true);
+
+      try {
+        await onLoadMore();
+      } catch (error) {
+        logger.error("Error fetching next page:", error);
+      } finally {
+        setLoadingNextPage(false);
+      }
+    }, [hasNextPage, loadingNextPage, isFetchingNextPage, onLoadMore]);
+
+    // Calculate skeleton counts
+    const skeletonCounts = useMemo(() => {
+      const baseCount =
+        typeof breakpointColumns === "number" ? breakpointColumns : 4;
+      return {
+        initial: baseCount * 6, // 6 rows for initial load
+        next: baseCount * 2, // 2 rows for next page
+      };
+    }, [breakpointColumns]);
+
+    // Memoize movie list to prevent unnecessary re-renders
+    const movieList = useMemo(() => {
+      return movies
+        .filter(
+          (movie) =>
+            (typeof movie.id === "string" || typeof movie.id === "number") &&
+            !!movie.id
+        )
+        .map((movie) => (
+          <MovieCardContainer key={String(movie.id)}>
+            <MovieCard movie={movie} onMovieUpdate={handleMovieUpdate} />
+          </MovieCardContainer>
+        ));
+    }, [movies, handleMovieUpdate]);
+
+    // Auto-fetch more content if viewport is not filled
     useEffect(() => {
-      // Skip for sources that don't use infinite loading
-      if (source === "watchlist" || source === "favorites") return;
+      if (isLoading || !hasNextPage || fetchedMoviesCount === 0) return;
 
-      // Skip if we're already loading or there's no more data
-      if (loadingNextPage || !hasNextPage || isLoading) return;
-
-      // Skip if we haven't received initial data yet
-      if (!data?.pages || fetchedMoviesCount === 0) return;
-
-      // Only run this check once initial rendering is settled
       const checkContentHeight = () => {
         if (!scrollContainerRef.current) return;
 
@@ -418,9 +236,7 @@ const MovieGrid = React.memo(
         }
       };
 
-      // Run after a short delay to ensure rendering is complete
       const timer = setTimeout(checkContentHeight, 300);
-
       return () => clearTimeout(timer);
     }, [
       fetchedMoviesCount,
@@ -428,33 +244,11 @@ const MovieGrid = React.memo(
       loadingNextPage,
       isLoading,
       handleFetchNextPage,
-      data?.pages,
-      source,
     ]);
-
-    // Memoize movie list to prevent unnecessary re-renders
-    const movieList = useMemo(() => {
-      if (!data || !data.pages) return [];
-
-      return data.pages.flatMap((page, pageIndex) =>
-        Array.isArray(page.movies)
-          ? page.movies
-              .filter(
-                (movie: Movie | null) =>
-                  movie && typeof movie === "object" && movie.id
-              )
-              .map((movie: Movie) => (
-                <MovieCardContainer key={`${pageIndex}-${movie.id}`}>
-                  <MovieCard movie={movie} onMovieUpdate={handleMovieUpdate} />
-                </MovieCardContainer>
-              ))
-          : []
-      );
-    }, [data?.pages, handleMovieUpdate]);
 
     // Handle error states
     if (error) {
-      logger.error("Error fetching movies:", error);
+      logger.error("Error in MovieGrid:", error);
       return (
         <Text color="feedback.error">
           Error loading movies. Please try again later.
@@ -463,84 +257,51 @@ const MovieGrid = React.memo(
     }
 
     // Handle loading state
-    if (isLoading || !initialDataLoaded) {
-      // Use a fixed skeleton count for consistent server/client rendering
-      const fixedSkeletonCount =
-        typeof breakpointColumns === "number"
-          ? breakpointColumns * 6 // 6 rows for consistency
-          : 24; // Default to 24 items (6 rows of 4 columns)
-
-      logger.debug(`Showing loading skeleton with ${fixedSkeletonCount} items`);
-      return <MovieSkeletonGrid columns={columns} count={fixedSkeletonCount} />;
+    if (isLoading) {
+      logger.debug(
+        `Showing loading skeleton with ${skeletonCounts.initial} items`
+      );
+      return (
+        <MovieSkeletonGrid columns={columns} count={skeletonCounts.initial} />
+      );
     }
 
     // Handle empty states
-    if (
-      !data ||
-      !data.pages ||
-      data.pages.length === 0 ||
-      fetchedMoviesCount === 0
-    ) {
-      logger.info("No movies found for current filters");
-      return <Text color="text.tertiary">No movies found</Text>;
+    if (movies.length === 0) {
+      logger.info("No movies to display");
+      return <Text color="text.tertiary">{emptyMessage}</Text>;
     }
 
-    logger.debug(
-      `Rendering ${fetchedMoviesCount} movies in ${data.pages.length} pages`
-    );
+    logger.debug(`Rendering ${movies.length} movies from ${source}`);
 
     return (
       <Box ref={scrollContainerRef}>
-        {source === "watchlist" || source === "favorites" ? (
-          // For watchlist and favorites, use a simple grid without infinite scrolling
+        <InfiniteScroll
+          dataLength={fetchedMoviesCount}
+          next={handleFetchNextPage}
+          hasMore={!!hasNextPage}
+          loader={null}
+          scrollThreshold={0.5}
+          style={{
+            paddingTop: 2,
+          }}
+          endMessage={
+            <Text textAlign="center" py={4} color="text.tertiary">
+              {fetchedMoviesCount > 0 ? "No more movies to load" : emptyMessage}
+            </Text>
+          }
+        >
           <SimpleGrid columns={columns} spacing={3} padding={1}>
             {movieList}
-            {fetchedMoviesCount === 0 && (
-              <Text
-                textAlign="center"
-                py={4}
-                gridColumn="1 / -1"
-                color="text.tertiary"
-              >
-                {source === "favorites"
-                  ? "You haven't liked any movies yet"
-                  : "Your watchlist is empty"}
-              </Text>
+            {(loadingNextPage || isFetchingNextPage) && hasNextPage && (
+              <MovieSkeletonGrid
+                columns={columns}
+                count={skeletonCounts.next}
+                inline={true}
+              />
             )}
           </SimpleGrid>
-        ) : (
-          // For other sources including watched, use infinite scrolling
-          <InfiniteScroll
-            dataLength={fetchedMoviesCount}
-            next={handleFetchNextPage}
-            hasMore={!!hasNextPage}
-            loader={null}
-            scrollThreshold={0.5}
-            style={{
-              paddingTop: 2,
-            }}
-            endMessage={
-              <Text textAlign="center" py={4} color="text.tertiary">
-                {fetchedMoviesCount > 0
-                  ? "No more movies to load"
-                  : source === "watched"
-                  ? "You haven't watched any movies yet"
-                  : "No movies found"}
-              </Text>
-            }
-          >
-            <SimpleGrid columns={columns} spacing={3} padding={1}>
-              {movieList}
-              {loadingNextPage && hasNextPage && (
-                <MovieSkeletonGrid
-                  columns={columns}
-                  count={skeletonCounts.next}
-                  inline={true}
-                />
-              )}
-            </SimpleGrid>
-          </InfiniteScroll>
-        )}
+        </InfiniteScroll>
         <ScrollToTopButton />
       </Box>
     );

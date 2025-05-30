@@ -1,10 +1,10 @@
 import { Movie } from "@/domain/entities";
 import type { MovieUpdateCallback } from "../types";
 
-export interface MovieDetailViewProps {
-  movie: Movie;
-  isSignedIn: boolean;
-  onUpdateMovie: MovieUpdateCallback;
+/** Movie detail page props */
+export interface MovieDetailPageProps {
+  /** Movie ID to display details for */
+  movieId: number;
 }
 
 export interface MovieRatings {
@@ -22,6 +22,18 @@ export interface RatingGroupProps {
 /** Trailer card component props */
 export interface TrailerCardProps {
   movieId: number;
+  trailers?: Array<{
+    id: number;
+    name: string;
+    youtube_key: string;
+    url_link: string;
+    is_official: boolean;
+    movie_id: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 /** Critic score component props */
@@ -54,7 +66,12 @@ export interface MovieNotFoundStateProps {
 /** Movie detail quick action props - specific to detail view usage */
 export interface MovieDetailQuickActionProps {
   movie: Movie;
-  onUpdateMovie: MovieUpdateCallback;
   size?: "sm" | "md" | "lg";
   orientation?: "vertical" | "horizontal";
+  onUpdateMovie?: MovieUpdateCallback;
+  toggleFunctions?: {
+    toggleWatched?: () => Promise<void>;
+    toggleLiked?: () => Promise<void>;
+    toggleWatchlist?: () => Promise<void>;
+  };
 }

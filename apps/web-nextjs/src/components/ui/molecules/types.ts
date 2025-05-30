@@ -1,8 +1,6 @@
 import { BoxProps, InputProps } from "@chakra-ui/react";
 import type {
   ComponentSize,
-  ExtendedComponentSize,
-  ResponsiveBreakpoints,
   LoadingStateProps,
   ErrorStateProps,
 } from "../atoms/types";
@@ -100,6 +98,8 @@ export interface SearchInputProps {
   isDisabled?: boolean;
   /** Error message to display */
   error?: string;
+  /** Whether to clear input when navigating away from search pages (default: true) */
+  clearOnNavigation?: boolean;
 }
 
 // ============================================================================

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { LoginModal } from "@/components/features/auth";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@/services/hooks";
 import {
   Box,
   Button,

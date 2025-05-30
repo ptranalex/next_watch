@@ -1,4 +1,4 @@
-import { APIClient, fetchData } from "../core/api-client";
+import { APIClient } from "../core/api-client";
 import {
   Movie,
   MovieListResponse,
@@ -11,7 +11,7 @@ import { Genre } from "../common/types";
 /**
  * Client for movie-related API operations
  */
-export const moviesClient = new APIClient<Movie>("/api/v1/movies");
+export const moviesClient = new APIClient<Movie>("/bff/v1/movies");
 
 /**
  * Enhanced Movie API with specialized methods beyond basic CRUD
@@ -39,8 +39,8 @@ export const MovieAPI = {
     };
 
     // Use the mapping if it exists, otherwise use the provided sortBy value
-    if (params.sortBy) {
-      const backendSortField = sortMapping[params.sortBy] || params.sortBy;
+    if (params.sort_by) {
+      const backendSortField = sortMapping[params.sort_by] || params.sort_by;
       queryParams.append("sort_by", backendSortField);
     }
 
@@ -62,9 +62,8 @@ export const MovieAPI = {
       );
     if (params.year) queryParams.append("year", params.year.toString());
 
-    return fetchData<MovieListResponse>(
-      `/api/v1/movies?${queryParams.toString()}`
-    );
+    // Use the moviesClient which is configured with the proper BFF endpoint
+    return moviesClient.query<MovieListResponse>(`?${queryParams.toString()}`);
   },
 
   /**
@@ -121,8 +120,8 @@ export const MovieAPI = {
     if (params.genre_id)
       queryParams.append("genre_id", params.genre_id.toString());
 
-    return fetchData<MovieListResponse>(
-      `/api/v1/movies/top?${queryParams.toString()}`
+    return moviesClient.query<MovieListResponse>(
+      `top?${queryParams.toString()}`
     );
   },
 
@@ -144,8 +143,8 @@ export const MovieAPI = {
     if (params.min_votes)
       queryParams.append("min_votes", params.min_votes.toString());
 
-    return fetchData<MovieListResponse>(
-      `/api/v1/movies/top/all-time?${queryParams.toString()}`
+    return moviesClient.query<MovieListResponse>(
+      `top/all-time?${queryParams.toString()}`
     );
   },
 
@@ -155,16 +154,14 @@ export const MovieAPI = {
   getStreamingSources: async (
     movieId: number
   ): Promise<MovieStreamingResponse> => {
-    return fetchData<MovieStreamingResponse>(
-      `/api/v1/movies/${movieId}/sources`
-    );
+    return moviesClient.query<MovieStreamingResponse>(`${movieId}/sources`);
   },
 
   /**
    * Get cast for a movie
    */
   getCast: async (movieId: number): Promise<MovieCastResponse> => {
-    return fetchData<MovieCastResponse>(`/api/v1/movies/${movieId}/cast`);
+    return moviesClient.query<MovieCastResponse>(`${movieId}/cast`);
   },
 
   /**
@@ -184,16 +181,16 @@ export const MovieAPI = {
    * Get all movie genres
    */
   getAllGenres: async (): Promise<Genre[]> => {
-    const response = await fetchData<{ genres: Genre[]; total: number }>(
-      "/api/v1/genres"
-    );
-    return response.genres;
+    // This endpoint needs to use the genres endpoint, not movies
+    const genresClient = new APIClient<Genre>("/bff/v1/genres");
+    const response = await genresClient.getAll();
+    return response.data;
   },
 
   /**
    * Get related movies for a movie
    */
   getRelatedMovies: async (movieId: number): Promise<MovieListResponse> => {
-    return fetchData<MovieListResponse>(`/api/v1/movies/${movieId}/related`);
+    return moviesClient.query<MovieListResponse>(`${movieId}/related`);
   },
 };

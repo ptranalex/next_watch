@@ -4,7 +4,6 @@ import { Movie } from "@/domain/entities";
  * Response from the user interaction API endpoints
  */
 export interface UserMovieInteractionResponse {
-  id: number;
   user_id: number;
   movie_id: number;
   liked: boolean;

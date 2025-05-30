@@ -1,5 +1,5 @@
 import { APIClient, fetchData } from "../core/api-client";
-import { GenreResponse } from "./types";
+import { GenreResponse, GenreScreenData } from "./types";
 import { Genre } from "../common/types";
 
 /**
@@ -20,9 +20,16 @@ export const GenreAPI = {
   },
 
   /**
-   * Get details for a single genre by ID
+   * Get a single genre by ID with its movies
    */
-  getById: async (id: number): Promise<Genre> => {
+  getById: async (id: number): Promise<GenreScreenData> => {
+    return fetchData<GenreScreenData>(`/bff/v1/genres/${id}`);
+  },
+
+  /**
+   * Get details for a single genre by ID (basic info only)
+   */
+  getGenreInfo: async (id: number): Promise<Genre> => {
     return genresClient.getById(id);
   },
 

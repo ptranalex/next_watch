@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useProtectedRoute } from "@/hooks";
+import { useProtectedRoute } from "@/services/hooks";
 import { Spinner, Center, VStack, Text } from "@chakra-ui/react";
 import type { ProtectedRouteProps } from "./types";
 

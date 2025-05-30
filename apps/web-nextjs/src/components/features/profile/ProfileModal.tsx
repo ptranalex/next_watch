@@ -1,7 +1,7 @@
 import { Avatar, Flex, Heading, Stack, Text, VStack } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { HiArrowRightOnRectangle, HiOutlineArrowUpTray } from "react-icons/hi2";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@/services/hooks";
 import { useRouter } from "next/navigation";
 import ImportNetflixHistoryModal from "@/components/features/profile/ImportNetflixHistoryModal";
 import BaseModal from "@/components/ui/organisms/BaseModal";

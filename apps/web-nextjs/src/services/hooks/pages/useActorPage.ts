@@ -1,0 +1,357 @@
+"use client";
+
+import { fetchData, ActorScreenData } from "@/services/api";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { createLogger } from "@/utils/logging";
+import { useEffect, useMemo } from "react";
+import { Movie } from "@/domain/entities";
+import useMovieFilterStore from "@/store/movieFilterStore";
+import { CacheKeys, CacheKeyUtils } from "@/services/cache";
+import { MovieAPI } from "@/services/api";
+
+// Create logger for this hook
+const logger = createLogger("useActorPage");
+
+/**
+ * Hook for fetching and managing a single actor with their movies
+ * Enhanced with cache integration:
+ * - Uses centralized cache keys for consistency
+ * - Smart filter-based invalidation
+ * - Automatic prefetching of movie details
+ * - Local cache utilities for performance
+ *
+ * @param id - Actor ID to fetch
+ * @returns Actor data, loading state, error, movies, and cache utilities
+ */
+export function useActorPage(id: number) {
+  const queryClient = useQueryClient();
+
+  // Log hook initialization
+  logger.debug(`useActorPage initialized with id: ${id}`);
+
+  // Get filters from the store
+  const { filters } = useMovieFilterStore();
+
+  // Extract filter values for cleaner logging and cache keys
+  const {
+    imdb_rating,
+    rotten_tomatoes_rating,
+    metacritic_rating,
+    year,
+    sortOrder = "release_date",
+    sortDesc = true,
+  } = filters;
+
+  logger.debug("useActorPage initialized", {
+    actorId: id,
+    filters: {
+      imdb_rating,
+      rotten_tomatoes_rating,
+      metacritic_rating,
+      year,
+      sortOrder,
+      sortDesc,
+    },
+  });
+
+  // Use centralized cache keys for consistency
+  const queryKey = useMemo(() => {
+    const baseKey = CacheKeys.movies.actorList(id.toString(), "filtered");
+
+    // Add filter parameters as additional cache key segment
+    return [
+      ...baseKey,
+      {
+        imdb_rating,
+        rotten_tomatoes_rating,
+        metacritic_rating,
+        year,
+        sortOrder,
+        sortDesc,
+      },
+    ] as const;
+  }, [
+    id,
+    imdb_rating,
+    rotten_tomatoes_rating,
+    metacritic_rating,
+    year,
+    sortOrder,
+    sortDesc,
+  ]);
+
+  // Smart invalidation when filters change
+  useEffect(() => {
+    logger.info("Filter changes detected, invalidating movie list queries", {
+      actorId: id,
+      sortOrder,
+      sortDesc,
+      year,
+      imdb_rating,
+    });
+
+    // Use CacheKeyUtils for consistent and type-safe query checking
+    queryClient.invalidateQueries({
+      predicate: (query) => CacheKeyUtils.isMovieListKey(query.queryKey),
+    });
+  }, [
+    sortOrder,
+    sortDesc,
+    year,
+    imdb_rating,
+    rotten_tomatoes_rating,
+    metacritic_rating,
+    queryClient,
+    id,
+  ]);
+
+  // Build query parameters from filters for API call
+  const queryParams = useMemo(() => {
+    const params: Record<string, string | number | boolean> = {};
+
+    if (imdb_rating !== undefined) {
+      params.imdb_rating = imdb_rating;
+    }
+    if (rotten_tomatoes_rating !== undefined) {
+      params.rotten_tomatoes_rating = rotten_tomatoes_rating;
+    }
+    if (metacritic_rating !== undefined) {
+      params.metacritic_rating = metacritic_rating;
+    }
+    if (year !== undefined) {
+      params.year = year;
+    }
+    if (sortOrder) {
+      params.sort_by = sortOrder;
+    }
+    if (sortDesc !== undefined) {
+      params.sort_desc = sortDesc;
+    }
+
+    return params;
+  }, [
+    imdb_rating,
+    metacritic_rating,
+    rotten_tomatoes_rating,
+    sortDesc,
+    sortOrder,
+    year,
+  ]);
+
+  // Convert params to URL search string
+  const queryString = useMemo(() => {
+    const searchParams = new URLSearchParams();
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+    return searchParams.toString();
+  }, [queryParams]);
+
+  // Fetch actor and movies with pagination support and filtering
+  const {
+    data: actorData,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    error,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey,
+    queryFn: async ({ pageParam = 1 }) => {
+      const baseUrl = `/bff/v1/actors/${id}?page=${pageParam}&limit=20`;
+      const urlWithFilters = queryString
+        ? `${baseUrl}&${queryString}`
+        : baseUrl;
+
+      logger.info(
+        `Fetching actor screen data page ${pageParam} for id: ${id} with filters: ${queryString}`
+      );
+
+      const response = await fetchData<ActorScreenData>(urlWithFilters);
+
+      // Simple prefetching - prefetch details for first 3 movies on first page
+      if (
+        pageParam === 1 &&
+        response.movies?.results &&
+        response.movies.results.length > 0
+      ) {
+        const firstFewMovies = response.movies.results.slice(0, 3);
+        firstFewMovies.forEach((movie) => {
+          if (movie.id) {
+            // Check if movie details are already cached
+            const movieDetailsKey = CacheKeys.movies.detail(movie.id as number);
+            if (!queryClient.getQueryData(movieDetailsKey)) {
+              // Prefetch movie details in background
+              queryClient.prefetchQuery({
+                queryKey: movieDetailsKey,
+                queryFn: () => MovieAPI.getById(movie.id as number),
+                staleTime: 1000 * 60 * 5, // 5 minutes
+              });
+            }
+          }
+        });
+      }
+
+      return response;
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.movies?.has_next
+        ? (lastPage.movies.page || 1) + 1
+        : undefined;
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  // Extract actor info from first page
+  const actor = actorData?.pages?.[0]?.actor;
+  const actorName = actor?.name || "Actor";
+
+  // Flatten all movies from all pages
+  const allMovies = useMemo(() => {
+    if (!actorData?.pages) return [];
+
+    const movies = actorData.pages.flatMap(
+      (page) => page.movies?.results || []
+    ) as unknown as Movie[];
+
+    logger.debug(
+      `Total movies loaded: ${movies.length} (with filters: ${queryString})`
+    );
+    return movies;
+  }, [actorData?.pages, queryString]);
+
+  // Calculate total fetched movies count
+  const fetchedMoviesCount = allMovies.length;
+
+  // Get pagination metadata from the latest page
+  const latestPage = actorData?.pages?.[actorData.pages.length - 1];
+  const totalMovies = latestPage?.movies?.total || 0;
+  const currentPage = latestPage?.movies?.page || 1;
+  const totalPages = latestPage?.movies?.total_pages || 0;
+  const hasPrevPage = latestPage?.movies?.has_prev || false;
+
+  // Load more function
+  const loadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      logger.info(
+        `Loading more movies for actor ${id}, page ${
+          currentPage + 1
+        } (with filters: ${queryString})`
+      );
+      fetchNextPage();
+    }
+  };
+
+  // Log errors
+  useEffect(() => {
+    if (error) {
+      logger.error(`Error fetching actor data for id ${id}:`, error);
+    }
+  }, [error, id, actorName]);
+
+  // Log filter changes
+  useEffect(() => {
+    logger.info(`Actor ${id} filters updated:`, queryParams);
+  }, [id, queryParams]);
+
+  // Log results
+  useEffect(() => {
+    if (error) {
+      logger.error("Error fetching actor movies:", error);
+    } else if (fetchedMoviesCount > 0) {
+      logger.info(
+        `Fetched ${fetchedMoviesCount} movies from ${
+          actorData?.pages?.length || 0
+        } pages for actor "${actorName}" (total: ${totalMovies})`
+      );
+
+      // Log a sample movie to verify user interaction data
+      const firstMovie = actorData?.pages?.[0]?.movies?.results?.[0];
+      if (firstMovie) {
+        logger.debug("Sample actor movie with user interactions:", {
+          id: firstMovie.id,
+          title: firstMovie.title,
+          watched: firstMovie.user_interactions?.is_watched,
+          liked: firstMovie.user_interactions?.is_favorite,
+          in_watchlist: firstMovie.user_interactions?.in_watchlist,
+        });
+      }
+    }
+  }, [error, fetchedMoviesCount, totalMovies, actorData?.pages, actorName]);
+
+  // Cache utilities - consistent with other hooks
+  const cache = useMemo(
+    () => ({
+      /**
+       * Get the current cache key being used
+       */
+      getCacheKey: () => queryKey,
+
+      /**
+       * Invalidate all movie list queries (useful for global refresh)
+       */
+      invalidateMovieLists: () => {
+        return queryClient.invalidateQueries({
+          predicate: (query) => CacheKeyUtils.isMovieListKey(query.queryKey),
+        });
+      },
+
+      /**
+       * Prefetch movie details for performance
+       */
+      prefetchMovieDetails: (movieId: number) => {
+        const movieDetailsKey = CacheKeys.movies.detail(movieId);
+        if (!queryClient.getQueryData(movieDetailsKey)) {
+          return queryClient.prefetchQuery({
+            queryKey: movieDetailsKey,
+            queryFn: () => MovieAPI.getById(movieId),
+            staleTime: 1000 * 60 * 5,
+          });
+        }
+      },
+    }),
+    [queryKey, queryClient]
+  );
+
+  return {
+    // Actor data
+    actor,
+    actorName,
+
+    // Movie data
+    movies: allMovies,
+    totalMovies,
+    fetchedMoviesCount,
+    currentPage,
+    totalPages,
+
+    // Loading states
+    isLoading,
+    isFetchingNextPage,
+
+    // Pagination
+    hasNextPage: !!hasNextPage,
+    hasPrevPage,
+    loadMore,
+    fetchNextPage,
+
+    // Error handling
+    error,
+    refetch,
+
+    // Filter-related data
+    activeFilters: queryParams,
+    hasActiveFilters: Object.keys(queryParams).length > 0,
+
+    // Cache utilities (consistent with other hooks)
+    cache,
+
+    // Raw data for advanced use cases
+    rawData: actorData,
+  };
+}

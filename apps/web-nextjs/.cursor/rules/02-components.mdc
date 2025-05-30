@@ -1,0 +1,218 @@
+***REMOVED*** Next Watch - Component Development Rules
+
+***REMOVED******REMOVED*** 🎯 Atomic Design Hierarchy
+
+**ALWAYS** organize UI components by atomic level:
+
+- **Atoms**: Basic elements (`Button`, `Input`, `Icon`)
+- **Molecules**: Focused functionality (`FormInput`, `SearchBar`, `ToggleIconButton`)
+- **Organisms**: Complex sections (`BaseModal`, `NavBar`, `MovieGrid`)
+- **Templates**: Page layouts (`ResponsiveShell`, `AuthLayout`)
+
+***REMOVED******REMOVED*** 📝 Component Structure Pattern
+
+**MANDATORY** structure for all components:
+
+```typescript
+// 1. Imports (grouped logically)
+import React, { useState, useEffect, useCallback } from "react";
+import { Box, Button } from "@chakra-ui/react";
+import { createLogger } from "@/utils/logging";
+import type { ComponentProps } from "./types";
+
+// 2. Logger creation (required for debugging)
+const logger = createLogger("ComponentName");
+
+// 3. Component with proper typing
+const ComponentName: React.FC<ComponentProps> = ({
+  prop1,
+  prop2,
+  onCallback,
+}) => {
+  // 4. Logging for initialization (required)
+  useEffect(() => {
+    logger.debug(`ComponentName initialized with: ${prop1}`);
+  }, [prop1]);
+
+  // 5. State and effects
+  const [localState, setLocalState] = useState(false);
+
+  // 6. Event handlers
+  const handleAction = useCallback(() => {
+    logger.info(`Action triggered for ${prop1}`);
+    onCallback?.(localState);
+  }, [prop1, localState, onCallback]);
+
+  // 7. Implementation
+  return (
+    <Box>
+      <Button onClick={handleAction}>{prop1}</Button>
+    </Box>
+  );
+};
+
+export default ComponentName;
+```
+
+***REMOVED******REMOVED*** 🧰 Component Development Best Practices
+
+***REMOVED******REMOVED******REMOVED*** 1. Component Complexity Rules
+
+- **Components under 200 lines** (split if larger)
+- **Single responsibility** principle
+- **Pure functions** when possible
+- **Clear prop interfaces** with proper TypeScript
+
+***REMOVED******REMOVED******REMOVED*** 2. Component Composition
+
+```typescript
+// ✅ CORRECT - Composed components
+<ErrorBoundary fallback={<ComponentSkeleton />}>
+  <Suspense fallback={<LoadingSpinner />}>
+    <AsyncComponent />
+  </Suspense>
+</ErrorBoundary>;
+
+// ✅ CORRECT - Container/Presentational pattern
+const MovieListContainer = () => {
+  const { movies, isLoading } = useMovies();
+  return <MovieListPresentation movies={movies} isLoading={isLoading} />;
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Feature Component Organization
+
+```typescript
+// Feature directory structure
+features/movies/
+├── types.ts              ***REMOVED*** Feature-specific types
+├── card/
+│   ├── MovieCard.tsx
+│   ├── MovieQuickAction.tsx
+│   └── types.ts
+├── detail/
+│   ├── MovieDetailView.tsx
+│   ├── MovieAttributes.tsx
+│   └── types.ts
+└── index.ts              ***REMOVED*** Barrel export
+```
+
+***REMOVED******REMOVED******REMOVED*** 4. Export Patterns
+
+```typescript
+// features/movies/index.ts
+// Main components (public API)
+export { default as MovieCard } from "./card/MovieCard";
+export { default as MovieDetailView } from "./detail/MovieDetailView";
+
+// Types (public API)
+export type { MovieCardProps, MovieUpdateCallback } from "./types";
+
+// Internal components (not exported - used only within this module)
+// - MovieQuickAction (internal to MovieCard)
+// - MovieAttributes (internal to MovieDetailView)
+```
+
+***REMOVED******REMOVED*** 🔄 Component Lifecycle Patterns
+
+***REMOVED******REMOVED******REMOVED*** 1. Initialization Pattern
+
+```typescript
+const Component = ({ data }) => {
+  // Required: Log initialization
+  useEffect(() => {
+    logger.debug(`Component mounted with data: ${data.id}`);
+    return () => {
+      logger.debug(`Component unmounting: ${data.id}`);
+    };
+  }, [data.id]);
+
+  // State initialization
+  const [state, setState] = useState(() => {
+    logger.debug("Initializing component state");
+    return initialState;
+  });
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 2. Performance Optimization
+
+```typescript
+// React.memo for expensive components
+const ExpensiveComponent = React.memo(
+  ({ data }) => {
+    // Component implementation
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison logic if needed
+    return prevProps.data.id === nextProps.data.id;
+  }
+);
+
+// Proper memoization
+const Component = ({ items, onSelect }) => {
+  const memoizedValue = useMemo(() => {
+    return expensiveCalculation(items);
+  }, [items]);
+
+  const memoizedCallback = useCallback(
+    (item) => {
+      onSelect(item);
+    },
+    [onSelect]
+  );
+};
+```
+
+***REMOVED******REMOVED******REMOVED*** 3. Dynamic Loading
+
+```typescript
+// Dynamic imports for large components
+const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
+  loading: () => <LoadingSkeleton />,
+  ssr: false,
+});
+
+// Conditional loading
+const ConditionalComponent = ({ shouldLoad, ...props }) => {
+  if (!shouldLoad) return null;
+
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <HeavyComponent {...props} />
+    </Suspense>
+  );
+};
+```
+
+***REMOVED******REMOVED*** 🚨 Component Anti-Patterns
+
+***REMOVED******REMOVED******REMOVED*** Forbidden Practices
+
+```typescript
+// ❌ NEVER - Components without logging
+const Component = () => {
+  // No logger = debugging nightmare
+  return <div>Content</div>;
+};
+
+// ❌ NEVER - Direct API calls in components
+const Component = () => {
+  useEffect(() => {
+    fetch('/api/movies'); // Use hooks instead
+  }, []);
+};
+
+// ❌ NEVER - Missing error boundaries for async components
+<AsyncComponent /> // Wrap with ErrorBoundary
+
+// ❌ NEVER - Inline styles
+<div style={{ marginTop: '10px' }}> // Use Chakra UI props
+
+// ❌ NEVER - Missing prop types
+const Component = ({ data }) => { // Add proper TypeScript interface
+```
+
+---
+
+_Related Rules: [Architecture](./01-architecture.md) | [TypeScript](./03-typescript.md) | [Design System](./05-design-system.md)_
