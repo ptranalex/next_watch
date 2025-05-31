@@ -31,7 +31,9 @@ WORKDIR /app
 
 ***REMOVED*** Accept build arguments for environment variables - no default to ensure it's explicitly set
 ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_BFF_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_BFF_API_URL=${NEXT_PUBLIC_BFF_API_URL}
 
 ***REMOVED*** Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
@@ -55,6 +57,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 ***REMOVED*** Display build information for verification
 RUN echo "Building with NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
+RUN echo "Building with NEXT_PUBLIC_BFF_API_URL=${NEXT_PUBLIC_BFF_API_URL}"
 
 ***REMOVED*** Build the Next.js application with standalone output
 RUN pnpm build
@@ -75,13 +78,16 @@ RUN mkdir -p /app && chown -R nextjs:nodejs /app
 
 ***REMOVED*** Pass the API URL to the runtime environment
 ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_BFF_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_BFF_API_URL=${NEXT_PUBLIC_BFF_API_URL}
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
 ***REMOVED*** Display runtime configuration
 RUN echo "Runtime NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
+RUN echo "Runtime NEXT_PUBLIC_BFF_API_URL=${NEXT_PUBLIC_BFF_API_URL}"
 
 ***REMOVED*** Copy built application - using standalone mode for smaller image
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
