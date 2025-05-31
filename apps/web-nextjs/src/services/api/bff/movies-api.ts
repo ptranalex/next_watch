@@ -1,4 +1,4 @@
-import { bffFetchData } from "./bff-client";
+import { bffFetchData } from "../core/api-client";
 import {
   BFFMovieListResponse,
   BFFMovieQueryParams,
@@ -92,7 +92,7 @@ export const BFFMoviesAPI = {
     if (params.sort_desc !== undefined)
       queryParams.append("sort_desc", params.sort_desc.toString());
 
-    const endpoint = `/bff/v1/genres/${genreId}$${
+    const endpoint = `/bff/v1/genres/${genreId}${
       queryParams.toString() ? `?${queryParams.toString()}` : ""
     }`;
 

@@ -24,7 +24,10 @@ try {
   config = {
     api: {
       timeout: 10000, // 10 seconds
-      bffUrl: process.env.NEXT_PUBLIC_BFF_API_URL || "http://localhost:8001",
+      bffUrl:
+        process.env.NODE_ENV === "production"
+          ? "https://alexsandbox.me"
+          : process.env.NEXT_PUBLIC_BFF_API_URL || "http://localhost:8001",
     },
     auth: {
       tokenKey: "auth_token",
@@ -35,9 +38,12 @@ try {
 // API configuration
 export const API_CONFIG = {
   baseUrl:
-    config.api.bffUrl ||
-    process.env.NEXT_PUBLIC_BFF_API_URL ||
-    "http://localhost:8001",
+    // In production, use nginx proxy for /bff/ routes
+    process.env.NODE_ENV === "production"
+      ? "https://alexsandbox.me"
+      : config.api.bffUrl ||
+        process.env.NEXT_PUBLIC_BFF_API_URL ||
+        "http://localhost:8001",
   timeout: config.api.timeout || 10000,
 };
 
