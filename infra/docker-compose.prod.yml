@@ -183,13 +183,12 @@ services:
     ports:
       - "3000:3000"
     environment:
+      ***REMOVED*** Core Configuration
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://alexsandbox.me/api
-      - NEXT_PUBLIC_BFF_URL=https://alexsandbox.me/api
-      - NEXT_PUBLIC_AUTH_URL=https://alexsandbox.me/auth
-      ***REMOVED*** Internal service URLs (for SSR)
-      - INTERNAL_BFF_URL=http://bff-api:8001
-      - INTERNAL_AUTH_URL=http://auth-api:8003
+
+      ***REMOVED*** API Configuration
+      ***REMOVED*** - NEXT_PUBLIC_API_URL=https://alexsandbox.me/api
+      - NEXT_PUBLIC_BFF_API_URL=https://alexsandbox.me/api
     depends_on:
       bff-api:
         condition: service_healthy
