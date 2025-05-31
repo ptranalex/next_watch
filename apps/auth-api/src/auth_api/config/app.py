@@ -45,6 +45,9 @@ DEFAULT_JWT_JWK_ROTATION_INTERVAL = int(
     os.getenv("JWT_JWK_ROTATION_INTERVAL", "86400")
 )  ***REMOVED*** 24 hours in seconds
 
+***REMOVED*** Security settings
+DEFAULT_ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,auth-api")
+
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
 ***REMOVED*** ------------------------------------------------------------------------------
@@ -67,6 +70,7 @@ class Config:
     refresh_token_expire_days: int
     jwt_jwk: Optional[Dict[str, Any]]
     jwt_jwk_rotation_interval: int
+    allowed_hosts: List[str]
 
     ***REMOVED*** Singleton instance
     _instance = None
@@ -96,6 +100,7 @@ class Config:
         access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
         refresh_token_expire_days: int = DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS,
         jwt_jwk_rotation_interval: int = DEFAULT_JWT_JWK_ROTATION_INTERVAL,
+        allowed_hosts: str = DEFAULT_ALLOWED_HOSTS,
     ):
         """Initialize authentication configuration.
 
@@ -112,6 +117,7 @@ class Config:
             access_token_expire_minutes: Minutes until access token expires
             refresh_token_expire_days: Days until refresh token expires
             jwt_jwk_rotation_interval: Interval in seconds for JWK rotation
+            allowed_hosts: Comma-separated list of allowed hosts
         """
         ***REMOVED*** In production, force debug to False
         if os.getenv("ENVIRONMENT") == "production":
@@ -165,6 +171,13 @@ class Config:
                 "This is insecure. Set a proper JWT_SECRET environment variable."
             )
 
+        ***REMOVED*** Security settings
+        self.allowed_hosts = (
+            [host.strip() for host in allowed_hosts.split(",")]
+            if allowed_hosts != "*"
+            else ["*"]
+        )
+
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
@@ -208,7 +221,8 @@ class Config:
             f"jwt_algorithm={self.jwt_algorithm}, "
             f"access_token_expire_minutes={self.access_token_expire_minutes}, "
             f"refresh_token_expire_days={self.refresh_token_expire_days}, "
-            f"jwt_jwk_enabled={self.jwt_jwk is not None})"
+            f"jwt_jwk_enabled={self.jwt_jwk is not None}, "
+            f"allowed_hosts={self.allowed_hosts})"
         )
 
 

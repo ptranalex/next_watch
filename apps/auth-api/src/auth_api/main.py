@@ -122,7 +122,7 @@ def create_app() -> FastAPI:
     if settings.is_production:
         app.add_middleware(
             TrustedHostMiddleware,
-            allowed_hosts=["localhost", "127.0.0.1", "auth-api"],
+            allowed_hosts=settings.allowed_hosts,
         )
 
     ***REMOVED*** Register authentication routes

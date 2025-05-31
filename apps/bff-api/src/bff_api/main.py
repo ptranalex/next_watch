@@ -114,7 +114,7 @@ def create_app() -> FastAPI:
     if settings.is_production:
         app.add_middleware(
             TrustedHostMiddleware,
-            allowed_hosts=["localhost", "127.0.0.1", settings.host],
+            allowed_hosts=settings.allowed_hosts,
         )
 
     app.add_middleware(LoggingMiddleware)
@@ -122,7 +122,7 @@ def create_app() -> FastAPI:
 
     ***REMOVED*** Add routes
     app.include_router(health.router, prefix="/health", tags=["health"])
-    
+
     ***REMOVED*** Register versioned BFF API (includes auth routes at /bff/v1/auth/*)
     app.include_router(api_v1_router, prefix="/bff", tags=["bff-v1"])
 

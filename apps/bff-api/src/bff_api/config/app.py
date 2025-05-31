@@ -10,13 +10,13 @@ import logging
 ***REMOVED*** Load environment variables before any configuration
 try:
     from dotenv import load_dotenv
-    
+
     ***REMOVED*** Only load .env files if we're not in production
     if os.getenv("ENVIRONMENT") != "production":
         ***REMOVED*** Try multiple locations to find .env files (prioritize current directory)
         possible_paths = [
             Path.cwd() / ".env",
-            Path.cwd() / ".env.local", 
+            Path.cwd() / ".env.local",
             Path(__file__).resolve().parents[3] / ".env",
             Path(__file__).resolve().parents[3] / ".env.local",
         ]
@@ -64,6 +64,8 @@ DEFAULT_JWT_SECRET = os.getenv("JWT_SECRET")
 DEFAULT_AUTH_API_URL = os.getenv("AUTH_API_URL", "http://localhost:8003")
 DEFAULT_INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "bff-to-backend-secret-key")
 
+***REMOVED*** Security settings
+DEFAULT_ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
@@ -87,6 +89,7 @@ class Config:
     jwt_secret: Optional[str]
     auth_api_url: str
     internal_api_key: str
+    allowed_hosts: List[str]
 
     ***REMOVED*** Singleton instance
     _instance = None
@@ -118,6 +121,7 @@ class Config:
         jwt_secret: Optional[str] = DEFAULT_JWT_SECRET,
         auth_api_url: str = DEFAULT_AUTH_API_URL,
         internal_api_key: str = DEFAULT_INTERNAL_API_KEY,
+        allowed_hosts: str = DEFAULT_ALLOWED_HOSTS,
     ):
         """Initialize BFF configuration.
 
@@ -136,6 +140,7 @@ class Config:
             jwt_secret: Secret key for JWT token validation
             auth_api_url: URL for authentication service
             internal_api_key: API key for service-to-service authentication
+            allowed_hosts: Comma-separated list of allowed hosts
         """
         ***REMOVED*** In production, force debug to False
         if os.getenv("ENVIRONMENT") == "production":
@@ -165,6 +170,13 @@ class Config:
         self.jwt_secret = jwt_secret
         self.auth_api_url = auth_api_url.rstrip("/")
         self.internal_api_key = internal_api_key
+
+        ***REMOVED*** Security settings
+        self.allowed_hosts = (
+            [host.strip() for host in allowed_hosts.split(",")]
+            if allowed_hosts != "*"
+            else ["*"]
+        )
 
         ***REMOVED*** Derived settings
         self.environment = os.getenv("ENVIRONMENT", "development")
