@@ -336,7 +336,7 @@ const theme = extendTheme({
         bg: "bg.primary",
         color: "text.primary",
         height: "100%", // Explicit height helps with positioning context
-        // Removing overflowX: "hidden" to fix sticky navbar positioning
+        // Removing overflowX: "hidden" to fix sticky header positioning
       },
       body: {
         bg: "bg.primary",

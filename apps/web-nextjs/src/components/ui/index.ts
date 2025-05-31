@@ -54,30 +54,23 @@ export type {
   BaseBottomSheetProps,
   BaseDrawerProps,
   NavSectionProps,
-  NavBarProps,
-  MobileNavMenuProps,
+  HeaderProps,
+  SectionBasedHeaderProps,
+  MobileNavDrawerProps,
+  ControlledMobileNavDrawerProps,
   FormOrganism,
   MultiStepFormProps,
   DataTableProps,
   ContentGridProps,
   PageHeaderProps,
-} from "./organisms/types";
+} from "./organisms";
 
 // Template-level types (page layouts)
-export type {
-  BaseContainerProps,
-  BaseGridProps,
-  AppShellProps,
-  ResponsiveShellProps,
-  BrowseLayoutProps,
-  DetailLayoutProps,
-  DashboardLayoutProps,
-  FormLayoutProps,
-  SettingsLayoutProps,
-  AuthLayoutProps,
-  ErrorLayoutProps,
-  NotFoundLayoutProps,
-} from "./templates/types";
+// export type {
+//   MovieBrowseLayoutProps,
+//   AppShellProps,
+//   ResponsiveShellProps,
+// } from "./templates/types";
 
 // ============================================================================
 // Atoms
@@ -131,17 +124,18 @@ export { default as MoleculeLoadingIndicator } from "./molecules/LoadingIndicato
 
 export { default as BaseModal } from "./organisms/BaseModal";
 
-// Navigation organisms - will be added when they exist
-// export { default as NavBar } from "./organisms/navigation/NavBar";
-// export { default as MobileNavMenu } from "./organisms/navigation/MobileNavMenu";
+// Navigation organisms
+export { default as SideBar } from "./organisms/navigation/SideBar";
+// export { default as Header } from "./organisms/navigation/Header";
 
 // ============================================================================
-// Templates
+// Template Components (Page Layouts)
 // ============================================================================
 
-export { default as MovieBrowseLayout } from "./templates/MovieBrowseLayout";
-export { default as AppShell } from "./templates/AppShell";
-export { default as ResponsiveShell } from "./templates/ResponsiveShell";
+// Template-level components (to be implemented)
+// export { default as MovieBrowseLayout } from "./templates/MovieBrowseLayout";
+// export { default as AppShell } from "./templates/AppShell";
+// export { default as ResponsiveShell } from "./templates/ResponsiveShell";
 
 // ============================================================================
 // Legacy Type Exports (Deprecated - use atomic-level imports instead)

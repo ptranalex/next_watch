@@ -1,9 +1,9 @@
 "use client";
 
 import React, { memo, Suspense, useEffect } from "react";
-import NavBar from "../organisms/navigation/NavBar";
+import Header from "../organisms/navigation/Header";
 import SideBar from "../organisms/navigation/SideBar";
-import { Box, Grid, GridItem, Show, Spinner } from "@chakra-ui/react";
+import { Box, Grid, GridItem, Show, Spinner, Flex } from "@chakra-ui/react";
 import { useSyncFilterToUrl } from "@/services/hooks/filter/useSyncFilterToUrl";
 import { useFilterResetOnRouteChange } from "@/services/hooks/filter/useFilterResetOnRouteChange";
 import { useMovieFilterRehydration } from "@/services/hooks/filter/useMovieFilterRehydration";
@@ -14,7 +14,7 @@ import type { AppShellProps } from "./types";
 const logger = createLogger("AppShell");
 
 // Memoize child components to prevent unnecessary re-renders
-const MemoizedNavBar = memo(NavBar);
+const MemoizedHeader = memo(Header);
 const MemoizedSideBar = memo(SideBar);
 
 // Create a separate component for filter hooks
@@ -61,7 +61,7 @@ const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
  * sidebar, footer, and content areas.
  *
  * @param children - Main content area
- * @param header - Header content (defaults to NavBar)
+ * @param header - Header content (defaults to Header)
  * @param sidebar - Sidebar content (defaults to SideBar)
  * @param footer - Footer content (optional)
  * @param isSidebarOpen - Whether sidebar is open (responsive behavior)
@@ -78,12 +78,12 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
   }, []);
 
   // Default components using existing implementation
-  const defaultHeader = header || <MemoizedNavBar />;
+  const defaultHeader = header || <MemoizedHeader />;
   const defaultSidebar = sidebar || <MemoizedSideBar />;
 
   return (
-    <>
-      {/* Header area */}
+    <Flex direction="column" minHeight="100vh">
+      {/* Header - Sticky at top */}
       {defaultHeader}
 
       {/* Filter hooks provider */}
@@ -116,7 +116,7 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
 
       {/* Footer area */}
       {footer && <Box mt={8}>{footer}</Box>}
-    </>
+    </Flex>
   );
 }
 

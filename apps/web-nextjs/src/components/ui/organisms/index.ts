@@ -5,6 +5,13 @@
  * Organisms combine molecules and atoms to create complete interface sections.
  */
 
+/**
+ * Organism Components
+ *
+ * Complex components that combine molecules and atoms to create complete
+ * interface sections with specific business logic.
+ */
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -14,8 +21,10 @@ export type {
   BaseBottomSheetProps,
   BaseDrawerProps,
   NavSectionProps,
-  NavBarProps,
-  MobileNavMenuProps,
+  HeaderProps,
+  SectionBasedHeaderProps,
+  MobileNavDrawerProps,
+  ControlledMobileNavDrawerProps,
   FormOrganism,
   MultiStepFormProps,
   DataTableProps,
@@ -44,3 +53,10 @@ export { default as BaseModal } from "./BaseModal";
 
 // Layout organisms (to be implemented)
 // export { default as PageHeader } from "./layout/PageHeader";
+
+// Layout components
+export { default as AppShell } from "../layout/AppShell";
+
+// Navigation components
+export { default as SideBar } from "./navigation/SideBar";
+// export { default as Header } from "./navigation/Header";

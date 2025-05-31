@@ -21,15 +21,15 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { HiArrowLeftOnRectangle } from "react-icons/hi2";
 import { createLogger } from "@/utils/logging";
-import type { NavBarProps } from "../types";
+import type { HeaderProps } from "../types";
 
 // Create logger for this component
-const logger = createLogger("NavBar");
+const logger = createLogger("Header");
 
 /**
- * NavBar component using shared NavBarProps
+ * Header component using shared HeaderProps
  *
- * Desktop/tablet navigation bar with flexible customization options.
+ * Desktop/tablet navigation header with flexible customization options.
  * Mobile navigation is handled by a separate mobile component.
  *
  * @param logo - Custom logo element (defaults to Next Watch logo)
@@ -43,7 +43,7 @@ const logger = createLogger("NavBar");
  * @param isSearchFocused - Whether search input is currently focused (affects opacity)
  * @param onSearchFocusChange - Callback when search focus state changes
  */
-const NavBar: React.FC<NavBarProps> = ({
+const Header: React.FC<HeaderProps> = ({
   logo,
   title = "Next Watch",
   showSearch = true,
@@ -76,7 +76,7 @@ const NavBar: React.FC<NavBarProps> = ({
   // Log component initialization and auth state
   useEffect(() => {
     logger.debug(
-      `NavBar initialized: auth=${isAuthenticated}, colorMode=${colorMode}, searchFocused=${isSearchFocused}`
+      `Header initialized: auth=${isAuthenticated}, colorMode=${colorMode}, searchFocused=${isSearchFocused}`
     );
 
     if (isAuthenticated && user) {
@@ -131,7 +131,7 @@ const NavBar: React.FC<NavBarProps> = ({
   };
 
   // Calculate opacity based on search focus state - hydration-safe
-  const navbarOpacity = isHydrated ? (isSearchFocused ? 1.0 : 0.95) : 0.95; // Default opacity during SSR to match most common state
+  const headerOpacity = isHydrated ? (isSearchFocused ? 1.0 : 0.95) : 0.95; // Default opacity during SSR to match most common state
 
   // Render logo element
   const logoElement = logo || (
@@ -157,7 +157,7 @@ const NavBar: React.FC<NavBarProps> = ({
         backdropFilter="blur(10px)"
         backgroundColor="bg.primary"
         boxShadow="xl"
-        opacity={navbarOpacity}
+        opacity={headerOpacity}
         width="100%"
         className={className}
         transition="opacity 0.2s ease-in-out"
@@ -198,10 +198,18 @@ const NavBar: React.FC<NavBarProps> = ({
             </>
           )}
           {showColorMode && <ColorModeSwitch />}
-          {customActions && <Box ml={2}>{customActions}</Box>}
+          {customActions}
         </HStack>
       </Box>
-      <LoginModal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} />
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={handleCloseLoginModal}
+        onSuccess={handleCloseLoginModal}
+      />
+
+      {/* Profile Modal */}
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={handleCloseProfileModal}
@@ -210,4 +218,4 @@ const NavBar: React.FC<NavBarProps> = ({
   );
 };
 
-export default NavBar;
+export default Header;

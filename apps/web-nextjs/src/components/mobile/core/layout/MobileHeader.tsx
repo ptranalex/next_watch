@@ -1,36 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  Box,
-  Flex,
-  Image,
-  IconButton,
-  Avatar,
-  useColorMode,
-  Tooltip,
-  HStack,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import {
-  HiArrowLeftOnRectangle,
-  HiMagnifyingGlass,
-  HiHome,
-  HiHeart,
-  HiBookmark,
-  HiXMark,
-} from "react-icons/hi2";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/services/hooks";
-import { useSidebarData } from "@/services/hooks/navigation/useSidebarData";
-import { MobileNavMenu } from "@/components/mobile/navigation";
-import { LoginModal } from "@/components/features/auth";
-import ProfileModal from "@/components/features/profile/ProfileModal";
-import SearchInput from "@/components/ui/molecules/SearchInput";
-import { createLogger } from "@/utils/logging";
-import type { MobileHeaderProps } from "@/components/mobile/types";
 import logoLight from "@/assets/logo-light.jpeg";
 import logoDark from "@/assets/logo.jpeg";
+import { LoginModal } from "@/components/features/auth";
+import ProfileModal from "@/components/features/profile/ProfileModal";
+import MobileNavDrawer from "@/components/mobile/core/layout/MobileNavDrawer";
+import type { MobileHeaderProps } from "@/components/mobile/types";
+import SearchInput from "@/components/ui/molecules/SearchInput";
+import { useAuth } from "@/services/hooks";
+import { useSidebarData } from "@/services/hooks/navigation/useSidebarData";
+import { createLogger } from "@/utils/logging";
+import {
+  Avatar,
+  Box,
+  Flex,
+  HStack,
+  IconButton,
+  Image,
+  Tooltip,
+  useColorMode,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import { usePathname, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import {
+  HiArrowLeftOnRectangle,
+  HiHome,
+  HiMagnifyingGlass,
+  HiXMark,
+} from "react-icons/hi2";
 
 // Create logger for this component
 const logger = createLogger("MobileHeader");
@@ -213,7 +211,7 @@ const MobileHeader: React.FC<AppMobileHeaderProps> = ({
                 mr={2}
               />
             ) : (
-              <MobileNavMenu
+              <MobileNavDrawer
                 sidebarData={sidebarData}
                 isLoading={isSidebarLoading}
               />
@@ -279,37 +277,6 @@ const MobileHeader: React.FC<AppMobileHeaderProps> = ({
                       }
                     />
                   </Tooltip>
-
-                  {isAuthenticated && (
-                    <>
-                      <Tooltip label="Watchlist" openDelay={500}>
-                        <IconButton
-                          aria-label="Watchlist"
-                          icon={<HiBookmark />}
-                          fontSize={20}
-                          variant="ghost"
-                          color={
-                            isActive("/watchlist") ? activeNavColor : undefined
-                          }
-                          onClick={() => handleNavigation("/watchlist")}
-                        />
-                      </Tooltip>
-
-                      <Tooltip label="Favorites" openDelay={500}>
-                        <IconButton
-                          aria-label="Favorites"
-                          icon={<HiHeart />}
-                          fontSize={20}
-                          variant="ghost"
-                          color={
-                            isActive("/favorites") ? activeNavColor : undefined
-                          }
-                          onClick={() => handleNavigation("/favorites")}
-                        />
-                      </Tooltip>
-                    </>
-                  )}
-
                   {isAuthenticated && user ? (
                     <Avatar
                       size="sm"

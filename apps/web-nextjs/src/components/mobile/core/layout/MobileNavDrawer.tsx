@@ -2,47 +2,52 @@
 
 import ProfileModal from "@/components/features/profile/ProfileModal";
 import { useAuth } from "@/services/hooks";
+import { createLogger } from "@/utils/logging";
 import {
+  Box,
   Button,
+  Divider,
   Drawer,
   DrawerBody,
+  DrawerCloseButton,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
   DrawerOverlay,
-  DrawerCloseButton,
-  DrawerFooter,
+  Heading,
   Icon,
+  IconButton,
+  Skeleton,
   Text,
   VStack,
   useDisclosure,
-  Heading,
-  Divider,
-  Box,
-  IconButton,
-  Skeleton,
 } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 import type { FC } from "react";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { IconType } from "react-icons";
 import { FaHome, FaSearch } from "react-icons/fa";
-import { HiOutlineBars3 } from "react-icons/hi2";
-import { MdOutlineTheaterComedy } from "react-icons/md";
-import { PiMaskSad } from "react-icons/pi";
-import { GiTrophy, GiCalendar, GiLaurelCrown } from "react-icons/gi";
+import { GiCalendar, GiLaurelCrown, GiTrophy } from "react-icons/gi";
 import {
   HiBookmark,
   HiCheckBadge,
   HiDocumentCheck,
   HiHeart,
+  HiOutlineBars3,
   HiUser,
 } from "react-icons/hi2";
-import { useRouter } from "next/navigation";
-import { createLogger } from "@/utils/logging";
+import { MdOutlineTheaterComedy } from "react-icons/md";
+import { PiMaskSad } from "react-icons/pi";
 
 // Create a logger for this component
-const logger = createLogger("MobileNavMenu");
+const logger = createLogger("MobileNavDrawer");
 
-// Import SidebarData types
+/**
+ * Sidebar data structure from the BFF API
+ *
+ * This interface defines the shape of navigation data received from the backend,
+ * which includes user-specific links, top movies, genres, and metadata.
+ */
 interface SidebarLink {
   id: string;
   label: string;
@@ -79,18 +84,38 @@ interface SidebarData {
   };
 }
 
+/**
+ * Internal navigation item structure
+ *
+ * Normalized format used internally by the component to render navigation items
+ * with consistent icon and path handling.
+ */
 interface NavItem {
   icon: IconType;
   label: string;
   path: string;
 }
 
-interface MobileNavMenuProps {
+/**
+ * Props for the MobileNavDrawer component
+ */
+interface MobileNavDrawerProps {
+  /** Sidebar data from the BFF API containing navigation structure */
   sidebarData?: SidebarData;
+  /** Whether the component is in a loading state */
   isLoading?: boolean;
 }
 
-// Icon mapping for dynamic navigation items
+/**
+ * Icon mapping utility for dynamic navigation items
+ *
+ * Maps URL paths and labels to appropriate React Icons based on content type.
+ * Provides fallback icons for unknown paths to ensure consistent UI.
+ *
+ * @param path - The URL path for the navigation item
+ * @param label - The display label for additional context
+ * @returns The appropriate React Icon component
+ */
 const getIconForPath = (path: string, label: string): IconType => {
   if (path.includes("/search")) return FaSearch;
   if (path.includes("/movies")) return MdOutlineTheaterComedy;
@@ -105,10 +130,34 @@ const getIconForPath = (path: string, label: string): IconType => {
     if (label.toLowerCase().includes("year")) return GiTrophy;
     return GiCalendar;
   }
-  return FaHome; // Default fallback
+  return FaHome; // Default fallback icon
 };
 
-const MobileNavMenu: FC<MobileNavMenuProps> = ({
+/**
+ * MobileNavDrawer Component
+ *
+ * A comprehensive mobile navigation drawer that provides access to all major
+ * application sections. Features a hamburger menu trigger that opens a slide-out
+ * drawer containing organized navigation sections.
+ *
+ * Key Features:
+ * - **Responsive Design**: Only visible on mobile devices (hidden on desktop)
+ * - **Dynamic Content**: Adapts navigation based on user authentication status
+ * - **Organized Sections**: Groups navigation into logical categories (Browse, My Lists, Top Movies, Genres)
+ * - **Loading States**: Provides skeleton loading while data is being fetched
+ * - **Profile Integration**: Includes profile access for authenticated users
+ * - **Icon Mapping**: Automatically assigns appropriate icons based on content type
+ *
+ * Navigation Sections:
+ * 1. **Browse**: Core app navigation (Home, Search, Movies, Actors)
+ * 2. **My Lists**: User-specific content (Watchlist, Favorites, History) - auth required
+ * 3. **Top Movies**: Curated movie collections (Best of Year, All Time, etc.)
+ * 4. **Genres**: Dynamic genre-based browsing
+ *
+ * @param sidebarData - Navigation data from BFF API
+ * @param isLoading - Loading state for skeleton display
+ */
+const MobileNavDrawer: FC<MobileNavDrawerProps> = ({
   sidebarData,
   isLoading = false,
 }) => {
@@ -117,7 +166,12 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const router = useRouter();
 
-  // Handle navigation with filter reset
+  /**
+   * Handle navigation with proper cleanup
+   *
+   * Closes the drawer and navigates to the specified path.
+   * Includes logging for debugging navigation flows.
+   */
   const handleNavigation = useCallback(
     (path: string) => {
       logger.debug(`Navigating to ${path}`);
@@ -127,15 +181,28 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
     [router, onClose]
   );
 
-  // Fallback main navigation items (used when loading or no data)
-  const fallbackMainNavItems: NavItem[] = [
-    { icon: FaHome, label: "Home", path: "/" },
-    { icon: FaSearch, label: "Search", path: "/search" },
-    { icon: MdOutlineTheaterComedy, label: "Movies", path: "/movies" },
-    { icon: PiMaskSad, label: "Actors", path: "/actors" },
-  ];
+  /**
+   * Fallback navigation items for core app functionality
+   *
+   * Used when sidebar data is loading or unavailable to ensure
+   * basic navigation is always accessible.
+   */
+  const fallbackMainNavItems: NavItem[] = useMemo(
+    () => [
+      { icon: FaHome, label: "Home", path: "/" },
+      { icon: FaSearch, label: "Search", path: "/search" },
+      { icon: MdOutlineTheaterComedy, label: "Movies", path: "/movies" },
+      { icon: PiMaskSad, label: "Actors", path: "/actors" },
+    ],
+    []
+  );
 
-  // Convert sidebar data to navigation items
+  /**
+   * Dynamic main navigation items from sidebar data
+   *
+   * Combines home link from API with standard navigation items.
+   * Falls back to static items if no sidebar data is available.
+   */
   const dynamicMainNavItems = useMemo<NavItem[]>(() => {
     if (!sidebarData) return fallbackMainNavItems;
 
@@ -145,7 +212,7 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
         label: sidebarData.home.label,
         path: sidebarData.home.href,
       },
-      // Add default items that might not be in sidebar data
+      // Include standard navigation items that might not be in sidebar data
       { icon: FaSearch, label: "Search", path: "/search" },
       { icon: MdOutlineTheaterComedy, label: "Movies", path: "/movies" },
       { icon: PiMaskSad, label: "Actors", path: "/actors" },
@@ -154,7 +221,12 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
     return items;
   }, [sidebarData, fallbackMainNavItems]);
 
-  // User-specific navigation items from sidebar data
+  /**
+   * User-specific navigation items (authenticated users only)
+   *
+   * Transforms user_links from sidebar data into navigation items.
+   * Only displayed when user is authenticated and has personal content.
+   */
   const userNavItems = useMemo<NavItem[]>(() => {
     if (!isAuthenticated || !sidebarData?.user_links) return [];
 
@@ -165,10 +237,15 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
     }));
   }, [isAuthenticated, sidebarData?.user_links]);
 
-  // Top movies navigation items from sidebar data
+  /**
+   * Top movies navigation items
+   *
+   * Provides access to curated movie collections. Falls back to
+   * static popular collections if no API data is available.
+   */
   const topNavItems = useMemo<NavItem[]>(() => {
     if (!sidebarData?.top_links) {
-      // Fallback top movies items
+      // Fallback top movies collections
       return [
         { icon: GiTrophy, label: "Best of Year", path: "/top/current-year" },
         { icon: GiCalendar, label: "Popular in 2024", path: "/top/2024" },
@@ -184,8 +261,13 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
     }));
   }, [sidebarData?.top_links]);
 
+  /**
+   * Profile modal handlers
+   *
+   * Manages the profile modal state with proper drawer cleanup.
+   */
   const handleOpenProfileModal = () => {
-    onClose(); // Close the drawer first
+    onClose(); // Close the drawer first to avoid overlay conflicts
     setIsProfileModalOpen(true);
   };
 
@@ -193,7 +275,12 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
     setIsProfileModalOpen(false);
   };
 
-  // Render a group of navigation items
+  /**
+   * Render a group of navigation items with consistent styling
+   *
+   * @param items - Array of navigation items to render
+   * @returns JSX elements for the navigation group
+   */
   const renderNavGroup = (items: NavItem[]) =>
     items.map((item) => (
       <Button
@@ -210,7 +297,11 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
       </Button>
     ));
 
-  // Render loading skeleton for navigation sections
+  /**
+   * Render loading skeleton for navigation sections
+   *
+   * Provides visual feedback while navigation data is being fetched.
+   */
   const renderLoadingSkeleton = () => (
     <VStack spacing={4} align="stretch" pt={2}>
       <Box>
@@ -226,9 +317,10 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
 
   return (
     <>
+      {/* Hamburger menu trigger button */}
       <IconButton
-        key="mobile-nav-menu"
-        aria-label="Open menu"
+        key="mobile-nav-drawer"
+        aria-label="Open navigation menu"
         icon={<HiOutlineBars3 />}
         onClick={onOpen}
         fontSize={25}
@@ -236,6 +328,7 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
         color="text.secondary"
       />
 
+      {/* Navigation drawer */}
       <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
         <DrawerOverlay />
         <DrawerContent bg="bg.primary">
@@ -251,7 +344,7 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
               renderLoadingSkeleton()
             ) : (
               <VStack spacing={4} align="stretch" pt={2}>
-                {/* Main navigation */}
+                {/* Main navigation section */}
                 <Box>
                   <Heading fontSize="md" fontWeight="bold" mb={2}>
                     Browse
@@ -259,7 +352,7 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
                   {renderNavGroup(dynamicMainNavItems)}
                 </Box>
 
-                {/* User navigation - only show if authenticated and has links */}
+                {/* User-specific navigation - only show if authenticated and has content */}
                 {userNavItems.length > 0 && (
                   <Box>
                     <Divider mb={2} />
@@ -270,7 +363,7 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
                   </Box>
                 )}
 
-                {/* Top movies */}
+                {/* Top movies section */}
                 <Box>
                   <Divider mb={2} />
                   <Heading fontSize="md" fontWeight="bold" mb={2}>
@@ -279,7 +372,7 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
                   {renderNavGroup(topNavItems)}
                 </Box>
 
-                {/* Genres section - using dynamic or static data */}
+                {/* Genres section - dynamic or fallback message */}
                 <Box>
                   <Divider mb={2} />
                   <Heading fontSize="md" fontWeight="bold" mb={2}>
@@ -304,14 +397,16 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
                       ))}
                     </VStack>
                   ) : (
-                    <Text>No genres found</Text>
+                    <Text fontSize="sm" color="text.tertiary">
+                      No genres available
+                    </Text>
                   )}
                 </Box>
               </VStack>
             )}
           </DrawerBody>
 
-          {/* Footer with profile button if authenticated */}
+          {/* Footer with profile access for authenticated users */}
           {isAuthenticated && (
             <DrawerFooter borderTopWidth="1px" borderTopColor="text.tertiary">
               <Button
@@ -329,6 +424,7 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
         </DrawerContent>
       </Drawer>
 
+      {/* Profile modal */}
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={handleCloseProfileModal}
@@ -337,4 +433,4 @@ const MobileNavMenu: FC<MobileNavMenuProps> = ({
   );
 };
 
-export default MobileNavMenu;
+export default MobileNavDrawer;
