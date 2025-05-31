@@ -275,9 +275,16 @@ def toggle_user_movie_interaction_flag(
         db.delete(interaction)
         db.commit()
 
-        ***REMOVED*** Create a new interaction with just the toggled flag
-        kwargs = {flag: True}
-        return create_user_movie_interaction(db, user_id, movie_id, **kwargs)
+        ***REMOVED*** Return a dummy representation with all flags false, but with a valid structure
+        return UserMovieInteraction(
+            user_id=user_id,
+            movie_id=movie_id,
+            watched=False,
+            liked=False,
+            in_watchlist=False,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
 
     db.add(interaction)
     db.commit()
