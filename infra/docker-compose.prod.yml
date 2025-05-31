@@ -190,7 +190,7 @@ services:
 
       ***REMOVED*** API Configuration
       ***REMOVED*** - NEXT_PUBLIC_API_URL=https://alexsandbox.me/api
-      - NEXT_PUBLIC_BFF_API_URL=https://alexsandbox.me/api
+      - NEXT_PUBLIC_BFF_API_URL=https://alexsandbox.me/
     depends_on:
       bff-api:
         condition: service_healthy
