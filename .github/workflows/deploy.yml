@@ -1,4 +1,4 @@
-name: Deploy Application (Backend, Importer, Frontend)
+name: Deploy Application (All Services)
 
 on:
   workflow_dispatch:
@@ -8,13 +8,23 @@ on:
         required: false
         type: boolean
         default: false
-      deploy_importer:
-        description: "Deploy data importer"
+      deploy_auth:
+        description: "Deploy auth API"
+        required: false
+        type: boolean
+        default: false
+      deploy_bff:
+        description: "Deploy BFF API"
         required: false
         type: boolean
         default: false
       deploy_frontend:
         description: "Deploy frontend"
+        required: false
+        type: boolean
+        default: false
+      deploy_importer:
+        description: "Deploy data importer"
         required: false
         type: boolean
         default: false
@@ -25,13 +35,23 @@ on:
         required: false
         type: boolean
         default: false
-      deploy_importer:
-        description: "Deploy data importer"
+      deploy_auth:
+        description: "Deploy auth API"
+        required: false
+        type: boolean
+        default: false
+      deploy_bff:
+        description: "Deploy BFF API"
         required: false
         type: boolean
         default: false
       deploy_frontend:
         description: "Deploy frontend"
+        required: false
+        type: boolean
+        default: false
+      deploy_importer:
+        description: "Deploy data importer"
         required: false
         type: boolean
         default: false
@@ -52,6 +72,12 @@ on:
         required: true
       JWT_SECRET:
         required: true
+      INTERNAL_API_KEY:
+        required: true
+      TMDB_ACCESS_TOKEN:
+        required: false
+      OMDB_API_KEY:
+        required: false
       JWT_JWK:
         required: false
       JWT_JWK_ROTATION_INTERVAL:
@@ -117,30 +143,42 @@ jobs:
               }
             fi
 
-            ***REMOVED*** write .env
-            echo "DOCKER_FRONTEND_IMAGE=ghcr.io/${{ github.repository }}/frontend:latest" > .env
-            echo "DOCKER_BACKEND_IMAGE=ghcr.io/${{ github.repository }}/backend-api:latest" >> .env
-            echo "DOCKER_IMPORTER_IMAGE=ghcr.io/${{ github.repository }}/data-importer:latest" >> .env
-            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+            ***REMOVED*** Create comprehensive .env.prod file
+            echo "***REMOVED*** Docker Images" > .env.prod
+            echo "DOCKER_BACKEND_IMAGE=ghcr.io/${{ github.repository }}/backend-api:latest" >> .env.prod
+            echo "DOCKER_AUTH_IMAGE=ghcr.io/${{ github.repository }}/auth-api:latest" >> .env.prod
+            echo "DOCKER_BFF_IMAGE=ghcr.io/${{ github.repository }}/bff-api:latest" >> .env.prod
+            echo "DOCKER_FRONTEND_IMAGE=ghcr.io/${{ github.repository }}/frontend:latest" >> .env.prod
+            echo "DOCKER_IMPORTER_IMAGE=ghcr.io/${{ github.repository }}/data-importer:latest" >> .env.prod
 
-            ***REMOVED*** Handle JWT configuration
-            if [ -n "${{ secrets.JWT_SECRET }}" ]; then
-              echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-            fi
+            echo "" >> .env.prod
+            echo "***REMOVED*** Database Configuration" >> .env.prod
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env.prod
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env.prod
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env.prod
 
-            ***REMOVED*** Handle JWK configuration if available
+            echo "" >> .env.prod
+            echo "***REMOVED*** Security Configuration" >> .env.prod
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.prod
+            echo "INTERNAL_API_KEY=${{ secrets.INTERNAL_API_KEY }}" >> .env.prod
+
+            ***REMOVED*** Handle optional JWT configuration
             if [ -n "${{ secrets.JWT_JWK }}" ]; then
-              echo "JWT_JWK=${{ secrets.JWT_JWK }}" >> .env
+              echo "JWT_JWK=${{ secrets.JWT_JWK }}" >> .env.prod
             fi
-
-            ***REMOVED*** Handle JWK rotation if available
             if [ -n "${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" ]; then
-              echo "JWT_JWK_ROTATION_INTERVAL=${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" >> .env
+              echo "JWT_JWK_ROTATION_INTERVAL=${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" >> .env.prod
             fi
 
-            ***REMOVED*** write docker-compose.prod.yml directly from GitHub
+            ***REMOVED*** Handle optional external API keys
+            if [ -n "${{ secrets.TMDB_ACCESS_TOKEN }}" ]; then
+              echo "TMDB_ACCESS_TOKEN=${{ secrets.TMDB_ACCESS_TOKEN }}" >> .env.prod
+            fi
+            if [ -n "${{ secrets.OMDB_API_KEY }}" ]; then
+              echo "OMDB_API_KEY=${{ secrets.OMDB_API_KEY }}" >> .env.prod
+            fi
+
+            ***REMOVED*** Download docker-compose.prod.yml from the correct path
             curl -H "Authorization: token ${{ secrets.GH_PAT }}" \
                  -H "Accept: application/vnd.github.v3.raw" \
                  -o docker-compose.prod.yml \
@@ -156,11 +194,17 @@ jobs:
             if [ "${{ github.event.inputs.deploy_backend || inputs.deploy_backend }}" = "true" ]; then
               SERVICES="$SERVICES backend-api"
             fi
-            if [ "${{ github.event.inputs.deploy_importer || inputs.deploy_importer }}" = "true" ]; then
-              SERVICES="$SERVICES data-importer"
+            if [ "${{ github.event.inputs.deploy_auth || inputs.deploy_auth }}" = "true" ]; then
+              SERVICES="$SERVICES auth-api"
+            fi
+            if [ "${{ github.event.inputs.deploy_bff || inputs.deploy_bff }}" = "true" ]; then
+              SERVICES="$SERVICES bff-api"
             fi
             if [ "${{ github.event.inputs.deploy_frontend || inputs.deploy_frontend }}" = "true" ]; then
               SERVICES="$SERVICES frontend"
+            fi
+            if [ "${{ github.event.inputs.deploy_importer || inputs.deploy_importer }}" = "true" ]; then
+              SERVICES="$SERVICES data-importer"
             fi
 
             if [ -n "$SERVICES" ]; then
@@ -170,29 +214,49 @@ jobs:
               echo "🧹 Cleaning up Docker resources..."
               
               ***REMOVED*** Stop and remove containers that are not running
-              docker ps -a -q -f status=exited | xargs -r docker rm
-              sudo docker ps -a -q -f status=exited | xargs -r sudo docker rm
+              docker ps -a -q -f status=exited | xargs -r docker rm || true
+              sudo docker ps -a -q -f status=exited | xargs -r sudo docker rm || true
               
               ***REMOVED*** Remove unused images
-              docker image prune -af
-              sudo docker image prune -af
+              docker image prune -af || true
+              sudo docker image prune -af || true
               
               ***REMOVED*** Remove unused volumes
-              docker volume prune -f
-              sudo docker volume prune -f
+              docker volume prune -f || true
+              sudo docker volume prune -f || true
               
               ***REMOVED*** Remove unused networks
-              docker network prune -f
-              sudo docker network prune -f
+              docker network prune -f || true
+              sudo docker network prune -f || true
               
               ***REMOVED*** Pull and deploy only the specified services
-              docker compose -f docker-compose.prod.yml pull $SERVICES || sudo docker compose -f docker-compose.prod.yml pull $SERVICES
-              docker compose -f docker-compose.prod.yml up -d $SERVICES || sudo docker compose -f docker-compose.prod.yml up -d $SERVICES
+              if command -v docker-compose >/dev/null 2>&1; then
+                docker-compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES || \
+                sudo docker-compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES
+                
+                docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES || \
+                sudo docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES
+              else
+                ***REMOVED*** Use docker compose (newer syntax)
+                docker compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES || \
+                sudo docker compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES
+                
+                docker compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES || \
+                sudo docker compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES
+              fi
+              
+              ***REMOVED*** Wait for services to be healthy
+              echo "⏳ Waiting for services to be healthy..."
+              sleep 30
+              
+              ***REMOVED*** Check service status
+              echo "📊 Service status:"
+              docker ps || sudo docker ps
               
               ***REMOVED*** Final cleanup after deployment
               echo "🧹 Final cleanup..."
-              docker system prune -af --volumes
-              sudo docker system prune -af --volumes
+              docker system prune -af --volumes || true
+              sudo docker system prune -af --volumes || true
             else
               echo "No services to deploy"
             fi

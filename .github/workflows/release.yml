@@ -1,12 +1,16 @@
-name: Release Application (Backend, Importer, Frontend)
+name: Release Application (All Services)
 
 on:
   push:
     branches: [main]
     paths:
       - "apps/backend-api/**"
-      - "apps/data-importer/**"
+      - "apps/auth-api/**"
+      - "apps/bff-api/**"
       - "apps/web-nextjs/**"
+      - "apps/data-importer/**"
+      - "libs/movie-storage/**"
+      - "infra/**"
   workflow_dispatch:
     inputs:
       build_all:
@@ -19,13 +23,23 @@ on:
         required: false
         type: boolean
         default: false
-      deploy_importer:
-        description: "Deploy data importer"
+      deploy_auth:
+        description: "Deploy auth API"
+        required: false
+        type: boolean
+        default: false
+      deploy_bff:
+        description: "Deploy BFF API"
         required: false
         type: boolean
         default: false
       deploy_frontend:
         description: "Deploy frontend"
+        required: false
+        type: boolean
+        default: false
+      deploy_importer:
+        description: "Deploy data importer"
         required: false
         type: boolean
         default: false
@@ -35,8 +49,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend_changed: ${{ steps.set-outputs.outputs.backend_changed }}
-      importer_changed: ${{ steps.set-outputs.outputs.importer_changed }}
+      auth_changed: ${{ steps.set-outputs.outputs.auth_changed }}
+      bff_changed: ${{ steps.set-outputs.outputs.bff_changed }}
       frontend_changed: ${{ steps.set-outputs.outputs.frontend_changed }}
+      importer_changed: ${{ steps.set-outputs.outputs.importer_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,22 +65,33 @@ jobs:
           filters: |
             backend:
               - 'apps/backend-api/**'
-            importer:
-              - 'apps/data-importer/**'
+              - 'libs/movie-storage/**'
+            auth:
+              - 'apps/auth-api/**'
+              - 'libs/movie-storage/**'
+            bff:
+              - 'apps/bff-api/**'
             frontend:
               - 'apps/web-nextjs/**'
+            importer:
+              - 'apps/data-importer/**'
+              - 'libs/movie-storage/**'
 
       - name: Set outputs
         id: set-outputs
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "backend_changed=${{ steps.filter.outputs.backend }}" >> $GITHUB_OUTPUT
-            echo "importer_changed=${{ steps.filter.outputs.importer }}" >> $GITHUB_OUTPUT
+            echo "auth_changed=${{ steps.filter.outputs.auth }}" >> $GITHUB_OUTPUT
+            echo "bff_changed=${{ steps.filter.outputs.bff }}" >> $GITHUB_OUTPUT
             echo "frontend_changed=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
+            echo "importer_changed=${{ steps.filter.outputs.importer }}" >> $GITHUB_OUTPUT
           else
             echo "backend_changed=${{ github.event.inputs.deploy_backend }}" >> $GITHUB_OUTPUT
-            echo "importer_changed=${{ github.event.inputs.deploy_importer }}" >> $GITHUB_OUTPUT
+            echo "auth_changed=${{ github.event.inputs.deploy_auth }}" >> $GITHUB_OUTPUT
+            echo "bff_changed=${{ github.event.inputs.deploy_bff }}" >> $GITHUB_OUTPUT
             echo "frontend_changed=${{ github.event.inputs.deploy_frontend }}" >> $GITHUB_OUTPUT
+            echo "importer_changed=${{ github.event.inputs.deploy_importer }}" >> $GITHUB_OUTPUT
           fi
 
   build_backend:
@@ -77,13 +104,23 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
-  build_importer:
+  build_auth:
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
+    if: ${{ needs.check_changes.outputs.auth_changed == 'true' || github.event.inputs.build_all == true }}
     uses: ./.github/workflows/build-app.yml
     with:
-      app_name: data-importer
-      dockerfile_path: ./apps/data-importer/Dockerfile
+      app_name: auth-api
+      dockerfile_path: ./apps/auth-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+  build_bff:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: bff-api
+      dockerfile_path: ./apps/bff-api/Dockerfile
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
@@ -98,19 +135,41 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
+  build_importer:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: data-importer
+      dockerfile_path: ./apps/data-importer/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
   deploy:
-    needs: [check_changes, build_backend, build_importer, build_frontend]
+    needs:
+      [
+        check_changes,
+        build_backend,
+        build_auth,
+        build_bff,
+        build_frontend,
+        build_importer,
+      ]
     if: |
       always() && 
       (needs.check_changes.outputs.backend_changed == 'true' || 
-       needs.check_changes.outputs.importer_changed == 'true' || 
+       needs.check_changes.outputs.auth_changed == 'true' || 
+       needs.check_changes.outputs.bff_changed == 'true' || 
        needs.check_changes.outputs.frontend_changed == 'true' || 
+       needs.check_changes.outputs.importer_changed == 'true' || 
        github.event.inputs.build_all == true)
     uses: ./.github/workflows/deploy.yml
     with:
       deploy_backend: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == true }}
-      deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_auth: ${{ needs.check_changes.outputs.auth_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_bff: ${{ needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == true }}
       deploy_frontend: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
     secrets:
       DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -120,5 +179,8 @@ jobs:
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
       JWT_JWK: ${{ secrets.JWT_JWK }}
       JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}

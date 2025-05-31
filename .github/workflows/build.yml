@@ -1,4 +1,4 @@
-name: Build Application (Backend, Importer, Frontend)
+name: Build Application (All Services)
 
 on:
   workflow_dispatch:
@@ -21,20 +21,29 @@ on:
       image_backend:
         description: "Backend API image"
         value: ${{ jobs.build_backend.outputs.image }}
-      image_importer:
-        description: "Data Importer image"
-        value: ${{ jobs.build_importer.outputs.image }}
+      image_auth:
+        description: "Auth API image"
+        value: ${{ jobs.build_auth.outputs.image }}
+      image_bff:
+        description: "BFF API image"
+        value: ${{ jobs.build_bff.outputs.image }}
       image_frontend:
         description: "Frontend image"
         value: ${{ jobs.build_frontend.outputs.image }}
+      image_importer:
+        description: "Data Importer image"
+        value: ${{ jobs.build_importer.outputs.image }}
 
 jobs:
   check_changes:
     runs-on: ubuntu-latest
     outputs:
       backend_changed: ${{ steps.filter.outputs.backend }}
-      importer_changed: ${{ steps.filter.outputs.importer }}
+      auth_changed: ${{ steps.filter.outputs.auth }}
+      bff_changed: ${{ steps.filter.outputs.bff }}
       frontend_changed: ${{ steps.filter.outputs.frontend }}
+      importer_changed: ${{ steps.filter.outputs.importer }}
+      shared_changed: ${{ steps.filter.outputs.shared }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,14 +55,24 @@ jobs:
           filters: |
             backend:
               - 'apps/backend-api/**'
-            importer:
-              - 'apps/data-importer/**'
+              - 'libs/movie-storage/**'
+            auth:
+              - 'apps/auth-api/**'
+              - 'libs/movie-storage/**'
+            bff:
+              - 'apps/bff-api/**'
             frontend:
               - 'apps/web-nextjs/**'
+            importer:
+              - 'apps/data-importer/**'
+              - 'libs/movie-storage/**'
+            shared:
+              - 'libs/movie-storage/**'
+              - 'infra/**'
 
   build_backend:
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    if: ${{ needs.check_changes.outputs.backend_changed == 'true' || needs.check_changes.outputs.shared_changed == 'true' || github.event.inputs.build_all == 'true' }}
     uses: ./.github/workflows/build-app.yml
     with:
       app_name: backend-api
@@ -61,13 +80,23 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
-  build_importer:
+  build_auth:
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    if: ${{ needs.check_changes.outputs.auth_changed == 'true' || needs.check_changes.outputs.shared_changed == 'true' || github.event.inputs.build_all == 'true' }}
     uses: ./.github/workflows/build-app.yml
     with:
-      app_name: data-importer
-      dockerfile_path: ./apps/data-importer/Dockerfile
+      app_name: auth-api
+      dockerfile_path: ./apps/auth-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+  build_bff:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: bff-api
+      dockerfile_path: ./apps/bff-api/Dockerfile
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
@@ -79,5 +108,15 @@ jobs:
       app_name: frontend
       dockerfile_path: ./apps/web-nextjs/Dockerfile
       build_args: NEXT_PUBLIC_API_URL=https://alexsandbox.me
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+  build_importer:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.importer_changed == 'true' || needs.check_changes.outputs.shared_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: data-importer
+      dockerfile_path: ./apps/data-importer/Dockerfile
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}

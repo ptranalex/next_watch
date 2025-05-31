@@ -1,145 +1,280 @@
-***REMOVED*** NextWatch
+***REMOVED*** Next Watch
 
-A modern movie tracking application built with Next.js and Python.
+A comprehensive movie discovery and tracking platform built with modern microservices architecture.
 
-***REMOVED******REMOVED*** Project Structure
+***REMOVED******REMOVED*** 🏗️ Architecture
 
-This is a monorepo containing multiple packages:
+Next Watch consists of 5 main services:
 
 ```
-next_watch/
-├── apps/
-│   ├── backend-api/     ***REMOVED*** Python FastAPI backend
-│   ├── data-importer/   ***REMOVED*** Data import utilities
-│   ├── mobile-flutter/  ***REMOVED*** Mobile application
-│   └── web-nextjs/      ***REMOVED*** Next.js web application
-├── libs/
-│   └── movie-storage/   ***REMOVED*** Shared Python library for movie data models
-└── scripts/             ***REMOVED*** Various tools and scripts
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Frontend  │───▶│   BFF API   │───▶│  Auth API   │    │ Backend API │
+│  (Next.js)  │    │ (Port 8001) │    │ (Port 8003) │    │ (Port 8000) │
+│ (Port 3000) │    └─────────────┘    └─────────────┘    └─────────────┘
+└─────────────┘           │                   │                   │
+                          │                   │                   │
+                          ▼                   ▼                   ▼
+                    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+                    │    Redis    │    │ PostgreSQL  │    │Data Importer│
+                    │(Host:6379)  │    │(Host:5432)  │    │ (On-demand) │
+                    └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
-***REMOVED******REMOVED*** Features
+***REMOVED******REMOVED******REMOVED*** Services
 
-- Movie tracking (watched, liked, watchlist)
-- User authentication and profiles
-- Movie recommendations based on user preferences
-- Movie search and discovery
-- Responsive design for mobile and desktop
-- Mobile-first approach with touch-friendly interfaces
+- **Frontend** (`apps/web-nextjs`): Next.js 15 web application
+- **BFF API** (`apps/bff-api`): Backend for Frontend aggregation layer
+- **Auth API** (`apps/auth-api`): Dedicated authentication service
+- **Backend API** (`apps/backend-api`): Core business logic and data access
+- **Data Importer** (`apps/data-importer`): Movie data synchronization service
 
-***REMOVED******REMOVED*** Backend Architecture
+***REMOVED******REMOVED******REMOVED*** Shared Libraries
 
-The backend follows a Command Query Responsibility Segregation (CQRS) pattern:
+- **Movie Storage** (`libs/movie-storage`): Shared data models and database utilities
 
-- **Commands (Services)**: Handle state-changing operations (create, update, delete)
-- **Queries**: Handle optimized read operations
-
-This separation allows for specialized optimization of read and write paths.
-
-***REMOVED******REMOVED******REMOVED*** Key Components
-
-- **Routes**: API endpoints for client interaction
-- **Services**: Business logic for state-changing operations
-- **Queries**: Optimized read operations
-- **Models**: Data structures with SQLModel
-- **Schemas**: Pydantic models for request/response validation
-
-***REMOVED******REMOVED*** Getting Started
+***REMOVED******REMOVED*** 🚀 Quick Start
 
 ***REMOVED******REMOVED******REMOVED*** Prerequisites
 
-- Python 3.10+
-- Node.js 18+
-- pnpm 10+
-- PostgreSQL 13+
+- Docker & Docker Compose
+- PostgreSQL (running on host)
+- Redis (running on host)
 
-***REMOVED******REMOVED******REMOVED*** Setup
+***REMOVED******REMOVED******REMOVED*** Local Development
 
-1. Clone the repository
-2. Install dependencies:
+```bash
+***REMOVED*** Clone the repository
+git clone https://github.com/your-username/next_watch.git
+cd next_watch
 
-   **For Python components:**
+***REMOVED*** Copy environment template
+cp infra/env.prod.example .env.prod
 
-   ```
-   cd apps/backend-api
-   pip install -e .
-   ```
+***REMOVED*** Edit environment variables
+nano .env.prod
 
-   **For JavaScript/TypeScript components (using pnpm):**
+***REMOVED*** Build all services
+docker build -f apps/backend-api/Dockerfile -t next-watch-backend:latest .
+docker build -f apps/auth-api/Dockerfile -t next-watch-auth:latest .
+docker build -f apps/bff-api/Dockerfile -t next-watch-bff:latest .
+docker build -f apps/web-nextjs/Dockerfile -t next-watch-frontend:latest .
+docker build -f apps/data-importer/Dockerfile -t next-watch-importer:latest .
 
-   ```
-   ***REMOVED*** Install pnpm if not already installed
-   npm install -g pnpm
+***REMOVED*** Start services
+docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d
 
-   ***REMOVED*** Install dependencies for all JS/TS packages
-   pnpm install
-   ```
-
-3. Configure environment:
-   Copy `.env.example` to `.env` in each app directory and update settings
-
-***REMOVED******REMOVED******REMOVED*** Running the Applications
-
-**Backend API:**
-
+***REMOVED*** Check status
+docker ps
 ```
+
+***REMOVED******REMOVED******REMOVED*** Using the Deployment Script
+
+```bash
+***REMOVED*** Make executable
+chmod +x scripts/deploy-prod.sh
+
+***REMOVED*** Deploy all services
+./scripts/deploy-prod.sh
+
+***REMOVED*** Deploy with data import
+./scripts/deploy-prod.sh --import
+
+***REMOVED*** Build only (no deployment)
+./scripts/deploy-prod.sh --build-only
+```
+
+***REMOVED******REMOVED*** 🔧 Configuration
+
+***REMOVED******REMOVED******REMOVED*** Required Environment Variables
+
+```bash
+***REMOVED*** Docker Images
+DOCKER_BACKEND_IMAGE=next-watch-backend:latest
+DOCKER_AUTH_IMAGE=next-watch-auth:latest
+DOCKER_BFF_IMAGE=next-watch-bff:latest
+DOCKER_FRONTEND_IMAGE=next-watch-frontend:latest
+DOCKER_IMPORTER_IMAGE=next-watch-importer:latest
+
+***REMOVED*** Database
+POSTGRES_USER=next_watch_user
+POSTGRES_PASSWORD=your-secure-password
+POSTGRES_DB=next_watch
+
+***REMOVED*** Security
+JWT_SECRET=your-super-secure-jwt-secret
+INTERNAL_API_KEY=your-internal-api-key
+
+***REMOVED*** External APIs
+TMDB_ACCESS_TOKEN=your-tmdb-token
+OMDB_API_KEY=your-omdb-key
+```
+
+See `infra/env.prod.example` for complete configuration options.
+
+***REMOVED******REMOVED*** 🔄 CI/CD Workflows
+
+***REMOVED******REMOVED******REMOVED*** GitHub Actions
+
+The project includes comprehensive GitHub Actions workflows:
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Build Workflow** (`.github/workflows/build.yml`)
+
+- Builds all 5 services when their code changes
+- Supports building shared libraries (`libs/movie-storage`)
+- Pushes images to GitHub Container Registry
+- Supports manual builds with `build_all` option
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Deploy Workflow** (`.github/workflows/deploy.yml`)
+
+- Deploys services to production server
+- Uses Docker Compose with proper environment configuration
+- Supports selective deployment of individual services
+- Includes health checks and cleanup
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Release Workflow** (`.github/workflows/release.yml`)
+
+- Automatically builds and deploys on `main` branch pushes
+- Detects changes in each service
+- Orchestrates build → deploy pipeline
+- Supports manual releases with custom service selection
+
+***REMOVED******REMOVED******REMOVED*** Workflow Triggers
+
+**Automatic (on push to main):**
+
+- Detects changes in each service directory
+- Builds only changed services
+- Deploys changed services automatically
+
+**Manual (workflow_dispatch):**
+
+- Build all services regardless of changes
+- Deploy specific services
+- Full stack deployment
+
+***REMOVED******REMOVED******REMOVED*** Required Secrets
+
+Configure these in your GitHub repository settings:
+
+```bash
+***REMOVED*** Deployment
+DEPLOY_KEY          ***REMOVED*** SSH private key for server access
+DEPLOY_HOST         ***REMOVED*** Server hostname/IP
+DEPLOY_USER         ***REMOVED*** SSH username
+GH_PAT             ***REMOVED*** GitHub Personal Access Token
+
+***REMOVED*** Database
+POSTGRES_USER       ***REMOVED*** Database username
+POSTGRES_PASSWORD   ***REMOVED*** Database password
+POSTGRES_DB         ***REMOVED*** Database name
+
+***REMOVED*** Security
+JWT_SECRET          ***REMOVED*** JWT signing secret
+INTERNAL_API_KEY    ***REMOVED*** Service-to-service API key
+
+***REMOVED*** External APIs (optional)
+TMDB_ACCESS_TOKEN   ***REMOVED*** The Movie Database API token
+OMDB_API_KEY        ***REMOVED*** Open Movie Database API key
+```
+
+***REMOVED******REMOVED*** 📊 Service Health Checks
+
+All services include comprehensive health checks:
+
+- **Backend API**: `GET /health`
+- **Auth API**: `GET /health`
+- **BFF API**: `GET /health`
+- **Frontend**: Process-based health check
+- **Data Importer**: On-demand service
+
+Health checks include:
+
+- Service availability
+- Database connectivity
+- Dependency verification
+- Resource monitoring
+
+***REMOVED******REMOVED*** 🛠️ Development
+
+***REMOVED******REMOVED******REMOVED*** Individual Service Development
+
+Each service can be developed independently:
+
+```bash
+***REMOVED*** Backend API
 cd apps/backend-api
-***REMOVED*** Using the CLI (recommended):
-poetry run backend-api server start
+poetry install
+poetry run backend-api serve --reload
 
-***REMOVED*** Or with explicit options:
-poetry run backend-api server start --port 8080 --log-level DEBUG
-```
+***REMOVED*** Auth API
+cd apps/auth-api
+poetry install
+poetry run auth-api serve --reload
 
-**Web Frontend:**
+***REMOVED*** BFF API
+cd apps/bff-api
+poetry install
+poetry run bff-api serve --reload
 
-```
-***REMOVED*** From repository root
-pnpm dev:web
-
-***REMOVED*** Or from the web-nextjs directory
+***REMOVED*** Frontend
 cd apps/web-nextjs
+pnpm install
 pnpm dev
-```
 
-**Data Importer:**
-
-```
+***REMOVED*** Data Importer
 cd apps/data-importer
-***REMOVED*** Sync movies by year range
-data-importer sync movies 2022 2023 --credits --save
-
-***REMOVED*** Or run in interactive shell mode
-data-importer shell
+poetry install
+poetry run data-importer sync
 ```
 
-***REMOVED******REMOVED******REMOVED*** Building the Applications
+***REMOVED******REMOVED******REMOVED*** CLI Tools
 
-**Frontend:**
+Each Python service includes comprehensive CLI tools:
 
+```bash
+***REMOVED*** Backend API
+backend-api --help
+backend-api serve --reload --verbose
+backend-api health check
+
+***REMOVED*** Auth API
+auth-api --help
+auth-api serve --reload --verbose
+auth-api users list
+auth-api health check
+
+***REMOVED*** BFF API
+bff-api --help
+bff-api serve --reload --verbose
+bff-api cache info
+
+***REMOVED*** Data Importer
+data-importer --help
+data-importer sync --verbose
+data-importer import movies
 ```
-***REMOVED*** From repository root
-pnpm build:web
 
-***REMOVED*** Or from the web-nextjs directory
-cd apps/web-nextjs
-pnpm build
-```
+***REMOVED******REMOVED*** 📚 Documentation
 
-***REMOVED******REMOVED*** API Documentation
+- **Deployment Guide**: `DEPLOYMENT.md`
+- **API Documentation**: Available at `/docs` on each service
+- **Architecture Decisions**: `docs/` directory
+- **Service READMEs**: Each service has detailed documentation
 
-Once the backend is running, access the Swagger documentation at:
-`http://localhost:8000/docs`
+***REMOVED******REMOVED*** 🤝 Contributing
 
-***REMOVED******REMOVED*** Documentation Structure
+1. Fork the repository
+2. Create a feature branch
+3. Make changes to relevant services
+4. Test locally with Docker Compose
+5. Submit a pull request
 
-Each package contains its own README with detailed information:
+The CI/CD pipeline will automatically:
 
-- [Backend API Documentation](./apps/backend-api/README.md)
-- [Web App Documentation](./apps/web-nextjs/README.md)
-- [Data Importer Documentation](./apps/data-importer/README.md)
-- [Movie Storage Documentation](./libs/movie-storage/README.md)
+- Build changed services
+- Run tests
+- Deploy to staging (if configured)
 
-***REMOVED******REMOVED*** Contributing
+***REMOVED******REMOVED*** 📝 License
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on contributing to this project.
+This project is licensed under the MIT License - see the LICENSE file for details.
