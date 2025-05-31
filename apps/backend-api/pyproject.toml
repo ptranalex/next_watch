@@ -33,7 +33,7 @@ flake8 = "^6.1.0"
 mypy = "^1.7.0"
 
 [tool.poetry.scripts]
-backend-api = "backend_api.cli.main:main"
+backend-api = "backend_api.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

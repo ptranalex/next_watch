@@ -187,6 +187,221 @@ class UserInteractionService:
         logger.info(f"Deleting interaction for user {user_id} and movie {movie_id}")
         return delete_user_movie_interaction(db, user_id, movie_id)
 
+    def get_interaction(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> Optional[UserMovieInteraction]:
+        """
+        Get a user's interaction with a movie.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+
+        Returns:
+            UserMovieInteraction if it exists, None otherwise
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        logger.info(f"Getting interaction for user {user_id} and movie {movie_id}")
+        return get_user_movie_interaction(db, user_id, movie_id)
+
+    def set_flag(
+        self, db: Session, user_id: int, movie_id: int, flag: str
+    ) -> UserMovieInteraction:
+        """
+        Set a specific flag to True for a user's interaction with a movie.
+
+        This is an idempotent operation - if the flag is already True,
+        the interaction is returned unchanged.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+            flag: Flag to set ('watched', 'liked', or 'in_watchlist')
+
+        Returns:
+            Updated user movie interaction
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid or flag is invalid
+        """
+        ***REMOVED*** Validate flag
+        if flag not in ["watched", "liked", "in_watchlist"]:
+            raise ValidationError(
+                message=f"Invalid flag: {flag}",
+                field_errors={
+                    "flag": [f"Must be one of: watched, liked, in_watchlist"]
+                },
+            )
+
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Get current interaction
+        interaction = get_user_movie_interaction(db, user_id, movie_id)
+
+        ***REMOVED*** If already set to True, return unchanged
+        if interaction and getattr(interaction, flag):
+            logger.info(
+                f"Flag {flag} already set to True for user {user_id} and movie {movie_id}"
+            )
+            return interaction
+
+        ***REMOVED*** If interaction exists but flag is False, or interaction doesn't exist,
+        ***REMOVED*** toggle the flag (which will set it to True)
+        logger.info(
+            f"Setting flag {flag} to True for user {user_id} and movie {movie_id}"
+        )
+        return toggle_user_movie_interaction_flag(db, user_id, movie_id, flag)
+
+    def unset_flag(
+        self, db: Session, user_id: int, movie_id: int, flag: str
+    ) -> UserMovieInteraction:
+        """
+        Set a specific flag to False for a user's interaction with a movie.
+
+        This is an idempotent operation - if the flag is already False or
+        the interaction doesn't exist, a representation of the interaction
+        with the flag set to False is returned.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+            flag: Flag to unset ('watched', 'liked', or 'in_watchlist')
+
+        Returns:
+            Updated user movie interaction
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid or flag is invalid
+        """
+        ***REMOVED*** Validate flag
+        if flag not in ["watched", "liked", "in_watchlist"]:
+            raise ValidationError(
+                message=f"Invalid flag: {flag}",
+                field_errors={
+                    "flag": [f"Must be one of: watched, liked, in_watchlist"]
+                },
+            )
+
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Get current interaction
+        interaction = get_user_movie_interaction(db, user_id, movie_id)
+
+        ***REMOVED*** If no interaction or flag already False, return interaction or create a
+        ***REMOVED*** representation with the flag set to False
+        if not interaction or not getattr(interaction, flag):
+            logger.info(
+                f"Flag {flag} already False for user {user_id} and movie {movie_id}"
+            )
+            if interaction:
+                return interaction
+            else:
+                ***REMOVED*** Create a representation (not saved to DB) with the flag set to False
+                return UserMovieInteraction(
+                    user_id=user_id,
+                    movie_id=movie_id,
+                    watched=False,
+                    liked=False,
+                    in_watchlist=False,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
+                )
+
+        ***REMOVED*** If interaction exists and flag is True, toggle the flag (which will set it to False)
+        logger.info(
+            f"Setting flag {flag} to False for user {user_id} and movie {movie_id}"
+        )
+        return toggle_user_movie_interaction_flag(db, user_id, movie_id, flag)
+
+    ***REMOVED*** Now add convenience methods for each flag type
+    def set_watched(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> UserMovieInteraction:
+        """Set watched flag to True."""
+        return self.set_flag(db, user_id, movie_id, "watched")
+
+    def unset_watched(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> UserMovieInteraction:
+        """Set watched flag to False."""
+        return self.unset_flag(db, user_id, movie_id, "watched")
+
+    def set_liked(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> UserMovieInteraction:
+        """Set liked flag to True."""
+        return self.set_flag(db, user_id, movie_id, "liked")
+
+    def unset_liked(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> UserMovieInteraction:
+        """Set liked flag to False."""
+        return self.unset_flag(db, user_id, movie_id, "liked")
+
+    def set_watchlist(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> UserMovieInteraction:
+        """Set in_watchlist flag to True."""
+        return self.set_flag(db, user_id, movie_id, "in_watchlist")
+
+    def unset_watchlist(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> UserMovieInteraction:
+        """Set in_watchlist flag to False."""
+        return self.unset_flag(db, user_id, movie_id, "in_watchlist")
+
     def import_netflix_history(
         self, db: Session, user_id: int, csv_content: str
     ) -> Dict[str, Any]:

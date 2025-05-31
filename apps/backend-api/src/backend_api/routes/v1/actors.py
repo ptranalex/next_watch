@@ -146,9 +146,21 @@ async def get_actor_movies(
                     }
                     movies.append(MovieResponse(**movie_dict))
 
-        ***REMOVED*** Return the paginated movie list
+        ***REMOVED*** Return the paginated movie list  
+        import math
+        total_count = len(movie_ids)
+        total_pages = math.ceil(total_count / limit) if total_count > 0 else 0
+        has_next = page < total_pages
+        has_prev = page > 1
+        
         return MoviesListResponse(
-            movies=movies, total=len(movie_ids), page=page, page_size=limit
+            total=total_count,
+            page=page,
+            per_page=limit,
+            total_pages=total_pages,
+            has_next=has_next,
+            has_prev=has_prev,
+            results=movies,
         )
     except HTTPException:
         raise

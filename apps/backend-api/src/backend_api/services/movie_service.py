@@ -6,7 +6,7 @@ operations, while read operations are in a separate query class.
 """
 
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, TypedDict, cast
 from sqlmodel import Session
 
 from backend_api.errors import ResourceNotFoundError, ValidationError
@@ -16,6 +16,17 @@ from movie_storage.db.operations import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class CastMember(TypedDict):
+    """Type definition for cast member data."""
+
+    id: int
+    name: str
+    character: Optional[str]  ***REMOVED*** Character can be None
+    profile_path: Optional[str]
+    order: Optional[int]
+    popularity: Optional[float]
 
 
 class MovieService:
@@ -75,14 +86,14 @@ class MovieService:
 
     def get_movie_cast(
         self, db: Session, movie_id: int, popularity_threshold: float = 3.0
-    ) -> List[Dict[str, Any]]:
+    ) -> List[CastMember]:
         """
         Get cast information for a specific movie.
 
         Args:
             db: Database session
             movie_id: Movie ID
-            popularity_threshold: Minimum popularity score to include (default 5.0)
+            popularity_threshold: Minimum popularity score to include (default 3.0)
                                   Will always return at least 3 cast members regardless
 
         Returns:
@@ -112,13 +123,12 @@ class MovieService:
         credits = get_credits_by_movie_id(db, movie_id)
 
         ***REMOVED*** Filter for cast members only
-        cast_members = []
+        cast_members: List[CastMember] = []
         for credit in credits:
             ***REMOVED*** Filter for cast members (actors)
             if credit.department == "Acting":
-                cast_member = {
-                    "id": credit.id,
-                    "actor_id": credit.tmdb_person_id,
+                cast_member: CastMember = {
+                    "id": credit.tmdb_person_id,
                     "name": credit.name,
                     "character": credit.character,
                     "profile_path": credit.profile_path,
@@ -129,21 +139,22 @@ class MovieService:
 
         ***REMOVED*** Sort cast by order, properly handling 0 values
         cast_members.sort(
-            key=lambda x: 999 if x.get("order") is None else x.get("order")
+            key=lambda x: float('inf') if x["order"] is None else x["order"]
         )
 
         ***REMOVED*** Apply popularity filtering while ensuring at least 3 cast members are returned
         if popularity_threshold > 0:
             ***REMOVED*** First, sort by popularity (descending) to get the most popular cast members
             by_popularity = sorted(
-                cast_members, key=lambda x: x.get("popularity") or 0, reverse=True
+                cast_members,
+                key=lambda x: float(x["popularity"] or 0),
+                reverse=True
             )
 
             ***REMOVED*** Filter by popularity threshold
             filtered_cast = [
-                m
-                for m in by_popularity
-                if (m.get("popularity") or 0) >= popularity_threshold
+                m for m in by_popularity
+                if float(m["popularity"] or 0) >= popularity_threshold
             ]
 
             ***REMOVED*** Ensure we have at least 3 cast members (or all if there are fewer than 3)
@@ -163,7 +174,7 @@ class MovieService:
 
             ***REMOVED*** Sort the filtered cast by order again
             filtered_cast.sort(
-                key=lambda x: 999 if x.get("order") is None else x.get("order")
+                key=lambda x: float('inf') if x["order"] is None else x["order"]
             )
 
             return filtered_cast

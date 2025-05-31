@@ -33,7 +33,6 @@ class UserMovieInteractionUpdate(BaseModel):
 class UserMovieInteractionResponse(UserMovieInteractionBase):
     """Response model for user movie interactions."""
 
-    id: int
     user_id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -79,16 +78,22 @@ class UserMovieDetail(BaseModel):
 class UserMovieInteractionsListResponse(BaseModel):
     """Schema for paginated user movie interaction list responses."""
 
-    interactions: List[UserMovieInteractionResponse]
     total: int
     page: int
-    page_size: int
+    per_page: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+    results: List[UserMovieInteractionResponse]
 
 
 class UserMovieInteractionsWithMovieListResponse(BaseModel):
     """Schema for paginated user movie interaction with movie details list responses."""
 
-    interactions: List[UserMovieInteractionWithMovie]
     total: int
     page: int
-    page_size: int
+    per_page: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+    results: List[UserMovieInteractionWithMovie]

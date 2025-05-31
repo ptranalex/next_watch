@@ -122,3 +122,51 @@ def get_movie_details_by_tmdb_id(
 
     ***REMOVED*** Convert to dictionary
     return dict(movie._mapping)
+
+
+def get_movies_by_ids_bulk(
+    db_session: DBSession, movie_ids: List[int]
+) -> List[Dict[str, Any]]:
+    """
+    Get detailed information about multiple movies by their IDs.
+
+    Args:
+        db_session: SQLAlchemy database session
+        movie_ids: List of movie IDs to fetch
+
+    Returns:
+        List of movie details dictionaries
+    """
+    if not movie_ids:
+        return []
+
+    ***REMOVED*** Create placeholders for the IN clause
+    placeholders = ",".join([":id" + str(i) for i in range(len(movie_ids))])
+    
+    ***REMOVED*** Build the query with proper parameter substitution
+    query = f"""
+    SELECT m.*, 
+           (SELECT c.name 
+            FROM credit c 
+            WHERE c.movie_id = m.id 
+            AND c.department = 'Directing' 
+            AND c.job = 'Director' 
+            LIMIT 1) as director,
+           (SELECT c.name 
+            FROM credit c 
+            WHERE c.movie_id = m.id 
+            AND c.department = 'Writing' 
+            AND c.job = 'Screenplay' 
+            LIMIT 1) as writer
+    FROM movie m
+    WHERE m.id IN ({placeholders})
+    ORDER BY m.id
+    """
+
+    ***REMOVED*** Create parameters dictionary
+    params = {f"id{i}": movie_id for i, movie_id in enumerate(movie_ids)}
+    
+    result = db_session.execute(text(query), params)
+    movies = [dict(row._mapping) for row in result.all()]
+
+    return movies

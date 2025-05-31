@@ -1,0 +1,14 @@
+{
+  "name": "backend-api-dev-scripts",
+  "version": "1.0.0",
+  "description": "Development scripts for Backend API",
+  "scripts": {
+    "dev": "poetry run backend-api serve --verbose",
+    "dev:debug": "poetry run backend-api serve --log-level debug --verbose",
+    "health": "poetry run backend-api health --verbose",
+    "config": "poetry run backend-api config --verbose",
+    "test": "curl -s http://localhost:8000/health | jq",
+    "test:db": "curl -s http://localhost:8000/db-health | jq",
+    "redis": "poetry run backend-api redis --help"
+  }
+}

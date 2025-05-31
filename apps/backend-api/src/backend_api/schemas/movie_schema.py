@@ -74,7 +74,10 @@ class MovieResponse(BaseModel):
 class MoviesListResponse(BaseModel):
     """Schema for paginated movie list responses."""
 
-    movies: List[MovieResponse]
     total: int
     page: int
-    page_size: int
+    per_page: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+    results: List[MovieResponse]

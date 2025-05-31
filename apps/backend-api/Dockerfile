@@ -60,6 +60,10 @@ EXPOSE 8000
 
 ***REMOVED*** Use a non-root user for better security
 RUN addgroup -S app && adduser -S app -G app
+
+***REMOVED*** Create logs directory with proper permissions
+RUN mkdir -p /app/logs && chown -R app:app /app
+
 USER app
 
 ***REMOVED*** Add health check configuration

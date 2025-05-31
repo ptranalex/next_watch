@@ -11,7 +11,6 @@ class CastMemberResponse(BaseModel):
     """Schema for a cast member response."""
 
     id: int
-    actor_id: int  ***REMOVED*** This will contain the TMDB person ID
     name: str
     character: Optional[str] = None
     profile_path: Optional[str] = None
@@ -35,7 +34,6 @@ class CrewMemberResponse(BaseModel):
     """Schema for a crew member response."""
 
     id: int
-    actor_id: int  ***REMOVED*** This will contain the TMDB person ID
     name: str
     department: Optional[str] = None
     job: Optional[str] = None
