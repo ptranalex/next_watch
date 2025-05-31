@@ -378,8 +378,13 @@ export class APIClient<T> {
     config?: AxiosRequestConfig
   ): Promise<R> => {
     this.logger.debug(`Executing custom query: ${queryString}`, { config });
-    // Add a slash if queryString doesn't start with one and isn't empty
-    const separator = queryString && !queryString.startsWith("/") ? "/" : "";
+    // Add a slash if queryString doesn't start with one, isn't empty, and doesn't start with ?
+    const separator =
+      queryString &&
+      !queryString.startsWith("/") &&
+      !queryString.startsWith("?")
+        ? "/"
+        : "";
     return fetchData<R>(`${this.endpoint}${separator}${queryString}`, config);
   };
 
