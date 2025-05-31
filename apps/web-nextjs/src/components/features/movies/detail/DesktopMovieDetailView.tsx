@@ -95,8 +95,8 @@ const DesktopMovieDetailView: React.FC<{
           id: actor.id,
           name: actor.name,
           actor_id: actor.id,
-          profile_path: actor.profile_path,
-          character: actor.character,
+          profile_path: actor.profile_path || "",
+          character: actor.character || "",
         })) || [],
     };
   }, [movie.cast]);

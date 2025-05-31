@@ -1,4 +1,3 @@
-import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import {
   ActorsGallery,
   MovieAttributes,
@@ -10,7 +9,7 @@ import { FEATURES } from "@/config/features";
 import { createLogger } from "@/utils/logging";
 import { Box, GridItem, Heading, SimpleGrid, Text } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useMemo } from "react";
 import { movieUtils } from "@/utils/movie/movieDataUtils";
 import { ErrorBoundary } from "@/components/ui/molecules/feedback";
 import MovieActionControls from "./MovieActionControls";
@@ -23,12 +22,12 @@ const TrailerFallback = () => (
   <Box
     height="300px"
     width="100%"
-    bg="gray.700"
+    bg="bg.tertiary"
     display="flex"
     alignItems="center"
     justifyContent="center"
   >
-    <Text color="gray.400">Trailer unavailable</Text>
+    <Text color="text.tertiary">Trailer unavailable</Text>
   </Box>
 );
 
@@ -42,7 +41,7 @@ const TrailerCard = dynamic(
         <Box
           height="300px"
           width="100%"
-          bg="gray.700"
+          bg="bg.tertiary"
           display="flex"
           alignItems="center"
           justifyContent="center"
@@ -68,7 +67,16 @@ const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
     logger.info(
       `Rendering mobile movie detail view for: ${movie.title} (ID: ${movie.id})`
     );
-  }, [movie.id, movie.title]);
+    logger.debug("Mobile movie data:", {
+      movieId: movie.id,
+      title: movie.title,
+      hasTrailers: !!movie.trailers,
+      trailersLength: movie.trailers?.length || 0,
+      trailers: movie.trailers,
+      hasCast: !!movie.cast,
+      castLength: movie.cast?.length || 0,
+    });
+  }, [movie.id, movie.title, movie.trailers, movie.cast]);
 
   // Memoize values to prevent recalculation
   const movieId = React.useMemo(() => movieUtils.getMovieId(movie), [movie]);
@@ -84,6 +92,20 @@ const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
     [movie]
   );
 
+  // Format cast data for ActorsGallery
+  const castData = useMemo(() => {
+    return {
+      cast:
+        movie.cast?.map((actor) => ({
+          id: actor.id,
+          name: actor.name,
+          actor_id: actor.id,
+          profile_path: actor.profile_path || "",
+          character: actor.character || "",
+        })) || [],
+    };
+  }, [movie.cast]);
+
   const overview = typeof movie.overview === "string" ? movie.overview : "";
 
   return (
@@ -97,7 +119,7 @@ const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
               componentName="TrailerCard"
             >
               <Suspense fallback={<TrailerFallback />}>
-                <TrailerCard movieId={movieId} />
+                <TrailerCard movieId={movieId} trailers={movie.trailers} />
               </Suspense>
             </ErrorBoundary>
           </Box>
@@ -135,7 +157,13 @@ const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
               fallback={<Text>Unable to load actors</Text>}
               componentName="ActorsGallery"
             >
-              <ActorsGallery movieId={movieId} />
+              {movie.cast && movie.cast.length > 0 ? (
+                <ActorsGallery movieId={movieId} castData={castData} />
+              ) : (
+                <Text fontSize="sm" color="text.tertiary">
+                  No cast information available
+                </Text>
+              )}
             </ErrorBoundary>
           </Box>
 
@@ -147,29 +175,22 @@ const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
             <MovieAttributes movie={movie} />
           </ErrorBoundary>
 
-          {/* Similar movies */}
+          {/* Similar movies - commented out until proper data source is available */}
           {FEATURES.SHOW_MORE_LIKE_THIS && (
             <>
               <Heading size="md" marginBottom={2} marginTop={5}>
                 More Like This
               </Heading>
-              <ErrorBoundary
-                fallback={<Text>Similar movies unavailable</Text>}
-                componentName="SimilarMovies"
-              >
-                <MovieGrid
-                  columns={{ base: 2, sm: 3 }}
-                  source="more_like_this"
-                  movie_id={movieId}
-                />
-              </ErrorBoundary>
+              <Text fontSize="sm" color="text.tertiary">
+                Similar movies feature coming soon
+              </Text>
             </>
           )}
         </GridItem>
       </SimpleGrid>
 
       {/* Use MovieActionControls component */}
-      {isSignedIn && (
+      {isSignedIn && onUpdateMovie && (
         <MovieActionControls movie={movie} onUpdateMovie={onUpdateMovie} />
       )}
     </>

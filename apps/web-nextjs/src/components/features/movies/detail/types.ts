@@ -7,6 +7,32 @@ export interface MovieDetailPageProps {
   movieId: number;
 }
 
+/** Movie detail view props */
+export interface MovieDetailViewProps {
+  movie: Movie;
+  isSignedIn: boolean;
+  onUpdateMovie?: MovieUpdateCallback;
+  toggleFunctions?: {
+    toggleWatched?: () => Promise<void>;
+    toggleLiked?: () => Promise<void>;
+    toggleWatchlist?: () => Promise<void>;
+  };
+}
+
+/** Actor gallery props */
+export interface ActorGalleryProps {
+  movieId: number;
+  castData?: {
+    cast: Array<{
+      id: number;
+      name: string;
+      actor_id: number;
+      profile_path: string | null;
+      character: string;
+    }>;
+  };
+}
+
 export interface MovieRatings {
   imdb_rating: number | null;
   rotten_tomatoes_rating: number | null;
