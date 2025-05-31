@@ -82,7 +82,8 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
   const defaultSidebar = sidebar || <MemoizedSideBar />;
 
   return (
-    <Flex direction="column" minHeight="100vh">
+    <>
+      {/* <Flex direction="column" minHeight="100vh"> */}
       {/* Header - Sticky at top */}
       {defaultHeader}
 
@@ -116,7 +117,8 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
 
       {/* Footer area */}
       {footer && <Box mt={8}>{footer}</Box>}
-    </Flex>
+      {/* </Flex> */}
+    </>
   );
 }
 
