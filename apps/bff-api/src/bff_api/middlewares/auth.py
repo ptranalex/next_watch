@@ -32,8 +32,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         Returns:
             Response from next middleware/endpoint or auth error
         """
-        ***REMOVED*** Skip auth for health endpoints and public routes
-        if request.url.path.startswith("/health") or request.url.path == "/":
+        ***REMOVED*** Skip auth for health endpoints, public routes, and OPTIONS requests (CORS preflight)
+        if request.url.path.startswith("/health") or request.url.path == "/" or request.method == "OPTIONS":
             return await call_next(request)
 
         ***REMOVED*** Extract authorization header

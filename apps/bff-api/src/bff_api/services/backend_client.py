@@ -205,8 +205,62 @@ class BackendClient:
         Returns:
             List of genres
         """
+        logger.info(f"Making request to {self._build_api_path('/genres')}")
         response = await self._make_request("GET", self._build_api_path("/genres"))
+        logger.info(f"Raw genres response: {response}")
+        ***REMOVED*** Handle both direct list responses and responses with a data field
+        if isinstance(response, list):
+            return response
+        ***REMOVED*** Handle response with genres key
+        if isinstance(response, dict) and "genres" in response:
+            return response["genres"]
         return response.get("data", [])
+
+    async def get_genre(self, genre_id: int) -> Dict[str, Any]:
+        """Get a specific genre by ID.
+
+        Args:
+            genre_id: Genre ID
+
+        Returns:
+            Genre data
+
+        Raises:
+            BackendClientError: If genre not found or request fails
+        """
+        logger.info(f"Making request to {self._build_api_path(f'/genres/{genre_id}')}")
+        return await self._make_request("GET", self._build_api_path(f"/genres/{genre_id}"))
+
+    async def get_movie_cast(self, movie_id: int) -> List[Dict[str, Any]]:
+        """Get movie cast and crew information.
+
+        Args:
+            movie_id: Movie ID
+
+        Returns:
+            List of cast members with character and actor details
+        """
+        response = await self._make_request(
+            "GET", self._build_api_path(f"/movies/{movie_id}/cast")
+        )
+        return response.get("cast", [])
+
+    async def get_movie_trailers(self, movie_id: int) -> List[Dict[str, Any]]:
+        """Get movie trailers.
+
+        Args:
+            movie_id: Movie ID
+
+        Returns:
+            List of movie trailers with YouTube keys and metadata
+        """
+        response = await self._make_request(
+            "GET", self._build_api_path(f"/movies/{movie_id}/trailers")
+        )
+        ***REMOVED*** Backend returns trailers array directly, not wrapped in an object
+        if isinstance(response, list):
+            return response
+        return response.get("trailers", [])
 
     async def get_actor(self, actor_id: int) -> Dict[str, Any]:
         """Get actor details.
@@ -221,19 +275,61 @@ class BackendClient:
             "GET", self._build_api_path(f"/actors/{actor_id}")
         )
 
-    async def get_user_watchlist(self, user_id: int) -> List[Dict[str, Any]]:
+    async def get_user_watchlist(
+        self,
+        user_id: int,
+        jwt_token: str,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
         """Get user's watchlist.
 
         Args:
             user_id: User ID
+            jwt_token: JWT authentication token
+            limit: Maximum number of items to return
+            offset: Number of items to skip
 
         Returns:
-            User's watchlist
+            Response containing list of watchlist movies with interaction data
         """
-        response = await self._make_request(
-            "GET", self._build_api_path(f"/users/{user_id}/watchlist")
+        headers = {"Authorization": f"Bearer {jwt_token}"}
+        params = {"limit": limit, "offset": offset}
+
+        return await self._make_request(
+            "GET",
+            self._build_api_path("/user/movies/watchlist"),
+            params=params,
+            headers=headers,
         )
-        return response.get("data", [])
+
+    async def get_user_liked_movies(
+        self,
+        user_id: int,
+        jwt_token: str,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        """Get user's liked movies.
+
+        Args:
+            user_id: User ID
+            jwt_token: JWT authentication token
+            limit: Maximum number of items to return
+            offset: Number of items to skip
+
+        Returns:
+            Response containing list of liked movies with interaction data
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}"}
+        params = {"limit": limit, "offset": offset}
+
+        return await self._make_request(
+            "GET",
+            self._build_api_path("/user/movies/liked"),
+            params=params,
+            headers=headers,
+        )
 
     async def get_user_favorites(self, user_id: int) -> List[Dict[str, Any]]:
         """Get user's favorite movies.
@@ -248,3 +344,360 @@ class BackendClient:
             "GET", self._build_api_path(f"/users/{user_id}/favorites")
         )
         return response.get("data", [])
+
+    async def get_user_movie_interaction(
+        self, user_id: int, movie_id: int, jwt_token: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Get a user's interaction with a movie.
+
+        Args:
+            user_id: User ID (already authenticated by BFF)
+            movie_id: Movie ID
+            jwt_token: JWT token (not used - kept for compatibility)
+
+        Returns:
+            User interaction data if found, None otherwise
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        try:
+            ***REMOVED*** Use service-to-service authentication with internal API key
+            ***REMOVED*** Pass user_id via X-User-ID header after service authentication
+            headers = {
+                "Authorization": f"Bearer {self.config.internal_api_key or 'bff-to-backend-secret-key'}",
+                "X-User-ID": str(user_id),
+            }
+
+            return await self._make_request(
+                "GET",
+                self._build_api_path(f"/user/movies/{movie_id}/interaction"),
+                headers=headers,
+            )
+        except BackendClientError as e:
+            if "404" in str(e):
+                ***REMOVED*** Return None if interaction not found
+                return None
+            ***REMOVED*** Re-raise other errors
+            raise
+
+    async def toggle_user_movie_watchlist(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Toggle movie in user's watchlist. (DEPRECATED)
+
+        This method is deprecated. Use set_user_movie_watchlist or
+        unset_user_movie_watchlist instead.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "POST",
+            self._build_api_path(f"/user/movies/{movie_id}/watchlist"),
+            headers=headers,
+        )
+
+    async def toggle_user_movie_watched(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Toggle movie as watched for user. (DEPRECATED)
+
+        This method is deprecated. Use set_user_movie_watched or
+        unset_user_movie_watched instead.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "POST",
+            self._build_api_path(f"/user/movies/{movie_id}/watched"),
+            headers=headers,
+        )
+
+    async def toggle_user_movie_liked(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Toggle movie as liked for user. (DEPRECATED)
+
+        This method is deprecated. Use set_user_movie_liked or
+        unset_user_movie_liked instead.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "POST",
+            self._build_api_path(f"/user/movies/{movie_id}/liked"),
+            headers=headers,
+        )
+
+    ***REMOVED*** ============================================================================
+    ***REMOVED*** New RESTful user interaction methods
+    ***REMOVED*** ============================================================================
+
+    async def set_user_movie_watched(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Set a movie as watched by a user.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "PUT",
+            self._build_api_path(f"/user/movies/{movie_id}/watched"),
+            headers=headers,
+        )
+
+    async def unset_user_movie_watched(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Unset a movie as watched by a user.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "DELETE",
+            self._build_api_path(f"/user/movies/{movie_id}/watched"),
+            headers=headers,
+        )
+
+    async def set_user_movie_liked(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Set a movie as liked by a user.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "PUT",
+            self._build_api_path(f"/user/movies/{movie_id}/liked"),
+            headers=headers,
+        )
+
+    async def unset_user_movie_liked(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Unset a movie as liked by a user.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "DELETE",
+            self._build_api_path(f"/user/movies/{movie_id}/liked"),
+            headers=headers,
+        )
+
+    async def set_user_movie_watchlist(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Add a movie to a user's watchlist.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT token for authentication
+
+        Returns:
+            Updated user interaction data
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}", "X-User-ID": str(user_id)}
+        return await self._make_request(
+            "PUT",
+            self._build_api_path(f"/user/movies/{movie_id}/watchlist"),
+            headers=headers,
+        )
+
+    async def unset_user_movie_watchlist(
+        self, user_id: int, movie_id: int, jwt_token: str
+    ) -> Dict[str, Any]:
+        """Remove movie from user's watchlist.
+
+        Args:
+            user_id: User ID
+            movie_id: Movie ID
+            jwt_token: JWT authentication token
+
+        Returns:
+            Updated user interaction data
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}"}
+
+        return await self._make_request(
+            "DELETE",
+            self._build_api_path(f"/user/movies/{movie_id}/watchlist"),
+            headers=headers,
+        )
+
+    async def get_user_watched_movies(
+        self,
+        user_id: int,
+        jwt_token: str,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        """Get user's watched movies.
+
+        Args:
+            user_id: User ID
+            jwt_token: JWT authentication token
+            limit: Maximum number of items to return
+            offset: Number of items to skip
+
+        Returns:
+            Response containing list of watched movies with interaction data
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}"}
+        params = {"limit": limit, "offset": offset}
+
+        return await self._make_request(
+            "GET",
+            self._build_api_path("/user/movies/watched"),
+            params=params,
+            headers=headers,
+        )
+
+    async def get_user_movie_details_by_category(
+        self,
+        user_id: int,
+        jwt_token: str,
+        category: str,
+        page: int = 1,
+        limit: int = 20,
+        **filters,
+    ) -> Dict[str, Any]:
+        """Get user's movie details by category (watchlist, watched, liked).
+
+        Args:
+            user_id: User ID
+            jwt_token: JWT authentication token
+            category: Category of movies (watchlist, watched, liked)
+            page: Page number for pagination
+            limit: Maximum number of items per page
+            **filters: Additional filter parameters (imdb_rating, year, sort_by, sort_desc, etc.)
+
+        Returns:
+            Response containing list of movie details with interaction data
+        """
+        headers = {"Authorization": f"Bearer {jwt_token}"}
+        params = {"page": page, "limit": limit}
+        
+        ***REMOVED*** Add any additional filter parameters
+        params.update(filters)
+
+        return await self._make_request(
+            "GET",
+            self._build_api_path(f"/user/movies/{category}"),
+            params=params,
+            headers=headers,
+        )
+
+    async def get_movies_bulk(
+        self,
+        movie_ids: List[int],
+        user_id: Optional[int] = None,
+        page: int = 1,
+        limit: int = 100,
+    ) -> Dict[str, Any]:
+        """Get multiple movies by their IDs using bulk endpoint.
+
+        Args:
+            movie_ids: List of movie IDs to fetch
+            user_id: Optional user ID (not used by bulk endpoint, kept for compatibility)
+            page: Page number for pagination
+            limit: Maximum number of movies per page
+
+        Returns:
+            Response containing list of movie details
+
+        Raises:
+            BackendClientError: If request fails
+        """
+        if not movie_ids:
+            return {"total": 0, "page": page, "per_page": limit, "results": []}
+        
+        ***REMOVED*** Convert movie IDs to comma-separated string
+        ids_str = ",".join(str(movie_id) for movie_id in movie_ids)
+        
+        params = {
+            "ids": ids_str,
+            "page": page,
+            "limit": limit,
+        }
+        
+        ***REMOVED*** Note: user_id is not supported by the bulk endpoint
+        ***REMOVED*** The bulk endpoint only returns basic movie data without user interactions
+
+        return await self._make_request(
+            "GET", self._build_api_path("/movies/bulk"), params=params
+        )

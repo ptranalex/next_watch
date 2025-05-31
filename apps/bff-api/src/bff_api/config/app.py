@@ -7,6 +7,27 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 import logging
 
+***REMOVED*** Load environment variables before any configuration
+try:
+    from dotenv import load_dotenv
+    
+    ***REMOVED*** Only load .env files if we're not in production
+    if os.getenv("ENVIRONMENT") != "production":
+        ***REMOVED*** Try multiple locations to find .env files (prioritize current directory)
+        possible_paths = [
+            Path.cwd() / ".env",
+            Path.cwd() / ".env.local", 
+            Path(__file__).resolve().parents[3] / ".env",
+            Path(__file__).resolve().parents[3] / ".env.local",
+        ]
+
+        for path in possible_paths:
+            if path.exists():
+                load_dotenv(dotenv_path=path, override=True)
+                break
+except ImportError:
+    pass  ***REMOVED*** Continue without dotenv if not installed
+
 ***REMOVED*** Configure basic logging first for this module
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,7 +61,8 @@ DEFAULT_CACHE_TTL = int(os.getenv("CACHE_TTL", "300"))  ***REMOVED*** 5 minutes
 
 ***REMOVED*** Authentication settings
 DEFAULT_JWT_SECRET = os.getenv("JWT_SECRET")
-DEFAULT_AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:8003")
+DEFAULT_AUTH_API_URL = os.getenv("AUTH_API_URL", "http://localhost:8003")
+DEFAULT_INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "bff-to-backend-secret-key")
 
 
 ***REMOVED*** ------------------------------------------------------------------------------
@@ -63,7 +85,8 @@ class Config:
     redis_url: str
     cache_ttl: int
     jwt_secret: Optional[str]
-    auth_service_url: str
+    auth_api_url: str
+    internal_api_key: str
 
     ***REMOVED*** Singleton instance
     _instance = None
@@ -93,7 +116,8 @@ class Config:
         redis_url: str = DEFAULT_REDIS_URL,
         cache_ttl: int = DEFAULT_CACHE_TTL,
         jwt_secret: Optional[str] = DEFAULT_JWT_SECRET,
-        auth_service_url: str = DEFAULT_AUTH_SERVICE_URL,
+        auth_api_url: str = DEFAULT_AUTH_API_URL,
+        internal_api_key: str = DEFAULT_INTERNAL_API_KEY,
     ):
         """Initialize BFF configuration.
 
@@ -110,7 +134,8 @@ class Config:
             redis_url: URL for Redis connection
             cache_ttl: Cache TTL in seconds
             jwt_secret: Secret key for JWT token validation
-            auth_service_url: URL for authentication service
+            auth_api_url: URL for authentication service
+            internal_api_key: API key for service-to-service authentication
         """
         ***REMOVED*** In production, force debug to False
         if os.getenv("ENVIRONMENT") == "production":
@@ -138,7 +163,8 @@ class Config:
 
         ***REMOVED*** Authentication settings
         self.jwt_secret = jwt_secret
-        self.auth_service_url = auth_service_url.rstrip("/")
+        self.auth_api_url = auth_api_url.rstrip("/")
+        self.internal_api_key = internal_api_key
 
         ***REMOVED*** Derived settings
         self.environment = os.getenv("ENVIRONMENT", "development")
@@ -150,7 +176,7 @@ class Config:
             f"Initializing BFF configuration with environment: {self.environment}"
         )
         logger.info(f"Backend API URL: {self.backend_api_url}")
-        logger.info(f"Auth service URL: {self.auth_service_url}")
+        logger.info(f"Auth service URL: {self.auth_api_url}")
         logger.info(f"Debug mode: {self.debug}")
 
     @property

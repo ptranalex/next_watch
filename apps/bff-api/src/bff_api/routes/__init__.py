@@ -1,6 +1,6 @@
-"""Routes package for BFF API application."""
+"""Routes package for BFF API application.
 
-from .bff import router as bff_router
-from .health import router as health_router
+Exports modular route handlers organized by feature domain.
+"""
 
-__all__ = ["bff_router", "health_router"]
+from bff_api.routes.api_v1 import api_v1_router
