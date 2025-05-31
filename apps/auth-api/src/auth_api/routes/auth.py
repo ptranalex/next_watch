@@ -2,6 +2,7 @@
 Authentication routes for dedicated auth service.
 
 Handles user authentication, registration, token management, and token verification for BFF.
+Using RESTful resource-oriented design patterns.
 """
 
 from typing import Annotated, Optional
@@ -25,8 +26,8 @@ from movie_storage.models.user import User
 ***REMOVED*** Create router
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
-***REMOVED*** OAuth2 scheme for token authentication
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+***REMOVED*** OAuth2 scheme for token authentication - updated to match new endpoint
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/tokens")
 
 
 ***REMOVED*** Authentication dependencies
@@ -65,41 +66,13 @@ async def get_current_user(
 
 
 ***REMOVED*** ============================================================================
-***REMOVED*** NEW: Token Verification Endpoint for BFF
+***REMOVED*** Users Resource
 ***REMOVED*** ============================================================================
-
-
-@router.post("/verify-token", response_model=TokenVerificationResponse)
-async def verify_token(
-    request: TokenVerificationRequest,
-    session: Annotated[Session, Depends(get_db)],
-    auth_service: Annotated[AuthService, Depends(get_auth_service)],
-) -> TokenVerificationResponse:
-    """
-    Verify a JWT token and return user information.
-
-    This endpoint is used by the BFF service to validate tokens from the frontend.
-
-    Args:
-        request: Token verification request containing the JWT token
-        session: Database session
-        auth_service: Authentication service
-
-    Returns:
-        Token verification response with user info or error details
-    """
-    return auth_service.verify_token(session, request.token)
-
-
-***REMOVED*** ============================================================================
-***REMOVED*** Authentication Endpoints
-***REMOVED*** ============================================================================
-
 
 @router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
-async def register(
+async def create_user(
     user_data: UserCreate,
     session: Annotated[Session, Depends(get_db)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
@@ -133,14 +106,35 @@ async def register(
         )
 
 
-@router.post("/login", response_model=Token)
-async def login(
+@router.get("/users/me", response_model=UserResponse)
+async def get_current_user_profile(
+    current_user: Annotated[User, Depends(get_current_user)]
+) -> User:
+    """
+    Get information about the currently authenticated user.
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        Current user information
+    """
+    return current_user
+
+
+***REMOVED*** ============================================================================
+***REMOVED*** Tokens Resource
+***REMOVED*** ============================================================================
+
+@router.post("/tokens", response_model=Token)
+async def create_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: Annotated[Session, Depends(get_db)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Token:
     """
-    Authenticate a user with form data and return access and refresh tokens.
+    Authenticate a user and return access and refresh tokens.
+    Supports both form-based and JSON requests.
 
     Args:
         form_data: OAuth2 form with username (email) and password
@@ -171,8 +165,9 @@ async def login(
     return Token(**tokens)
 
 
-@router.post("/login/json", response_model=Token)
-async def login_json(
+***REMOVED*** Alternative JSON-based login for clients that don't support form data
+@router.post("/tokens/json", response_model=Token)
+async def create_token_json(
     login_data: UserLogin,
     session: Annotated[Session, Depends(get_db)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
@@ -211,7 +206,7 @@ async def login_json(
     return Token(**tokens)
 
 
-@router.post("/refresh", response_model=Token)
+@router.put("/tokens", response_model=Token)
 async def refresh_token(
     refresh_data: RefreshToken,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
@@ -241,15 +236,92 @@ async def refresh_token(
     return Token(**new_tokens)
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+@router.post("/tokens/verify", response_model=TokenVerificationResponse)
+async def verify_token(
+    request: TokenVerificationRequest,
+    session: Annotated[Session, Depends(get_db)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> TokenVerificationResponse:
     """
-    Get information about the currently authenticated user.
+    Verify a JWT token and return user information.
+
+    This endpoint is used by the BFF service to validate tokens from the frontend.
 
     Args:
-        current_user: Current authenticated user
+        request: Token verification request containing the JWT token
+        session: Database session
+        auth_service: Authentication service
 
     Returns:
-        Current user information
+        Token verification response with user info or error details
+    """
+    return auth_service.verify_token(session, request.token)
+
+
+***REMOVED*** Keep old endpoints with deprecated=True for backwards compatibility
+
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, deprecated=True)
+async def register_deprecated(
+    user_data: UserCreate,
+    session: Annotated[Session, Depends(get_db)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> User:
+    """
+    [DEPRECATED] Register a new user. Use POST /auth/users instead.
+    """
+    return await create_user(user_data, session, auth_service)
+
+
+@router.post("/login", response_model=Token, deprecated=True)
+async def login_deprecated(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    session: Annotated[Session, Depends(get_db)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> Token:
+    """
+    [DEPRECATED] Authenticate user. Use POST /auth/tokens instead.
+    """
+    return await create_token(form_data, session, auth_service)
+
+
+@router.post("/login/json", response_model=Token, deprecated=True)
+async def login_json_deprecated(
+    login_data: UserLogin,
+    session: Annotated[Session, Depends(get_db)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> Token:
+    """
+    [DEPRECATED] Authenticate user with JSON. Use POST /auth/tokens/json instead.
+    """
+    return await create_token_json(login_data, session, auth_service)
+
+
+@router.post("/refresh", response_model=Token, deprecated=True)
+async def refresh_token_deprecated(
+    refresh_data: RefreshToken,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> Token:
+    """
+    [DEPRECATED] Refresh token. Use PUT /auth/tokens instead.
+    """
+    return await refresh_token(refresh_data, auth_service)
+
+
+@router.post("/verify-token", response_model=TokenVerificationResponse, deprecated=True)
+async def verify_token_deprecated(
+    request: TokenVerificationRequest,
+    session: Annotated[Session, Depends(get_db)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> TokenVerificationResponse:
+    """
+    [DEPRECATED] Verify token. Use POST /auth/tokens/verify instead.
+    """
+    return await verify_token(request, session, auth_service)
+
+
+@router.get("/me", response_model=UserResponse, deprecated=True)
+async def get_me_deprecated(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    """
+    [DEPRECATED] Get user info. Use GET /auth/users/me instead.
     """
     return current_user

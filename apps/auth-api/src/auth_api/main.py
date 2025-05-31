@@ -8,36 +8,47 @@ import os
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
+from typing import Dict, Any, Union
 
-***REMOVED*** Setup basic logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-***REMOVED*** Load environment variables
+***REMOVED*** Load environment variables first
 try:
     from dotenv import load_dotenv
 
     ***REMOVED*** Only load .env files if we're not in production
     if os.getenv("ENVIRONMENT") != "production":
-        ***REMOVED*** Try multiple locations to find the .env.local file
+        ***REMOVED*** Try multiple locations to find .env files (prioritize .env.local over .env)
         possible_paths = [
-            Path(__file__).resolve().parents[3] / ".env.local",
             Path.cwd() / ".env.local",
+            Path(__file__).resolve().parents[3] / ".env.local",
+            Path.cwd() / ".env",
+            Path(__file__).resolve().parents[3] / ".env",
         ]
 
         for path in possible_paths:
             if path.exists():
-                logger.info(f"Loading environment variables from {path}")
                 load_dotenv(dotenv_path=path, override=True)
                 break
 except ImportError:
     pass  ***REMOVED*** Continue without dotenv if not installed
 
+***REMOVED*** Import configuration after environment variables are loaded
+from auth_api.config.app import settings
+from auth_api.config.logging import configure_logging, get_logger
+
+***REMOVED*** Configure logging early
+configure_logging(
+    log_level=settings.log_level,
+    log_dir=Path(settings.log_dir) if hasattr(settings, "log_dir") else None,
+    verbose=settings.debug,
+    quiet=False,
+)
+
+***REMOVED*** Get logger for this module
+logger = get_logger(__name__)
+
 ***REMOVED*** Log environment
 logger.info(f"Running in environment: {os.getenv('ENVIRONMENT', 'development')}")
 
-***REMOVED*** Import configuration after environment variables are loaded
-from auth_api.config.app import settings
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -49,7 +60,17 @@ from auth_api.db.database import init_database, get_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager."""
+    """Application lifespan manager.
+
+    Handles startup and shutdown of the FastAPI application including
+    database initialization.
+
+    Args:
+        app: FastAPI application instance
+
+    Yields:
+        None: Application runs between startup and shutdown
+    """
     ***REMOVED*** Startup
     logger.info("Starting Next Watch Authentication Service")
     logger.info(f"Configuration: {settings}")
@@ -72,7 +93,7 @@ def create_app() -> FastAPI:
     """Create and configure FastAPI application.
 
     Returns:
-        Configured FastAPI application
+        Configured FastAPI application with all middleware and routes
     """
     ***REMOVED*** Create FastAPI app
     app = FastAPI(
@@ -110,6 +131,15 @@ def create_app() -> FastAPI:
     ***REMOVED*** Global exception handler
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
+        """Handle uncaught exceptions globally.
+
+        Args:
+            request: FastAPI request object
+            exc: Exception that was raised
+
+        Returns:
+            JSON error response
+        """
         logger.error(f"Unhandled exception: {exc}", exc_info=True)
         return JSONResponse(
             status_code=500, content={"detail": "Internal server error"}
@@ -123,8 +153,12 @@ app = create_app()
 
 
 @app.get("/")
-async def root():
-    """Root endpoint returning authentication API information."""
+async def root() -> Dict[str, Any]:
+    """Root endpoint returning authentication API information.
+
+    Returns:
+        API information including available endpoints and documentation links
+    """
     return {
         "service": "Next Watch Authentication API",
         "version": "0.1.0",
@@ -136,8 +170,12 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
-    """Health check endpoint for monitoring."""
+async def health_check() -> Dict[str, Any]:
+    """Health check endpoint for monitoring.
+
+    Returns:
+        Health status information including service details
+    """
     return {
         "status": "ok",
         "service": "auth-api",
@@ -145,9 +183,13 @@ async def health_check():
     }
 
 
-@app.get("/health/db")
-async def db_health_check():
-    """Database health check endpoint."""
+@app.get("/health/db", response_model=None)
+async def db_health_check() -> Union[Dict[str, Any], JSONResponse]:
+    """Database health check endpoint.
+
+    Returns:
+        Database health status and connection information or error response
+    """
     try:
         ***REMOVED*** Get a database session
         db_gen = get_db()

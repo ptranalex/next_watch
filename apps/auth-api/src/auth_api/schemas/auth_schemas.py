@@ -3,7 +3,7 @@ Authentication schema definitions for dedicated auth service.
 """
 
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserBase(BaseModel):
@@ -19,10 +19,11 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
     password_confirm: str = Field(..., min_length=8)
 
-    @validator("password_confirm")
-    def passwords_match(cls, v, values):
+    @field_validator("password_confirm")
+    @classmethod
+    def passwords_match(cls, v, info):
         """Validate that passwords match."""
-        if "password" in values and v != values["password"]:
+        if "password" in info.data and v != info.data["password"]:
             raise ValueError("Passwords do not match")
         return v
 
@@ -42,7 +43,7 @@ class UserResponse(UserBase):
     class Config:
         """Pydantic config."""
 
-        orm_mode = True
+        from_attributes = True
 
 
 class Token(BaseModel):

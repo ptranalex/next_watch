@@ -1,0 +1,13 @@
+{
+  "name": "auth-api-dev-scripts",
+  "version": "1.0.0",
+  "description": "Development scripts for Authentication API",
+  "scripts": {
+    "dev": "poetry run auth-api serve --verbose",
+    "dev:debug": "poetry run auth-api serve --log-level debug --verbose",
+    "health": "poetry run auth-api health --verbose",
+    "config": "poetry run auth-api config --verbose",
+    "test": "curl -s http://localhost:8003/health | jq",
+    "test:db": "curl -s http://localhost:8003/health/db | jq"
+  }
+}
