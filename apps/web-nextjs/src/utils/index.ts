@@ -2,4 +2,4 @@
 export * from "./logging";
 export * from "./auth";
 export * from "./media";
-export * from "./analytics";
+export * from "../services/analytics/analytics";

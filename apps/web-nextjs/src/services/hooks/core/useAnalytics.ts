@@ -19,7 +19,7 @@ import {
   trackPerformanceEvent,
   trackErrorEvent,
   trackPageView,
-} from "@/utils/analytics";
+} from "@/services/analytics/analytics";
 
 const logger = createLogger("useAnalytics");
 
