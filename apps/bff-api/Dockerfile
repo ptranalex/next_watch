@@ -1,37 +1,58 @@
-FROM python:3.9-slim
+***REMOVED*** Stage 1: Build dependencies and package
+FROM python:3.9-alpine AS builder
 
-***REMOVED*** Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-***REMOVED*** Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-***REMOVED*** Create app user
-RUN groupadd -r app && useradd -r -g app app
-
-***REMOVED*** Set work directory
 WORKDIR /app
 
-***REMOVED*** Install Poetry
-RUN pip install poetry
+***REMOVED*** Install build dependencies (only needed for building)
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    openssl-dev
 
-***REMOVED*** Copy dependency files
-COPY pyproject.toml poetry.lock ./
+***REMOVED*** Copy requirements.txt (pre-generated from poetry export)
+COPY apps/bff-api/requirements.txt ./
 
-***REMOVED*** Configure poetry and install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+***REMOVED*** Install dependencies to a local directory
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-***REMOVED*** Copy source code
-COPY src/ ./src/
+***REMOVED*** Copy application code
+COPY apps/bff-api/src ./src/
 
-***REMOVED*** Change ownership to app user
-RUN chown -R app:app /app
+***REMOVED*** Copy pyproject.toml for package metadata
+COPY apps/bff-api/pyproject.toml ./
+
+***REMOVED*** Install the current project to user directory
+RUN pip install --no-cache-dir --user -e .
+
+***REMOVED*** Stage 2: Minimal runtime image
+FROM python:3.9-alpine AS final
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    PATH="/home/app/.local/bin:$PATH"
+
+WORKDIR /app
+
+***REMOVED*** Install only runtime dependencies (curl for healthcheck)
+RUN apk add --no-cache curl
+
+***REMOVED*** Create app user
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
+
+***REMOVED*** Copy Python packages from builder (user installation)
+COPY --from=builder --chown=app:app /root/.local /home/app/.local
+
+***REMOVED*** Copy application code
+COPY --from=builder --chown=app:app /app/src ./src/
+
+***REMOVED*** Create logs directory
+RUN mkdir -p /app/logs && chown -R app:app /app
+
 USER app
 
 ***REMOVED*** Health check
@@ -42,4 +63,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 EXPOSE 8001
 
 ***REMOVED*** Run the application
-CMD ["python", "-m", "bff.cli.main", "serve", "--host", "0.0.0.0", "--port", "8001"] 
+CMD ["python", "-m", "bff_api.cli.main", "serve", "--host", "0.0.0.0", "--port", "8001"] 
