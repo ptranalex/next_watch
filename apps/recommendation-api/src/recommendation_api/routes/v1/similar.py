@@ -17,12 +17,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/similar/{movie_id}", response_model=SimilarMoviesResponse)
+@router.get("/movies/{movie_id}/similar", response_model=SimilarMoviesResponse)
 async def get_similar_movies_endpoint(
     movie_id: int,
     limit: int = Query(20, ge=1, le=50),
-    min_rating: float = Query(7.0, ge=0, le=10),
-    min_vote_count: int = Query(1000, ge=0),
+    min_rating: float = Query(6.0, ge=0, le=10),
+    min_vote_count: int = Query(500, ge=0),
+    min_score: float = Query(0.01, ge=0, le=1.0),
     session: Session = Depends(get_db_session),
 ):
     """Get movies similar to a specific movie.
@@ -32,6 +33,7 @@ async def get_similar_movies_endpoint(
         limit: Maximum number of similar movies (1-50)
         min_rating: Minimum IMDb rating (0-10)
         min_vote_count: Minimum vote count threshold
+        min_score: Minimum similarity score threshold (0-1)
         session: Database session
         
     Returns:
@@ -43,6 +45,8 @@ async def get_similar_movies_endpoint(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid movie ID"
             )
+        
+        logger.debug(f"Finding similar movies for movie ID {movie_id} with min_score={min_score}, min_rating={min_rating}")
             
         service = RecommendationService(session)
         recommendations, filters = service.get_similar_movies(
@@ -50,13 +54,17 @@ async def get_similar_movies_endpoint(
             limit=limit,
             min_rating=min_rating,
             min_vote_count=min_vote_count,
+            min_score=min_score,
         )
         
         if "error" in filters:
+            logger.debug(f"Error finding similar movies: {filters['error']}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=filters["error"]
             )
+        
+        logger.debug(f"Found {len(recommendations)} similar movies for movie ID {movie_id}")
         
         return SimilarMoviesResponse(
             recommendations=recommendations,

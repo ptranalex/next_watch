@@ -21,7 +21,6 @@ def get_movies_for_embeddings(
     session: Session,
     limit: Optional[int] = None,
     offset: int = 0,
-    min_rating: Optional[float] = None,
 ) -> List[Movie]:
     """Get movies that need embeddings or embedding updates.
     
@@ -29,21 +28,11 @@ def get_movies_for_embeddings(
         session: Database session
         limit: Maximum number of movies to return
         offset: Number of movies to skip
-        min_rating: Minimum IMDb rating filter
         
     Returns:
         List of Movie objects
     """
     query = select(Movie).where(Movie.title != "")
-    
-    ***REMOVED*** Filter by minimum rating if specified
-    if min_rating is not None:
-        query = query.where(
-            and_(
-                col(Movie.imdb_rating).isnot(None),
-                col(Movie.imdb_rating) >= min_rating
-            )
-        )
     
     ***REMOVED*** Order by ID for consistent results
     query = query.order_by(col(Movie.id))
@@ -297,8 +286,26 @@ def get_movies_by_ids(session: Session, movie_ids: List[int]) -> List[Movie]:
     
     query = select(Movie).where(col(Movie.id).in_(movie_ids))
     movies = list(session.exec(query).all())
-    logger.info(f"Retrieved {len(movies)} movies by IDs")
+    logger.debug(f"Retrieved {len(movies)} movies by IDs")
     return movies
+
+
+def get_movie_by_id(session: Session, movie_id: int) -> Optional[Movie]:
+    """Get a movie by its ID.
+    
+    Args:
+        session: Database session
+        movie_id: Movie ID
+        
+    Returns:
+        Movie object or None if not found
+    """
+    movie = session.get(Movie, movie_id)
+    if movie:
+        logger.debug(f"Retrieved movie with ID {movie_id}")
+    else:
+        logger.debug(f"No movie found with ID {movie_id}")
+    return movie
 
 
 def get_user_preference_movies(
@@ -307,12 +314,12 @@ def get_user_preference_movies(
     preference_type: str = "liked",
     limit: Optional[int] = None,
 ) -> List[Movie]:
-    """Get movies based on user preferences (liked, watched, etc.).
+    """Get user's preference movies for recommendation generation.
     
     Args:
         session: Database session
         user_id: User ID
-        preference_type: Type of preference ("liked", "watched", "watchlist")
+        preference_type: Type of preference (liked, watched, in_watchlist)
         limit: Maximum number of movies to return
         
     Returns:

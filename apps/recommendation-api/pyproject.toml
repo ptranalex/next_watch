@@ -22,6 +22,7 @@ qdrant-client = "^1.7.0"
 redis = "^6.0.0"
 psycopg2-binary = "^2.9.10"
 alembic = "^1.12.1"
+asyncpg = "^0.29.0"
 
 ***REMOVED*** Shared library dependency
 movie-storage = {path = "../../libs/movie-storage"}
@@ -36,7 +37,7 @@ mypy = "^1.7.0"
 pre-commit = "^3.6.0"
 
 [tool.poetry.scripts]
-recommendation-api = "recommendation_api.cli.main:app"
+rec-api = "recommendation_api.cli.main:app"
 
 [build-system]
 requires = ["poetry-core"]

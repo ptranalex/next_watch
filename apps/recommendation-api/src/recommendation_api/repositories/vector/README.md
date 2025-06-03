@@ -1,85 +1,148 @@
-***REMOVED*** Vector Repository
+***REMOVED*** Vector Repository Module
 
-This package provides access to vector databases for similarity search operations in the Recommendation API.
+This module provides a high-level interface for interacting with the vector database (Qdrant) used for similarity search and recommendations.
 
 ***REMOVED******REMOVED*** Overview
 
-The vector repository follows the repository pattern to abstract database access for vector operations, making it easier to:
+The vector repository module is responsible for:
 
-1. Test the application with mock repositories
-2. Swap out the underlying vector database without changing business logic
-3. Maintain clear separation of concerns
+- Managing connections to the Qdrant vector database
+- Storing movie embeddings (vector representations)
+- Performing similarity searches
+- Handling vector database operations
+- Providing fallback mechanisms for embedding retrieval
 
 ***REMOVED******REMOVED*** Components
 
-***REMOVED******REMOVED******REMOVED*** Client
+***REMOVED******REMOVED******REMOVED*** `client.py`
 
-`client.py` provides a low-level wrapper around the Qdrant vector database client. It:
+Manages the low-level connection to Qdrant:
 
-- Manages connection to the Qdrant server
-- Provides methods for CRUD operations on vectors
-- Handles connection pooling and error recovery
-- Implements retry logic and logging
+- `QdrantClient`: Wrapper for the Qdrant client with enhanced functionality
+- `get_qdrant_client()`: Singleton function to get a shared client instance
+- Connection management and configuration
+- Error handling and retries
 
-***REMOVED******REMOVED******REMOVED*** Repository
+***REMOVED******REMOVED******REMOVED*** `repository.py`
 
-`repository.py` contains:
+Provides high-level repository functions:
 
-- The `VectorRepository` class that implements repository pattern
-- Methods for storing, retrieving, and searching movie embeddings
+- `VectorRepository`: Main class for vector operations
+- Collection management (create, check, list)
+- Embedding operations (store, retrieve, delete)
+- Similarity search methods
+- Batch operations for efficiency
+- Fallback mechanisms for retrieval
+
+***REMOVED******REMOVED******REMOVED*** `__init__.py`
+
+Exports key functions and classes:
+
+- Repository class
 - Standalone functions for backward compatibility
+- Type definitions
 
 ***REMOVED******REMOVED*** Usage
 
-***REMOVED******REMOVED******REMOVED*** Using the VectorRepository class
+***REMOVED******REMOVED******REMOVED*** Basic Operations
+
+```python
+from recommendation_api.repositories.vector import (
+    create_collection,
+    store_movie_embedding,
+    get_movie_embedding,
+    search_similar_movies
+)
+
+***REMOVED*** Create collection if needed
+create_collection()
+
+***REMOVED*** Store an embedding
+movie_id = 123
+embedding = [0.1, 0.2, 0.3, ...]  ***REMOVED*** Vector from embedding model
+metadata = {"title": "Movie Title", "release_year": 2023}
+store_movie_embedding(movie_id, embedding, metadata)
+
+***REMOVED*** Retrieve an embedding
+vector = get_movie_embedding(movie_id)
+
+***REMOVED*** Find similar movies
+similar_movies = search_similar_movies(
+    query_embedding=vector,
+    limit=10,
+    score_threshold=0.7
+)
+```
+
+***REMOVED******REMOVED******REMOVED*** Using the Repository Class
 
 ```python
 from recommendation_api.repositories.vector import VectorRepository
 
 ***REMOVED*** Create repository instance
-repository = VectorRepository()
+repo = VectorRepository()
 
-***REMOVED*** Store a movie embedding
-repository.store_movie_embedding(
+***REMOVED*** Store embedding
+repo.store_movie_embedding(movie_id, embedding, metadata)
+
+***REMOVED*** Search by movie ID
+similar_movies = repo.search_by_movie_id(
     movie_id=123,
-    embedding=[0.1, 0.2, 0.3, ...],
-    metadata={"title": "The Matrix"}
+    limit=20,
+    score_threshold=0.6
 )
 
-***REMOVED*** Search for similar movies
-similar_movies = repository.search_similar_movies(
-    query_embedding=[0.1, 0.2, 0.3, ...],
-    limit=10
-)
+***REMOVED*** Batch operations
+embeddings_data = [
+    (movie_id1, embedding1, metadata1),
+    (movie_id2, embedding2, metadata2),
+    ***REMOVED*** ...
+]
+repo.batch_store_embeddings(embeddings_data)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using standalone functions
+***REMOVED******REMOVED*** Vector Database Schema
 
-```python
-from recommendation_api.repositories.vector import (
-    store_movie_embedding,
-    search_similar_movies
-)
+The module works with the following Qdrant collection structure:
 
-***REMOVED*** Store a movie embedding
-store_movie_embedding(
-    movie_id=123,
-    embedding=[0.1, 0.2, 0.3, ...],
-    metadata={"title": "The Matrix"}
-)
+- Collection name: `movies` (configurable)
+- Vector size: 384 (configurable, based on embedding model)
+- Distance metric: Cosine similarity
+- Metadata payload fields:
+  - `movie_id`: Movie ID (integer)
+  - `title`: Movie title (string)
+  - `release_year`: Release year (integer)
+  - `genres`: List of genres (array of strings)
+  - `imdb_rating`: IMDb rating (float)
 
-***REMOVED*** Search for similar movies
-similar_movies = search_similar_movies(
-    query_embedding=[0.1, 0.2, 0.3, ...],
-    limit=10
-)
-```
+***REMOVED******REMOVED*** Fallback Mechanisms
+
+The repository implements several fallback mechanisms:
+
+1. **Direct point retrieval**: Primary method using point ID
+2. **Search with filtering**: Fallback when vector is missing
+3. **Dummy vector search**: Last resort for metadata-only points
+
+These fallbacks ensure robust operation even when embeddings have issues.
+
+***REMOVED******REMOVED*** Error Handling
+
+The repository provides robust error handling:
+
+- Specific exceptions for vector operations
+- Logging of errors with context
+- Graceful degradation with fallbacks
+- Retry mechanisms for transient errors
 
 ***REMOVED******REMOVED*** Configuration
 
-The repository is configured through environment variables:
+Vector database connection is configured via:
 
-- `QDRANT_URL`: URL of the Qdrant server
-- `QDRANT_API_KEY`: API key for authentication
-- `QDRANT_COLLECTION_NAME`: Name of the collection to use
-- `EMBEDDING_DIMENSION`: Dimension of embedding vectors
+- `QDRANT_URL` environment variable
+- `qdrant_url` setting in configuration
+- Default: `http://localhost:6333`
+
+Collection settings:
+
+- `QDRANT_COLLECTION_NAME`: Collection name (default: `movies`)
+- `EMBEDDING_DIMENSION`: Vector size (default: 384)

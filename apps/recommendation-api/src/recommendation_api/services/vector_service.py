@@ -1,7 +1,6 @@
 """Vector service for the Recommendation API.
 
-This module provides high-level vector operations for the recommendation engine,
-separating business logic from data access.
+This module provides a service layer for interacting with the vector database.
 """
 
 import logging
@@ -16,32 +15,26 @@ logger = logging.getLogger(__name__)
 
 
 class VectorService:
-    """Service for vector operations.
-    
-    This service provides high-level operations for managing and using vector embeddings
-    in the recommendation engine.
-    """
+    """Service for interacting with vector database."""
 
     def __init__(self, vector_repository: Optional[VectorRepository] = None):
         """Initialize the vector service.
         
         Args:
-            vector_repository: Vector repository to use (defaults to global instance)
+            vector_repository: Vector repository instance
         """
         self.repository = vector_repository or get_vector_repository()
     
     def ensure_collection_exists(self) -> bool:
-        """Ensure the vector collection exists, creating it if necessary.
+        """Ensure the vector collection exists.
         
         Returns:
-            True if collection exists or was created, False otherwise
+            True if collection exists or was created, False if error
         """
         return self.repository.create_collection()
     
     def get_movie_embedding(self, movie_id: int) -> Optional[List[float]]:
-        """Get embedding for a movie.
-        
-        If the embedding doesn't exist in the database, this method returns None.
+        """Get the embedding for a movie.
         
         Args:
             movie_id: Movie ID
@@ -86,6 +79,7 @@ class VectorService:
             "release_year": features.get("release_year"),
             "genres": features.get("genres", []),
             "imdb_rating": features.get("imdb_rating"),
+            "movie_id": movie_id,  ***REMOVED*** Explicitly add movie_id to metadata
         }
         
         ***REMOVED*** Store embedding
@@ -106,7 +100,7 @@ class VectorService:
         self,
         query_embedding: List[float],
         limit: int = 10,
-        min_score: float = 0.7,
+        min_score: float = 0.6,
         exclude_movie_ids: Optional[List[int]] = None,
     ) -> List[Tuple[int, float]]:
         """Find movies similar to a query embedding.
@@ -131,7 +125,7 @@ class VectorService:
         self,
         movie_id: int,
         limit: int = 10,
-        min_score: float = 0.7,
+        min_score: float = 0.01,  ***REMOVED*** Use a much lower default threshold
     ) -> List[Tuple[int, float]]:
         """Find movies similar to a specific movie by ID.
         
@@ -143,11 +137,17 @@ class VectorService:
         Returns:
             List of tuples (movie_id, similarity_score)
         """
-        return self.repository.search_by_movie_id(
+        logger.debug(f"Finding similar movies for movie ID {movie_id} with min_score={min_score}")
+        
+        ***REMOVED*** Delegate to repository layer, which now handles fallbacks internally
+        similar_movies = self.repository.search_by_movie_id(
             movie_id=movie_id,
             limit=limit,
             score_threshold=min_score,
         )
+        
+        logger.debug(f"Found {len(similar_movies)} similar movies for movie {movie_id}")
+        return similar_movies
     
     def get_vector_stats(self) -> Dict[str, Any]:
         """Get statistics about vector database.
@@ -166,12 +166,14 @@ class VectorService:
         self, 
         session: Session,
         movie_ids: List[int],
+        force: bool = False,
     ) -> Dict[str, Any]:
         """Process multiple movies in batch, generating and storing embeddings.
         
         Args:
             session: Database session
             movie_ids: List of movie IDs to process
+            force: Force regeneration of existing embeddings
             
         Returns:
             Dictionary with processing results
@@ -186,18 +188,33 @@ class VectorService:
         ***REMOVED*** Ensure collection exists
         if not self.ensure_collection_exists():
             logger.error("Failed to ensure collection exists")
-            results["error"] = "Failed to ensure collection exists"
+            results["error"] = "Failed to ensure collection exists"  ***REMOVED*** type: ignore
             return results
         
         ***REMOVED*** Process movies
         embeddings_data = []
         
         for movie_id in movie_ids:
-            ***REMOVED*** Check if embedding already exists
-            existing_embedding = self.repository.get_movie_embedding(movie_id)
-            if existing_embedding:
-                results["skipped"] += 1
-                continue
+            ***REMOVED*** Check if embedding already exists (unless force=True)
+            if not force:
+                ***REMOVED*** Temporarily lower the log level when checking if embedding exists
+                ***REMOVED*** to avoid flooding logs with warnings about non-existent embeddings
+                repo_logger = logging.getLogger("recommendation_api.repositories.vector.repository")
+                original_level = repo_logger.level
+                repo_logger.setLevel(logging.ERROR)
+                
+                try:
+                    existing_embedding = self.repository.get_movie_embedding(movie_id)
+                    if existing_embedding:
+                        results["skipped"] += 1
+                        continue
+                finally:
+                    ***REMOVED*** Restore original log level
+                    repo_logger.setLevel(original_level)
+            elif force:
+                ***REMOVED*** If forcing regeneration, we still need to check if the movie exists in the database
+                ***REMOVED*** but we won't skip it if it already has an embedding
+                logger.debug(f"Force regeneration of embedding for movie {movie_id}")
             
             ***REMOVED*** Get movie features
             features = get_movie_features(session, movie_id)
@@ -207,28 +224,44 @@ class VectorService:
                 continue
             
             ***REMOVED*** Generate embedding
-            embedding = generate_movie_embedding(features)
-            
-            ***REMOVED*** Prepare metadata
-            metadata = {
-                "title": features.get("title", ""),
-                "release_year": features.get("release_year"),
-                "genres": features.get("genres", []),
-                "imdb_rating": features.get("imdb_rating"),
-            }
-            
-            ***REMOVED*** Add to batch
-            embeddings_data.append((movie_id, embedding, metadata))
+            try:
+                embedding = generate_movie_embedding(features)
+                if embedding:
+                    ***REMOVED*** Prepare metadata
+                    metadata = {
+                        "title": features.get("title", ""),
+                        "release_year": features.get("release_year"),
+                        "genres": features.get("genres", []),
+                        "imdb_rating": features.get("imdb_rating"),
+                        "movie_id": movie_id,  ***REMOVED*** Explicitly add movie_id to metadata
+                    }
+                    
+                    ***REMOVED*** Add to batch
+                    embeddings_data.append({
+                        "id": movie_id,
+                        "vector": embedding,
+                        "metadata": metadata,
+                    })
+                else:
+                    logger.warning(f"Failed to generate embedding for movie {movie_id}")
+                    results["failed"] += 1
+            except Exception as e:
+                logger.error(f"Error generating embedding for movie {movie_id}: {e}")
+                results["failed"] += 1
         
-        ***REMOVED*** Store batch
+        ***REMOVED*** Store batch of embeddings
         if embeddings_data:
-            success = self.repository.batch_store_embeddings(embeddings_data)
-            if success:
-                results["processed"] = len(embeddings_data)
-                logger.info(f"Processed {len(embeddings_data)} movies in batch")
-            else:
+            try:
+                success = self.repository.upsert_batch(embeddings_data)
+                if success:
+                    results["processed"] = len(embeddings_data)
+                    logger.info(f"Processed {results['processed']} movies in batch")
+                else:
+                    results["failed"] += len(embeddings_data)
+                    logger.error(f"Failed to store batch of {len(embeddings_data)} embeddings")
+            except Exception as e:
                 results["failed"] += len(embeddings_data)
-                logger.error("Failed to store batch embeddings")
+                logger.error(f"Error storing batch of {len(embeddings_data)} embeddings: {e}")
         
         return results
 

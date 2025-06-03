@@ -29,6 +29,7 @@ from recommendation_api.cli.commands import (
     config,
     health,
     embeddings,
+    debug,
 )
 
 __all__ = [
@@ -48,4 +49,5 @@ __all__ = [
     "config",
     "health",
     "embeddings",
+    "debug",
 ] 

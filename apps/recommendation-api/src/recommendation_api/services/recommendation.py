@@ -14,6 +14,7 @@ from recommendation_api.db.operations import (
     get_movie_features,
     get_user_preference_movies,
     get_movies_by_ids,
+    get_movie_by_id,
 )
 from recommendation_api.services.vector_service import VectorService, get_vector_service
 from recommendation_api.services.embedding import generate_user_preference_vector
@@ -213,10 +214,13 @@ class RecommendationService:
         movies = get_movies_by_ids(self.session, movie_ids)
         
         ***REMOVED*** Create recommendations
-        recommendations = [
-            MovieRecommendation.from_movie(movie, reason="personalized")
-            for movie in movies
-        ]
+        recommendations = []
+        for movie in movies:
+            ***REMOVED*** Find the score for this movie
+            score = next((score for mid, score in similar_movies if mid == movie.id), None)
+            recommendations.append(
+                MovieRecommendation.from_movie(movie, reason="personalized", score=score)
+            )
         
         filters = {
             "min_rating": min_rating,
@@ -231,8 +235,9 @@ class RecommendationService:
         self,
         movie_id: int,
         limit: int = 20,
-        min_rating: float = 7.0,
-        min_vote_count: int = 1000,
+        min_rating: float = 6.0,
+        min_vote_count: int = 500,
+        min_score: float = 0.01,
     ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
         """Get movies similar to a given movie.
         
@@ -241,15 +246,28 @@ class RecommendationService:
             limit: Maximum number of recommendations
             min_rating: Minimum IMDb rating
             min_vote_count: Minimum vote count threshold
+            min_score: Minimum similarity score (0-1) for vector search
             
         Returns:
             Tuple of (recommendations list, filters dict)
         """
+        ***REMOVED*** Check if movie exists
+        movie = get_movie_by_id(self.session, movie_id)
+        if not movie:
+            return [], {
+                "min_rating": min_rating,
+                "min_vote_count": min_vote_count,
+                "limit": limit,
+                "min_score": min_score,
+                "error": f"Movie with ID {movie_id} not found",
+            }
+            
         ***REMOVED*** Search for similar movies using vector service
+        ***REMOVED*** The vector service now handles fallbacks internally
         similar_movies = self.vector_service.find_similar_movies_by_id(
             movie_id=movie_id,
             limit=limit,
-            min_score=0.6,
+            min_score=min_score,
         )
         
         if not similar_movies:
@@ -257,6 +275,7 @@ class RecommendationService:
                 "min_rating": min_rating,
                 "min_vote_count": min_vote_count,
                 "limit": limit,
+                "min_score": min_score,
                 "error": "No similar movies found",
             }
         
@@ -264,16 +283,31 @@ class RecommendationService:
         movie_ids = [movie_id for movie_id, _ in similar_movies]
         movies = get_movies_by_ids(self.session, movie_ids)
         
+        ***REMOVED*** Filter movies by rating and vote count
+        filtered_movies = []
+        for movie in movies:
+            if movie.imdb_rating is None or movie.imdb_rating < min_rating:
+                continue
+            if movie.vote_count is None or movie.vote_count < min_vote_count:
+                continue
+            filtered_movies.append(movie)
+        
         ***REMOVED*** Create recommendations
-        recommendations = [
-            MovieRecommendation.from_movie(movie, reason="similar")
-            for movie in movies
-        ]
+        recommendations = []
+        for movie in filtered_movies:
+            ***REMOVED*** Find the score for this movie
+            score = next((score for mid, score in similar_movies if mid == movie.id), None)
+            recommendations.append(
+                MovieRecommendation.from_movie(movie, reason="similar", score=score)
+            )
         
         filters = {
             "min_rating": min_rating,
             "min_vote_count": min_vote_count,
             "limit": limit,
+            "min_score": min_score,
+            "total_found": len(similar_movies),
+            "filtered_out": len(similar_movies) - len(filtered_movies),
         }
         
         return recommendations, filters 

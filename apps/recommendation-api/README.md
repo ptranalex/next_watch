@@ -49,8 +49,6 @@ recommendation_api/
    ***REMOVED*** Edit .env with your configuration
    ```
 
-````
-
 ***REMOVED******REMOVED*** Usage
 
 ***REMOVED******REMOVED******REMOVED*** Running the API
@@ -61,7 +59,7 @@ rec-api serve start --reload
 
 ***REMOVED*** Production mode
 rec-api serve start --workers 4
-````
+```
 
 ***REMOVED******REMOVED******REMOVED*** API Endpoints
 
@@ -77,14 +75,28 @@ rec-api serve start --workers 4
 ***REMOVED*** Show available commands
 rec-api --help
 
-***REMOVED*** Start the API server
-rec-api serve start
+***REMOVED*** Server Management
+rec-api serve start [--host HOST] [--port PORT] [--reload] [--log-level LEVEL] [--verbose] [--quiet]
+rec-api serve stop
+rec-api serve restart
 
-***REMOVED*** Show configuration
-rec-api config show
+***REMOVED*** Configuration
+rec-api config show [--show-secrets] [--verbose]
+rec-api config validate
+rec-api config env
 
-***REMOVED*** Check service health
+***REMOVED*** Health Checks
 rec-api health check
+rec-api health ping SERVICE  ***REMOVED*** SERVICE can be: api, db, qdrant
+
+***REMOVED*** Embeddings Management
+rec-api embeddings generate [--batch-size SIZE] [--force] [--limit LIMIT] [--verbose]
+rec-api embeddings status [--verbose]
+rec-api embeddings cleanup [--dry-run/--execute] [--verbose]
+rec-api embeddings info [--verbose]
+
+***REMOVED*** Version Information
+rec-api version
 ```
 
 ***REMOVED******REMOVED*** Configuration

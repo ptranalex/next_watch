@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.traceback import install
 
 ***REMOVED*** Import command modules
-from recommendation_api.cli.commands import serve, config, health
+from recommendation_api.cli.commands import serve, config, health, embeddings, debug
 
 ***REMOVED*** Import configuration and utilities
 from recommendation_api.config.app import settings, Config
@@ -34,6 +34,8 @@ app = typer.Typer(
 app.add_typer(serve.app, name="serve")
 app.add_typer(config.app, name="config")
 app.add_typer(health.app, name="health")
+app.add_typer(embeddings.app, name="embeddings")
+app.add_typer(debug.app, name="debug")
 
 
 @app.command(name="version")

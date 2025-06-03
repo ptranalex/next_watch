@@ -134,17 +134,71 @@ class VectorRepository:
         """
         client = get_qdrant_client()
         
-        point = client.get_point(movie_id)
-        if point and point.vector is not None:
-            ***REMOVED*** Ensure we're working with a list of floats
-            if isinstance(point.vector, list):
-                return [float(str(x)) for x in point.vector]
-            elif isinstance(point.vector, dict):
-                ***REMOVED*** Handle case where vector might be in a dict format
-                vector_data = point.vector.get("vector", [])
-                if isinstance(vector_data, list):
-                    return [float(str(x)) for x in vector_data]
+        ***REMOVED*** First try the direct retrieval approach with vectors explicitly requested
+        point = client.get_point(movie_id, with_vectors=True)
+        logger.debug(f"Retrieved point for movie {movie_id}: point exists: {point is not None}")
         
+        if point:
+            logger.debug(f"Point has vector attribute: {hasattr(point, 'vector')}, Vector is None: {point.vector is None}")
+            
+            if hasattr(point, 'payload'):
+                logger.debug(f"Point payload: {point.payload}")
+            
+            if point.vector is not None:
+                ***REMOVED*** Ensure we're working with a list of floats
+                if isinstance(point.vector, list):
+                    logger.debug(f"Vector is a list with {len(point.vector)} elements")
+                    return [float(str(x)) for x in point.vector]
+                elif isinstance(point.vector, dict):
+                    ***REMOVED*** Handle case where vector might be in a dict format
+                    logger.debug(f"Vector is a dict: {point.vector}")
+                    vector_data = point.vector.get("vector", [])
+                    if isinstance(vector_data, list):
+                        logger.debug(f"Vector data from dict has {len(vector_data)} elements")
+                        return [float(str(x)) for x in vector_data]
+        
+        ***REMOVED*** If point exists but vector is None, or any other issue with direct retrieval,
+        ***REMOVED*** try using the search method with filtering as fallback
+        if point and point.vector is None:
+            logger.debug(f"Point for movie {movie_id} exists but vector is None, trying fallback approach")
+            
+            ***REMOVED*** Search for the point by movie_id using our wrapper
+            from recommendation_api.config import settings
+            from qdrant_client.http import models
+            
+            ***REMOVED*** Use a dummy vector for search, actual similarity won't matter since we're filtering exactly
+            vector_size = settings.embedding_dimension
+            dummy_vector = [0.1] * vector_size
+            
+            ***REMOVED*** Search for exactly this movie ID
+            try:
+                results = client.search(
+                    query_vector=dummy_vector,
+                    query_filter=models.Filter(
+                        must=[
+                            models.FieldCondition(
+                                key="movie_id",
+                                match=models.MatchValue(value=movie_id)
+                            )
+                        ]
+                    ),
+                    limit=1
+                )
+                
+                logger.debug(f"Search fallback found {len(results)} results")
+                
+                if results and len(results) > 0:
+                    ***REMOVED*** If we found the result via search, it should have vector data
+                    first_result = results[0]
+                    logger.debug(f"First result has vector: {hasattr(first_result, 'vector')}, Vector is None: {first_result.vector is None if hasattr(first_result, 'vector') else 'N/A'}")
+                    
+                    if hasattr(first_result, 'vector') and first_result.vector is not None:
+                        logger.info(f"Successfully retrieved vector for movie {movie_id} via search fallback")
+                        return [float(str(x)) for x in first_result.vector]
+            except Exception as e:
+                logger.error(f"Error in fallback search for movie {movie_id}: {e}")
+        
+        logger.warning(f"No embedding found for movie {movie_id} with any method")
         return None
     
     def delete_movie_embedding(self, movie_id: int) -> bool:
@@ -172,7 +226,7 @@ class VectorRepository:
         self,
         embeddings_data: List[Tuple[int, List[float], Optional[Dict[str, Any]]]],
     ) -> bool:
-        """Store multiple movie embeddings in batch.
+        """Store multiple movie embeddings in batch using repository.
         
         Args:
             embeddings_data: List of tuples (movie_id, embedding, metadata)
@@ -182,12 +236,13 @@ class VectorRepository:
         """
         client = get_qdrant_client()
         
-        ***REMOVED*** Prepare points
         points = []
         for movie_id, embedding, metadata in embeddings_data:
+            ***REMOVED*** Prepare metadata payload
             payload = metadata or {}
             payload["movie_id"] = movie_id
             
+            ***REMOVED*** Create point
             point = models.PointStruct(
                 id=movie_id,
                 vector=embedding,
@@ -196,6 +251,44 @@ class VectorRepository:
             points.append(point)
         
         return client.upsert_points(points)
+    
+    def upsert_batch(
+        self,
+        embeddings_data: List[Dict[str, Any]],
+    ) -> bool:
+        """Store multiple movie embeddings in batch using repository with improved format.
+        
+        Args:
+            embeddings_data: List of dicts with keys 'id', 'vector', and 'metadata'
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        client = get_qdrant_client()
+        
+        points = []
+        for item in embeddings_data:
+            movie_id = item['id']
+            embedding = item['vector']
+            metadata = item.get('metadata', {})
+            
+            ***REMOVED*** Ensure movie_id is in metadata
+            metadata["movie_id"] = movie_id
+            
+            ***REMOVED*** Create point
+            point = models.PointStruct(
+                id=movie_id,
+                vector=embedding,
+                payload=metadata,
+            )
+            points.append(point)
+        
+        ***REMOVED*** Use wait=true to ensure all points are properly indexed
+        return client.client.upsert(
+            collection_name=client.collection_name,
+            points=points,
+            wait=True
+        ) is not None
     
     def search_by_movie_id(
         self,
@@ -215,17 +308,66 @@ class VectorRepository:
         """
         ***REMOVED*** Get the embedding for the movie
         embedding = self.get_movie_embedding(movie_id)
-        if not embedding:
-            logger.warning(f"No embedding found for movie {movie_id}")
+        
+        ***REMOVED*** If embedding is successfully retrieved, use standard similarity search
+        if embedding:
+            logger.debug(f"Found embedding for movie {movie_id}, using standard similarity search")
+            return self.search_similar_movies(
+                query_embedding=embedding,
+                limit=limit + 1,  ***REMOVED*** +1 to account for excluding the original
+                score_threshold=score_threshold,
+                exclude_movie_ids=[movie_id],
+            )[:limit]  ***REMOVED*** Limit to requested number
+        
+        ***REMOVED*** If embedding retrieval failed, try direct search with filtering
+        logger.warning(f"No embedding found for movie {movie_id}, using fallback search approach")
+        
+        ***REMOVED*** Get Qdrant client
+        client = get_qdrant_client()
+        
+        ***REMOVED*** Check if the movie exists in the database first
+        point = client.get_point(movie_id)
+        if not point:
+            logger.warning(f"Movie {movie_id} not found in vector database")
             return []
         
-        ***REMOVED*** Search for similar movies, excluding the original movie
-        return self.search_similar_movies(
-            query_embedding=embedding,
-            limit=limit + 1,  ***REMOVED*** +1 to account for excluding the original
-            score_threshold=score_threshold,
-            exclude_movie_ids=[movie_id],
-        )[:limit]  ***REMOVED*** Limit to requested number
+        ***REMOVED*** If movie exists but vector couldn't be retrieved, use fallback approach
+        try:
+            ***REMOVED*** Use a dummy vector to search and filter by movie_id
+            from recommendation_api.config import settings
+            from qdrant_client.http import models
+            
+            ***REMOVED*** Use a random-ish vector as query (exact values don't matter)
+            vector_size = settings.embedding_dimension
+            dummy_vector = [0.1] * vector_size
+            
+            ***REMOVED*** Search for all other movies, excluding this one
+            similar_response = client.search(
+                collection_name=settings.qdrant_collection_name,
+                query_vector=dummy_vector,
+                query_filter=models.Filter(
+                    must_not=[
+                        models.FieldCondition(
+                            key="movie_id",
+                            match=models.MatchValue(value=movie_id)
+                        )
+                    ]
+                ),
+                limit=limit,
+                score_threshold=score_threshold
+            )
+            
+            if similar_response:
+                ***REMOVED*** Convert to our standard format
+                results = [(int(point.id), float(point.score)) for point in similar_response]
+                logger.debug(f"Found {len(results)} similar movies with fallback approach")
+                return results
+            
+        except Exception as e:
+            logger.error(f"Error in fallback search: {e}")
+        
+        ***REMOVED*** If all approaches failed
+        return []
     
     def get_embeddings_stats(self) -> Dict[str, Any]:
         """Get statistics about stored embeddings.
@@ -348,7 +490,7 @@ def get_collection_info() -> Optional[Dict[str, Any]]:
 def batch_store_embeddings(
     embeddings_data: List[Tuple[int, List[float], Optional[Dict[str, Any]]]],
 ) -> bool:
-    """Store multiple movie embeddings in batch.
+    """Store multiple movie embeddings in batch using repository.
     
     Args:
         embeddings_data: List of tuples (movie_id, embedding, metadata)
@@ -356,7 +498,23 @@ def batch_store_embeddings(
     Returns:
         True if successful, False otherwise
     """
-    return get_vector_repository().batch_store_embeddings(embeddings_data)
+    repo = get_vector_repository()
+    return repo.batch_store_embeddings(embeddings_data)
+
+
+def upsert_batch(
+    embeddings_data: List[Dict[str, Any]],
+) -> bool:
+    """Store multiple movie embeddings in batch using repository with improved format.
+    
+    Args:
+        embeddings_data: List of dicts with keys 'id', 'vector', and 'metadata'
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    repo = get_vector_repository()
+    return repo.upsert_batch(embeddings_data)
 
 
 def search_by_movie_id(

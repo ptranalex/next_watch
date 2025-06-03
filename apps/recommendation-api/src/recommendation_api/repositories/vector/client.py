@@ -1,7 +1,7 @@
 """Qdrant vector database client for the Recommendation API service."""
 
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from qdrant_client import QdrantClient as QdrantClientBase
 from qdrant_client.http import models
 from qdrant_client.http.exceptions import ResponseHandlingException
@@ -11,7 +11,7 @@ from recommendation_api.config import settings
 logger = logging.getLogger(__name__)
 
 ***REMOVED*** Global client instance
-_qdrant_client: Optional[QdrantClientBase] = None
+_qdrant_client: Optional["QdrantClient"] = None
 
 
 class QdrantClient:
@@ -117,18 +117,38 @@ class QdrantClient:
         
         try:
             info = self.client.get_collection(collection_name=name)
-            return {
+            collection_info: Dict[str, Any] = {
                 "name": name,
                 "status": info.status,
                 "vectors_count": info.vectors_count,
                 "indexed_vectors_count": info.indexed_vectors_count,
                 "points_count": info.points_count,
                 "segments_count": info.segments_count,
-                "config": {
-                    "vector_size": info.config.params.vectors.size,
-                    "distance": info.config.params.vectors.distance.value,
-                },
+                "config": {}
             }
+            
+            ***REMOVED*** Safe attribute access with proper checking
+            if hasattr(info, "config") and info.config is not None:
+                config = info.config
+                if hasattr(config, "params") and config.params is not None:
+                    params = config.params
+                    if hasattr(params, "vectors") and params.vectors is not None:
+                        vectors = params.vectors
+                        ***REMOVED*** Safely extract vector size if present
+                        if isinstance(vectors, dict) and "size" in vectors:
+                            collection_info["config"]["vector_size"] = vectors["size"]
+                        elif hasattr(vectors, "size"):
+                            collection_info["config"]["vector_size"] = vectors.size
+                            
+                        ***REMOVED*** Safely extract distance if present
+                        if isinstance(vectors, dict) and "distance" in vectors:
+                            if hasattr(vectors["distance"], "value"):
+                                collection_info["config"]["distance"] = vectors["distance"].value
+                        elif hasattr(vectors, "distance") and vectors.distance is not None:
+                            if hasattr(vectors.distance, "value"):
+                                collection_info["config"]["distance"] = vectors.distance.value
+            
+            return collection_info
         except Exception as e:
             logger.error(f"Error getting collection info for '{name}': {e}")
             return None
@@ -203,12 +223,14 @@ class QdrantClient:
         self,
         point_id: int,
         collection_name: Optional[str] = None,
+        with_vectors: bool = True,
     ) -> Optional[models.Record]:
         """Get a specific point by ID.
         
         Args:
             point_id: Point ID
             collection_name: Collection name (defaults to configured collection)
+            with_vectors: Whether to include vectors in the result
             
         Returns:
             Point record or None if not found
@@ -216,12 +238,20 @@ class QdrantClient:
         name = collection_name or self.collection_name
         
         try:
+            ***REMOVED*** Explicitly request vectors to be included
             result = self.client.retrieve(
                 collection_name=name,
                 ids=[point_id],
+                with_vectors=with_vectors,
             )
             
-            return result[0] if result else None
+            logger.debug(f"Retrieved point {point_id} with with_vectors={with_vectors}")
+            if result and len(result) > 0:
+                if hasattr(result[0], 'vector'):
+                    logger.debug(f"Point has vector attribute: {result[0].vector is not None}")
+                
+                return result[0]
+            return None
             
         except Exception as e:
             logger.error(f"Error retrieving point {point_id} from '{name}': {e}")
@@ -244,10 +274,14 @@ class QdrantClient:
         name = collection_name or self.collection_name
         
         try:
+            ***REMOVED*** Convert to the appropriate type for Qdrant API
+            ***REMOVED*** The API expects List[Union[int, str]], but we'll use all strings for consistency
+            point_ids_for_api: List[Union[int, str]] = [str(point_id) for point_id in point_ids]
+            
             self.client.delete(
                 collection_name=name,
                 points_selector=models.PointIdsList(
-                    points=point_ids,
+                    points=point_ids_for_api,
                 ),
             )
             
@@ -259,7 +293,7 @@ class QdrantClient:
             return False
 
 
-def get_qdrant_client() -> QdrantClient:
+def get_qdrant_client() -> "QdrantClient":
     """Get the global Qdrant client instance.
     
     Returns:
@@ -277,22 +311,27 @@ def get_qdrant_client() -> QdrantClient:
             timeout=30,
         )
         
-        ***REMOVED*** Wrap in our client
-        _qdrant_client = QdrantClient(base_client)
+        ***REMOVED*** Wrap in our client and assign to global variable
+        wrapper_client = QdrantClient(base_client)
+        _qdrant_client = wrapper_client
         
         ***REMOVED*** Test connection
-        if not _qdrant_client.test_connection():
+        if not wrapper_client.test_connection():
             logger.warning("Qdrant connection test failed")
         
         logger.info("Qdrant client created successfully")
     
+    ***REMOVED*** We've ensured _qdrant_client is not None at this point
+    assert _qdrant_client is not None
     return _qdrant_client
 
 
 def close_qdrant_client() -> None:
     """Close the global Qdrant client (useful for testing)."""
     global _qdrant_client
-    if _qdrant_client:
-        _qdrant_client.client.close()
+    if _qdrant_client is not None:
+        ***REMOVED*** Access the underlying client through our wrapper class
+        if hasattr(_qdrant_client, "client"):
+            _qdrant_client.client.close()
         _qdrant_client = None
         logger.info("Qdrant client closed") 
