@@ -17,6 +17,7 @@ export interface MovieDetailViewProps {
     toggleLiked?: () => Promise<void>;
     toggleWatchlist?: () => Promise<void>;
   };
+  similarMovies?: Movie[];
 }
 
 /** Actor gallery props */

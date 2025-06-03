@@ -72,6 +72,18 @@ export function useMovieDetailPage(id: number) {
         trailers: data.trailers,
       });
 
+      // Log similar movies data to help with debugging
+      if (data.similar_movies && data.similar_movies.length > 0) {
+        logger.debug(`Received ${data.similar_movies.length} similar movies:`, {
+          firstMovie: {
+            id: data.similar_movies[0]?.id,
+            title: data.similar_movies[0]?.title,
+            similarityScore: data.similar_movies[0]?.similarity_score,
+            reason: data.similar_movies[0]?.recommendation_reason,
+          },
+        });
+      }
+
       // Prefetch related movie details in background
       if (data.similar_movies && data.similar_movies.length > 0) {
         const firstFewSimilar = data.similar_movies.slice(0, 3);
@@ -101,6 +113,18 @@ export function useMovieDetailPage(id: number) {
   if (error) {
     logger.error(`Error in useMovieDetailPage hook for movie ${id}:`, error);
   }
+
+  // Process similar movies data to include similarity scores and reasons
+  const similarMovies = useMemo(() => {
+    if (!movieDetailData?.similar_movies) return [];
+
+    return movieDetailData.similar_movies.map((movie) => ({
+      ...movie,
+      // Ensure these fields are properly typed and accessible in the UI
+      similarityScore: movie.similarity_score,
+      recommendationReason: movie.recommendation_reason || "similar",
+    }));
+  }, [movieDetailData?.similar_movies]);
 
   // Convert MovieDetailData to Movie with user interactions and cast
   const movie: Movie | undefined = movieDetailData
@@ -237,16 +261,23 @@ export function useMovieDetailPage(id: number) {
       interactions: interactionCache,
 
       /**
-       * Get related movies data
+       * Get related movies data with similarity scores
        */
-      getRelatedMovies: () => movieDetailData?.similar_movies || [],
+      getRelatedMovies: () => similarMovies,
 
       /**
        * Get cast data
        */
       getCast: () => movieDetailData?.cast || [],
     }),
-    [queryKey, queryClient, movieDetailData, id, interactionCache]
+    [
+      queryKey,
+      queryClient,
+      movieDetailData,
+      id,
+      interactionCache,
+      similarMovies,
+    ]
   );
 
   return {
@@ -263,7 +294,7 @@ export function useMovieDetailPage(id: number) {
     mutationLoading, // Loading states for individual mutations
 
     // Related data (also available via cache utilities)
-    relatedMovies: movieDetailData?.similar_movies || [],
+    relatedMovies: similarMovies,
     cast: movieDetailData?.cast || [],
 
     // Enhanced cache integration

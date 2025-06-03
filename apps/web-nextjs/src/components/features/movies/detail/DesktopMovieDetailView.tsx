@@ -20,6 +20,8 @@ import MovieAttributes from "./MovieAttributes";
 import MovieQuickAction from "./MovieQuickAction";
 import RatingGroup from "./RatingGroup";
 import { MovieDetailViewProps } from "./types";
+import MovieGrid from "../grid/MovieGrid";
+import { Movie } from "@/domain/entities";
 
 // Create logger for this component
 const logger = createLogger("DesktopMovieDetailView");
@@ -65,7 +67,8 @@ const DesktopMovieDetailView: React.FC<{
   movie: MovieDetailViewProps["movie"];
   isSignedIn: boolean;
   toggleFunctions?: MovieDetailViewProps["toggleFunctions"];
-}> = ({ movie, isSignedIn, toggleFunctions }) => {
+  similarMovies?: Movie[];
+}> = ({ movie, isSignedIn, toggleFunctions, similarMovies = [] }) => {
   // Log component initialization
   useEffect(() => {
     logger.info(
@@ -100,6 +103,13 @@ const DesktopMovieDetailView: React.FC<{
         })) || [],
     };
   }, [movie.cast]);
+
+  // Log similar movies data
+  useEffect(() => {
+    if (similarMovies.length > 0) {
+      logger.debug(`Received ${similarMovies.length} similar movies`);
+    }
+  }, [similarMovies]);
 
   // Safely extract poster URL and title
   const posterUrl =
@@ -205,21 +215,27 @@ const DesktopMovieDetailView: React.FC<{
         </ErrorBoundary>
 
         {/* Similar movies */}
-        {FEATURES.SHOW_MORE_LIKE_THIS && (
+        {FEATURES.SHOW_MORE_LIKE_THIS && similarMovies.length > 0 && (
           <>
-            <Heading size="lg" marginBottom={2} marginTop={5}>
+            <Heading size="lg" marginBottom={4} marginTop={8}>
               More Like This
             </Heading>
-            {/* <ErrorBoundary
+            <ErrorBoundary
               fallback={<Text>Similar movies unavailable</Text>}
               componentName="SimilarMovies"
             >
               <MovieGrid
+                movies={similarMovies}
+                totalMovies={similarMovies.length}
+                fetchedMoviesCount={similarMovies.length}
+                isLoading={false}
+                isFetchingNextPage={false}
+                hasNextPage={false}
                 columns={{ base: 2, sm: 3, md: 3, lg: 4 }}
-                source="more_like_this"
-                movie_id={movieId}
+                source="similar_movies"
+                emptyMessage="No similar movies found"
               />
-            </ErrorBoundary> */}
+            </ErrorBoundary>
           </>
         )}
       </GridItem>

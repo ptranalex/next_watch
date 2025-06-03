@@ -50,9 +50,15 @@ const MovieDetailPage = memo(({ movieId }: MovieDetailPageProps) => {
     toggleLiked,
     toggleWatchlist,
     updateMovieOptimistically,
+    relatedMovies,
   } = useMovieDetailPage(movieId);
 
-  logger.debug("MovieDetailPage", { movie, error, movieId });
+  logger.debug("MovieDetailPage", {
+    movie,
+    error,
+    movieId,
+    similarMoviesCount: relatedMovies?.length || 0,
+  });
 
   // Log movie data and errors
   useEffect(() => {
@@ -61,9 +67,10 @@ const MovieDetailPage = memo(({ movieId }: MovieDetailPageProps) => {
         logger.error(`Error loading movie ${movieId}:`, error);
       } else if (movie) {
         logger.info(`Movie data loaded: ${movie.title} (ID: ${movieId})`);
+        logger.info(`Similar movies loaded: ${relatedMovies?.length || 0}`);
       }
     }
-  }, [movie, error, movieId, isHydrated]);
+  }, [movie, error, movieId, isHydrated, relatedMovies?.length]);
 
   // Log which layout is being rendered
   useEffect(() => {
@@ -100,6 +107,7 @@ const MovieDetailPage = memo(({ movieId }: MovieDetailPageProps) => {
       toggleLiked,
       toggleWatchlist,
     },
+    similarMovies: relatedMovies || [],
   };
 
   // SSR-safe layout selection: always render desktop layout during SSR
@@ -114,6 +122,7 @@ const MovieDetailPage = memo(({ movieId }: MovieDetailPageProps) => {
           toggleLiked,
           toggleWatchlist,
         }}
+        similarMovies={relatedMovies || []}
       />
     );
   }

@@ -13,6 +13,8 @@ import React, { Suspense, useEffect, useMemo } from "react";
 import { movieUtils } from "@/utils/movie/movieDataUtils";
 import { ErrorBoundary } from "@/components/ui/molecules/feedback";
 import MovieActionControls from "./MovieActionControls";
+import MovieGrid from "@/components/features/movies/grid/MovieGrid";
+import { Movie } from "@/domain/entities";
 
 // Create logger for this component
 const logger = createLogger("MobileMovieDetailView");
@@ -57,11 +59,9 @@ const TrailerCard = dynamic(
 /**
  * Mobile version of the movie detail view with optimized layout for smaller screens
  */
-const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
-  movie,
-  isSignedIn,
-  onUpdateMovie,
-}) => {
+const MobileMovieDetailView: React.FC<
+  MovieDetailViewProps & { similarMovies?: Movie[] }
+> = ({ movie, isSignedIn, onUpdateMovie, similarMovies = [] }) => {
   // Log component initialization
   useEffect(() => {
     logger.info(
@@ -75,8 +75,9 @@ const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
       trailers: movie.trailers,
       hasCast: !!movie.cast,
       castLength: movie.cast?.length || 0,
+      similarMoviesCount: similarMovies.length,
     });
-  }, [movie.id, movie.title, movie.trailers, movie.cast]);
+  }, [movie.id, movie.title, movie.trailers, movie.cast, similarMovies.length]);
 
   // Memoize values to prevent recalculation
   const movieId = React.useMemo(() => movieUtils.getMovieId(movie), [movie]);
@@ -175,15 +176,28 @@ const MobileMovieDetailView: React.FC<MovieDetailViewProps> = ({
             <MovieAttributes movie={movie} />
           </ErrorBoundary>
 
-          {/* Similar movies - commented out until proper data source is available */}
-          {FEATURES.SHOW_MORE_LIKE_THIS && (
+          {/* Similar movies */}
+          {FEATURES.SHOW_MORE_LIKE_THIS && similarMovies.length > 0 && (
             <>
-              <Heading size="md" marginBottom={2} marginTop={5}>
+              <Heading size="md" marginBottom={3} marginTop={6}>
                 More Like This
               </Heading>
-              <Text fontSize="sm" color="text.tertiary">
-                Similar movies feature coming soon
-              </Text>
+              <ErrorBoundary
+                fallback={<Text>Similar movies unavailable</Text>}
+                componentName="SimilarMovies"
+              >
+                <MovieGrid
+                  movies={similarMovies}
+                  totalMovies={similarMovies.length}
+                  fetchedMoviesCount={similarMovies.length}
+                  isLoading={false}
+                  isFetchingNextPage={false}
+                  hasNextPage={false}
+                  columns={{ base: 2, sm: 3 }}
+                  source="similar_movies"
+                  emptyMessage="No similar movies found"
+                />
+              </ErrorBoundary>
             </>
           )}
         </GridItem>
