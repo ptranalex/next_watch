@@ -11,18 +11,20 @@ WORKDIR /build
 ***REMOVED*** Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
+        curl \
         gcc \
         python3-dev \
+        libffi-dev \
+        libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-***REMOVED*** Copy only requirements first to leverage Docker cache
+***REMOVED*** Copy requirements and shared library
 COPY apps/recommendation-api/requirements.txt .
 COPY libs/movie-storage /build/movie-storage/
 
-***REMOVED*** Create a minimal requirements file without ML-specific dependencies and local paths
-***REMOVED*** This significantly reduces the image size by excluding heavy ML libraries
-RUN grep -v "sentence-transformers\|torch\|transformers\|nvidia\|triton\|safetensors\|tokenizers\|movie-storage @" requirements.txt > requirements.minimal.txt \
-    && pip install --no-cache-dir -r requirements.minimal.txt \
+***REMOVED*** Create a requirements file without local paths but keeping ML dependencies
+RUN sed 's|file:///.*movie-storage|/build/movie-storage|g' requirements.txt > requirements.docker.txt \
+    && pip install --no-cache-dir -r requirements.docker.txt \
     && cd /build/movie-storage \
     && pip install --no-cache-dir -e .
 
@@ -32,17 +34,17 @@ FROM python:3.9-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
-    DISABLE_ML_FEATURES=true
+    DISABLE_ML_FEATURES=false
 
 WORKDIR /app
 
-***REMOVED*** Install minimal runtime dependencies
+***REMOVED*** Install runtime dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-***REMOVED*** Copy only what's needed from builder
+***REMOVED*** Copy Python packages from builder
 COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
 
@@ -53,13 +55,8 @@ COPY libs/movie-storage/movie_storage /app/movie_storage/
 ***REMOVED*** Create an empty .env file to prevent path resolution errors
 RUN touch /app/.env
 
-***REMOVED*** Create a mock implementation of the embedding service
-***REMOVED*** This allows the API to run without the heavy ML dependencies
-RUN mkdir -p /app/mock_modules/sentence_transformers && \
-    echo 'class SentenceTransformer:\n    def __init__(self, model_name):\n        self.model_name = model_name\n        print(f"Mock SentenceTransformer initialized with {model_name}")\n\n    def encode(self, text):\n        import numpy as np\n        ***REMOVED*** Return a fixed vector of the right dimension\n        return np.zeros(384)\n\n    def get_sentence_embedding_dimension(self):\n        return 384' > /app/mock_modules/sentence_transformers/__init__.py
-
-***REMOVED*** Set Python path to include mock modules
-ENV PYTHONPATH=/app:/app/mock_modules
+***REMOVED*** Set Python path
+ENV PYTHONPATH=/app
 
 EXPOSE 8002
 

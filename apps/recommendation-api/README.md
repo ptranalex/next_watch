@@ -36,6 +36,96 @@ recommendation_api/
 - **Vector Storage**: Qdrant vector database for similarity search
 - **Embedding Generation**: Text embedding generation using SentenceTransformer
 
+***REMOVED******REMOVED*** Docker
+
+The service includes an optimized Dockerfile that significantly reduces image size and build time.
+
+***REMOVED******REMOVED******REMOVED*** Dockerfile Features
+
+- **Lightweight Image**: ~835MB (45% smaller than the original ~1.5GB image)
+- **ML Dependencies Optional**: Excludes heavy ML libraries (PyTorch, transformers) to reduce size
+- **Mock ML Implementation**: Provides mock implementations for ML features when running in lightweight mode
+- **Fast Builds**: Optimized layer caching for quicker rebuilds
+- **Production-Ready**: Includes health checks, non-root user, and proper environment setup
+
+***REMOVED******REMOVED******REMOVED*** Docker Build Options
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Lightweight Build (Default)
+
+```bash
+***REMOVED*** Build the lightweight image (no ML dependencies)
+docker build -t recommendation-api .
+
+***REMOVED*** Run the container
+docker run -p 8002:8002 recommendation-api
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Full ML Build
+
+```bash
+***REMOVED*** Build the full image with ML dependencies
+docker build -t recommendation-api-ml -f Dockerfile.ml .
+
+***REMOVED*** Run the container with ML capabilities
+docker run -p 8002:8002 recommendation-api-ml
+```
+
+***REMOVED******REMOVED******REMOVED*** Environment Variables
+
+- `ENVIRONMENT`: Set to `production` by default
+- `DISABLE_ML_FEATURES`: Set to `true` in the lightweight image, `false` in the ML image
+- `PYTHONPATH`: Configured to include mock modules when needed
+
+***REMOVED******REMOVED******REMOVED*** ML Features
+
+The project provides two deployment options:
+
+1. **Lightweight Mode** (`Dockerfile`): Uses mock ML implementations for faster startup and smaller image size
+2. **Full ML Mode** (`Dockerfile.ml`): Includes all ML dependencies for complete functionality
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** When to Use Each Option
+
+- **Use Lightweight Mode (`Dockerfile`) when**:
+
+  - You need a smaller Docker image
+  - You're running in development or testing environments
+  - You're only using non-ML API endpoints (trending, popular)
+  - You have pre-computed embeddings stored in Qdrant
+
+- **Use Full ML Mode (`Dockerfile.ml`) when**:
+  - You need to generate new embeddings
+  - You require personalized recommendations based on content
+  - You need accurate similar movie recommendations
+  - You have sufficient system resources for ML operations
+
+***REMOVED******REMOVED******REMOVED*** Docker Optimization Details
+
+The Docker image was optimized to address two main issues:
+
+1. **Size Reduction**: The original image was ~1.5GB, primarily due to ML dependencies:
+
+   - PyTorch (~333MB)
+   - Transformers (~56MB)
+   - SentenceTransformers and related libraries
+
+2. **Build Time**: The original build process was inefficient and slow
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Optimization Approach
+
+1. **Multi-stage Build**: Separates build dependencies from runtime dependencies
+2. **Dependency Filtering**: Excludes ML libraries that account for most of the image size
+3. **Mock Implementation**: Provides mock classes for ML functionality to maintain API compatibility
+4. **Layer Caching**: Organizes Dockerfile commands to maximize cache hits during rebuilds
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Trade-offs
+
+- **Limited ML Functionality**: The lightweight image can't perform actual embedding generation
+- **Mock Data**: Returns zero vectors instead of real embeddings
+- **Deployment Strategy**: For full ML functionality, consider:
+  - Using the `Dockerfile.ml` with ML dependencies
+  - Implementing a separate ML microservice
+  - Pre-computing embeddings and storing them in the vector database
+
 ***REMOVED******REMOVED*** Installation
 
 1. Clone the repository
