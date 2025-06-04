@@ -6,7 +6,7 @@ This module handles all database interactions for the Recommendation API service
 
 The database module provides:
 
-- Connection management for PostgreSQL
+- Connection management for PostgreSQL (via shared movie_storage library)
 - Database session handling
 - Data access operations
 - Entity mapping and conversion
@@ -17,10 +17,10 @@ The database module provides:
 
 Manages database connections:
 
-- `get_db_engine()`: Creates and returns a SQLAlchemy engine
+- `init_database()`: Initializes database connection with enhanced pool settings
+- `get_db_session()`: Provides a FastAPI dependency for database sessions
 - `get_db_context()`: Provides a context manager for database sessions
 - `test_connection()`: Tests database connectivity
-- `initialize_db()`: Sets up database schema if needed
 
 ***REMOVED******REMOVED******REMOVED*** `operations.py`
 
@@ -37,7 +37,18 @@ Contains all data access operations:
 ***REMOVED******REMOVED******REMOVED*** Database Sessions
 
 ```python
-from recommendation_api.db.connection import get_db_context
+***REMOVED*** For FastAPI endpoints
+from recommendation_api.db import get_db_session
+from fastapi import Depends
+
+@app.get("/movies/{movie_id}")
+async def get_movie(movie_id: int, session: Session = Depends(get_db_session)):
+    ***REMOVED*** Use session for database operations
+    movie = get_movie_by_id(session, movie_id)
+    return movie
+
+***REMOVED*** For CLI commands or background tasks
+from recommendation_api.db import get_db_context
 
 ***REMOVED*** Using a context manager for automatic session handling
 with get_db_context() as session:
@@ -105,3 +116,13 @@ The URL format follows SQLAlchemy's connection string format:
 ```
 postgresql://username:password@host:port/database
 ```
+
+***REMOVED******REMOVED*** Enhanced Connection Pool Settings
+
+The database connection is configured with enhanced pool settings to handle high concurrency:
+
+- `pool_size`: 20 (default: 5)
+- `max_overflow`: 30 (default: 10)
+- `pool_timeout`: 60 seconds (default: 30)
+
+These settings allow up to 50 concurrent database connections (20 pool + 30 overflow).

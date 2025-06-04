@@ -9,7 +9,7 @@ import rich
 import logging
 
 from recommendation_api.config import settings
-from recommendation_api.db.connection import get_db_context, test_connection
+from recommendation_api.db.connection import get_db_context, test_connection, get_simple_session
 from recommendation_api.db.operations import get_movies_for_embeddings, get_movie_features
 from recommendation_api.repositories.vector import (
     create_collection,
@@ -261,9 +261,12 @@ def status(
     
     try:
         ***REMOVED*** Get database stats
-        with get_db_context() as session:
+        session = get_simple_session()
+        try:
             movies = get_movies_for_embeddings(session, limit=None)
             total_movies = len(movies)
+        finally:
+            session.close()
         
         ***REMOVED*** Get vector service stats
         vector_service = get_vector_service()

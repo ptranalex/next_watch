@@ -39,7 +39,9 @@ async def get_user_recommendations_endpoint(
     """
     try:
         service = RecommendationService(session)
-        recommendations, filters = service.get_user_recommendations(
+        
+        ***REMOVED*** Use the new direct method instead of the commented-out one
+        recommendations, filters = service.get_user_recommendations_direct(
             user_id=user_id,
             limit=limit,
             min_rating=min_rating,

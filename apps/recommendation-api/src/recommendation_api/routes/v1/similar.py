@@ -21,8 +21,6 @@ router = APIRouter()
 async def get_similar_movies_endpoint(
     movie_id: int,
     limit: int = Query(20, ge=1, le=50),
-    min_rating: float = Query(6.0, ge=0, le=10),
-    min_vote_count: int = Query(500, ge=0),
     min_score: float = Query(0.01, ge=0, le=1.0),
     session: Session = Depends(get_db_session),
 ):
@@ -31,8 +29,6 @@ async def get_similar_movies_endpoint(
     Args:
         movie_id: Movie ID to find similar movies for
         limit: Maximum number of similar movies (1-50)
-        min_rating: Minimum IMDb rating (0-10)
-        min_vote_count: Minimum vote count threshold
         min_score: Minimum similarity score threshold (0-1)
         session: Database session
         
@@ -46,14 +42,12 @@ async def get_similar_movies_endpoint(
                 detail="Invalid movie ID"
             )
         
-        logger.debug(f"Finding similar movies for movie ID {movie_id} with min_score={min_score}, min_rating={min_rating}")
+        logger.debug(f"Finding similar movies for movie ID {movie_id} with min_score={min_score}")
             
         service = RecommendationService(session)
         recommendations, filters = service.get_similar_movies(
             movie_id=movie_id,
             limit=limit,
-            min_rating=min_rating,
-            min_vote_count=min_vote_count,
             min_score=min_score,
         )
         

@@ -36,8 +36,11 @@ async def get_popular_recommendations_endpoint(
         List of popular movie recommendations
     """
     try:
+        ***REMOVED*** Create recommendation service
         service = RecommendationService(session)
-        recommendations, filters = service.get_popular_recommendations(
+        
+        ***REMOVED*** Use the new direct method instead of the commented-out one
+        recommendations, filters = service.get_popular_recommendations_direct(
             limit=limit,
             min_rating=min_rating,
             min_vote_count=min_vote_count,
