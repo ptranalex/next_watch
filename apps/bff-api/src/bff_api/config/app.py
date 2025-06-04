@@ -55,6 +55,9 @@ DEFAULT_ENABLE_PERFORMANCE_METRICS = (
 DEFAULT_BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000")
 DEFAULT_BACKEND_API_TIMEOUT = int(os.getenv("BACKEND_API_TIMEOUT", "30"))
 
+***REMOVED*** Recommendation API settings
+DEFAULT_RECO_API_URL = os.getenv("RECO_API_URL", "http://localhost:8002")
+
 ***REMOVED*** Redis settings
 DEFAULT_REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 DEFAULT_CACHE_TTL = int(os.getenv("CACHE_TTL", "300"))  ***REMOVED*** 5 minutes
@@ -84,6 +87,7 @@ class Config:
     log_dir: str
     backend_api_url: str
     backend_api_timeout: int
+    reco_api_url: str
     redis_url: str
     cache_ttl: int
     jwt_secret: Optional[str]
@@ -116,6 +120,7 @@ class Config:
         log_dir: str = DEFAULT_LOGS_DIR,
         backend_api_url: str = DEFAULT_BACKEND_API_URL,
         backend_api_timeout: int = DEFAULT_BACKEND_API_TIMEOUT,
+        reco_api_url: str = DEFAULT_RECO_API_URL,
         redis_url: str = DEFAULT_REDIS_URL,
         cache_ttl: int = DEFAULT_CACHE_TTL,
         jwt_secret: Optional[str] = DEFAULT_JWT_SECRET,
@@ -135,6 +140,7 @@ class Config:
             log_dir: Directory to store log files
             backend_api_url: URL for backend API service
             backend_api_timeout: Timeout for backend API requests in seconds
+            reco_api_url: URL for recommendation API service
             redis_url: URL for Redis connection
             cache_ttl: Cache TTL in seconds
             jwt_secret: Secret key for JWT token validation
@@ -161,6 +167,9 @@ class Config:
         ***REMOVED*** Backend API settings
         self.backend_api_url = backend_api_url.rstrip("/")
         self.backend_api_timeout = backend_api_timeout
+        
+        ***REMOVED*** Recommendation API settings
+        self.reco_api_url = reco_api_url.rstrip("/")
 
         ***REMOVED*** Redis settings
         self.redis_url = redis_url
@@ -188,6 +197,7 @@ class Config:
             f"Initializing BFF configuration with environment: {self.environment}"
         )
         logger.info(f"Backend API URL: {self.backend_api_url}")
+        logger.info(f"Recommendation API URL: {self.reco_api_url}")
         logger.info(f"Auth service URL: {self.auth_api_url}")
         logger.info(f"Debug mode: {self.debug}")
 
@@ -212,6 +222,7 @@ class Config:
             f"debug={self.debug}, "
             f"cors_origins={self.cors_origins}, "
             f"backend_api_url={self.backend_api_url}, "
+            f"reco_api_url={self.reco_api_url}, "
             f"environment={self.environment}, "
             f"jwt_secret={masked_jwt})"
         )

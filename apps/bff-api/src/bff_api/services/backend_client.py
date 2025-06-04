@@ -252,15 +252,69 @@ class BackendClient:
             movie_id: Movie ID
 
         Returns:
-            List of movie trailers with YouTube keys and metadata
+            List of movie trailers
         """
         response = await self._make_request(
             "GET", self._build_api_path(f"/movies/{movie_id}/trailers")
         )
-        ***REMOVED*** Backend returns trailers array directly, not wrapped in an object
+        ***REMOVED*** Handle both list responses and dictionary responses with trailers key
         if isinstance(response, list):
             return response
         return response.get("trailers", [])
+
+    async def get_similar_movies(
+        self, 
+        movie_id: int, 
+        limit: int = 20,
+        min_score: float = 0.01,
+    ) -> List[Dict[str, Any]]:
+        """Get similar movies from recommendation API.
+        
+        Args:
+            movie_id: Movie ID to find similar movies for
+            limit: Maximum number of similar movies
+            min_score: Minimum similarity score threshold
+            
+        Returns:
+            List of similar movies
+            
+        Raises:
+            BackendClientError: If request fails
+        """
+        try:
+            ***REMOVED*** Get URL for recommendation API from config or construct it
+            reco_api_url = self.config.reco_api_url if hasattr(self.config, "reco_api_url") else "http://localhost:8002"
+            
+            ***REMOVED*** Create a temporary client for recommendation API
+            async with httpx.AsyncClient(base_url=reco_api_url, timeout=self.timeout) as client:
+                response = await client.get(
+                    f"/reco/v1/movies/{movie_id}/similar",
+                    params={
+                        "limit": limit,
+                        "min_score": min_score,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                
+                ***REMOVED*** Extract just the recommendation movie objects from the response
+                recommendations = data.get("recommendations", [])
+                
+                logger.info(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
+                return recommendations
+                
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error {e.response.status_code} getting similar movies for {movie_id}: {e}")
+            ***REMOVED*** If movie is not found, return empty list instead of raising error
+            if e.response.status_code == 404:
+                return []
+            raise BackendClientError(f"Recommendation API error: {e.response.status_code}")
+        except httpx.RequestError as e:
+            logger.error(f"Request error getting similar movies for {movie_id}: {e}")
+            raise BackendClientError(f"Recommendation API request failed: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error getting similar movies for {movie_id}: {e}")
+            raise BackendClientError(f"Unexpected error getting similar movies: {e}")
 
     async def get_actor(self, actor_id: int) -> Dict[str, Any]:
         """Get actor details.

@@ -80,11 +80,107 @@ async def get_movie_screen(
             logger.warning(f"Failed to get trailers for movie {movie_id}")
             trailers = []
 
-        ***REMOVED*** Get additional data (implement these endpoints in backend)
-        ***REMOVED*** similar_movies = await backend.get_similar_movies(movie_id, user_id=user_id)
-
-        ***REMOVED*** Placeholder for similar movies
-        similar_movies: List[Dict[str, Any]] = []
+        ***REMOVED*** Get similar movies from recommendation API
+        try:
+            similar_movies = await backend.get_similar_movies(
+                movie_id, 
+                limit=20,  ***REMOVED*** Reduced from 20 to prevent database connection pool issues
+                min_score=0.01,
+            )
+            logger.info(f"Successfully fetched {len(similar_movies)} similar movies for movie {movie_id}")
+            
+            ***REMOVED*** Extract movie IDs for bulk fetching
+            similar_movie_ids = [similar_item.get("id") for similar_item in similar_movies if similar_item.get("id")]
+            
+            if similar_movie_ids:
+                ***REMOVED*** Fetch movie details in bulk to get complete information
+                try:
+                    movies_response = await backend.get_movies_bulk(
+                        movie_ids=similar_movie_ids,
+                        user_id=user_id,
+                        page=1,  ***REMOVED*** Get all movies in one request
+                        limit=len(similar_movie_ids),  ***REMOVED*** Get all movies
+                    )
+                    
+                    similar_movies = movies_response.get("results", [])
+                    logger.info(f"Successfully enriched {len(similar_movies)} similar movies with details")
+                    
+                    ***REMOVED*** If user is authenticated, fetch user interactions for each similar movie
+                    if user_id and credentials:
+                        logger.info(f"Enriching similar movies with user interaction data")
+                        for similar_movie in similar_movies:
+                            similar_movie_id = similar_movie.get("id")
+                            if similar_movie_id:
+                                try:
+                                    interaction_data = await backend.get_user_movie_interaction(
+                                        user_id, similar_movie_id, jwt_token=credentials.credentials
+                                    )
+                                    if interaction_data:
+                                        ***REMOVED*** Map user interaction data directly to movie fields for frontend compatibility
+                                        similar_movie["liked"] = interaction_data.get("liked", False)
+                                        similar_movie["watched"] = interaction_data.get("watched", False)
+                                        similar_movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
+                                        
+                                        ***REMOVED*** Also include complete user_interactions object
+                                        similar_movie["user_interactions"] = {
+                                            "in_watchlist": interaction_data.get("in_watchlist", False),
+                                            "is_favorite": interaction_data.get("liked", False),
+                                            "user_rating": interaction_data.get("rating"),
+                                            "watch_progress": interaction_data.get("watch_progress", 0),
+                                            "is_watched": interaction_data.get("watched", False),
+                                        }
+                                    else:
+                                        ***REMOVED*** Set default values if no interaction data exists
+                                        similar_movie["liked"] = False
+                                        similar_movie["watched"] = False
+                                        similar_movie["in_watchlist"] = False
+                                        similar_movie["user_interactions"] = {
+                                            "in_watchlist": False,
+                                            "is_favorite": False,
+                                            "user_rating": None,
+                                            "watch_progress": 0,
+                                            "is_watched": False,
+                                        }
+                                except Exception as e:
+                                    logger.warning(f"Failed to get user interaction for similar movie {similar_movie_id}: {e}")
+                                    ***REMOVED*** Set default values if fetching interaction data fails
+                                    similar_movie["liked"] = False
+                                    similar_movie["watched"] = False
+                                    similar_movie["in_watchlist"] = False
+                                    similar_movie["user_interactions"] = {
+                                        "in_watchlist": False,
+                                        "is_favorite": False,
+                                        "user_rating": None,
+                                        "watch_progress": 0,
+                                        "is_watched": False,
+                                    }
+                    else:
+                        ***REMOVED*** For anonymous users, set all interaction fields to false
+                        for similar_movie in similar_movies:
+                            similar_movie["liked"] = False
+                            similar_movie["watched"] = False
+                            similar_movie["in_watchlist"] = False
+                            similar_movie["user_interactions"] = {
+                                "in_watchlist": False,
+                                "is_favorite": False,
+                                "user_rating": None,
+                                "watch_progress": 0,
+                                "is_watched": False,
+                            }
+                except BackendClientError as e:
+                    logger.warning(f"Failed to get bulk details for similar movies: {e}")
+                    ***REMOVED*** Keep the original similar_movies if bulk fetch fails
+            else:
+                logger.warning("No valid movie IDs found in similar movies response")
+        except BackendClientError as e:
+            error_msg = str(e)
+            if "QueuePool limit" in error_msg or "503" in error_msg:
+                logger.error(f"Database connection pool limit reached when fetching similar movies for movie {movie_id}: {e}")
+                ***REMOVED*** Return empty list for similar movies in case of connection pool errors
+                similar_movies = []
+            else:
+                logger.warning(f"Failed to get similar movies for movie {movie_id}: {e}")
+                similar_movies = []
 
         ***REMOVED*** User interactions (watchlist, favorite, rating)
         user_interactions = {}
@@ -258,24 +354,24 @@ async def get_movies_list(
         ***REMOVED*** If user is authenticated, fetch user interactions for each movie
         if user_id and credentials:
             logger.info(f"🔄 Fetching user interactions for {len(movies)} movies")
-            for movie in movies:
-                movie_id = movie.get("id")
-                if movie_id:
+            for list_movie in movies:
+                list_movie_id = list_movie.get("id")
+                if list_movie_id:
                     try:
                         interaction_data = await backend.get_user_movie_interaction(
-                            user_id, movie_id, jwt_token=credentials.credentials
+                            user_id, list_movie_id, jwt_token=credentials.credentials
                         )
                         if interaction_data:
                             ***REMOVED*** Map user interaction data directly to movie fields
                             ***REMOVED*** for frontend compatibility
-                            movie["liked"] = interaction_data.get("liked", False)
-                            movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get(
+                            list_movie["liked"] = interaction_data.get("liked", False)
+                            list_movie["watched"] = interaction_data.get("watched", False)
+                            list_movie["in_watchlist"] = interaction_data.get(
                                 "in_watchlist", False
                             )
 
                             ***REMOVED*** Also include complete user_interactions object for reference
-                            movie["user_interactions"] = {
+                            list_movie["user_interactions"] = {
                                 "in_watchlist": interaction_data.get(
                                     "in_watchlist", False
                                 ),
@@ -288,11 +384,11 @@ async def get_movies_list(
                             }
                         else:
                             ***REMOVED*** Set default values if no interaction data exists
-                            movie["liked"] = False
-                            movie["watched"] = False
-                            movie["in_watchlist"] = False
+                            list_movie["liked"] = False
+                            list_movie["watched"] = False
+                            list_movie["in_watchlist"] = False
 
-                            movie["user_interactions"] = {
+                            list_movie["user_interactions"] = {
                                 "in_watchlist": False,
                                 "is_favorite": False,
                                 "user_rating": None,
@@ -301,14 +397,14 @@ async def get_movies_list(
                             }
                     except Exception as e:
                         logger.warning(
-                            f"Failed to get user interaction for movie {movie_id}: {e}"
+                            f"Failed to get user interaction for movie {list_movie_id}: {e}"
                         )
                         ***REMOVED*** Set default values if fetching interaction data fails
-                        movie["liked"] = False
-                        movie["watched"] = False
-                        movie["in_watchlist"] = False
+                        list_movie["liked"] = False
+                        list_movie["watched"] = False
+                        list_movie["in_watchlist"] = False
 
-                        movie["user_interactions"] = {
+                        list_movie["user_interactions"] = {
                             "in_watchlist": False,
                             "is_favorite": False,
                             "user_rating": None,
@@ -318,11 +414,11 @@ async def get_movies_list(
         else:
             ***REMOVED*** For anonymous users, set all interaction fields to false
             logger.info("No user authenticated - setting default interaction values")
-            for movie in movies:
-                movie["liked"] = False
-                movie["watched"] = False
-                movie["in_watchlist"] = False
-                movie["user_interactions"] = {
+            for list_movie in movies:
+                list_movie["liked"] = False
+                list_movie["watched"] = False
+                list_movie["in_watchlist"] = False
+                list_movie["user_interactions"] = {
                     "in_watchlist": False,
                     "is_favorite": False,
                     "user_rating": None,
