@@ -9,6 +9,7 @@ on:
       - "apps/bff-api/**"
       - "apps/web-nextjs/**"
       - "apps/data-importer/**"
+      - "apps/recommendation-api/**"
       - "libs/movie-storage/**"
       - "infra/**"
   workflow_dispatch:
@@ -43,6 +44,11 @@ on:
         required: false
         type: boolean
         default: false
+      deploy_recommendation:
+        description: "Deploy recommendation API"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check_changes:
@@ -53,6 +59,7 @@ jobs:
       bff_changed: ${{ steps.set-outputs.outputs.bff_changed }}
       frontend_changed: ${{ steps.set-outputs.outputs.frontend_changed }}
       importer_changed: ${{ steps.set-outputs.outputs.importer_changed }}
+      recommendation_changed: ${{ steps.set-outputs.outputs.recommendation_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,6 +83,9 @@ jobs:
             importer:
               - 'apps/data-importer/**'
               - 'libs/movie-storage/**'
+            recommendation:
+              - 'apps/recommendation-api/**'
+              - 'libs/movie-storage/**'
 
       - name: Set outputs
         id: set-outputs
@@ -86,12 +96,14 @@ jobs:
             echo "bff_changed=${{ steps.filter.outputs.bff }}" >> $GITHUB_OUTPUT
             echo "frontend_changed=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
             echo "importer_changed=${{ steps.filter.outputs.importer }}" >> $GITHUB_OUTPUT
+            echo "recommendation_changed=${{ steps.filter.outputs.recommendation }}" >> $GITHUB_OUTPUT
           else
             echo "backend_changed=${{ github.event.inputs.deploy_backend }}" >> $GITHUB_OUTPUT
             echo "auth_changed=${{ github.event.inputs.deploy_auth }}" >> $GITHUB_OUTPUT
             echo "bff_changed=${{ github.event.inputs.deploy_bff }}" >> $GITHUB_OUTPUT
             echo "frontend_changed=${{ github.event.inputs.deploy_frontend }}" >> $GITHUB_OUTPUT
             echo "importer_changed=${{ github.event.inputs.deploy_importer }}" >> $GITHUB_OUTPUT
+            echo "recommendation_changed=${{ github.event.inputs.deploy_recommendation }}" >> $GITHUB_OUTPUT
           fi
 
   build_backend:
@@ -145,6 +157,16 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
+  build_recommendation:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.recommendation_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: recommendation-api
+      dockerfile_path: ./apps/recommendation-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
   deploy:
     needs:
       [
@@ -154,6 +176,7 @@ jobs:
         build_bff,
         build_frontend,
         build_importer,
+        build_recommendation,
       ]
     if: |
       always() && 
@@ -162,6 +185,7 @@ jobs:
        needs.check_changes.outputs.bff_changed == 'true' || 
        needs.check_changes.outputs.frontend_changed == 'true' || 
        needs.check_changes.outputs.importer_changed == 'true' || 
+       needs.check_changes.outputs.recommendation_changed == 'true' || 
        github.event.inputs.build_all == true)
     uses: ./.github/workflows/deploy.yml
     with:
@@ -170,6 +194,7 @@ jobs:
       deploy_bff: ${{ needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == true }}
       deploy_frontend: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == true }}
       deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_recommendation: ${{ needs.check_changes.outputs.recommendation_changed == 'true' || github.event.inputs.build_all == true }}
     secrets:
       DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
