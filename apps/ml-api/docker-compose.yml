@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  ml-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8004
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - MODEL_CACHE_DIR=/app/model_cache
+      - LOG_LEVEL=INFO
+      - MAX_BATCH_SIZE=32
+    volumes:
+      - ./model_cache:/app/model_cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

@@ -1,0 +1,120 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ml_api"
+version = "0.1.0"
+description = "ML API for Next Watch platform"
+authors = [
+    {name = "Next Watch Team"}
+]
+***REMOVED*** Make README optional by using an inline text
+readme = {text = "***REMOVED*** ML API\n\nMachine Learning API for Next Watch platform", content-type = "text/markdown"}
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+***REMOVED*** Dependencies analyzed based on actual usage in embedding_service.py
+dependencies = [
+    ***REMOVED*** Core API framework
+    "fastapi>=0.100.0",         ***REMOVED*** API framework
+    "uvicorn>=0.22.0",          ***REMOVED*** ASGI server
+    "pydantic>=2.0.0",          ***REMOVED*** Data validation
+    
+    ***REMOVED*** ML functionality - this pulls in torch, transformers, etc.
+    "sentence-transformers>=2.2.2",  ***REMOVED*** Core embedding functionality
+    
+    ***REMOVED*** CLI and utilities
+    "typer>=0.9.0",             ***REMOVED*** CLI framework
+    "rich>=13.0.0",             ***REMOVED*** Terminal formatting
+    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.24.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "ruff>=0.0.250",
+]
+
+[project.scripts]
+ml-api = "ml_api.cli:app"
+
+***REMOVED*** Hatch configuration
+[tool.hatch.build.targets.wheel]
+packages = ["ml_api"]
+
+[tool.hatch.envs.default]
+dependencies = [
+  "fastapi>=0.100.0",
+  "uvicorn>=0.22.0",
+  "pydantic>=2.0.0",
+  "sentence-transformers>=2.2.2",
+  "typer>=0.9.0",
+  "rich>=13.0.0",
+  "python-dotenv>=1.0.0",
+]
+
+[tool.hatch.envs.default.scripts]
+serve = "python -m ml_api.app"
+dev = "uvicorn ml_api.app:app --reload"
+
+[tool.hatch.envs.dev]
+dependencies = [
+  "pytest>=8.0.0",
+  "pytest-cov>=6.0.0",
+  "httpx>=0.24.0",
+  "black>=23.0.0",
+  "isort>=5.12.0",
+  "mypy>=1.0.0",
+  "ruff>=0.0.250",
+]
+
+[tool.hatch.envs.dev.scripts]
+lint = [
+  "black .",
+  "isort .",
+  "ruff check .",
+  "mypy ml_api"
+]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=ml_api tests/"
+format = [
+  "black .",
+  "isort ."
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = ["sentence_transformers.*"]
+ignore_missing_imports = true 
