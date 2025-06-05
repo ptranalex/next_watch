@@ -42,12 +42,26 @@ Note that the ML API may take some time to initialize as it loads the machine le
 
 ***REMOVED******REMOVED*** Image Size and Optimization
 
-The ML API image is approximately 1.56GB due to the inclusion of machine learning dependencies like sentence-transformers. This is expected for an ML-based container.
+The ML API image size varies depending on the build environment:
 
-The Dockerfile uses a multi-stage build approach to minimize the final image size:
+- **Local build**: Approximately 1.56GB
+- **GitHub Actions build**: Approximately 5.95GB
 
-1. Builder stage: Builds the Python wheel package
-2. Runtime stage: Installs only the necessary runtime dependencies
+The size difference is primarily due to how PyTorch and its dependencies are handled in different environments. The GitHub Actions build may include CUDA support and additional ML libraries that increase the image size.
+
+***REMOVED******REMOVED******REMOVED*** Optimizing Image Size
+
+To ensure a smaller image size, the Dockerfile uses:
+
+1. A multi-stage build approach
+2. CPU-only PyTorch version (specified with `torch==2.7.1+cpu`)
+3. Cache directories for ML models to avoid downloading them during build
+
+If you need to further reduce the image size, consider:
+
+- Using a specific, smaller ML model
+- Adding more aggressive cleanup steps in the Dockerfile
+- Setting environment variables to prevent downloading pre-trained models during build
 
 ***REMOVED******REMOVED*** Security
 

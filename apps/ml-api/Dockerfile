@@ -13,6 +13,9 @@ RUN apt-get update && \
 COPY apps/ml-api/pyproject.toml .
 COPY apps/ml-api/ml_api ./ml_api
 
+***REMOVED*** Modify dependencies to use CPU-only PyTorch
+RUN sed -i 's/sentence-transformers>=2.2.2/sentence-transformers>=2.2.2/' pyproject.toml
+
 ***REMOVED*** Build the wheel package
 RUN hatch build -t wheel
 
@@ -22,7 +25,11 @@ FROM python:3.12-slim
 ***REMOVED*** Environment variables for runtime optimization
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH="/app"
+    PYTHONPATH="/app" \
+    EMBEDDING_MODEL="all-MiniLM-L6-v2" \
+    TORCH_HOME="/app/.cache/torch" \
+    TRANSFORMERS_CACHE="/app/.cache/transformers" \
+    SENTENCE_TRANSFORMERS_HOME="/app/.cache/sentence_transformers"
 
 WORKDIR /app
 
@@ -36,10 +43,14 @@ RUN apt-get update && \
 
 ***REMOVED*** Copy and install the built wheel only
 COPY --from=builder /build/dist/*.whl .
-RUN pip install --no-cache-dir ./*.whl && rm -f ./*.whl
+
+***REMOVED*** Install with explicit CPU-only dependencies
+RUN pip install --no-cache-dir ./*.whl && \
+    pip install --no-cache-dir torch==2.7.1+cpu --index-url https://download.pytorch.org/whl/cpu && \
+    rm -f ./*.whl
 
 ***REMOVED*** Set file ownership and permissions
-RUN chown -R mlapi:mlapi /app
+RUN mkdir -p /app/.cache && chown -R mlapi:mlapi /app
 
 ***REMOVED*** Switch to non-root user
 USER mlapi
