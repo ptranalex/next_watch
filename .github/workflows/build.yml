@@ -36,6 +36,9 @@ on:
       image_recommendation:
         description: "Recommendation API image"
         value: ${{ jobs.build_recommendation.outputs.image }}
+      image_ml:
+        description: "ML API image"
+        value: ${{ jobs.build_ml.outputs.image }}
 
 jobs:
   check_changes:
@@ -47,6 +50,7 @@ jobs:
       frontend_changed: ${{ steps.filter.outputs.frontend }}
       importer_changed: ${{ steps.filter.outputs.importer }}
       recommendation_changed: ${{ steps.filter.outputs.recommendation }}
+      ml_changed: ${{ steps.filter.outputs.ml }}
       shared_changed: ${{ steps.filter.outputs.shared }}
     steps:
       - uses: actions/checkout@v4
@@ -73,6 +77,8 @@ jobs:
             recommendation:
               - 'apps/recommendation-api/**'
               - 'libs/movie-storage/**'
+            ml:
+              - 'apps/ml-api/**'
             shared:
               - 'libs/movie-storage/**'
               - 'infra/**'
@@ -137,5 +143,15 @@ jobs:
     with:
       app_name: recommendation-api
       dockerfile_path: ./apps/recommendation-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+  build_ml:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: ml-api
+      dockerfile_path: ./apps/ml-api/Dockerfile
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}

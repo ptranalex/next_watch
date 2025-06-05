@@ -10,6 +10,7 @@ on:
       - "apps/web-nextjs/**"
       - "apps/data-importer/**"
       - "apps/recommendation-api/**"
+      - "apps/ml-api/**"
       - "libs/movie-storage/**"
       - "infra/**"
   workflow_dispatch:
@@ -49,6 +50,11 @@ on:
         required: false
         type: boolean
         default: false
+      deploy_ml:
+        description: "Deploy ML API"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check_changes:
@@ -60,6 +66,7 @@ jobs:
       frontend_changed: ${{ steps.set-outputs.outputs.frontend_changed }}
       importer_changed: ${{ steps.set-outputs.outputs.importer_changed }}
       recommendation_changed: ${{ steps.set-outputs.outputs.recommendation_changed }}
+      ml_changed: ${{ steps.set-outputs.outputs.ml_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -86,6 +93,8 @@ jobs:
             recommendation:
               - 'apps/recommendation-api/**'
               - 'libs/movie-storage/**'
+            ml:
+              - 'apps/ml-api/**'
 
       - name: Set outputs
         id: set-outputs
@@ -97,6 +106,7 @@ jobs:
             echo "frontend_changed=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
             echo "importer_changed=${{ steps.filter.outputs.importer }}" >> $GITHUB_OUTPUT
             echo "recommendation_changed=${{ steps.filter.outputs.recommendation }}" >> $GITHUB_OUTPUT
+            echo "ml_changed=${{ steps.filter.outputs.ml }}" >> $GITHUB_OUTPUT
           else
             echo "backend_changed=${{ github.event.inputs.deploy_backend }}" >> $GITHUB_OUTPUT
             echo "auth_changed=${{ github.event.inputs.deploy_auth }}" >> $GITHUB_OUTPUT
@@ -104,6 +114,7 @@ jobs:
             echo "frontend_changed=${{ github.event.inputs.deploy_frontend }}" >> $GITHUB_OUTPUT
             echo "importer_changed=${{ github.event.inputs.deploy_importer }}" >> $GITHUB_OUTPUT
             echo "recommendation_changed=${{ github.event.inputs.deploy_recommendation }}" >> $GITHUB_OUTPUT
+            echo "ml_changed=${{ github.event.inputs.deploy_ml }}" >> $GITHUB_OUTPUT
           fi
 
   build_backend:
@@ -167,6 +178,16 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
+  build_ml:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: ml-api
+      dockerfile_path: ./apps/ml-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
   deploy:
     needs:
       [
@@ -177,6 +198,7 @@ jobs:
         build_frontend,
         build_importer,
         build_recommendation,
+        build_ml,
       ]
     if: |
       always() && 
@@ -186,6 +208,7 @@ jobs:
        needs.check_changes.outputs.frontend_changed == 'true' || 
        needs.check_changes.outputs.importer_changed == 'true' || 
        needs.check_changes.outputs.recommendation_changed == 'true' || 
+       needs.check_changes.outputs.ml_changed == 'true' ||
        github.event.inputs.build_all == true)
     uses: ./.github/workflows/deploy.yml
     with:
@@ -195,6 +218,7 @@ jobs:
       deploy_frontend: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == true }}
       deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
       deploy_recommendation: ${{ needs.check_changes.outputs.recommendation_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_ml: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == true }}
     secrets:
       DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
