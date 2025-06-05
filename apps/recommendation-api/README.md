@@ -36,6 +36,17 @@ recommendation_api/
 - **Vector Storage**: Qdrant vector database for similarity search
 - **ML API Client**: Client for communicating with the ML API service
 
+***REMOVED******REMOVED*** Dependencies
+
+The service relies on several key dependencies:
+
+- **FastAPI**: Web framework for building APIs
+- **SQLAlchemy/SQLModel**: ORM for database interactions
+- **Qdrant Client**: Client for vector database operations
+- **Asyncpg**: Async PostgreSQL driver (required for CLI health checks and database operations)
+- **Typer/Rich**: CLI framework and formatting
+- **HTTPX**: Async HTTP client for ML API communication
+
 ***REMOVED******REMOVED*** Development with Hatch
 
 The project now uses [Hatch](https://hatch.pypa.io/) for project management, which provides isolated environments, streamlined dependency management, and standardized development workflows.
