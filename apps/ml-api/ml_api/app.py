@@ -59,6 +59,18 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    ***REMOVED*** Add TrustedHostMiddleware in production
+    if os.getenv("ENVIRONMENT") == "production":
+        allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
+        allowed_hosts_list = [host.strip() for host in allowed_hosts.split(",")]
+        logger.info(f"Adding TrustedHostMiddleware with allowed_hosts: {allowed_hosts_list}")
+        
+        from fastapi.middleware.trustedhost import TrustedHostMiddleware
+        app.add_middleware(
+            TrustedHostMiddleware,
+            allowed_hosts=allowed_hosts_list,
+        )
+
     ***REMOVED*** Include routers
     app.include_router(embeddings_router)
 

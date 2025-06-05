@@ -80,6 +80,7 @@ def create_app() -> FastAPI:
     )
 
     if settings.is_production:
+        logger.info(f"Adding TrustedHostMiddleware with allowed_hosts: {settings.allowed_hosts}")
         app.add_middleware(
             TrustedHostMiddleware,
             allowed_hosts=settings.allowed_hosts,

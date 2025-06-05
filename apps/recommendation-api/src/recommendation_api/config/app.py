@@ -339,9 +339,13 @@ class Config:
         self.environment = os.getenv("ENVIRONMENT", "development")
         self.is_production = self.environment == "production"
         self.is_development = self.environment == "development"
-        self.allowed_hosts = (
-            ["*"] if not self.is_production else ["localhost", "127.0.0.1"]
-        )
+
+        ***REMOVED*** Parse ALLOWED_HOSTS environment variable if it exists
+        allowed_hosts_env = os.getenv("ALLOWED_HOSTS")
+        if allowed_hosts_env:
+            self.allowed_hosts = [host.strip() for host in allowed_hosts_env.split(",")]
+        else:
+            self.allowed_hosts = ["*"] if not self.is_production else ["localhost", "127.0.0.1"]
 
         ***REMOVED*** Log configuration
         logger.info(
