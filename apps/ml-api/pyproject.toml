@@ -67,7 +67,7 @@ dependencies = [
 
 [tool.hatch.envs.default.scripts]
 serve = "python -m ml_api.app"
-dev = "uvicorn ml_api.app:app --reload"
+dev = "uvicorn ml_api.app:app --reload --port 8004"
 
 [tool.hatch.envs.dev]
 dependencies = [
