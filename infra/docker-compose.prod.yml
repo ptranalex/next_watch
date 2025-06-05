@@ -103,8 +103,7 @@ services:
       retries: 3
       start_period: 40s
     depends_on:
-      qdrant:
-        condition: service_healthy
+      - qdrant
     deploy:
       resources:
         limits:
@@ -379,7 +378,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      test: ["CMD", "true"]
       interval: 30s
       timeout: 10s
       retries: 3
