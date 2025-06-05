@@ -116,6 +116,48 @@ services:
         max-size: "100m"
         max-file: "3"
 
+  ***REMOVED*** ML API - Machine learning service for text embeddings and analysis
+  ml-api:
+    image: ${DOCKER_ML_IMAGE}
+    container_name: ml-api
+    restart: always
+    ports:
+      - "8004:8004"
+    environment:
+      - ENVIRONMENT=production
+      - API_PORT=8004
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - LOGS_DIR=/app/logs
+      ***REMOVED*** Security Configuration
+      - CORS_ORIGINS=https://alexsandbox.me,http://localhost:3000
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      ***REMOVED*** Performance
+      - ENABLE_PERFORMANCE_METRICS=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ml-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "1"
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
   ***REMOVED*** Auth API - Authentication service
   auth-api:
     image: ${DOCKER_AUTH_IMAGE}
@@ -194,6 +236,7 @@ services:
       - BACKEND_API_URL=http://backend-api:8000
       - AUTH_API_URL=http://auth-api:8003
       - RECO_API_URL=http://recommendation-api:8002
+      - ML_API_URL=http://ml-api:8004
       - BACKEND_API_TIMEOUT=30
       ***REMOVED*** Redis Configuration
       - REDIS_URL=redis://host.docker.internal:6379/0
@@ -216,6 +259,8 @@ services:
       auth-api:
         condition: service_healthy
       recommendation-api:
+        condition: service_healthy
+      ml-api:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -327,6 +372,8 @@ volumes:
   bff-logs:
     driver: local
   recommendation-logs:
+    driver: local
+  ml-logs:
     driver: local
   importer-logs:
     driver: local
