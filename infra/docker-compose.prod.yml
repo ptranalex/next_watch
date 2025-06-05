@@ -80,7 +80,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
       ***REMOVED*** Vector Database Configuration
-      - QDRANT_URL=http://host.docker.internal:6333
+      - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=movies
       ***REMOVED*** Security Configuration
       - CORS_ORIGINS=https://alexsandbox.me,http://localhost:3000
@@ -102,6 +102,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      qdrant:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -363,6 +366,38 @@ services:
         max-size: "100m"
         max-file: "3"
 
+  ***REMOVED*** Qdrant - Vector Database for similarity search
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1G
+        reservations:
+          cpus: "0.2"
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
 ***REMOVED*** Named volumes for persistent logs
 volumes:
   backend-logs:
@@ -376,6 +411,8 @@ volumes:
   ml-logs:
     driver: local
   importer-logs:
+    driver: local
+  qdrant-data:
     driver: local
 
 ***REMOVED*** Networks (using default bridge network)
