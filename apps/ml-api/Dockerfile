@@ -10,8 +10,8 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ***REMOVED*** Copy only necessary files for wheel build
-COPY pyproject.toml .
-COPY ml_api ./ml_api
+COPY apps/ml-api/pyproject.toml .
+COPY apps/ml-api/ml_api ./ml_api
 
 ***REMOVED*** Build the wheel package
 RUN hatch build -t wheel
