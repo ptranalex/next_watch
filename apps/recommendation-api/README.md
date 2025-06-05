@@ -34,7 +34,57 @@ recommendation_api/
 - **Service Layer**: Business logic for recommendations
 - **Repository Layer**: Data access abstractions
 - **Vector Storage**: Qdrant vector database for similarity search
-- **Embedding Generation**: Text embedding generation using SentenceTransformer
+- **ML API Client**: Client for communicating with the ML API service
+
+***REMOVED******REMOVED*** Development with Hatch
+
+The project now uses [Hatch](https://hatch.pypa.io/) for project management, which provides isolated environments, streamlined dependency management, and standardized development workflows.
+
+***REMOVED******REMOVED******REMOVED*** Getting Started with Hatch
+
+1. Install Hatch:
+
+   ```bash
+   pip install hatch
+   ```
+
+2. Create development environment:
+
+   ```bash
+   ***REMOVED*** This will create an isolated environment with all dependencies
+   hatch env create
+   ```
+
+3. Run the API in development mode:
+   ```bash
+   ***REMOVED*** Start the API with hot reloading
+   hatch run dev
+   ```
+
+***REMOVED******REMOVED******REMOVED*** Common Hatch Commands
+
+```bash
+***REMOVED*** Run the application
+hatch run serve
+
+***REMOVED*** Run development server with hot reloading
+hatch run dev
+
+***REMOVED*** Run CLI commands
+hatch run cli -- embeddings status
+
+***REMOVED*** Run tests
+hatch run dev:test
+
+***REMOVED*** Run tests with coverage
+hatch run dev:test-cov
+
+***REMOVED*** Run linters and formatters
+hatch run dev:lint
+
+***REMOVED*** Format code
+hatch run dev:format
+```
 
 ***REMOVED******REMOVED*** Docker
 
@@ -44,8 +94,6 @@ The service includes an optimized Dockerfile that significantly reduces image si
 
 - **Lightweight Image**: ~835MB (45% smaller than the original ~1.5GB image)
 - **ML Dependencies Optional**: Excludes heavy ML libraries (PyTorch, transformers) to reduce size
-- **Mock ML Implementation**: Provides mock implementations for ML features when running in lightweight mode
-- **Fast Builds**: Optimized layer caching for quicker rebuilds
 - **Production-Ready**: Includes health checks, non-root user, and proper environment setup
 
 ***REMOVED******REMOVED******REMOVED*** Docker Build Options
@@ -60,78 +108,54 @@ docker build -t recommendation-api .
 docker run -p 8002:8002 recommendation-api
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Full ML Build
-
-```bash
-***REMOVED*** Build the full image with ML dependencies
-docker build -t recommendation-api-ml -f Dockerfile.ml .
-
-***REMOVED*** Run the container with ML capabilities
-docker run -p 8002:8002 recommendation-api-ml
-```
-
 ***REMOVED******REMOVED******REMOVED*** Environment Variables
 
 - `ENVIRONMENT`: Set to `production` by default
-- `DISABLE_ML_FEATURES`: Set to `true` in the lightweight image, `false` in the ML image
-- `PYTHONPATH`: Configured to include mock modules when needed
+- `ML_API_URL`: URL of the ML API service
+- `PYTHONPATH`: Configured to include necessary modules
 
-***REMOVED******REMOVED******REMOVED*** ML Features
+***REMOVED******REMOVED******REMOVED*** Microservices Architecture
 
-The project provides two deployment options:
+The recommendation system now follows a microservices architecture:
 
-1. **Lightweight Mode** (`Dockerfile`): Uses mock ML implementations for faster startup and smaller image size
-2. **Full ML Mode** (`Dockerfile.ml`): Includes all ML dependencies for complete functionality
+```
+┌───────────────────┐         ┌───────────────────┐         ┌───────────────────┐
+│                   │         │                   │         │                   │
+│  Recommendation   │ ◄─────► │   Vector Service  │ ◄─────► │      Qdrant       │
+│     Service       │         │                   │         │  Vector Database  │
+│                   │         │                   │         │                   │
+└───────────────────┘         └───────────────────┘         └───────────────────┘
+                                       │
+                                       ▼
+                              ┌───────────────────┐
+                              │                   │
+                              │   ML API Client   │
+                              │                   │
+                              └───────────────────┘
+                                       │
+                                       ▼
+                              ┌───────────────────┐
+                              │                   │
+                              │      ML API       │
+                              │     Service       │
+                              │                   │
+                              └───────────────────┘
+```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** When to Use Each Option
+This architecture provides:
 
-- **Use Lightweight Mode (`Dockerfile`) when**:
-
-  - You need a smaller Docker image
-  - You're running in development or testing environments
-  - You're only using non-ML API endpoints (trending, popular)
-  - You have pre-computed embeddings stored in Qdrant
-
-- **Use Full ML Mode (`Dockerfile.ml`) when**:
-  - You need to generate new embeddings
-  - You require personalized recommendations based on content
-  - You need accurate similar movie recommendations
-  - You have sufficient system resources for ML operations
-
-***REMOVED******REMOVED******REMOVED*** Docker Optimization Details
-
-The Docker image was optimized to address two main issues:
-
-1. **Size Reduction**: The original image was ~1.5GB, primarily due to ML dependencies:
-
-   - PyTorch (~333MB)
-   - Transformers (~56MB)
-   - SentenceTransformers and related libraries
-
-2. **Build Time**: The original build process was inefficient and slow
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Optimization Approach
-
-1. **Multi-stage Build**: Separates build dependencies from runtime dependencies
-2. **Dependency Filtering**: Excludes ML libraries that account for most of the image size
-3. **Mock Implementation**: Provides mock classes for ML functionality to maintain API compatibility
-4. **Layer Caching**: Organizes Dockerfile commands to maximize cache hits during rebuilds
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Trade-offs
-
-- **Limited ML Functionality**: The lightweight image can't perform actual embedding generation
-- **Mock Data**: Returns zero vectors instead of real embeddings
-- **Deployment Strategy**: For full ML functionality, consider:
-  - Using the `Dockerfile.ml` with ML dependencies
-  - Implementing a separate ML microservice
-  - Pre-computing embeddings and storing them in the vector database
+- Reduced resource usage in the recommendation API
+- Independent scaling of ML workloads
+- Specialized hardware utilization for ML operations
+- Simplified deployment with reduced dependencies
 
 ***REMOVED******REMOVED*** Installation
 
 1. Clone the repository
-2. Install dependencies:
+2. Install using Hatch:
    ```bash
-   pip install -e .
+   pip install hatch
+   hatch env create
    ```
 3. Configure environment:
    ```bash
@@ -144,24 +168,22 @@ The Docker image was optimized to address two main issues:
 ***REMOVED******REMOVED******REMOVED*** Running the API
 
 ```bash
-***REMOVED*** Development mode
-rec-api serve start --reload
+***REMOVED*** Development mode with hot reloading
+hatch run dev
 
 ***REMOVED*** Production mode
-rec-api serve start --workers 4
+hatch run serve
 ```
-
-***REMOVED******REMOVED******REMOVED*** API Endpoints
-
-- `GET /api/v1/recommendations/` - General recommendations
-- `GET /api/v1/recommendations/trending` - Trending recommendations
-- `GET /api/v1/recommendations/popular` - Popular recommendations
-- `GET /api/v1/recommendations/user/{user_id}` - User-specific recommendations
-- `GET /api/v1/recommendations/similar/{movie_id}` - Similar movies
 
 ***REMOVED******REMOVED******REMOVED*** CLI Commands
 
 ```bash
+***REMOVED*** Using Hatch
+hatch run cli -- [COMMAND]
+
+***REMOVED*** Or using the installed CLI (if package is installed)
+rec-api [COMMAND]
+
 ***REMOVED*** Show available commands
 rec-api --help
 
@@ -177,13 +199,17 @@ rec-api config env
 
 ***REMOVED*** Health Checks
 rec-api health check
-rec-api health ping SERVICE  ***REMOVED*** SERVICE can be: api, db, qdrant
+rec-api health ping SERVICE  ***REMOVED*** SERVICE can be: api, db, qdrant, ml-api
 
 ***REMOVED*** Embeddings Management
 rec-api embeddings generate [--batch-size SIZE] [--force] [--limit LIMIT] [--verbose]
 rec-api embeddings status [--verbose]
 rec-api embeddings cleanup [--dry-run/--execute] [--verbose]
 rec-api embeddings info [--verbose]
+
+***REMOVED*** ML API Commands
+rec-api ml test-connection
+rec-api ml info
 
 ***REMOVED*** Version Information
 rec-api version
@@ -194,10 +220,10 @@ rec-api version
 The service is configured through environment variables:
 
 - `HOST`: Server host (default: 0.0.0.0)
-- `PORT`: Server port (default: 8000)
+- `PORT`: Server port (default: 8002)
 - `DATABASE_URL`: SQLAlchemy database URL
 - `QDRANT_URL`: Qdrant vector database URL
-- `EMBEDDING_MODEL`: SentenceTransformer model name
+- `ML_API_URL`: URL for the ML API service
 - `LOG_LEVEL`: Logging level (default: INFO)
 
 ***REMOVED******REMOVED*** Development
@@ -205,17 +231,17 @@ The service is configured through environment variables:
 ***REMOVED******REMOVED******REMOVED*** Running Tests
 
 ```bash
-pytest
+hatch run dev:test
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Code Style
 
 ```bash
-***REMOVED*** Run linters
-ruff check .
+***REMOVED*** Run all linters
+hatch run dev:lint
 
-***REMOVED*** Run type checking
-mypy .
+***REMOVED*** Format code
+hatch run dev:format
 ```
 
 ***REMOVED******REMOVED*** API Examples
@@ -223,17 +249,37 @@ mypy .
 ***REMOVED******REMOVED******REMOVED*** Get trending recommendations
 
 ```bash
-curl "http://localhost:8000/api/v1/recommendations/trending?limit=10&days=7"
+curl "http://localhost:8002/api/v1/recommendations/trending?limit=10&days=7"
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Get personalized recommendations
 
 ```bash
-curl "http://localhost:8000/api/v1/recommendations/user/123?limit=10"
+curl "http://localhost:8002/api/v1/recommendations/user/123?limit=10"
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Get similar movies
 
 ```bash
-curl "http://localhost:8000/api/v1/recommendations/similar/456?limit=10"
+curl "http://localhost:8002/api/v1/recommendations/similar/456?limit=10"
+```
+
+***REMOVED******REMOVED*** System Integration
+
+The Recommendation API integrates with several backend services:
+
+```
+┌───────────────────┐         ┌───────────────────┐         ┌───────────────────┐
+│                   │         │                   │         │                   │
+│    Backend API    │ ◄─────► │  Recommendation   │ ◄─────► │      Qdrant       │
+│                   │         │       API         │         │  Vector Database  │
+│                   │         │                   │         │                   │
+└───────────────────┘         └───────────────────┘         └───────────────────┘
+                                       │
+                                       ▼
+                              ┌───────────────────┐
+                              │                   │
+                              │      ML API       │
+                              │                   │
+                              └───────────────────┘
 ```

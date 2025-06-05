@@ -20,7 +20,10 @@ from recommendation_api.db.operations import (
     get_personalized_recommendations_direct,
 )
 from recommendation_api.services.vector_service import VectorService, get_vector_service
-from recommendation_api.services.embedding import generate_user_preference_vector
+
+***REMOVED*** Replace local embedding import with ML API client
+***REMOVED*** from recommendation_api.services.embedding import generate_user_preference_vector
+from recommendation_api.services.ml_api_client import get_ml_api_client
 from movie_storage.models.movie import Movie
 from recommendation_api.models.recommendation import MovieRecommendation
 
@@ -30,9 +33,11 @@ logger = logging.getLogger(__name__)
 class RecommendationService:
     """Service for generating movie recommendations."""
 
-    def __init__(self, session: Session, vector_service: Optional[VectorService] = None):
+    def __init__(
+        self, session: Session, vector_service: Optional[VectorService] = None
+    ):
         """Initialize the recommendation service.
-        
+
         Args:
             session: Database session
             vector_service: Vector service for similarity searches
@@ -68,15 +73,15 @@ class RecommendationService:
         min_vote_count: int = 1000,
     ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
         """Get popular movie recommendations using the direct database query.
-        
+
         This is a replacement for get_popular_recommendations that uses
         the simplified get_popular_movies_direct function.
-        
+
         Args:
             limit: Maximum number of recommendations
             min_rating: Minimum IMDb rating threshold
             min_vote_count: Minimum vote count threshold
-            
+
         Returns:
             Tuple of (recommendations list, filters dict)
         """
@@ -87,7 +92,7 @@ class RecommendationService:
             min_rating=min_rating,
             min_vote_count=min_vote_count,
         )
-        
+
         ***REMOVED*** Convert to recommendations
         recommendations = []
         for movie in movies:
@@ -97,14 +102,14 @@ class RecommendationService:
                 score=float(movie.imdb_rating) if movie.imdb_rating else 0.0,
             )
             recommendations.append(recommendation)
-        
+
         ***REMOVED*** Create filters dictionary for response
         filters = {
             "limit": limit,
             "min_rating": min_rating,
             "min_vote_count": min_vote_count,
         }
-        
+
         return recommendations, filters
 
     def get_user_recommendations_direct(
@@ -115,23 +120,23 @@ class RecommendationService:
         min_vote_count: int = 1000,
     ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
         """Get personalized movie recommendations using the direct database query.
-        
+
         This is a replacement for get_user_recommendations that uses
         the simplified get_personalized_recommendations_direct function.
-        
+
         Args:
             user_id: User ID to get recommendations for
             limit: Maximum number of recommendations
             min_rating: Minimum IMDb rating threshold
             min_vote_count: Minimum vote count threshold
-            
+
         Returns:
             Tuple of (recommendations list, filters dict)
         """
         ***REMOVED*** Validate user ID
         if user_id <= 0:
             raise ValueError(f"Invalid user ID: {user_id}")
-            
+
         ***REMOVED*** Get personalized recommendations from database
         movies = get_personalized_recommendations_direct(
             self.session,
@@ -140,23 +145,23 @@ class RecommendationService:
             min_rating=min_rating,
             min_vote_count=min_vote_count,
         )
-        
+
         ***REMOVED*** Convert to recommendations
         recommendations = []
         for movie in movies:
             ***REMOVED*** Add a personalized reason
             reason = "recommended for you based on your preferences"
-            
+
             ***REMOVED*** Use rating as a base score, and add some randomness for variety
             base_score = float(movie.imdb_rating) / 10.0 if movie.imdb_rating else 0.5
-            
+
             recommendation = MovieRecommendation.from_movie(
                 movie,
                 reason=reason,
                 score=base_score,
             )
             recommendations.append(recommendation)
-        
+
         ***REMOVED*** Create filters dictionary for response
         filters = {
             "user_id": user_id,
@@ -164,7 +169,7 @@ class RecommendationService:
             "min_rating": min_rating,
             "min_vote_count": min_vote_count,
         }
-        
+
         return recommendations, filters
 
     """
@@ -188,14 +193,14 @@ class RecommendationService:
         min_score: float = 0.01,
     ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
         """Get similar movies based on vector similarity.
-        
+
         Args:
             movie_id: Movie ID to find similar movies for
             limit: Maximum number of recommendations
             min_rating: Minimum IMDb rating
             min_vote_count: Minimum vote count threshold
             min_score: Minimum similarity score
-            
+
         Returns:
             Tuple of (recommendations list, filters dict)
         """
@@ -204,66 +209,70 @@ class RecommendationService:
         if not features:
             logger.warning(f"No features found for movie ID {movie_id}")
             return [], {"error": "Movie not found"}
-        
+
         ***REMOVED*** Get movie to use for recommendation reason
         source_movie = get_movie_by_id(self.session, movie_id)
         if not source_movie:
             logger.warning(f"Movie with ID {movie_id} not found")
             return [], {"error": "Movie not found"}
-        
+
         ***REMOVED*** Get similar movies from vector service
         similar_movies = self.vector_service.find_similar_movies_by_id(
             movie_id=movie_id,
             limit=limit * 2,  ***REMOVED*** Get more to filter
             min_score=min_score,
         )
-        
+
         if not similar_movies:
             logger.warning(f"No similar movies found for movie ID {movie_id}")
             return [], {"error": "No similar movies found"}
-        
+
         ***REMOVED*** Get movie details for the IDs
         movie_ids = [movie_id for movie_id, _ in similar_movies]
         movies = get_movies_by_ids(self.session, movie_ids)
-        
+
         ***REMOVED*** Create mapping of movie ID to similarity score
         similarity_scores = {movie_id: score for movie_id, score in similar_movies}
-        
+
         ***REMOVED*** Filter movies by rating and vote count if specified
         filtered_movies = []
         for movie in movies:
             if movie.id is None:
                 continue
-                
+
             ***REMOVED*** Apply filters
-            if min_rating is not None and (movie.imdb_rating is None or movie.imdb_rating < min_rating):
+            if min_rating is not None and (
+                movie.imdb_rating is None or movie.imdb_rating < min_rating
+            ):
                 continue
-                
-            if min_vote_count is not None and (movie.vote_count is None or movie.vote_count < min_vote_count):
+
+            if min_vote_count is not None and (
+                movie.vote_count is None or movie.vote_count < min_vote_count
+            ):
                 continue
-                
+
             filtered_movies.append(movie)
-            
+
             ***REMOVED*** Limit to requested number
             if len(filtered_movies) >= limit:
                 break
-        
+
         ***REMOVED*** Create recommendation objects with similarity scores and source movie
         recommendations = []
         for movie in filtered_movies:
             if movie.id is None:
                 continue
-                
+
             score = similarity_scores.get(movie.id, 0)
             reason = f"similar to {source_movie.title}" if source_movie else "similar"
-            
+
             recommendation = MovieRecommendation.from_movie(
                 movie,
                 reason=reason,
                 score=score,
             )
             recommendations.append(recommendation)
-        
+
         filters = {
             "source_movie_id": movie_id,
             "min_rating": min_rating,
@@ -271,5 +280,31 @@ class RecommendationService:
             "min_score": min_score,
             "limit": limit,
         }
-        
-        return recommendations, filters 
+
+        return recommendations, filters
+
+    async def generate_user_preference_vector(
+        self,
+        user_id: int,
+        liked_movies: List[Dict[str, Any]],
+        watched_genres: Dict[str, float],
+    ) -> List[float]:
+        """Generate a user preference vector using the ML API.
+
+        Args:
+            user_id: User ID
+            liked_movies: List of movies liked by the user with ratings
+            watched_genres: Genres watched by the user with preference weights
+
+        Returns:
+            User preference vector as list of floats
+        """
+        ***REMOVED*** Get ML API client
+        ml_client = get_ml_api_client()
+
+        ***REMOVED*** Generate preference vector
+        return await ml_client.generate_user_preference_vector(
+            user_id=str(user_id),
+            liked_movies=liked_movies,
+            watched_genres=watched_genres,
+        )

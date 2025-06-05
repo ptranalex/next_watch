@@ -1,56 +1,134 @@
-[tool.poetry]
-name = "recommendation-api"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "recommendation_api"
 version = "0.1.0"
-description = "AI-powered movie recommendation service for Next Watch"
-authors = ["Next Watch Team"]
-readme = "README.md"
-packages = [{include = "recommendation_api", from = "src"}]
+description = "Recommendation API for Next Watch platform"
+authors = [
+    {name = "Next Watch Team"}
+]
+readme = {text = "***REMOVED*** Recommendation API\n\nRecommendation API for Next Watch platform", content-type = "text/markdown"}
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    ***REMOVED*** Core API framework
+    "fastapi>=0.100.0",         ***REMOVED*** API framework
+    "uvicorn>=0.22.0",          ***REMOVED*** ASGI server
+    "pydantic>=2.0.0",          ***REMOVED*** Data validation
+    "pydantic-settings>=2.0.0", ***REMOVED*** Settings management
+    
+    ***REMOVED*** Database
+    "sqlalchemy>=2.0.0",        ***REMOVED*** SQL ORM
+    "sqlmodel>=0.0.8",          ***REMOVED*** SQL Model extension
+    "psycopg2-binary>=2.9.5",   ***REMOVED*** PostgreSQL driver
+    "alembic>=1.10.0",          ***REMOVED*** Database migrations
+    
+    ***REMOVED*** Vector database
+    "qdrant-client>=1.1.1",     ***REMOVED*** Vector database client
+    
+    ***REMOVED*** HTTP client for ML API
+    "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
+    
+    ***REMOVED*** CLI and utilities
+    "typer>=0.9.0",             ***REMOVED*** CLI framework
+    "rich>=13.0.0",             ***REMOVED*** Terminal formatting
+    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    
+    ***REMOVED*** Shared libraries
+    "movie-storage",            ***REMOVED*** Local package for movie storage
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-fastapi = "^0.104.0"
-uvicorn = "^0.23.2"
-sqlalchemy = "^2.0.23"
-pydantic = "^2.4.2"
-pydantic-settings = "^2.1.0"
-python-dotenv = "^1.0.0"
-typer = "^0.15.2"
-rich = "^14.0.0"
-httpx = "^0.26.0"
-sentence-transformers = "^2.2.2"
-qdrant-client = "^1.7.0"
-redis = "^6.0.0"
-psycopg2-binary = "^2.9.10"
-alembic = "^1.12.1"
-asyncpg = "^0.29.0"
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "ruff>=0.0.250",
+]
 
-***REMOVED*** Shared library dependency
-movie-storage = {path = "../../libs/movie-storage"}
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-pytest-asyncio = "^0.23.5"
-pytest-cov = "^4.1.0"
-black = "^23.10.1"
-isort = "^5.12.0"
-mypy = "^1.7.0"
-pre-commit = "^3.6.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 rec-api = "recommendation_api.cli.main:app"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+***REMOVED*** Hatch configuration
+[tool.hatch.build.targets.wheel]
+packages = ["recommendation_api"]
+
+[tool.hatch.envs.default]
+dependencies = [
+  "fastapi>=0.100.0",
+  "uvicorn>=0.22.0",
+  "pydantic>=2.0.0",
+  "pydantic-settings>=2.0.0",
+  "sqlalchemy>=2.0.0",
+  "sqlmodel>=0.0.8",
+  "psycopg2-binary>=2.9.5",
+  "alembic>=1.10.0",
+  "qdrant-client>=1.1.1",
+  "httpx>=0.24.0",
+  "typer>=0.9.0",
+  "rich>=13.0.0",
+  "python-dotenv>=1.0.0",
+]
+
+***REMOVED*** Add environment variables for development
+[tool.hatch.envs.default.env-vars]
+PYTHONPATH = "../../../libs/movie-storage:src"
+
+[tool.hatch.envs.default.scripts]
+serve = "python -m recommendation_api.main"
+dev = "uvicorn recommendation_api.main:app --reload --port 8002"
+cli = "python -m recommendation_api.cli"
+***REMOVED*** Add script to install the local movie-storage package
+setup-local-deps = "pip install -e ../../../libs/movie-storage"
+
+[tool.hatch.envs.dev]
+dependencies = [
+  "pytest>=8.0.0",
+  "pytest-cov>=6.0.0",
+  "black>=23.0.0",
+  "isort>=5.12.0",
+  "mypy>=1.0.0",
+  "ruff>=0.0.250",
+]
+
+[tool.hatch.envs.dev.scripts]
+lint = [
+  "black .",
+  "isort .",
+  "ruff check .",
+  "mypy recommendation_api"
+]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=recommendation_api tests/"
+format = [
+  "black .",
+  "isort ."
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
 
 [tool.black]
-line-length = 88
+line-length = 100
 target-version = ["py39"]
-include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 100
 
 [tool.mypy]
 python_version = "3.9"
@@ -58,24 +136,7 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-asyncio_mode = "auto"
-addopts = "-v --cov=recommendation_api --cov-report=term-missing"
 
 [[tool.mypy.overrides]]
-module = [
-    "qdrant_client.*",
-    "sentence_transformers.*",
-    "sklearn.*",
-]
+module = ["sqlmodel.*", "qdrant_client.*"]
 ignore_missing_imports = true

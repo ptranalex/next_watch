@@ -1,77 +1,87 @@
-***REMOVED*** Stage 1: Build dependencies
-FROM python:3.9-slim AS builder
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+***REMOVED*** Stage 1: Builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
 ***REMOVED*** Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        gcc \
-        python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential && \
+    pip install --no-cache-dir hatch && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-***REMOVED*** Copy only requirements first to leverage Docker cache
-COPY apps/recommendation-api/requirements.txt .
-COPY libs/movie-storage /build/movie-storage/
+***REMOVED*** Copy movie-storage package from monorepo (excluding .venv and other unnecessary files)
+COPY libs/movie-storage/pyproject.toml libs/movie-storage/setup.py* /build/libs/movie-storage/
+COPY libs/movie-storage/README.md /build/libs/movie-storage/README.md
+COPY libs/movie-storage/movie_storage /build/libs/movie-storage/movie_storage/
 
-***REMOVED*** Create a minimal requirements file without ML-specific dependencies and local paths
-***REMOVED*** This significantly reduces the image size by excluding heavy ML libraries
-RUN grep -v "sentence-transformers\|torch\|transformers\|nvidia\|triton\|safetensors\|tokenizers\|movie-storage @" requirements.txt > requirements.minimal.txt \
-    && pip install --no-cache-dir -r requirements.minimal.txt \
-    && cd /build/movie-storage \
-    && pip install --no-cache-dir -e .
+***REMOVED*** Install movie-storage package
+RUN cd /build/libs/movie-storage && \
+    pip install -e .
 
-***REMOVED*** Stage 2: Runtime image
-FROM python:3.9-slim
+***REMOVED*** Copy recommendation-api files
+COPY apps/recommendation-api/pyproject.toml .
+COPY apps/recommendation-api/src ./src
 
+***REMOVED*** Build the wheel package
+RUN hatch build -t wheel
+
+***REMOVED*** Stage 2: Runtime
+FROM python:3.12-slim
+
+***REMOVED*** Environment variables for runtime optimization
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    ENVIRONMENT=production \
-    DISABLE_ML_FEATURES=true
+    PYTHONPATH="/app/src" \
+    PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
-***REMOVED*** Install minimal runtime dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        curl \
-    && rm -rf /var/lib/apt/lists/*
+***REMOVED*** Create a non-root user
+RUN useradd -m -r recapi
 
-***REMOVED*** Copy only what's needed from builder
-COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
-COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
+***REMOVED*** Install curl for health checks (and cleanup in the same layer)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-***REMOVED*** Copy the application code
-COPY apps/recommendation-api/src/recommendation_api /app/recommendation_api/
-COPY libs/movie-storage/movie_storage /app/movie_storage/
+***REMOVED*** Copy only the necessary movie-storage files (no .venv)
+COPY --from=builder /build/libs/movie-storage/movie_storage /app/libs/movie-storage/movie_storage/
+COPY --from=builder /build/libs/movie-storage/pyproject.toml /build/libs/movie-storage/setup.py* /app/libs/movie-storage/
+COPY --from=builder /build/libs/movie-storage/README.md /app/libs/movie-storage/README.md
 
-***REMOVED*** Create an empty .env file to prevent path resolution errors
-RUN touch /app/.env
+***REMOVED*** Copy the source code
+COPY apps/recommendation-api/src /app/src
 
-***REMOVED*** Create a mock implementation of the embedding service
-***REMOVED*** This allows the API to run without the heavy ML dependencies
-RUN mkdir -p /app/mock_modules/sentence_transformers && \
-    echo 'class SentenceTransformer:\n    def __init__(self, model_name):\n        self.model_name = model_name\n        print(f"Mock SentenceTransformer initialized with {model_name}")\n\n    def encode(self, text):\n        import numpy as np\n        ***REMOVED*** Return a fixed vector of the right dimension\n        return np.zeros(384)\n\n    def get_sentence_embedding_dimension(self):\n        return 384' > /app/mock_modules/sentence_transformers/__init__.py
+***REMOVED*** Copy the built wheel
+COPY --from=builder /build/dist/*.whl .
 
-***REMOVED*** Set Python path to include mock modules
-ENV PYTHONPATH=/app:/app/mock_modules
+***REMOVED*** Install dependencies and clean up in the same layer
+RUN pip install --no-cache-dir -e /app/libs/movie-storage && \
+    pip install --no-cache-dir ./*.whl && \
+    rm -f ./*.whl && \
+    ***REMOVED*** Remove pip cache and unnecessary files
+    find /usr/local -depth \
+        \( \
+            \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
+            -o \
+            \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) \) \
+        \) -exec rm -rf '{}' + && \
+    ***REMOVED*** Remove unnecessary packages
+    pip uninstall -y pip wheel setuptools
 
+***REMOVED*** Set file ownership and permissions
+RUN chown -R recapi:recapi /app
+
+***REMOVED*** Switch to non-root user
+USER recapi
+
+***REMOVED*** Expose the application port
 EXPOSE 8002
 
-***REMOVED*** Use a non-root user for better security
-RUN useradd -m -u 1000 app \
-    && mkdir -p /app/logs \
-    && chown -R app:app /app
+***REMOVED*** Healthcheck with curl
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8002/health || exit 1
 
-USER app
-
-***REMOVED*** Add health check configuration
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8002/health || exit 1
-
-CMD ["uvicorn", "recommendation_api.main:app", "--host", "0.0.0.0", "--port", "8002"] 
+***REMOVED*** Start the application
+CMD ["python", "-m", "recommendation_api.main"] 

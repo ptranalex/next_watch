@@ -10,7 +10,7 @@ import logging
 ***REMOVED*** Load environment variables before any configuration
 try:
     from dotenv import load_dotenv
-    
+
     ***REMOVED*** Only load .env files if we're not in production
     if os.getenv("ENVIRONMENT") != "production":
         ***REMOVED*** Try multiple locations to find .env files (prioritize current directory)
@@ -49,12 +49,18 @@ DEFAULT_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 DEFAULT_LOGS_DIR = os.getenv("LOGS_DIR", "logs")
 
 ***REMOVED*** Database settings
-DEFAULT_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch")
+DEFAULT_DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch"
+)
 
 ***REMOVED*** Vector database settings
 DEFAULT_QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 DEFAULT_QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 DEFAULT_QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", "movies")
+
+***REMOVED*** ML API settings
+DEFAULT_ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8004")
+DEFAULT_ML_API_TIMEOUT = int(os.getenv("ML_API_TIMEOUT", "30"))
 
 ***REMOVED*** Embedding model settings
 DEFAULT_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
@@ -72,18 +78,30 @@ DEFAULT_CONTENT_VECTOR_WEIGHT = float(os.getenv("CONTENT_VECTOR_WEIGHT", "0.4"))
 ***REMOVED*** Cache settings
 DEFAULT_ENABLE_CACHING = os.getenv("ENABLE_CACHING", "true").lower() == "true"
 DEFAULT_CACHE_TTL = int(os.getenv("CACHE_TTL", "3600"))  ***REMOVED*** 1 hour
-DEFAULT_PRECOMPUTE_SIMILARITIES = os.getenv("PRECOMPUTE_SIMILARITIES", "false").lower() == "true"
+DEFAULT_PRECOMPUTE_SIMILARITIES = (
+    os.getenv("PRECOMPUTE_SIMILARITIES", "false").lower() == "true"
+)
 
 ***REMOVED*** Performance settings
 DEFAULT_MAX_CONCURRENT_REQUESTS = int(os.getenv("MAX_CONCURRENT_REQUESTS", "100"))
 DEFAULT_REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "30"))
-DEFAULT_EMBEDDING_GENERATION_TIMEOUT = int(os.getenv("EMBEDDING_GENERATION_TIMEOUT", "60"))
+DEFAULT_EMBEDDING_GENERATION_TIMEOUT = int(
+    os.getenv("EMBEDDING_GENERATION_TIMEOUT", "60")
+)
 
 ***REMOVED*** Feature flags
-DEFAULT_ENABLE_COLLABORATIVE_FILTERING = os.getenv("ENABLE_COLLABORATIVE_FILTERING", "true").lower() == "true"
-DEFAULT_ENABLE_CONTENT_FILTERING = os.getenv("ENABLE_CONTENT_FILTERING", "true").lower() == "true"
-DEFAULT_ENABLE_TRENDING_FALLBACK = os.getenv("ENABLE_TRENDING_FALLBACK", "true").lower() == "true"
-DEFAULT_ENABLE_DIVERSITY_BOOST = os.getenv("ENABLE_DIVERSITY_BOOST", "true").lower() == "true"
+DEFAULT_ENABLE_COLLABORATIVE_FILTERING = (
+    os.getenv("ENABLE_COLLABORATIVE_FILTERING", "true").lower() == "true"
+)
+DEFAULT_ENABLE_CONTENT_FILTERING = (
+    os.getenv("ENABLE_CONTENT_FILTERING", "true").lower() == "true"
+)
+DEFAULT_ENABLE_TRENDING_FALLBACK = (
+    os.getenv("ENABLE_TRENDING_FALLBACK", "true").lower() == "true"
+)
+DEFAULT_ENABLE_DIVERSITY_BOOST = (
+    os.getenv("ENABLE_DIVERSITY_BOOST", "true").lower() == "true"
+)
 
 ***REMOVED*** Monitoring settings
 DEFAULT_ENABLE_METRICS = os.getenv("ENABLE_METRICS", "false").lower() == "true"
@@ -112,41 +130,45 @@ class Config:
 
     ***REMOVED*** Database settings
     database_url: str
-    
+
     ***REMOVED*** Vector database settings
     qdrant_url: str
     qdrant_api_key: Optional[str]
     qdrant_collection_name: str
-    
+
+    ***REMOVED*** ML API settings
+    ml_api_url: str
+    ml_api_timeout: int
+
     ***REMOVED*** Embedding model settings
     embedding_model: str
     embedding_dimension: int
     batch_size: int
     max_sequence_length: int
-    
+
     ***REMOVED*** Recommendation settings
     default_recommendation_count: int
     min_imdb_rating: float
     similarity_threshold: float
     user_vector_weight: float
     content_vector_weight: float
-    
+
     ***REMOVED*** Cache settings
     enable_caching: bool
     cache_ttl_seconds: int
     precompute_similarities: bool
-    
+
     ***REMOVED*** Performance settings
     max_concurrent_requests: int
     request_timeout_seconds: int
     embedding_generation_timeout: int
-    
+
     ***REMOVED*** Feature flags
     enable_collaborative_filtering: bool
     enable_content_filtering: bool
     enable_trending_fallback: bool
     enable_diversity_boost: bool
-    
+
     ***REMOVED*** Monitoring settings
     enable_metrics: bool
     metrics_port: int
@@ -186,6 +208,8 @@ class Config:
         qdrant_url: str = DEFAULT_QDRANT_URL,
         qdrant_api_key: Optional[str] = DEFAULT_QDRANT_API_KEY,
         qdrant_collection_name: str = DEFAULT_QDRANT_COLLECTION_NAME,
+        ml_api_url: str = DEFAULT_ML_API_URL,
+        ml_api_timeout: int = DEFAULT_ML_API_TIMEOUT,
         embedding_model: str = DEFAULT_EMBEDDING_MODEL,
         embedding_dimension: int = DEFAULT_EMBEDDING_DIMENSION,
         batch_size: int = DEFAULT_BATCH_SIZE,
@@ -224,6 +248,8 @@ class Config:
             qdrant_url: URL for Qdrant vector database
             qdrant_api_key: API key for Qdrant
             qdrant_collection_name: Name of the Qdrant collection for vectors
+            ml_api_url: URL for ML API
+            ml_api_timeout: Timeout for ML API requests
             embedding_model: Name of the embedding model to use
             embedding_dimension: Dimension of embedding vectors
             batch_size: Batch size for embedding generation
@@ -265,41 +291,45 @@ class Config:
 
         ***REMOVED*** Database settings
         self.database_url = database_url
-        
+
         ***REMOVED*** Vector database settings
         self.qdrant_url = qdrant_url.rstrip("/")
         self.qdrant_api_key = qdrant_api_key
         self.qdrant_collection_name = qdrant_collection_name
-        
+
+        ***REMOVED*** ML API settings
+        self.ml_api_url = ml_api_url
+        self.ml_api_timeout = ml_api_timeout
+
         ***REMOVED*** Embedding model settings
         self.embedding_model = embedding_model
         self.embedding_dimension = embedding_dimension
         self.batch_size = batch_size
         self.max_sequence_length = max_sequence_length
-        
+
         ***REMOVED*** Recommendation settings
         self.default_recommendation_count = default_recommendation_count
         self.min_imdb_rating = min_imdb_rating
         self.similarity_threshold = similarity_threshold
         self.user_vector_weight = user_vector_weight
         self.content_vector_weight = content_vector_weight
-        
+
         ***REMOVED*** Cache settings
         self.enable_caching = enable_caching
         self.cache_ttl_seconds = cache_ttl_seconds
         self.precompute_similarities = precompute_similarities
-        
+
         ***REMOVED*** Performance settings
         self.max_concurrent_requests = max_concurrent_requests
         self.request_timeout_seconds = request_timeout_seconds
         self.embedding_generation_timeout = embedding_generation_timeout
-        
+
         ***REMOVED*** Feature flags
         self.enable_collaborative_filtering = enable_collaborative_filtering
         self.enable_content_filtering = enable_content_filtering
         self.enable_trending_fallback = enable_trending_fallback
         self.enable_diversity_boost = enable_diversity_boost
-        
+
         ***REMOVED*** Monitoring settings
         self.enable_metrics = enable_metrics
         self.metrics_port = metrics_port
@@ -309,7 +339,9 @@ class Config:
         self.environment = os.getenv("ENVIRONMENT", "development")
         self.is_production = self.environment == "production"
         self.is_development = self.environment == "development"
-        self.allowed_hosts = ["*"] if not self.is_production else ["localhost", "127.0.0.1"]
+        self.allowed_hosts = (
+            ["*"] if not self.is_production else ["localhost", "127.0.0.1"]
+        )
 
         ***REMOVED*** Log configuration
         logger.info(
@@ -362,4 +394,4 @@ class Config:
 
 
 ***REMOVED*** Create a singleton instance to be imported elsewhere
-settings = Config() 
+settings = Config()

@@ -1,0 +1,48 @@
+***REMOVED*** Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+***REMOVED*** Hatch
+.hatch/
+.venv/
+
+***REMOVED*** Environment
+.env
+.env.local
+
+***REMOVED*** Coverage
+.coverage
+htmlcov/
+coverage.xml
+
+***REMOVED*** Pytest
+.pytest_cache/
+
+***REMOVED*** mypy
+.mypy_cache/
+
+***REMOVED*** IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store 

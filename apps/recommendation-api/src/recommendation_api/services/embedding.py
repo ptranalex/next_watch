@@ -1,41 +1,32 @@
-"""Embedding service for text embedding generation.
+"""Embedding service for text embedding generation (DEPRECATED).
 
-This module provides functions for generating embeddings from movie features
-and user preferences using SentenceTransformers.
+This module previously provided functions for generating embeddings from movie features
+and user preferences using SentenceTransformers. It has been replaced by the ML API client.
+
+DO NOT USE DIRECTLY - All ML computation has been offloaded to the ML API service.
 """
 
 import logging
 from typing import List, Dict, Any, Optional, Union
-import numpy as np
-***REMOVED*** Type ignore for missing library stubs
-from sentence_transformers import SentenceTransformer  ***REMOVED*** type: ignore
+import warnings
 
-from recommendation_api.config import settings
+from recommendation_api.services.ml_api_client import get_ml_api_client
 
 logger = logging.getLogger(__name__)
 
-***REMOVED*** Global model instance
-_model: Optional[SentenceTransformer] = None
+***REMOVED*** Show deprecation warning when this module is imported
+warnings.warn(
+    "The local embedding service is deprecated. ML computation has been "
+    "offloaded to the ML API service. Use ml_api_client instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
-def get_embedding_model() -> SentenceTransformer:
-    """Get the global embedding model instance.
-    
-    Returns:
-        SentenceTransformer model
-    """
-    global _model
-    
-    if _model is None:
-        logger.info(f"Loading embedding model: {settings.embedding_model}")
-        _model = SentenceTransformer(settings.embedding_model)
-        logger.info(f"Embedding model loaded with dimension: {_model.get_sentence_embedding_dimension()}")
-    
-    return _model
-
-
-def generate_movie_embedding(features: Dict[str, Any]) -> List[float]:
+async def generate_movie_embedding(features: Dict[str, Any]) -> List[float]:
     """Generate an embedding for a movie based on its features.
+    
+    DEPRECATED: This function now redirects to the ML API client.
     
     Args:
         features: Dictionary of movie features
@@ -43,50 +34,21 @@ def generate_movie_embedding(features: Dict[str, Any]) -> List[float]:
     Returns:
         Embedding vector as list of floats
     """
-    ***REMOVED*** Create text representation of movie
-    text_parts = []
+    warnings.warn(
+        "Using local generate_movie_embedding is deprecated. Use ML API client instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     
-    if title := features.get("title"):
-        text_parts.append(f"Title: {title}")
-    
-    if overview := features.get("overview"):
-        ***REMOVED*** Truncate overview to avoid token limits
-        overview_truncated = overview[:500] if len(overview) > 500 else overview
-        text_parts.append(f"Plot: {overview_truncated}")
-    
-    if genres := features.get("genres"):
-        if isinstance(genres, list) and genres:
-            genres_str = ", ".join(genres)
-            text_parts.append(f"Genres: {genres_str}")
-    
-    if cast := features.get("cast"):
-        if isinstance(cast, list) and cast:
-            ***REMOVED*** Use top 3 cast members
-            cast_str = ", ".join(cast[:3])
-            text_parts.append(f"Starring: {cast_str}")
-    
-    if director := features.get("director"):
-        text_parts.append(f"Directed by: {director}")
-    
-    if release_year := features.get("release_year"):
-        text_parts.append(f"Released: {release_year}")
-    
-    ***REMOVED*** Join all parts with periods
-    movie_text = ". ".join(text_parts)
-    
-    ***REMOVED*** Get embedding
-    model = get_embedding_model()
-    embedding = model.encode(movie_text)
-    
-    ***REMOVED*** Convert to list of floats
-    return embedding.tolist()
+    logger.warning("Redirecting generate_movie_embedding call to ML API client")
+    client = get_ml_api_client()
+    return await client.generate_movie_embedding(features)
 
 
-def generate_user_preference_vector(texts: List[str]) -> List[float]:
+async def generate_user_preference_vector(texts: List[str]) -> List[float]:
     """Generate a user preference vector from multiple movie texts.
     
-    This creates embeddings for each text and then averages them to create
-    a single vector representing the user's preferences.
+    DEPRECATED: This function now redirects to the ML API client.
     
     Args:
         texts: List of text representations of movies
@@ -94,17 +56,21 @@ def generate_user_preference_vector(texts: List[str]) -> List[float]:
     Returns:
         User preference vector as list of floats
     """
-    if not texts:
-        raise ValueError("No texts provided for user preference embedding")
+    warnings.warn(
+        "Using local generate_user_preference_vector is deprecated. Use ML API client instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     
-    ***REMOVED*** Get embedding model
-    model = get_embedding_model()
+    logger.warning("Redirecting generate_user_preference_vector call to ML API client")
+    client = get_ml_api_client()
     
-    ***REMOVED*** Generate embeddings for each text
-    embeddings = model.encode(texts)
+    ***REMOVED*** The ML API expects a different format - this is just a compatibility layer
+    ***REMOVED*** In a real implementation, you might want to convert the texts to the format expected by the ML API
+    mock_features = {
+        "title": "User Preferences",
+        "overview": " ".join(texts[:3]),  ***REMOVED*** Use first few texts as a summary
+        "genres": [],
+    }
     
-    ***REMOVED*** Average embeddings
-    avg_embedding = np.mean(embeddings, axis=0)
-    
-    ***REMOVED*** Convert to list of floats
-    return avg_embedding.tolist() 
+    return await client.generate_movie_embedding(mock_features) 

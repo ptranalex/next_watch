@@ -1,0 +1,23 @@
+[env]
+requires = ["hatch-vcs"]
+
+[env.paths]
+***REMOVED*** Configure module paths
+src = "src"
+tests = "tests"
+
+[build]
+***REMOVED*** Use hatch-vcs for versioning
+dev-mode-exact = true
+
+[version]
+source = "vcs"
+
+[dirs]
+***REMOVED*** Exclude certain directories from packaging
+exclude = [
+  "tests",
+  "docs",
+  ".github",
+  ".vscode",
+] 

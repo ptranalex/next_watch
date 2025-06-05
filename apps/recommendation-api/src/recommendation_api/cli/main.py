@@ -12,6 +12,7 @@ from rich.traceback import install
 
 ***REMOVED*** Import command modules
 from recommendation_api.cli.commands import serve, config, health, embeddings, debug
+from recommendation_api.cli import ml_api
 
 ***REMOVED*** Import configuration and utilities
 from recommendation_api.config.app import settings, Config
@@ -36,6 +37,7 @@ app.add_typer(config.app, name="config")
 app.add_typer(health.app, name="health")
 app.add_typer(embeddings.app, name="embeddings")
 app.add_typer(debug.app, name="debug")
+app.add_typer(ml_api.app, name="ml")
 
 
 @app.command(name="version")
@@ -45,11 +47,14 @@ def show_version() -> None:
         ***REMOVED*** Try to get version from package metadata
         try:
             import importlib.metadata
-            version = importlib.metadata.version("recommendation-api")
+
+            version = importlib.metadata.version("recommendation_api")
         except (importlib.metadata.PackageNotFoundError, AttributeError):
             version = "development"
 
-        console.print(f"[bold blue]Recommendation API[/bold blue] version [green]{version}[/green]")
+        console.print(
+            f"[bold blue]Recommendation API[/bold blue] version [green]{version}[/green]"
+        )
         console.print(f"Environment: [yellow]{settings.environment}[/yellow]")
         console.print(f"Python: [dim]{sys.version.split()[0]}[/dim]")
 
@@ -58,17 +63,5 @@ def show_version() -> None:
         raise typer.Exit(code=1)
 
 
-def main() -> None:
-    """Main entry point for CLI."""
-    try:
-        app()
-    except Exception as e:
-        ***REMOVED*** Use basic logging since configure_logging might not be set up yet
-        logger = logging.getLogger("recommendation_api.cli")
-        logger.error(f"Error running command: {str(e)}")
-        console.print(f"[bold red]CLI Error: {e}[/bold red]")
-        sys.exit(1)
-
-
 if __name__ == "__main__":
-    main() 
+    app()
