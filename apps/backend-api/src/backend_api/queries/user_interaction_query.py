@@ -3,19 +3,20 @@ User movie interaction queries for optimized read operations.
 """
 
 import logging
-from typing import List, Optional, Dict, Any, Tuple
-from sqlmodel import Session, select
-from sqlalchemy import func
-from pydantic import BaseModel
+from typing import Any, Dict, List, Optional, Tuple
 
-from movie_storage.models import UserMovieInteraction, Movie
 from movie_storage.db.operations import (
     get_movie_by_id,
-    get_user_movie_interaction,
-    get_user_watchlist,
-    get_user_watched_movies,
     get_user_liked_movies,
+    get_user_movie_interaction,
+    get_user_watched_movies,
+    get_user_watchlist,
 )
+from movie_storage.models import Movie, UserMovieInteraction
+from pydantic import BaseModel
+from sqlalchemy import func
+from sqlmodel import Session, select
+
 from backend_api.errors import ResourceNotFoundError, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -258,9 +259,7 @@ class UserInteractionQuery:
         if category not in ["watchlist", "watched", "liked"]:
             raise ValidationError(
                 message="Invalid category",
-                field_errors={
-                    "category": ["Must be one of: watchlist, watched, liked"]
-                },
+                field_errors={"category": ["Must be one of: watchlist, watched, liked"]},
             )
 
         ***REMOVED*** Construct query based on category
@@ -302,9 +301,7 @@ class UserInteractionQuery:
                         title=movie.title,
                         poster_url=movie.poster_url,
                         release_date=(
-                            movie.release_date.isoformat()
-                            if movie.release_date
-                            else None
+                            movie.release_date.isoformat() if movie.release_date else None
                         ),
                         watched=interaction.watched,
                         liked=interaction.liked,

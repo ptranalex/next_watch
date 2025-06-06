@@ -2,11 +2,12 @@
 Health check endpoints for monitoring the API.
 """
 
+import datetime
+import logging
+import traceback
+
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, text
-import datetime
-import traceback
-import logging
 
 from backend_api.db.database import get_db
 

@@ -6,14 +6,29 @@ operations, while read operations are in a separate query class.
 """
 
 import logging
-from typing import Optional, List, Dict, Any, TypedDict, cast
+from typing import Any, Dict, List, Optional, TypedDict, cast
+
+from movie_storage.db.operations import (
+    get_credits_by_movie_id,
+    get_movie_by_id,
+)
 from sqlmodel import Session
 
+***REMOVED*** Use absolute import to avoid mypy errors
+import backend_api.errors
 from backend_api.errors import ResourceNotFoundError, ValidationError
-from movie_storage.db.operations import (
-    get_movie_by_id,
-    get_credits_by_movie_id,
-)
+
+***REMOVED*** Use relative imports instead
+from .. import errors
+from ..errors import ResourceNotFoundError, ValidationError
+
+***REMOVED*** Use relative imports for better type checking
+from .. import errors
+from ..errors import ResourceNotFoundError, ValidationError
+
+***REMOVED*** Use relative imports
+from .. import errors
+from ..errors import ResourceNotFoundError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -138,23 +153,18 @@ class MovieService:
                 cast_members.append(cast_member)
 
         ***REMOVED*** Sort cast by order, properly handling 0 values
-        cast_members.sort(
-            key=lambda x: float('inf') if x["order"] is None else x["order"]
-        )
+        cast_members.sort(key=lambda x: float("inf") if x["order"] is None else x["order"])
 
         ***REMOVED*** Apply popularity filtering while ensuring at least 3 cast members are returned
         if popularity_threshold > 0:
             ***REMOVED*** First, sort by popularity (descending) to get the most popular cast members
             by_popularity = sorted(
-                cast_members,
-                key=lambda x: float(x["popularity"] or 0),
-                reverse=True
+                cast_members, key=lambda x: float(x["popularity"] or 0), reverse=True
             )
 
             ***REMOVED*** Filter by popularity threshold
             filtered_cast = [
-                m for m in by_popularity
-                if float(m["popularity"] or 0) >= popularity_threshold
+                m for m in by_popularity if float(m["popularity"] or 0) >= popularity_threshold
             ]
 
             ***REMOVED*** Ensure we have at least 3 cast members (or all if there are fewer than 3)
@@ -163,19 +173,13 @@ class MovieService:
             ***REMOVED*** If we don't have enough members after filtering, add more from the popularity-sorted list
             if len(filtered_cast) < min_members:
                 ***REMOVED*** Get the most popular cast members we don't already have
-                additional_members = [
-                    m for m in by_popularity if m not in filtered_cast
-                ]
+                additional_members = [m for m in by_popularity if m not in filtered_cast]
 
                 ***REMOVED*** Add enough to meet the minimum
-                filtered_cast.extend(
-                    additional_members[: min_members - len(filtered_cast)]
-                )
+                filtered_cast.extend(additional_members[: min_members - len(filtered_cast)])
 
             ***REMOVED*** Sort the filtered cast by order again
-            filtered_cast.sort(
-                key=lambda x: float('inf') if x["order"] is None else x["order"]
-            )
+            filtered_cast.sort(key=lambda x: float("inf") if x["order"] is None else x["order"])
 
             return filtered_cast
 

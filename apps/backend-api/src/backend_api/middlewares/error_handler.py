@@ -5,18 +5,19 @@ This module provides a middleware that catches application-level exceptions
 and converts them to standardized HTTP responses.
 """
 
+import logging
+from typing import Any, Callable, Dict, Optional, Union
+
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-import logging
-from typing import Callable, Dict, Any, Optional, Union
 
 from backend_api.errors import (
-    ServiceError,
-    ResourceNotFoundError,
-    ValidationError,
     ConflictError,
     PermissionError,
+    ResourceNotFoundError,
+    ServiceError,
+    ValidationError,
     service_error_to_http_exception,
 )
 
@@ -31,9 +32,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     converts them to standardized HTTP responses.
     """
 
-    async def dispatch(
-        self, request: Request, call_next: Callable
-    ) -> Union[JSONResponse, Any]:
+    async def dispatch(self, request: Request, call_next: Callable) -> Union[JSONResponse, Any]:
         """
         Process a request and handle any exceptions.
 
@@ -78,8 +77,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={
                     "message": "An unexpected error occurred",
-                    "details": (
-                        {"error": str(e)} if "debug" in request.query_params else {}
-                    ),
+                    "details": ({"error": str(e)} if "debug" in request.query_params else {}),
                 },
             )

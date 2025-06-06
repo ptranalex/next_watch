@@ -2,9 +2,10 @@
 
 import logging
 import sys
-import typer
 from pathlib import Path
 from typing import Optional
+
+import typer
 from rich.console import Console
 from rich.traceback import install
 
@@ -35,17 +36,11 @@ app.add_typer(redis.app, name="redis")
 @app.command()
 def serve(
     host: str = typer.Option("0.0.0.0", help="Host to bind to"),
-    port: int = typer.Option(
-        getattr(settings, "api_port", 8000), help="Port to bind to"
-    ),
+    port: int = typer.Option(getattr(settings, "api_port", 8000), help="Port to bind to"),
     reload: bool = typer.Option(False, help="Enable auto-reload"),
-    log_level: str = typer.Option(
-        "info", help="Log level (debug, info, warning, error)"
-    ),
+    log_level: str = typer.Option("info", help="Log level (debug, info, warning, error)"),
     log_dir: Optional[str] = typer.Option(None, help="Directory for log files"),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose logging"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     quiet: bool = typer.Option(
         False, "--quiet", "-q", help="Suppress console output except errors"
     ),
@@ -131,9 +126,7 @@ def health(
 
 @app.command()
 def config(
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Show detailed configuration"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed configuration"),
 ):
     """Display current configuration.
 

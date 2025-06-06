@@ -4,14 +4,13 @@ Database connection module for the backend API.
 
 import os
 from contextlib import contextmanager
-from sqlmodel import Session
-from movie_storage.db import init_db, get_engine, get_session
+
 from movie_storage.config.app import Config
+from movie_storage.db import get_engine, get_session, init_db
+from sqlmodel import Session
 
 ***REMOVED*** Database URL from environment variable with a PostgreSQL default
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://alex:postgres@localhost:5432/next_watch"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://alex:postgres@localhost:5432/next_watch")
 
 
 ***REMOVED*** Initialize database on startup

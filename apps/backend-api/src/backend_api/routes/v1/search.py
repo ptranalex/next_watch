@@ -2,20 +2,22 @@
 Search-related API routes (v1).
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session
-from typing import List, Optional, Dict, Any
 import logging
-import traceback
 import os
-from redis.exceptions import RedisError
+import traceback
+from typing import Any, Dict, List, Optional
 
-***REMOVED*** Import database session dependency
-from backend_api.db.database import get_db
-from backend_api.config.app import settings
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 ***REMOVED*** Import pydantic models for response
 from pydantic import BaseModel
+from redis.exceptions import RedisError
+from sqlmodel import Session
+
+from backend_api.config.app import settings
+
+***REMOVED*** Import database session dependency
+from backend_api.db.database import get_db
 from backend_api.schemas.movie_schema import MovieResponse
 
 ***REMOVED*** Import the suggestion engine
@@ -39,9 +41,7 @@ class TextSuggestion(BaseModel):
     year: Optional[int] = None  ***REMOVED*** Useful for movies
     popularity: Optional[float] = None
     is_partial: bool = False  ***REMOVED*** Whether this is a partial/incomplete match
-    search_type: str = (
-        "unknown"  ***REMOVED*** How this suggestion was matched (exact, prefix, word, contains)
-    )
+    search_type: str = "unknown"  ***REMOVED*** How this suggestion was matched (exact, prefix, word, contains)
     additional_info: Optional[Dict[str, Any]] = None
 
 
@@ -85,9 +85,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 @router.get("/suggestions", response_model=SuggestionsResponse)
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
-    limit: int = Query(
-        10, ge=1, le=20, description="Max number of suggestions to return"
-    ),
+    limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
     db: Session = Depends(get_db),
 ):
     """
@@ -129,9 +127,7 @@ async def get_text_suggestions(
         logger.info(f"Getting ranked text suggestions for '{query}'")
 
         ***REMOVED*** Get ranked entity suggestions with deduplication
-        ranked_suggestions = await suggestion_engine.get_ranked_suggestions(
-            query, limit
-        )
+        ranked_suggestions = await suggestion_engine.get_ranked_suggestions(query, limit)
 
         ***REMOVED*** Format suggestions
         formatted_suggestions = [

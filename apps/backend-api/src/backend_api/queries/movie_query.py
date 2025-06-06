@@ -6,13 +6,11 @@ separating read operations from write operations.
 """
 
 import logging
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
 from sqlmodel import Session
 
 from backend_api.errors import ResourceNotFoundError, ValidationError
-
-***REMOVED*** Import query functions directly to avoid circular imports
-from backend_api.queries.top_movies import get_top_rated_movies
 from backend_api.queries.movie_details import (
     get_movie_details_by_id,
     get_movie_details_by_tmdb_id,
@@ -20,6 +18,9 @@ from backend_api.queries.movie_details import (
     get_movies_by_ids_bulk,
 )
 from backend_api.queries.movie_listings import get_movies_with_filters, search_movies_by_title
+
+***REMOVED*** Import query functions directly to avoid circular imports
+from backend_api.queries.top_movies import get_top_rated_movies
 from backend_api.queries.trailer import get_trailers_for_movie
 
 logger = logging.getLogger(__name__)
@@ -95,9 +96,7 @@ class MovieQuery:
         if sort_by not in valid_sort_fields:
             raise ValidationError(
                 message="Invalid sort field",
-                field_errors={
-                    "sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]
-                },
+                field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
             )
 
         ***REMOVED*** Get movies
@@ -224,13 +223,13 @@ class MovieQuery:
         ***REMOVED*** Validate inputs
         if not movie_ids:
             return []
-            
+
         if not all(isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids):
             raise ValidationError(
                 message="Invalid movie IDs",
                 field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
             )
-        
+
         if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit
             raise ValidationError(
                 message="Too many movie IDs",
@@ -274,10 +273,7 @@ class MovieQuery:
         ***REMOVED*** Get trailers
         trailers = get_trailers_for_movie(db, movie_id)
         ***REMOVED*** Convert to dict if necessary
-        return [
-            trailer if isinstance(trailer, dict) else trailer.dict()
-            for trailer in trailers
-        ]
+        return [trailer if isinstance(trailer, dict) else trailer.dict() for trailer in trailers]
 
     def get_top_rated_movies(
         self,
@@ -375,7 +371,7 @@ class MovieQuery:
                 message="Invalid search query",
                 field_errors={"title_search": ["Search query cannot be empty"]},
             )
-        
+
         if skip < 0:
             raise ValidationError(
                 message="Invalid skip value",
@@ -397,9 +393,7 @@ class MovieQuery:
         if sort_by not in valid_sort_fields:
             raise ValidationError(
                 message="Invalid sort field",
-                field_errors={
-                    "sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]
-                },
+                field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
             )
 
         ***REMOVED*** Use the search function from movie_listings

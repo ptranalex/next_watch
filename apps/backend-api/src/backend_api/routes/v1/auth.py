@@ -3,20 +3,31 @@ Authentication routes for user registration, login, and token management.
 """
 
 from typing import Annotated, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from movie_storage.models.user import User
 from sqlmodel import Session
 
+from backend_api.db.database import get_db
 from backend_api.schemas.auth import (
-    UserCreate,
-    UserResponse,
-    UserLogin,
-    Token,
     RefreshToken,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
 )
 from backend_api.services.auth import AuthService
-from backend_api.db.database import get_db
-from movie_storage.models.user import User
+
+from ...db.database import get_db
+from ...schemas.auth import (
+    RefreshToken,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
+)
+from ...services.auth import AuthService
 
 ***REMOVED*** Create router
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -83,9 +94,7 @@ async def get_optional_user(
 
 
 ***REMOVED*** Authentication endpoints
-@router.post(
-    "/signup/", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/signup/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     user_data: UserCreate,
     session: Annotated[Session, Depends(get_db)],

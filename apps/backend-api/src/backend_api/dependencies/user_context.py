@@ -7,8 +7,9 @@ using an internal service token, then passes the verified user_id via headers.
 
 import os
 from typing import Annotated, Optional
-from fastapi import Header, HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+from fastapi import Depends, Header, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 ***REMOVED*** Internal API key for service-to-service authentication
 INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "bff-to-backend-secret-key")
@@ -17,17 +18,17 @@ security = HTTPBearer()
 
 
 async def verify_internal_token(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
 ) -> bool:
     """
     Verify the internal service token from BFF.
-    
+
     Args:
         credentials: Bearer token credentials
-        
+
     Returns:
         True if token is valid
-        
+
     Raises:
         HTTPException: If token is invalid
     """
@@ -48,7 +49,7 @@ async def get_user_id_from_header(
     Extract user ID from X-User-ID header injected by authenticated BFF.
 
     Args:
-        x_user_id: User ID from X-User-ID header  
+        x_user_id: User ID from X-User-ID header
         _: Internal token verification (dependency)
 
     Returns:

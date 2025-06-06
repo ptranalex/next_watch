@@ -5,42 +5,43 @@ These routes handle user interactions with movies, like marking movies as watche
 adding them to watchlists, or liking them.
 """
 
-from typing import Annotated, List, Optional
+import logging
 from datetime import datetime
+from typing import Annotated, List, Optional, Union, Any
+
 from fastapi import (
     APIRouter,
     Depends,
+    File,
     HTTPException,
     Path,
     Query,
-    status,
     UploadFile,
-    File,
+    status,
 )
-from sqlmodel import Session, Field
-import logging
+from movie_storage.db.operations import get_movie_by_id
+from movie_storage.models.movie import Movie
+from movie_storage.models.user import User
+from movie_storage.models.user_interaction import UserMovieInteraction
+from pydantic import BaseModel
+from sqlmodel import Field, Session
 
-from backend_api.db.database import get_db
-from backend_api.routes.v1.auth import get_current_user
-from backend_api.dependencies.user_context import get_user_id_from_header
-from backend_api.schemas.user_interaction_schema import (
-    UserMovieInteractionResponse,
-    UserMovieInteractionWithMovie,
-    MovieSummary,
-    UserMovieDetail,
-)
-from backend_api.services.user_interaction import UserInteractionService
-from backend_api.queries.user_interaction_query import UserInteractionQuery
-from backend_api.errors import (
+from ...db.database import get_db
+from ...dependencies.user_context import get_user_id_from_header
+from ...errors import (
     ResourceNotFoundError,
     ValidationError,
     service_error_to_http_exception,
 )
-from movie_storage.models.user import User
-from movie_storage.models.movie import Movie
-from movie_storage.models.user_interaction import UserMovieInteraction
-from movie_storage.db.operations import get_movie_by_id
-from pydantic import BaseModel
+from ...queries.user_interaction_query import UserInteractionQuery
+from .auth import get_current_user
+from ...schemas.user_interaction_schema import (
+    MovieSummary,
+    UserMovieDetail,
+    UserMovieInteractionResponse,
+    UserMovieInteractionWithMovie,
+)
+from ...services.user_interaction import UserInteractionService
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +50,12 @@ router = APIRouter(prefix="/user/movies", tags=["user-movies"])
 
 
 ***REMOVED*** Get dependencies
-def get_user_interaction_service():
+def get_user_interaction_service() -> UserInteractionService:
     """Get user interaction service."""
     return UserInteractionService()
 
 
-def get_user_interaction_query():
+def get_user_interaction_query() -> UserInteractionQuery:
     """Get user interaction query."""
     return UserInteractionQuery()
 
@@ -62,17 +63,15 @@ def get_user_interaction_query():
 ***REMOVED*** Get user interaction with a specific movie (no auth - BFF handles authentication)
 @router.get(
     "/{movie_id}/interaction",
-    response_model=Optional[UserMovieInteractionResponse],
+    response_model=Union[UserMovieInteractionResponse, dict],
     summary="Get user interaction with a specific movie",
 )
 async def get_movie_interaction(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
-):
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
+) -> Union[UserMovieInteraction, dict]:
     """
     Get user's interaction with a specific movie.
 
@@ -86,10 +85,11 @@ async def get_movie_interaction(
         interaction_query: User interaction query
 
     Returns:
-        User's interaction with the movie, or None if no interaction exists
+        User's interaction with the movie, or an empty dict if no interaction exists
     """
     try:
-        return interaction_query.get_user_interaction(db, user_id, movie_id)
+        result = interaction_query.get_user_interaction(db, user_id, movie_id)
+        return result if result else {}
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
@@ -103,12 +103,10 @@ async def get_movie_interaction(
 async def get_user_watchlist_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
-):
+) -> List[UserMovieInteraction]:
     """
     Get the current user's watchlist.
 
@@ -131,9 +129,7 @@ async def get_user_watchlist_endpoint(
 
     ***REMOVED*** Get user interactions
     try:
-        interactions, _ = interaction_query.get_user_watchlist(
-            db, current_user.id, limit, offset
-        )
+        interactions, _ = interaction_query.get_user_watchlist(db, current_user.id, limit, offset)
         return interactions
     except ValidationError as e:
         raise service_error_to_http_exception(e)
@@ -148,12 +144,10 @@ async def get_user_watchlist_endpoint(
 async def get_user_watched_movies_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
-):
+) -> List[UserMovieInteraction]:
     """
     Get the current user's watched movies.
 
@@ -193,12 +187,10 @@ async def get_user_watched_movies_endpoint(
 async def get_user_liked_movies_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
-):
+) -> List[UserMovieInteraction]:
     """
     Get the current user's liked movies.
 
@@ -240,10 +232,8 @@ async def toggle_watchlist(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Toggle a movie in the user's watchlist.
 
@@ -291,10 +281,8 @@ async def toggle_watched(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Toggle a movie as watched.
 
@@ -342,10 +330,8 @@ async def toggle_liked(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Toggle a movie as liked.
 
@@ -392,10 +378,8 @@ async def delete_movie_interaction(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> None:
     """
     Delete a user's interaction with a movie completely.
 
@@ -444,9 +428,7 @@ async def get_user_movie_details(
     ],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     page: Annotated[int, Query(ge=1)] = 1,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     sort_by: Annotated[str, Query()] = "title",
@@ -455,7 +437,7 @@ async def get_user_movie_details(
     rotten_tomatoes_rating: Annotated[Optional[float], Query(ge=0, le=100)] = None,
     metacritic_rating: Annotated[Optional[float], Query(ge=0, le=100)] = None,
     year: Annotated[Optional[int], Query(ge=1900, le=2030)] = None,
-):
+) -> List[Any]:
     """
     Get the current user's movie details for a specific category with filtering and sorting.
 
@@ -495,20 +477,38 @@ async def get_user_movie_details(
         movie_details, total = interaction_query.get_user_movie_details(
             db, current_user.id, category, limit, offset
         )
-        
+
         ***REMOVED*** For now, apply filtering and sorting in Python (not optimal, but functional)
         ***REMOVED*** This should be moved to the database query for better performance
         if movie_details:
             ***REMOVED*** Apply filters
             if imdb_rating is not None:
-                movie_details = [m for m in movie_details if m.imdb_rating and m.imdb_rating >= imdb_rating]
+                movie_details = [
+                    m for m in movie_details if m.imdb_rating and m.imdb_rating >= imdb_rating
+                ]
             if rotten_tomatoes_rating is not None:
-                movie_details = [m for m in movie_details if hasattr(m, 'rotten_tomatoes_rating') and getattr(m, 'rotten_tomatoes_rating') and getattr(m, 'rotten_tomatoes_rating') >= rotten_tomatoes_rating]
+                movie_details = [
+                    m
+                    for m in movie_details
+                    if hasattr(m, "rotten_tomatoes_rating")
+                    and getattr(m, "rotten_tomatoes_rating")
+                    and getattr(m, "rotten_tomatoes_rating") >= rotten_tomatoes_rating
+                ]
             if metacritic_rating is not None:
-                movie_details = [m for m in movie_details if hasattr(m, 'metacritic_rating') and getattr(m, 'metacritic_rating') and getattr(m, 'metacritic_rating') >= metacritic_rating]
+                movie_details = [
+                    m
+                    for m in movie_details
+                    if hasattr(m, "metacritic_rating")
+                    and getattr(m, "metacritic_rating")
+                    and getattr(m, "metacritic_rating") >= metacritic_rating
+                ]
             if year is not None:
-                movie_details = [m for m in movie_details if m.release_date and m.release_date.startswith(str(year))]
-            
+                movie_details = [
+                    m
+                    for m in movie_details
+                    if m.release_date and m.release_date.startswith(str(year))
+                ]
+
             ***REMOVED*** Apply sorting
             reverse = sort_desc
             if sort_by == "title":
@@ -519,7 +519,7 @@ async def get_user_movie_details(
                 movie_details.sort(key=lambda x: x.imdb_rating or 0, reverse=reverse)
             elif sort_by in ["rotten_tomatoes_rating", "metacritic_rating"]:
                 movie_details.sort(key=lambda x: getattr(x, sort_by, 0) or 0, reverse=reverse)
-        
+
         return movie_details
     except ValidationError as e:
         raise service_error_to_http_exception(e)
@@ -545,11 +545,9 @@ class NetflixImportResult(BaseModel):
 async def import_netflix_history(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
     file: UploadFile = File(...),
-):
+) -> NetflixImportResult:
     """
     Import Netflix watch history from a CSV file.
 
@@ -589,9 +587,7 @@ async def import_netflix_history(
 
         ***REMOVED*** Process CSV using service
         try:
-            result = interaction_service.import_netflix_history(
-                db, current_user.id, csv_text
-            )
+            result = interaction_service.import_netflix_history(db, current_user.id, csv_text)
 
             ***REMOVED*** Convert to response model
             return NetflixImportResult(
@@ -632,10 +628,8 @@ async def set_movie_watched(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Mark a movie as watched.
 
@@ -675,10 +669,8 @@ async def unset_movie_watched(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Unmark a movie as watched.
 
@@ -718,10 +710,8 @@ async def set_movie_liked(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Like a movie.
 
@@ -761,10 +751,8 @@ async def unset_movie_liked(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Unlike a movie.
 
@@ -804,10 +792,8 @@ async def set_movie_watchlist(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Add a movie to watchlist.
 
@@ -847,10 +833,8 @@ async def unset_movie_watchlist(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
-):
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
+) -> UserMovieInteraction:
     """
     Remove a movie from watchlist.
 

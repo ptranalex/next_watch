@@ -5,25 +5,28 @@ This service handles business logic related to how users interact with movies,
 including tracking movies as watched, liked, and in watchlists.
 """
 
-import logging
-from typing import List, Optional, Dict, Any, Tuple
-from datetime import datetime, date
-from sqlmodel import Session, select
-from sqlalchemy import func, desc, nullslast
 import csv
 import io
-from dateutil import parser as date_parser  ***REMOVED*** type: ignore
+import logging
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Tuple
 
-from movie_storage.models import UserMovieInteraction, User, Movie
+from dateutil import parser as date_parser  ***REMOVED*** type: ignore
 from movie_storage.db.operations import (
+    create_user_movie_interaction,
+    delete_user_movie_interaction,
     get_movie_by_id,
     get_user_movie_interaction,
-    create_user_movie_interaction,
-    update_user_movie_interaction,
-    delete_user_movie_interaction,
     toggle_user_movie_interaction_flag,
+    update_user_movie_interaction,
 )
-from backend_api.errors import ResourceNotFoundError, ValidationError, ServiceError
+from movie_storage.models import Movie, User, UserMovieInteraction
+from sqlalchemy import desc, func, nullslast
+from sqlmodel import Session, select
+
+***REMOVED*** Use absolute import to avoid mypy errors
+import backend_api.errors
+from backend_api.errors import ResourceNotFoundError, ServiceError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +44,7 @@ class UserInteractionService:
 
     ***REMOVED*** Command methods (write operations)
 
-    def toggle_watchlist(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def toggle_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
         Toggle a movie in a user's watchlist.
 
@@ -78,9 +79,7 @@ class UserInteractionService:
         logger.info(f"Toggling watchlist for user {user_id} and movie {movie_id}")
         return toggle_user_movie_interaction_flag(db, user_id, movie_id, "in_watchlist")
 
-    def toggle_watched(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def toggle_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
         Toggle a movie as watched by a user.
 
@@ -115,9 +114,7 @@ class UserInteractionService:
         logger.info(f"Toggling watched status for user {user_id} and movie {movie_id}")
         return toggle_user_movie_interaction_flag(db, user_id, movie_id, "watched")
 
-    def toggle_liked(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def toggle_liked(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
         Toggle a movie as liked by a user.
 
@@ -224,9 +221,7 @@ class UserInteractionService:
         logger.info(f"Getting interaction for user {user_id} and movie {movie_id}")
         return get_user_movie_interaction(db, user_id, movie_id)
 
-    def set_flag(
-        self, db: Session, user_id: int, movie_id: int, flag: str
-    ) -> UserMovieInteraction:
+    def set_flag(self, db: Session, user_id: int, movie_id: int, flag: str) -> UserMovieInteraction:
         """
         Set a specific flag to True for a user's interaction with a movie.
 
@@ -250,9 +245,7 @@ class UserInteractionService:
         if flag not in ["watched", "liked", "in_watchlist"]:
             raise ValidationError(
                 message=f"Invalid flag: {flag}",
-                field_errors={
-                    "flag": [f"Must be one of: watched, liked, in_watchlist"]
-                },
+                field_errors={"flag": [f"Must be one of: watched, liked, in_watchlist"]},
             )
 
         ***REMOVED*** Validate inputs
@@ -276,16 +269,12 @@ class UserInteractionService:
 
         ***REMOVED*** If already set to True, return unchanged
         if interaction and getattr(interaction, flag):
-            logger.info(
-                f"Flag {flag} already set to True for user {user_id} and movie {movie_id}"
-            )
+            logger.info(f"Flag {flag} already set to True for user {user_id} and movie {movie_id}")
             return interaction
 
         ***REMOVED*** If interaction exists but flag is False, or interaction doesn't exist,
         ***REMOVED*** toggle the flag (which will set it to True)
-        logger.info(
-            f"Setting flag {flag} to True for user {user_id} and movie {movie_id}"
-        )
+        logger.info(f"Setting flag {flag} to True for user {user_id} and movie {movie_id}")
         return toggle_user_movie_interaction_flag(db, user_id, movie_id, flag)
 
     def unset_flag(
@@ -315,9 +304,7 @@ class UserInteractionService:
         if flag not in ["watched", "liked", "in_watchlist"]:
             raise ValidationError(
                 message=f"Invalid flag: {flag}",
-                field_errors={
-                    "flag": [f"Must be one of: watched, liked, in_watchlist"]
-                },
+                field_errors={"flag": [f"Must be one of: watched, liked, in_watchlist"]},
             )
 
         ***REMOVED*** Validate inputs
@@ -342,9 +329,7 @@ class UserInteractionService:
         ***REMOVED*** If no interaction or flag already False, return interaction or create a
         ***REMOVED*** representation with the flag set to False
         if not interaction or not getattr(interaction, flag):
-            logger.info(
-                f"Flag {flag} already False for user {user_id} and movie {movie_id}"
-            )
+            logger.info(f"Flag {flag} already False for user {user_id} and movie {movie_id}")
             if interaction:
                 return interaction
             else:
@@ -360,51 +345,35 @@ class UserInteractionService:
                 )
 
         ***REMOVED*** If interaction exists and flag is True, toggle the flag (which will set it to False)
-        logger.info(
-            f"Setting flag {flag} to False for user {user_id} and movie {movie_id}"
-        )
+        logger.info(f"Setting flag {flag} to False for user {user_id} and movie {movie_id}")
         return toggle_user_movie_interaction_flag(db, user_id, movie_id, flag)
 
     ***REMOVED*** Now add convenience methods for each flag type
-    def set_watched(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def set_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set watched flag to True."""
         return self.set_flag(db, user_id, movie_id, "watched")
 
-    def unset_watched(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def unset_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set watched flag to False."""
         return self.unset_flag(db, user_id, movie_id, "watched")
 
-    def set_liked(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def set_liked(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set liked flag to True."""
         return self.set_flag(db, user_id, movie_id, "liked")
 
-    def unset_liked(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def unset_liked(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set liked flag to False."""
         return self.unset_flag(db, user_id, movie_id, "liked")
 
-    def set_watchlist(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def set_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set in_watchlist flag to True."""
         return self.set_flag(db, user_id, movie_id, "in_watchlist")
 
-    def unset_watchlist(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def unset_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set in_watchlist flag to False."""
         return self.unset_flag(db, user_id, movie_id, "in_watchlist")
 
-    def import_netflix_history(
-        self, db: Session, user_id: int, csv_content: str
-    ) -> Dict[str, Any]:
+    def import_netflix_history(self, db: Session, user_id: int, csv_content: str) -> Dict[str, Any]:
         """
         Import Netflix watch history from CSV content.
 
@@ -501,9 +470,7 @@ class UserInteractionService:
                         matched_movies += 1
                     except Exception as e:
                         ***REMOVED*** Log but continue with next movie
-                        logger.error(
-                            f"Error marking movie {movie_id} as watched: {str(e)}"
-                        )
+                        logger.error(f"Error marking movie {movie_id} as watched: {str(e)}")
                         continue
 
             ***REMOVED*** Return results summary

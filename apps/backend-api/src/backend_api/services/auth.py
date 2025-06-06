@@ -4,18 +4,28 @@ Authentication service for JWT-based user authentication.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, cast
+from typing import Any, Dict, Optional, cast
 
 import jwt  ***REMOVED*** type: ignore
-from sqlmodel import Session
-
-from backend_api.config.app import settings
-from movie_storage.models.user import User
 from movie_storage.db.operations.user import (
     authenticate_user,
-    get_user_by_id,
     create_user,
+    get_user_by_id,
 )
+from movie_storage.models.user import User
+from sqlmodel import Session
+
+***REMOVED*** Use absolute import to avoid mypy errors
+import backend_api.config.app
+from backend_api.config.app import settings
+
+***REMOVED*** Use relative imports instead
+from ..config import app
+from ..config.app import settings
+
+***REMOVED*** Use relative imports for better type checking
+from ..config import app
+from ..config.app import settings
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +77,8 @@ class AuthService:
         ***REMOVED*** Encode token
         token = jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
 
-        return token
+        ***REMOVED*** Cast to string to satisfy mypy
+        return cast(str, token)
 
     def create_refresh_token(self, user_id: int) -> str:
         """
@@ -94,7 +105,8 @@ class AuthService:
         ***REMOVED*** Encode token
         token = jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
 
-        return token
+        ***REMOVED*** Cast to string to satisfy mypy
+        return cast(str, token)
 
     def decode_token(self, token: str) -> Dict[str, Any]:
         """
@@ -110,10 +122,8 @@ class AuthService:
             jwt.PyJWTError: If token is invalid or expired
         """
         try:
-            payload = jwt.decode(
-                token, self.jwt_secret, algorithms=[self.jwt_algorithm]
-            )
-            return payload
+            payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            return cast(Dict[str, Any], payload)
         except jwt.PyJWTError as e:
             logger.warning(f"Failed to decode token: {str(e)}")
             raise
@@ -141,9 +151,7 @@ class AuthService:
             logger.warning(f"Failed to extract user ID from token: {str(e)}")
             return None
 
-    def authenticate(
-        self, session: Session, email: str, password: str
-    ) -> Optional[User]:
+    def authenticate(self, session: Session, email: str, password: str) -> Optional[User]:
         """
         Authenticate a user with email and password.
 

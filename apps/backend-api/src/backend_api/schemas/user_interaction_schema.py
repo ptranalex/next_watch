@@ -2,9 +2,10 @@
 User movie interaction schemas for API responses using Pydantic.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserMovieInteractionBase(BaseModel):

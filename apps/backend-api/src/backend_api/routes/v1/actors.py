@@ -2,11 +2,11 @@
 Actor-related API routes (v1).
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session
-from typing import List, Optional
 import logging
 import traceback
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 ***REMOVED*** Import movie-storage operations
 from movie_storage.db.operations import (
@@ -14,14 +14,15 @@ from movie_storage.db.operations import (
     get_movie_by_id,
 )
 
-***REMOVED*** Import database session dependency
-from backend_api.db.database import get_db
-
 ***REMOVED*** Import models
 from movie_storage.models import Credit
 
 ***REMOVED*** Import schemas
 from pydantic import BaseModel
+from sqlmodel import Session
+
+***REMOVED*** Import database session dependency
+from backend_api.db.database import get_db
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
 
 
@@ -74,9 +75,7 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)):
 
         ***REMOVED*** Check if any credits found
         if not credits:
-            raise HTTPException(
-                status_code=404, detail=f"Actor with ID {actor_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Actor with ID {actor_id} not found")
 
         ***REMOVED*** Use the first credit to get actor information
         ***REMOVED*** (since actor information is stored in each credit)
@@ -114,9 +113,7 @@ async def get_actor_movies(
 
         ***REMOVED*** Check if actor exists
         if not credits:
-            raise HTTPException(
-                status_code=404, detail=f"Actor with ID {actor_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Actor with ID {actor_id} not found")
 
         ***REMOVED*** Get the movie IDs for this actor
         movie_ids = set(credit.movie_id for credit in credits if credit.movie_id)
@@ -146,13 +143,14 @@ async def get_actor_movies(
                     }
                     movies.append(MovieResponse(**movie_dict))
 
-        ***REMOVED*** Return the paginated movie list  
+        ***REMOVED*** Return the paginated movie list
         import math
+
         total_count = len(movie_ids)
         total_pages = math.ceil(total_count / limit) if total_count > 0 else 0
         has_next = page < total_pages
         has_prev = page > 1
-        
+
         return MoviesListResponse(
             total=total_count,
             page=page,

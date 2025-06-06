@@ -2,9 +2,10 @@
 Query implementations for retrieving top-rated movies.
 """
 
-from sqlalchemy.sql import text
-from typing import List, Tuple, Dict, Any, Optional, Union
 import logging
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from sqlalchemy.sql import text
 
 from backend_api.queries.common import DBSession
 

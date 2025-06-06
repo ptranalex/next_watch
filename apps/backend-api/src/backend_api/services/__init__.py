@@ -6,8 +6,8 @@ state-changing operations, following the CQRS pattern to separate
 command operations from query operations.
 """
 
-from backend_api.services.user_interaction import UserInteractionService
-from backend_api.services.movie_service import MovieService
+from .movie_service import MovieService
+from .user_interaction import UserInteractionService
 
 __all__ = [
     "UserInteractionService",

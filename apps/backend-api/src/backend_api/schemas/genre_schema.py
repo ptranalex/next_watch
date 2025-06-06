@@ -2,8 +2,9 @@
 Genre schemas for API responses using Pydantic.
 """
 
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional, Dict, Any
 
 
 class GenreBase(BaseModel):
@@ -27,7 +28,7 @@ class GenreResponse(GenreBase):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     @classmethod
-    def from_orm(cls, obj):
+    def from_orm(cls, obj: Any) -> "GenreResponse":
         """Convert SQLModel object to Pydantic model, ensuring id is not None."""
         if obj.id is None:
             raise ValueError("Genre id cannot be None")

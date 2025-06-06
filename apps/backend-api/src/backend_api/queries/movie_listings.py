@@ -2,9 +2,10 @@
 Query implementations for retrieving lists of movies with various filtering options.
 """
 
-from sqlalchemy.sql import text
-from typing import List, Tuple, Dict, Any, Optional, Union
 import logging
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from sqlalchemy.sql import text
 
 from backend_api.queries.common import DBSession
 
@@ -80,9 +81,7 @@ def get_movies_with_filters(
 
         ***REMOVED*** Or filter by actor's TMDB ID
         if actor_tmdb_id is not None:
-            where_clauses.append(
-                "c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'"
-            )
+            where_clauses.append("c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'")
             params["actor_tmdb_id"] = actor_tmdb_id
 
     ***REMOVED*** Add rating filters
@@ -252,9 +251,7 @@ def search_movies_by_title(
 
         ***REMOVED*** Or filter by actor's TMDB ID
         if actor_tmdb_id is not None:
-            where_clauses.append(
-                "c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'"
-            )
+            where_clauses.append("c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'")
             params["actor_tmdb_id"] = actor_tmdb_id
 
     ***REMOVED*** Add rating filters

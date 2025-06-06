@@ -6,13 +6,13 @@ from fastapi import APIRouter
 
 ***REMOVED*** Import v1 route modules
 from backend_api.routes.v1 import (
-    movies,
-    genres,
     actors,
-    search,
     auth,
-    user_interactions,
+    genres,
     health,
+    movies,
+    search,
+    user_interactions,
 )
 
 ***REMOVED*** Create the v1 API router

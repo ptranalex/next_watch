@@ -3,6 +3,7 @@ Database setup and migration script.
 """
 
 import os
+
 import typer
 from movie_storage.db import init_db
 from movie_storage.db.migrations import run_migration
@@ -11,9 +12,7 @@ from movie_storage.utils import setup_movie_storage
 app = typer.Typer()
 
 ***REMOVED*** Database URL from environment variable with a PostgreSQL default
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://alex:postgres@localhost:5432/next_watch"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://alex:postgres@localhost:5432/next_watch")
 
 
 @app.command()

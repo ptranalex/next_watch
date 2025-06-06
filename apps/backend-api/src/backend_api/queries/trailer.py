@@ -1,9 +1,9 @@
 """Trailer queries."""
 
 from typing import List
-from sqlmodel import Session, select
 
 from movie_storage.models import Trailer
+from sqlmodel import Session, select
 
 
 def get_trailers_for_movie(session: Session, movie_id: int) -> List[Trailer]:

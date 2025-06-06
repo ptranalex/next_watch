@@ -11,7 +11,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, List, Any
+from typing import Any, Dict, List, Optional
 
 
 def configure_logging(
@@ -62,9 +62,7 @@ def configure_logging(
     ***REMOVED*** Add file handler if log_dir is provided
     if log_dir:
         log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = (
-            log_dir / f"backend_api_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        )
+        log_file = log_dir / f"backend_api_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
@@ -97,9 +95,7 @@ def configure_logging(
         logging.getLogger("alembic").setLevel(logging.WARNING)
 
     ***REMOVED*** Log initial configuration
-    root_logger.debug(
-        f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}"
-    )
+    root_logger.debug(f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}")
 
     return config_info
 

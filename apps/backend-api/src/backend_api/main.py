@@ -2,12 +2,12 @@
 Main FastAPI application for the Next Watch backend API.
 """
 
+import logging
 import os
 import sys
-from pathlib import Path
-import logging
 from contextlib import asynccontextmanager
-from typing import Dict, Any, Optional
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 ***REMOVED*** Load environment variables first
 try:
@@ -39,9 +39,7 @@ from backend_api.config.logging import configure_logging, get_logger
 configure_logging(
     log_level=getattr(settings, "log_level", "INFO"),
     log_dir=(
-        Path(getattr(settings, "log_dir", "./logs"))
-        if hasattr(settings, "log_dir")
-        else None
+        Path(getattr(settings, "log_dir", "./logs")) if hasattr(settings, "log_dir") else None
     ),
     verbose=settings.debug,
     quiet=False,
@@ -56,19 +54,20 @@ logger.info(f"Running in environment: {os.getenv('ENVIRONMENT', 'development')}"
 ***REMOVED*** Import remaining dependencies
 import datetime
 import traceback
-from fastapi import FastAPI, Request, HTTPException, Depends
+
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select, text
 
-***REMOVED*** Import versioned API router
-from backend_api.routes.api_v1 import api_v1_router
-
 ***REMOVED*** Import database initialization
-from backend_api.db.database import init_database, get_db
+from backend_api.db.database import get_db, init_database
 
 ***REMOVED*** Import middlewares
 from backend_api.middlewares import ErrorHandlerMiddleware
+
+***REMOVED*** Import versioned API router
+from backend_api.routes.api_v1 import api_v1_router
 
 ***REMOVED*** Import services
 try:
@@ -130,10 +129,7 @@ async def lifespan(app: FastAPI):
 
     ***REMOVED*** Shutdown
     logger.info("Shutting down Backend API service")
-    if (
-        hasattr(app.state, "suggestion_engine")
-        and app.state.suggestion_engine is not None
-    ):
+    if hasattr(app.state, "suggestion_engine") and app.state.suggestion_engine is not None:
         try:
             logger.info("Shutting down Redis suggestion engine")
             await app.state.suggestion_engine.shutdown()
@@ -196,9 +192,7 @@ def create_app() -> FastAPI:
             response = await call_next(request)
             process_time = (datetime.datetime.now() - start_time).total_seconds()
             response.headers["X-Process-Time"] = str(process_time)
-            logger.debug(
-                f"Request to {request.url.path} took {process_time:.4f} seconds"
-            )
+            logger.debug(f"Request to {request.url.path} took {process_time:.4f} seconds")
             return response
 
     ***REMOVED*** Register v1 API router - this is the new, organized API
@@ -217,9 +211,7 @@ def create_app() -> FastAPI:
             JSON error response
         """
         logger.error(f"Unhandled exception: {exc}", exc_info=True)
-        return JSONResponse(
-            status_code=500, content={"detail": "Internal server error"}
-        )
+        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
     return app
 

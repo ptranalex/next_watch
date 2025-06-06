@@ -1,11 +1,11 @@
 """Configuration settings for the backend API."""
 
+import json
+import logging
 import os
 import sys
-import json
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-import logging
+from typing import Any, Dict, List, Optional
 
 ***REMOVED*** Configure basic logging first for this module
 logging.basicConfig(level=logging.INFO)
@@ -37,9 +37,7 @@ DEFAULT_ENABLE_PERFORMANCE_METRICS = (
 ***REMOVED*** Authentication settings
 DEFAULT_JWT_SECRET = os.getenv("JWT_SECRET", "change_this_in_production_very_important")
 DEFAULT_JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
-    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
-)
+DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 DEFAULT_JWT_JWK_ROTATION_INTERVAL = int(
     os.getenv("JWT_JWK_ROTATION_INTERVAL", "86400")
@@ -54,9 +52,7 @@ DEFAULT_REDIS_SOCKET_TIMEOUT = int(
 DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT = int(
     os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "30")
 )  ***REMOVED*** Increased from 5 to 30
-DEFAULT_REDIS_RETRY_ON_TIMEOUT = (
-    os.getenv("REDIS_RETRY_ON_TIMEOUT", "true").lower() == "true"
-)
+DEFAULT_REDIS_RETRY_ON_TIMEOUT = os.getenv("REDIS_RETRY_ON_TIMEOUT", "true").lower() == "true"
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
@@ -150,9 +146,7 @@ class Config:
         self.log_level = log_level
         self.debug = debug
         self.cors_origins = (
-            [origin.strip() for origin in cors_origins.split(",")]
-            if cors_origins != "*"
-            else ["*"]
+            [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
         )
         self.enable_performance_metrics = enable_performance_metrics
         self.log_dir = log_dir
@@ -180,9 +174,7 @@ class Config:
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse JWK configuration: {e}")
                 if not self.debug:
-                    raise ValueError(
-                        "Invalid JWK configuration in production environment"
-                    )
+                    raise ValueError("Invalid JWK configuration in production environment")
 
         ***REMOVED*** Log configuration
         logger.info(

@@ -1,0 +1,89 @@
+[env]
+requires = ["hatch-vcs"]
+
+[env.paths]
+***REMOVED*** Configure module paths
+src = "src"
+tests = "tests"
+
+[build]
+***REMOVED*** Use hatch-vcs for versioning
+dev-mode-exact = true
+
+[version]
+source = "vcs"
+
+[dirs]
+***REMOVED*** Exclude certain directories from packaging
+exclude = [
+  "tests",
+  "docs",
+  ".github",
+  ".vscode",
+]
+
+[build.targets.wheel]
+packages = ["backend_api"]
+
+[build.sources]
+"src" = ""
+
+[envs.default]
+***REMOVED*** Configure virtual environment to be in project directory
+type = "virtual"
+path = ".venv"
+dependencies = [
+  "fastapi>=0.104.0",
+  "uvicorn>=0.23.2",
+  "pydantic>=2.4.2",
+  "sqlalchemy>=2.0.23",
+  "sqlmodel>=0.0.8",
+  "alembic>=1.12.1",
+  "typer>=0.15.2",
+  "python-dotenv>=1.0.0",
+  "rich>=14.0.0",
+  "redis>=6.0.0",
+  "types-redis>=4.6.0.20241004",
+  "pyjwt>=2.8.0",
+  "passlib[bcrypt]>=1.7.4",
+  "bcrypt==3.2.2",
+  "python-multipart>=0.0.6",
+  "email-validator>=2.1.0",
+  "python-dateutil>=2.9.0",
+]
+
+***REMOVED*** Add environment variables for development
+[envs.default.env-vars]
+PYTHONPATH = "src"
+
+[envs.default.scripts]
+serve = "python -m backend_api.main"
+dev = "PYTHONPATH=src uvicorn backend_api.main:app --reload --port 8000"
+cli = "python -m backend_api.cli"
+***REMOVED*** Add script to install the local movie-storage package
+setup-local-deps = "pip install -e ../../libs/movie-storage"
+migrate = "python -m backend_api.cli db migrate"
+upgrade = "python -m backend_api.cli db upgrade"
+
+[envs.dev]
+dependencies = [
+  "pytest>=7.4.3",
+  "black>=23.10.1",
+  "isort>=5.12.0",
+  "flake8>=6.1.0",
+  "mypy>=1.7.0",
+]
+
+[envs.dev.scripts]
+lint = [
+  "black .",
+  "isort .",
+  "flake8 .",
+  "mypy src"
+]
+test = "PYTHONPATH=src pytest {args:tests}"
+test-cov = "PYTHONPATH=src pytest --cov=backend_api tests/"
+format = [
+  "black .",
+  "isort ."
+] 

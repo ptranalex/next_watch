@@ -5,7 +5,8 @@ This module defines a set of standard error types that can be raised by services
 providing a consistent error handling approach throughout the application.
 """
 
-from typing import Any, Dict, Optional, List, Union
+from typing import Any, Dict, List, Optional, Union
+
 from fastapi import HTTPException, status
 
 

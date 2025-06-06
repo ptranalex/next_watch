@@ -2,9 +2,10 @@
 Cast schemas for API responses using Pydantic.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CastMemberResponse(BaseModel):
@@ -20,7 +21,7 @@ class CastMemberResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     @classmethod
-    def model_validate(cls, obj, **kwargs):
+    def model_validate(cls, obj: Any, **kwargs: Any) -> "CastMemberResponse":
         if isinstance(obj, dict):
             ***REMOVED*** Map tmdb_person_id to actor_id if dict contains tmdb_person_id
             if "tmdb_person_id" in obj and "actor_id" not in obj:
@@ -42,7 +43,7 @@ class CrewMemberResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     @classmethod
-    def model_validate(cls, obj, **kwargs):
+    def model_validate(cls, obj: Any, **kwargs: Any) -> "CrewMemberResponse":
         if isinstance(obj, dict):
             ***REMOVED*** Map tmdb_person_id to actor_id if dict contains tmdb_person_id
             if "tmdb_person_id" in obj and "actor_id" not in obj:

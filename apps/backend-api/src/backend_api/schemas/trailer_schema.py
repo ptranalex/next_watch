@@ -2,9 +2,10 @@
 Trailer schemas for API responses using Pydantic.
 """
 
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
+from typing import Any, Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class TrailerBase(BaseModel):
@@ -33,7 +34,7 @@ class TrailerResponse(TrailerBase):
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def model_validate(cls, obj, **kwargs):
+    def model_validate(cls, obj: Any, **kwargs: Any) -> "TrailerResponse":
         if isinstance(obj, dict):
             return cls(**obj)
         return super().model_validate(obj, **kwargs)

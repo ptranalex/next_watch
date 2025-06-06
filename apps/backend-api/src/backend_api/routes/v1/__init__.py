@@ -3,4 +3,4 @@ API v1 routes package.
 """
 
 ***REMOVED*** Export route modules
-from backend_api.routes.v1 import movies, genres, actors, search, user_interactions
+from backend_api.routes.v1 import actors, genres, movies, search, user_interactions

@@ -1,40 +1,106 @@
-[tool.poetry]
-name = "backend-api"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "backend_api"
 version = "0.1.0"
 description = "FastAPI backend for next_watch movie platform"
-authors = ["Your Name <your.email@example.com>"]
-packages = [{include = "backend_api", from = "src"}]
-include = ["src/backend_api/py.typed"]
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+readme = {text = "***REMOVED*** Backend API\n\nFastAPI backend for Next Watch platform", content-type = "text/markdown"}
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    ***REMOVED*** Core API framework
+    "fastapi>=0.104.0",         ***REMOVED*** API framework
+    "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
+    "pydantic>=2.4.2",          ***REMOVED*** Data validation
+    
+    ***REMOVED*** Database and ORM
+    "sqlalchemy>=2.0.23",       ***REMOVED*** ORM
+    "sqlmodel>=0.0.8",          ***REMOVED*** SQLModel
+    "alembic>=1.12.1",          ***REMOVED*** Database migrations
+    
+    ***REMOVED*** CLI and utilities
+    "typer>=0.15.2",            ***REMOVED*** CLI framework
+    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    "rich>=14.0.0",             ***REMOVED*** Rich text output
+    
+    ***REMOVED*** Cache
+    "redis>=6.0.0",             ***REMOVED*** Redis client
+    "types-redis>=4.6.0.20241004", ***REMOVED*** Redis type stubs
+    
+    ***REMOVED*** Auth and security
+    "pyjwt>=2.8.0",             ***REMOVED*** JWT handling
+    "passlib[bcrypt]>=1.7.4",   ***REMOVED*** Password hashing
+    "bcrypt==3.2.2",            ***REMOVED*** Specific bcrypt version
+    
+    ***REMOVED*** Form handling
+    "python-multipart>=0.0.6",  ***REMOVED*** Multipart form parsing
+    "email-validator>=2.1.0",   ***REMOVED*** Email validation
+    
+    ***REMOVED*** Date/time handling
+    "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-fastapi = "^0.104.0"
-uvicorn = "^0.23.2"
-pydantic = "^2.4.2"
-sqlalchemy = "^2.0.23"
-alembic = "^1.12.1"
-typer = "^0.15.2"
-python-dotenv = "^1.0.0"
-movie-storage = {path = "../../libs/movie-storage"}
-redis = "^6.0.0"
-types-redis = "^4.6.0.20241004"
-pyjwt = "^2.8.0"
-passlib = {extras = ["bcrypt"], version = "^1.7.4"}
-python-multipart = "^0.0.6"
-email-validator = "^2.1.0"
-bcrypt = "3.2.2"
-python-dateutil = "^2.9.0"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "black>=23.10.1",
+    "isort>=5.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-black = "^23.10.1"
-isort = "^5.12.0"
-flake8 = "^6.1.0"
-mypy = "^1.7.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 backend-api = "backend_api.cli:main"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api" 
+***REMOVED*** Allow direct references to local dependencies
+[tool.hatch.metadata]
+allow-direct-references = true
+
+***REMOVED*** Added to ensure correct package discovery
+[tool.hatch.build.targets.wheel]
+packages = ["backend_api"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["backend_api"]
+
+***REMOVED*** Specify that the package is in the src directory
+[tool.hatch.build.sources]
+"src" = ""
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.flake8]
+max-line-length = 100
+exclude = [".git", "__pycache__", "build", "dist"]
+extend-ignore = ["E203"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*" 

@@ -2,18 +2,17 @@
 Query implementations for retrieving detailed information about movies.
 """
 
-from sqlalchemy.sql import text
-from typing import List, Dict, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy.sql import text
 
 from backend_api.queries.common import DBSession
 
 logger = logging.getLogger(__name__)
 
 
-def get_movie_genres(
-    db_session: DBSession, movie_id: Optional[int] = None
-) -> List[Dict[str, Any]]:
+def get_movie_genres(db_session: DBSession, movie_id: Optional[int] = None) -> List[Dict[str, Any]]:
     """
     Get all genres for a specific movie.
 
@@ -35,14 +34,10 @@ def get_movie_genres(
     """
 
     result = db_session.execute(text(query), {"movie_id": int(movie_id)})
-    return [
-        dict(row._mapping) for row in result.all()
-    ]  ***REMOVED*** Convert Row objects to dictionaries
+    return [dict(row._mapping) for row in result.all()]  ***REMOVED*** Convert Row objects to dictionaries
 
 
-def get_movie_details_by_id(
-    db_session: DBSession, movie_id: int
-) -> Optional[Dict[str, Any]]:
+def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> Optional[Dict[str, Any]]:
     """
     Get detailed information about a specific movie by its ID.
 
@@ -95,9 +90,7 @@ def get_movie_details_by_id(
     return movie_dict
 
 
-def get_movie_details_by_tmdb_id(
-    db_session: DBSession, tmdb_id: int
-) -> Optional[Dict[str, Any]]:
+def get_movie_details_by_tmdb_id(db_session: DBSession, tmdb_id: int) -> Optional[Dict[str, Any]]:
     """
     Get detailed information about a specific movie by its TMDB ID.
 
@@ -124,9 +117,7 @@ def get_movie_details_by_tmdb_id(
     return dict(movie._mapping)
 
 
-def get_movies_by_ids_bulk(
-    db_session: DBSession, movie_ids: List[int]
-) -> List[Dict[str, Any]]:
+def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: List[int]) -> List[Dict[str, Any]]:
     """
     Get detailed information about multiple movies by their IDs.
 
@@ -142,7 +133,7 @@ def get_movies_by_ids_bulk(
 
     ***REMOVED*** Create placeholders for the IN clause
     placeholders = ",".join([":id" + str(i) for i in range(len(movie_ids))])
-    
+
     ***REMOVED*** Build the query with proper parameter substitution
     query = f"""
     SELECT m.*, 
@@ -165,7 +156,7 @@ def get_movies_by_ids_bulk(
 
     ***REMOVED*** Create parameters dictionary
     params = {f"id{i}": movie_id for i, movie_id in enumerate(movie_ids)}
-    
+
     result = db_session.execute(text(query), params)
     movies = [dict(row._mapping) for row in result.all()]
 

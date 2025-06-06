@@ -2,32 +2,33 @@
 Movie-related API routes (v1).
 """
 
-from fastapi import APIRouter, Depends, Query, Path
-from fastapi.responses import JSONResponse
-from sqlmodel import Session
-from typing import List, Optional, Dict, Any
 import logging
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, Path, Query
+from fastapi.responses import JSONResponse
+from sqlmodel import Session
 
 ***REMOVED*** Import database session dependency
-from backend_api.db.database import get_db
-
-***REMOVED*** Import response schemas
-from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
-from backend_api.schemas.trailer_schema import TrailerResponse
-from backend_api.schemas.cast_schema import (
-    CastMemberResponse,
-    MovieCastResponse,
-)
-
-***REMOVED*** Import service and query
-from backend_api.services.movie_service import MovieService
-from backend_api.queries.movie_query import MovieQuery
-from backend_api.errors import (
+from ...db.database import get_db
+from ...errors import (
     ResourceNotFoundError,
     ValidationError,
     service_error_to_http_exception,
 )
+from ...queries.movie_query import MovieQuery
+from ...schemas.cast_schema import (
+    CastMemberResponse,
+    MovieCastResponse,
+)
+
+***REMOVED*** Import response schemas
+from ...schemas.movie_schema import MovieResponse, MoviesListResponse
+from ...schemas.trailer_schema import TrailerResponse
+
+***REMOVED*** Import service and query
+from ...services.movie_service import MovieService
 
 logger = logging.getLogger(__name__)
 
@@ -35,27 +36,24 @@ router = APIRouter(prefix="/movies", tags=["movies"])
 
 
 ***REMOVED*** Get dependencies
-def get_movie_service():
+def get_movie_service() -> MovieService:
     """Get movie service."""
     return MovieService()
 
 
-def get_movie_query():
+def get_movie_query() -> MovieQuery:
     """Get movie query."""
     return MovieQuery()
 
 
 ***REMOVED*** Helper function
-def format_movie_for_response(
-    movie: Any, genres: List[Dict[str, Any]]
-) -> MovieResponse:
+def format_movie_for_response(movie: Any, genres: List[Dict[str, Any]]) -> MovieResponse:
     """
     Format a movie database row into a MovieResponse model.
     """
     ***REMOVED*** Convert genres to the expected format
     genre_list = [
-        {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]}
-        for genre in genres
+        {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]} for genre in genres
     ]
 
     ***REMOVED*** Convert movie to dictionary based on its type
@@ -80,9 +78,7 @@ def format_movie_for_response(
             movie_dict = dict(movie._mapping)
         except (AttributeError, TypeError):
             ***REMOVED*** Fallback to __dict__ for other objects
-            movie_dict = {
-                k: v for k, v in movie.__dict__.items() if not k.startswith("_")
-            }
+            movie_dict = {k: v for k, v in movie.__dict__.items() if not k.startswith("_")}
 
     ***REMOVED*** Add genres to the dictionary
     movie_dict["genres"] = genre_list
@@ -119,9 +115,7 @@ def create_pagination_response(
 async def get_movies_bulk(
     ids: str = Query(..., description="Comma-separated list of movie IDs"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
-    limit: int = Query(
-        100, ge=1, le=200, description="Max number of movies to return per page"
-    ),
+    limit: int = Query(100, ge=1, le=200, description="Max number of movies to return per page"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
@@ -147,21 +141,15 @@ async def get_movies_bulk(
     try:
         ***REMOVED*** Parse movie IDs from comma-separated string
         try:
-            movie_ids = [
-                int(id_str.strip()) for id_str in ids.split(",") if id_str.strip()
-            ]
+            movie_ids = [int(id_str.strip()) for id_str in ids.split(",") if id_str.strip()]
         except ValueError:
-            raise ValidationError(
-                "Invalid movie IDs provided. Must be comma-separated integers."
-            )
+            raise ValidationError("Invalid movie IDs provided. Must be comma-separated integers.")
 
         if not movie_ids:
             return create_pagination_response([], 0, page, limit)
 
         if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit to prevent abuse
-            raise ValidationError(
-                "Too many movie IDs provided. Maximum 1000 IDs per request."
-            )
+            raise ValidationError("Too many movie IDs provided. Maximum 1000 IDs per request.")
 
         ***REMOVED*** Calculate pagination for the movie IDs list
         skip = (page - 1) * limit
@@ -216,9 +204,7 @@ async def list_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
@@ -340,9 +326,7 @@ async def search_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
@@ -422,7 +406,7 @@ async def get_movie_cast(
     movie_id: int = Path(..., ge=1, description="Movie database ID"),
     db: Session = Depends(get_db),
     movie_service: MovieService = Depends(get_movie_service),
-):
+) -> MovieCastResponse:
     """
     Get cast information for a specific movie.
     """

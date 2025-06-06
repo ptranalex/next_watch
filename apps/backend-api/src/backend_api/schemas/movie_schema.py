@@ -2,9 +2,10 @@
 Movie schemas for API responses using Pydantic.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class GenreInfo(BaseModel):
@@ -65,7 +66,7 @@ class MovieResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
     @classmethod
-    def model_validate(cls, obj, **kwargs):
+    def model_validate(cls, obj: Any, **kwargs: Any) -> "MovieResponse":
         if isinstance(obj, dict):
             return cls(**obj)
         return super().model_validate(obj, **kwargs)

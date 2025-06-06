@@ -2,18 +2,19 @@
 Genre-related API routes (v1).
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from sqlmodel import Session
-from typing import List
 import logging
 import traceback
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException
 
 ***REMOVED*** Import movie-storage operations
 from movie_storage.db.operations import (
-    get_genres,
     get_genre_by_id,
     get_genre_by_name,
+    get_genres,
 )
+from sqlmodel import Session
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
