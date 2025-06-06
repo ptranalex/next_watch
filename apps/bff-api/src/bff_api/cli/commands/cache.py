@@ -2,7 +2,8 @@
 
 import asyncio
 import logging
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, Union
+from typer import Typer
 
 import typer
 from rich.console import Console
@@ -11,7 +12,7 @@ from rich.prompt import Confirm
 
 from bff_api.config.app import settings
 
-app = typer.Typer(name="cache", help="Redis cache management commands.")
+app: Typer = typer.Typer(name="cache", help="Redis cache management commands.")
 console = Console()
 logger = logging.getLogger(__name__)
 

@@ -151,7 +151,8 @@ def create_app() -> FastAPI:
 app = create_app()
 
 if __name__ == "__main__":
+    import sys
     from bff_api.cli.main import main
 
-    ***REMOVED*** Forward to the CLI for consistent behavior
-    main()
+    ***REMOVED*** Forward to the CLI and pass the exit code to sys.exit
+    sys.exit(main())

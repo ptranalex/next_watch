@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import time
+from typer import Typer
 from typing import Dict, Any, Optional
 
 import typer
@@ -11,7 +12,7 @@ from rich.console import Console
 from bff_api.config.app import settings
 from bff_api.cli.utils import check_service_health, display_service_status
 
-app = typer.Typer(
+app: Typer = typer.Typer(
     name="health", help="Health check commands for BFF and dependent services."
 )
 console = Console()
@@ -167,9 +168,7 @@ async def _run_health_checks(
 
     ***REMOVED*** Check Backend API
     start_time = time.time()
-    backend_healthy = await check_service_health(
-        backend_url, "Backend API", timeout, console
-    )
+    backend_healthy = await check_service_health(backend_url, "Backend API", timeout, console)
     backend_time = round((time.time() - start_time) * 1000, 2)
 
     services["Backend API"] = {
@@ -214,9 +213,7 @@ async def _run_health_checks(
         exit_code = 1
 
     if verbose:
-        console.print(
-            f"\n[dim]Health check completed with exit code: {exit_code}[/dim]"
-        )
+        console.print(f"\n[dim]Health check completed with exit code: {exit_code}[/dim]")
 
     raise typer.Exit(code=exit_code)
 
