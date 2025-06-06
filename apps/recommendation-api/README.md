@@ -22,6 +22,7 @@ recommendation_api/
 ├── services/         ***REMOVED*** Business logic and service layer
 ├── repositories/     ***REMOVED*** Data access layer
 │   └── vector/       ***REMOVED*** Vector database access
+│   └── redis/        ***REMOVED*** Redis cache access
 ├── db/               ***REMOVED*** Database connections and models
 ├── ml/               ***REMOVED*** Machine learning components
 ├── config/           ***REMOVED*** Application configuration
@@ -34,6 +35,7 @@ recommendation_api/
 - **Service Layer**: Business logic for recommendations
 - **Repository Layer**: Data access abstractions
 - **Vector Storage**: Qdrant vector database for similarity search
+- **Redis Cache**: Redis for caching similar movie recommendations
 - **ML API Client**: Client for communicating with the ML API service
 
 ***REMOVED******REMOVED*** Dependencies
@@ -123,6 +125,7 @@ docker run -p 8002:8002 recommendation-api
 
 - `ENVIRONMENT`: Set to `production` by default
 - `ML_API_URL`: URL of the ML API service
+- `REDIS_URL`: URL for Redis cache (default: redis://localhost:6379/0)
 - `PYTHONPATH`: Configured to include necessary modules
 
 ***REMOVED******REMOVED******REMOVED*** Microservices Architecture
@@ -136,21 +139,21 @@ The recommendation system now follows a microservices architecture:
 │     Service       │         │                   │         │  Vector Database  │
 │                   │         │                   │         │                   │
 └───────────────────┘         └───────────────────┘         └───────────────────┘
-                                       │
-                                       ▼
-                              ┌───────────────────┐
-                              │                   │
-                              │   ML API Client   │
-                              │                   │
-                              └───────────────────┘
-                                       │
-                                       ▼
-                              ┌───────────────────┐
-                              │                   │
-                              │      ML API       │
-                              │     Service       │
-                              │                   │
-                              └───────────────────┘
+         │                              │
+         ▼                              ▼
+┌───────────────────┐          ┌───────────────────┐
+│                   │          │                   │
+│    Redis Cache    │          │   ML API Client   │
+│                   │          │                   │
+└───────────────────┘          └───────────────────┘
+                                        │
+                                        ▼
+                               ┌───────────────────┐
+                               │                   │
+                               │      ML API       │
+                               │     Service       │
+                               │                   │
+                               └───────────────────┘
 ```
 
 This architecture provides:
@@ -224,6 +227,11 @@ rec-api ml info
 
 ***REMOVED*** Version Information
 rec-api version
+
+***REMOVED*** Cache Management
+rec-api cache info [--verbose]
+rec-api cache clear [--force]
+rec-api cache precompute [--limit N] [--min-score SCORE] [--batch-size SIZE] [--ttl SECONDS] [--movie-id ID]
 ```
 
 ***REMOVED******REMOVED*** Configuration

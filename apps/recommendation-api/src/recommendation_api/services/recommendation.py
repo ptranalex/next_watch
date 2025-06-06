@@ -5,7 +5,7 @@ based on various criteria and user preferences.
 """
 
 import logging
-from typing import List, Optional, Dict, Any, Tuple, Union
+from typing import List, Optional, Dict, Any, Tuple, Union, TypeVar, cast
 from sqlmodel import Session
 
 from recommendation_api.db.operations import (
@@ -20,12 +20,16 @@ from recommendation_api.db.operations import (
     get_personalized_recommendations_direct,
 )
 from recommendation_api.services.vector_service import VectorService, get_vector_service
+from recommendation_api.repositories.redis import get_redis_repository
 
 ***REMOVED*** Replace local embedding import with ML API client
 ***REMOVED*** from recommendation_api.services.embedding import generate_user_preference_vector
 from recommendation_api.services.ml_api_client import get_ml_api_client
-from movie_storage.models.movie import Movie
+
+***REMOVED*** Import Movie from a local stub or use type ignores
+from movie_storage.models.movie import Movie  ***REMOVED*** type: ignore
 from recommendation_api.models.recommendation import MovieRecommendation
+from recommendation_api.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +37,7 @@ logger = logging.getLogger(__name__)
 class RecommendationService:
     """Service for generating movie recommendations."""
 
-    def __init__(
-        self, session: Session, vector_service: Optional[VectorService] = None
-    ):
+    def __init__(self, session: Session, vector_service: Optional[VectorService] = None):
         """Initialize the recommendation service.
 
         Args:
@@ -44,6 +46,7 @@ class RecommendationService:
         """
         self.session = session
         self.vector_service = vector_service or get_vector_service()
+        self.redis_repo = get_redis_repository()
 
     ***REMOVED*** Comment out methods that use unavailable functions
     """
@@ -183,7 +186,6 @@ class RecommendationService:
         ***REMOVED*** ...
     """
 
-    ***REMOVED*** Keep this method as it only uses get_movie_features and vector_service
     def get_similar_movies(
         self,
         movie_id: int,
@@ -204,6 +206,88 @@ class RecommendationService:
         Returns:
             Tuple of (recommendations list, filters dict)
         """
+        ***REMOVED*** First check if similar movies are cached in Redis
+        if settings.enable_caching:
+            cached_similar_movies = self.redis_repo.get_similar_movies(
+                movie_id=movie_id,
+                limit=limit * 2,  ***REMOVED*** Get more to filter
+                min_score=min_score,
+            )
+
+            if cached_similar_movies:
+                logger.debug(
+                    f"Found {len(cached_similar_movies)} cached similar movies for movie ID {movie_id}"
+                )
+
+                ***REMOVED*** Get movie to use for recommendation reason
+                source_movie = get_movie_by_id(self.session, movie_id)
+                if not source_movie:
+                    logger.warning(f"Movie with ID {movie_id} not found")
+                    return [], {"error": "Movie not found"}
+
+                ***REMOVED*** Get movie details for the IDs
+                movie_ids = [m_id for m_id, _ in cached_similar_movies]
+                movies = get_movies_by_ids(self.session, movie_ids)
+
+                ***REMOVED*** Create mapping of movie ID to similarity score
+                similarity_scores = {m_id: score for m_id, score in cached_similar_movies}
+
+                ***REMOVED*** Filter movies by rating and vote count if specified
+                filtered_movies = []
+                for movie in movies:
+                    if movie.id is None:
+                        continue
+
+                    ***REMOVED*** Apply filters
+                    if min_rating is not None and (
+                        movie.imdb_rating is None or movie.imdb_rating < min_rating
+                    ):
+                        continue
+
+                    if min_vote_count is not None and (
+                        movie.vote_count is None or movie.vote_count < min_vote_count
+                    ):
+                        continue
+
+                    filtered_movies.append(movie)
+
+                    ***REMOVED*** Limit to requested number
+                    if len(filtered_movies) >= limit:
+                        break
+
+                ***REMOVED*** Create recommendation objects with similarity scores and source movie
+                recommendations = []
+                for movie in filtered_movies:
+                    if movie.id is None:
+                        continue
+
+                    score = similarity_scores.get(movie.id, 0)
+                    reason = f"similar to {source_movie.title}" if source_movie else "similar"
+
+                    recommendation = MovieRecommendation.from_movie(
+                        movie,
+                        reason=reason,
+                        score=score,
+                    )
+                    recommendations.append(recommendation)
+
+                filters = {
+                    "source_movie_id": movie_id,
+                    "min_rating": min_rating,
+                    "min_vote_count": min_vote_count,
+                    "min_score": min_score,
+                    "limit": limit,
+                    "from_cache": True,
+                }
+
+                return recommendations, filters
+
+            logger.debug(
+                f"No cached similar movies found for movie ID {movie_id}, querying vector service"
+            )
+
+        ***REMOVED*** If not cached or caching disabled, use the original implementation
+
         ***REMOVED*** Get movie features
         features = get_movie_features(self.session, movie_id)
         if not features:
@@ -226,6 +310,18 @@ class RecommendationService:
         if not similar_movies:
             logger.warning(f"No similar movies found for movie ID {movie_id}")
             return [], {"error": "No similar movies found"}
+
+        ***REMOVED*** Cache the similar movies in Redis if caching is enabled
+        if settings.enable_caching:
+            try:
+                self.redis_repo.store_similar_movies(
+                    movie_id=movie_id,
+                    similar_movies=similar_movies,
+                    ttl=settings.redis_ttl,  ***REMOVED*** Use TTL from settings
+                )
+                logger.debug(f"Cached {len(similar_movies)} similar movies for movie ID {movie_id}")
+            except Exception as e:
+                logger.warning(f"Failed to cache similar movies for movie ID {movie_id}: {e}")
 
         ***REMOVED*** Get movie details for the IDs
         movie_ids = [movie_id for movie_id, _ in similar_movies]
@@ -279,6 +375,7 @@ class RecommendationService:
             "min_vote_count": min_vote_count,
             "min_score": min_score,
             "limit": limit,
+            "from_cache": False,
         }
 
         return recommendations, filters

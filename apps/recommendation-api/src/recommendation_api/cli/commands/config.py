@@ -19,9 +19,9 @@ console = Console()
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(verbose: bool = False, quiet: bool = False):
+def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
     """Configure logging for config commands.
-    
+
     Args:
         verbose: Enable verbose logging
         quiet: Suppress most log output
@@ -48,12 +48,7 @@ def show(
         "-v",
         help="Show detailed configuration information",
     ),
-    quiet: bool = typer.Option(
-        False, 
-        "--quiet", 
-        "-q", 
-        help="Suppress most log output"
-    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
     """Display current configuration.
 
@@ -64,16 +59,18 @@ def show(
     """
     ***REMOVED*** Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
-    
+
     try:
         title = "Recommendation API Configuration"
         if verbose:
             title += " (Detailed)"
 
         print_config(settings, title, console, show_secrets=show_secrets)
-    
+
         if verbose:
-            console.print(f"[dim]Configuration loaded from: {settings.environment} environment[/dim]")
+            console.print(
+                f"[dim]Configuration loaded from: {settings.environment} environment[/dim]"
+            )
             console.print(f"[dim]Debug mode: {'Enabled' if settings.debug else 'Disabled'}[/dim]")
 
     except Exception as e:
@@ -91,22 +88,17 @@ def validate(
         "-v",
         help="Show detailed validation information",
     ),
-    quiet: bool = typer.Option(
-        False, 
-        "--quiet", 
-        "-q", 
-        help="Suppress most log output"
-    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
     """Validate the current configuration.
-    
+
     Args:
         verbose: Show detailed validation information
         quiet: Suppress most log output
     """
     ***REMOVED*** Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
-    
+
     try:
         ***REMOVED*** Check required settings
         required_settings = [
@@ -137,7 +129,7 @@ def validate(
                 ("Batch Size", settings.batch_size, 100),
                 ("Embedding Dimension", settings.embedding_dimension, 384),
             ]
-            
+
             for name, value, default in optional_settings:
                 if value == default:
                     console.print(f"[blue]ℹ {name} is using default value: {value}[/blue]")
@@ -165,22 +157,17 @@ def env(
         "-v",
         help="Show additional environment details",
     ),
-    quiet: bool = typer.Option(
-        False, 
-        "--quiet", 
-        "-q", 
-        help="Suppress most log output"
-    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
     """Show environment-specific configuration.
-    
+
     Args:
         verbose: Show additional environment details
         quiet: Suppress most log output
     """
     ***REMOVED*** Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
-    
+
     try:
         table = Table(
             title="Environment Configuration",
@@ -195,7 +182,11 @@ def env(
         ***REMOVED*** Environment-specific settings
         settings_list = [
             ("Environment", settings.environment, "Current environment"),
-            ("Debug Mode", "Enabled" if settings.debug else "Disabled", "Enable debugging features"),
+            (
+                "Debug Mode",
+                "Enabled" if settings.debug else "Disabled",
+                "Enable debugging features",
+            ),
             ("Log Level", settings.log_level, "Logging verbosity level"),
             ("Host", settings.host, "Server host address"),
             ("Port", str(settings.port), "Server port number"),
@@ -211,11 +202,13 @@ def env(
             else:
                 setting, value, _ = setting_data
                 table.add_row(setting, value)
-    
+
         console.print(table)
-        
+
         if verbose:
-            console.print("\n[yellow]Note: These settings can be overridden by environment variables or command line arguments[/yellow]")
+            console.print(
+                "\n[yellow]Note: These settings can be overridden by environment variables or command line arguments[/yellow]"
+            )
 
     except Exception as e:
         print_error(f"Failed to display environment configuration: {str(e)}", console)
@@ -227,9 +220,9 @@ def env(
 @app.callback(invoke_without_command=True)
 def config_main(ctx: typer.Context) -> None:
     """Configuration management commands.
-    
+
     This command group provides tools for managing and viewing the Recommendation API
     configuration settings.
     """
     if ctx.invoked_subcommand is None:
-        show() 
+        show()

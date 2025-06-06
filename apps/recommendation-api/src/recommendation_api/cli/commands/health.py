@@ -2,11 +2,11 @@
 
 import asyncio
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Awaitable
 import typer
 from rich.console import Console
 from rich.table import Table
-import asyncpg ***REMOVED*** type: ignore
+import asyncpg  ***REMOVED*** type: ignore
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
@@ -23,9 +23,9 @@ console = Console()
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(verbose: bool = False, quiet: bool = False):
+def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
     """Configure logging for health commands.
-    
+
     Args:
         verbose: Enable verbose logging
         quiet: Suppress most log output
@@ -41,13 +41,13 @@ def setup_logging(verbose: bool = False, quiet: bool = False):
 
 async def check_database_health() -> bool:
     """Check database health by attempting to connect and execute a simple query.
-    
+
     Returns:
         bool: True if database is healthy, False otherwise
     """
     try:
         conn = await asyncpg.connect(settings.database_url)
-        await conn.execute('SELECT 1')
+        await conn.execute("SELECT 1")
         await conn.close()
         return True
     except Exception as e:
@@ -57,7 +57,7 @@ async def check_database_health() -> bool:
 
 async def check_qdrant_health() -> bool:
     """Check Qdrant health by attempting to connect and get collections.
-    
+
     Returns:
         bool: True if Qdrant is healthy, False otherwise
     """
@@ -78,22 +78,17 @@ def check(
         "-v",
         help="Show detailed health information",
     ),
-    quiet: bool = typer.Option(
-        False, 
-        "--quiet", 
-        "-q", 
-        help="Suppress most log output"
-    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
     """Check the health of the Recommendation API and its dependencies.
-    
+
     Args:
         verbose: Show detailed health information
         quiet: Suppress most log output
     """
     ***REMOVED*** Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
-    
+
     try:
         ***REMOVED*** Define services to check
         services = {
@@ -115,9 +110,9 @@ def check(
         }
 
         console.print("[cyan]Checking health of services...[/cyan]")
-        
+
         ***REMOVED*** Check each service
-        async def check_services():
+        async def check_services() -> None:
             ***REMOVED*** Check Recommendation API
             is_healthy = await check_service_health(
                 services["Recommendation API"]["url"],
@@ -148,16 +143,18 @@ def check(
 
         ***REMOVED*** Display results
         display_service_status(services, console)
-        
+
         ***REMOVED*** Check overall health
         all_healthy = all(service["status"] == "Healthy" for service in services.values())
-        
+
         if all_healthy:
             console.print("\n[green]✅ All services are healthy[/green]")
         else:
-            unhealthy_services = [name for name, info in services.items() if info["status"] != "Healthy"]
+            unhealthy_services = [
+                name for name, info in services.items() if info["status"] != "Healthy"
+            ]
             console.print(f"\n[red]❌ Unhealthy services: {', '.join(unhealthy_services)}[/red]")
-            
+
             if verbose:
                 console.print("\n[yellow]Troubleshooting tips:[/yellow]")
                 if "Database" in unhealthy_services:
@@ -189,12 +186,7 @@ def ping(
         "-v",
         help="Show detailed ping information",
     ),
-    quiet: bool = typer.Option(
-        False, 
-        "--quiet", 
-        "-q", 
-        help="Suppress most log output"
-    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
     """Ping a specific service.
 
@@ -205,10 +197,10 @@ def ping(
     """
     ***REMOVED*** Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
-    
+
     try:
         console.print(f"[cyan]Pinging {service} service...[/cyan]")
-        
+
         if service == "api":
             is_healthy = asyncio.run(
                 check_service_health(
@@ -240,7 +232,7 @@ def ping(
             console.print(f"[green]✅ {service.upper()} service is healthy[/green]")
         else:
             console.print(f"[red]❌ {service.upper()} service is unhealthy[/red]")
-            
+
             if verbose:
                 console.print("\n[yellow]Troubleshooting tips:[/yellow]")
                 if service == "db":
@@ -252,7 +244,7 @@ def ping(
                 elif service == "api":
                     console.print("- Check if the API server is running")
                     console.print("- Try starting the server with 'rec-api serve start'")
-            
+
             raise typer.Exit(code=1)
 
     except Exception as e:
@@ -265,9 +257,9 @@ def ping(
 @app.callback(invoke_without_command=True)
 def health_main(ctx: typer.Context) -> None:
     """Health check commands.
-    
+
     This command group provides tools for checking the health of the Recommendation API
     and its dependencies.
     """
     if ctx.invoked_subcommand is None:
-        check() 
+        check()

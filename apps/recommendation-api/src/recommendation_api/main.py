@@ -4,7 +4,7 @@ import os
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, Dict, Any, AsyncGenerator
 
 ***REMOVED*** Load environment variables
 try:
@@ -33,7 +33,7 @@ from recommendation_api.config import settings
 ***REMOVED*** Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper()),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ from recommendation_api.routes import api_v1_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager."""
     ***REMOVED*** Startup
     logger.info(f"Starting Recommendation API service with config: {settings}")
@@ -89,10 +89,9 @@ def create_app() -> FastAPI:
     ***REMOVED*** Include API v1 routes
     app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 
-
     ***REMOVED*** Add root endpoint
     @app.get("/")
-    async def root():
+    async def root() -> Dict[str, Any]:
         """Root endpoint returning API information."""
         return {
             "message": "Welcome to Next Watch Recommendation API",
@@ -105,7 +104,7 @@ def create_app() -> FastAPI:
 
     ***REMOVED*** Add health check endpoint
     @app.get("/health")
-    async def health_check():
+    async def health_check() -> Dict[str, Any]:
         """Health check endpoint."""
         return {
             "status": "healthy",
@@ -114,18 +113,16 @@ def create_app() -> FastAPI:
             "environment": settings.environment,
             "checks": {
                 "database": "pending",  ***REMOVED*** Will be implemented
-                "qdrant": "pending",    ***REMOVED*** Will be implemented
+                "qdrant": "pending",  ***REMOVED*** Will be implemented
                 "embedding_model": "pending",  ***REMOVED*** Will be implemented
-            }
+            },
         }
 
     ***REMOVED*** Global exception handler
     @app.exception_handler(Exception)
-    async def global_exception_handler(request: Request, exc: Exception):
+    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.error(f"Unhandled exception: {exc}", exc_info=True)
-        return JSONResponse(
-            status_code=500, content={"detail": "Internal server error"}
-        )
+        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
     return app
 
@@ -136,10 +133,11 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "recommendation_api.main:app",
         host=settings.host,
         port=settings.port,
         reload=settings.debug,
         log_level=settings.log_level.lower(),
-    ) 
+    )

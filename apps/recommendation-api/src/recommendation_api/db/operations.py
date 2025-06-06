@@ -286,4 +286,22 @@ def get_user_preference_movies(
     limit: Optional[int] = None,
 ) -> List[Movie]:
     ***REMOVED*** ...
-""" 
+"""
+
+def get_all_movie_ids(session: Session) -> List[int]:
+    """Get all movie IDs from the database.
+    
+    Args:
+        session: Database session
+        
+    Returns:
+        List of movie IDs
+    """
+    query = select(Movie.id).where(Movie.id != None)
+    result = session.exec(query).all()
+    
+    ***REMOVED*** Convert to list of integers and filter out None values
+    movie_ids = [movie_id for movie_id in result if movie_id is not None]
+    
+    logger.info(f"Retrieved {len(movie_ids)} movie IDs from database")
+    return movie_ids 

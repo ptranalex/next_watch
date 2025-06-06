@@ -12,6 +12,7 @@ from .operations import (
     get_movie_features,
     get_movies_by_ids,
     get_movie_by_id,
+    get_all_movie_ids,
 )
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     "get_movie_features",
     "get_movies_by_ids",
     "get_movie_by_id",
+    "get_all_movie_ids",
 ] 

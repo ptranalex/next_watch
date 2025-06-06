@@ -23,7 +23,7 @@ console = Console()
 @app.command("test-connection")
 def test_connection(
     url: Optional[str] = typer.Option(None, "--url", "-u", help="ML API URL")
-):
+) -> None:
     """Test connection to the ML API.
 
     Args:
@@ -45,7 +45,7 @@ def test_connection(
     asyncio.run(_test_connection(client))
 
 
-async def _test_connection(client: Any):
+async def _test_connection(client: Any) -> None:
     """Async implementation of test_connection."""
     console = Console()
 
@@ -78,7 +78,7 @@ def generate_embedding(
     genres: str = typer.Option("", "--genres", "-g", help="Comma-separated genres"),
     movie_id: str = typer.Option("test-movie", "--id", help="Movie ID"),
     url: Optional[str] = typer.Option(None, "--url", "-u", help="ML API URL"),
-):
+) -> None:
     """Generate an embedding for a movie.
 
     Args:
@@ -116,7 +116,7 @@ def generate_embedding(
     asyncio.run(_generate_embedding(client, movie_features))
 
 
-async def _generate_embedding(client: Any, movie_features: Dict[str, Any]):
+async def _generate_embedding(client: Any, movie_features: Dict[str, Any]) -> None:
     """Async implementation of generate_embedding."""
     console = Console()
 
@@ -133,11 +133,7 @@ async def _generate_embedding(client: Any, movie_features: Dict[str, Any]):
             console.print(f"[cyan]Embedding dimension:[/] [green]{dimension}[/]")
 
             ***REMOVED*** Display a preview of the embedding vector
-            preview = (
-                embedding[:5] + ["..."] + embedding[-5:]
-                if dimension > 10
-                else embedding
-            )
+            preview = embedding[:5] + ["..."] + embedding[-5:] if dimension > 10 else embedding
             console.print(f"[cyan]Embedding preview:[/] {preview}")
 
         except Exception as e:

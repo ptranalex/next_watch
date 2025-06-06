@@ -20,4 +20,68 @@ exclude = [
   "docs",
   ".github",
   ".vscode",
+]
+
+[build.targets.wheel]
+packages = ["recommendation_api"]
+
+[envs.default]
+***REMOVED*** Configure virtual environment to be in project directory
+type = "virtual"
+path = ".venv"
+dependencies = [
+  "fastapi>=0.100.0",
+  "uvicorn>=0.22.0",
+  "pydantic>=2.0.0",
+  "pydantic-settings>=2.0.0",
+  "sqlalchemy>=2.0.0",
+  "sqlmodel>=0.0.8",
+  "psycopg2-binary>=2.9.5",
+  "alembic>=1.10.0",
+  "qdrant-client>=1.1.1",
+  "httpx>=0.24.0",
+  "typer>=0.9.0",
+  "rich>=13.0.0",
+  "python-dotenv>=1.0.0",
+  "asyncpg>=0.27.0",
+  "redis>=5.0.0",
+]
+
+***REMOVED*** Add environment variables for development
+[envs.default.env-vars]
+PYTHONPATH = "../../libs:src"
+
+[envs.default.scripts]
+serve = "python -m recommendation_api.main"
+dev = "uvicorn recommendation_api.main:app --reload --port 8002"
+cli = "python -m recommendation_api.cli {args}"
+***REMOVED*** Add script to install the local movie-storage package
+setup-local-deps = "pip install -e ../../libs/movie-storage"
+***REMOVED*** Script for installing Redis dependencies
+setup-redis = "pip install redis>=5.0.0"
+***REMOVED*** Script for precomputing similar movies
+precompute-similar = "python -m recommendation_api.cli cache precompute"
+
+[envs.dev]
+dependencies = [
+  "pytest>=8.0.0",
+  "pytest-cov>=6.0.0",
+  "black>=23.0.0",
+  "isort>=5.12.0",
+  "mypy>=1.0.0",
+  "ruff>=0.0.250",
+]
+
+[envs.dev.scripts]
+lint = [
+  "black .",
+  "isort .",
+  "ruff check .",
+  "mypy recommendation_api"
+]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=recommendation_api tests/"
+format = [
+  "black .",
+  "isort ."
 ] 

@@ -108,6 +108,11 @@ DEFAULT_ENABLE_METRICS = os.getenv("ENABLE_METRICS", "false").lower() == "true"
 DEFAULT_METRICS_PORT = int(os.getenv("METRICS_PORT", "9090"))
 DEFAULT_HEALTH_CHECK_INTERVAL = int(os.getenv("HEALTH_CHECK_INTERVAL", "30"))
 
+***REMOVED*** Redis settings
+DEFAULT_REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+DEFAULT_REDIS_TTL = int(os.getenv("REDIS_TTL", str(DEFAULT_CACHE_TTL)))
+DEFAULT_REDIS_POOL_SIZE = int(os.getenv("REDIS_POOL_SIZE", "10"))
+
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
 ***REMOVED*** ------------------------------------------------------------------------------
@@ -174,6 +179,11 @@ class Config:
     metrics_port: int
     health_check_interval: int
 
+    ***REMOVED*** Redis settings
+    redis_url: str
+    redis_ttl: int
+    redis_pool_size: int
+
     ***REMOVED*** Derived settings
     environment: str
     is_production: bool
@@ -232,6 +242,9 @@ class Config:
         enable_metrics: bool = DEFAULT_ENABLE_METRICS,
         metrics_port: int = DEFAULT_METRICS_PORT,
         health_check_interval: int = DEFAULT_HEALTH_CHECK_INTERVAL,
+        redis_url: str = DEFAULT_REDIS_URL,
+        redis_ttl: int = DEFAULT_REDIS_TTL,
+        redis_pool_size: int = DEFAULT_REDIS_POOL_SIZE,
     ):
         """Initialize Recommendation API configuration.
 
@@ -272,6 +285,9 @@ class Config:
             enable_metrics: Whether to enable metrics collection
             metrics_port: Port for metrics server
             health_check_interval: Health check interval in seconds
+            redis_url: URL for Redis cache
+            redis_ttl: TTL for Redis cache entries in seconds
+            redis_pool_size: Size of the Redis connection pool
         """
         ***REMOVED*** In production, force debug to False
         if os.getenv("ENVIRONMENT") == "production":
@@ -334,6 +350,11 @@ class Config:
         self.enable_metrics = enable_metrics
         self.metrics_port = metrics_port
         self.health_check_interval = health_check_interval
+
+        ***REMOVED*** Redis settings
+        self.redis_url = redis_url
+        self.redis_ttl = redis_ttl
+        self.redis_pool_size = redis_pool_size
 
         ***REMOVED*** Derived settings
         self.environment = os.getenv("ENVIRONMENT", "development")

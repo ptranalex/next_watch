@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.traceback import install
 
 ***REMOVED*** Import command modules
-from recommendation_api.cli.commands import serve, config, health, embeddings, debug
+from recommendation_api.cli.commands import serve, config, health, embeddings, debug, cache
 from recommendation_api.cli import ml_api
 
 ***REMOVED*** Import configuration and utilities
@@ -38,6 +38,7 @@ app.add_typer(health.app, name="health")
 app.add_typer(embeddings.app, name="embeddings")
 app.add_typer(debug.app, name="debug")
 app.add_typer(ml_api.app, name="ml")
+app.add_typer(cache.app, name="cache")
 
 
 @app.command(name="version")

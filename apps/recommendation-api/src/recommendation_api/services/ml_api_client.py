@@ -5,7 +5,7 @@ to generate embeddings for movies and user preferences.
 """
 
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, cast
 import httpx
 from httpx import Response
 
@@ -59,9 +59,7 @@ class MLApiClient:
             response.raise_for_status()
             return response
 
-    async def generate_movie_embedding(
-        self, movie_features: Dict[str, Any]
-    ) -> List[float]:
+    async def generate_movie_embedding(self, movie_features: Dict[str, Any]) -> List[float]:
         """Generate an embedding for a movie.
 
         Args:
@@ -89,13 +87,11 @@ class MLApiClient:
 
         ***REMOVED*** Make request
         logger.debug(f"Generating embedding for movie {request_data['movie_id']}")
-        response = await self._make_request(
-            "POST", "/api/v1/embeddings/movie", request_data
-        )
+        response = await self._make_request("POST", "/api/v1/embeddings/movie", request_data)
 
         ***REMOVED*** Process response
         response_data = response.json()
-        return response_data["embedding"]
+        return cast(List[float], response_data["embedding"])
 
     async def generate_user_preference_vector(
         self,
@@ -125,13 +121,11 @@ class MLApiClient:
 
         ***REMOVED*** Make request
         logger.debug(f"Generating preference vector for user {user_id}")
-        response = await self._make_request(
-            "POST", "/api/v1/embeddings/user", request_data
-        )
+        response = await self._make_request("POST", "/api/v1/embeddings/user", request_data)
 
         ***REMOVED*** Process response
         response_data = response.json()
-        return response_data["preference_vector"]
+        return cast(List[float], response_data["preference_vector"])
 
     async def get_model_info(self) -> Dict[str, Any]:
         """Get information about the embedding model.
@@ -146,7 +140,7 @@ class MLApiClient:
         response = await self._make_request("GET", "/api/v1/embeddings/info")
 
         ***REMOVED*** Process response
-        return response.json()
+        return cast(Dict[str, Any], response.json())
 
 
 ***REMOVED*** Singleton instance
