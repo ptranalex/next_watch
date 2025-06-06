@@ -2,9 +2,11 @@
 
 import logging
 import time
+from typing import Callable, Awaitable, cast
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+from starlette.types import ASGIApp
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +14,9 @@ logger = logging.getLogger(__name__)
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Middleware to log HTTP requests and responses."""
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         """Process request and log details.
 
         Args:

@@ -1,7 +1,7 @@
 """Liked movies-related routes for BFF API."""
 
 import logging
-from typing import Optional
+from typing import Optional, List, Dict, Any, cast
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -23,9 +23,7 @@ async def get_user_liked_movies(
     rotten_tomatoes_rating: float = Query(
         None, ge=0, le=100, description="Minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: float = Query(
-        None, ge=0, le=100, description="Minimum Metacritic rating"
-    ),
+    metacritic_rating: float = Query(None, ge=0, le=100, description="Minimum Metacritic rating"),
     year: int = Query(None, ge=1900, le=2030, description="Release year"),
     sort_by: str = Query(
         "title",
@@ -44,7 +42,7 @@ async def get_user_liked_movies(
         page: Page number for pagination
         limit: Number of items per page
         imdb_rating: Filter by minimum IMDb rating
-        rotten_tomatoes_rating: Filter by minimum Rotten Tomatoes rating  
+        rotten_tomatoes_rating: Filter by minimum Rotten Tomatoes rating
         metacritic_rating: Filter by minimum Metacritic rating
         year: Filter by release year
         sort_by: Field to sort by
@@ -61,10 +59,10 @@ async def get_user_liked_movies(
             - 502 if backend service is unavailable
     """
     user_id, jwt_token = user_data
-    
+
     ***REMOVED*** Calculate offset for pagination
     offset = (page - 1) * limit
-    
+
     logger.info(f"❤️ Fetching liked movies for user {user_id} (page {page}, limit {limit})")
 
     try:
@@ -77,11 +75,15 @@ async def get_user_liked_movies(
         )
 
         ***REMOVED*** The backend returns a list of user interaction objects
-        liked_interactions = liked_interactions_response if isinstance(liked_interactions_response, list) else []
-        
+        liked_interactions: List[Dict[str, Any]] = (
+            liked_interactions_response if isinstance(liked_interactions_response, list) else []
+        )
+
         ***REMOVED*** Filter to only get actually liked movies (since some interactions might have liked=false)
-        actually_liked = [interaction for interaction in liked_interactions if interaction.get("liked", False)]
-        
+        actually_liked = [
+            interaction for interaction in liked_interactions if interaction.get("liked", False)
+        ]
+
         if not actually_liked:
             logger.info(f"No liked movies found for user {user_id}")
             return MovieListData(
@@ -93,10 +95,15 @@ async def get_user_liked_movies(
                 has_prev=False,
                 results=[],
             )
-        
-        ***REMOVED*** Extract movie IDs for bulk fetching
-        movie_ids = [interaction.get("movie_id") for interaction in actually_liked if interaction.get("movie_id")]
-        
+
+        ***REMOVED*** Extract movie IDs for bulk fetching - filter out None values first and then convert to int
+        valid_movie_ids = [
+            mid
+            for mid in [interaction.get("movie_id") for interaction in actually_liked]
+            if mid is not None
+        ]
+        movie_ids = [int(mid) for mid in valid_movie_ids]
+
         if not movie_ids:
             logger.info(f"No valid movie IDs found in liked interactions for user {user_id}")
             return MovieListData(
@@ -108,7 +115,7 @@ async def get_user_liked_movies(
                 has_prev=False,
                 results=[],
             )
-        
+
         ***REMOVED*** Fetch movie details in bulk
         try:
             movies_response = await backend.get_movies_bulk(
@@ -117,36 +124,38 @@ async def get_user_liked_movies(
                 page=1,  ***REMOVED*** Get all movies in one request since we already paginated the interactions
                 limit=len(movie_ids),  ***REMOVED*** Get all movies
             )
-            
+
             movies_data = movies_response.get("results", [])
-            
+
         except Exception as e:
             logger.error(f"Failed to fetch bulk movie details for user {user_id}: {e}")
             ***REMOVED*** Fallback to empty response instead of failing completely
             movies_data = []
-        
+
         ***REMOVED*** Create a mapping of movie_id to interaction data for efficient lookup
         interaction_map = {
-            interaction.get("movie_id"): interaction 
-            for interaction in actually_liked 
+            interaction.get("movie_id"): interaction
+            for interaction in actually_liked
             if interaction.get("movie_id")
         }
-        
+
         ***REMOVED*** Merge movie details with interaction data
-        enriched_movies = []
+        enriched_movies: List[Dict[str, Any]] = []
         for movie in movies_data:
             movie_id = movie.get("id")
             if movie_id and movie_id in interaction_map:
                 interaction = interaction_map[movie_id]
-                
+
                 ***REMOVED*** Merge interaction data with movie details
                 enriched_movie = {**movie}
-                
+
                 ***REMOVED*** Set the frontend-expected interaction fields
                 enriched_movie["watched"] = interaction.get("watched", False)
-                enriched_movie["liked"] = interaction.get("liked", True)  ***REMOVED*** Always true for liked movies
+                enriched_movie["liked"] = interaction.get(
+                    "liked", True
+                )  ***REMOVED*** Always true for liked movies
                 enriched_movie["in_watchlist"] = interaction.get("in_watchlist", False)
-                
+
                 ***REMOVED*** Ensure user_interactions object is present with complete structure
                 enriched_movie["user_interactions"] = {
                     "in_watchlist": interaction.get("in_watchlist", False),
@@ -155,40 +164,67 @@ async def get_user_liked_movies(
                     "watch_progress": interaction.get("watch_progress", 0),
                     "is_watched": interaction.get("watched", False),
                 }
-                
+
                 enriched_movies.append(enriched_movie)
 
         ***REMOVED*** Apply filtering to the enriched movies (since we now have full movie data)
         if enriched_movies:
             if imdb_rating is not None:
-                enriched_movies = [m for m in enriched_movies if m.get("imdb_rating") and m.get("imdb_rating") >= imdb_rating]
+                enriched_movies = [
+                    m
+                    for m in enriched_movies
+                    if m.get("imdb_rating") and cast(float, m.get("imdb_rating")) >= imdb_rating
+                ]
             if rotten_tomatoes_rating is not None:
-                enriched_movies = [m for m in enriched_movies if m.get("rotten_tomatoes_rating") and m.get("rotten_tomatoes_rating") >= rotten_tomatoes_rating]
+                enriched_movies = [
+                    m
+                    for m in enriched_movies
+                    if m.get("rotten_tomatoes_rating")
+                    and cast(float, m.get("rotten_tomatoes_rating")) >= rotten_tomatoes_rating
+                ]
             if metacritic_rating is not None:
-                enriched_movies = [m for m in enriched_movies if m.get("metacritic_rating") and m.get("metacritic_rating") >= metacritic_rating]
+                enriched_movies = [
+                    m
+                    for m in enriched_movies
+                    if m.get("metacritic_rating")
+                    and cast(float, m.get("metacritic_rating")) >= metacritic_rating
+                ]
             if year is not None:
-                enriched_movies = [m for m in enriched_movies if m.get("release_date") and m.get("release_date").startswith(str(year))]
-            
+                enriched_movies = [
+                    m
+                    for m in enriched_movies
+                    if m.get("release_date")
+                    and str(m.get("release_date", "")).startswith(str(year))
+                ]
+
             ***REMOVED*** Apply sorting
             reverse = sort_desc
             if sort_by == "title":
                 enriched_movies.sort(key=lambda x: (x.get("title") or "").lower(), reverse=reverse)
             elif sort_by == "release_date":
-                enriched_movies.sort(key=lambda x: x.get("release_date") or "1900-01-01", reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: x.get("release_date") or "1900-01-01", reverse=reverse
+                )
             elif sort_by == "imdb_rating":
                 enriched_movies.sort(key=lambda x: x.get("imdb_rating") or 0, reverse=reverse)
             elif sort_by == "rotten_tomatoes_rating":
-                enriched_movies.sort(key=lambda x: x.get("rotten_tomatoes_rating") or 0, reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: x.get("rotten_tomatoes_rating") or 0, reverse=reverse
+                )
             elif sort_by == "metacritic_rating":
                 enriched_movies.sort(key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse)
 
         ***REMOVED*** Calculate pagination metadata based on the filtered results
         total_count = len(enriched_movies)
-        has_next = len(actually_liked) == limit  ***REMOVED*** If we got a full page of interactions, assume there might be more
+        has_next = (
+            len(actually_liked) == limit
+        )  ***REMOVED*** If we got a full page of interactions, assume there might be more
         has_prev = page > 1
         total_pages = page if not has_next else page + 1  ***REMOVED*** Estimate based on current page
 
-        logger.info(f"✅ Returning {len(enriched_movies)} liked movies for user {user_id} (enriched from {len(actually_liked)} interactions)")
+        logger.info(
+            f"✅ Returning {len(enriched_movies)} liked movies for user {user_id} (enriched from {len(actually_liked)} interactions)"
+        )
 
         return MovieListData(
             total=total_count,
@@ -205,4 +241,4 @@ async def get_user_liked_movies(
         if "401" in str(e):
             raise HTTPException(status_code=401, detail="Authentication failed")
         else:
-            raise HTTPException(status_code=502, detail="Backend service unavailable") 
+            raise HTTPException(status_code=502, detail="Backend service unavailable")

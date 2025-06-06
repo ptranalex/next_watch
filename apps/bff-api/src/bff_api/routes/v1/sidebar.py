@@ -1,10 +1,16 @@
 """Sidebar-related routes for BFF API."""
 
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any, List, cast
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from bff_api.schemas.screen_schemas import SidebarData, SidebarLinkData
+from bff_api.schemas.screen_schemas import (
+    SidebarData,
+    SidebarLinkData,
+    SidebarFilters,
+    SidebarGenre,
+    SidebarMetadata,
+)
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
 
@@ -14,9 +20,7 @@ router = APIRouter(tags=["sidebar"])
 
 @router.get("/sidebar", response_model=SidebarData)
 async def get_sidebar_content(
-    user_id: Optional[int] = Query(
-        None, description="User ID for personalized sidebar content"
-    ),
+    user_id: Optional[int] = Query(None, description="User ID for personalized sidebar content"),
     backend: BackendClient = Depends(get_backend_client),
 ) -> SidebarData:
     """Get dynamic sidebar content configuration.
@@ -113,32 +117,32 @@ async def get_sidebar_content(
         ]
 
         ***REMOVED*** Build filter configuration
-        filters = {
-            "show": True,
-            "defaults": {
+        filters = SidebarFilters(
+            show=True,
+            defaults={
                 "rating_imdb": None,
                 "year": None,
             },
-            "locked": [],
-        }
+            locked=[],
+        )
 
         ***REMOVED*** Build genre links
         genre_links = [
-            {
-                "id": genre["id"],
-                "name": genre["name"],
-                "href": f"/genres/{genre['id']}",
-            }
+            SidebarGenre(
+                id=int(genre["id"]) if isinstance(genre["id"], (int, str)) else 0,
+                name=str(genre["name"]),
+                href=f"/genres/{genre['id']}",
+            )
             for genre in genres
         ]
         logger.info(f"Built {len(genre_links)} genre links")
 
         ***REMOVED*** Build metadata
-        metadata = {
-            "layout": "sidebar",
-            "version": "1.0.0",
-            "user_authenticated": bool(user_id),
-        }
+        metadata = SidebarMetadata(
+            layout="sidebar",
+            version="1.0.0",
+            user_authenticated=bool(user_id),
+        )
 
         return SidebarData(
             home=home,

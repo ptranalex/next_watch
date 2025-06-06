@@ -1,7 +1,7 @@
 """Genre-related routes for BFF API."""
 
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any, Union, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -38,20 +38,16 @@ async def get_genre_screen(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
-    user_id: Optional[int] = Query(
-        None, description="User ID for personalized content"
-    ),
+    user_id: Optional[int] = Query(None, description="User ID for personalized content"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> GenreScreenData:
     """Get aggregated data for genre screen.
 
     Provides movies filtered by specific genre with pagination support,
-    additional filtering by actor, ratings, release year, and sorting 
+    additional filtering by actor, ratings, release year, and sorting
     options with optional user personalization.
 
     Args:
@@ -115,31 +111,31 @@ async def get_genre_screen(
             raise HTTPException(status_code=502, detail="Backend service unavailable")
 
         ***REMOVED*** Get movies for this genre with filters
-        filters = {"genre_id": genre_id}
+        kwargs: Dict[str, Any] = {"genre_id": genre_id}
         if actor_id is not None:
-            filters["actor_id"] = actor_id
-        if sort_by:
-            filters["sort_by"] = sort_by
+            kwargs["actor_id"] = actor_id
+        if sort_by is not None:
+            kwargs["sort_by"] = sort_by
         if sort_desc is not None:
-            filters["sort_desc"] = sort_desc
+            kwargs["sort_desc"] = sort_desc
         if imdb_rating is not None:
-            filters["imdb_rating"] = imdb_rating
+            kwargs["imdb_rating"] = imdb_rating
         if rotten_tomatoes_rating is not None:
-            filters["rotten_tomatoes_rating"] = rotten_tomatoes_rating
+            kwargs["rotten_tomatoes_rating"] = rotten_tomatoes_rating
         if metacritic_rating is not None:
-            filters["metacritic_rating"] = metacritic_rating
+            kwargs["metacritic_rating"] = metacritic_rating
         if year is not None:
-            filters["year"] = year
+            kwargs["year"] = year
         if start_year is not None:
-            filters["start_year"] = start_year
+            kwargs["start_year"] = start_year
         if end_year is not None:
-            filters["end_year"] = end_year
+            kwargs["end_year"] = end_year
 
         movies_response = await backend.get_movies(
             page=page,
             limit=limit,
             user_id=final_user_id,
-            **filters,
+            **kwargs,
         )
 
         ***REMOVED*** Extract pagination data from backend's standardized format
@@ -228,4 +224,4 @@ async def get_genre_screen(
         logger.error(f"Backend error for genre {genre_id}: {e}")
         if "404" in str(e):
             raise HTTPException(status_code=404, detail="Genre not found")
-        raise HTTPException(status_code=502, detail="Backend service unavailable") 
+        raise HTTPException(status_code=502, detail="Backend service unavailable")

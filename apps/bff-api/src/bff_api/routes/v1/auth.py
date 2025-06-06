@@ -1,7 +1,7 @@
 """Authentication routes for BFF API."""
 
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -85,10 +85,13 @@ async def register(
         HTTPException: 400 if user already exists, 502 if auth service unavailable
     """
     try:
+        ***REMOVED*** Create name data as a dictionary if present
+        name_data = {"full_name": user_data.name} if user_data.name else {}
+
         response = await auth_client.register(
             email=user_data.email,
             password=user_data.password,
-            name=user_data.name,
+            name=name_data,  ***REMOVED*** Pass as a dictionary
         )
 
         return UserResponse(

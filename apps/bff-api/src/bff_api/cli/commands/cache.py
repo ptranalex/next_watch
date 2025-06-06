@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 import typer
 from rich.console import Console
@@ -106,7 +106,7 @@ def clear_cache(
             console.print("[red]⚠️  This will clear ALL cache keys![/red]")
         else:
             console.print(f"[yellow]This will clear keys matching pattern: {pattern}[/yellow]")
-        
+
         confirmed = Confirm.ask("Are you sure you want to proceed?")
         if not confirmed:
             console.print("[yellow]Cache clear operation cancelled.[/yellow]")
@@ -189,7 +189,7 @@ async def _display_cache_info_async(redis_url: Optional[str], verbose: bool) -> 
 
         ***REMOVED*** Get Redis info
         info = await client.info()
-        
+
         ***REMOVED*** Create info table
         table = Table(title="Redis Cache Information", show_header=True, header_style="bold blue")
         table.add_column("Metric", style="cyan", no_wrap=True)
@@ -222,7 +222,9 @@ async def _display_cache_info_async(redis_url: Optional[str], verbose: bool) -> 
             ***REMOVED*** Additional detailed info
             console.print("\n[bold]Detailed Information:[/bold]")
             console.print(f"  • Uptime: {info.get('uptime_in_seconds', 0)} seconds")
-            console.print(f"  • Total Commands Processed: {info.get('total_commands_processed', 0)}")
+            console.print(
+                f"  • Total Commands Processed: {info.get('total_commands_processed', 0)}"
+            )
             console.print(f"  • Instantaneous Ops/sec: {info.get('instantaneous_ops_per_sec', 0)}")
             console.print(f"  • Role: {info.get('role', 'Unknown')}")
             console.print(f"  • Redis Mode: {info.get('redis_mode', 'Unknown')}")
@@ -262,8 +264,11 @@ async def _list_keys_async(pattern: str, limit: int, verbose: bool) -> None:
 
         if verbose:
             ***REMOVED*** Create detailed table with TTL info
-            table = Table(title=f"Cache Keys (showing {len(keys)} of max {limit})", 
-                         show_header=True, header_style="bold green")
+            table = Table(
+                title=f"Cache Keys (showing {len(keys)} of max {limit})",
+                show_header=True,
+                header_style="bold green",
+            )
             table.add_column("Key", style="cyan")
             table.add_column("Type", style="blue")
             table.add_column("TTL", style="yellow")
@@ -272,7 +277,7 @@ async def _list_keys_async(pattern: str, limit: int, verbose: bool) -> None:
             for key in keys:
                 key_type = await client.type(key)
                 ttl = await client.ttl(key)
-                
+
                 ***REMOVED*** Format TTL
                 if ttl == -1:
                     ttl_display = "No expiry"
@@ -333,17 +338,17 @@ async def _clear_cache_async(pattern: str, verbose: bool) -> None:
         ***REMOVED*** Delete keys in batches
         deleted_count = 0
         batch_size = 100
-        
+
         for i in range(0, len(keys_to_delete), batch_size):
-            batch = keys_to_delete[i:i + batch_size]
+            batch = keys_to_delete[i : i + batch_size]
             deleted = await client.delete(*batch)
             deleted_count += deleted
-            
+
             if verbose:
                 console.print(f"[dim]Deleted batch {i//batch_size + 1}: {deleted} keys[/dim]")
 
         console.print(f"[green]✅ Successfully deleted {deleted_count} cache keys![/green]")
-        
+
         if verbose:
             console.print(f"[dim]Pattern used: {pattern}[/dim]")
             console.print(f"[dim]Total keys processed: {len(keys_to_delete)}[/dim]")
@@ -377,10 +382,10 @@ async def _get_key_async(key: str, verbose: bool) -> None:
         ***REMOVED*** Get key info
         key_type = await client.type(key)
         ttl = await client.ttl(key)
-        
+
         console.print(f"[green]Key: {key}[/green]")
         console.print(f"[blue]Type: {key_type}[/blue]")
-        
+
         if ttl == -1:
             console.print("[yellow]TTL: No expiry[/yellow]")
         elif ttl == -2:
@@ -443,7 +448,7 @@ async def _delete_key_async(key: str, verbose: bool) -> None:
 
         ***REMOVED*** Delete key
         deleted = await client.delete(key)
-        
+
         if deleted:
             console.print(f"[green]✅ Successfully deleted key: {key}[/green]")
         else:
@@ -460,7 +465,7 @@ async def _delete_key_async(key: str, verbose: bool) -> None:
         raise typer.Exit(1)
 
 
-def _format_bytes(bytes_value: int) -> str:
+def _format_bytes(bytes_value: Union[int, float]) -> str:
     """Format bytes into human readable format.
 
     Args:
@@ -469,8 +474,9 @@ def _format_bytes(bytes_value: int) -> str:
     Returns:
         Formatted string
     """
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if bytes_value < 1024.0:
-            return f"{bytes_value:.1f} {unit}"
-        bytes_value /= 1024.0
-    return f"{bytes_value:.1f} PB" 
+    bytes_float = float(bytes_value)
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if bytes_float < 1024.0:
+            return f"{bytes_float:.1f} {unit}"
+        bytes_float /= 1024.0
+    return f"{bytes_float:.1f} PB"

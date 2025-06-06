@@ -1,41 +1,104 @@
-[tool.poetry]
-name = "bff-api"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bff_api"
 version = "0.1.0"
 description = "Backend for Frontend API - Aggregation layer for next_watch UI"
-authors = ["Your Name <your.email@example.com>"]
-packages = [{include = "bff_api", from = "src"}]
-include = ["src/bff_api/py.typed"]
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+readme = {text = "***REMOVED*** BFF API\n\nBackend for Frontend API for Next Watch platform", content-type = "text/markdown"}
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    ***REMOVED*** Core API framework
+    "fastapi>=0.104.0",         ***REMOVED*** API framework
+    "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
+    "pydantic>=2.4.2",          ***REMOVED*** Data validation
+    
+    ***REMOVED*** HTTP client
+    "httpx>=0.23.0",            ***REMOVED*** Async HTTP client
+    
+    ***REMOVED*** CLI and utilities
+    "typer>=0.15.2",            ***REMOVED*** CLI framework
+    "rich>=13.7.0",             ***REMOVED*** Terminal formatting
+    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    
+    ***REMOVED*** Cache
+    "redis>=6.0.0",             ***REMOVED*** Redis client
+    "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
+    
+    ***REMOVED*** Auth and security
+    "pyjwt>=2.8.0",             ***REMOVED*** JWT handling
+    
+    ***REMOVED*** Date/time handling
+    "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
+    
+    ***REMOVED*** Resilience
+    "tenacity>=8.2.3",          ***REMOVED*** Retry logic
+    
+    ***REMOVED*** Form validation
+    "email-validator>=2.2.0",   ***REMOVED*** Email validation
+    "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-fastapi = "^0.104.0"
-uvicorn = "^0.23.2"
-pydantic = "^2.4.2"
-httpx = "^0.23.0"
-typer = "^0.15.2"
-rich = "^13.7.0"
-python-dotenv = "^1.0.0"
-redis = "^6.0.0"
-types-redis = "^4.6.0.20241004"
-pyjwt = "^2.8.0"
-python-dateutil = "^2.9.0"
-tenacity = "^8.2.3"
-email-validator = "^2.2.0"
-python-multipart = "^0.0.20"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "pytest-httpx>=0.21.3",
+    "black>=23.10.1",
+    "isort>=5.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+    "respx>=0.20.2",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-pytest-asyncio = "^0.21.1"
-pytest-httpx = "^0.21.3"
-black = "^23.10.1"
-isort = "^5.12.0"
-flake8 = "^6.1.0"
-mypy = "^1.7.0"
-respx = "^0.20.2"
-
-[tool.poetry.scripts]
+[project.scripts]
 bff-api = "bff_api.cli.main:main"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api" 
+***REMOVED*** Added to ensure correct package discovery
+[tool.hatch.build.targets.wheel]
+packages = ["bff_api"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["bff_api"]
+
+***REMOVED*** Specify that the package is in the src directory
+[tool.hatch.build.sources]
+"src" = ""
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.flake8]
+max-line-length = 100
+exclude = [".git", "__pycache__", "build", "dist"]
+extend-ignore = ["E203"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*" 

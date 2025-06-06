@@ -1,7 +1,8 @@
 """Authentication client for communicating with auth service."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TypeVar, cast
+
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
@@ -43,23 +44,21 @@ class AuthClient:
             )
         return self._client
 
-    async def close(self):
+    async def close(self) -> None:
         """Close HTTP client."""
         if self._client:
             await self._client.aclose()
             self._client = None
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _make_request(
         self,
         method: str,
         path: str,
-        params: Optional[Dict] = None,
-        data: Optional[Dict] = None,
-        headers: Optional[Dict] = None,
-        form_data: Optional[Dict] = None,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        form_data: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Make HTTP request with retry logic.
 
@@ -99,14 +98,12 @@ class AuthClient:
             response.raise_for_status()
 
             if response.headers.get("content-type", "").startswith("application/json"):
-                return response.json()
+                return cast(Dict[str, Any], response.json())
             else:
                 return {"data": response.text}
 
         except httpx.HTTPStatusError as e:
-            logger.error(
-                f"HTTP error {e.response.status_code} for {method} {path}: {e}"
-            )
+            logger.error(f"HTTP error {e.response.status_code} for {method} {path}: {e}")
             raise AuthClientError(f"Auth service error: {e.response.status_code}")
         except httpx.RequestError as e:
             logger.error(f"Request error for {method} {path}: {e}")
@@ -135,7 +132,7 @@ class AuthClient:
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
 
-    async def register(self, email: str, password: str, **kwargs) -> Dict[str, Any]:
+    async def register(self, email: str, password: str, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """Register a new user.
 
         Args:
@@ -180,24 +177,20 @@ class AuthClient:
         Raises:
             AuthClientError: If token verification fails
         """
-        return await self._make_request(
-            "POST", "/auth/tokens/verify", data={"token": token}
-        )
-        
+        return await self._make_request("POST", "/auth/tokens/verify", data={"token": token})
+
     async def get_current_user(self, token: str) -> Dict[str, Any]:
         """Get current user information.
-        
+
         Args:
             token: JWT access token
-            
+
         Returns:
             User information
-            
+
         Raises:
             AuthClientError: If user info retrieval fails
         """
         return await self._make_request(
-            "GET", 
-            "/auth/users/me", 
-            headers={"Authorization": f"Bearer {token}"}
-        ) 
+            "GET", "/auth/users/me", headers={"Authorization": f"Bearer {token}"}
+        )

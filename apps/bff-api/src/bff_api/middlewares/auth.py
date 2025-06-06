@@ -1,10 +1,11 @@
 """Authentication middleware for BFF application."""
 
 import logging
-from typing import Optional
+from typing import Optional, Callable, Awaitable, Any, cast
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response, JSONResponse
+from starlette.types import ASGIApp
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 class AuthMiddleware(BaseHTTPMiddleware):
     """Middleware to handle authentication."""
 
-    def __init__(self, app, jwt_secret: Optional[str] = None):
+    def __init__(self, app: ASGIApp, jwt_secret: Optional[str] = None):
         """Initialize auth middleware.
 
         Args:
@@ -22,7 +23,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.jwt_secret = jwt_secret
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         """Process request and validate authentication.
 
         Args:
@@ -33,7 +36,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
             Response from next middleware/endpoint or auth error
         """
         ***REMOVED*** Skip auth for health endpoints, public routes, and OPTIONS requests (CORS preflight)
-        if request.url.path.startswith("/health") or request.url.path == "/" or request.method == "OPTIONS":
+        if (
+            request.url.path.startswith("/health")
+            or request.url.path == "/"
+            or request.method == "OPTIONS"
+        ):
             return await call_next(request)
 
         ***REMOVED*** Extract authorization header

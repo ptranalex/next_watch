@@ -1,11 +1,11 @@
 """Movie-related routes for BFF API."""
 
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union, cast
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from bff_api.schemas.screen_schemas import MovieScreenData, MovieListData
+from bff_api.schemas.screen_schemas import MovieScreenData, MovieListData, UserInteractions
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
 from bff_api.utils.auth import extract_user_id_from_token
@@ -83,17 +83,26 @@ async def get_movie_screen(
         ***REMOVED*** Get similar movies from recommendation API
         try:
             similar_movies = await backend.get_similar_movies(
-                movie_id, 
+                movie_id,
                 limit=20,  ***REMOVED*** Reduced from 20 to prevent database connection pool issues
                 min_score=0.01,
             )
-            logger.info(f"Successfully fetched {len(similar_movies)} similar movies for movie {movie_id}")
-            
+            logger.info(
+                f"Successfully fetched {len(similar_movies)} similar movies for movie {movie_id}"
+            )
+
             ***REMOVED*** Extract movie IDs for bulk fetching
-            similar_movie_ids = [similar_item.get("id") for similar_item in similar_movies if similar_item.get("id")]
-            
+            similar_movie_ids: List[int] = []
+            for similar_item in similar_movies:
+                movie_id_value = similar_item.get("id")
+                if movie_id_value is not None and isinstance(movie_id_value, (int, str)):
+                    try:
+                        similar_movie_ids.append(int(movie_id_value))
+                    except (ValueError, TypeError):
+                        logger.warning(f"Invalid movie ID in similar movies: {movie_id_value}")
+
             if similar_movie_ids:
-                ***REMOVED*** Fetch movie details in bulk to get complete information
+                ***REMOVED*** Fetch movie details in bulk
                 try:
                     movies_response = await backend.get_movies_bulk(
                         movie_ids=similar_movie_ids,
@@ -101,10 +110,12 @@ async def get_movie_screen(
                         page=1,  ***REMOVED*** Get all movies in one request
                         limit=len(similar_movie_ids),  ***REMOVED*** Get all movies
                     )
-                    
+
                     similar_movies = movies_response.get("results", [])
-                    logger.info(f"Successfully enriched {len(similar_movies)} similar movies with details")
-                    
+                    logger.info(
+                        f"Successfully enriched {len(similar_movies)} similar movies with details"
+                    )
+
                     ***REMOVED*** If user is authenticated, fetch user interactions for each similar movie
                     if user_id and credentials:
                         logger.info(f"Enriching similar movies with user interaction data")
@@ -117,16 +128,26 @@ async def get_movie_screen(
                                     )
                                     if interaction_data:
                                         ***REMOVED*** Map user interaction data directly to movie fields for frontend compatibility
-                                        similar_movie["liked"] = interaction_data.get("liked", False)
-                                        similar_movie["watched"] = interaction_data.get("watched", False)
-                                        similar_movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
-                                        
+                                        similar_movie["liked"] = interaction_data.get(
+                                            "liked", False
+                                        )
+                                        similar_movie["watched"] = interaction_data.get(
+                                            "watched", False
+                                        )
+                                        similar_movie["in_watchlist"] = interaction_data.get(
+                                            "in_watchlist", False
+                                        )
+
                                         ***REMOVED*** Also include complete user_interactions object
                                         similar_movie["user_interactions"] = {
-                                            "in_watchlist": interaction_data.get("in_watchlist", False),
+                                            "in_watchlist": interaction_data.get(
+                                                "in_watchlist", False
+                                            ),
                                             "is_favorite": interaction_data.get("liked", False),
                                             "user_rating": interaction_data.get("rating"),
-                                            "watch_progress": interaction_data.get("watch_progress", 0),
+                                            "watch_progress": interaction_data.get(
+                                                "watch_progress", 0
+                                            ),
                                             "is_watched": interaction_data.get("watched", False),
                                         }
                                     else:
@@ -142,7 +163,9 @@ async def get_movie_screen(
                                             "is_watched": False,
                                         }
                                 except Exception as e:
-                                    logger.warning(f"Failed to get user interaction for similar movie {similar_movie_id}: {e}")
+                                    logger.warning(
+                                        f"Failed to get user interaction for similar movie {similar_movie_id}: {e}"
+                                    )
                                     ***REMOVED*** Set default values if fetching interaction data fails
                                     similar_movie["liked"] = False
                                     similar_movie["watched"] = False
@@ -175,7 +198,9 @@ async def get_movie_screen(
         except BackendClientError as e:
             error_msg = str(e)
             if "QueuePool limit" in error_msg or "503" in error_msg:
-                logger.error(f"Database connection pool limit reached when fetching similar movies for movie {movie_id}: {e}")
+                logger.error(
+                    f"Database connection pool limit reached when fetching similar movies for movie {movie_id}: {e}"
+                )
                 ***REMOVED*** Return empty list for similar movies in case of connection pool errors
                 similar_movies = []
             else:
@@ -183,7 +208,7 @@ async def get_movie_screen(
                 similar_movies = []
 
         ***REMOVED*** User interactions (watchlist, favorite, rating)
-        user_interactions = {}
+        user_interactions_dict: Dict[str, Any] = {}
         if user_id and credentials:
             ***REMOVED*** Fetch real user interaction data
             try:
@@ -191,7 +216,7 @@ async def get_movie_screen(
                     user_id, movie_id, jwt_token=credentials.credentials
                 )
                 if interaction_data:
-                    user_interactions = {
+                    user_interactions_dict = {
                         "in_watchlist": interaction_data.get("in_watchlist", False),
                         "is_favorite": interaction_data.get(
                             "liked", False
@@ -202,7 +227,7 @@ async def get_movie_screen(
                     }
                 else:
                     ***REMOVED*** No interaction data exists
-                    user_interactions = {
+                    user_interactions_dict = {
                         "in_watchlist": False,
                         "is_favorite": False,
                         "user_rating": None,
@@ -213,13 +238,16 @@ async def get_movie_screen(
                 logger.warning(
                     f"Failed to get user interactions for user {user_id}, movie {movie_id}"
                 )
-                user_interactions = {
+                user_interactions_dict = {
                     "in_watchlist": False,
                     "is_favorite": False,
                     "user_rating": None,
                     "watch_progress": 0,
                     "is_watched": False,
                 }
+
+        ***REMOVED*** Convert the dictionary to UserInteractions model
+        user_interactions = UserInteractions(**user_interactions_dict)
 
         return MovieScreenData(
             movie=movie,
@@ -257,9 +285,7 @@ async def get_movies_list(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -317,30 +343,36 @@ async def get_movies_list(
 
     try:
         ***REMOVED*** Build filter parameters
-        filters: Dict[str, Any] = {}
+        kwargs: Dict[str, Any] = {"page": page, "limit": limit}
+
+        ***REMOVED*** Add user_id if provided
+        if user_id is not None:
+            kwargs["user_id"] = user_id
+
+        ***REMOVED*** Add optional filters
         if genre_id is not None:
-            filters["genre_id"] = genre_id
+            kwargs["genre_id"] = genre_id
         if actor_id is not None:
-            filters["actor_id"] = actor_id
-        if sort_by:
-            filters["sort_by"] = sort_by
+            kwargs["actor_id"] = actor_id
+        if sort_by is not None:
+            kwargs["sort_by"] = sort_by
         if sort_desc is not None:
-            filters["sort_desc"] = sort_desc
+            kwargs["sort_desc"] = sort_desc
         if imdb_rating is not None:
-            filters["imdb_rating"] = imdb_rating
+            kwargs["imdb_rating"] = imdb_rating
         if rotten_tomatoes_rating is not None:
-            filters["rotten_tomatoes_rating"] = rotten_tomatoes_rating
+            kwargs["rotten_tomatoes_rating"] = rotten_tomatoes_rating
         if metacritic_rating is not None:
-            filters["metacritic_rating"] = metacritic_rating
+            kwargs["metacritic_rating"] = metacritic_rating
         if year is not None:
-            filters["year"] = year
+            kwargs["year"] = year
         if start_year is not None:
-            filters["start_year"] = start_year
+            kwargs["start_year"] = start_year
         if end_year is not None:
-            filters["end_year"] = end_year
+            kwargs["end_year"] = end_year
 
         ***REMOVED*** Get movies from backend (anonymous - no auth needed)
-        movies_response = await backend.get_movies(page=page, limit=limit, **filters)
+        movies_response = await backend.get_movies(**kwargs)
 
         ***REMOVED*** Extract pagination data from backend's standardized format
         movies = movies_response.get("results", [])
@@ -366,20 +398,14 @@ async def get_movies_list(
                             ***REMOVED*** for frontend compatibility
                             list_movie["liked"] = interaction_data.get("liked", False)
                             list_movie["watched"] = interaction_data.get("watched", False)
-                            list_movie["in_watchlist"] = interaction_data.get(
-                                "in_watchlist", False
-                            )
+                            list_movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
 
                             ***REMOVED*** Also include complete user_interactions object for reference
                             list_movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get(
-                                    "in_watchlist", False
-                                ),
+                                "in_watchlist": interaction_data.get("in_watchlist", False),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get(
-                                    "watch_progress", 0
-                                ),
+                                "watch_progress": interaction_data.get("watch_progress", 0),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:

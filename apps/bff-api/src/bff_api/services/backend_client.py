@@ -1,13 +1,15 @@
 """Backend API client for BFF service."""
 
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TypeVar, Union, cast
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bff_api.config.app import Config
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")  ***REMOVED*** Generic type for function returns
 
 
 class BackendClientError(Exception):
@@ -56,22 +58,20 @@ class BackendClient:
             )
         return self._client
 
-    async def close(self):
+    async def close(self) -> None:
         """Close HTTP client."""
         if self._client:
             await self._client.aclose()
             self._client = None
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _make_request(
         self,
         method: str,
         path: str,
-        params: Optional[Dict] = None,
-        data: Optional[Dict] = None,
-        headers: Optional[Dict] = None,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Make HTTP request with retry logic.
 
@@ -101,14 +101,12 @@ class BackendClient:
             response.raise_for_status()
 
             if response.headers.get("content-type", "").startswith("application/json"):
-                return response.json()
+                return cast(Dict[str, Any], response.json())
             else:
                 return {"data": response.text}
 
         except httpx.HTTPStatusError as e:
-            logger.error(
-                f"HTTP error {e.response.status_code} for {method} {path}: {e}"
-            )
+            logger.error(f"HTTP error {e.response.status_code} for {method} {path}: {e}")
             raise BackendClientError(f"Backend API error: {e.response.status_code}")
         except httpx.RequestError as e:
             logger.error(f"Request error for {method} {path}: {e}")
@@ -117,9 +115,7 @@ class BackendClient:
             logger.error(f"Unexpected error for {method} {path}: {e}")
             raise BackendClientError(f"Unexpected backend error: {e}")
 
-    async def get_movie(
-        self, movie_id: int, user_id: Optional[int] = None
-    ) -> Dict[str, Any]:
+    async def get_movie(self, movie_id: int, user_id: Optional[int] = None) -> Dict[str, Any]:
         """Get movie details with user-specific data.
 
         Args:
@@ -143,7 +139,7 @@ class BackendClient:
         limit: int = 20,
         genre_id: Optional[int] = None,
         user_id: Optional[int] = None,
-        **filters,
+        **filters: Any,
     ) -> Dict[str, Any]:
         """Get movies list with filters and user data.
 
@@ -164,9 +160,7 @@ class BackendClient:
         if user_id:
             params["user_id"] = user_id
 
-        return await self._make_request(
-            "GET", self._build_api_path("/movies"), params=params
-        )
+        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
 
     async def search_movies(
         self,
@@ -210,11 +204,11 @@ class BackendClient:
         logger.info(f"Raw genres response: {response}")
         ***REMOVED*** Handle both direct list responses and responses with a data field
         if isinstance(response, list):
-            return response
+            return cast(List[Dict[str, Any]], response)
         ***REMOVED*** Handle response with genres key
         if isinstance(response, dict) and "genres" in response:
-            return response["genres"]
-        return response.get("data", [])
+            return cast(List[Dict[str, Any]], response["genres"])
+        return cast(List[Dict[str, Any]], response.get("data", []))
 
     async def get_genre(self, genre_id: int) -> Dict[str, Any]:
         """Get a specific genre by ID.
@@ -240,10 +234,8 @@ class BackendClient:
         Returns:
             List of cast members with character and actor details
         """
-        response = await self._make_request(
-            "GET", self._build_api_path(f"/movies/{movie_id}/cast")
-        )
-        return response.get("cast", [])
+        response = await self._make_request("GET", self._build_api_path(f"/movies/{movie_id}/cast"))
+        return cast(List[Dict[str, Any]], response.get("cast", []))
 
     async def get_movie_trailers(self, movie_id: int) -> List[Dict[str, Any]]:
         """Get movie trailers.
@@ -259,32 +251,36 @@ class BackendClient:
         )
         ***REMOVED*** Handle both list responses and dictionary responses with trailers key
         if isinstance(response, list):
-            return response
-        return response.get("trailers", [])
+            return cast(List[Dict[str, Any]], response)
+        return cast(List[Dict[str, Any]], response.get("trailers", []))
 
     async def get_similar_movies(
-        self, 
-        movie_id: int, 
+        self,
+        movie_id: int,
         limit: int = 20,
         min_score: float = 0.01,
     ) -> List[Dict[str, Any]]:
         """Get similar movies from recommendation API.
-        
+
         Args:
             movie_id: Movie ID to find similar movies for
             limit: Maximum number of similar movies
             min_score: Minimum similarity score threshold
-            
+
         Returns:
             List of similar movies
-            
+
         Raises:
             BackendClientError: If request fails
         """
         try:
             ***REMOVED*** Get URL for recommendation API from config or construct it
-            reco_api_url = self.config.reco_api_url if hasattr(self.config, "reco_api_url") else "http://localhost:8002"
-            
+            reco_api_url = (
+                self.config.reco_api_url
+                if hasattr(self.config, "reco_api_url")
+                else "http://localhost:8002"
+            )
+
             ***REMOVED*** Create a temporary client for recommendation API
             async with httpx.AsyncClient(base_url=reco_api_url, timeout=self.timeout) as client:
                 response = await client.get(
@@ -296,15 +292,17 @@ class BackendClient:
                 )
                 response.raise_for_status()
                 data = response.json()
-                
+
                 ***REMOVED*** Extract just the recommendation movie objects from the response
                 recommendations = data.get("recommendations", [])
-                
+
                 logger.info(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
-                return recommendations
-                
+                return cast(List[Dict[str, Any]], recommendations)
+
         except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error {e.response.status_code} getting similar movies for {movie_id}: {e}")
+            logger.error(
+                f"HTTP error {e.response.status_code} getting similar movies for {movie_id}: {e}"
+            )
             ***REMOVED*** If movie is not found, return empty list instead of raising error
             if e.response.status_code == 404:
                 return []
@@ -325,9 +323,7 @@ class BackendClient:
         Returns:
             Actor data
         """
-        return await self._make_request(
-            "GET", self._build_api_path(f"/actors/{actor_id}")
-        )
+        return await self._make_request("GET", self._build_api_path(f"/actors/{actor_id}"))
 
     async def get_user_watchlist(
         self,
@@ -397,7 +393,7 @@ class BackendClient:
         response = await self._make_request(
             "GET", self._build_api_path(f"/users/{user_id}/favorites")
         )
-        return response.get("data", [])
+        return cast(List[Dict[str, Any]], response.get("data", []))
 
     async def get_user_movie_interaction(
         self, user_id: int, movie_id: int, jwt_token: Optional[str] = None
@@ -688,7 +684,7 @@ class BackendClient:
         category: str,
         page: int = 1,
         limit: int = 20,
-        **filters,
+        **filters: Any,
     ) -> Dict[str, Any]:
         """Get user's movie details by category (watchlist, watched, liked).
 
@@ -705,7 +701,7 @@ class BackendClient:
         """
         headers = {"Authorization": f"Bearer {jwt_token}"}
         params = {"page": page, "limit": limit}
-        
+
         ***REMOVED*** Add any additional filter parameters
         params.update(filters)
 
@@ -739,19 +735,17 @@ class BackendClient:
         """
         if not movie_ids:
             return {"total": 0, "page": page, "per_page": limit, "results": []}
-        
+
         ***REMOVED*** Convert movie IDs to comma-separated string
         ids_str = ",".join(str(movie_id) for movie_id in movie_ids)
-        
+
         params = {
             "ids": ids_str,
             "page": page,
             "limit": limit,
         }
-        
+
         ***REMOVED*** Note: user_id is not supported by the bulk endpoint
         ***REMOVED*** The bulk endpoint only returns basic movie data without user interactions
 
-        return await self._make_request(
-            "GET", self._build_api_path("/movies/bulk"), params=params
-        )
+        return await self._make_request("GET", self._build_api_path("/movies/bulk"), params=params)

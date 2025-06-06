@@ -1,7 +1,7 @@
 """Navbar-related routes for BFF API."""
 
 import logging
-from typing import Optional
+from typing import Optional, List, Dict, Any, cast
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from bff_api.schemas.screen_schemas import NavbarData, NavbarLinkData
@@ -14,12 +14,8 @@ router = APIRouter(tags=["navbar"])
 
 @router.get("/navbar", response_model=NavbarData)
 async def get_navbar_content(
-    user_id: Optional[int] = Query(
-        None, description="User ID for personalized navbar content"
-    ),
-    section: Optional[str] = Query(
-        None, description="App section for context-aware navigation"
-    ),
+    user_id: Optional[int] = Query(None, description="User ID for personalized navbar content"),
+    section: Optional[str] = Query(None, description="App section for context-aware navigation"),
     backend: BackendClient = Depends(get_backend_client),
 ) -> NavbarData:
     """Get dynamic navbar content configuration.
@@ -42,7 +38,12 @@ async def get_navbar_content(
     try:
         ***REMOVED*** Get genres from backend for migration (genre nav links)
         genres_response = await backend.get_genres()
-        genres = genres_response.get("results", [])
+        ***REMOVED*** Handle the case where genres_response is a list directly
+        if isinstance(genres_response, list):
+            genres = genres_response
+        else:
+            ***REMOVED*** If it's a dict, try to get the results key
+            genres = genres_response.get("results", []) if isinstance(genres_response, dict) else []
 
         ***REMOVED*** Build brand configuration
         brand = {

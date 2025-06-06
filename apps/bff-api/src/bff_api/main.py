@@ -4,7 +4,7 @@ import os
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, Dict, Any, AsyncGenerator
 
 ***REMOVED*** Load environment variables
 try:
@@ -35,9 +35,7 @@ from bff_api.config.logging import configure_logging, get_logger
 configure_logging(
     log_level=getattr(settings, "log_level", "INFO"),
     log_dir=(
-        Path(getattr(settings, "log_dir", "./logs"))
-        if hasattr(settings, "log_dir")
-        else None
+        Path(getattr(settings, "log_dir", "./logs")) if hasattr(settings, "log_dir") else None
     ),
     verbose=settings.debug,
     quiet=False,
@@ -64,7 +62,7 @@ from bff_api.services.auth_client import AuthClient
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager."""
     ***REMOVED*** Startup
     logger.info(f"Starting BFF service with config: {settings}")
@@ -128,7 +126,7 @@ def create_app() -> FastAPI:
 
     ***REMOVED*** Add root endpoint
     @app.get("/")
-    async def root():
+    async def root() -> Dict[str, Any]:
         """Root endpoint returning BFF API information."""
         return {
             "message": "Welcome to Next Watch BFF API",
@@ -142,11 +140,9 @@ def create_app() -> FastAPI:
 
     ***REMOVED*** Global exception handler
     @app.exception_handler(Exception)
-    async def global_exception_handler(request: Request, exc: Exception):
+    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.error(f"Unhandled exception: {exc}", exc_info=True)
-        return JSONResponse(
-            status_code=500, content={"detail": "Internal server error"}
-        )
+        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
     return app
 
