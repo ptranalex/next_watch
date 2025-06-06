@@ -2,7 +2,7 @@
 Authentication schema definitions.
 """
 
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -22,7 +22,7 @@ class UserCreate(UserBase):
 
     @field_validator("password_confirm")
     @classmethod
-    def passwords_match(cls, v, info):
+    def passwords_match(cls, v: str, info: Any) -> str:
         """Validate that passwords match."""
         if "password" in info.data and v != info.data["password"]:
             raise ValueError("Passwords do not match")
