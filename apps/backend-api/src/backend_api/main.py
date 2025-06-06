@@ -7,7 +7,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, AsyncGenerator
 
 ***REMOVED*** Load environment variables first
 try:
@@ -80,7 +80,7 @@ except ImportError:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager.
 
     Handles startup and shutdown of the FastAPI application including
@@ -178,7 +178,7 @@ def create_app() -> FastAPI:
     if settings.enable_performance_metrics:
 
         @app.middleware("http")
-        async def add_process_time_header(request: Request, call_next):
+        async def add_process_time_header(request: Request, call_next: Any) -> Any:
             """Add performance timing header to responses.
 
             Args:
@@ -200,7 +200,7 @@ def create_app() -> FastAPI:
 
     ***REMOVED*** Global exception handler
     @app.exception_handler(Exception)
-    async def global_exception_handler(request: Request, exc: Exception):
+    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         """Handle uncaught exceptions globally.
 
         Args:
