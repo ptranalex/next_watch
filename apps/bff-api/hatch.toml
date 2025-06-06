@@ -54,8 +54,8 @@ dependencies = [
 PYTHONPATH = "src"
 
 [envs.default.scripts]
-serve = "python -m bff_api.main"
-dev = "PYTHONPATH=src uvicorn bff_api.main:app --reload --port 8000"
+serve = "python -m bff_api.cli.main serve"
+dev = "PYTHONPATH=src uvicorn bff_api.main:app --reload --port 8001 --host 0.0.0.0"
 cli = "python -m bff_api.cli.main"
 
 [envs.dev]

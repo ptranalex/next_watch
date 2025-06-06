@@ -149,3 +149,9 @@ def create_app() -> FastAPI:
 
 ***REMOVED*** Create default app instance
 app = create_app()
+
+if __name__ == "__main__":
+    from bff_api.cli.main import main
+
+    ***REMOVED*** Forward to the CLI for consistent behavior
+    main()
