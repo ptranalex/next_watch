@@ -22,14 +22,17 @@ The BFF aggregates data from multiple backend services and provides optimized en
 ***REMOVED*** Navigate to BFF directory
 cd apps/bff-api
 
-***REMOVED*** Install dependencies
-poetry install
+***REMOVED*** Set up Python environment with Hatch
+hatch env create
+
+***REMOVED*** Install local dependencies (movie-storage library)
+./setup-local-deps.sh
 
 ***REMOVED*** Copy environment configuration
 cp env.example .env
 
 ***REMOVED*** Start the service
-poetry run bff-api serve
+hatch run serve
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Using the CLI
@@ -37,17 +40,18 @@ poetry run bff-api serve
 The BFF API includes a comprehensive command-line interface for development and operations:
 
 ```bash
-***REMOVED*** Show all available commands
-bff-api --help
+***REMOVED*** Show all available commands (inside Hatch environment)
+hatch run cli --help
 
 ***REMOVED*** Start the development server
-bff-api serve --reload --verbose
+hatch run dev
 
-***REMOVED*** Check configuration
-bff-api config --verbose
+***REMOVED*** Run database migrations
+hatch run migrate
+hatch run upgrade
 
-***REMOVED*** Show version information
-bff-api version
+***REMOVED*** Run tests
+hatch run dev:test
 ```
 
 ***REMOVED******REMOVED*** 🛠️ CLI Commands
@@ -56,7 +60,7 @@ bff-api version
 
 ```bash
 ***REMOVED*** Start the BFF server
-bff-api serve [OPTIONS]
+hatch run serve [OPTIONS]
 
 Options:
   --host TEXT          Host to bind server to [default: 0.0.0.0]
@@ -71,16 +75,16 @@ Options:
 
 ```bash
 ***REMOVED*** Display current configuration
-bff-api config [OPTIONS]
+hatch run config [OPTIONS]
 
 Options:
   --show-secrets       Show sensitive configuration values (use with caution)
   --verbose, -v        Show detailed configuration information
 
 ***REMOVED*** Examples
-bff-api config                    ***REMOVED*** Show masked configuration
-bff-api config --verbose         ***REMOVED*** Show detailed configuration
-bff-api config --show-secrets    ***REMOVED*** Show unmasked secrets (development only)
+hatch run config                    ***REMOVED*** Show masked configuration
+hatch run config --verbose         ***REMOVED*** Show detailed configuration
+hatch run config --show-secrets    ***REMOVED*** Show unmasked secrets (development only)
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Health Checks
@@ -89,7 +93,7 @@ Comprehensive health checking for the BFF service and all dependencies:
 
 ```bash
 ***REMOVED*** Check all services
-bff-api health check [OPTIONS]
+hatch run health check [OPTIONS]
 
 Options:
   --backend-api-url TEXT    Backend API URL to check (overrides config)
@@ -98,13 +102,13 @@ Options:
   --verbose, -v             Show detailed output
 
 ***REMOVED*** Check specific services
-bff-api health backend [OPTIONS]    ***REMOVED*** Check Backend API only
-bff-api health auth [OPTIONS]       ***REMOVED*** Check Auth API only
+hatch run health backend [OPTIONS]    ***REMOVED*** Check Backend API only
+hatch run health auth [OPTIONS]       ***REMOVED*** Check Auth API only
 
 ***REMOVED*** Examples
-bff-api health check                 ***REMOVED*** Check all services
-bff-api health check --verbose      ***REMOVED*** Detailed health check with response times
-bff-api health backend --timeout 10 ***REMOVED*** Check backend with custom timeout
+hatch run health check                 ***REMOVED*** Check all services
+hatch run health check --verbose      ***REMOVED*** Detailed health check with response times
+hatch run health backend --timeout 10 ***REMOVED*** Check backend with custom timeout
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Cache Management
@@ -113,14 +117,14 @@ Redis cache management and monitoring:
 
 ```bash
 ***REMOVED*** Display cache information
-bff-api cache info [OPTIONS]
+hatch run cache info [OPTIONS]
 
 Options:
   --redis-url TEXT      Redis URL (overrides config)
   --verbose, -v         Show detailed Redis information
 
 ***REMOVED*** List cache keys
-bff-api cache keys [OPTIONS]
+hatch run cache keys [OPTIONS]
 
 Options:
   --pattern TEXT        Key pattern to match [default: *]
@@ -128,7 +132,7 @@ Options:
   --verbose, -v         Show key details including TTL
 
 ***REMOVED*** Clear cache keys
-bff-api cache clear [OPTIONS]
+hatch run cache clear [OPTIONS]
 
 Options:
   --pattern TEXT        Key pattern to clear [default: *]
@@ -136,16 +140,16 @@ Options:
   --verbose, -v         Show detailed output
 
 ***REMOVED*** Examples
-bff-api cache info --verbose        ***REMOVED*** Detailed Redis statistics
-bff-api cache keys --pattern "user:*" --limit 50  ***REMOVED*** List user-related keys
-bff-api cache clear --pattern "temp:*" --no-confirm  ***REMOVED*** Clear temp keys without confirmation
+hatch run cache info --verbose        ***REMOVED*** Detailed Redis statistics
+hatch run cache keys --pattern "user:*" --limit 50  ***REMOVED*** List user-related keys
+hatch run cache clear --pattern "temp:*" --no-confirm  ***REMOVED*** Clear temp keys without confirmation
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Version Information
 
 ```bash
 ***REMOVED*** Show version and environment information
-bff-api version
+hatch run version
 ```
 
 ***REMOVED******REMOVED*** 🔧 CLI Features
@@ -166,10 +170,10 @@ Commands automatically use environment variables and can be overridden:
 ```bash
 ***REMOVED*** Use environment variables
 export BACKEND_API_URL=http://production-backend:8000
-bff-api health check
+hatch run health check
 
 ***REMOVED*** Override with command-line options
-bff-api health check --backend-api-url http://staging-backend:8000
+hatch run health check --backend-api-url http://staging-backend:8000
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Error Handling
@@ -185,16 +189,16 @@ Comprehensive error handling with:
 
 ```bash
 ***REMOVED*** Development server with auto-reload and verbose logging
-bff-api serve --reload --verbose --log-level DEBUG
+hatch run dev --reload --verbose --log-level DEBUG
 
 ***REMOVED*** Check all services are healthy before deployment
-bff-api health check --verbose
+hatch run health check --verbose
 
 ***REMOVED*** Monitor cache performance
-bff-api cache info --verbose
+hatch run cache info --verbose
 
 ***REMOVED*** Clear development cache
-bff-api cache clear --pattern "dev:*"
+hatch run cache clear --pattern "dev:*"
 ```
 
 ***REMOVED******REMOVED*** 📡 API Endpoints
@@ -282,16 +286,16 @@ ENABLE_PERFORMANCE_METRICS=false
 
 ```bash
 ***REMOVED*** Run all tests
-poetry run pytest
+hatch run dev:test
 
 ***REMOVED*** Run with coverage
-poetry run pytest --cov=bff_api
+hatch run dev:test-cov
 
 ***REMOVED*** Run specific test file
-poetry run pytest tests/test_routes.py
+hatch run dev:test-file tests/test_routes.py
 
 ***REMOVED*** Run with verbose output
-poetry run pytest -v
+hatch run dev:test -v
 ```
 
 ***REMOVED******REMOVED*** 🔧 Development
@@ -302,16 +306,16 @@ The project follows Google Python Style Guide:
 
 ```bash
 ***REMOVED*** Format code
-poetry run black src/ tests/
+hatch run dev:format
 
 ***REMOVED*** Sort imports
-poetry run isort src/ tests/
+hatch run dev:isort
 
 ***REMOVED*** Lint code
-poetry run flake8 src/ tests/
+hatch run dev:lint
 
 ***REMOVED*** Type checking
-poetry run mypy src/
+hatch run dev:mypy
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Adding New CLI Commands
