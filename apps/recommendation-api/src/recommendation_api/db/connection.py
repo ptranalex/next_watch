@@ -4,8 +4,8 @@ import logging
 from typing import Generator, ContextManager
 from contextlib import contextmanager
 from sqlmodel import Session
-from movie_storage.db import init_db, get_engine, get_session  ***REMOVED*** type: ignore
-from movie_storage.config.app import Config  ***REMOVED*** type: ignore
+from movie_storage.db import init_db, get_engine, get_session
+from movie_storage.config.app import Config
 
 from recommendation_api.config import settings
 
