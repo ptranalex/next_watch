@@ -5,148 +5,59 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-import httpx
 import typer
-from typer import Typer
 from rich.console import Console
+from rich.logging import RichHandler
 from rich.traceback import install
+from typer import Typer
 
-***REMOVED*** Import commands (to be added as we create them)
-from backend_api.cli.commands import redis
-
-***REMOVED*** Import app configuration and logging
+***REMOVED*** Import commands from their modules
+from backend_api.cli.commands import cache, config, health, redis, serve, version
 from backend_api.config.app import settings
 from backend_api.config.logging import configure_logging, get_logger
 
 ***REMOVED*** Install rich traceback handler
 install()
 
+***REMOVED*** Initialize console
+console = Console()
+
 ***REMOVED*** Initialize Typer app
 app: Typer = typer.Typer(
     name="backend-api",
     help="Backend API administration tools.",
-    add_completion=False,
+    add_completion=True,
 )
 
 ***REMOVED*** Configure logging
 logger = logging.getLogger("backend_api.cli")
 
 ***REMOVED*** Add command groups
+app.add_typer(serve.app, name="serve")
+app.add_typer(health.app, name="health")
+app.add_typer(config.app, name="config")
 app.add_typer(redis.app, name="redis")
+app.add_typer(cache.app, name="cache")
+app.add_typer(version.app, name="version")
 
 
-@app.command()
-def serve(
-    host: str = typer.Option("0.0.0.0", help="Host to bind to"),
-    port: int = typer.Option(getattr(settings, "api_port", 8000), help="Port to bind to"),
-    reload: bool = typer.Option(False, help="Enable auto-reload"),
-    log_level: str = typer.Option("info", help="Log level (debug, info, warning, error)"),
-    log_dir: Optional[str] = typer.Option(None, help="Directory for log files"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
-    quiet: bool = typer.Option(
-        False, "--quiet", "-q", help="Suppress console output except errors"
-    ),
-) -> None:
-    """Start the backend API server.
+***REMOVED*** Make serve the default command
+@app.callback(invoke_without_command=True)
+def main_callback(ctx: typer.Context) -> None:
+    """Backend API CLI.
 
-    Args:
-        host: Host address to bind the server to
-        port: Port number to bind the server to
-        reload: Whether to enable auto-reload for development
-        log_level: Logging level for the application
-        log_dir: Directory to store log files (optional)
-        verbose: Enable verbose console output
-        quiet: Suppress console output except errors
+    If no command is specified, this will show the help message.
     """
-    import uvicorn
+    if ctx.invoked_subcommand is None:
+        ***REMOVED*** Configure basic logging
+        configure_logging(log_level="INFO")
 
-    ***REMOVED*** Configure logging
-    configure_logging(
-        log_level=log_level.upper(),
-        log_dir=Path(log_dir) if log_dir else None,
-        verbose=verbose,
-        quiet=quiet,
-    )
-
-    logger = get_logger(__name__)
-    logger.info(f"Starting Next Watch Backend API on {host}:{port}")
-
-    if verbose:
-        logger.debug(f"Configuration: host={host}, port={port}, reload={reload}")
-
-    uvicorn.run(
-        "backend_api.main:app",
-        host=host,
-        port=port,
-        reload=reload,
-        log_level=log_level,
-    )
-
-
-@app.command()
-def health(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-) -> None:
-    """Check the health of the backend API service.
-
-    Args:
-        verbose: Show detailed output including response data
-    """
-    import httpx
-
-    ***REMOVED*** Configure minimal logging for health check
-    configure_logging(log_level="ERROR", quiet=not verbose)
-    logger = get_logger(__name__)
-
-    port = getattr(settings, "api_port", 8000)
-    url = f"http://localhost:{port}/health"
-
-    try:
-        if verbose:
-            typer.echo(f"🔍 Checking backend API health at {url}")
-
-        response = httpx.get(url, timeout=5)
-        response.raise_for_status()
-
-        data = response.json()
-        typer.echo(f"✅ Backend API is healthy: {data}")
-
-        if verbose:
-            logger.info(f"Health check successful: {data}")
-
-    except httpx.RequestError as e:
-        error_msg = f"❌ Failed to connect to backend API: {e}"
-        typer.echo(error_msg)
-        logger.error(error_msg)
-        raise typer.Exit(1)
-    except httpx.HTTPStatusError as e:
-        error_msg = f"❌ Backend API returned error: {e}"
-        typer.echo(error_msg)
-        logger.error(error_msg)
-        raise typer.Exit(1)
-
-
-@app.command()
-def config(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed configuration"),
-) -> None:
-    """Display current configuration.
-
-    Args:
-        verbose: Show detailed configuration including sensitive information masked
-    """
-    configure_logging(log_level="INFO", quiet=not verbose)
-    logger = get_logger(__name__)
-
-    typer.echo("🔧 Next Watch Backend API Configuration")
-    typer.echo(f"Environment: {getattr(settings, 'environment', 'unknown')}")
-    typer.echo(f"Debug mode: {settings.debug}")
-    typer.echo(f"API port: {getattr(settings, 'api_port', 8000)}")
-    typer.echo(f"Log level: {getattr(settings, 'log_level', 'INFO')}")
-
-    if verbose:
-        typer.echo(f"Full configuration: {settings}")
-        logger.info("Configuration displayed")
+        ***REMOVED*** Show help if no command is specified
+        console.print("🚀 Backend API Command Line Interface")
+        console.print()
+        ctx.obj = {}
+        typer.echo(ctx.get_help())
+        sys.exit(0)
 
 
 def main() -> None:
@@ -158,6 +69,11 @@ def main() -> None:
         logger = logging.getLogger("backend_api.cli")
         logger.error(f"Error running command: {str(e)}")
         sys.exit(1)
+
+
+***REMOVED*** Support for running as a module
+if __name__ == "__main__":
+    main()
 
 
 __all__ = ["app", "main"]
