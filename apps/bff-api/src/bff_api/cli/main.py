@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 app: typer.Typer = typer.Typer(
     name="bff-api",
     help="Backend for Frontend API service for Next Watch movie platform",
-    add_completion=False,
+    add_completion=True,
 )
 
 ***REMOVED*** Add command groups with explicit casting for proper type checking

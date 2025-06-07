@@ -10,6 +10,7 @@ The CLI is organized as follows:
 bff_api/cli/
 │
 ├── main.py           ***REMOVED*** Main CLI application entry point
+├── __main__.py       ***REMOVED*** Entry point for direct module execution
 ├── __init__.py       ***REMOVED*** Package initialization
 ├── utils.py          ***REMOVED*** Utility functions for CLI commands
 └── commands/         ***REMOVED*** Individual command groups
@@ -38,26 +39,116 @@ bff_api/cli/
   - `config --show-secrets`: Show sensitive configuration values
 - **version**: Show BFF API version information
 
-***REMOVED******REMOVED*** Usage
+***REMOVED******REMOVED*** Installation
 
-Run the CLI using the module format:
-
-```bash
-***REMOVED*** Using the Python module approach (recommended)
-PYTHONPATH=src python -m bff_api.cli.main [COMMAND] [OPTIONS]
-
-***REMOVED*** Examples:
-PYTHONPATH=src python -m bff_api.cli.main version
-PYTHONPATH=src python -m bff_api.cli.main serve
-PYTHONPATH=src python -m bff_api.cli.main health check --verbose
-PYTHONPATH=src python -m bff_api.cli.main config --verbose
-```
-
-For development with auto-reload:
+The CLI is installed as part of the BFF API package:
 
 ```bash
-PYTHONPATH=src python -m bff_api.cli.main serve --reload
+***REMOVED*** Install in development mode
+cd /path/to/bff-api
+pip install -e .
 ```
+
+After installation, the CLI is available via:
+
+```bash
+***REMOVED*** As a console script
+bff-api [COMMAND] [OPTIONS]
+
+***REMOVED*** As a Python module
+python -m bff_api.cli [COMMAND] [OPTIONS]
+```
+
+***REMOVED******REMOVED*** Usage Examples
+
+***REMOVED******REMOVED******REMOVED*** Server Management
+
+Start the server with default settings:
+
+```bash
+bff-api serve
+```
+
+Start with custom host and port:
+
+```bash
+bff-api serve start --host 127.0.0.1 --port 8080
+```
+
+Start in development mode with auto-reload:
+
+```bash
+bff-api serve --reload
+```
+
+***REMOVED******REMOVED******REMOVED*** Health Checks
+
+Check health of all services:
+
+```bash
+bff-api health check
+```
+
+Check with detailed output:
+
+```bash
+bff-api health check --verbose
+```
+
+Check specific backend service:
+
+```bash
+bff-api health backend --timeout 10
+```
+
+***REMOVED******REMOVED******REMOVED*** Cache Management
+
+Display cache information:
+
+```bash
+bff-api cache info --verbose
+```
+
+List all cache keys:
+
+```bash
+bff-api cache keys --pattern "user:*" --limit 50
+```
+
+Clear specific cache keys:
+
+```bash
+bff-api cache clear --pattern "movie:*" --confirm
+```
+
+***REMOVED******REMOVED******REMOVED*** Configuration
+
+Display current configuration:
+
+```bash
+bff-api config
+```
+
+Show detailed configuration:
+
+```bash
+bff-api config --verbose
+```
+
+***REMOVED******REMOVED*** Environment Variables
+
+The CLI respects the following environment variables:
+
+| Variable          | Description                 | Default                  |
+| ----------------- | --------------------------- | ------------------------ |
+| `HOST`            | Server host address         | 0.0.0.0                  |
+| `PORT`            | Server port number          | 8001                     |
+| `LOG_LEVEL`       | Logging level               | INFO                     |
+| `ENVIRONMENT`     | Environment (dev/prod)      | development              |
+| `DEBUG`           | Enable debug mode           | false                    |
+| `BACKEND_API_URL` | URL for backend API service | http://localhost:8000    |
+| `AUTH_API_URL`    | URL for auth API service    | http://localhost:8003    |
+| `REDIS_URL`       | URL for Redis connection    | redis://localhost:6379/0 |
 
 ***REMOVED******REMOVED*** Design Principles
 
@@ -86,3 +177,71 @@ To add new command groups or commands:
 - Include comprehensive help text for all commands and options
 - Handle errors gracefully with appropriate exit codes
 - Log information at appropriate levels
+
+***REMOVED******REMOVED*** Shell Completion
+
+The BFF API CLI supports shell completion for Bash, Zsh, and Fish shells. This enables tab-completion for commands, options, and their values.
+
+***REMOVED******REMOVED******REMOVED*** Installation
+
+To enable shell completion, run one of the following commands based on your shell:
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Automatic Setup
+
+Use the provided setup script to automatically configure shell completion:
+
+```bash
+***REMOVED*** From the project root
+./scripts/setup_completion.sh
+```
+
+This will detect your shell and add the appropriate completion configuration to your shell's config file.
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Manual Setup
+
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** Bash
+
+```bash
+***REMOVED*** Add to your ~/.bashrc file
+eval "$(bff-api --completion bash)"
+
+***REMOVED*** Or temporarily enable for current session
+source <(bff-api --completion bash)
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** Zsh
+
+```bash
+***REMOVED*** Add to your ~/.zshrc file
+eval "$(bff-api --completion zsh)"
+
+***REMOVED*** Or temporarily enable for current session
+source <(bff-api --completion zsh)
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** Fish
+
+```bash
+***REMOVED*** Add to your ~/.config/fish/config.fish
+bff-api --completion fish | source
+
+***REMOVED*** Or temporarily enable for current session
+bff-api --completion fish | source
+```
+
+***REMOVED******REMOVED******REMOVED*** Usage
+
+Once shell completion is set up, you can use tab completion:
+
+```bash
+***REMOVED*** Press Tab to see available commands
+bff-api [TAB]
+
+***REMOVED*** Press Tab to see subcommands
+bff-api health [TAB]
+
+***REMOVED*** Press Tab to see options
+bff-api serve --[TAB]
+```
+
+This makes it easier to discover and use CLI commands without having to refer to the help documentation.

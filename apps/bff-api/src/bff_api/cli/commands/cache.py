@@ -276,7 +276,7 @@ async def _list_keys_async(pattern: str, limit: int, verbose: bool) -> None:
             table.add_column("Size", style="dim")
 
             for key in keys:
-                key_type = await client.type(key)
+                key_type = await client.type(key)  ***REMOVED*** type: ignore
                 ttl = await client.ttl(key)
 
                 ***REMOVED*** Format TTL
@@ -381,7 +381,7 @@ async def _get_key_async(key: str, verbose: bool) -> None:
             raise typer.Exit(1)
 
         ***REMOVED*** Get key info
-        key_type = await client.type(key)
+        key_type = await client.type(key)  ***REMOVED*** type: ignore
         ttl = await client.ttl(key)
 
         console.print(f"[green]Key: {key}[/green]")
