@@ -17,13 +17,58 @@ logger = logging.getLogger(__name__)
 
 
 @app.callback(invoke_without_command=True)
-def serve_callback(ctx: typer.Context) -> None:
+def serve_callback(
+    ctx: typer.Context,
+    host: str = typer.Option(
+        None,
+        "--host",
+        "-h",
+        help="Host to bind server to",
+        envvar="HOST",
+    ),
+    port: int = typer.Option(
+        None,
+        "--port",
+        "-p",
+        help="Port to bind server to",
+        envvar="PORT",
+    ),
+    reload: bool = typer.Option(
+        False,
+        "--reload",
+        help="Enable auto-reload for development",
+    ),
+    log_level: str = typer.Option(
+        None,
+        "--log-level",
+        help="Set log level (DEBUG, INFO, WARNING, ERROR)",
+        envvar="LOG_LEVEL",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Enable verbose logging and output",
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress console output except errors",
+    ),
+) -> None:
     """Server commands for running the BFF API."""
-    ***REMOVED*** When no subcommand is provided, run the start command with default args
+    ***REMOVED*** When no subcommand is provided, run the start command with args from command line
     if ctx.invoked_subcommand is None:
-        ***REMOVED*** Pass empty values to avoid OptionInfo objects being used
+        ***REMOVED*** Forward the parameters from the command line to the start command
         ctx.invoke(
-            start, host=None, port=None, reload=False, log_level=None, verbose=False, quiet=False
+            start,
+            host=host,
+            port=port,
+            reload=reload,
+            log_level=log_level,
+            verbose=verbose,
+            quiet=quiet,
         )
 
 
