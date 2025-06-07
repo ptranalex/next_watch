@@ -3,6 +3,7 @@
 import logging
 from typing import Union, Dict, Any
 import typer
+from typer import Typer
 import uvicorn
 from rich.console import Console
 from rich.panel import Panel
@@ -13,7 +14,7 @@ from recommendation_api.config.app import settings, Config
 from recommendation_api.cli.utils import print_error, print_success
 from recommendation_api.config.logging import configure_logging
 
-app = typer.Typer(
+app: Typer = typer.Typer(
     name="serve",
     help="Start the Recommendation API server",
 )

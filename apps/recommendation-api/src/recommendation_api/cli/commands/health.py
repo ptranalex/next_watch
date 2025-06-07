@@ -4,6 +4,7 @@ import asyncio
 import logging
 from typing import Dict, Any, Awaitable
 import typer
+from typer import Typer
 from rich.console import Console
 from rich.table import Table
 import asyncpg  ***REMOVED*** type: ignore
@@ -14,7 +15,7 @@ from recommendation_api.config.app import settings
 from recommendation_api.cli.utils import check_service_health, display_service_status, print_error
 from recommendation_api.config.logging import configure_logging
 
-app = typer.Typer(
+app: Typer = typer.Typer(
     name="health",
     help="Health check commands",
 )

@@ -1,6 +1,7 @@
 """Debug and diagnostic commands for the recommendation system."""
 
 import typer
+from typer import Typer
 import numpy as np
 from rich.console import Console
 from rich.table import Table
@@ -16,7 +17,7 @@ from recommendation_api.config.logging import configure_logging
 from recommendation_api.config import settings
 from qdrant_client.http import models
 
-app = typer.Typer()
+app: Typer = typer.Typer()
 console = Console()
 
 

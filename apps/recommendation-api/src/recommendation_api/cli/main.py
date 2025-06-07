@@ -11,8 +11,7 @@ from rich.console import Console
 from rich.traceback import install
 
 ***REMOVED*** Import command modules
-from recommendation_api.cli.commands import serve, config, health, embeddings, debug, cache
-from recommendation_api.cli import ml_api
+from recommendation_api.cli.commands import serve, config, health, embeddings, debug, cache, ml
 
 ***REMOVED*** Import configuration and utilities
 from recommendation_api.config.app import settings, Config
@@ -37,7 +36,7 @@ app.add_typer(config.app, name="config")
 app.add_typer(health.app, name="health")
 app.add_typer(embeddings.app, name="embeddings")
 app.add_typer(debug.app, name="debug")
-app.add_typer(ml_api.app, name="ml")
+app.add_typer(ml.app, name="ml")
 app.add_typer(cache.app, name="cache")
 
 
@@ -53,9 +52,7 @@ def show_version() -> None:
         except (importlib.metadata.PackageNotFoundError, AttributeError):
             version = "development"
 
-        console.print(
-            f"[bold blue]Recommendation API[/bold blue] version [green]{version}[/green]"
-        )
+        console.print(f"[bold blue]Recommendation API[/bold blue] version [green]{version}[/green]")
         console.print(f"Environment: [yellow]{settings.environment}[/yellow]")
         console.print(f"Python: [dim]{sys.version.split()[0]}[/dim]")
 

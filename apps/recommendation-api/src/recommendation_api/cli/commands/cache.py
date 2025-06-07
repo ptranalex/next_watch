@@ -6,6 +6,7 @@ from typing import Optional, List, Tuple
 from pathlib import Path
 
 import typer
+from typer import Typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 from rich.panel import Panel
@@ -17,7 +18,7 @@ from recommendation_api.repositories.redis import get_redis_repository
 from recommendation_api.config import settings
 
 ***REMOVED*** Create Typer app
-app = typer.Typer(
+app: Typer = typer.Typer(
     name="cache",
     help="Manage the recommendation cache",
     add_completion=False,

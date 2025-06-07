@@ -1,16 +1,21 @@
 """Configuration commands for the Recommendation API CLI."""
 
+import json
 import logging
+from pathlib import Path
+from typing import Dict, Any, Optional, List, Tuple, cast
+
 import typer
 from rich.console import Console
 from rich.table import Table
-from typing import Union, Tuple, List, Any
+from rich import print as rprint
+from typer import Typer
 
-from recommendation_api.config.app import settings
+from recommendation_api.config import settings
 from recommendation_api.cli.utils import print_config, print_error
 from recommendation_api.config.logging import configure_logging
 
-app = typer.Typer(
+app: typer.Typer = typer.Typer(
     name="config",
     help="Configuration management commands",
 )

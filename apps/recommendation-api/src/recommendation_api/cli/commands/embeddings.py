@@ -2,6 +2,7 @@
 
 import asyncio
 import typer
+from typer import Typer
 from rich.console import Console
 from rich.progress import Progress, TaskID
 from rich.table import Table
@@ -28,7 +29,7 @@ from recommendation_api.repositories.vector import (
 from recommendation_api.services.vector_service import get_vector_service
 from recommendation_api.config.logging import configure_logging
 
-app = typer.Typer()
+app: Typer = typer.Typer()
 console = Console()
 
 
