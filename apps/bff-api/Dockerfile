@@ -39,7 +39,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     ENVIRONMENT="production" \
     PORT=8001 \
     HOST="0.0.0.0" \
-    LOG_LEVEL="INFO" \
+    LOG_LEVEL="info" \
     WORKERS=2 \
     TIMEOUT=120
 
