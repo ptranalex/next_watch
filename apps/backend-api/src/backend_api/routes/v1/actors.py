@@ -4,7 +4,7 @@ Actor-related API routes (v1).
 
 import logging
 import traceback
-from typing import List, Optional
+from typing import List, Optional, cast, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -35,9 +35,27 @@ class ActorResponse(BaseModel):
     tmdb_id: Optional[int] = None
 
 
+class ActorDetailResponse(ActorResponse):
+    """Detailed actor information including biography."""
+
+    pass
+
+
 class ActorsListResponse(BaseModel):
     actors: List[ActorResponse]
     total: int
+
+
+class PaginatedActorResponse(BaseModel):
+    """Paginated list of actors."""
+
+    actors: List[ActorResponse]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +68,7 @@ async def list_actors(
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of actors to return"),
     db: Session = Depends(get_db),
-):
+) -> ActorsListResponse:
     """
     Get a list of actors with pagination.
     """
@@ -65,7 +83,7 @@ async def list_actors(
 
 
 @router.get("/{actor_id}", response_model=ActorResponse)
-async def get_actor_details(actor_id: int, db: Session = Depends(get_db)):
+async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> ActorResponse:
     """
     Get detailed information for a specific actor.
     """
@@ -103,7 +121,7 @@ async def get_actor_movies(
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
     db: Session = Depends(get_db),
-):
+) -> MoviesListResponse:
     """
     Get movies featuring a specific actor.
     """
@@ -127,21 +145,27 @@ async def get_actor_movies(
         for movie_id in page_movie_ids:
             movie = get_movie_by_id(db, movie_id)
             if movie:
-                ***REMOVED*** If it's already a dictionary, use it directly
-                if isinstance(movie, dict):
-                    movies.append(MovieResponse(**movie))
-                ***REMOVED*** Otherwise convert to a dict using SQLModel's methods
+                ***REMOVED*** Extract movie data safely regardless of type
+                is_dict_like = (
+                    hasattr(movie, "keys")
+                    and hasattr(movie, "values")
+                    and hasattr(movie, "__getitem__")
+                )
+
+                if is_dict_like:
+                    movie_data = cast(Dict[str, Any], movie)
                 elif hasattr(movie, "model_dump"):
-                    movie_dict = movie.model_dump()
-                    movies.append(MovieResponse(**movie_dict))
+                    movie_data = movie.model_dump()
                 else:
-                    ***REMOVED*** Fallback for other cases
-                    movie_dict = {
-                        "id": movie.id,
-                        "title": movie.title,
-                        "tmdb_id": movie.tmdb_id,
+                    ***REMOVED*** Fallback for other object types
+                    movie_data = {
+                        "id": getattr(movie, "id", movie_id),
+                        "title": getattr(movie, "title", "Unknown"),
+                        "tmdb_id": getattr(movie, "tmdb_id", None),
                     }
-                    movies.append(MovieResponse(**movie_dict))
+
+                ***REMOVED*** Create the response object
+                movies.append(MovieResponse(**movie_data))
 
         ***REMOVED*** Return the paginated movie list
         import math

@@ -4,6 +4,7 @@ Database connection module for the backend API.
 
 import os
 from contextlib import contextmanager
+from typing import Iterator
 
 from movie_storage.config.app import Config
 from movie_storage.db import get_engine, get_session, init_db
@@ -14,7 +15,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://alex:postgres@localhost:5
 
 
 ***REMOVED*** Initialize database on startup
-def init_database():
+def init_database() -> None:
     """Initialize the database connection using movie-storage."""
     ***REMOVED*** In production, you may want to set create_tables=False
     ***REMOVED*** and manage migrations separately with alembic
@@ -28,7 +29,7 @@ def init_database():
 
 
 ***REMOVED*** Dependency to use in routes
-def get_db():
+def get_db() -> Iterator[Session]:
     """Get a database session for use in API endpoints."""
     session_generator = get_session()
     try:

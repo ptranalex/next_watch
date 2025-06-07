@@ -1,3 +1,6 @@
+import typer
+from typer import Typer
+
 """Utility functions for the CLI interface."""
 
 import logging
@@ -27,7 +30,7 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
     ***REMOVED*** Add rows for each config attribute
     for attr in dir(config):
         ***REMOVED*** Skip private attributes and methods
-        if attr.startswith("_") or callable(getattr(config, attr)):
+        if attr.startswith("_"):
             continue
 
         value = getattr(config, attr)

@@ -7,7 +7,7 @@ adding them to watchlists, or liking them.
 
 import logging
 from datetime import datetime
-from typing import Annotated, List, Optional, Union, Any
+from typing import Annotated, Dict, List, Optional, Union, Any
 
 from fastapi import (
     APIRouter,
@@ -26,22 +26,22 @@ from movie_storage.models.user_interaction import UserMovieInteraction
 from pydantic import BaseModel
 from sqlmodel import Field, Session
 
-from ...db.database import get_db
-from ...dependencies.user_context import get_user_id_from_header
-from ...errors import (
+from backend_api.db import get_db
+from backend_api.dependencies import get_user_id_from_header
+from backend_api.errors import (
     ResourceNotFoundError,
     ValidationError,
     service_error_to_http_exception,
 )
-from ...queries.user_interaction_query import UserInteractionQuery
+from backend_api.queries import UserInteractionQuery
 from .auth import get_current_user
-from ...schemas.user_interaction_schema import (
+from backend_api.schemas import (
     MovieSummary,
     UserMovieDetail,
     UserMovieInteractionResponse,
     UserMovieInteractionWithMovie,
 )
-from ...services.user_interaction import UserInteractionService
+from backend_api.services.user_interaction import UserInteractionService
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ def get_user_interaction_query() -> UserInteractionQuery:
 ***REMOVED*** Get user interaction with a specific movie (no auth - BFF handles authentication)
 @router.get(
     "/{movie_id}/interaction",
-    response_model=Union[UserMovieInteractionResponse, dict],
+    response_model=Union[UserMovieInteractionResponse, Dict[str, Any]],
     summary="Get user interaction with a specific movie",
 )
 async def get_movie_interaction(
@@ -71,7 +71,7 @@ async def get_movie_interaction(
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
-) -> Union[UserMovieInteraction, dict]:
+) -> Union[UserMovieInteraction, Dict[str, Any]]:
     """
     Get user's interaction with a specific movie.
 

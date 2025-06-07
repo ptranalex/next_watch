@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional, Union
 """
 Database setup and migration script.
 """
@@ -5,18 +6,19 @@ Database setup and migration script.
 import os
 
 import typer
+from typer import Typer
 from movie_storage.db import init_db
 from movie_storage.db.migrations import run_migration
 from movie_storage.utils import setup_movie_storage
 
-app = typer.Typer()
+app: Typer = typer.Typer()
 
 ***REMOVED*** Database URL from environment variable with a PostgreSQL default
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://alex:postgres@localhost:5432/next_watch")
 
 
 @app.command()
-def initialize_db(create_tables: bool = False):
+def initialize_db(create_tables: bool = False) -> None:
     """
     Initialize the database connection.
 
@@ -29,7 +31,7 @@ def initialize_db(create_tables: bool = False):
 
 
 @app.command()
-def run_migrations():
+def run_migrations() -> None:
     """
     Run database migrations using Alembic.
     """
@@ -39,7 +41,7 @@ def run_migrations():
 
 
 @app.command()
-def setup_storage():
+def setup_storage() -> None:
     """
     Setup movie storage with initial configuration.
 

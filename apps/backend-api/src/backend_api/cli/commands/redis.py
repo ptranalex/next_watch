@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import typer
+from typer import Typer
 from rich.console import Console
 from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
 from sqlmodel import Session, create_engine, select, text
@@ -18,7 +19,7 @@ from backend_api.config.app import settings
 from backend_api.db.database import get_db
 from backend_api.services.suggestion_engine import SuggestionEngine
 
-app = typer.Typer(name="redis", help="Redis data management commands.")
+app: Typer = typer.Typer(name="redis", help="Redis data management commands.")
 console = Console()
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ def populate_suggestions(
         help="Redis URL (defaults to REDIS_URL env var or localhost)",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-):
+) -> None:
     """
     Populate Redis with movie, actor, and director suggestions for autocomplete.
 
@@ -285,13 +286,6 @@ async def _populate_suggestions_async(
                                 pipeline.zadd("suggestions", {prefix: i + 100000})
                                 if not await redis_client.exists(f"suggestions:{prefix}"):
                                     pipeline.set(f"suggestions:{prefix}", movie_id)
-
-                    ***REMOVED*** Process words if requested (for additional individual word matching)
-                    if include_words and False:  ***REMOVED*** Disabled since we have better approach above
-                        for word in title.split():
-                            if len(word) >= min_word_length:
-                                pipeline.zadd("suggestions", {word: i})
-                                pipeline.set(f"suggestions:{word}", movie_id)
 
                     movie_count += 1
 

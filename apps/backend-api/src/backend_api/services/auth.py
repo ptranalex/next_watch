@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, cast
 
-import jwt  ***REMOVED*** type: ignore
+import jwt
 from movie_storage.db.operations.user import (
     authenticate_user,
     create_user,
@@ -78,7 +78,7 @@ class AuthService:
         token = jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
 
         ***REMOVED*** Cast to string to satisfy mypy
-        return cast(str, token)
+        return token
 
     def create_refresh_token(self, user_id: int) -> str:
         """
@@ -106,7 +106,7 @@ class AuthService:
         token = jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
 
         ***REMOVED*** Cast to string to satisfy mypy
-        return cast(str, token)
+        return token
 
     def decode_token(self, token: str) -> Dict[str, Any]:
         """

@@ -1,6 +1,19 @@
 """
-API v1 routes package.
+API routes version 1.
+
+This module contains the version 1 API route handlers.
 """
 
-***REMOVED*** Export route modules
-from backend_api.routes.v1 import actors, genres, movies, search, user_interactions
+from .auth import router as auth_router
+from .movies import router as movies_router
+from .actors import router as actors_router
+from .search import router as search_router
+from .user_interactions import router as user_interactions_router
+
+__all__ = [
+    "auth_router",
+    "movies_router",
+    "actors_router",
+    "search_router",
+    "user_interactions_router",
+]

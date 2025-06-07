@@ -83,9 +83,10 @@ class MovieService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** If it's already a dictionary, return it
-        if isinstance(movie, dict):
-            return movie
+        ***REMOVED*** Convert to dictionary based on the object's features
+        if hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__"):
+            ***REMOVED*** Dictionary-like object
+            return cast(Dict[str, Any], movie)
 
         ***REMOVED*** For SQLModel objects, use their built-in conversion method
         try:
@@ -93,8 +94,8 @@ class MovieService:
             if hasattr(movie, "model_dump"):
                 return movie.model_dump()
 
-            ***REMOVED*** For other objects, return a basic dict with its ID
-            return {"id": movie_id}
+            ***REMOVED*** For other objects, convert to a basic dict
+            return {"id": movie_id, "title": getattr(movie, "title", "Unknown")}
         except Exception:
             logger.warning(f"Failed to convert movie {movie_id} to dictionary")
             return {"id": movie_id}

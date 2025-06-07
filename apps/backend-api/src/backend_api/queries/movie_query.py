@@ -240,40 +240,13 @@ class MovieQuery:
         return get_movies_by_ids_bulk(db, movie_ids)
 
     def get_movie_trailers(self, db: Session, movie_id: int) -> List[Dict[str, Any]]:
-        """
-        Get trailers for a specific movie.
-
-        Args:
-            db: Database session
-            movie_id: Movie ID
-
-        Returns:
-            List of trailers
-
-        Raises:
-            ResourceNotFoundError: If movie doesn't exist
-            ValidationError: If movie_id is invalid
-        """
-        ***REMOVED*** Validate inputs
-        if movie_id <= 0:
-            raise ValidationError(
-                message="Invalid movie ID",
-                field_errors={"movie_id": ["Must be positive"]},
-            )
-
-        ***REMOVED*** Verify movie exists
-        movie = get_movie_details_by_id(db, movie_id)
-        if not movie:
-            raise ResourceNotFoundError(
-                message=f"Movie with ID {movie_id} not found",
-                resource_type="Movie",
-                resource_id=movie_id,
-            )
-
-        ***REMOVED*** Get trailers
+        """Get trailers for a movie."""
         trailers = get_trailers_for_movie(db, movie_id)
-        ***REMOVED*** Convert to dict if necessary
-        return [trailer if isinstance(trailer, dict) else trailer.dict() for trailer in trailers]
+        return [{"id": getattr(t, "id", 0), 
+                 "key": getattr(t, "key", ""), 
+                 "name": getattr(t, "name", ""), 
+                 "site": getattr(t, "site", ""), 
+                 "type": getattr(t, "type", "")} for t in trailers]
 
     def get_top_rated_movies(
         self,

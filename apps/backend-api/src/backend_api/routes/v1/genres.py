@@ -22,13 +22,21 @@ from backend_api.db.database import get_db
 ***REMOVED*** Import response schemas
 from backend_api.schemas.genre_schema import GenreResponse, GenresListResponse
 
+
+***REMOVED*** Define a GenreDetailResponse type for consistency
+class GenreDetailResponse(GenreResponse):
+    """Detailed genre information - same as GenreResponse for now."""
+
+    pass
+
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/genres", tags=["genres"])
 
 
 @router.get("", response_model=GenresListResponse)
-async def list_genres(db: Session = Depends(get_db)):
+async def list_genres(db: Session = Depends(get_db)) -> GenresListResponse:
     """
     Get a list of all movie genres.
 
@@ -49,7 +57,7 @@ async def list_genres(db: Session = Depends(get_db)):
 
 
 @router.get("/{genre_id}", response_model=GenreResponse)
-async def get_genre_details(genre_id: int, db: Session = Depends(get_db)):
+async def get_genre_details(genre_id: int, db: Session = Depends(get_db)) -> GenreResponse:
     """
     Get detailed information for a specific genre by its ID.
     """
@@ -68,7 +76,7 @@ async def get_genre_details(genre_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/name/{name}", response_model=GenreResponse)
-async def get_genre_by_name_route(name: str, db: Session = Depends(get_db)):
+async def get_genre_by_name_route(name: str, db: Session = Depends(get_db)) -> GenreResponse:
     """
     Get genre information by its name.
     """

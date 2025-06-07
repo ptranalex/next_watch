@@ -9,8 +9,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from movie_storage.models.user import User
 from sqlmodel import Session
 
-from backend_api.db.database import get_db
-from backend_api.schemas.auth import (
+from backend_api.db import get_db
+from backend_api.schemas import (
     RefreshToken,
     Token,
     UserCreate,
@@ -18,16 +18,6 @@ from backend_api.schemas.auth import (
     UserResponse,
 )
 from backend_api.services.auth import AuthService
-
-from ...db.database import get_db
-from ...schemas.auth import (
-    RefreshToken,
-    Token,
-    UserCreate,
-    UserLogin,
-    UserResponse,
-)
-from ...services.auth import AuthService
 
 ***REMOVED*** Create router
 router = APIRouter(prefix="/auth", tags=["auth"])

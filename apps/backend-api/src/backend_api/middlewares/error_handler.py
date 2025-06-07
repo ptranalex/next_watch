@@ -6,11 +6,12 @@ and converts them to standardized HTTP responses.
 """
 
 import logging
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Awaitable, Any, Callable, Dict, Optional, Union
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from backend_api.errors import (
     ConflictError,
@@ -32,7 +33,9 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     converts them to standardized HTTP responses.
     """
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Union[JSONResponse, Any]:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Union[JSONResponse, Any]:
         """
         Process a request and handle any exceptions.
 

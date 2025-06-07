@@ -1,19 +1,20 @@
-"""
-Query package for backend API.
+from typing import Any
 
-This package provides query functions and classes for optimized read operations,
-following the CQRS pattern by separating read operations from write operations.
+"""
+Queries module for the backend API.
+
+This module provides database query utilities following CQRS principles.
 """
 
-from backend_api.queries.movie_query import MovieQuery
-from backend_api.queries.user_interaction_query import UserInteractionQuery
+from .movie_query import MovieQuery
+from .user_interaction_query import UserInteractionQuery
 
 ***REMOVED*** Import individual query modules
 try:
     from backend_api.queries.top_movies import get_top_rated_movies
 except ImportError:
     ***REMOVED*** Fallback for tests
-    get_top_rated_movies = None
+    pass
 
 try:
     from backend_api.queries.movie_details import (
@@ -23,21 +24,19 @@ try:
     )
 except ImportError:
     ***REMOVED*** Fallback for tests
-    get_movie_details_by_id = None
-    get_movie_details_by_tmdb_id = None
-    get_movie_genres = None
+    pass
 
 try:
     from backend_api.queries.movie_listings import get_movies_with_filters
 except ImportError:
     ***REMOVED*** Fallback for tests
-    get_movies_with_filters = None
+    pass
 
 try:
     from backend_api.queries.trailer import get_trailers_for_movie
 except ImportError:
     ***REMOVED*** Fallback for tests
-    get_trailers_for_movie = None
+    pass
 
 __all__ = [
     "MovieQuery",

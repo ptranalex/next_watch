@@ -4,7 +4,7 @@ Movie-related API routes (v1).
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import JSONResponse
@@ -56,22 +56,13 @@ def format_movie_for_response(movie: Any, genres: List[Dict[str, Any]]) -> Movie
         {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]} for genre in genres
     ]
 
-    ***REMOVED*** Convert movie to dictionary based on its type
-    if isinstance(movie, dict):
-        ***REMOVED*** It's already a dictionary
-        movie_dict = movie.copy()
-    elif isinstance(movie, tuple):
-        ***REMOVED*** If it's a tuple from a raw SQL query, assume column ordering
-        ***REMOVED*** This is a simplification - adjust column names as needed
-        columns = [
-            "id",
-            "title",
-            "overview",
-            "release_date",
-            "poster_url",
-            "backdrop_url",
-        ]
-        movie_dict = {col: movie[i] for i, col in enumerate(columns) if i < len(movie)}
+    ***REMOVED*** Convert movie to dictionary based on its features
+    is_dict_like = (
+        hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__")
+    )
+
+    if is_dict_like:
+        movie_dict = cast(Dict[str, Any], movie)
     else:
         ***REMOVED*** Convert SQLAlchemy Row or other object to dictionary
         try:
@@ -109,6 +100,24 @@ def create_pagination_response(
         has_prev=has_prev,
         results=movie_responses,
     )
+
+
+***REMOVED*** Helper function to safely get movie ID
+def get_movie_id(movie: Any) -> int:
+    """Extract the movie ID safely from any movie object type."""
+    ***REMOVED*** Dictionary-like check
+    if hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__"):
+        try:
+            movie_dict = cast(Dict[str, Any], movie)
+            return int(movie_dict.get("id", 0))
+        except (KeyError, TypeError, ValueError):
+            pass
+
+    ***REMOVED*** Object with id attribute
+    try:
+        return int(getattr(movie, "id", 0))
+    except (TypeError, ValueError):
+        return 0
 
 
 @router.get("/bulk", response_model=MoviesListResponse)
@@ -164,12 +173,8 @@ async def get_movies_bulk(
         ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
-            if isinstance(movie, dict):
-                movie_id = movie["id"]
-            elif isinstance(movie, tuple):
-                movie_id = movie[0]
-            else:
-                movie_id = movie.id
+            ***REMOVED*** Get movie ID safely
+            movie_id = get_movie_id(movie)
 
             genres = movie_query.get_movie_genres(db, movie_id)
             movie_response = format_movie_for_response(movie, genres)
@@ -236,18 +241,11 @@ async def list_movies(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
-        ***REMOVED*** Convert SQLModel objects to Pydantic response models
+        ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Try different ways to access the ID based on the object type
-            if isinstance(movie, dict):
-                movie_id = movie["id"]
-            elif isinstance(movie, tuple):
-                ***REMOVED*** Assume ID is the first element in the tuple
-                movie_id = movie[0]
-            else:
-                ***REMOVED*** Assume it's an object with an id attribute
-                movie_id = movie.id
+            ***REMOVED*** Get movie ID safely
+            movie_id = get_movie_id(movie)
 
             genres = movie_query.get_movie_genres(db, movie_id)
             movie_response = format_movie_for_response(movie, genres)
@@ -282,18 +280,11 @@ async def get_top_movies(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
-        ***REMOVED*** Convert SQLModel objects to Pydantic response models
+        ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Try different ways to access the ID based on the object type
-            if isinstance(movie, dict):
-                movie_id = movie["id"]
-            elif isinstance(movie, tuple):
-                ***REMOVED*** Assume ID is the first element in the tuple
-                movie_id = movie[0]
-            else:
-                ***REMOVED*** Assume it's an object with an id attribute
-                movie_id = movie.id
+            ***REMOVED*** Get movie ID safely
+            movie_id = get_movie_id(movie)
 
             genres = movie_query.get_movie_genres(db, movie_id)
             movie_response = format_movie_for_response(movie, genres)
@@ -365,15 +356,8 @@ async def search_movies(
         ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Try different ways to access the ID based on the object type
-            if isinstance(movie, dict):
-                movie_id = movie["id"]
-            elif isinstance(movie, tuple):
-                ***REMOVED*** Assume ID is the first element in the tuple
-                movie_id = movie[0]
-            else:
-                ***REMOVED*** Assume it's an object with an id attribute
-                movie_id = movie.id
+            ***REMOVED*** Get movie ID safely
+            movie_id = get_movie_id(movie)
 
             genres = movie_query.get_movie_genres(db, movie_id)
             movie_response = format_movie_for_response(movie, genres)

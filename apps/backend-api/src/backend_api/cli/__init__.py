@@ -5,7 +5,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import httpx
 import typer
+from typer import Typer
 from rich.console import Console
 from rich.traceback import install
 
@@ -20,7 +22,7 @@ from backend_api.config.logging import configure_logging, get_logger
 install()
 
 ***REMOVED*** Initialize Typer app
-app = typer.Typer(
+app: Typer = typer.Typer(
     name="backend-api",
     help="Backend API administration tools.",
     add_completion=False,
@@ -44,7 +46,7 @@ def serve(
     quiet: bool = typer.Option(
         False, "--quiet", "-q", help="Suppress console output except errors"
     ),
-):
+) -> None:
     """Start the backend API server.
 
     Args:
@@ -84,7 +86,7 @@ def serve(
 @app.command()
 def health(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-):
+) -> None:
     """Check the health of the backend API service.
 
     Args:
@@ -127,7 +129,7 @@ def health(
 @app.command()
 def config(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed configuration"),
-):
+) -> None:
     """Display current configuration.
 
     Args:

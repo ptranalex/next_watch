@@ -19,6 +19,7 @@ from backend_api.config.app import settings
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
 from backend_api.schemas.movie_schema import MovieResponse
+from backend_api.schemas.search import SearchResponse, SearchResult
 
 ***REMOVED*** Import the suggestion engine
 from backend_api.services.suggestion_engine import SuggestionEngine
@@ -87,7 +88,7 @@ async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
     limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
     db: Session = Depends(get_db),
-):
+) -> SuggestionsResponse:
     """
     Get search suggestions across all entities based on a query string.
 
@@ -113,7 +114,7 @@ async def get_text_suggestions(
     query: str = Query(..., min_length=1, description="Search query prefix"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of suggestions"),
     suggestion_engine: SuggestionEngine = Depends(get_suggestion_engine),
-):
+) -> TextSuggestionsResponse:
     """
     Get text-based search suggestions from Redis based on a query prefix.
 
@@ -161,14 +162,14 @@ async def get_text_suggestions(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-@router.get("", response_model=SuggestionsResponse)
+@router.get("", response_model=SearchResponse)
 async def search_all(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of results per page"),
     types: List[str] = Query(None, description="Entity types to include in results"),
     db: Session = Depends(get_db),
-):
+) -> SearchResponse:
     """
     Search across all entities (movies, actors, genres) with the given query.
 
@@ -182,7 +183,15 @@ async def search_all(
         ***REMOVED*** and combine results based on the requested types
 
         ***REMOVED*** Return an empty response for now
-        return SuggestionsResponse(suggestions=[], total=0)
+        return SearchResponse(
+            suggestions=[],
+            total=0,
+            page=page,
+            per_page=limit,
+            total_pages=0,
+            has_next=False,
+            has_prev=False,
+        )
     except Exception as e:
         logger.error(f"Error searching with query '{query}': {str(e)}")
         logger.error(traceback.format_exc())

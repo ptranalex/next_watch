@@ -434,10 +434,13 @@ class UserInteractionService:
 
                 ***REMOVED*** Search for matching movie in database
                 search_pattern = f"%{title}%"
+                ***REMOVED*** Use sqlalchemy's direct import to fix typing issues
+                from sqlalchemy.sql.expression import desc as sql_desc
+
                 stmt = (
                     select(Movie)
                     .where(func.lower(Movie.title).like(func.lower(search_pattern)))
-                    .order_by(nullslast(desc(Movie.popularity)), Movie.id)  ***REMOVED*** type: ignore
+                    .order_by(sql_desc(func.coalesce(Movie.popularity, 0)))
                     .limit(1)  ***REMOVED*** Limit to one result since we only need the best match
                 )
 

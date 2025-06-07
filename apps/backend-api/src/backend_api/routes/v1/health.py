@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("", summary="Basic health check")
-async def health_check():
+async def health_check() -> dict[str, str]:
     """Health check endpoint for monitoring."""
     return {"status": "ok"}
 
 
 @router.get("/db", summary="Database health check")
-async def db_health_check(db: Session = Depends(get_db)):
+async def db_health_check(db: Session = Depends(get_db)) -> dict[str, str]:
     """Database health check endpoint."""
     try:
         ***REMOVED*** Try a simple query
@@ -36,7 +36,7 @@ async def db_health_check(db: Session = Depends(get_db)):
         ***REMOVED*** Return success if query worked
         return {
             "status": "ok",
-            "result": result,
+            "result": str(result) if result else "",
             "db_type": str(type(db)),
             "timestamp": datetime.datetime.now().isoformat(),
         }
