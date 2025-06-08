@@ -54,7 +54,11 @@ RUN useradd -m -r recapi
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl tini && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    ***REMOVED*** Create symlink if tini is not at /sbin/tini
+    if [ ! -f "/sbin/tini" ] && [ -f "/usr/bin/tini" ]; then \
+        mkdir -p /sbin && ln -s /usr/bin/tini /sbin/tini; \
+    fi
 
 ***REMOVED*** Copy only the necessary movie-storage files (no .venv)
 COPY --from=builder /build/libs/movie-storage/movie_storage /app/libs/movie-storage/movie_storage/
@@ -95,9 +99,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8002/health || exit 1
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/sbin/tini", "--"]
 
 ***REMOVED*** Start the application with uvicorn
+***REMOVED*** In production, we hardcode proxy_headers=true and no reload
 CMD uvicorn recommendation_api.main:app \
     --host ${HOST} \
     --port ${PORT} \
@@ -107,6 +112,5 @@ CMD uvicorn recommendation_api.main:app \
     --limit-max-requests ${LIMIT_MAX_REQUESTS} \
     --no-access-log \
     --backlog ${BACKLOG} \
-    --reload ${RELOAD} \
-    --proxy-headers ${PROXY_HEADERS} \
-    --forwarded-allow-ips ${FORWARDED_ALLOW_IPS} 
+    --proxy-headers \
+    --forwarded-allow-ips "*" 
