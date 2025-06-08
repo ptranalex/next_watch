@@ -95,7 +95,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8002/health || exit 1
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 ***REMOVED*** Start the application with uvicorn
 CMD uvicorn recommendation_api.main:app \
