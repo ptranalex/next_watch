@@ -39,17 +39,30 @@ RUN pip install --no-cache-dir --user -e .
 ***REMOVED*** Stage 2: Runtime image
 FROM python:3.9-alpine AS final
 
+***REMOVED*** Set production environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
-    PATH="/home/app/.local/bin:$PATH"
+    PATH="/home/app/.local/bin:$PATH" \
+    ENVIRONMENT="production" \
+    PORT=8003 \
+    HOST="0.0.0.0" \
+    LOG_LEVEL="info" \
+    WORKERS=1 \
+    TIMEOUT=120 \
+    RELOAD=false \
+    PROXY_HEADERS=true \
+    FORWARDED_ALLOW_IPS="*" \
+    LIMIT_MAX_REQUESTS=10000 \
+    BACKLOG=1024
 
 WORKDIR /app
 
 ***REMOVED*** Install runtime dependencies
 RUN apk add --no-cache \
     curl \
-    postgresql-libs
+    postgresql-libs \
+    tini
 
 ***REMOVED*** Create app user
 RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
@@ -72,5 +85,18 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 ***REMOVED*** Expose port
 EXPOSE 8003
 
-***REMOVED*** Run the application
-CMD ["python", "-m", "auth_api.cli.main", "serve", "--host", "0.0.0.0", "--port", "8003"] 
+***REMOVED*** Use tini for proper signal handling and child process reaping
+ENTRYPOINT ["/sbin/tini", "--"]
+
+***REMOVED*** Run the application using uvicorn directly with proper worker configuration
+CMD uvicorn auth_api.main:app \
+    --host ${HOST} \
+    --port ${PORT} \
+    --workers ${WORKERS} \
+    --timeout-keep-alive ${TIMEOUT} \
+    --log-level ${LOG_LEVEL} \
+    --no-access-log \
+    --proxy-headers \
+    --forwarded-allow-ips "*" \
+    --backlog ${BACKLOG} \
+    --limit-max-requests ${LIMIT_MAX_REQUESTS} 
