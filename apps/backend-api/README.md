@@ -1,26 +1,80 @@
 ***REMOVED*** Next Watch Backend API
 
-A FastAPI-based backend service for the Next Watch application.
+A FastAPI-based Backend for Frontend (BFF) service for the Next Watch application, featuring a clean architecture with comprehensive health monitoring and modular design.
+
+***REMOVED******REMOVED*** Architecture Overview
+
+The Backend API follows modern FastAPI best practices with a modular, testable architecture:
+
+```
+backend-api/
+├── src/backend_api/
+│   ├── core/               ***REMOVED*** Application factory and core components
+│   │   ├── app.py         ***REMOVED*** FastAPI app factory with lifespan management
+│   │   ├── middleware.py  ***REMOVED*** CORS, error handling, performance monitoring
+│   │   └── logging.py     ***REMOVED*** Logging configuration wrapper
+│   ├── routes/            ***REMOVED*** HTTP endpoints organized by function
+│   │   ├── api_v1/        ***REMOVED*** Versioned API routes (main business logic)
+│   │   ├── health.py      ***REMOVED*** Comprehensive health check endpoints
+│   │   └── meta.py        ***REMOVED*** Root and debug endpoints
+│   ├── services/          ***REMOVED*** Business logic and service classes
+│   │   ├── health_service.py  ***REMOVED*** Multi-service health monitoring
+│   │   ├── movie_service.py   ***REMOVED*** Movie-related operations
+│   │   ├── user_interaction.py ***REMOVED*** User interactions and social features
+│   │   ├── suggestion_engine.py ***REMOVED*** Redis-based recommendations
+│   │   └── auth.py        ***REMOVED*** Authentication and authorization
+│   ├── config/            ***REMOVED*** Configuration management
+│   │   ├── app.py         ***REMOVED*** Application settings and environment variables
+│   │   └── logging.py     ***REMOVED*** Centralized logging configuration
+│   ├── db/                ***REMOVED*** Database models and connections
+│   ├── queries/           ***REMOVED*** Database query operations
+│   ├── schemas/           ***REMOVED*** Pydantic schemas for API contracts
+│   └── main.py            ***REMOVED*** Clean application entry point
+└── README.md              ***REMOVED*** This file
+```
+
+***REMOVED******REMOVED******REMOVED*** Key Architectural Benefits
+
+- **Application Factory Pattern**: Clean app creation with dependency injection
+- **Health Service Integration**: Comprehensive dependency monitoring
+- **Modular Design**: Well-organized, testable components
+- **Graceful Degradation**: Robust error handling and fallback mechanisms
+- **Clean Separation**: Clear distinction between routes, services, and configuration
 
 ***REMOVED******REMOVED*** Features
 
-- Movie data API endpoints
-- Genre information
-- Cast and crew information
-- Movie search functionality
-- Database health checking
-- User authentication with JWT
-- User registration and profile management
-- Rate limiting and performance monitoring
-- Comprehensive CLI for server management
+***REMOVED******REMOVED******REMOVED*** Core Functionality
 
-***REMOVED******REMOVED*** Setup
+- Movie data API endpoints with advanced search
+- User authentication with JWT and role-based access
+- User profiles, preferences, and social interactions
+- Comprehensive genre and cast information
+- Watchlist and recommendation management
+
+***REMOVED******REMOVED******REMOVED*** Health Monitoring
+
+- **Multi-Service Health Checks**: PostgreSQL and Redis monitoring
+- **Three Health Endpoints**: Comprehensive, liveness, and readiness checks
+- **Load Balancer Integration**: Kubernetes and Docker health probe support
+- **Detailed Metrics**: Response times, connection status, and error reporting
+- **Fallback Mechanisms**: Continues operation even if some services fail
+
+***REMOVED******REMOVED******REMOVED*** Production Ready
+
+- Comprehensive logging with structured output
+- Performance monitoring with request timing
+- CORS configuration for microservice architecture
+- Global exception handling with detailed error reporting
+- Environment-aware configuration with security considerations
+
+***REMOVED******REMOVED*** Quick Start
 
 ***REMOVED******REMOVED******REMOVED*** Prerequisites
 
 - Python 3.10+
-- Poetry for dependency management
+- Poetry or Hatch for dependency management
 - PostgreSQL database
+- Redis server (optional, for suggestions)
 
 ***REMOVED******REMOVED******REMOVED*** Installation
 
@@ -34,6 +88,10 @@ A FastAPI-based backend service for the Next Watch application.
 2. Install dependencies:
 
    ```bash
+   ***REMOVED*** Using Hatch (recommended)
+   hatch env create
+
+   ***REMOVED*** Or using Poetry
    poetry install
    ```
 
@@ -42,27 +100,129 @@ A FastAPI-based backend service for the Next Watch application.
 4. Run the development server:
 
    ```bash
-   ***REMOVED*** Using the CLI (recommended):
+   ***REMOVED*** Using Hatch
+   hatch run dev
+
+   ***REMOVED*** Using Poetry
    poetry run backend-api server start
 
-   ***REMOVED*** Or with explicit options:
-   poetry run backend-api server start --port 8080 --log-level DEBUG
-
-   ***REMOVED*** Alternative methods:
-   ***REMOVED*** Using Python's module runner:
-   poetry run python -m backend_api.main
-
-   ***REMOVED*** Using uvicorn directly:
-   poetry run uvicorn backend_api.main:app --reload --port $(grep API_PORT .env | cut -d= -f2)
+   ***REMOVED*** Or directly with Python
+   python -m backend_api.main
    ```
 
-***REMOVED******REMOVED******REMOVED*** CLI Reference
+***REMOVED******REMOVED*** Health Monitoring
 
-The backend API comes with a CLI tool that provides various commands:
+The Backend API provides comprehensive health monitoring with three specialized endpoints:
+
+***REMOVED******REMOVED******REMOVED*** Health Check Endpoints
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Comprehensive Health Check (`/health`)
+
+- **Purpose**: Full system health diagnostics
+- **Checks**: PostgreSQL database, Redis cache
+- **Response**: Detailed metrics with response times and service details
+- **Usage**: System monitoring, debugging, detailed diagnostics
+
+```bash
+curl http://localhost:8000/health | jq .
+```
+
+```json
+{
+  "status": "healthy",
+  "service": "backend-api",
+  "version": "0.1.0",
+  "environment": "development",
+  "timestamp": "2024-01-15T10:30:00.123Z",
+  "checks": {
+    "postgres": {
+      "status": "healthy",
+      "healthy": true,
+      "response_time_ms": 15.42,
+      "details": {
+        "version": "PostgreSQL 14.13",
+        "database_size": "172 MB",
+        "connection_successful": true
+      }
+    },
+    "redis": {
+      "status": "healthy",
+      "healthy": true,
+      "response_time_ms": 8.33,
+      "details": {
+        "version": "7.2.5",
+        "connected_clients": 2,
+        "used_memory_human": "4.65M"
+      }
+    }
+  }
+}
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Liveness Check (`/health/live`)
+
+- **Purpose**: Container/process liveness verification
+- **Response**: Always returns 200 if service is running
+- **Usage**: Kubernetes liveness probes, Docker healthchecks
+
+```bash
+curl http://localhost:8000/health/live
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Readiness Check (`/health/ready`)
+
+- **Purpose**: Traffic readiness verification
+- **Checks**: Critical services only (PostgreSQL)
+- **Usage**: Load balancer readiness probes, Kubernetes readiness probes
+
+```bash
+curl http://localhost:8000/health/ready
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Legacy Database Health (`/db-health`)
+
+- **Purpose**: Backward compatibility
+- **Note**: Use `/health` for comprehensive monitoring
+
+***REMOVED******REMOVED******REMOVED*** Load Balancer Integration
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Kubernetes Configuration
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8000
+  initialDelaySeconds: 5
+  periodSeconds: 30
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Docker Compose Configuration
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+```
+
+***REMOVED******REMOVED*** CLI Reference
+
+The backend API comes with a comprehensive CLI tool:
 
 ```bash
 ***REMOVED*** Server management
-poetry run backend-api server start  ***REMOVED*** Start the API server
+hatch run dev                           ***REMOVED*** Start development server with auto-reload
+poetry run backend-api server start    ***REMOVED*** Start the API server
 poetry run backend-api server start --help  ***REMOVED*** Show all available options
 
 ***REMOVED*** Available options:
@@ -71,7 +231,6 @@ poetry run backend-api server start --help  ***REMOVED*** Show all available opt
 ***REMOVED*** --log-level TEXT            Log level (DEBUG, INFO, WARNING, ERROR)
 ***REMOVED*** --reload / --no-reload      Enable auto-reload on code changes
 ***REMOVED*** --log-dir PATH              Directory to store log files
-***REMOVED*** --sqlalchemy-level TEXT     Log level for SQLAlchemy
 
 ***REMOVED*** Database management
 poetry run backend-api db migrate        ***REMOVED*** Run database migrations
@@ -85,74 +244,55 @@ poetry run backend-api metrics report    ***REMOVED*** Generate performance repo
 
 ***REMOVED******REMOVED*** Configuration
 
-The backend API uses a structured configuration system:
-
-- Environment variables for basic settings
-- Support for `.env` and `.env.local` files
-- Centralized logging configuration
+The backend API uses a structured configuration system with environment-aware settings:
 
 ***REMOVED******REMOVED******REMOVED*** Environment Variables
 
 | Variable                      | Description                                 | Default                                                    |
 | ----------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
 | `DATABASE_URL`                | PostgreSQL connection string                | `postgresql://postgres:postgres@localhost:5432/next_watch` |
+| `REDIS_URL`                   | Redis connection URL                        | `redis://localhost:6379/0`                                 |
 | `API_PORT`                    | Port for the API server                     | `8000`                                                     |
 | `LOG_LEVEL`                   | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO`                                                     |
 | `DEBUG`                       | Enable debug mode                           | `false`                                                    |
 | `CORS_ORIGINS`                | Comma-separated list of allowed origins     | `*`                                                        |
 | `ENABLE_PERFORMANCE_METRICS`  | Enable performance metrics middleware       | `false`                                                    |
-| `SQLALCHEMY_LOG_LEVEL`        | Specific logging level for SQLAlchemy       | `WARNING`                                                  |
 | `LOGS_DIR`                    | Directory to store log files                | `logs`                                                     |
-| `DATABASE_ECHO`               | Enable SQL statement logging                | `false`                                                    |
 | `JWT_SECRET`                  | Secret key for JWT token generation         | `change_this_in_production_very_important`                 |
 | `JWT_ALGORITHM`               | Algorithm for JWT token generation          | `HS256`                                                    |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Minutes until access token expires          | `30`                                                       |
 | `REFRESH_TOKEN_EXPIRE_DAYS`   | Days until refresh token expires            | `7`                                                        |
-| `RATE_LIMIT_PER_MINUTE`       | API rate limit per minute                   | `60`                                                       |
-| `ENABLE_DOCS`                 | Enable Swagger/ReDoc documentation          | `true`                                                     |
 
-***REMOVED******REMOVED******REMOVED*** Configuration Structure
+***REMOVED******REMOVED******REMOVED*** Redis Configuration (for Suggestion Engine)
 
-The configuration system is organized in the `config` package:
-
-```
-config/
-├── __init__.py   ***REMOVED*** Exports configuration classes and utilities
-├── app.py        ***REMOVED*** Core application settings and environment variables
-└── logging.py    ***REMOVED*** Centralized logging configuration
-```
-
-***REMOVED******REMOVED******REMOVED*** Using the Configuration
-
-```python
-***REMOVED*** Import settings
-from backend_api.config.app import settings
-
-***REMOVED*** Access configuration
-database_url = settings.database_url
-api_port = settings.api_port
-
-***REMOVED*** Configure logging
-from backend_api.config import configure_logging
-log_config = configure_logging(
-    log_level=settings.log_level,
-    log_dir=Path("logs"),
-    verbose=settings.debug
-)
-```
+| Variable                       | Description                        | Default |
+| ------------------------------ | ---------------------------------- | ------- |
+| `REDIS_MAX_CONNECTIONS`        | Maximum Redis connection pool size | `10`    |
+| `REDIS_SOCKET_TIMEOUT`         | Redis socket timeout (seconds)     | `30`    |
+| `REDIS_SOCKET_CONNECT_TIMEOUT` | Redis connection timeout (seconds) | `30`    |
+| `REDIS_RETRY_ON_TIMEOUT`       | Retry on timeout errors            | `true`  |
 
 ***REMOVED******REMOVED*** API Endpoints
+
+***REMOVED******REMOVED******REMOVED*** Core Information
+
+- `GET /` - API information and available endpoints
+- `GET /debug` - Development debugging information (limited in production)
+
+***REMOVED******REMOVED******REMOVED*** Health Monitoring
+
+- `GET /health` - Comprehensive health check with all dependencies
+- `GET /health/live` - Simple liveness check for container orchestrators
+- `GET /health/ready` - Readiness check for critical dependencies
+- `GET /db-health` - Legacy database-only health check
 
 ***REMOVED******REMOVED******REMOVED*** Authentication
 
 - `POST /api/v1/auth/register` - Register a new user
 - `POST /api/v1/auth/login` - Authenticate and get access/refresh tokens
-- `POST /api/v1/auth/login/json` - JSON-based login alternative
 - `POST /api/v1/auth/refresh` - Refresh access token
 - `GET /api/v1/auth/me` - Get current authenticated user details
 - `POST /api/v1/auth/logout` - Logout and invalidate tokens
-- `POST /api/v1/auth/password/reset` - Request password reset
-- `POST /api/v1/auth/password/change` - Change password with token
 
 ***REMOVED******REMOVED******REMOVED*** Users
 
@@ -163,33 +303,17 @@ log_config = configure_logging(
 
 ***REMOVED******REMOVED******REMOVED*** Movies
 
-- `GET /api/v1/movies/` - List movies with pagination
+- `GET /api/v1/movies/` - List movies with pagination and filters
 - `GET /api/v1/movies/{movie_id}` - Get details for a specific movie
-- `GET /api/v1/movies/tmdb/{tmdb_id}` - Get movie by TMDB ID
 - `GET /api/v1/movies/search` - Search movies by title, actor, or genre
 - `POST /api/v1/movies/{movie_id}/like` - Like a movie
-- `DELETE /api/v1/movies/{movie_id}/like` - Unlike a movie
 - `POST /api/v1/movies/{movie_id}/watch` - Mark movie as watched
-- `DELETE /api/v1/movies/{movie_id}/watch` - Mark movie as not watched
 - `POST /api/v1/movies/{movie_id}/watchlist` - Add movie to watchlist
-- `DELETE /api/v1/movies/{movie_id}/watchlist` - Remove movie from watchlist
 
-***REMOVED******REMOVED******REMOVED*** Genres
+***REMOVED******REMOVED******REMOVED*** Genres & Cast
 
 - `GET /api/v1/genres/` - List all genres
-- `GET /api/v1/genres/{genre_id}` - Get details for a specific genre
-- `GET /api/v1/genres/{genre_id}/movies` - Get movies for a specific genre
-
-***REMOVED******REMOVED******REMOVED*** Cast
-
-- `GET /api/v1/cast/movie/{movie_id}` - Get cast and crew information for a specific movie
-- `GET /api/v1/cast/person/{person_id}` - Get person details
-- `GET /api/v1/cast/person/{person_id}/movies` - Get movies for a specific person
-
-***REMOVED******REMOVED******REMOVED*** Health Checks
-
-- `GET /health` - API health check
-- `GET /db-health` - Database health check
+- `GET /api/v1/cast/movie/{movie_id}` - Get cast and crew information
 
 ***REMOVED******REMOVED*** Development
 
@@ -197,60 +321,110 @@ log_config = configure_logging(
 
 ```bash
 ***REMOVED*** Run all tests
-poetry run pytest
+hatch run test
 
-***REMOVED*** Run with specific test file
-poetry run pytest tests/api/test_movies.py
+***REMOVED*** Run tests with coverage
+hatch run cov
 
-***REMOVED*** Run with coverage report
-poetry run pytest --cov=backend_api
+***REMOVED*** Run specific test file
+pytest tests/test_health_service.py -v
 ```
 
-***REMOVED******REMOVED******REMOVED*** Project Structure
-
-```
-backend-api/
-├── src/
-│   └── backend_api/
-│       ├── routes/       ***REMOVED*** API route handlers
-│       ├── schemas/      ***REMOVED*** Pydantic models for request/response
-│       ├── db/           ***REMOVED*** Database models and utilities
-│       ├── config/       ***REMOVED*** Configuration and settings
-│       ├── services/     ***REMOVED*** Business logic services
-│       ├── queries/      ***REMOVED*** Optimized read queries
-│       ├── auth/         ***REMOVED*** Authentication logic
-│       ├── cli/          ***REMOVED*** CLI commands
-│       └── main.py       ***REMOVED*** Application entry point
-├── tests/                ***REMOVED*** Test cases
-│   ├── conftest.py       ***REMOVED*** Test fixtures
-│   ├── api/              ***REMOVED*** API tests
-│   ├── services/         ***REMOVED*** Service tests
-│   └── queries/          ***REMOVED*** Query tests
-└── README.md             ***REMOVED*** You are here
-```
-
-***REMOVED******REMOVED******REMOVED*** Debug Mode
-
-For development with enhanced debugging:
+***REMOVED******REMOVED******REMOVED*** Code Quality
 
 ```bash
-poetry run backend-api server start --log-level DEBUG --sqlalchemy-level INFO
+***REMOVED*** Run linting
+hatch run lint
+
+***REMOVED*** Run type checking
+hatch run type-check
+
+***REMOVED*** Format code
+hatch run format
 ```
 
-This enables:
+***REMOVED******REMOVED******REMOVED*** Development Server
 
-- Detailed API request/response logging
-- SQL query logging
-- Extended error information
+```bash
+***REMOVED*** Start with auto-reload
+hatch run dev
 
-***REMOVED******REMOVED*** Dependencies
+***REMOVED*** Start with specific port
+hatch run dev --port 8080
 
-- FastAPI - Web framework
-- SQLModel - SQL database interaction
-- Pydantic - Data validation
-- Typer - CLI interface
-- movie-storage - Internal library for movie data storage
+***REMOVED*** Start with debug logging
+LOG_LEVEL=DEBUG hatch run dev
+```
+
+***REMOVED******REMOVED*** Architecture Documentation
+
+For detailed information about specific modules:
+
+- **[Core Module](src/backend_api/core/README.md)**: Application factory, middleware, and logging
+- **[Services Module](src/backend_api/services/README.md)**: Business logic and health monitoring
+- **[Routes Module](src/backend_api/routes/README.md)**: HTTP endpoints and API documentation
+
+***REMOVED******REMOVED*** Deployment
+
+***REMOVED******REMOVED******REMOVED*** Production Checklist
+
+1. **Environment Variables**: Set proper production values
+
+   - `ENVIRONMENT=production`
+   - `DEBUG=false`
+   - `JWT_SECRET=<secure-random-string>`
+   - `DATABASE_URL=<production-database>`
+
+2. **Health Checks**: Configure load balancer health checks
+
+   - Liveness: `/health/live`
+   - Readiness: `/health/ready`
+
+3. **Monitoring**: Set up monitoring for health endpoints
+
+   - Monitor `/health` for detailed metrics
+   - Alert on service unavailability
+
+4. **Security**: Review security settings
+   - CORS origins configured properly
+   - JWT secrets are secure
+   - Database credentials are secure
+
+***REMOVED******REMOVED******REMOVED*** Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+***REMOVED*** Install dependencies
+COPY pyproject.toml ./
+RUN pip install hatch
+RUN hatch env create
+
+***REMOVED*** Copy application
+COPY . .
+
+***REMOVED*** Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8000/health/live || exit 1
+
+***REMOVED*** Run application
+CMD ["hatch", "run", "prod"]
+```
+
+***REMOVED******REMOVED*** Contributing
+
+1. Follow the modular architecture patterns
+2. Add comprehensive tests for new features
+3. Update health checks for new dependencies
+4. Document new endpoints in route READMEs
+5. Ensure backward compatibility for health endpoints
 
 ***REMOVED******REMOVED*** License
 
-[MIT License](LICENSE)
+MIT License - see LICENSE file for details.
+
+---
+
+The Next Watch Backend API provides a robust, well-monitored foundation for the movie recommendation platform with comprehensive health monitoring and clean architectural patterns.
