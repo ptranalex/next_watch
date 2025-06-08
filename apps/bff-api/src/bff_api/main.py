@@ -101,6 +101,8 @@ def create_app() -> FastAPI:
     )
 
     ***REMOVED*** Add middleware
+    ***REMOVED*** Note: CORS is critical as the BFF API is the entry point for frontend requests
+    ***REMOVED*** In production, allow_origins should be restricted to the frontend domain
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],  ***REMOVED*** Allow all origins in development
@@ -109,13 +111,18 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    ***REMOVED*** In production, we restrict host headers to prevent host header attacks
     if settings.is_production:
+        logger.info(f"Adding TrustedHostMiddleware with allowed_hosts: {settings.allowed_hosts}")
         app.add_middleware(
             TrustedHostMiddleware,
             allowed_hosts=settings.allowed_hosts,
         )
 
+    ***REMOVED*** Add logging middleware to track requests
     app.add_middleware(LoggingMiddleware)
+
+    ***REMOVED*** Add auth middleware to handle authentication
     app.add_middleware(AuthMiddleware)
 
     ***REMOVED*** Add routes

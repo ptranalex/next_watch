@@ -86,8 +86,7 @@ CMD uvicorn bff_api.main:app \
     --timeout-keep-alive ${TIMEOUT} \
     --log-level ${LOG_LEVEL} \
     --no-access-log \
-    --proxy-headers ${PROXY_HEADERS} \
-    --forwarded-allow-ips ${FORWARDED_ALLOW_IPS} \
+    --proxy-headers \
+    --forwarded-allow-ips "*" \
     --backlog ${BACKLOG} \
-    --limit-max-requests ${LIMIT_MAX_REQUESTS} \
-    --reload ${RELOAD} 
+    --limit-max-requests ${LIMIT_MAX_REQUESTS} 
