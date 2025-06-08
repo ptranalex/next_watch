@@ -239,14 +239,10 @@ class MovieQuery:
         ***REMOVED*** Use the existing movie_details module to get movies by IDs
         return get_movies_by_ids_bulk(db, movie_ids)
 
-    def get_movie_trailers(self, db: Session, movie_id: int) -> List[Dict[str, Any]]:
+    def get_movie_trailers(self, db: Session, movie_id: int) -> List[Any]:
         """Get trailers for a movie."""
         trailers = get_trailers_for_movie(db, movie_id)
-        return [{"id": getattr(t, "id", 0), 
-                 "key": getattr(t, "key", ""), 
-                 "name": getattr(t, "name", ""), 
-                 "site": getattr(t, "site", ""), 
-                 "type": getattr(t, "type", "")} for t in trailers]
+        return trailers
 
     def get_top_rated_movies(
         self,
