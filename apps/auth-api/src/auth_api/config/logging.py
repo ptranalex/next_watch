@@ -41,6 +41,9 @@ def configure_logging(
         >>> logger = logging.getLogger("auth_api")
         >>> logger.info("Application started")
     """
+    ***REMOVED*** Ensure log_level is uppercase to work with Python's logging module
+    log_level = log_level.upper()
+
     root_logger = logging.getLogger("auth_api")
     root_logger.setLevel(log_level)
     root_logger.handlers = []  ***REMOVED*** Clear any existing handlers
