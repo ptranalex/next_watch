@@ -55,29 +55,30 @@ def generate(
     if verbose:
         log_level = "DEBUG"
     elif quiet:
-        log_level = "WARNING"
+        log_level = "ERROR"
+    else:
+        log_level = "WARNING"  ***REMOVED*** Default to WARNING to reduce noise
+
     configure_logging(log_level=log_level, verbose=verbose)
 
     ***REMOVED*** Always suppress noisy logs unless in debug mode
-    if not verbose:
-        ***REMOVED*** Set higher log levels for noisy libraries
-        logging.getLogger("httpx").setLevel(logging.WARNING)
-        logging.getLogger("qdrant_client").setLevel(logging.WARNING)
-        logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
-        logging.getLogger("recommendation_api.repositories.vector.repository").setLevel(
-            logging.WARNING
-        )
-        logging.getLogger("recommendation_api.repositories.vector.client").setLevel(logging.WARNING)
+    noisy_loggers = [
+        "httpx",
+        "qdrant_client",
+        "sentence_transformers",
+        "recommendation_api.repositories.vector.repository",
+        "recommendation_api.repositories.vector.client",
+        "recommendation_api.services.vector_service",
+        "recommendation_api.services.embedding_service",
+    ]
 
-    ***REMOVED*** Set to ERROR level in quiet mode
-    if quiet:
-        for logger_name in [
-            "httpx",
-            "qdrant_client",
-            "sentence_transformers",
-            "recommendation_api.repositories.vector.repository",
-            "recommendation_api.repositories.vector.client",
-        ]:
+    if verbose:
+        ***REMOVED*** In verbose mode, show more details but still suppress the noisiest ones
+        for logger_name in ["httpx", "qdrant_client", "sentence_transformers"]:
+            logging.getLogger(logger_name).setLevel(logging.WARNING)
+    else:
+        ***REMOVED*** In normal mode, suppress all noisy loggers
+        for logger_name in noisy_loggers:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
 
     ***REMOVED*** Use config defaults if not provided
@@ -150,6 +151,10 @@ def generate(
                 "failed": 0,
             }
 
+            ***REMOVED*** Track last reported batch for cleaner output
+            last_batch_report = 0
+            report_interval = max(1, len(movies) // 20)  ***REMOVED*** Report every 5% or at least every batch
+
             ***REMOVED*** Process movies in batches
             with Progress(
                 "[progress.description]{task.description}",
@@ -158,9 +163,10 @@ def generate(
                 rich.progress.TimeRemainingColumn(),
                 "[cyan]{task.fields[processed]}[/cyan] processed, "
                 "[blue]{task.fields[skipped]}[/blue] skipped, "
-                "[yellow]{task.fields[failed]}[/yellow] failed",
+                "[red]{task.fields[failed]}[/red] failed",
                 console=console,
-                transient=not verbose,
+                transient=False,  ***REMOVED*** Keep progress bar visible
+                refresh_per_second=2,  ***REMOVED*** Reduce refresh rate to minimize flicker
             ) as progress:
                 task = progress.add_task(
                     "[cyan]Processing movies...",
@@ -172,6 +178,8 @@ def generate(
 
                 for i in range(0, len(movies), actual_batch_size):
                     batch = movies[i : i + actual_batch_size]
+                    batch_num = i // actual_batch_size + 1
+                    total_batches = (len(movies) + actual_batch_size - 1) // actual_batch_size
 
                     ***REMOVED*** Process movies and collect IDs for batch processing
                     movie_ids = []
@@ -181,7 +189,22 @@ def generate(
 
                     ***REMOVED*** Use batch processing through vector service with asyncio.run
                     if movie_ids:
-                        results = asyncio.run(process_movies(session, movie_ids, force=force))
+                        ***REMOVED*** Temporarily suppress logs during batch processing unless verbose
+                        if not verbose:
+                            ***REMOVED*** Temporarily increase log level for batch processing
+                            temp_loggers = {}
+                            for logger_name in noisy_loggers:
+                                logger = logging.getLogger(logger_name)
+                                temp_loggers[logger_name] = logger.level
+                                logger.setLevel(logging.CRITICAL)
+
+                        try:
+                            results = asyncio.run(process_movies(session, movie_ids, force=force))
+                        finally:
+                            ***REMOVED*** Restore log levels
+                            if not verbose:
+                                for logger_name, level in temp_loggers.items():
+                                    logging.getLogger(logger_name).setLevel(level)
 
                         ***REMOVED*** Update statistics
                         batch_processed = results.get("processed", 0)
@@ -201,16 +224,28 @@ def generate(
                             failed=overall_stats["failed"],
                         )
 
-                        if verbose:
-                            console.print(
-                                f"[green]Batch processed: {batch_processed} movies[/green]"
-                            )
-                            if batch_failed > 0:
+                        ***REMOVED*** Report batch progress periodically or if verbose
+                        should_report = (
+                            verbose
+                            or batch_num - last_batch_report >= report_interval
+                            or batch_num == total_batches
+                            or batch_failed > 0
+                        )
+
+                        if should_report:
+                            last_batch_report = batch_num
+
+                            if verbose:
                                 console.print(
-                                    f"[yellow]Batch errors: {batch_failed} movies[/yellow]"
+                                    f"[dim]Batch {batch_num}/{total_batches}: "
+                                    f"{batch_processed} processed, "
+                                    f"{batch_skipped} skipped, "
+                                    f"{batch_failed} failed[/dim]"
                                 )
-                            if batch_skipped > 0:
-                                console.print(f"[blue]Batch skipped: {batch_skipped} movies[/blue]")
+                            elif batch_failed > 0:
+                                console.print(
+                                    f"[yellow]Batch {batch_num}: {batch_failed} failures detected[/yellow]"
+                                )
 
                 ***REMOVED*** Final summary
                 console.print("\n[bold cyan]Embedding Generation Summary:[/bold cyan]")
@@ -259,11 +294,17 @@ def generate(
                     console.print(
                         "\n[yellow]⚠ Embedding generation completed with some failures.[/yellow]"
                     )
+                    if not verbose:
+                        console.print("[dim]Use --verbose to see detailed error information.[/dim]")
                 else:
                     console.print("\n[blue]ℹ No new embeddings were generated.[/blue]")
 
     except Exception as e:
         console.print(f"[red]Error during embedding generation: {e}[/red]")
+        if verbose:
+            import traceback
+
+            console.print(f"[red]{traceback.format_exc()}[/red]")
         raise typer.Exit(1)
 
 
@@ -434,29 +475,30 @@ def repair_embeddings(
     if verbose:
         log_level = "DEBUG"
     elif quiet:
-        log_level = "WARNING"
+        log_level = "ERROR"
+    else:
+        log_level = "WARNING"  ***REMOVED*** Default to WARNING to reduce noise
+
     configure_logging(log_level=log_level, verbose=verbose)
 
     ***REMOVED*** Always suppress noisy logs unless in debug mode
-    if not verbose:
-        ***REMOVED*** Set higher log levels for noisy libraries
-        logging.getLogger("httpx").setLevel(logging.WARNING)
-        logging.getLogger("qdrant_client").setLevel(logging.WARNING)
-        logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
-        logging.getLogger("recommendation_api.repositories.vector.repository").setLevel(
-            logging.WARNING
-        )
-        logging.getLogger("recommendation_api.repositories.vector.client").setLevel(logging.WARNING)
+    noisy_loggers = [
+        "httpx",
+        "qdrant_client",
+        "sentence_transformers",
+        "recommendation_api.repositories.vector.repository",
+        "recommendation_api.repositories.vector.client",
+        "recommendation_api.services.vector_service",
+        "recommendation_api.services.embedding_service",
+    ]
 
-    ***REMOVED*** Set to ERROR level in quiet mode
-    if quiet:
-        for logger_name in [
-            "httpx",
-            "qdrant_client",
-            "sentence_transformers",
-            "recommendation_api.repositories.vector.repository",
-            "recommendation_api.repositories.vector.client",
-        ]:
+    if verbose:
+        ***REMOVED*** In verbose mode, show more details but still suppress the noisiest ones
+        for logger_name in ["httpx", "qdrant_client", "sentence_transformers"]:
+            logging.getLogger(logger_name).setLevel(logging.WARNING)
+    else:
+        ***REMOVED*** In normal mode, suppress all noisy loggers
+        for logger_name in noisy_loggers:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
 
     console.print("[cyan]Repairing movie embeddings with missing vectors[/cyan]")
@@ -496,7 +538,8 @@ def repair_embeddings(
                     return True
             return False
         except Exception as e:
-            console.print(f"[red]Error checking movie {movie_id}: {e}[/red]")
+            if verbose:
+                console.print(f"[red]Error checking movie {movie_id}: {e}[/red]")
             return False
 
     try:
@@ -513,9 +556,23 @@ def repair_embeddings(
                 if not dry_run:
                     ***REMOVED*** Repair the embedding
                     with get_db_context() as session:
-                        embedding = vector_service.generate_and_store_movie_embedding(
-                            session, specific_movie_id
-                        )
+                        ***REMOVED*** Temporarily suppress logs during repair unless verbose
+                        if not verbose:
+                            temp_loggers = {}
+                            for logger_name in noisy_loggers:
+                                logger = logging.getLogger(logger_name)
+                                temp_loggers[logger_name] = logger.level
+                                logger.setLevel(logging.CRITICAL)
+
+                        try:
+                            embedding = vector_service.generate_and_store_movie_embedding(
+                                session, specific_movie_id
+                            )
+                        finally:
+                            if not verbose:
+                                for logger_name, level in temp_loggers.items():
+                                    logging.getLogger(logger_name).setLevel(level)
+
                         if embedding:
                             stats["repaired"] += 1
                             console.print(
@@ -548,8 +605,17 @@ def repair_embeddings(
 
             ***REMOVED*** Find which movies need repair
             movies_needing_repair = []
-            with typer.progressbar(movies_to_check, label="Checking movies") as progress:
-                for movie_id in progress:
+
+            if not quiet:
+                with typer.progressbar(movies_to_check, label="Checking movies") as progress:
+                    for movie_id in progress:
+                        stats["checked"] += 1
+                        if needs_repair(movie_id):
+                            movies_needing_repair.append(movie_id)
+                            stats["needing_repair"] += 1
+            else:
+                ***REMOVED*** Silent checking in quiet mode
+                for movie_id in movies_to_check:
                     stats["checked"] += 1
                     if needs_repair(movie_id):
                         movies_needing_repair.append(movie_id)
@@ -570,25 +636,51 @@ def repair_embeddings(
                 ]
 
                 for batch_num, batch in enumerate(batches, 1):
-                    console.print(
-                        f"[cyan]Processing batch {batch_num}/{len(batches)} ({len(batch)} movies)[/cyan]"
-                    )
+                    if not quiet:
+                        console.print(
+                            f"[cyan]Processing batch {batch_num}/{len(batches)} ({len(batch)} movies)[/cyan]"
+                        )
 
                     with get_db_context() as session:
-                        for movie_id in typer.progressbar(batch, label="Repairing"):
-                            embedding = vector_service.generate_and_store_movie_embedding(
-                                session, movie_id
-                            )
-                            if embedding:
-                                stats["repaired"] += 1
+                        ***REMOVED*** Temporarily suppress logs during batch repair unless verbose
+                        if not verbose:
+                            temp_loggers = {}
+                            for logger_name in noisy_loggers:
+                                logger = logging.getLogger(logger_name)
+                                temp_loggers[logger_name] = logger.level
+                                logger.setLevel(logging.CRITICAL)
+
+                        try:
+                            if not quiet:
+                                for movie_id in typer.progressbar(batch, label="Repairing"):
+                                    embedding = vector_service.generate_and_store_movie_embedding(
+                                        session, movie_id
+                                    )
+                                    if embedding:
+                                        stats["repaired"] += 1
+                                    else:
+                                        stats["failed"] += 1
                             else:
-                                stats["failed"] += 1
+                                ***REMOVED*** Silent processing in quiet mode
+                                for movie_id in batch:
+                                    embedding = vector_service.generate_and_store_movie_embedding(
+                                        session, movie_id
+                                    )
+                                    if embedding:
+                                        stats["repaired"] += 1
+                                    else:
+                                        stats["failed"] += 1
+                        finally:
+                            if not verbose:
+                                for logger_name, level in temp_loggers.items():
+                                    logging.getLogger(logger_name).setLevel(level)
 
     except Exception as e:
         console.print(f"[red]Error repairing embeddings: {e}[/red]")
-        import traceback
+        if verbose:
+            import traceback
 
-        console.print(traceback.format_exc())
+            console.print(f"[red]{traceback.format_exc()}[/red]")
 
     ***REMOVED*** Print summary
     console.print("\n[cyan]Repair Summary:[/cyan]")
@@ -609,6 +701,8 @@ def repair_embeddings(
 
     if dry_run and stats["needing_repair"] > 0:
         console.print("[yellow]Run again without --dry-run to repair these embeddings[/yellow]")
+    elif not dry_run and stats["failed"] > 0 and not verbose:
+        console.print("[dim]Use --verbose to see detailed error information.[/dim]")
 
 
 @app.callback(invoke_without_command=True)
