@@ -79,6 +79,13 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
+      ***REMOVED*** Redis Configuration
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - REDIS_MAX_CONNECTIONS=20
+      - REDIS_TIMEOUT=5
+      - REDIS_RETRY_ON_TIMEOUT=true
+      - ENABLE_CACHING=true
+      - REDIS_TTL=3600
       ***REMOVED*** Vector Database Configuration
       - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=movies
