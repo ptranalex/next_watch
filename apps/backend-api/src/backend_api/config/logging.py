@@ -41,6 +41,9 @@ def configure_logging(
         >>> logger = logging.getLogger("backend_api")
         >>> logger.info("Application started")
     """
+    ***REMOVED*** Convert log_level to uppercase to ensure compatibility with logging module
+    log_level = log_level.upper()
+
     root_logger = logging.getLogger("backend_api")
     root_logger.setLevel(log_level)
     root_logger.handlers = []  ***REMOVED*** Clear any existing handlers

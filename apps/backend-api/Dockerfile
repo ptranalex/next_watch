@@ -87,6 +87,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 ENTRYPOINT ["/sbin/tini", "--"]
 
 ***REMOVED*** Run the application with production optimizations
+***REMOVED*** Hardcode log-level=info, proxy_headers=true and no reload for production
 CMD uvicorn backend_api.main:app \
     --host ${HOST} \
     --port ${PORT} \
@@ -94,8 +95,7 @@ CMD uvicorn backend_api.main:app \
     --log-level ${LOG_LEVEL} \
     --timeout-keep-alive ${TIMEOUT} \
     --limit-max-requests ${LIMIT_MAX_REQUESTS} \
-    --proxy-headers ${PROXY_HEADERS} \
     --no-access-log \
-    --forwarded-allow-ips ${FORWARDED_ALLOW_IPS} \
     --backlog ${BACKLOG} \
-    --reload ${RELOAD} 
+    --proxy-headers \
+    --forwarded-allow-ips "*" 

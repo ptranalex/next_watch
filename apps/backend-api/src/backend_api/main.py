@@ -155,6 +155,8 @@ def create_app() -> FastAPI:
     )
 
     ***REMOVED*** Add CORS middleware
+    ***REMOVED*** Note: This is important for the microservice architecture
+    ***REMOVED*** The backend-api is called by the BFF, which needs to make cross-origin requests
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
