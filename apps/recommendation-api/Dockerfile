@@ -32,7 +32,18 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH="/app/src" \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    ENVIRONMENT="production" \
+    PORT=8002 \
+    HOST="0.0.0.0" \
+    LOG_LEVEL="info" \
+    WORKERS=1 \
+    TIMEOUT=120 \
+    RELOAD=false \
+    PROXY_HEADERS=true \
+    FORWARDED_ALLOW_IPS="*" \
+    LIMIT_MAX_REQUESTS=10000 \
+    BACKLOG=1024
 
 WORKDIR /app
 
@@ -41,7 +52,7 @@ RUN useradd -m -r recapi
 
 ***REMOVED*** Install curl for health checks (and cleanup in the same layer)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl tini && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -83,5 +94,19 @@ EXPOSE 8002
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8002/health || exit 1
 
-***REMOVED*** Start the application
-CMD ["python", "-m", "recommendation_api.main"] 
+***REMOVED*** Use tini for proper signal handling and child process reaping
+ENTRYPOINT ["/sbin/tini", "--"]
+
+***REMOVED*** Start the application with uvicorn
+CMD uvicorn recommendation_api.main:app \
+    --host ${HOST} \
+    --port ${PORT} \
+    --workers ${WORKERS} \
+    --log-level ${LOG_LEVEL} \
+    --timeout-keep-alive ${TIMEOUT} \
+    --limit-max-requests ${LIMIT_MAX_REQUESTS} \
+    --no-access-log \
+    --backlog ${BACKLOG} \
+    --reload ${RELOAD} \
+    --proxy-headers ${PROXY_HEADERS} \
+    --forwarded-allow-ips ${FORWARDED_ALLOW_IPS} 

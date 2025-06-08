@@ -17,8 +17,10 @@ def main() -> None:
         port=settings.port,
         reload=settings.environment == "development",
         log_level=settings.log_level.lower(),
+        proxy_headers=settings.proxy_headers,
+        forwarded_allow_ips=settings.forwarded_allow_ips,
     )
 
 
 if __name__ == "__main__":
-    main() 
+    main()

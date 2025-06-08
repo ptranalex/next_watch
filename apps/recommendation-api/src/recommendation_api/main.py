@@ -79,6 +79,15 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    ***REMOVED*** Add CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  ***REMOVED*** In production, restrict this to specific origins
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     if settings.is_production:
         logger.info(f"Adding TrustedHostMiddleware with allowed_hosts: {settings.allowed_hosts}")
         app.add_middleware(
@@ -134,10 +143,13 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
 
+    ***REMOVED*** Use settings for all server parameters, including proxy headers
     uvicorn.run(
         "recommendation_api.main:app",
         host=settings.host,
         port=settings.port,
         reload=settings.debug,
         log_level=settings.log_level.lower(),
+        proxy_headers=settings.proxy_headers,
+        forwarded_allow_ips=settings.forwarded_allow_ips,
     )

@@ -42,6 +42,8 @@ DEFAULT_PORT = int(os.getenv("PORT", "8002"))
 DEFAULT_WORKERS = int(os.getenv("WORKERS", "1"))
 DEFAULT_RELOAD = os.getenv("RELOAD", "false").lower() == "true"
 DEFAULT_VERBOSE = os.getenv("VERBOSE", "false").lower() == "true"
+DEFAULT_PROXY_HEADERS = os.getenv("PROXY_HEADERS", "true").lower() == "true"
+DEFAULT_FORWARDED_ALLOW_IPS = os.getenv("FORWARDED_ALLOW_IPS", "*")
 
 ***REMOVED*** Logging and debugging
 DEFAULT_LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
@@ -78,30 +80,20 @@ DEFAULT_CONTENT_VECTOR_WEIGHT = float(os.getenv("CONTENT_VECTOR_WEIGHT", "0.4"))
 ***REMOVED*** Cache settings
 DEFAULT_ENABLE_CACHING = os.getenv("ENABLE_CACHING", "true").lower() == "true"
 DEFAULT_CACHE_TTL = int(os.getenv("CACHE_TTL", "3600"))  ***REMOVED*** 1 hour
-DEFAULT_PRECOMPUTE_SIMILARITIES = (
-    os.getenv("PRECOMPUTE_SIMILARITIES", "false").lower() == "true"
-)
+DEFAULT_PRECOMPUTE_SIMILARITIES = os.getenv("PRECOMPUTE_SIMILARITIES", "false").lower() == "true"
 
 ***REMOVED*** Performance settings
 DEFAULT_MAX_CONCURRENT_REQUESTS = int(os.getenv("MAX_CONCURRENT_REQUESTS", "100"))
 DEFAULT_REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "30"))
-DEFAULT_EMBEDDING_GENERATION_TIMEOUT = int(
-    os.getenv("EMBEDDING_GENERATION_TIMEOUT", "60")
-)
+DEFAULT_EMBEDDING_GENERATION_TIMEOUT = int(os.getenv("EMBEDDING_GENERATION_TIMEOUT", "60"))
 
 ***REMOVED*** Feature flags
 DEFAULT_ENABLE_COLLABORATIVE_FILTERING = (
     os.getenv("ENABLE_COLLABORATIVE_FILTERING", "true").lower() == "true"
 )
-DEFAULT_ENABLE_CONTENT_FILTERING = (
-    os.getenv("ENABLE_CONTENT_FILTERING", "true").lower() == "true"
-)
-DEFAULT_ENABLE_TRENDING_FALLBACK = (
-    os.getenv("ENABLE_TRENDING_FALLBACK", "true").lower() == "true"
-)
-DEFAULT_ENABLE_DIVERSITY_BOOST = (
-    os.getenv("ENABLE_DIVERSITY_BOOST", "true").lower() == "true"
-)
+DEFAULT_ENABLE_CONTENT_FILTERING = os.getenv("ENABLE_CONTENT_FILTERING", "true").lower() == "true"
+DEFAULT_ENABLE_TRENDING_FALLBACK = os.getenv("ENABLE_TRENDING_FALLBACK", "true").lower() == "true"
+DEFAULT_ENABLE_DIVERSITY_BOOST = os.getenv("ENABLE_DIVERSITY_BOOST", "true").lower() == "true"
 
 ***REMOVED*** Monitoring settings
 DEFAULT_ENABLE_METRICS = os.getenv("ENABLE_METRICS", "false").lower() == "true"
@@ -127,6 +119,8 @@ class Config:
     workers: int
     reload: bool
     verbose: bool
+    proxy_headers: bool
+    forwarded_allow_ips: str
 
     ***REMOVED*** Logging and debugging
     log_level: str
@@ -211,6 +205,8 @@ class Config:
         workers: int = DEFAULT_WORKERS,
         reload: bool = DEFAULT_RELOAD,
         verbose: bool = DEFAULT_VERBOSE,
+        proxy_headers: bool = DEFAULT_PROXY_HEADERS,
+        forwarded_allow_ips: str = DEFAULT_FORWARDED_ALLOW_IPS,
         log_level: str = DEFAULT_LOG_LEVEL,
         debug: bool = DEFAULT_DEBUG,
         log_dir: str = DEFAULT_LOGS_DIR,
@@ -249,14 +245,16 @@ class Config:
         """Initialize Recommendation API configuration.
 
         Args:
-            host: Host for the API server
-            port: Port for the API server
+            host: Host address to bind the server to
+            port: Port to listen on
             workers: Number of worker processes
-            reload: Whether to enable auto-reload
-            verbose: Whether to enable verbose logging
-            log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
-            debug: Whether to enable debug mode
-            log_dir: Directory to store log files
+            reload: Whether to reload on code changes
+            verbose: Enable verbose logging
+            proxy_headers: Whether to enable proxy header support
+            forwarded_allow_ips: Which IPs to trust for forwarded headers
+            log_level: Logging level
+            debug: Enable debug mode
+            log_dir: Directory for log files
             database_url: URL for PostgreSQL database
             qdrant_url: URL for Qdrant vector database
             qdrant_api_key: API key for Qdrant
@@ -299,6 +297,8 @@ class Config:
         self.workers = workers
         self.reload = reload
         self.verbose = verbose
+        self.proxy_headers = proxy_headers
+        self.forwarded_allow_ips = forwarded_allow_ips
 
         ***REMOVED*** Logging and debugging
         self.log_level = log_level
