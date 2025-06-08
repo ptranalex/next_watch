@@ -1,5 +1,7 @@
-"""Route configuration for the Recommendation API."""
+"""Route modules for the Recommendation API."""
 
-from recommendation_api.routes.api_v1 import api_v1_router
+from .api_v1 import api_v1_router
+from .health import router as health_router
+from .meta import router as meta_router
 
-__all__ = ["api_v1_router"] 
+__all__ = ["api_v1_router", "health_router", "meta_router"]
