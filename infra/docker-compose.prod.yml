@@ -10,7 +10,7 @@ services:
       - ENVIRONMENT=production
       - API_PORT=8000
       - DEBUG=false
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
@@ -70,7 +70,7 @@ services:
       - ENVIRONMENT=production
       - API_PORT=8002
       - DEBUG=false
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
@@ -130,7 +130,7 @@ services:
       - ENVIRONMENT=production
       - API_PORT=8004
       - DEBUG=false
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
       ***REMOVED*** Security Configuration
       - CORS_ORIGINS=https://alexsandbox.me,http://localhost:3000
@@ -173,7 +173,7 @@ services:
       - ENVIRONMENT=production
       - AUTH_API_PORT=8003
       - DEBUG=false
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
@@ -234,7 +234,7 @@ services:
       - HOST=0.0.0.0
       - PORT=8001
       - DEBUG=false
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
       ***REMOVED*** Service URLs
       - BACKEND_API_URL=http://backend-api:8000
@@ -331,7 +331,7 @@ services:
     profiles: ["sync", "import"]
     environment:
       - ENVIRONMENT=production
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
       - POSTGRES_PORT=5432

@@ -40,8 +40,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8001 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
-    WORKERS=2 \
-    TIMEOUT=120
+    WORKERS=1 \
+    TIMEOUT=120 \
+    RELOAD=false \
+    PROXY_HEADERS=true \
+    FORWARDED_ALLOW_IPS="*" \
+    LIMIT_MAX_REQUESTS=10000 \
+    BACKLOG=1024
 
 WORKDIR /app
 
@@ -81,4 +86,8 @@ CMD uvicorn bff_api.main:app \
     --timeout-keep-alive ${TIMEOUT} \
     --log-level ${LOG_LEVEL} \
     --no-access-log \
-    --proxy-headers 
+    --proxy-headers ${PROXY_HEADERS} \
+    --forwarded-allow-ips ${FORWARDED_ALLOW_IPS} \
+    --backlog ${BACKLOG} \
+    --limit-max-requests ${LIMIT_MAX_REQUESTS} \
+    --reload ${RELOAD} 

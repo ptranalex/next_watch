@@ -36,14 +36,27 @@ RUN pip install --no-cache-dir -e .
 ***REMOVED*** Stage 2: Runtime image - use a much smaller base
 FROM python:3.12-alpine AS final
 
+***REMOVED*** Set production environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app:/app/src
+    PYTHONPATH=/app:/app/src \
+    ENVIRONMENT="production" \
+    PORT=8000 \
+    HOST="0.0.0.0" \
+    LOG_LEVEL="info" \
+    WORKERS=1 \
+    TIMEOUT=120 \
+    MAX_KEEPALIVE=60 \
+    RELOAD=false \
+    PROXY_HEADERS=true \
+    FORWARDED_ALLOW_IPS="*" \
+    LIMIT_MAX_REQUESTS=10000 \
+    BACKLOG=1024
 
 WORKDIR /app
 
-***REMOVED*** Install runtime dependencies only
-RUN apk add --no-cache libstdc++ curl
+***REMOVED*** Install runtime dependencies including tini for proper process handling
+RUN apk add --no-cache libstdc++ curl tini
 
 ***REMOVED*** Copy the installed packages from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
@@ -70,4 +83,19 @@ USER app
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["uvicorn", "backend_api.main:app", "--host", "0.0.0.0", "--port", "8000"] 
+***REMOVED*** Use tini for proper signal handling and child process reaping
+ENTRYPOINT ["/sbin/tini", "--"]
+
+***REMOVED*** Run the application with production optimizations
+CMD uvicorn backend_api.main:app \
+    --host ${HOST} \
+    --port ${PORT} \
+    --workers ${WORKERS} \
+    --log-level ${LOG_LEVEL} \
+    --timeout-keep-alive ${TIMEOUT} \
+    --limit-max-requests ${LIMIT_MAX_REQUESTS} \
+    --proxy-headers ${PROXY_HEADERS} \
+    --no-access-log \
+    --forwarded-allow-ips ${FORWARDED_ALLOW_IPS} \
+    --backlog ${BACKLOG} \
+    --reload ${RELOAD} 
