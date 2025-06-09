@@ -1,0 +1,391 @@
+***REMOVED*** BFF API .gitignore
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** PYTHON
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+***REMOVED*** C extensions
+*.so
+
+***REMOVED*** Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+***REMOVED*** PyInstaller
+*.manifest
+*.spec
+
+***REMOVED*** Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+***REMOVED*** Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+***REMOVED*** Translations
+*.mo
+*.pot
+
+***REMOVED*** Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+***REMOVED*** Flask stuff:
+instance/
+.webassets-cache
+
+***REMOVED*** Scrapy stuff:
+.scrapy
+
+***REMOVED*** Sphinx documentation
+docs/_build/
+
+***REMOVED*** PyBuilder
+.pybuilder/
+target/
+
+***REMOVED*** Jupyter Notebook
+.ipynb_checkpoints
+
+***REMOVED*** IPython
+profile_default/
+ipython_config.py
+
+***REMOVED*** pyenv
+.python-version
+
+***REMOVED*** pipenv
+Pipfile.lock
+
+***REMOVED*** poetry
+poetry.lock
+
+***REMOVED*** pdm
+.pdm.toml
+
+***REMOVED*** PEP 582
+__pypackages__/
+
+***REMOVED*** Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+***REMOVED*** SageMath parsed files
+*.sage.py
+
+***REMOVED*** Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+***REMOVED*** Spyder project settings
+.spyderproject
+.spyproject
+
+***REMOVED*** Rope project settings
+.ropeproject
+
+***REMOVED*** mkdocs documentation
+/site
+
+***REMOVED*** mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+***REMOVED*** Pyre type checker
+.pyre/
+
+***REMOVED*** pytype static type analyzer
+.pytype/
+
+***REMOVED*** Cython debug symbols
+cython_debug/
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** NODE.JS (for any frontend build tools)
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+***REMOVED*** Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+***REMOVED*** Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+***REMOVED*** nyc test coverage
+.nyc_output
+
+***REMOVED*** Grunt intermediate storage
+.grunt
+
+***REMOVED*** Bower dependency directory
+bower_components
+
+***REMOVED*** node-waf configuration
+.lock-wscript
+
+***REMOVED*** Compiled binary addons
+build/Release
+
+***REMOVED*** Dependency directories
+jspm_packages/
+
+***REMOVED*** TypeScript cache
+*.tsbuildinfo
+
+***REMOVED*** Optional npm cache directory
+.npm
+
+***REMOVED*** Optional eslint cache
+.eslintcache
+
+***REMOVED*** Optional stylelint cache
+.stylelintcache
+
+***REMOVED*** Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+***REMOVED*** Optional REPL history
+.node_repl_history
+
+***REMOVED*** Output of 'npm pack'
+*.tgz
+
+***REMOVED*** Yarn Integrity file
+.yarn-integrity
+
+***REMOVED*** parcel-bundler cache
+.cache
+.parcel-cache
+
+***REMOVED*** Next.js build output
+.next
+out
+
+***REMOVED*** Nuxt.js build / generate output
+.nuxt
+dist
+
+***REMOVED*** Gatsby files
+.cache/
+public
+
+***REMOVED*** Vite build output
+dist/
+.vite/
+
+***REMOVED*** Rollup build output
+dist/
+
+***REMOVED*** Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** ENVIRONMENT VARIABLES & SECRETS
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Environment files with sensitive data
+.env.local
+.env.*.local
+.env.development
+.env.staging
+.env.production
+.env.test
+.env.secrets
+.env.credentials
+
+***REMOVED*** Allow .env.example to be committed (template file)
+!.env.example
+!env.example
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** LOGS & DATA
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Log files
+*.log
+logs/
+log/
+
+***REMOVED*** Database files
+*.db
+*.sqlite
+*.sqlite3
+
+***REMOVED*** Data directories
+data/
+temp/
+tmp/
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** IDE & EDITOR
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** VSCode
+.vscode/
+*.code-workspace
+
+***REMOVED*** PyCharm
+.idea/
+
+***REMOVED*** Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+***REMOVED*** Vim
+*.swp
+*.swo
+*~
+
+***REMOVED*** Emacs
+*~
+\***REMOVED****\***REMOVED***
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\***REMOVED****
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** OPERATING SYSTEM
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+***REMOVED*** Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+***REMOVED*** Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** FASTAPI & UVICORN SPECIFIC
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Uvicorn access logs
+access.log
+
+***REMOVED*** FastAPI static files (if served)
+static/
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** BFF-SPECIFIC
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** API response cache
+.api_cache/
+cache/
+
+***REMOVED*** Frontend build artifacts (if BFF serves any)
+public/build/
+assets/build/
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** DOCKER
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Docker
+.dockerignore
+Dockerfile.*
+docker-compose.override.yml
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** MISC
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Backup files
+*.bak
+*.backup
+*.old
+
+***REMOVED*** Archive files
+*.zip
+*.tar.gz
+*.rar
+
+***REMOVED*** Runtime files
+*.pid 
