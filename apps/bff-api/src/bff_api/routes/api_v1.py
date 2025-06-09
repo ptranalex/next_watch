@@ -12,7 +12,6 @@ from bff_api.routes.v1 import (
     search,
     user_interactions,
     auth,
-    health,
     navbar,
     sidebar,
     actors,
@@ -32,7 +31,6 @@ api_v1_router.include_router(genres.router)
 api_v1_router.include_router(search.router)
 api_v1_router.include_router(user_interactions.router)
 api_v1_router.include_router(auth.router)
-api_v1_router.include_router(health.router)
 api_v1_router.include_router(navbar.router)
 api_v1_router.include_router(sidebar.router)
 api_v1_router.include_router(actors.router)

@@ -11,6 +11,8 @@ maintaining backward compatibility.
 Key components:
 - api_v1.py: Aggregates all v1 API routes
 - v1/: Directory containing resource-specific route modules for API v1
+- health.py: Health check endpoints (at root level, not versioned)
+- meta.py: Meta endpoints for service information
 
 Routes use FastAPI's dependency injection system to access services and
 follow consistent patterns for documentation, validation, and error handling.
@@ -19,5 +21,7 @@ See the README.md file in this directory for detailed documentation.
 """
 
 from bff_api.routes.api_v1 import api_v1_router
+from bff_api.routes.health import router as health_router
+from bff_api.routes.meta import router as meta_router
 
-__all__ = ["api_v1_router"]
+__all__ = ["api_v1_router", "health_router", "meta_router"]

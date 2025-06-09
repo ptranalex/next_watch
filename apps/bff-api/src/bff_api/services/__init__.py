@@ -7,6 +7,7 @@ retries, and response processing for all backend service interactions.
 Key components:
 - BackendClient: Client for the main Backend API service
 - AuthClient: Client for the authentication service
+- HealthService: Health monitoring for all external dependencies
 
 The clients implement resilient communication with:
 - Automatic retries with exponential backoff
@@ -19,5 +20,12 @@ See the README.md file in this directory for detailed documentation.
 
 from .backend_client import BackendClient
 from .auth_client import AuthClient
+from .health_service import HealthService, get_health_service, close_health_service
 
-__all__ = ["BackendClient", "AuthClient"]
+__all__ = [
+    "BackendClient",
+    "AuthClient",
+    "HealthService",
+    "get_health_service",
+    "close_health_service",
+]

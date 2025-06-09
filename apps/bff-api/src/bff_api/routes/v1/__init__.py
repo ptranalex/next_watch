@@ -10,7 +10,6 @@ from bff_api.routes.v1 import (
     search,
     user_interactions,
     auth,
-    health,
     home,
     navbar,
     top,
