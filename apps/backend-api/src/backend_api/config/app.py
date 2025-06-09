@@ -1,80 +1,118 @@
-"""Configuration settings for the backend API."""
+"""Application configuration management.
+
+This module provides centralized configuration for the backend-api application,
+loading settings from environment variables with sensible defaults.
+"""
 
 import json
 import logging
-import os
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
-***REMOVED*** Configure basic logging first for this module
+***REMOVED*** Load environment variables from .env files
+from .env import get_env_var, get_env_bool, get_env_int
+
+***REMOVED*** Configure basic logging for this module
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 ***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** DEFAULT SETTINGS
+***REMOVED*** DEFAULT PATHS AND DIRECTORIES
 ***REMOVED*** ------------------------------------------------------------------------------
 
-***REMOVED*** Database settings
-DEFAULT_DATABASE_URL = os.getenv(
+***REMOVED*** Directory paths
+DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** DATABASE SETTINGS
+***REMOVED*** ------------------------------------------------------------------------------
+
+DEFAULT_DATABASE_URL = get_env_var(
     "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch"
 )
 
-***REMOVED*** API settings
-DEFAULT_API_PORT = int(os.getenv("API_PORT", "8000"))
-DEFAULT_CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** API SETTINGS
+***REMOVED*** ------------------------------------------------------------------------------
 
-***REMOVED*** Logging and debugging
-DEFAULT_LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-DEFAULT_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
-DEFAULT_LOGS_DIR = os.getenv("LOGS_DIR", "logs")
+DEFAULT_API_PORT = get_env_int("API_PORT", 8000)
+DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")
+DEFAULT_DEBUG = get_env_bool("DEBUG", False)
 
-***REMOVED*** Performance monitoring
-DEFAULT_ENABLE_PERFORMANCE_METRICS = (
-    os.getenv("ENABLE_PERFORMANCE_METRICS", "false").lower() == "true"
-)
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** LOGGING AND OUTPUT SETTINGS
+***REMOVED*** ------------------------------------------------------------------------------
 
-***REMOVED*** Authentication settings
-DEFAULT_JWT_SECRET = os.getenv("JWT_SECRET", "change_this_in_production_very_important")
-DEFAULT_JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
-DEFAULT_JWT_JWK_ROTATION_INTERVAL = int(
-    os.getenv("JWT_JWK_ROTATION_INTERVAL", "86400")
-)  ***REMOVED*** 24 hours in seconds
+DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
 
-***REMOVED*** Redis settings
-DEFAULT_REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-DEFAULT_REDIS_MAX_CONNECTIONS = int(os.getenv("REDIS_MAX_CONNECTIONS", "10"))
-DEFAULT_REDIS_SOCKET_TIMEOUT = int(
-    os.getenv("REDIS_SOCKET_TIMEOUT", "30")
-)  ***REMOVED*** Increased from 5 to 30
-DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT = int(
-    os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "30")
-)  ***REMOVED*** Increased from 5 to 30
-DEFAULT_REDIS_RETRY_ON_TIMEOUT = os.getenv("REDIS_RETRY_ON_TIMEOUT", "true").lower() == "true"
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** PERFORMANCE MONITORING
+***REMOVED*** ------------------------------------------------------------------------------
+
+DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** AUTHENTICATION SETTINGS
+***REMOVED*** ------------------------------------------------------------------------------
+
+DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", "change_this_in_production_very_important")
+DEFAULT_JWT_ALGORITHM = get_env_var("JWT_ALGORITHM", "HS256")
+DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = get_env_int("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
+DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = get_env_int("REFRESH_TOKEN_EXPIRE_DAYS", 7)
+DEFAULT_JWT_JWK_ROTATION_INTERVAL = get_env_int("JWT_JWK_ROTATION_INTERVAL", 86400)  ***REMOVED*** 24 hours
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** REDIS SETTINGS
+***REMOVED*** ------------------------------------------------------------------------------
+
+DEFAULT_REDIS_URL = get_env_var("REDIS_URL", "redis://localhost:6379/0")
+DEFAULT_REDIS_MAX_CONNECTIONS = get_env_int("REDIS_MAX_CONNECTIONS", 10)
+DEFAULT_REDIS_SOCKET_TIMEOUT = get_env_int("REDIS_SOCKET_TIMEOUT", 30)
+DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT = get_env_int("REDIS_SOCKET_CONNECT_TIMEOUT", 30)
+DEFAULT_REDIS_RETRY_ON_TIMEOUT = get_env_bool("REDIS_RETRY_ON_TIMEOUT", True)
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
 ***REMOVED*** ------------------------------------------------------------------------------
 
 
+class ConfigDict(TypedDict):
+    """Type definition for configuration dictionary."""
+
+    logs_dir: Path
+    database_url: str
+    api_port: int
+    cors_origins: List[str]
+    debug: bool
+    log_level: str
+    enable_performance_metrics: bool
+    redis_url: str
+    redis_max_connections: int
+    redis_socket_timeout: int
+    redis_socket_connect_timeout: int
+    redis_retry_on_timeout: bool
+    jwt_secret: str
+    jwt_algorithm: str
+    access_token_expire_minutes: int
+    refresh_token_expire_days: int
+    jwt_jwk_rotation_interval: int
+
+
 class Config:
     """Configuration class for the backend API."""
 
+    logs_dir: Path
     database_url: str
     api_port: int
     log_level: str
     debug: bool
     cors_origins: List[str]
     enable_performance_metrics: bool
-    log_dir: str
     redis_url: str
     redis_max_connections: int
     redis_socket_timeout: int
     redis_socket_connect_timeout: int
     redis_retry_on_timeout: bool
-    ***REMOVED*** JWT settings
     jwt_secret: str
     jwt_algorithm: str
     access_token_expire_minutes: int
@@ -98,13 +136,13 @@ class Config:
 
     def __init__(
         self,
+        logs_dir: Path = DEFAULT_LOGS_DIR,
         database_url: str = DEFAULT_DATABASE_URL,
         api_port: int = DEFAULT_API_PORT,
         log_level: str = DEFAULT_LOG_LEVEL,
         debug: bool = DEFAULT_DEBUG,
         cors_origins: str = DEFAULT_CORS_ORIGINS,
         enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
-        log_dir: str = DEFAULT_LOGS_DIR,
         redis_url: str = DEFAULT_REDIS_URL,
         redis_max_connections: int = DEFAULT_REDIS_MAX_CONNECTIONS,
         redis_socket_timeout: int = DEFAULT_REDIS_SOCKET_TIMEOUT,
@@ -119,13 +157,13 @@ class Config:
         """Initialize configuration.
 
         Args:
+            logs_dir: Directory to save log files
             database_url: URL for database connection
             api_port: Port for the API server
             log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
             debug: Whether to enable debug mode
             cors_origins: Comma-separated list of allowed origins for CORS
             enable_performance_metrics: Whether to enable performance metrics
-            log_dir: Directory to store log files
             redis_url: URL for Redis connection
             redis_max_connections: Maximum number of Redis connections in pool
             redis_socket_timeout: Redis socket timeout in seconds
@@ -138,9 +176,11 @@ class Config:
             jwt_jwk_rotation_interval: Interval in seconds for JWK rotation
         """
         ***REMOVED*** In production, force debug to False
-        if os.getenv("ENVIRONMENT") == "production":
+        environment = get_env_var("ENVIRONMENT", "development")
+        if environment == "production":
             debug = False
 
+        self.logs_dir = logs_dir
         self.database_url = database_url
         self.api_port = api_port
         self.log_level = log_level
@@ -149,7 +189,6 @@ class Config:
             [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
         )
         self.enable_performance_metrics = enable_performance_metrics
-        self.log_dir = log_dir
 
         ***REMOVED*** Redis settings
         self.redis_url = redis_url
@@ -167,7 +206,7 @@ class Config:
 
         ***REMOVED*** Parse JWK if available
         self.jwt_jwk = None
-        if jwk_str := os.getenv("JWT_JWK"):
+        if jwk_str := get_env_var("JWT_JWK"):
             try:
                 self.jwt_jwk = json.loads(jwk_str)
                 logger.info("JWK configuration loaded successfully")
@@ -177,9 +216,7 @@ class Config:
                     raise ValueError("Invalid JWK configuration in production environment")
 
         ***REMOVED*** Log configuration
-        logger.info(
-            f"Initializing configuration with environment: {os.getenv('ENVIRONMENT', 'development')}"
-        )
+        logger.info(f"Initializing configuration with environment: {environment}")
         logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
         logger.info(f"Redis URL: {self.redis_url}")
         logger.info(f"Redis max connections: {self.redis_max_connections}")
@@ -226,20 +263,25 @@ class Config:
         masked_jwt = "****" if self.jwt_secret else None
 
         return (
-            f"Config(database_url={masked_url}, "
-            f"api_port={self.api_port}, "
-            f"log_level={self.log_level}, "
-            f"debug={self.debug}, "
-            f"cors_origins={self.cors_origins}, "
-            f"log_dir={self.log_dir}, "
-            f"enable_performance_metrics={self.enable_performance_metrics}, "
-            f"redis_max_connections={self.redis_max_connections}, "
-            f"redis_timeouts=[socket={self.redis_socket_timeout}s, connect={self.redis_socket_connect_timeout}s], "
-            f"redis_retry_settings=[on_timeout={self.redis_retry_on_timeout}], "
-            f"jwt_algorithm={self.jwt_algorithm}, "
-            f"access_token_expire_minutes={self.access_token_expire_minutes}, "
-            f"refresh_token_expire_days={self.refresh_token_expire_days}, "
-            f"jwt_jwk_enabled={self.jwt_jwk is not None})"
+            f"Config(\n"
+            f"  logs_dir={self.logs_dir},\n"
+            f"  database_url={masked_url},\n"
+            f"  api_port={self.api_port},\n"
+            f"  log_level={self.log_level},\n"
+            f"  debug={self.debug},\n"
+            f"  cors_origins={self.cors_origins},\n"
+            f"  enable_performance_metrics={self.enable_performance_metrics},\n"
+            f"  redis_url={self.redis_url},\n"
+            f"  redis_max_connections={self.redis_max_connections},\n"
+            f"  redis_socket_timeout={self.redis_socket_timeout},\n"
+            f"  redis_socket_connect_timeout={self.redis_socket_connect_timeout},\n"
+            f"  redis_retry_on_timeout={self.redis_retry_on_timeout},\n"
+            f"  jwt_algorithm={self.jwt_algorithm},\n"
+            f"  access_token_expire_minutes={self.access_token_expire_minutes},\n"
+            f"  refresh_token_expire_days={self.refresh_token_expire_days},\n"
+            f"  jwt_jwk_rotation_interval={self.jwt_jwk_rotation_interval},\n"
+            f"  jwt_jwk_enabled={self.jwt_jwk is not None}\n"
+            f")"
         )
 
 
