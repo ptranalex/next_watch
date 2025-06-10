@@ -41,6 +41,9 @@ def configure_logging(
         >>> logger = logging.getLogger("recommendation_api")
         >>> logger.info("Application started")
     """
+    ***REMOVED*** Convert log_level to uppercase to ensure compatibility with logging module
+    log_level = log_level.upper()
+
     root_logger = logging.getLogger("recommendation_api")
     root_logger.setLevel(log_level)
     root_logger.handlers = []  ***REMOVED*** Clear any existing handlers
@@ -95,9 +98,7 @@ def configure_logging(
         logging.getLogger("qdrant_client").setLevel(logging.WARNING)
 
     ***REMOVED*** Log initial configuration
-    root_logger.debug(
-        f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}"
-    )
+    root_logger.debug(f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}")
 
     return config_info
 
@@ -115,4 +116,4 @@ def get_logger(name: str) -> logging.Logger:
         >>> logger = get_logger(__name__)
         >>> logger.info("This is a log message")
     """
-    return logging.getLogger(f"recommendation_api.{name}") 
+    return logging.getLogger(f"recommendation_api.{name}")
