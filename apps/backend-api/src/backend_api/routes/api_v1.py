@@ -19,10 +19,10 @@ from backend_api.routes.v1 import (
 api_v1_router = APIRouter(prefix="/api/v1")
 
 ***REMOVED*** Include sub-routers
-api_v1_router.include_router(movies.router)
-api_v1_router.include_router(genres.router)
-api_v1_router.include_router(actors.router)
-api_v1_router.include_router(search.router)
-api_v1_router.include_router(auth.router)
-api_v1_router.include_router(user_interactions.router)
-api_v1_router.include_router(health.router)
+api_v1_router.include_router(movies.router, tags=["movies"])
+api_v1_router.include_router(genres.router, tags=["genres"])
+api_v1_router.include_router(actors.router, tags=["actors"])
+api_v1_router.include_router(search.router, tags=["search"])
+api_v1_router.include_router(auth.router, tags=["auth"])
+api_v1_router.include_router(user_interactions.router, tags=["user_interactions"])
+api_v1_router.include_router(health.router, tags=["health"])

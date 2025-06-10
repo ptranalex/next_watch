@@ -1,41 +1,33 @@
 """Main FastAPI application for the Next Watch Backend API service."""
 
 import os
-from pathlib import Path
+import logging
 
-***REMOVED*** Load environment variables
-try:
-    from dotenv import load_dotenv
-
-    ***REMOVED*** Only load .env files if we're not in production
-    if os.getenv("ENVIRONMENT") != "production":
-        ***REMOVED*** Try multiple locations to find .env files (prioritize current directory)
-        possible_paths = [
-            Path.cwd() / ".env",
-            Path.cwd() / ".env.local",
-            Path(__file__).resolve().parents[3] / ".env",
-            Path(__file__).resolve().parents[3] / ".env.local",
-        ]
-
-        for path in possible_paths:
-            if path.exists():
-                load_dotenv(dotenv_path=path, override=True)
-                break
-except ImportError:
-    pass  ***REMOVED*** Continue without dotenv if not installed
-
-***REMOVED*** Setup logging early
+***REMOVED*** Import configuration after environment variables are loaded
+from backend_api.config.app import settings
 from backend_api.core.logging import setup_logging
 
-setup_logging()
+***REMOVED*** Configure logging early
+setup_logging(
+    log_level=settings.log_level,
+    verbose=settings.debug,
+    quiet=False,
+)
 
-***REMOVED*** Import and create the app
+***REMOVED*** Get logger for this module
+logger = logging.getLogger(__name__)
+
+***REMOVED*** Log main application startup
+logger.info("Initializing Next Watch Backend Service")
+logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+
+***REMOVED*** Import and create app using core module
 from backend_api.core.app import create_app
-from backend_api.config.app import settings
 
-***REMOVED*** Create the FastAPI application
-app = create_app()
+***REMOVED*** Create the FastAPI application with injected settings
+app = create_app(settings)
 
+logger.info("Backend Service initialized successfully")
 
 if __name__ == "__main__":
     import uvicorn

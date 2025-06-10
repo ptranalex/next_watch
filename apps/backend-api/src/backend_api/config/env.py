@@ -28,7 +28,7 @@ def find_project_root(start_path: Optional[Path] = None) -> Path:
     current = start_path.resolve()
 
     ***REMOVED*** Look for common project root markers
-    markers = [".env", "pyproject.toml", "setup.py", ".git", "README.md"]
+    markers = [".env", "pyproject.toml", "setup.py", ".git"]
 
     while current != current.parent:
         if any((current / marker).exists() for marker in markers):

@@ -9,14 +9,13 @@ import logging
 import os
 import traceback
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict
+from typing import Any, AsyncGenerator, Dict, Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 ***REMOVED*** Import database initialization
 from backend_api.db.database import get_db, init_database
-from backend_api.config.app import settings
 
 ***REMOVED*** Import services
 from backend_api.services.health_service import HealthService, close_health_service
@@ -29,6 +28,9 @@ except ImportError:
     suggestion_service_enabled = False
 
 logger = logging.getLogger(__name__)
+
+***REMOVED*** Module-level settings for lifespan access
+_app_settings: Optional[Any] = None
 
 
 @asynccontextmanager
@@ -46,15 +48,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     ***REMOVED*** Startup
     logger.info("Starting Backend API service")
+    if _app_settings:
+        logger.info(f"Environment: {getattr(_app_settings, 'environment', 'unknown')}")
+        logger.info(f"Debug mode: {getattr(_app_settings, 'debug', False)}")
 
     ***REMOVED*** Initialize database
     logger.info("Initializing database connection")
     try:
         init_database()
         logger.info("Database connection established successfully")
-        logger.debug(
-            f"Using database URL: {settings._mask_database_password(settings.database_url)}"
-        )
+        if _app_settings:
+            logger.debug(
+                f"Using database URL: {_app_settings._mask_database_password(_app_settings.database_url)}"
+            )
     except Exception as e:
         logger.error(f"Failed to connect to database: {e}")
         raise
@@ -75,9 +81,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if suggestion_service_enabled:
         try:
             ***REMOVED*** Get Redis URL from settings
-            logger.info(f"Initializing Redis suggestion engine with URL: {settings.redis_url}")
+            if _app_settings is None:
+                raise ValueError("Settings not initialized")
+            logger.info(f"Initializing Redis suggestion engine with URL: {_app_settings.redis_url}")
 
-            suggestion_engine = SuggestionEngine(settings.redis_url)
+            suggestion_engine = SuggestionEngine(_app_settings.redis_url)
             await suggestion_engine.initialize()
             app.state.suggestion_engine = suggestion_engine
 
@@ -117,12 +125,39 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     close_health_service()
 
 
-def create_app() -> FastAPI:
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Global exception handler for unhandled exceptions.
+
+    Args:
+        request: The incoming request
+        exc: The unhandled exception
+
+    Returns:
+        JSONResponse with error details
+    """
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
+def create_app(settings: Optional[Any] = None) -> FastAPI:
     """Create and configure FastAPI application.
+
+    Args:
+        settings: Optional settings instance. If None, will import default settings.
 
     Returns:
         Configured FastAPI application with all middleware and routes
     """
+    global _app_settings
+
+    ***REMOVED*** Import settings only if not provided (for backward compatibility)
+    if settings is None:
+        from backend_api.config.app import settings as default_settings
+
+        settings = default_settings
+
+    _app_settings = settings
+
     from .middleware import setup_middleware
     from backend_api.routes.api_v1 import api_v1_router
     from backend_api.routes.meta import router as meta_router
@@ -133,7 +168,7 @@ def create_app() -> FastAPI:
         title="Next Watch Backend API",
         description="Backend for Frontend API for serving movie data and user interactions",
         version="0.1.0",
-        debug=settings.debug,
+        debug=getattr(settings, "debug", False),
         lifespan=lifespan,
     )
 
@@ -141,23 +176,11 @@ def create_app() -> FastAPI:
     setup_middleware(app)
 
     ***REMOVED*** Register routers
-    app.include_router(meta_router)
-    app.include_router(health_router)
-    app.include_router(api_v1_router)
+    app.include_router(meta_router, tags=["meta"])
+    app.include_router(health_router, tags=["health"])
+    app.include_router(api_v1_router, tags=["api_v1"])
 
-    ***REMOVED*** Global exception handler
-    @app.exception_handler(Exception)
-    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-        """Handle uncaught exceptions globally.
-
-        Args:
-            request: FastAPI request object
-            exc: Exception that was raised
-
-        Returns:
-            JSON error response
-        """
-        logger.error(f"Unhandled exception: {exc}", exc_info=True)
-        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+    ***REMOVED*** Add global exception handler
+    app.add_exception_handler(Exception, global_exception_handler)
 
     return app
