@@ -48,7 +48,7 @@ dependencies = [
 
 ***REMOVED*** Add environment variables for development
 [envs.default.env-vars]
-PYTHONPATH = "../../libs:src"
+PYTHONPATH = "src"
 
 [envs.default.scripts]
 serve = "python -m auth_api.main"

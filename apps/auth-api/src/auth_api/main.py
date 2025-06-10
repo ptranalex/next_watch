@@ -1,48 +1,43 @@
-"""
-Main FastAPI application for the Next Watch Authentication Service.
-
-Dedicated microservice for authentication and token management.
-"""
+"""Main FastAPI application for the Next Watch Authentication Service."""
 
 import os
 import logging
-from pathlib import Path
 
-***REMOVED*** Load environment variables FIRST - before any config imports
-from auth_api.config.env import load_environment_variables
-
-***REMOVED*** Explicitly set the project root to the auth-api directory
-***REMOVED*** This prevents loading .env files from parent directories
-auth_api_root = Path(__file__).parent.parent.parent  ***REMOVED*** main.py -> auth_api -> src -> auth-api/
-
-***REMOVED*** Load .env files at application startup
-try:
-    env_loaded = load_environment_variables(project_root=auth_api_root)
-    if env_loaded:
-        print("✅ Environment variables loaded successfully from .env files")
-        print(f"📁 Project root: {auth_api_root}")
-    else:
-        print("⚠️  No .env files found, using system environment variables only")
-except Exception as e:
-    print(f"❌ Error loading environment variables: {e}")
-    print("Using system environment variables only")
-
-***REMOVED*** Debug: Check DATABASE_URL immediately after loading
-database_url_from_env = os.getenv("DATABASE_URL")
-print(f"🔍 DEBUG: DATABASE_URL from environment: {database_url_from_env}")
-
-***REMOVED*** Setup logging early (now with proper env vars loaded)
+***REMOVED*** Import configuration after environment variables are loaded
+from auth_api.config.app import settings
 from auth_api.core.logging import setup_logging
 
-setup_logging()
+***REMOVED*** Configure logging early
+setup_logging(
+    log_level=settings.log_level,
+    verbose=settings.debug,
+    quiet=False,
+)
 
 ***REMOVED*** Get logger for this module
 logger = logging.getLogger(__name__)
 
-***REMOVED*** Log environment
-logger.info(f"Running in environment: {os.getenv('ENVIRONMENT', 'development')}")
+***REMOVED*** Log main application startup
+logger.info("Initializing Next Watch Authentication API")
+logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
 
-***REMOVED*** Create application instance
-from auth_api.core import create_app
+***REMOVED*** Import and create app using core module
+from auth_api.core.app import create_app
 
-app = create_app()
+***REMOVED*** Create the FastAPI application with injected settings
+app = create_app(settings)
+
+logger.info("Authentication API initialized successfully")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    ***REMOVED*** Use settings for all server parameters
+    uvicorn.run(
+        "auth_api.main:app",
+        host="0.0.0.0",
+        port=settings.api_port,
+        reload=settings.debug,
+        log_level=settings.log_level.lower(),
+    )

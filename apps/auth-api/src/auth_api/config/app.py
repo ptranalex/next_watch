@@ -1,4 +1,12 @@
-"""Configuration settings for the authentication API."""
+"""Configuration settings for the authentication API.
+
+This module provides centralized configuration for the auth-api application,
+loading settings from environment variables with sensible defaults.
+
+It uses the env.py module to load environment variables from .env files,
+with a hierarchical loading pattern where local overrides take precedence over default values.
+
+"""
 
 import os
 import sys
@@ -24,11 +32,6 @@ DEFAULT_DATABASE_URL = get_env_var(
 
 ***REMOVED*** Debug: Log what DATABASE_URL was loaded
 logger.info(f"DATABASE_URL loaded: {DEFAULT_DATABASE_URL}")
-
-***REMOVED*** Debug: Also check raw os.getenv to compare
-raw_database_url = os.getenv("DATABASE_URL")
-logger.info(f"DATABASE_URL from os.getenv: {raw_database_url}")
-logger.info(f"Using default fallback: {raw_database_url is None}")
 
 ***REMOVED*** API settings
 DEFAULT_API_PORT = get_env_int("AUTH_API_PORT", 8003)

@@ -2,12 +2,11 @@
 
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional, Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from auth_api.config.app import settings
 from auth_api.core.middleware import setup_middleware
 from auth_api.routes.auth import router as auth_router
 from auth_api.routes.meta import router as meta_router
@@ -16,6 +15,9 @@ from auth_api.db.database import init_database
 from auth_api.services.health_service import get_health_service, close_health_service
 
 logger = logging.getLogger(__name__)
+
+***REMOVED*** Module-level settings for lifespan access
+_app_settings: Optional[Any] = None
 
 
 @asynccontextmanager
@@ -33,7 +35,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     ***REMOVED*** Startup
     logger.info("Starting Next Watch Authentication Service")
-    logger.info(f"Configuration: {settings}")
+    if _app_settings:
+        logger.info(f"Debug mode: {getattr(_app_settings, 'debug', False)}")
+        logger.info(f"API port: {getattr(_app_settings, 'api_port', 'unknown')}")
+        logger.info(
+            f"Database URL: {getattr(_app_settings, 'database_url', 'unknown')[:50]}..."
+        )  ***REMOVED*** Truncated for security
 
     ***REMOVED*** Initialize database
     try:
@@ -80,18 +87,31 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
-def create_app() -> FastAPI:
+def create_app(settings: Optional[Any] = None) -> FastAPI:
     """Create and configure FastAPI application.
+
+    Args:
+        settings: Optional settings instance. If None, will import default settings.
 
     Returns:
         Configured FastAPI application instance
     """
+    global _app_settings
+
+    ***REMOVED*** Import settings only if not provided (for backward compatibility)
+    if settings is None:
+        from auth_api.config.app import settings as default_settings
+
+        settings = default_settings
+
+    _app_settings = settings
+
     ***REMOVED*** Create FastAPI app
     app = FastAPI(
         title="Next Watch Authentication API",
         description="Dedicated authentication service for Next Watch movie platform",
         version="0.1.0",
-        debug=settings.debug,
+        debug=getattr(settings, "debug", False),
         lifespan=lifespan,
     )
 

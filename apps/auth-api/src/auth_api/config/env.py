@@ -27,8 +27,8 @@ def find_project_root(start_path: Optional[Path] = None) -> Path:
 
     current = start_path.resolve()
 
-    ***REMOVED*** Look for common project root markers
-    markers = [".env", "pyproject.toml", "setup.py", ".git", "README.md"]
+    ***REMOVED*** Look for common project root markers (ordered by specificity)
+    markers = ["pyproject.toml", ".env", "setup.py", ".git"]
 
     while current != current.parent:
         if any((current / marker).exists() for marker in markers):
@@ -36,7 +36,7 @@ def find_project_root(start_path: Optional[Path] = None) -> Path:
         current = current.parent
 
     ***REMOVED*** Fallback: assume project root is 4 levels up from this file
-    ***REMOVED*** (src/auth_api/config/env.py -> project_root)
+    ***REMOVED*** auth-api/src/auth_api/config/env.py -> auth-api/
     fallback_root = Path(__file__).parent.parent.parent.parent
     if fallback_root.exists():
         return fallback_root
@@ -202,5 +202,6 @@ def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
         return default
 
 
-***REMOVED*** Note: Environment variables are now loaded explicitly in main.py
-***REMOVED*** for better control over when and where the loading happens
+***REMOVED*** Auto-load environment variables when module is imported
+***REMOVED*** This ensures .env files are loaded early in the application lifecycle
+_env_loaded = load_environment_variables()
