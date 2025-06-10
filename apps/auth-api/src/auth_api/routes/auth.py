@@ -24,7 +24,7 @@ from auth_api.db.database import get_db
 from movie_storage.models.user import User
 
 ***REMOVED*** Create router
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(tags=["authentication"])
 
 ***REMOVED*** OAuth2 scheme for token authentication - updated to match new endpoint
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/tokens")
@@ -69,9 +69,8 @@ async def get_current_user(
 ***REMOVED*** Users Resource
 ***REMOVED*** ============================================================================
 
-@router.post(
-    "/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+
+@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_data: UserCreate,
     session: Annotated[Session, Depends(get_db)],
@@ -108,7 +107,7 @@ async def create_user(
 
 @router.get("/users/me", response_model=UserResponse)
 async def get_current_user_profile(
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     """
     Get information about the currently authenticated user.
@@ -125,6 +124,7 @@ async def get_current_user_profile(
 ***REMOVED*** ============================================================================
 ***REMOVED*** Tokens Resource
 ***REMOVED*** ============================================================================
+
 
 @router.post("/tokens", response_model=Token)
 async def create_token(
@@ -260,7 +260,10 @@ async def verify_token(
 
 ***REMOVED*** Keep old endpoints with deprecated=True for backwards compatibility
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, deprecated=True)
+
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, deprecated=True
+)
 async def register_deprecated(
     user_data: UserCreate,
     session: Annotated[Session, Depends(get_db)],
