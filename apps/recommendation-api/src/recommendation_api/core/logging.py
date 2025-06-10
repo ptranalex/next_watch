@@ -1,10 +1,44 @@
-"""Logging configuration for the Recommendation API."""
+"""Logging configuration for the BFF core module.
 
-from recommendation_api.config.logging import configure_logging
-from recommendation_api.config import settings
+This module provides a clean interface to the comprehensive logging
+configuration in the config module.
+"""
+
+import logging
+from pathlib import Path
+from typing import Optional
+
+from recommendation_api.config.app import settings
+from recommendation_api.config.logging import configure_logging as _configure_logging
 
 
-def setup_logging() -> None:
-    """Setup logging configuration for the application."""
-    ***REMOVED*** Use the comprehensive logging configuration from config module
-    configure_logging(log_level=settings.log_level.upper(), verbose=settings.debug, quiet=False)
+def setup_logging(
+    log_level: Optional[str] = None,
+    verbose: Optional[bool] = None,
+    quiet: bool = False,
+) -> None:
+    """Setup logging for the Recommendation API application.
+
+    Args:
+        log_level: Log level (DEBUG, INFO, WARNING, ERROR)
+        verbose: Enable verbose logging (uses debug mode if None)
+        quiet: Disable console output
+    """
+    ***REMOVED*** Use settings defaults if not provided
+    if log_level is None:
+        log_level = settings.log_level
+    if verbose is None:
+        verbose = settings.debug
+
+    ***REMOVED*** Determine log directory from settings
+    log_dir = None
+    if hasattr(settings, "log_dir") and settings.log_dir:
+        log_dir = Path(settings.log_dir)
+
+    ***REMOVED*** Configure using comprehensive config module
+    _configure_logging(
+        log_level=log_level,
+        log_dir=log_dir,
+        verbose=verbose,
+        quiet=quiet,
+    )

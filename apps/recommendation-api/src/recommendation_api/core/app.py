@@ -2,12 +2,11 @@
 
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional, Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from recommendation_api.config import settings
 from recommendation_api.core.middleware import setup_middleware
 from recommendation_api.routes.meta import router as meta_router
 from recommendation_api.routes.health import router as health_router
@@ -15,6 +14,9 @@ from recommendation_api.routes import api_v1_router
 from recommendation_api.services.health_service import get_health_service
 
 logger = logging.getLogger(__name__)
+
+***REMOVED*** Module-level settings for lifespan access
+_app_settings: Optional[Any] = None
 
 
 @asynccontextmanager
@@ -31,7 +33,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         None: Application runs between startup and shutdown
     """
     ***REMOVED*** Startup
-    logger.info(f"Starting Recommendation API service with config: {settings}")
+    logger.info("Starting Recommendation API service")
+    if _app_settings:
+        logger.info(f"Environment: {getattr(_app_settings, 'environment', 'unknown')}")
+        logger.info(f"Debug mode: {getattr(_app_settings, 'debug', False)}")
+        logger.info(f"API port: {getattr(_app_settings, 'port', 'unknown')}")
 
     ***REMOVED*** Initialize health service and store in app state
     logger.info("Initializing health service")
@@ -67,18 +73,31 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
-def create_app() -> FastAPI:
+def create_app(settings: Optional[Any] = None) -> FastAPI:
     """Create and configure FastAPI application.
+
+    Args:
+        settings: Optional settings instance. If None, will import default settings.
 
     Returns:
         Configured FastAPI application instance
     """
+    global _app_settings
+
+    ***REMOVED*** Import settings only if not provided (for backward compatibility)
+    if settings is None:
+        from recommendation_api.config import settings as default_settings
+
+        settings = default_settings
+
+    _app_settings = settings
+
     ***REMOVED*** Create FastAPI app
     app = FastAPI(
         title="Recommendation API",
         description="AI-powered movie recommendation service for Next Watch platform",
         version="0.1.0",
-        debug=settings.debug,
+        debug=getattr(settings, "debug", False),
         lifespan=lifespan,
     )
 
