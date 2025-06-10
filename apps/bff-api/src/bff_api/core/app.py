@@ -9,13 +9,10 @@ import logging
 import os
 import traceback
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict
+from typing import Any, AsyncGenerator, Dict, Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-
-***REMOVED*** Import configuration
-from bff_api.config.app import settings
 
 ***REMOVED*** Import services
 from bff_api.services.backend_client import BackendClient
@@ -23,6 +20,9 @@ from bff_api.services.auth_client import AuthClient
 from bff_api.services.health_service import HealthService, close_health_service
 
 logger = logging.getLogger(__name__)
+
+***REMOVED*** Module-level settings for lifespan access
+_app_settings: Optional[Any] = None
 
 
 @asynccontextmanager
@@ -40,16 +40,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     ***REMOVED*** Startup
     logger.info("Starting BFF service")
-    logger.info(f"Environment: {settings.environment}")
-    logger.info(f"Backend API URL: {settings.backend_api_url}")
-    logger.info(f"Recommendation API URL: {settings.reco_api_url}")
-    logger.info(f"Auth API URL: {settings.auth_api_url}")
-    logger.info(f"Debug mode: {settings.debug}")
+    if _app_settings:
+        logger.info(f"Environment: {getattr(_app_settings, 'environment', 'unknown')}")
+        logger.info(f"Backend API URL: {getattr(_app_settings, 'backend_api_url', 'unknown')}")
+        logger.info(f"Recommendation API URL: {getattr(_app_settings, 'reco_api_url', 'unknown')}")
+        logger.info(f"Auth API URL: {getattr(_app_settings, 'auth_api_url', 'unknown')}")
+        logger.info(f"Debug mode: {getattr(_app_settings, 'debug', False)}")
 
     ***REMOVED*** Initialize backend client
     logger.info("Initializing backend client")
     try:
-        backend_client = BackendClient(settings)
+        if _app_settings is None:
+            raise ValueError("Settings not initialized")
+        backend_client = BackendClient(_app_settings)
         app.state.backend_client = backend_client
         logger.info("Backend client initialized successfully")
     except Exception as e:
@@ -59,7 +62,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Initialize auth client
     logger.info("Initializing auth client")
     try:
-        auth_client = AuthClient(settings)
+        if _app_settings is None:
+            raise ValueError("Settings not initialized")
+        auth_client = AuthClient(_app_settings)
         app.state.auth_client = auth_client
         logger.info("Auth client initialized successfully")
     except Exception as e:
@@ -113,12 +118,39 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await close_health_service()
 
 
-def create_app() -> FastAPI:
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Global exception handler for unhandled exceptions.
+
+    Args:
+        request: The incoming request
+        exc: The unhandled exception
+
+    Returns:
+        JSONResponse with error details
+    """
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
+def create_app(settings: Optional[Any] = None) -> FastAPI:
     """Create and configure FastAPI application.
+
+    Args:
+        settings: Optional settings instance. If None, will import default settings.
 
     Returns:
         Configured FastAPI application with all middleware and routes
     """
+    global _app_settings
+
+    ***REMOVED*** Import settings only if not provided (for backward compatibility)
+    if settings is None:
+        from bff_api.config.app import settings as default_settings
+
+        settings = default_settings
+
+    _app_settings = settings
+
     from .middleware import setup_middleware
     from bff_api.routes.api_v1 import api_v1_router
     from bff_api.routes.meta import router as meta_router
@@ -129,7 +161,7 @@ def create_app() -> FastAPI:
         title="Next Watch BFF",
         description="Backend for Frontend aggregation layer for Next Watch movie platform",
         version="0.1.0",
-        debug=settings.debug,
+        debug=getattr(settings, "debug", False),
         lifespan=lifespan,
     )
 
@@ -141,19 +173,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(api_v1_router, prefix="/bff")
 
-    ***REMOVED*** Global exception handler
-    @app.exception_handler(Exception)
-    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-        """Handle uncaught exceptions globally.
-
-        Args:
-            request: FastAPI request object
-            exc: Exception that was raised
-
-        Returns:
-            JSON error response
-        """
-        logger.error(f"Unhandled exception: {exc}", exc_info=True)
-        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+    ***REMOVED*** Add global exception handler
+    app.add_exception_handler(Exception, global_exception_handler)
 
     return app

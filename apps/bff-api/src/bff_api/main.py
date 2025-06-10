@@ -2,28 +2,6 @@
 
 import os
 import logging
-from pathlib import Path
-
-***REMOVED*** Load environment variables
-try:
-    from dotenv import load_dotenv
-
-    ***REMOVED*** Only load .env files if we're not in production
-    if os.getenv("ENVIRONMENT") != "production":
-        ***REMOVED*** Try multiple locations to find .env files (prioritize current directory)
-        possible_paths = [
-            Path.cwd() / ".env",
-            Path.cwd() / ".env.local",
-            Path(__file__).resolve().parents[3] / ".env",
-            Path(__file__).resolve().parents[3] / ".env.local",
-        ]
-
-        for path in possible_paths:
-            if path.exists():
-                load_dotenv(dotenv_path=path, override=True)
-                break
-except ImportError:
-    pass  ***REMOVED*** Continue without dotenv if not installed
 
 ***REMOVED*** Import configuration after environment variables are loaded
 from bff_api.config.app import settings
@@ -39,18 +17,26 @@ setup_logging(
 ***REMOVED*** Get logger for this module
 logger = logging.getLogger(__name__)
 
-***REMOVED*** Log environment
-logger.info(f"Running in environment: {os.getenv('ENVIRONMENT', 'development')}")
+***REMOVED*** Log main application startup
+logger.info("Initializing Next Watch BFF API")
+logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
 
 ***REMOVED*** Import and create app using core module
 from bff_api.core.app import create_app
 
-***REMOVED*** Create default app instance
-app = create_app()
+***REMOVED*** Create default app instance with injected settings
+app = create_app(settings)
+
+logger.info("BFF API initialized successfully")
 
 if __name__ == "__main__":
-    import sys
-    from bff_api.cli.main import main
+    import uvicorn
 
-    ***REMOVED*** Forward to the CLI and pass the exit code to sys.exit
-    sys.exit(main())
+    ***REMOVED*** Use settings for all server parameters
+    uvicorn.run(
+        "bff_api.main:app",
+        host="0.0.0.0",
+        port=settings.port,
+        reload=settings.debug,
+        log_level=settings.log_level.lower(),
+    )
