@@ -9,7 +9,6 @@ from backend_api.routes.v1 import (
     actors,
     auth,
     genres,
-    health,
     movies,
     search,
     user_interactions,
@@ -25,4 +24,3 @@ api_v1_router.include_router(actors.router, tags=["actors"])
 api_v1_router.include_router(search.router, tags=["search"])
 api_v1_router.include_router(auth.router, tags=["auth"])
 api_v1_router.include_router(user_interactions.router, tags=["user_interactions"])
-api_v1_router.include_router(health.router, tags=["health"])
