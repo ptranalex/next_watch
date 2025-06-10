@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, cast
 
-import jwt  ***REMOVED*** type: ignore
+import jwt
 from sqlmodel import Session
 
 from auth_api.config.app import settings
@@ -113,10 +113,8 @@ class AuthService:
             jwt.PyJWTError: If token is invalid or expired
         """
         try:
-            payload = jwt.decode(
-                token, self.jwt_secret, algorithms=[self.jwt_algorithm]
-            )
-            return payload
+            payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            return cast(Dict[str, Any], payload)
         except jwt.PyJWTError as e:
             logger.warning(f"Failed to decode token: {str(e)}")
             raise
@@ -164,9 +162,7 @@ class AuthService:
             ***REMOVED*** Extract user ID
             sub = payload.get("sub")
             if sub is None:
-                return TokenVerificationResponse(
-                    valid=False, error="Token missing user identifier"
-                )
+                return TokenVerificationResponse(valid=False, error="Token missing user identifier")
 
             user_id = int(sub)
 
@@ -186,13 +182,9 @@ class AuthService:
             return TokenVerificationResponse(valid=False, error="Invalid token")
         except (ValueError, Exception) as e:
             logger.error(f"Token verification error: {str(e)}")
-            return TokenVerificationResponse(
-                valid=False, error="Token verification failed"
-            )
+            return TokenVerificationResponse(valid=False, error="Token verification failed")
 
-    def authenticate(
-        self, session: Session, email: str, password: str
-    ) -> Optional[User]:
+    def authenticate(self, session: Session, email: str, password: str) -> Optional[User]:
         """
         Authenticate a user with email and password.
 

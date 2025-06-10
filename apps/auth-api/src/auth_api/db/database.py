@@ -2,13 +2,14 @@
 Database connection module for the auth API.
 """
 
+from typing import Generator
 from sqlmodel import Session
 from movie_storage.db import init_db, get_session
 from movie_storage.config.app import Config
 from auth_api.config.app import settings
 
 
-def init_database():
+def init_database() -> None:
     """Initialize the database connection using movie-storage."""
     ***REMOVED*** Create config for movie-storage compatibility
     config = Config()
@@ -19,7 +20,7 @@ def init_database():
     init_db(db_url=settings.database_url, create_tables=False, config=config)
 
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """Get a database session for use in auth API endpoints."""
     session_generator = get_session()
     try:

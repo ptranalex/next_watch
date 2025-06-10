@@ -107,9 +107,7 @@ def serve(
                 console.print(
                     f"[blue]Starting Auth API server on {actual_host}:{actual_port}[/blue]"
                 )
-                console.print(
-                    f"[dim]Environment: {environment} | Debug: {config.debug}[/dim]"
-                )
+                console.print(f"[dim]Environment: {environment} | Debug: {config.debug}[/dim]")
 
         ***REMOVED*** Configure logging level
         if verbose:
@@ -119,14 +117,10 @@ def serve(
         else:
             logging.basicConfig(level=getattr(logging, actual_log_level))
 
-        logger.info(
-            f"Starting Authentication API server on {actual_host}:{actual_port}"
-        )
+        logger.info(f"Starting Authentication API server on {actual_host}:{actual_port}")
 
         if verbose:
-            logger.debug(
-                f"Configuration: host={actual_host}, port={actual_port}, reload={reload}"
-            )
+            logger.debug(f"Configuration: host={actual_host}, port={actual_port}, reload={reload}")
 
         ***REMOVED*** Start server
         if reload:
@@ -185,12 +179,8 @@ def config(
 
         if verbose:
             environment = os.getenv("ENVIRONMENT", "development")
-            console.print(
-                f"[dim]Configuration loaded from: {environment} environment[/dim]"
-            )
-            console.print(
-                f"[dim]Debug mode: {'Enabled' if settings.debug else 'Disabled'}[/dim]"
-            )
+            console.print(f"[dim]Configuration loaded from: {environment} environment[/dim]")
+            console.print(f"[dim]Debug mode: {'Enabled' if settings.debug else 'Disabled'}[/dim]")
             console.print(
                 f"[dim]Database: {settings.database_url.split('@')[-1] if '@' in settings.database_url else 'Local'}[/dim]"
             )
@@ -215,9 +205,7 @@ def show_version() -> None:
 
         environment = os.getenv("ENVIRONMENT", "development")
 
-        console.print(
-            f"[bold blue]Auth API[/bold blue] version [green]{version}[/green]"
-        )
+        console.print(f"[bold blue]Auth API[/bold blue] version [green]{version}[/green]")
         console.print(f"Environment: [yellow]{environment}[/yellow]")
         console.print(f"Python: [dim]{sys.version.split()[0]}[/dim]")
         console.print(
@@ -253,9 +241,7 @@ def init_database(
         if confirm:
             from rich.prompt import Confirm
 
-            confirmed = Confirm.ask(
-                "This will create/update database tables. Continue?"
-            )
+            confirmed = Confirm.ask("This will create/update database tables. Continue?")
             if not confirmed:
                 console.print("[yellow]Database initialization cancelled.[/yellow]")
                 return
@@ -266,9 +252,9 @@ def init_database(
         ***REMOVED*** Import and run database initialization
         from sqlalchemy import create_engine
 
-        ***REMOVED*** Try to import Base from movie_storage, but provide fallback
+        ***REMOVED*** Try to import SQLModel Base from movie_storage, but provide fallback
         try:
-            from movie_storage.models import Base
+            from sqlmodel import SQLModel
         except ImportError:
             console.print(
                 "[yellow]⚠️  movie_storage.models not available, creating basic user table...[/yellow]"
@@ -310,7 +296,7 @@ def init_database(
         if verbose:
             console.print("[blue]Creating database tables...[/blue]")
 
-        Base.metadata.create_all(bind=engine)
+        SQLModel.metadata.create_all(bind=engine)
 
         console.print("[green]✅ Database initialized successfully![/green]")
 

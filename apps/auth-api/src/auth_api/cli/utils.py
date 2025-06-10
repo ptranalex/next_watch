@@ -38,7 +38,7 @@ def format_config_table(config: Config, title: str = "Auth API Configuration") -
         ("API Port", str(config.api_port), "ENV/DEFAULT"),
         ("Debug", _format_boolean(config.debug), "ENV/DEFAULT"),
         ("Log Level", config.log_level, "ENV/DEFAULT"),
-        ("Log Directory", config.log_dir, "ENV/DEFAULT"),
+        ("Log Directory", str(config.logs_dir), "ENV/DEFAULT"),
         ("Database URL", _mask_database_url(config.database_url), "ENV/DEFAULT"),
         (
             "CORS Origins",
@@ -83,9 +83,7 @@ def format_config_table(config: Config, title: str = "Auth API Configuration") -
     settings.append(("JWT Secret", jwt_display, "ENV/DEFAULT"))
 
     ***REMOVED*** Add JWK status
-    jwk_status = (
-        "[green]Configured[/green]" if config.jwt_jwk else "[yellow]Not Set[/yellow]"
-    )
+    jwk_status = "[green]Configured[/green]" if config.jwt_jwk else "[yellow]Not Set[/yellow]"
     settings.append(("JWK Configuration", jwk_status, "ENV/DEFAULT"))
 
     for setting, value, source in settings:
@@ -133,9 +131,7 @@ def print_config(
         ]
 
         if config.jwt_jwk:
-            settings.append(
-                ("JWK Configuration", str(config.jwt_jwk)[:100] + "...", "ENV/DEFAULT")
-            )
+            settings.append(("JWK Configuration", str(config.jwt_jwk)[:100] + "...", "ENV/DEFAULT"))
 
         for setting, value, source in settings:
             table.add_row(setting, value, source)
@@ -181,9 +177,7 @@ async def check_service_health(
                 response.raise_for_status()
 
                 data = response.json()
-                console.print(
-                    f"✅ {service_name} is healthy: {data.get('status', 'OK')}"
-                )
+                console.print(f"✅ {service_name} is healthy: {data.get('status', 'OK')}")
 
                 if data.get("details"):
                     for key, value in data["details"].items():
@@ -196,12 +190,8 @@ async def check_service_health(
         logger.error(f"Health check failed for {service_name}: {e}")
         return False
     except httpx.HTTPStatusError as e:
-        console.print(
-            f"❌ {service_name} returned error: HTTP {e.response.status_code}"
-        )
-        logger.error(
-            f"Health check failed for {service_name}: HTTP {e.response.status_code}"
-        )
+        console.print(f"❌ {service_name} returned error: HTTP {e.response.status_code}")
+        logger.error(f"Health check failed for {service_name}: HTTP {e.response.status_code}")
         return False
     except Exception as e:
         console.print(f"❌ Unexpected error checking {service_name}: {e}")
@@ -221,9 +211,7 @@ def display_service_status(
     if console is None:
         console = Console()
 
-    table = Table(
-        title="Service Health Status", show_header=True, header_style="bold blue"
-    )
+    table = Table(title="Service Health Status", show_header=True, header_style="bold blue")
     table.add_column("Service", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
     table.add_column("URL", style="dim")
@@ -249,7 +237,7 @@ def display_service_status(
 
 
 def display_user_table(
-    users: list, title: str = "Users", console: Optional[Console] = None
+    users: list[dict[str, Any]], title: str = "Users", console: Optional[Console] = None
 ) -> None:
     """Display users in a formatted table.
 
@@ -276,9 +264,7 @@ def display_user_table(
     for user in users:
         ***REMOVED*** Format active status
         is_active = user.get("is_active", False)
-        active_display = (
-            "[green]✓ Active[/green]" if is_active else "[red]✗ Inactive[/red]"
-        )
+        active_display = "[green]✓ Active[/green]" if is_active else "[red]✗ Inactive[/red]"
 
         ***REMOVED*** Format dates
         created_at = user.get("created_at", "Unknown")
@@ -287,9 +273,7 @@ def display_user_table(
                 from datetime import datetime
 
                 if isinstance(created_at, str):
-                    created_dt = datetime.fromisoformat(
-                        created_at.replace("Z", "+00:00")
-                    )
+                    created_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                     created_at = created_dt.strftime("%Y-%m-%d")
             except:
                 pass
