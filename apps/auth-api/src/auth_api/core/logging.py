@@ -37,8 +37,8 @@ def setup_logging(
 
     ***REMOVED*** Determine log directory
     log_dir = None
-    if hasattr(settings, "log_dir") and settings.log_dir:
-        log_dir = Path(settings.log_dir)
+    if hasattr(settings, "logs_dir") and settings.logs_dir:
+        log_dir = settings.logs_dir
 
     ***REMOVED*** Configure logging using the comprehensive config module
     _configure_logging(

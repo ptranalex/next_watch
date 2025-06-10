@@ -64,14 +64,29 @@ def configure_logging(
 
     ***REMOVED*** Add file handler if log_dir is provided
     if log_dir:
-        log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = log_dir / f"auth_api_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(file_formatter)
-        root_logger.addHandler(file_handler)
-        config_info["log_file"] = str(log_file)
-        config_info["handlers"].append("file")
-        root_logger.debug(f"Log file: {log_file}")
+        try:
+            log_dir.mkdir(parents=True, exist_ok=True)
+            log_file = log_dir / f"auth_api_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+            ***REMOVED*** Try to create the file handler - this is where permission errors occur
+            try:
+                file_handler = logging.FileHandler(log_file)
+                file_handler.setFormatter(file_formatter)
+                root_logger.addHandler(file_handler)
+                config_info["log_file"] = str(log_file)
+                config_info["handlers"].append("file")
+                root_logger.debug(f"Log file: {log_file}")
+            except (PermissionError, OSError) as file_error:
+                ***REMOVED*** If we can't create the file handler, continue with console logging only
+                print(f"WARNING: Could not create log file {log_file}: {file_error}")
+                print("Continuing with console logging only.")
+                config_info["log_file_error"] = str(file_error)
+
+        except (PermissionError, OSError) as dir_error:
+            ***REMOVED*** If we can't create the log directory, continue with console logging only
+            print(f"WARNING: Could not create log directory {log_dir}: {dir_error}")
+            print("Continuing with console logging only.")
+            config_info["log_dir_error"] = str(dir_error)
 
     ***REMOVED*** Add console handler based on verbosity
     if not quiet:
@@ -96,9 +111,7 @@ def configure_logging(
         logging.getLogger("httpx").setLevel(logging.WARNING)
 
     ***REMOVED*** Log initial configuration
-    root_logger.debug(
-        f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}"
-    )
+    root_logger.debug(f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}")
 
     return config_info
 

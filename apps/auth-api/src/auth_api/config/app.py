@@ -7,14 +7,11 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 import logging
 
-from .env import get_env_var, get_env_bool, get_env_int, load_environment_variables
+from .env import get_env_var, get_env_bool, get_env_int
 
 ***REMOVED*** Configure basic logging first for this module
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-***REMOVED*** Load environment variables from .env files
-load_environment_variables()
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** DEFAULT SETTINGS
@@ -22,32 +19,30 @@ load_environment_variables()
 
 ***REMOVED*** Database settings (for user management)
 DEFAULT_DATABASE_URL = get_env_var(
-    "DATABASE_URL", default="postgresql://postgres:postgres@localhost:5432/next_watch"
+    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch"
 )
 
 ***REMOVED*** API settings
-DEFAULT_API_PORT = get_env_int("AUTH_API_PORT", default=8003)
-DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", default="*")
+DEFAULT_API_PORT = get_env_int("AUTH_API_PORT", 8003)
+DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")
 
 ***REMOVED*** Logging and debugging
-DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", default="INFO")
-DEFAULT_DEBUG = get_env_bool("DEBUG", default=False)
-DEFAULT_LOGS_DIR = get_env_var("LOGS_DIR", default="logs")
+DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
+DEFAULT_DEBUG = get_env_bool("DEBUG", False)
+DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
 
 ***REMOVED*** Performance monitoring
-DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", default=False)
+DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
 
 ***REMOVED*** Authentication settings
-DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", default="change_this_in_production_very_important")
-DEFAULT_JWT_ALGORITHM = get_env_var("JWT_ALGORITHM", default="HS256")
-DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = get_env_int("ACCESS_TOKEN_EXPIRE_MINUTES", default=30)
-DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = get_env_int("REFRESH_TOKEN_EXPIRE_DAYS", default=7)
-DEFAULT_JWT_JWK_ROTATION_INTERVAL = get_env_int(
-    "JWT_JWK_ROTATION_INTERVAL", default=86400
-)  ***REMOVED*** 24 hours
+DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", "change_this_in_production_very_important")
+DEFAULT_JWT_ALGORITHM = get_env_var("JWT_ALGORITHM", "HS256")
+DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = get_env_int("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
+DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = get_env_int("REFRESH_TOKEN_EXPIRE_DAYS", 7)
+DEFAULT_JWT_JWK_ROTATION_INTERVAL = get_env_int("JWT_JWK_ROTATION_INTERVAL", 86400)  ***REMOVED*** 24 hours
 
 ***REMOVED*** Security settings
-DEFAULT_ALLOWED_HOSTS = get_env_var("ALLOWED_HOSTS", default="localhost,127.0.0.1,auth-api")
+DEFAULT_ALLOWED_HOSTS = get_env_var("ALLOWED_HOSTS", "localhost,127.0.0.1,auth-api")
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
@@ -63,7 +58,7 @@ class Config:
     debug: bool
     cors_origins: List[str]
     enable_performance_metrics: bool
-    log_dir: str
+    logs_dir: Path
     ***REMOVED*** JWT settings
     jwt_secret: str
     jwt_algorithm: str
@@ -95,7 +90,7 @@ class Config:
         debug: bool = DEFAULT_DEBUG,
         cors_origins: str = DEFAULT_CORS_ORIGINS,
         enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
-        log_dir: str = DEFAULT_LOGS_DIR,
+        logs_dir: Path = DEFAULT_LOGS_DIR,
         jwt_secret: str = DEFAULT_JWT_SECRET,
         jwt_algorithm: str = DEFAULT_JWT_ALGORITHM,
         access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -112,7 +107,7 @@ class Config:
             debug: Whether to enable debug mode
             cors_origins: Comma-separated list of allowed origins for CORS
             enable_performance_metrics: Whether to enable performance metrics
-            log_dir: Directory to store log files
+            logs_dir: Directory to store log files
             jwt_secret: Secret key for JWT token generation
             jwt_algorithm: Algorithm for JWT token generation
             access_token_expire_minutes: Minutes until access token expires
@@ -121,7 +116,7 @@ class Config:
             allowed_hosts: Comma-separated list of allowed hosts
         """
         ***REMOVED*** In production, force debug to False
-        if get_env_var("ENVIRONMENT") == "production":
+        if get_env_var("ENVIRONMENT", "development") == "production":
             debug = False
 
         self.database_url = database_url
@@ -132,7 +127,7 @@ class Config:
             [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
         )
         self.enable_performance_metrics = enable_performance_metrics
-        self.log_dir = log_dir
+        self.logs_dir = logs_dir
 
         ***REMOVED*** JWT settings
         self.jwt_secret = jwt_secret
@@ -143,7 +138,7 @@ class Config:
 
         ***REMOVED*** Parse JWK if available
         self.jwt_jwk = None
-        if jwk_str := get_env_var("JWT_JWK"):
+        if jwk_str := get_env_var("JWT_JWK", ""):
             try:
                 self.jwt_jwk = json.loads(jwk_str)
                 logger.info("JWK configuration loaded successfully")
@@ -154,7 +149,7 @@ class Config:
 
         ***REMOVED*** Log configuration
         logger.info(
-            f"Initializing auth configuration with environment: {get_env_var('ENVIRONMENT', default='development')}"
+            f"Initializing auth configuration with environment: {get_env_var('ENVIRONMENT', 'development')}"
         )
         logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
         logger.info(f"Debug mode: {self.debug}")
@@ -176,7 +171,7 @@ class Config:
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
-        return get_env_var("ENVIRONMENT") == "production"
+        return get_env_var("ENVIRONMENT", "development") == "production"
 
     def _mask_database_password(self, url: str) -> str:
         """Mask password in database URL for logging.
@@ -211,7 +206,7 @@ class Config:
             f"log_level={self.log_level}, "
             f"debug={self.debug}, "
             f"cors_origins={self.cors_origins}, "
-            f"log_dir={self.log_dir}, "
+            f"logs_dir={self.logs_dir}, "
             f"enable_performance_metrics={self.enable_performance_metrics}, "
             f"jwt_algorithm={self.jwt_algorithm}, "
             f"access_token_expire_minutes={self.access_token_expire_minutes}, "
