@@ -5,19 +5,14 @@ operations, handling the conversion of API responses to database models.
 """
 
 import logging
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
+from movie_storage.db.operations import get_movie_by_id, get_movie_by_tmdb_id, update_movie
+from movie_storage.db.operations.movie import create_movie_from_tmdb_details
 from sqlmodel import Session
 
-from movie_storage.db.operations.movie import create_movie_from_tmdb_details
-from movie_storage.db.operations import (
-    get_movie_by_tmdb_id,
-    get_movie_by_id,
-    update_movie,
-)
-
-from data_importer.services.tmdb import TMDBClient
 from data_importer.services.omdb import OMDBClient
+from data_importer.services.tmdb import TMDBClient
 
 logger = logging.getLogger(__name__)
 
@@ -121,8 +116,10 @@ class TMDBDataAdapter:
             }
 
             logger.info(
-                f"Successfully {'updated' if existing_movie else 'imported'} "
-                f"movie: {db_movie.title} (ID: {db_movie.id}, TMDB ID: {db_movie.tmdb_id})"
+                f"{'Updated' if existing_movie else 'Imported'} "
+                f"{db_movie.title} (ID: {db_movie.id})"
+                f"{f' | {len(db_movie.credits)} credits' if db_movie.credits else ''}"
+                f"{f' | {len(db_movie.trailers)} trailers' if db_movie.trailers else ''}"
             )
 
             return result
@@ -298,7 +295,7 @@ class OMDBDataAdapter:
             ***REMOVED*** Only update if we have changes
             if updates:
                 update_movie(session, movie_id, updates)
-                logger.info(f"Enriched movie with OMDB data: {db_movie.title}")
+                logger.debug(f"Enriched movie with OMDB data: {db_movie.title}")
                 return True
             else:
                 logger.debug(f"No OMDB enrichment needed for: {db_movie.title}")

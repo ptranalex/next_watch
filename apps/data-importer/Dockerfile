@@ -1,81 +1,85 @@
-***REMOVED*** Stage 1: Build dependencies
-FROM python:3.12-slim-bullseye AS builder
+***REMOVED*** This Dockerfile is used to build the data-importer package.
+
+
+***REMOVED*** Stage 1: Build dependencies and package
+FROM python:3.12-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
-
-WORKDIR /build
-
-***REMOVED*** Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential gcc libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-***REMOVED*** Create virtual environment
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-
-***REMOVED*** Install Python dependencies
-COPY apps/data-importer/requirements.txt .
-***REMOVED*** Remove lines containing absolute file paths
-RUN grep -v "file:" requirements.txt > filtered_requirements.txt && \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r filtered_requirements.txt
-
-***REMOVED*** Copy and install local packages
-COPY libs/movie-storage ./movie-storage
-RUN pip install --no-cache-dir ./movie-storage
-
-***REMOVED*** Copy application code
-COPY apps/data-importer/src ./src
-
-***REMOVED*** Aggressive clean up to reduce image size
-RUN find /venv -name "*.pyc" -delete && \
-    find /venv -name "__pycache__" -delete && \
-    find /venv -name "*.dist-info" -exec rm -rf {} +; true && \
-    find /venv -name "*.egg-info" -exec rm -rf {} +; true && \
-    find /venv -name "tests" -type d -exec rm -rf {} +; true && \
-    find /venv -name "*.so" -exec strip {} \; || true && \
-    find /venv -name "*.c" -delete && \
-    find /venv -name "*.pyx" -delete && \
-    find /venv -name "*.txt" -delete && \
-    find /venv -path "*/doc/*" -delete && \
-    find /venv -path "*/docs/*" -delete && \
-    find /venv -path "*/examples/*" -delete
-
-***REMOVED*** Stage 2: Runtime image - uses slim-bullseye for smaller size
-FROM python:3.12-slim-bullseye
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PATH="/venv/bin:$PATH" \
-    PYTHONPATH=/app:/app/src
+    PATH="${PATH}:/root/.local/bin"
 
 WORKDIR /app
 
-***REMOVED*** Runtime dependencies only - minimal install
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+***REMOVED*** Install build dependencies - use a single layer and clean up in the same step
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    curl \
+    gcc \
+    musl-dev \
+    python3-dev \
+    libffi-dev \
+    openssl-dev \
+    postgresql-dev \
+    && pip install --no-cache-dir hatch
 
-***REMOVED*** Copy virtual env from builder
-COPY --from=builder /venv /venv
+***REMOVED*** Copy only dependency-related files first
+COPY libs/movie-storage /tmp/movie-storage/
+COPY apps/data-importer/pyproject.toml ./pyproject.toml.orig
 
-***REMOVED*** Copy application code
-COPY --from=builder /build/src ./src
+***REMOVED*** Install the movie-storage package first
+WORKDIR /tmp/movie-storage
+RUN pip install -e .
 
-***REMOVED*** Create necessary directories with proper permissions
-RUN mkdir -p /app/data /app/logs
+***REMOVED*** Return to app directory and install application
+WORKDIR /app
+COPY apps/data-importer/src ./src/
 
-***REMOVED*** Create a non-root user
-RUN groupadd -r app && useradd -r -g app app && \
-    chown -R app:app /app
+***REMOVED*** Create a modified pyproject.toml without the local dependency since we install movie-storage separately
+RUN sed '/movie-storage @ file/d' pyproject.toml.orig > pyproject.toml
+
+***REMOVED*** Install the application using hatch
+RUN pip install --no-cache-dir -e .
+
+***REMOVED*** Stage 2: Runtime image - use a much smaller base
+FROM python:3.12-alpine AS final
+
+***REMOVED*** Set production environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app:/app/src \
+    ENVIRONMENT="production" \
+    LOG_LEVEL="info"
+
+WORKDIR /app
+
+***REMOVED*** Install runtime dependencies
+RUN apk add --no-cache libstdc++ curl postgresql-client tini
+
+***REMOVED*** Copy the installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin/data-importer /usr/local/bin/
+
+***REMOVED*** Copy the movie-storage package
+COPY --from=builder /tmp/movie-storage /app/movie-storage
+RUN pip install -e /app/movie-storage
+
+***REMOVED*** Only copy the application code
+COPY apps/data-importer/src ./src/
+
+***REMOVED*** Use a non-root user for better security
+RUN addgroup -S app && adduser -S app -G app
+
+***REMOVED*** Create logs and data directories with proper permissions
+RUN mkdir -p /app/logs /app/data && chown -R app:app /app
+
 USER app
 
-***REMOVED*** Healthcheck
-HEALTHCHECK CMD python -c "import data_importer" || exit 1
+***REMOVED*** Add health check configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD data-importer --help || exit 1
 
-***REMOVED*** Default command
-ENTRYPOINT ["python", "-m", "data_importer"]
-CMD ["sync", "movies", "--help"]
+***REMOVED*** Use tini for proper signal handling and child process reaping
+ENTRYPOINT ["/sbin/tini", "--"]
+
+***REMOVED*** Default command - use the installed CLI
+CMD ["data-importer", "sync", "movies", "--help"] 

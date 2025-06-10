@@ -1,6 +1,7 @@
 """Help text and documentation for the data_importer shell."""
 
-from typing import Callable, List, Dict, Any
+from typing import Any, Callable, Dict, List
+
 from rich.console import Console
 
 console = Console()

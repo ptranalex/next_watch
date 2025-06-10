@@ -1,8 +1,9 @@
-import os
-import logging
-import aiohttp
 import asyncio
-from typing import Dict, Any, Optional, List, Union
+import logging
+import os
+from typing import Any, Dict, List, Optional, Union, cast
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class OMDBClient:
         """
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession()
-        return self.session  ***REMOVED*** type: ignore
+        return self.session
 
     async def close(self) -> None:
         """Close the aiohttp session."""
@@ -78,7 +79,7 @@ class OMDBClient:
                 if result.get("Response") == "False":
                     logger.warning(f"OMDB API returned error: {result.get('Error')}")
 
-                return result
+                return cast(Dict[str, Any], result)
 
         except aiohttp.ClientError as e:
             logger.error(f"OMDB API request failed: {str(e)}")
@@ -132,7 +133,7 @@ class OMDBClient:
         response = await self._make_request(params)
 
         if response.get("Response") == "True" and "Search" in response:
-            return response["Search"]
+            return cast(List[Dict[str, Any]], response["Search"])
         return []
 
     async def get_movie_by_title_and_year(self, title: str, year: str) -> Dict[str, Any]:
@@ -162,5 +163,5 @@ class OMDBClient:
         response = await self._make_request(params)
 
         if response.get("Response") == "True" and "Episodes" in response:
-            return response["Episodes"]
+            return cast(List[Dict[str, Any]], response["Episodes"])
         return []

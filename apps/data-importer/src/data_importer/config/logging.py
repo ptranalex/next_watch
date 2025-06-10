@@ -4,12 +4,15 @@ This module provides configuration for application-wide logging, ensuring
 consistent log formatting, file output, and console display based on verbosity settings.
 """
 
+import functools
 import logging
 import sys
-import functools
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Callable, Any
+from typing import Any, Callable, Dict, Optional, TypeVar
+
+***REMOVED*** Type variable for function decoration
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def configure_logging(
@@ -73,7 +76,7 @@ def with_logging(
     log_dir: Optional[Path] = None,
     verbose: bool = False,
     quiet: bool = False,
-) -> Callable[[Callable], Callable]:
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to configure logging for a function.
 
     This decorator applies the configure_logging function before
@@ -116,7 +119,7 @@ def with_logging(
         >>>     app.run()
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             ***REMOVED*** Configure logging before executing the function

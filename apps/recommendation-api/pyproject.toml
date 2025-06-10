@@ -92,7 +92,6 @@ disallow_untyped_calls = true
 ***REMOVED*** Variable annotation settings
 disallow_any_generics = true 
 disallow_subclassing_any = true
-disallow_untyped_globals = true
 
 ***REMOVED*** Warning settings
 warn_redundant_casts = true

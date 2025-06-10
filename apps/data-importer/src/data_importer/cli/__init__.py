@@ -2,13 +2,14 @@
 
 import logging
 import sys
+
 import typer
 from rich.console import Console
 from rich.traceback import install
 
-from data_importer.cli.commands.shell import shell
-from data_importer.cli.commands.interactive import interactive
 from data_importer.cli.commands import sync
+from data_importer.cli.commands.interactive import interactive
+from data_importer.cli.commands.shell import shell
 from data_importer.config import DEFAULT_LOGS_DIR, configure_logging, with_logging
 
 ***REMOVED*** Install rich traceback handler

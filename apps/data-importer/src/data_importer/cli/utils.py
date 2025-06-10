@@ -1,10 +1,10 @@
 """Utility functions for the CLI interface."""
 
+import inspect
 import logging
 import os
 import re
-import inspect
-from typing import Any, Dict, Tuple, Optional, List, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import typer
 from rich.console import Console
@@ -98,15 +98,16 @@ def get_api_key(
         required: Whether the key is required
 
     Returns:
-        The API key
+        The API key (empty string if not required and not found)
 
     Raises:
         typer.Exit: If the key is required but not found
     """
     import os
+
     import typer
 
-    key = provided_key or os.environ.get(env_var_name, "")
+    key = provided_key or os.environ.get(env_var_name) or ""
 
     if not key and required:
         console.print(f"[bold red]Error:[/bold red] {key_name} is required.")

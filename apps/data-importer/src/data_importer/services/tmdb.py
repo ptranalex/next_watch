@@ -1,9 +1,10 @@
-import os
-import logging
-import aiohttp
 import asyncio
+import logging
+import os
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class TMDBClient:
         """
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession()
-        return self.session  ***REMOVED*** type: ignore
+        return self.session
 
     async def close(self) -> None:
         """Close the aiohttp session."""
@@ -82,7 +83,7 @@ class TMDBClient:
                         f"Error fetching from TMDB: {response.status} {await response.text()}"
                     )
                     return {}
-                return await response.json()
+                return cast(Dict[str, Any], await response.json())
         except aiohttp.ClientError as e:
             logger.error(f"TMDB API request failed: {str(e)}")
             return {}
@@ -97,7 +98,7 @@ class TMDBClient:
             A list of movie data dictionaries from TMDB
         """
         data = await self._make_request("/movie/popular", {"page": page})
-        return data.get("results", [])
+        return cast(List[Dict[str, Any]], data.get("results", []))
 
     async def get_movie_genres(self, language: str = "en-US") -> List[Dict[str, Any]]:
         """Get the list of official movie genres from TMDB.
@@ -109,7 +110,7 @@ class TMDBClient:
             A list of genre dictionaries with id and name
         """
         data = await self._make_request("/genre/movie/list", {"language": language})
-        return data.get("genres", [])
+        return cast(List[Dict[str, Any]], data.get("genres", []))
 
     async def fetch_movies_by_year(self, year: int, limit: int = 10) -> List[Dict[str, Any]]:
         """Fetch movies released in a specific year from TMDB.

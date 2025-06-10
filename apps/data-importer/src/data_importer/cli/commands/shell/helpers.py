@@ -1,15 +1,14 @@
 """Helper functions for the data_importer shell."""
 
 import asyncio
-import logging
 import inspect
-from typing import Any, Dict, Callable, List, Optional, cast
+import logging
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from rich.console import Console
-from data_importer.cli.utils import (
-    format_config_table,
-    print_config as print_config_util,
-)
+
+from data_importer.cli.utils import format_config_table
+from data_importer.cli.utils import print_config as print_config_util
 
 logger = logging.getLogger("data_importer.cli.shell.helpers")
 console = Console()
@@ -54,7 +53,7 @@ def print_plain(obj: Any) -> None:
     print(str(obj))
 
 
-def print_config(config=None) -> None:
+def print_config(config: Optional[Any] = None) -> None:
     """Print configuration settings in a readable format.
 
     This is a shell-specific wrapper that auto-detects the config object
@@ -122,15 +121,16 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
             sort_by: How to sort movies ('popularity.desc' or 'vote_count.desc'), defaults to config value
             min_vote_count: Minimum vote count for movies to include, defaults to config value
         """
-        from data_importer.sync import sync_movies_by_year_range
-        from data_importer.sync.movie_sync import format_sync_results
-        from data_importer.services.tmdb import TMDBClient
-        from data_importer.services.omdb import OMDBClient
-        from data_importer.config.app import Config
+        from movie_storage.utils import setup_movie_storage
 
         ***REMOVED*** Imports for database support
         from sqlmodel import Session, create_engine
-        from movie_storage.utils import setup_movie_storage  ***REMOVED*** type: ignore
+
+        from data_importer.config.app import Config
+        from data_importer.services.omdb import OMDBClient
+        from data_importer.services.tmdb import TMDBClient
+        from data_importer.sync import sync_movies_by_year_range
+        from data_importer.sync.movie_sync import format_sync_results
 
         ***REMOVED*** Get config from global namespace or create a new one
         config = Config.get_instance()
@@ -216,7 +216,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 console.print("[cyan]Including video/trailer information[/cyan]")
 
             ***REMOVED*** Define the entire operation as a single async function
-            async def run_sync_operation():
+            async def run_sync_operation() -> Any:
                 ***REMOVED*** Create fresh client instances with the same API keys
                 tmdb_client = TMDBClient(access_token=global_tmdb_client.access_token)
                 omdb_client = OMDBClient(api_key=global_omdb_client.api_key)
@@ -247,6 +247,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                         include_videos=actual_include_videos,
                         sort_by=actual_sort_by,
                         min_vote_count=actual_min_vote_count,
+                        verbose=True,  ***REMOVED*** Shell functions are always verbose
                     )
 
                     return results
@@ -306,14 +307,15 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
             include_credits: Whether to include cast and crew information, defaults to config value
             include_videos: Whether to include video/trailer information, defaults to config value
         """
-        from data_importer.services.tmdb import TMDBClient
-        from data_importer.services.omdb import OMDBClient
-        from data_importer.services.data_adapter import MovieDataAdapter
-        from data_importer.config.app import Config
+        from movie_storage.utils import setup_movie_storage
 
         ***REMOVED*** Imports for database support
         from sqlmodel import Session, create_engine
-        from movie_storage.utils import setup_movie_storage  ***REMOVED*** type: ignore
+
+        from data_importer.config.app import Config
+        from data_importer.services.data_adapter import MovieDataAdapter
+        from data_importer.services.omdb import OMDBClient
+        from data_importer.services.tmdb import TMDBClient
 
         ***REMOVED*** Get config from global namespace or create a new one
         config = Config.get_instance()
@@ -383,7 +385,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 console.print("[cyan]Including video/trailer information[/cyan]")
 
             ***REMOVED*** Define the entire operation as a single async function
-            async def run_sync_operation():
+            async def run_sync_operation() -> Any:
                 ***REMOVED*** Create fresh client instances with the same API keys
                 tmdb_client = TMDBClient(access_token=global_tmdb_client.access_token)
                 omdb_client = OMDBClient(api_key=global_omdb_client.api_key)

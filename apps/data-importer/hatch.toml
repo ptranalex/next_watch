@@ -1,0 +1,109 @@
+[env]
+requires = ["hatch-vcs"]
+
+[env.paths]
+***REMOVED*** Configure module paths
+src = "src"
+tests = "tests"
+
+[build]
+***REMOVED*** Use hatch-vcs for versioning
+dev-mode-exact = true
+
+[version]
+source = "vcs"
+
+[build.targets.wheel]
+packages = ["data_importer"]
+exclude = [
+  "tests",
+  "docs",
+  ".github",
+  ".vscode",
+  "data",
+  "logs",
+]
+
+[build.sources]
+"src" = ""
+
+[envs.default]
+***REMOVED*** Configure virtual environment to be in project directory
+type = "virtual"
+path = ".venv"
+dependencies = [
+  ***REMOVED*** Core dependencies
+  "requests>=2.31.0",
+  "pydantic>=2.4.2",
+  "python-dotenv>=1.0.0",
+  
+  ***REMOVED*** CLI and utilities
+  "click>=8.1.7",
+  "typer>=0.15.2",
+  "rich>=14.0.0,<15.0.0",
+  "ptpython>=3.0.23",
+  
+  ***REMOVED*** Async HTTP
+  "aiohttp>=3.8.5",
+  
+  ***REMOVED*** Database
+  "sqlmodel>=0.0.24",
+  "psycopg2-binary>=2.9.10",
+  
+  ***REMOVED*** Security
+  "passlib>=1.7.4",
+]
+
+***REMOVED*** Add environment variables for development
+[envs.default.env-vars]
+PYTHONPATH = "src"
+
+[envs.default.scripts]
+***REMOVED*** CLI scripts
+cli = "python -m data_importer.cli"
+import = "python -m data_importer.cli sync import"
+sync = "python -m data_importer.cli sync"
+repl = "ptpython"
+
+***REMOVED*** Data management scripts
+clean-data = "python -m data_importer.cli clean"
+validate-data = "python -m data_importer.cli validate"
+
+[envs.dev]
+dependencies = [
+  "pytest>=7.4.3",
+  "pytest-asyncio>=0.21.1",
+  "black>=23.10.1",
+  "isort>=5.12.0",
+  "flake8>=6.1.0",
+  "mypy>=1.7.0",
+]
+
+[envs.dev.scripts]
+lint = [
+  "black .",
+  "isort .",
+  "flake8 .",
+  "mypy src"
+]
+test = "PYTHONPATH=src pytest {args:tests}"
+test-cov = "PYTHONPATH=src pytest --cov=data_importer tests/"
+format = [
+  "black .",
+  "isort ."
+]
+
+***REMOVED*** Data processing environment with additional tools
+[envs.data]
+dependencies = [
+  "pandas>=2.0.0",
+  "numpy>=1.24.0",
+  "jupyter>=1.0.0",
+  "matplotlib>=3.7.0",
+  "seaborn>=0.12.0",
+]
+
+[envs.data.scripts]
+notebook = "jupyter notebook"
+lab = "jupyter lab"
+analyze = "python -m data_importer.analysis" 

@@ -1,31 +1,64 @@
 """Functions for syncing movie data from various sources."""
 
-import logging
 import asyncio
-from typing import List, Dict, Any, Optional, Tuple, Set, Union
-from datetime import datetime, date
-from pathlib import Path
 import json
-from sqlmodel import Session, select
+import logging
+from datetime import date, datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, TypedDict
 
-from rich.console import Console
-from rich.progress import Progress, TaskID
-
-from data_importer.services.tmdb import TMDBClient
-from data_importer.services.omdb import OMDBClient
-from data_importer.services.data_adapter import MovieDataAdapter
-from data_importer.config.app import Config
+from movie_storage.db.operations import genre as genre_ops
+from movie_storage.db.operations import movie as movie_ops
 
 ***REMOVED*** Import database models and storage operations
 from movie_storage.models import Movie
-from movie_storage.db.operations import genre as genre_ops
-from movie_storage.db.operations import movie as movie_ops
+from rich.console import Console
+from rich.progress import Progress, TaskID
+from sqlmodel import Session, select
+
+from data_importer.config.app import Config
+from data_importer.services.data_adapter import MovieDataAdapter
+from data_importer.services.omdb import OMDBClient
+from data_importer.services.tmdb import TMDBClient
 
 logger = logging.getLogger(__name__)
 console = Console()
 
 ***REMOVED*** Get configuration settings
 config = Config.get_instance()
+
+
+class MovieData(TypedDict):
+    """Type definition for simplified movie data in stats."""
+
+    id: int
+    title: str
+    year: int
+    tmdb_rating: Optional[float]
+    imdb_rating: Optional[float]
+    imdb_id: Optional[str]
+    genres: List[str]
+
+
+class SyncStats(TypedDict):
+    """Type definition for sync statistics."""
+
+    tmdb_movies_found: int
+    omdb_matches_found: int
+    years_processed: int
+    movies_synced: int
+    movies_saved_to_db: int
+    credits_saved: int
+    genres_found: int
+    start_year: int
+    end_year: int
+    sort_strategy: str
+    min_vote_count: int
+    start_time: str
+    end_time: Optional[str]
+    elapsed_seconds: float
+    errors: List[str]
+    movies: List[MovieData]
 
 
 def convert_string_to_date(date_str: Optional[str]) -> Optional[date]:
@@ -90,6 +123,7 @@ async def sync_movies_by_year_range(
     include_videos: Optional[bool] = None,
     sort_by: Optional[str] = None,
     min_vote_count: Optional[int] = None,
+    verbose: bool = False,
 ) -> Dict[str, Any]:
     """Sync movies from TMDB and OMDB based on a year range.
 
@@ -108,7 +142,7 @@ async def sync_movies_by_year_range(
         min_vote_count: Minimum number of votes for a movie to be included, defaults to config value
 
     Returns:
-        Dictionary with statistics about the sync operation and list of movie models
+        Dictionary with complete sync results including statistics, movies, and metadata
     """
     ***REMOVED*** Load defaults from config if not provided
     start_year = start_year if start_year is not None else config.movie_sync_start_year
@@ -128,15 +162,18 @@ async def sync_movies_by_year_range(
         min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
     )
 
-    ***REMOVED*** Log configuration being used
-    logger.info(f"Starting movie sync with configuration:")
-    logger.info(f"  Years: {start_year} to {end_year}")
-    logger.info(f"  Limit per year: {limit_per_year}")
-    logger.info(f"  Sort by: {sort_by}")
-    logger.info(f"  Min vote count: {min_vote_count}")
-    logger.info(f"  Include credits: {include_credits}")
-    logger.info(f"  Include videos: {include_videos}")
-    logger.info(f"  Save to database: {save_to_db}")
+    ***REMOVED*** Log configuration being used (only if verbose)
+    if verbose:
+        logger.info(f"Starting movie sync with configuration:")
+        logger.info(f"  Years: {start_year} to {end_year}")
+        logger.info(f"  Limit per year: {limit_per_year}")
+        logger.info(f"  Sort by: {sort_by}")
+        logger.info(f"  Min vote count: {min_vote_count}")
+        logger.info(f"  Include credits: {include_credits}")
+        logger.info(f"  Include videos: {include_videos}")
+        logger.info(f"  Save to database: {save_to_db}")
+    else:
+        logger.info(f"Syncing movies for years {start_year}-{end_year} ({limit_per_year} per year)")
 
     if start_year > end_year:
         start_year, end_year = end_year, start_year
@@ -167,7 +204,7 @@ async def sync_movies_by_year_range(
     genre_map = await fetch_genre_data(tmdb_client)
 
     ***REMOVED*** Statistics to return
-    stats = {
+    stats: SyncStats = {
         "tmdb_movies_found": 0,
         "omdb_matches_found": 0,
         "years_processed": 0,
@@ -181,7 +218,7 @@ async def sync_movies_by_year_range(
         "min_vote_count": min_vote_count,
         "start_time": datetime.now().isoformat(),
         "end_time": None,
-        "elapsed_seconds": 0,
+        "elapsed_seconds": 0.0,
         "errors": [],
         "movies": [],  ***REMOVED*** Will hold simplified movie data
     }
@@ -218,13 +255,14 @@ async def sync_movies_by_year_range(
                     "vote_count.gte": min_vote_count,
                 }
 
-                ***REMOVED*** Log which filters we're using
-                logger.info(
-                    f"Fetching movies for year {year} (sorted by {sort_strategy}, min votes: {min_vote_count})"
-                )
+                ***REMOVED*** Log which filters we're using (only in verbose mode)
+                if verbose:
+                    logger.info(
+                        f"Fetching movies for year {year} (sorted by {sort_strategy}, min votes: {min_vote_count})"
+                    )
 
                 ***REMOVED*** Fetch movies from TMDB for this year with custom parameters
-                year_movies = []
+                year_movies: List[Dict[str, Any]] = []
                 page = 1
 
                 ***REMOVED*** Manual pagination implementation (similar to fetch_movies_by_year but with our custom params)
@@ -253,10 +291,13 @@ async def sync_movies_by_year_range(
                 tmdb_movies.extend(year_movies)
                 stats["tmdb_movies_found"] += len(year_movies)
 
-                ***REMOVED*** Log info about results
-                logger.info(
-                    f"Year {year}: Found {len(year_movies)} movies (sorted by {sort_strategy}, min votes: {min_vote_count})"
-                )
+                ***REMOVED*** Log info about results (simplified for normal mode)
+                if verbose:
+                    logger.info(
+                        f"Year {year}: Found {len(year_movies)} movies (sorted by {sort_strategy}, min votes: {min_vote_count})"
+                    )
+                else:
+                    logger.info(f"Year {year}: Processing {len(year_movies)} movies")
 
                 ***REMOVED*** Process each movie from TMDB
                 for i, tmdb_movie in enumerate(year_movies):
@@ -475,6 +516,17 @@ async def sync_movies_by_year_range(
                         stats["errors"].append(error_msg)
 
                 stats["years_processed"] += 1
+
+                ***REMOVED*** Log year summary (consolidated information)
+                year_movies_processed = len(year_movies)
+                year_omdb_enriched = sum(
+                    1 for m in stats["movies"] if m["year"] == year and m.get("imdb_rating")
+                )
+
+                logger.info(
+                    f"Year {year} complete: {year_movies_processed} movies processed"
+                    f"{f', {year_omdb_enriched} OMDB enriched' if year_omdb_enriched > 0 else ''}"
+                )
 
                 ***REMOVED*** Update main progress bar
                 if show_progress and progress is not None:

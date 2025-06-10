@@ -13,17 +13,14 @@ dev-mode-exact = true
 [version]
 source = "vcs"
 
-[dirs]
-***REMOVED*** Exclude certain directories from packaging
+[build.targets.wheel]
+packages = ["auth_api"]
 exclude = [
   "tests",
   "docs",
   ".github",
   ".vscode",
 ]
-
-[build.targets.wheel]
-packages = ["auth_api"]
 
 [envs.default]
 ***REMOVED*** Configure virtual environment to be in project directory

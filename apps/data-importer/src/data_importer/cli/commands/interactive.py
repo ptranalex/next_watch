@@ -8,18 +8,18 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from data_importer.cli.utils import get_api_key, print_config
 from data_importer.config.app import (
     DEFAULT_LOGS_DIR,
-    DEFAULT_QUIET,
-    DEFAULT_VERBOSE,
-    DEFAULT_TMDB_ACCESS_TOKEN,
     DEFAULT_OMDB_API_KEY,
+    DEFAULT_QUIET,
+    DEFAULT_TMDB_ACCESS_TOKEN,
+    DEFAULT_VERBOSE,
     Config,
 )
 from data_importer.config.logging import configure_logging
-from data_importer.cli.utils import print_config, get_api_key
-from data_importer.services.tmdb import TMDBClient
 from data_importer.services.omdb import OMDBClient
+from data_importer.services.tmdb import TMDBClient
 
 logger = logging.getLogger("data_importer.cli.commands.interactive")
 console = Console()

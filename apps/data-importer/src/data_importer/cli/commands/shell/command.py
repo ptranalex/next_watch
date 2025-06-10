@@ -1,8 +1,8 @@
 """Command for launching an interactive shell with data_importer modules."""
 
+import asyncio
 import logging
 import os
-import asyncio
 from pathlib import Path
 from typing import Any, Callable, Dict
 
@@ -11,25 +11,22 @@ from rich import pretty, print_json
 from rich.console import Console
 from rich.pretty import pprint
 
-from data_importer.cli.commands.shell.help import (
-    create_shell_help_function,
-    get_banner_text,
-)
+from data_importer.cli.commands.shell.help import create_shell_help_function, get_banner_text
 from data_importer.cli.commands.shell.helpers import async_run, create_loading_functions
 from data_importer.cli.commands.shell.repl import configure_repl
-from data_importer.cli.utils import print_plain, print_config, get_api_key
+from data_importer.cli.utils import get_api_key, print_config, print_plain
 from data_importer.config.app import (
-    DEFAULT_LOGS_DIR,
     DEFAULT_DATA_DIR,
-    DEFAULT_VERBOSE,
+    DEFAULT_IMDB_API_KEY,
+    DEFAULT_LOGS_DIR,
+    DEFAULT_OMDB_API_KEY,
     DEFAULT_QUIET,
     DEFAULT_TMDB_ACCESS_TOKEN,
-    DEFAULT_IMDB_API_KEY,
-    DEFAULT_OMDB_API_KEY,
+    DEFAULT_VERBOSE,
     Config,
 )
 from data_importer.config.logging import configure_logging
-from data_importer.services import TMDBClient, IMDBClient, OMDBClient
+from data_importer.services import IMDBClient, OMDBClient, TMDBClient
 
 logger = logging.getLogger("data_importer.cli.shell.command")
 console = Console()

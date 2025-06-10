@@ -1,52 +1,44 @@
-"""Configuration settings for the data importer."""
+"""Application configuration management.
+
+This module provides centralized configuration for the data-importer application,
+loading settings from environment variables with sensible defaults.
+"""
 
 import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import TypedDict
 
 ***REMOVED*** Load environment variables from .env files
-try:
-    from dotenv import load_dotenv  ***REMOVED*** type: ignore
-
-    ***REMOVED*** Find the project root directory (looking for .env file)
-    project_root = Path(__file__).parent.parent.parent.parent
-    env_path = project_root / ".env"
-    env_local_path = project_root / ".env.local"
-
-    ***REMOVED*** Load .env first (default values)
-    load_dotenv(dotenv_path=env_path)
-
-    ***REMOVED*** Then override with .env.local if it exists (custom values)
-    if env_local_path.exists():
-        load_dotenv(dotenv_path=env_local_path, override=True)
-except ImportError:
-    print("python-dotenv not installed. Using environment variables only.")
+from .env import get_env_var, get_env_bool, get_env_int
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** DEFAULT PATHS AND DIRECTORIES
 ***REMOVED*** ------------------------------------------------------------------------------
 
-***REMOVED*** File system defaults
-DEFAULT_LOGS_DIR = Path(os.getenv("LOGS_DIR", "logs"))
-DEFAULT_DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
+***REMOVED*** Directory paths
+DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
+DEFAULT_DATA_DIR = Path(get_env_var("DATA_DIR", "data"))
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** API SETTINGS AND CREDENTIALS
 ***REMOVED*** ------------------------------------------------------------------------------
 
-***REMOVED*** Default API keys
-DEFAULT_TMDB_ACCESS_TOKEN = os.getenv("TMDB_ACCESS_TOKEN", "")
-DEFAULT_IMDB_API_KEY = os.getenv("IMDB_API_KEY", "")
-DEFAULT_OMDB_API_KEY = os.getenv("OMDB_API_KEY", "")
+***REMOVED*** API Keys and Tokens
+***REMOVED*** These are loaded from environment variables or .env files
+***REMOVED*** Set these in your .env file or environment
+DEFAULT_TMDB_ACCESS_TOKEN = get_env_var("TMDB_ACCESS_TOKEN", "")
+DEFAULT_IMDB_API_KEY = get_env_var("IMDB_API_KEY", "")
+DEFAULT_OMDB_API_KEY = get_env_var("OMDB_API_KEY", "")
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** LOGGING AND OUTPUT SETTINGS
 ***REMOVED*** ------------------------------------------------------------------------------
 
-***REMOVED*** Log verbosity
-DEFAULT_LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-DEFAULT_VERBOSE = os.getenv("VERBOSE", "false").lower() == "true"  ***REMOVED*** Detailed output
-DEFAULT_QUIET = os.getenv("QUIET", "false").lower() == "true"  ***REMOVED*** Minimal output
+***REMOVED*** Logging Configuration
+DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
+DEFAULT_VERBOSE = get_env_bool("VERBOSE", False)  ***REMOVED*** Detailed output
+DEFAULT_QUIET = get_env_bool("QUIET", False)  ***REMOVED*** Minimal output
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** MOVIE SYNC SETTINGS
@@ -56,16 +48,14 @@ DEFAULT_QUIET = os.getenv("QUIET", "false").lower() == "true"  ***REMOVED*** Min
 CURRENT_YEAR = datetime.now().year
 
 ***REMOVED*** Movie sync configuration
-DEFAULT_MOVIE_SYNC_START_YEAR = int(os.getenv("MOVIE_SYNC_START_YEAR", "1990"))
-DEFAULT_MOVIE_SYNC_END_YEAR = int(os.getenv("MOVIE_SYNC_END_YEAR", str(CURRENT_YEAR)))
-DEFAULT_MOVIE_SYNC_LIMIT_PER_YEAR = int(os.getenv("MOVIE_SYNC_LIMIT_PER_YEAR", "100"))
-DEFAULT_MOVIE_SYNC_MIN_VOTE_COUNT = int(os.getenv("MOVIE_SYNC_MIN_VOTE_COUNT", "100"))
-DEFAULT_MOVIE_SYNC_SORT_BY = os.getenv("MOVIE_SYNC_SORT_BY", "vote_count.desc")
-DEFAULT_MOVIE_SYNC_INCLUDE_CREDITS = (
-    os.getenv("MOVIE_SYNC_INCLUDE_CREDITS", "true").lower() == "true"
-)
-DEFAULT_MOVIE_SYNC_INCLUDE_VIDEOS = os.getenv("MOVIE_SYNC_INCLUDE_VIDEOS", "true").lower() == "true"
-DEFAULT_MOVIE_SYNC_SAVE_TO_DB = os.getenv("MOVIE_SYNC_SAVE_TO_DB", "true").lower() == "true"
+DEFAULT_MOVIE_SYNC_START_YEAR = get_env_int("MOVIE_SYNC_START_YEAR", 1990)
+DEFAULT_MOVIE_SYNC_END_YEAR = get_env_int("MOVIE_SYNC_END_YEAR", CURRENT_YEAR)
+DEFAULT_MOVIE_SYNC_LIMIT_PER_YEAR = get_env_int("MOVIE_SYNC_LIMIT_PER_YEAR", 100)
+DEFAULT_MOVIE_SYNC_MIN_VOTE_COUNT = get_env_int("MOVIE_SYNC_MIN_VOTE_COUNT", 100)
+DEFAULT_MOVIE_SYNC_SORT_BY = get_env_var("MOVIE_SYNC_SORT_BY", "vote_count.desc")
+DEFAULT_MOVIE_SYNC_INCLUDE_CREDITS = get_env_bool("MOVIE_SYNC_INCLUDE_CREDITS", True)
+DEFAULT_MOVIE_SYNC_INCLUDE_VIDEOS = get_env_bool("MOVIE_SYNC_INCLUDE_VIDEOS", True)
+DEFAULT_MOVIE_SYNC_SAVE_TO_DB = get_env_bool("MOVIE_SYNC_SAVE_TO_DB", True)
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** API URLs
@@ -77,6 +67,27 @@ OMDB_URL = "http://www.omdbapi.com"
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
 ***REMOVED*** ------------------------------------------------------------------------------
+
+
+class ConfigDict(TypedDict):
+    """Type definition for configuration dictionary."""
+
+    logs_dir: Path
+    data_dir: Path
+    tmdb_access_token: str
+    imdb_api_key: str
+    omdb_api_key: str
+    log_level: str
+    verbose: bool
+    quiet: bool
+    movie_sync_start_year: int
+    movie_sync_end_year: int
+    movie_sync_limit_per_year: int
+    movie_sync_min_vote_count: int
+    movie_sync_sort_by: str
+    movie_sync_include_credits: bool
+    movie_sync_include_videos: bool
+    movie_sync_save_to_db: bool
 
 
 class Config:
