@@ -7,46 +7,47 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 import logging
 
+from .env import get_env_var, get_env_bool, get_env_int, load_environment_variables
+
 ***REMOVED*** Configure basic logging first for this module
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+***REMOVED*** Load environment variables from .env files
+load_environment_variables()
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** DEFAULT SETTINGS
 ***REMOVED*** ------------------------------------------------------------------------------
 
 ***REMOVED*** Database settings (for user management)
-DEFAULT_DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch"
+DEFAULT_DATABASE_URL = get_env_var(
+    "DATABASE_URL", default="postgresql://postgres:postgres@localhost:5432/next_watch"
 )
 
 ***REMOVED*** API settings
-DEFAULT_API_PORT = int(os.getenv("AUTH_API_PORT", "8003"))
-DEFAULT_CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+DEFAULT_API_PORT = get_env_int("AUTH_API_PORT", default=8003)
+DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", default="*")
 
 ***REMOVED*** Logging and debugging
-DEFAULT_LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-DEFAULT_DEBUG = os.getenv("DEBUG", "false").lower() == "true"
-DEFAULT_LOGS_DIR = os.getenv("LOGS_DIR", "logs")
+DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", default="INFO")
+DEFAULT_DEBUG = get_env_bool("DEBUG", default=False)
+DEFAULT_LOGS_DIR = get_env_var("LOGS_DIR", default="logs")
 
 ***REMOVED*** Performance monitoring
-DEFAULT_ENABLE_PERFORMANCE_METRICS = (
-    os.getenv("ENABLE_PERFORMANCE_METRICS", "false").lower() == "true"
-)
+DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", default=False)
 
 ***REMOVED*** Authentication settings
-DEFAULT_JWT_SECRET = os.getenv("JWT_SECRET", "change_this_in_production_very_important")
-DEFAULT_JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
-    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
-)
-DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
-DEFAULT_JWT_JWK_ROTATION_INTERVAL = int(
-    os.getenv("JWT_JWK_ROTATION_INTERVAL", "86400")
-)  ***REMOVED*** 24 hours in seconds
+DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", default="change_this_in_production_very_important")
+DEFAULT_JWT_ALGORITHM = get_env_var("JWT_ALGORITHM", default="HS256")
+DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = get_env_int("ACCESS_TOKEN_EXPIRE_MINUTES", default=30)
+DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = get_env_int("REFRESH_TOKEN_EXPIRE_DAYS", default=7)
+DEFAULT_JWT_JWK_ROTATION_INTERVAL = get_env_int(
+    "JWT_JWK_ROTATION_INTERVAL", default=86400
+)  ***REMOVED*** 24 hours
 
 ***REMOVED*** Security settings
-DEFAULT_ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,auth-api")
+DEFAULT_ALLOWED_HOSTS = get_env_var("ALLOWED_HOSTS", default="localhost,127.0.0.1,auth-api")
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
@@ -120,7 +121,7 @@ class Config:
             allowed_hosts: Comma-separated list of allowed hosts
         """
         ***REMOVED*** In production, force debug to False
-        if os.getenv("ENVIRONMENT") == "production":
+        if get_env_var("ENVIRONMENT") == "production":
             debug = False
 
         self.database_url = database_url
@@ -128,9 +129,7 @@ class Config:
         self.log_level = log_level
         self.debug = debug
         self.cors_origins = (
-            [origin.strip() for origin in cors_origins.split(",")]
-            if cors_origins != "*"
-            else ["*"]
+            [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
         )
         self.enable_performance_metrics = enable_performance_metrics
         self.log_dir = log_dir
@@ -144,20 +143,18 @@ class Config:
 
         ***REMOVED*** Parse JWK if available
         self.jwt_jwk = None
-        if jwk_str := os.getenv("JWT_JWK"):
+        if jwk_str := get_env_var("JWT_JWK"):
             try:
                 self.jwt_jwk = json.loads(jwk_str)
                 logger.info("JWK configuration loaded successfully")
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse JWK configuration: {e}")
                 if not self.debug:
-                    raise ValueError(
-                        "Invalid JWK configuration in production environment"
-                    )
+                    raise ValueError("Invalid JWK configuration in production environment")
 
         ***REMOVED*** Log configuration
         logger.info(
-            f"Initializing auth configuration with environment: {os.getenv('ENVIRONMENT', 'development')}"
+            f"Initializing auth configuration with environment: {get_env_var('ENVIRONMENT', default='development')}"
         )
         logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
         logger.info(f"Debug mode: {self.debug}")
@@ -173,15 +170,13 @@ class Config:
 
         ***REMOVED*** Security settings
         self.allowed_hosts = (
-            [host.strip() for host in allowed_hosts.split(",")]
-            if allowed_hosts != "*"
-            else ["*"]
+            [host.strip() for host in allowed_hosts.split(",")] if allowed_hosts != "*" else ["*"]
         )
 
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
-        return os.getenv("ENVIRONMENT") == "production"
+        return get_env_var("ENVIRONMENT") == "production"
 
     def _mask_database_password(self, url: str) -> str:
         """Mask password in database URL for logging.

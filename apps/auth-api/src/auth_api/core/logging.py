@@ -1,17 +1,51 @@
-"""Logging configuration for the Authentication API."""
+"""Logging configuration wrapper for the Auth API service.
 
+This module provides a clean interface to the comprehensive logging
+configuration in the config module.
+"""
+
+import logging
 from pathlib import Path
-from auth_api.config.logging import configure_logging
+from typing import Optional
+
+from auth_api.config.logging import configure_logging as _configure_logging
 from auth_api.config.app import settings
 
+logger = logging.getLogger(__name__)
 
-def setup_logging() -> None:
-    """Setup logging configuration for the application."""
-    ***REMOVED*** Use the comprehensive logging configuration from config module
-    log_dir = Path(settings.log_dir) if settings.log_dir else None
-    configure_logging(
-        log_level=settings.log_level,
+
+def setup_logging(
+    log_level: Optional[str] = None,
+    verbose: Optional[bool] = None,
+    quiet: bool = False,
+) -> None:
+    """Setup logging for the application.
+
+    This is a convenience wrapper around the comprehensive logging
+    configuration in the config module.
+
+    Args:
+        log_level: Override the log level from settings
+        verbose: Override the verbose setting from settings.debug
+        quiet: Whether to suppress console output
+    """
+    ***REMOVED*** Use settings defaults if not provided
+    if log_level is None:
+        log_level = settings.log_level
+    if verbose is None:
+        verbose = settings.debug
+
+    ***REMOVED*** Determine log directory
+    log_dir = None
+    if hasattr(settings, "log_dir") and settings.log_dir:
+        log_dir = Path(settings.log_dir)
+
+    ***REMOVED*** Configure logging using the comprehensive config module
+    _configure_logging(
+        log_level=log_level,
         log_dir=log_dir,
-        verbose=settings.debug,
-        quiet=False,
+        verbose=verbose,
+        quiet=quiet,
     )
+
+    logger.info("Logging configuration initialized via core module")
