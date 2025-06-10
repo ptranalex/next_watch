@@ -11,22 +11,18 @@ import logging
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-from dateutil import parser as date_parser  ***REMOVED*** type: ignore
+from dateutil import parser as date_parser
 from movie_storage.db.operations import (
-    create_user_movie_interaction,
     delete_user_movie_interaction,
     get_movie_by_id,
     get_user_movie_interaction,
     toggle_user_movie_interaction_flag,
-    update_user_movie_interaction,
 )
-from movie_storage.models import Movie, User, UserMovieInteraction
-from sqlalchemy import desc, func, nullslast
+from movie_storage.models import Movie, UserMovieInteraction
+from sqlalchemy import func
 from sqlmodel import Session, select
 
-***REMOVED*** Use absolute import to avoid mypy errors
-import backend_api.errors
-from backend_api.errors import ResourceNotFoundError, ServiceError, ValidationError
+from backend_api.errors import ResourceNotFoundError, ValidationError
 
 logger = logging.getLogger(__name__)
 

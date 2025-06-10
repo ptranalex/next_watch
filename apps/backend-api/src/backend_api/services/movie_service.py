@@ -18,18 +18,6 @@ from sqlmodel import Session
 import backend_api.errors
 from backend_api.errors import ResourceNotFoundError, ValidationError
 
-***REMOVED*** Use relative imports instead
-from .. import errors
-from ..errors import ResourceNotFoundError, ValidationError
-
-***REMOVED*** Use relative imports for better type checking
-from .. import errors
-from ..errors import ResourceNotFoundError, ValidationError
-
-***REMOVED*** Use relative imports
-from .. import errors
-from ..errors import ResourceNotFoundError, ValidationError
-
 logger = logging.getLogger(__name__)
 
 
