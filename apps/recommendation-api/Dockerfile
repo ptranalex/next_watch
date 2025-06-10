@@ -1,44 +1,52 @@
-***REMOVED*** Stage 1: Builder
-FROM python:3.12-slim AS builder
+***REMOVED*** Stage 1: Build dependencies and package
+FROM python:3.12-alpine AS builder
 
-WORKDIR /build
-
-***REMOVED*** Install build dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential && \
-    pip install --no-cache-dir hatch && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-***REMOVED*** Copy movie-storage package from monorepo (excluding .venv and other unnecessary files)
-COPY libs/movie-storage/pyproject.toml libs/movie-storage/setup.py* /build/libs/movie-storage/
-COPY libs/movie-storage/README.md /build/libs/movie-storage/README.md
-COPY libs/movie-storage/movie_storage /build/libs/movie-storage/movie_storage/
-
-***REMOVED*** Install movie-storage package
-RUN cd /build/libs/movie-storage && \
-    pip install -e .
-
-***REMOVED*** Copy recommendation-api files
-COPY apps/recommendation-api/pyproject.toml .
-COPY apps/recommendation-api/src ./src
-
-***REMOVED*** Build the wheel package
-RUN hatch build -t wheel
-
-***REMOVED*** Stage 2: Runtime
-FROM python:3.12-slim
-
-***REMOVED*** Environment variables for runtime optimization
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH="/app/src" \
-    PIP_NO_CACHE_DIR=1 \
+    PATH="${PATH}:/root/.local/bin"
+
+WORKDIR /app
+
+***REMOVED*** Install build dependencies - use a single layer and clean up in the same step
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    curl \
+    gcc \
+    musl-dev \
+    python3-dev \
+    libffi-dev \
+    openssl-dev \
+    && pip install --no-cache-dir hatch
+
+***REMOVED*** Copy only dependency-related files first
+COPY libs/movie-storage /tmp/movie-storage/
+COPY apps/recommendation-api/pyproject.toml apps/recommendation-api/hatch.toml ./
+
+***REMOVED*** Install the movie-storage package first
+WORKDIR /tmp/movie-storage
+RUN pip install -e .
+
+***REMOVED*** Return to app directory and install application
+WORKDIR /app
+COPY apps/recommendation-api/src ./src/
+
+***REMOVED*** Install the application
+RUN pip install --no-cache-dir -e .
+
+***REMOVED*** Stage 2: Runtime image - use a much smaller base
+FROM python:3.12-alpine AS final
+
+***REMOVED*** Set production environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app:/app/src \
     ENVIRONMENT="production" \
     PORT=8002 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
     WORKERS=1 \
     TIMEOUT=120 \
+    MAX_KEEPALIVE=60 \
     RELOAD=false \
     PROXY_HEADERS=true \
     FORWARDED_ALLOW_IPS="*" \
@@ -47,62 +55,39 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-***REMOVED*** Create a non-root user
-RUN useradd -m -r recapi
+***REMOVED*** Install runtime dependencies including tini for proper process handling
+RUN apk add --no-cache libstdc++ curl tini
 
-***REMOVED*** Install curl for health checks (and cleanup in the same layer)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl tini && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    ***REMOVED*** Create symlink if tini is not at /sbin/tini
-    if [ ! -f "/sbin/tini" ] && [ -f "/usr/bin/tini" ]; then \
-        mkdir -p /sbin && ln -s /usr/bin/tini /sbin/tini; \
-    fi
+***REMOVED*** Copy the installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
 
-***REMOVED*** Copy only the necessary movie-storage files (no .venv)
-COPY --from=builder /build/libs/movie-storage/movie_storage /app/libs/movie-storage/movie_storage/
-COPY --from=builder /build/libs/movie-storage/pyproject.toml /build/libs/movie-storage/setup.py* /app/libs/movie-storage/
-COPY --from=builder /build/libs/movie-storage/README.md /app/libs/movie-storage/README.md
+***REMOVED*** Copy the movie-storage package and reinstall to fix path references
+COPY --from=builder /tmp/movie-storage /app/movie-storage
+RUN pip install --no-deps -e /app/movie-storage
 
-***REMOVED*** Copy the source code
-COPY apps/recommendation-api/src /app/src
+***REMOVED*** Only copy the application code, not the entire Python installation
+COPY apps/recommendation-api/src ./src/
 
-***REMOVED*** Copy the built wheel
-COPY --from=builder /build/dist/*.whl .
-
-***REMOVED*** Install dependencies and clean up in the same layer
-RUN pip install --no-cache-dir -e /app/libs/movie-storage && \
-    pip install --no-cache-dir ./*.whl && \
-    rm -f ./*.whl && \
-    ***REMOVED*** Remove pip cache and unnecessary files
-    find /usr/local -depth \
-        \( \
-            \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
-            -o \
-            \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) \) \
-        \) -exec rm -rf '{}' + && \
-    ***REMOVED*** Remove unnecessary packages
-    pip uninstall -y pip wheel setuptools
-
-***REMOVED*** Set file ownership and permissions
-RUN chown -R recapi:recapi /app
-
-***REMOVED*** Switch to non-root user
-USER recapi
-
-***REMOVED*** Expose the application port
 EXPOSE 8002
 
-***REMOVED*** Healthcheck with curl
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8002/health || exit 1
+***REMOVED*** Use a non-root user for better security
+RUN addgroup -S app && adduser -S app -G app
+
+***REMOVED*** Create logs directory with proper permissions
+RUN mkdir -p /app/logs && chown -R app:app /app
+
+USER app
+
+***REMOVED*** Add health check configuration
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:8002/health || exit 1
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
 
-***REMOVED*** Start the application with uvicorn
-***REMOVED*** In production, we hardcode proxy_headers=true and no reload
+***REMOVED*** Run the application with production optimizations
+***REMOVED*** Hardcode log-level=info, proxy_headers=true and no reload for production
 CMD uvicorn recommendation_api.main:app \
     --host ${HOST} \
     --port ${PORT} \
