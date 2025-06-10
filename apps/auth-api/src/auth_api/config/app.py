@@ -22,6 +22,14 @@ DEFAULT_DATABASE_URL = get_env_var(
     "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch"
 )
 
+***REMOVED*** Debug: Log what DATABASE_URL was loaded
+logger.info(f"DATABASE_URL loaded: {DEFAULT_DATABASE_URL}")
+
+***REMOVED*** Debug: Also check raw os.getenv to compare
+raw_database_url = os.getenv("DATABASE_URL")
+logger.info(f"DATABASE_URL from os.getenv: {raw_database_url}")
+logger.info(f"Using default fallback: {raw_database_url is None}")
+
 ***REMOVED*** API settings
 DEFAULT_API_PORT = get_env_int("AUTH_API_PORT", 8003)
 DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")

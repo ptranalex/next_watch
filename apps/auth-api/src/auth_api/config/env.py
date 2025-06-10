@@ -202,6 +202,5 @@ def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
         return default
 
 
-***REMOVED*** Auto-load environment variables when module is imported
-***REMOVED*** This ensures .env files are loaded early in the application lifecycle
-_env_loaded = load_environment_variables()
+***REMOVED*** Note: Environment variables are now loaded explicitly in main.py
+***REMOVED*** for better control over when and where the loading happens
