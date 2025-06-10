@@ -45,7 +45,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8003 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
-    LOGS_DIR="" \
     WORKERS=1 \
     TIMEOUT=120 \
     MAX_KEEPALIVE=60 \
@@ -64,9 +63,6 @@ RUN apk add --no-cache libstdc++ postgresql-libs curl tini
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
 
-***REMOVED*** Create non-root user first
-RUN addgroup -S app && adduser -S app -G app
-
 ***REMOVED*** Copy the movie-storage package
 COPY --from=builder /tmp/movie-storage /app/movie-storage
 RUN pip install -e /app/movie-storage
@@ -74,15 +70,14 @@ RUN pip install -e /app/movie-storage
 ***REMOVED*** Only copy the application code, not the entire Python installation
 COPY apps/auth-api/src ./src/
 
-***REMOVED*** Create all necessary directories and set proper permissions
-RUN mkdir -p /app/logs /app/tmp && \
-    chown -R app:app /app && \
-    chmod -R 755 /app && \
-    chmod -R 775 /app/logs /app/tmp
-
 EXPOSE 8003
 
-***REMOVED*** Switch to non-root user
+***REMOVED*** Use a non-root user for better security
+RUN addgroup -S app && adduser -S app -G app
+
+***REMOVED*** Create logs directory with proper permissions
+RUN mkdir -p /app/logs && chown -R app:app /app
+
 USER app
 
 ***REMOVED*** Add health check configuration - optimized timeout and start period
