@@ -1,55 +1,53 @@
 ***REMOVED*** Stage 1: Build dependencies and package
-FROM python:3.9-alpine AS builder
+FROM python:3.12-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PATH="${PATH}:/root/.local/bin"
 
 WORKDIR /app
 
-***REMOVED*** Install build dependencies
-RUN apk add --no-cache \
+***REMOVED*** Install build dependencies - use a single layer and clean up in the same step
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    curl \
     gcc \
     musl-dev \
+    python3-dev \
     libffi-dev \
     openssl-dev \
-    postgresql-dev
+    postgresql-dev \
+    && pip install --no-cache-dir hatch
 
-***REMOVED*** Copy movie-storage dependency to expected location
-COPY libs/movie-storage ./libs/movie-storage
+***REMOVED*** Copy only dependency-related files first
+COPY libs/movie-storage /tmp/movie-storage/
+COPY apps/auth-api/pyproject.toml apps/auth-api/hatch.toml ./
 
-***REMOVED*** First, install movie-storage dependency
-RUN cd libs/movie-storage && pip install --no-cache-dir --user .
+***REMOVED*** Install the movie-storage package first
+WORKDIR /tmp/movie-storage
+RUN pip install -e .
 
-***REMOVED*** Copy requirements.txt (pre-generated without movie-storage)
-COPY apps/auth-api/requirements.txt ./
-
-***REMOVED*** Install other dependencies to user directory
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-***REMOVED*** Copy application code and config
+***REMOVED*** Return to app directory and install application
+WORKDIR /app
 COPY apps/auth-api/src ./src/
-COPY apps/auth-api/pyproject.toml ./
 
-***REMOVED*** Fix the movie-storage path in pyproject.toml for Docker build context
-RUN sed -i 's|path = "../../libs/movie-storage"|path = "./libs/movie-storage"|' pyproject.toml
+***REMOVED*** Install the application using hatch
+RUN pip install --no-cache-dir -e .
 
-***REMOVED*** Install the current project to user directory
-RUN pip install --no-cache-dir --user -e .
-
-***REMOVED*** Stage 2: Runtime image
-FROM python:3.9-alpine AS final
+***REMOVED*** Stage 2: Runtime image - use a much smaller base
+FROM python:3.12-alpine AS final
 
 ***REMOVED*** Set production environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src \
-    PATH="/home/app/.local/bin:$PATH" \
+    PYTHONPATH=/app:/app/src \
     ENVIRONMENT="production" \
     PORT=8003 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
     WORKERS=1 \
     TIMEOUT=120 \
+    MAX_KEEPALIVE=60 \
     RELOAD=false \
     PROXY_HEADERS=true \
     FORWARDED_ALLOW_IPS="*" \
@@ -58,45 +56,47 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-***REMOVED*** Install runtime dependencies
-RUN apk add --no-cache \
-    curl \
-    postgresql-libs \
-    tini
+***REMOVED*** Install runtime dependencies including tini for proper process handling
+RUN apk add --no-cache libstdc++ postgresql-libs curl tini
 
-***REMOVED*** Create app user
-RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
+***REMOVED*** Copy the installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
 
-***REMOVED*** Copy Python packages from builder
-COPY --from=builder --chown=app:app /root/.local /home/app/.local
+***REMOVED*** Copy the movie-storage package
+COPY --from=builder /tmp/movie-storage /app/movie-storage
+RUN pip install -e /app/movie-storage
 
-***REMOVED*** Copy application code
-COPY --from=builder --chown=app:app /app/src ./src/
+***REMOVED*** Only copy the application code, not the entire Python installation
+COPY apps/auth-api/src ./src/
 
-***REMOVED*** Create logs directory
+EXPOSE 8003
+
+***REMOVED*** Use a non-root user for better security
+RUN addgroup -S app && adduser -S app -G app
+
+***REMOVED*** Create logs directory with proper permissions
 RUN mkdir -p /app/logs && chown -R app:app /app
 
 USER app
 
-***REMOVED*** Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8003/health || exit 1
-
-***REMOVED*** Expose port
-EXPOSE 8003
+***REMOVED*** Add health check configuration - optimized timeout and start period
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:8003/health || exit 1
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
 
-***REMOVED*** Run the application using uvicorn directly with proper worker configuration
+***REMOVED*** Run the application with production optimizations
+***REMOVED*** Hardcode log-level=info, proxy_headers=true and no reload for production
 CMD uvicorn auth_api.main:app \
     --host ${HOST} \
     --port ${PORT} \
     --workers ${WORKERS} \
-    --timeout-keep-alive ${TIMEOUT} \
     --log-level ${LOG_LEVEL} \
+    --timeout-keep-alive ${TIMEOUT} \
+    --limit-max-requests ${LIMIT_MAX_REQUESTS} \
     --no-access-log \
-    --proxy-headers \
-    --forwarded-allow-ips "*" \
     --backlog ${BACKLOG} \
-    --limit-max-requests ${LIMIT_MAX_REQUESTS} 
+    --proxy-headers \
+    --forwarded-allow-ips "*" 

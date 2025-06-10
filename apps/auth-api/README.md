@@ -23,6 +23,17 @@ Frontend → BFF → Auth-API (verify token) → Backend-API (X-User-ID header)
 - **Auth-API** returns user info if token is valid
 - **BFF** injects `X-User-ID` header for Backend-API calls
 
+***REMOVED******REMOVED******REMOVED*** Core Architecture
+
+The Auth API follows a modular architecture with clear separation of concerns:
+
+- **Core Module**: Application factory, middleware, and logging configuration
+- **Routes**: HTTP endpoint handlers organized by domain
+- **Services**: Business logic and authentication operations
+- **Database**: Data access layer with SQLModel/SQLAlchemy
+- **CLI**: Command-line interface for operations and management
+- **Configuration**: Environment-based configuration management
+
 ***REMOVED******REMOVED*** 🚀 Quick Start
 
 ***REMOVED******REMOVED******REMOVED*** Installation
@@ -32,13 +43,13 @@ Frontend → BFF → Auth-API (verify token) → Backend-API (X-User-ID header)
 cd apps/auth-api
 
 ***REMOVED*** Install dependencies
-poetry install
+hatch env create
 
 ***REMOVED*** Copy environment configuration
 cp env.example .env
 
 ***REMOVED*** Start the service
-poetry run auth-api serve
+hatch run serve
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Using the CLI
@@ -242,8 +253,10 @@ auth-api users stats --verbose
 
 ```http
 GET /               ***REMOVED*** Service information
-GET /health         ***REMOVED*** Health check
-GET /health/db      ***REMOVED*** Database health check
+GET /health         ***REMOVED*** Comprehensive health check with database status
+GET /health/live    ***REMOVED*** Liveness check for load balancers
+GET /health/ready   ***REMOVED*** Readiness check for orchestrators
+GET /db-health      ***REMOVED*** Legacy database health check (backward compatibility)
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Authentication
@@ -268,6 +281,16 @@ POST /auth/verify-token ***REMOVED*** Verify JWT token and return user info
 
 - **PostgreSQL**: Primary data store for user accounts and authentication data
 - **Shared with other services**: Uses the same database as Backend API
+- **Health Monitoring**: Comprehensive database health checks with response time tracking
+
+***REMOVED******REMOVED******REMOVED*** Health Service
+
+The service includes a comprehensive health monitoring system:
+
+- **Database Health**: PostgreSQL connection and performance monitoring
+- **Response Time Tracking**: Monitors database query performance
+- **Multiple Endpoints**: Separate endpoints for different health check types
+- **Load Balancer Integration**: Optimized health checks for orchestration systems
 
 ***REMOVED******REMOVED******REMOVED*** Configuration
 
@@ -356,16 +379,16 @@ curl -X POST http://localhost:8003/auth/verify-token \
 
 ```bash
 ***REMOVED*** Run all tests
-poetry run pytest
+hatch run test
 
 ***REMOVED*** Run with coverage
-poetry run pytest --cov=auth_api
+hatch run test-cov
 
 ***REMOVED*** Run specific test file
-poetry run pytest tests/test_auth.py
+hatch run test tests/test_auth.py
 
 ***REMOVED*** Run with verbose output
-poetry run pytest -v
+hatch run test -v
 ```
 
 ***REMOVED******REMOVED*** 🔧 Development
@@ -376,16 +399,10 @@ The project follows Google Python Style Guide:
 
 ```bash
 ***REMOVED*** Format code
-poetry run black src/ tests/
+hatch run format
 
-***REMOVED*** Sort imports
-poetry run isort src/ tests/
-
-***REMOVED*** Lint code
-poetry run flake8 src/ tests/
-
-***REMOVED*** Type checking
-poetry run mypy src/
+***REMOVED*** Lint code (includes black, isort, ruff, and mypy)
+hatch run lint
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Adding New CLI Commands
@@ -417,17 +434,29 @@ def hello(name: str = typer.Option(..., help="Name to greet")):
 ```
 apps/auth-api/
 ├── src/auth_api/
-│   ├── config/          ***REMOVED*** Configuration management
-│   ├── routes/          ***REMOVED*** FastAPI route handlers
-│   ├── services/        ***REMOVED*** Authentication services
-│   ├── middlewares/     ***REMOVED*** Custom middleware
-│   ├── cli/            ***REMOVED*** Command-line interface
-│   │   ├── commands/   ***REMOVED*** Modular CLI commands
-│   │   ├── utils.py    ***REMOVED*** CLI utilities
-│   │   └── main.py     ***REMOVED*** Main CLI app
-│   └── main.py         ***REMOVED*** FastAPI application
-├── tests/              ***REMOVED*** Test suite
-├── pyproject.toml      ***REMOVED*** Dependencies and config
+│   ├── core/           ***REMOVED*** Core application components
+│   │   ├── app.py      ***REMOVED*** FastAPI application factory
+│   │   ├── middleware.py ***REMOVED*** Middleware configuration
+│   │   ├── logging.py  ***REMOVED*** Logging setup
+│   │   └── README.md   ***REMOVED*** Core module documentation
+│   ├── config/         ***REMOVED*** Configuration management
+│   ├── routes/         ***REMOVED*** FastAPI route handlers
+│   ├── services/       ***REMOVED*** Business logic and authentication services
+│   ├── db/            ***REMOVED*** Database models and connections
+│   ├── schemas/       ***REMOVED*** Pydantic models for request/response
+│   ├── dependencies/ ***REMOVED*** FastAPI dependency injection
+│   ├── cli/           ***REMOVED*** Command-line interface
+│   │   ├── commands/  ***REMOVED*** Modular CLI commands
+│   │   ├── utils.py   ***REMOVED*** CLI utilities
+│   │   └── main.py    ***REMOVED*** Main CLI app
+│   └── main.py        ***REMOVED*** Application entry point
+├── tests/             ***REMOVED*** Test suite
+├── logs/              ***REMOVED*** Application logs
+├── .env               ***REMOVED*** Environment configuration
+├── .env.local         ***REMOVED*** Local development overrides
+├── pyproject.toml     ***REMOVED*** Dependencies and Hatch configuration
+├── hatch.toml         ***REMOVED*** Hatch project configuration
+├── Dockerfile         ***REMOVED*** Optimized multi-stage Docker build
 └── README.md          ***REMOVED*** This file
 ```
 

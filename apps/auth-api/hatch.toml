@@ -1,0 +1,82 @@
+[env]
+requires = ["hatch-vcs"]
+
+[env.paths]
+***REMOVED*** Configure module paths
+src = "src"
+tests = "tests"
+
+[build]
+***REMOVED*** Use hatch-vcs for versioning
+dev-mode-exact = true
+
+[version]
+source = "vcs"
+
+[dirs]
+***REMOVED*** Exclude certain directories from packaging
+exclude = [
+  "tests",
+  "docs",
+  ".github",
+  ".vscode",
+]
+
+[build.targets.wheel]
+packages = ["auth_api"]
+
+[envs.default]
+***REMOVED*** Configure virtual environment to be in project directory
+type = "virtual"
+path = ".venv"
+dependencies = [
+  "fastapi>=0.104.0",
+  "uvicorn>=0.23.2",
+  "pydantic>=2.4.2",
+  "pydantic-settings>=2.0.0",
+  "sqlalchemy>=2.0.23",
+  "pyjwt>=2.8.0",
+  "passlib[bcrypt]>=1.7.4",
+  "bcrypt==3.2.2",
+  "python-multipart>=0.0.6",
+  "email-validator>=2.1.0",
+  "httpx>=0.24.0",
+  "typer>=0.15.2",
+  "rich>=14.0.0",
+  "python-dotenv>=1.0.0",
+]
+
+***REMOVED*** Add environment variables for development
+[envs.default.env-vars]
+PYTHONPATH = "../../libs:src"
+
+[envs.default.scripts]
+serve = "python -m auth_api.main"
+dev = "uvicorn auth_api.main:app --reload --port 8003"
+cli = "python -m auth_api.cli {args}"
+***REMOVED*** Add script to install the local movie-storage package
+setup-local-deps = "pip install -e ../../libs/movie-storage"
+
+[envs.dev]
+dependencies = [
+  "pytest>=7.4.3",
+  "pytest-cov>=6.0.0",
+  "black>=23.10.1",
+  "isort>=5.12.0",
+  "mypy>=1.7.0",
+  "ruff>=0.0.250",
+]
+
+[envs.dev.scripts]
+lint = [
+  "black .",
+  "isort .",
+  "ruff check .",
+  "mypy auth_api"
+]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=auth_api tests/"
+format = [
+  "black .",
+  "isort ."
+] 

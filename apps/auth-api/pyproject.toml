@@ -1,38 +1,154 @@
-[tool.poetry]
-name = "auth-api"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "auth_api"
 version = "0.1.0"
 description = "Dedicated authentication service for next_watch movie platform"
-authors = ["Your Name <your.email@example.com>"]
-packages = [{include = "auth_api", from = "src"}]
-include = ["src/auth_api/py.typed"]
+authors = [
+    {name = "Next Watch Team"}
+]
+readme = {text = "***REMOVED*** Auth API\n\nDedicated authentication service for next_watch movie platform", content-type = "text/markdown"}
+requires-python = ">=3.9,<3.13"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    ***REMOVED*** Core API framework
+    "fastapi>=0.104.0",         ***REMOVED*** API framework
+    "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
+    "pydantic>=2.4.2",          ***REMOVED*** Data validation
+    "pydantic-settings>=2.0.0", ***REMOVED*** Settings management
+    
+    ***REMOVED*** Database
+    "sqlalchemy>=2.0.23",       ***REMOVED*** SQL ORM
+    
+    ***REMOVED*** Authentication
+    "pyjwt>=2.8.0",             ***REMOVED*** JWT token handling
+    "passlib[bcrypt]>=1.7.4",   ***REMOVED*** Password hashing
+    "bcrypt==3.2.2",            ***REMOVED*** Specific bcrypt version
+    "python-multipart>=0.0.6",  ***REMOVED*** Form data parsing
+    "email-validator>=2.1.0",   ***REMOVED*** Email validation
+    
+    ***REMOVED*** HTTP client
+    "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
+    
+    ***REMOVED*** CLI and utilities
+    "typer>=0.15.2",            ***REMOVED*** CLI framework
+    "rich>=14.0.0",             ***REMOVED*** Terminal formatting
+    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-fastapi = "^0.104.0"
-uvicorn = "^0.23.2"
-pydantic = "^2.4.2"
-sqlalchemy = "^2.0.23"
-typer = "^0.15.2"
-python-dotenv = "^1.0.0"
-movie-storage = {path = "../../libs/movie-storage"}
-pyjwt = "^2.8.0"
-passlib = {extras = ["bcrypt"], version = "^1.7.4"}
-python-multipart = "^0.0.6"
-email-validator = "^2.1.0"
-bcrypt = "3.2.2"
-httpx = "^0.24.0"
-rich = "^14.0.0"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-cov>=6.0.0",
+    "black>=23.10.1",
+    "isort>=5.12.0",
+    "mypy>=1.7.0",
+    "ruff>=0.0.250",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-black = "^23.10.1"
-isort = "^5.12.0"
-flake8 = "^6.1.0"
-mypy = "^1.7.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 auth-api = "auth_api.cli.main:main"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api" 
+***REMOVED*** Allow direct references to local dependencies
+[tool.hatch.metadata]
+allow-direct-references = true
+
+***REMOVED*** Added to ensure correct package discovery
+[tool.hatch.build.targets.wheel]
+packages = ["auth_api"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["auth_api"]
+
+***REMOVED*** Specify that the package is in the src directory
+[tool.hatch.build.sources]
+"src" = ""
+
+***REMOVED*** Tool configurations
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.12"
+***REMOVED*** Common strict settings
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+strict_optional = true
+
+***REMOVED*** Module resolution
+mypy_path = "src"
+explicit_package_bases = true
+namespace_packages = true
+
+***REMOVED*** Additional strict settings
+disallow_any_unimported = true
+disallow_untyped_calls = true
+
+***REMOVED*** Variable annotation settings
+disallow_any_generics = true 
+disallow_subclassing_any = true
+disallow_untyped_globals = true
+
+***REMOVED*** Warning settings
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_return_any = true
+warn_unreachable = true
+
+***REMOVED*** Error reporting
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+
+***REMOVED*** Import handling
+ignore_missing_imports = true
+
+***REMOVED*** Special overrides for our own code to be strict
+[[tool.mypy.overrides]]
+module = "auth_api.*"
+disallow_untyped_calls = true
+disallow_any_unimported = true
+warn_return_any = true
+
+***REMOVED*** External dependencies overrides
+[[tool.mypy.overrides]]
+module = [
+    "sqlalchemy.*", 
+    "pydantic.*",
+    "fastapi.*",
+    "uvicorn.*",
+    "typer.*",
+    "rich.*",
+    "passlib.*",
+    "bcrypt.*",
+    "email_validator.*",
+    "httpx.*",
+    "jwt.*"
+]
+ignore_missing_imports = true 
