@@ -75,8 +75,8 @@ EXPOSE 8003
 ***REMOVED*** Use a non-root user for better security
 RUN addgroup -S app && adduser -S app -G app
 
-***REMOVED*** Create logs directory with proper permissions
-RUN mkdir -p /app/logs && chown -R app:app /app
+***REMOVED*** Create logs directory with proper permissions BEFORE switching to app user
+RUN mkdir -p /app/logs && chown -R app:app /app/logs && chown -R app:app /app
 
 USER app
 
