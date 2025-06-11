@@ -10,14 +10,11 @@ authors = [
     {name = "Next Watch Team"}
 ]
 readme = {text = "***REMOVED*** Recommendation API\n\nRecommendation API for Next Watch platform", content-type = "text/markdown"}
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
@@ -71,7 +68,7 @@ python_functions = "test_*"
 
 [tool.black]
 line-length = 100
-target-version = ["py39"]
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"
