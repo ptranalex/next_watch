@@ -1,9 +1,9 @@
-"""
-Database module for the backend API.
+"""Database module for movie storage."""
 
-This module provides database connection utilities and models.
-"""
+from backend_api.db.db import get_engine, get_session, init_db
 
-from .database import get_db
-
-__all__ = ["get_db"]
+__all__ = [
+    "get_engine",
+    "get_session",
+    "init_db",
+]

@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
+
 """
 Database setup and migration script.
 """
@@ -7,9 +8,9 @@ import os
 
 import typer
 from typer import Typer
-from movie_storage.db import init_db
-from movie_storage.db.migrations import run_migration
-from movie_storage.utils import setup_movie_storage
+from backend_api.db import init_db
+from backend_api.db.migrations import run_migration
+from backend_api.utils import setup_backend_api_storage
 
 app: Typer = typer.Typer()
 
@@ -48,7 +49,7 @@ def setup_storage() -> None:
     This will initialize the database and create any necessary tables.
     """
     typer.echo("Setting up movie storage...")
-    setup_movie_storage(database_url=DATABASE_URL, create_tables=True)
+    setup_backend_api_storage(database_url=DATABASE_URL, create_tables=True)
     typer.echo("Movie storage setup completed!")
 
 

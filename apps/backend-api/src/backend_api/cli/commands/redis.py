@@ -575,3 +575,9 @@ async def _fetch_director_data(limit: int) -> List[Dict[str, Any]]:
 
     finally:
         db.close()
+
+
+***REMOVED*** Register with cache command group
+from backend_api.cli import cache_app
+
+cache_app.add_typer(app, name="redis")

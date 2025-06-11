@@ -74,3 +74,10 @@ def serve(ctx: typer.Context) -> None:
     """Start the backend API server."""
     if ctx.invoked_subcommand is None:
         start_server()
+
+
+***REMOVED*** Register serve command directly with main app
+from backend_api.cli import app as main_app
+
+***REMOVED*** Register the start_server command directly as "serve"
+main_app.command("serve")(start_server)

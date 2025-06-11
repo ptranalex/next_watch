@@ -7,7 +7,6 @@ from fastapi import APIRouter
 ***REMOVED*** Import v1 route modules
 from backend_api.routes.v1 import (
     actors,
-    auth,
     genres,
     movies,
     search,
@@ -22,5 +21,4 @@ api_v1_router.include_router(movies.router, tags=["movies"])
 api_v1_router.include_router(genres.router, tags=["genres"])
 api_v1_router.include_router(actors.router, tags=["actors"])
 api_v1_router.include_router(search.router, tags=["search"])
-api_v1_router.include_router(auth.router, tags=["auth"])
 api_v1_router.include_router(user_interactions.router, tags=["user_interactions"])

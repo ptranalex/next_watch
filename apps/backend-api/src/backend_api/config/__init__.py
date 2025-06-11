@@ -1,66 +1,26 @@
-"""Configuration package for the backend_api module.
+"""Configuration package for movie storage."""
 
-This package provides centralized configuration for the application,
-including environment variable loading and app settings.
-"""
-
-from .env import (
-    get_env_var,
+from backend_api.config.app import Config, ConfigDict
+from backend_api.config.env import (
+    find_project_root,
     get_env_bool,
     get_env_int,
+    get_env_var,
     load_environment_variables,
-    find_project_root,
 )
-from .app import (
-    DEFAULT_API_PORT,
-    DEFAULT_CORS_ORIGINS,
-    DEFAULT_DATABASE_URL,
-    DEFAULT_DEBUG,
-    DEFAULT_LOG_LEVEL,
-    DEFAULT_LOGS_DIR,
-    DEFAULT_ENABLE_PERFORMANCE_METRICS,
-    DEFAULT_JWT_SECRET,
-    DEFAULT_JWT_ALGORITHM,
-    DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
-    DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS,
-    DEFAULT_JWT_JWK_ROTATION_INTERVAL,
-    DEFAULT_REDIS_URL,
-    DEFAULT_REDIS_MAX_CONNECTIONS,
-    DEFAULT_REDIS_SOCKET_TIMEOUT,
-    DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT,
-    DEFAULT_REDIS_RETRY_ON_TIMEOUT,
-    Config,
-    ConfigDict,
-    settings,
-)
+from backend_api.config.logging import configure_logging
 
+***REMOVED*** Export all configuration utilities
 __all__ = [
+    ***REMOVED*** Core configuration
+    "Config",
+    "ConfigDict",
     ***REMOVED*** Environment utilities
     "get_env_var",
     "get_env_bool",
     "get_env_int",
     "load_environment_variables",
     "find_project_root",
-    ***REMOVED*** Configuration classes and types
-    "Config",
-    "ConfigDict",
-    "settings",
-    ***REMOVED*** Default values
-    "DEFAULT_LOG_LEVEL",
-    "DEFAULT_LOGS_DIR",
-    "DEFAULT_DATABASE_URL",
-    "DEFAULT_API_PORT",
-    "DEFAULT_CORS_ORIGINS",
-    "DEFAULT_DEBUG",
-    "DEFAULT_ENABLE_PERFORMANCE_METRICS",
-    "DEFAULT_JWT_SECRET",
-    "DEFAULT_JWT_ALGORITHM",
-    "DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES",
-    "DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS",
-    "DEFAULT_JWT_JWK_ROTATION_INTERVAL",
-    "DEFAULT_REDIS_URL",
-    "DEFAULT_REDIS_MAX_CONNECTIONS",
-    "DEFAULT_REDIS_SOCKET_TIMEOUT",
-    "DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT",
-    "DEFAULT_REDIS_RETRY_ON_TIMEOUT",
+    ***REMOVED*** Logging utilities
+    "configure_logging",
 ]

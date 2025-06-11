@@ -28,16 +28,16 @@ def find_project_root(start_path: Optional[Path] = None) -> Path:
     current = start_path.resolve()
 
     ***REMOVED*** Look for common project root markers
-    markers = [".env", "pyproject.toml", "setup.py", ".git"]
+    markers = [".env", "pyproject.toml", "setup.py", ".git", "README.md"]
 
     while current != current.parent:
         if any((current / marker).exists() for marker in markers):
             return current
         current = current.parent
 
-    ***REMOVED*** Fallback: assume project root is 4 levels up from this file
-    ***REMOVED*** (src/backend_api/config/env.py -> project_root)
-    fallback_root = Path(__file__).parent.parent.parent.parent
+    ***REMOVED*** Fallback: assume project root is 3 levels up from this file
+    ***REMOVED*** (movie_storage/config/env.py -> project_root)
+    fallback_root = Path(__file__).parent.parent.parent
     if fallback_root.exists():
         return fallback_root
 
@@ -185,11 +185,11 @@ def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
         Integer value or default
 
     Example:
-        >>> os.environ["API_PORT"] = "8080"
-        >>> get_env_int("API_PORT")
-        8080
-        >>> get_env_int("MISSING_VAR", default=8000)
-        8000
+        >>> os.environ["MAX_CONNECTIONS"] = "20"
+        >>> get_env_int("MAX_CONNECTIONS")
+        20
+        >>> get_env_int("MISSING_VAR", default=10)
+        10
     """
     value = os.getenv(key)
     if not value:

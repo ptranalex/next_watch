@@ -88,3 +88,10 @@ def config(ctx: typer.Context) -> None:
     """Display current configuration."""
     if ctx.invoked_subcommand is None:
         show_config()
+
+
+***REMOVED*** Register config command directly with main app
+from backend_api.cli import app as main_app
+
+***REMOVED*** Register the show command directly as "config"
+main_app.command("config")(show_config)

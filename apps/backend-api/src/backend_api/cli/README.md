@@ -16,6 +16,7 @@ backend_api/cli/
 └── commands/         ***REMOVED*** Individual command groups
     ├── cache.py      ***REMOVED*** Cache management commands
     ├── config.py     ***REMOVED*** Configuration commands
+    ├── database.py   ***REMOVED*** Database management commands (consolidated)
     ├── health.py     ***REMOVED*** Health check commands
     ├── redis.py      ***REMOVED*** Redis data management commands
     ├── serve.py      ***REMOVED*** Server commands
@@ -23,31 +24,41 @@ backend_api/cli/
     └── __init__.py   ***REMOVED*** Command module initialization
 ```
 
+***REMOVED******REMOVED*** Command Structure
+
+The CLI follows a clean, flat structure with logical grouping:
+
+***REMOVED******REMOVED******REMOVED*** Top-Level Commands
+
+- `config` - Display and manage configuration settings
+- `serve` - Start the Backend API server
+- `version` - Display version information
+
+***REMOVED******REMOVED******REMOVED*** Command Groups
+
+- `db` - Database management commands
+- `health` - Health check commands
+- `cache` - Cache management commands
+
 ***REMOVED******REMOVED*** Command Groups
 
-- **serve**: Start and manage the Backend API server
+- **db**: Database management commands
 
-  - `serve` or `serve start`: Start the Backend API server
-  - Options: `--host`, `--port`, `--reload`, `--log-level`, `--log-dir`, `--verbose`, `--quiet`
+  - `db init`: Initialize the database and optionally create tables
+  - `db migrate`: Run database migrations to update schema
+  - `db downgrade`: Downgrade database migrations
+  - `db teardown`: Teardown database (DEVELOPMENT ONLY - destroys all data!)
+  - Options: Various options for database URL, verbosity, confirmation, etc.
 
 - **health**: Health check commands for Backend API and dependent services
 
-  - `health` or `health check`: Check Backend API health status
+  - `health`: Check Backend API health status (default command)
+  - `health check`: Explicit health check command
   - `health redis`: Check Redis health
   - `health db`: Check database health
   - Options: `--verbose`, `--timeout`
 
-- **config**: Display and manage configuration settings
-
-  - `config` or `config show`: Show current configuration
-  - Options: `--verbose`, `--show-secrets`
-
-- **redis**: Redis data management commands
-
-  - `redis populate-suggestions`: Populate Redis with movie, actor, and director suggestions for autocomplete
-  - Options: Various options for controlling what data gets populated
-
-- **cache**: Redis cache management commands
+- **cache**: Cache management commands
 
   - `cache info`: Display Redis cache information
   - `cache keys`: List cache keys matching a pattern
@@ -55,6 +66,16 @@ backend_api/cli/
   - `cache delete`: Delete a specific key
   - `cache clear`: Clear cache keys matching a pattern
   - Options: Various options depending on the command
+
+- **config**: Display and manage configuration settings
+
+  - `config`: Show current configuration (default)
+  - Options: `--verbose`, `--show-secrets`
+
+- **serve**: Start and manage the Backend API server
+
+  - `serve`: Start the Backend API server
+  - Options: `--host`, `--port`, `--reload`, `--log-level`, `--log-dir`, `--verbose`, `--quiet`
 
 - **version**: Display version information
   - `version`: Show Backend API version
@@ -82,6 +103,62 @@ python -m backend_api.cli [COMMAND] [OPTIONS]
 
 ***REMOVED******REMOVED*** Usage Examples
 
+***REMOVED******REMOVED******REMOVED*** Database Management
+
+Initialize the database:
+
+```bash
+backend-api db init
+```
+
+Initialize with table creation:
+
+```bash
+backend-api db init --create-tables
+```
+
+Run database migrations:
+
+```bash
+backend-api db migrate
+```
+
+Run migrations with verbose output:
+
+```bash
+backend-api db migrate --verbose
+```
+
+Downgrade the last migration:
+
+```bash
+backend-api db downgrade
+```
+
+Downgrade multiple migrations:
+
+```bash
+backend-api db downgrade --steps 3
+```
+
+Downgrade to a specific migration:
+
+```bash
+backend-api db downgrade --target 005_add_ratings_and_awards
+```
+
+Downgrade all migrations:
+
+```bash
+backend-api db downgrade --all --confirm
+```
+
+Teardown database (development only):
+
+```bash
+backend-api db teardown --confirm
+```
+
 ***REMOVED******REMOVED******REMOVED*** Server Management
 
 Start the server with default settings:
@@ -93,7 +170,7 @@ backend-api serve
 Start with custom host and port:
 
 ```bash
-backend-api serve start --host 127.0.0.1 --port 8080
+backend-api serve --host 127.0.0.1 --port 8080
 ```
 
 Start in development mode with auto-reload:
@@ -146,26 +223,6 @@ Show configuration including secrets (use with caution):
 
 ```bash
 backend-api config --show-secrets
-```
-
-***REMOVED******REMOVED******REMOVED*** Redis Data Management
-
-Populate Redis with suggestions data:
-
-```bash
-backend-api redis populate-suggestions
-```
-
-Populate with specific limits:
-
-```bash
-backend-api redis populate-suggestions --limit 5000 --actor-limit 1000
-```
-
-Populate only movies (no actors or directors):
-
-```bash
-backend-api redis populate-suggestions --no-actors --no-directors
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Cache Management
@@ -224,34 +281,84 @@ backend-api version --verbose
 
 The CLI respects the following environment variables:
 
-| Variable      | Description              | Default                  |
-| ------------- | ------------------------ | ------------------------ |
-| `HOST`        | Server host address      | 0.0.0.0                  |
-| `PORT`        | Server port number       | 8000                     |
-| `LOG_LEVEL`   | Logging level            | INFO                     |
-| `ENVIRONMENT` | Environment (dev/prod)   | development              |
-| `DEBUG`       | Enable debug mode        | false                    |
-| `REDIS_URL`   | URL for Redis connection | redis://localhost:6379/0 |
+| Variable       | Description               | Default                                     |
+| -------------- | ------------------------- | ------------------------------------------- |
+| `HOST`         | Server host address       | 0.0.0.0                                     |
+| `PORT`         | Server port number        | 8000                                        |
+| `LOG_LEVEL`    | Logging level             | INFO                                        |
+| `ENVIRONMENT`  | Environment (dev/prod)    | development                                 |
+| `DEBUG`        | Enable debug mode         | false                                       |
+| `DATABASE_URL` | PostgreSQL connection URL | postgresql://alex@localhost:5432/next_watch |
+| `REDIS_URL`    | URL for Redis connection  | redis://localhost:6379/0                    |
 
 ***REMOVED******REMOVED*** Design Principles
 
-1. **Command Structure**: Commands are organized into logical groups with consistent naming
-2. **Sensible Defaults**: Primary commands work without arguments and use sensible defaults
-3. **Rich Output**: User-friendly console output with color and formatting
-4. **Environment Variables**: Support for configuration via environment variables
-5. **Type Safety**: Full type annotations for reliability and maintainability
-6. **Comprehensive Help**: Detailed help text for all commands and options
-7. **Error Handling**: Robust error reporting and appropriate exit codes
+1. **Flat Command Structure**: Minimal nesting for intuitive usage
+2. **Logical Grouping**: Related commands grouped under clear namespaces
+3. **Sensible Defaults**: Primary commands work without arguments and use sensible defaults
+4. **Rich Output**: User-friendly console output with color and formatting
+5. **Environment Variables**: Support for configuration via environment variables
+6. **Type Safety**: Full type annotations for reliability and maintainability
+7. **Comprehensive Help**: Detailed help text for all commands and options
+8. **Error Handling**: Robust error reporting and appropriate exit codes
+9. **Consolidated Commands**: Related functionality is grouped in single files for better maintainability
+
+***REMOVED******REMOVED*** Database Commands Details
+
+The database commands provide comprehensive database management functionality:
+
+***REMOVED******REMOVED******REMOVED*** Database Initialization
+
+- Creates database connection
+- Optionally creates all tables
+- Supports custom database URLs
+- Provides verbose output for debugging
+
+***REMOVED******REMOVED******REMOVED*** Database Migrations
+
+- Applies pending migrations in sequence
+- Tracks applied migrations in database
+- Shows detailed migration information
+- Supports custom database URLs
+
+***REMOVED******REMOVED******REMOVED*** Database Downgrades
+
+- Supports single or multiple migration downgrades
+- Can target specific migrations
+- Provides confirmation prompts for safety
+- Shows detailed downgrade information
+- Supports downgrading all migrations
+
+***REMOVED******REMOVED******REMOVED*** Database Teardown
+
+- **DEVELOPMENT ONLY** - Destroys all data
+- Multiple confirmation prompts for safety
+- Environment-aware (blocks production by default)
+- Complete schema reset functionality
 
 ***REMOVED******REMOVED*** Extending the CLI
 
 To add new command groups or commands:
 
+***REMOVED******REMOVED******REMOVED*** Adding Top-Level Commands
+
 1. Create a new module in the `commands/` directory
-2. Define a `typer.Typer` app in the module
-3. Add command functions using `@app.command()`
-4. Import and register in `commands/__init__.py`
-5. Add to the main app in `__init__.py` using `app.add_typer()`
+2. Define command functions using `@app.command()`
+3. Register directly with main app: `main_app.command("name")(function)`
+4. Import in `commands/__init__.py`
+
+***REMOVED******REMOVED******REMOVED*** Adding Command Groups
+
+1. Create a new module in the `commands/` directory
+2. Define command functions using `@app.command()`
+3. Add new command group to `cli/__init__.py`: `group_app = typer.Typer(...)`
+4. Register commands with group: `group_app.command("name")(function)`
+5. Register group with main app: `app.add_typer(group_app, name="group")`
+6. Import in `commands/__init__.py`
+
+***REMOVED******REMOVED******REMOVED*** Adding Database Commands
+
+For database commands specifically, add new commands directly to the existing `database.py` file and register them with `db_app.command()`.
 
 ***REMOVED******REMOVED*** Best Practices
 
@@ -261,6 +368,10 @@ To add new command groups or commands:
 - Include comprehensive help text for all commands and options
 - Handle errors gracefully with appropriate exit codes
 - Log information at appropriate levels
+- Consolidate related functionality in single files when appropriate
+- Use confirmation prompts for destructive operations
+- Keep command structure flat and intuitive
+- Avoid unnecessary nesting (e.g., avoid `cache cache info`)
 
 ***REMOVED******REMOVED*** Shell Completion
 

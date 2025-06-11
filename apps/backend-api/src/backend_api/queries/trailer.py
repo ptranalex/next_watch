@@ -2,7 +2,7 @@
 
 from typing import List
 
-from movie_storage.models import Trailer
+from backend_api.models import Trailer
 from sqlmodel import Session, select
 
 

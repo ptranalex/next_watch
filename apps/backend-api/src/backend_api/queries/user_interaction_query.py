@@ -5,14 +5,14 @@ User movie interaction queries for optimized read operations.
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from movie_storage.db.operations import (
+from backend_api.db.operations import (
     get_movie_by_id,
     get_user_liked_movies,
     get_user_movie_interaction,
     get_user_watched_movies,
     get_user_watchlist,
 )
-from movie_storage.models import Movie, UserMovieInteraction
+from backend_api.models import Movie, UserMovieInteraction
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import Session, select

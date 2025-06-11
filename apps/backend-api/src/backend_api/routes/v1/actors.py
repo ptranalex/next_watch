@@ -9,13 +9,13 @@ from typing import List, Optional, cast, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 ***REMOVED*** Import movie-storage operations
-from movie_storage.db.operations import (
+from backend_api.db.operations import (
     get_credits_by_person_id,
     get_movie_by_id,
 )
 
 ***REMOVED*** Import models
-from movie_storage.models import Credit
+from backend_api.models import Credit
 
 ***REMOVED*** Import schemas
 from pydantic import BaseModel

@@ -1,13 +1,20 @@
 """
-User movie interactions API routes.
+User interaction routes for managing user movie relationships.
 
-These routes handle user interactions with movies, like marking movies as watched,
-adding them to watchlists, or liking them.
+These routes handle user interactions with movies such as:
+- Watchlist management
+- Watched movies tracking
+- Movie likes/dislikes
+- Import functionality for external services
+
+Authentication is handled by the BFF layer, which passes user context
+via X-User-ID header after validating JWT tokens.
 """
 
+import csv
+import io
 import logging
-from datetime import datetime
-from typing import Annotated, Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union, Annotated
 
 from fastapi import (
     APIRouter,
@@ -19,14 +26,11 @@ from fastapi import (
     UploadFile,
     status,
 )
-from movie_storage.db.operations import get_movie_by_id
-from movie_storage.models.movie import Movie
-from movie_storage.models.user import User
-from movie_storage.models.user_interaction import UserMovieInteraction
 from pydantic import BaseModel
-from sqlmodel import Field, Session
+from sqlmodel import Session
 
-from backend_api.db import get_db
+from backend_api.db.database import get_db
+from backend_api.models.user_interaction import UserMovieInteraction
 from backend_api.dependencies import get_user_id_from_header
 from backend_api.errors import (
     ResourceNotFoundError,
@@ -34,7 +38,6 @@ from backend_api.errors import (
     service_error_to_http_exception,
 )
 from backend_api.queries import UserInteractionQuery
-from .auth import get_current_user
 from backend_api.schemas import (
     MovieSummary,
     UserMovieDetail,
@@ -101,7 +104,7 @@ async def get_movie_interaction(
     summary="Get user's watchlist",
 )
 async def get_user_watchlist_endpoint(
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
@@ -111,7 +114,7 @@ async def get_user_watchlist_endpoint(
     Get the current user's watchlist.
 
     Args:
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_query: User interaction query
         limit: Maximum number of items to return
@@ -120,16 +123,9 @@ async def get_user_watchlist_endpoint(
     Returns:
         List of movies in the user's watchlist
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     ***REMOVED*** Get user interactions
     try:
-        interactions, _ = interaction_query.get_user_watchlist(db, current_user.id, limit, offset)
+        interactions, _ = interaction_query.get_user_watchlist(db, user_id, limit, offset)
         return interactions
     except ValidationError as e:
         raise service_error_to_http_exception(e)
@@ -142,7 +138,7 @@ async def get_user_watchlist_endpoint(
     summary="Get user's watched movies",
 )
 async def get_user_watched_movies_endpoint(
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
@@ -152,7 +148,7 @@ async def get_user_watched_movies_endpoint(
     Get the current user's watched movies.
 
     Args:
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_query: User interaction query
         limit: Maximum number of items to return
@@ -161,18 +157,9 @@ async def get_user_watched_movies_endpoint(
     Returns:
         List of movies the user has watched
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     ***REMOVED*** Get user interactions
     try:
-        interactions, _ = interaction_query.get_user_watched_movies(
-            db, current_user.id, limit, offset
-        )
+        interactions, _ = interaction_query.get_user_watched_movies(db, user_id, limit, offset)
         return interactions
     except ValidationError as e:
         raise service_error_to_http_exception(e)
@@ -185,7 +172,7 @@ async def get_user_watched_movies_endpoint(
     summary="Get user's liked movies",
 )
 async def get_user_liked_movies_endpoint(
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
@@ -195,7 +182,7 @@ async def get_user_liked_movies_endpoint(
     Get the current user's liked movies.
 
     Args:
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_query: User interaction query
         limit: Maximum number of items to return
@@ -204,18 +191,9 @@ async def get_user_liked_movies_endpoint(
     Returns:
         List of movies the user has liked
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     ***REMOVED*** Get user interactions
     try:
-        interactions, _ = interaction_query.get_user_liked_movies(
-            db, current_user.id, limit, offset
-        )
+        interactions, _ = interaction_query.get_user_liked_movies(db, user_id, limit, offset)
         return interactions
     except ValidationError as e:
         raise service_error_to_http_exception(e)
@@ -230,42 +208,28 @@ async def get_user_liked_movies_endpoint(
 )
 async def toggle_watchlist(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
-    Toggle a movie in the user's watchlist.
+    Toggle a movie in the user's watchlist (DEPRECATED).
 
-    If the movie is not in the watchlist, it will be added.
-    If the movie is already in the watchlist, it will be removed.
+    This endpoint is deprecated. Use PUT /user/movies/{movie_id}/watchlist or
+    DELETE /user/movies/{movie_id}/watchlist instead for explicit operations.
 
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
-
-    Raises:
-        HTTPException: If the movie doesn't exist
-
-    Deprecated:
-        Use PUT /{movie_id}/watchlist to add to watchlist or
-        DELETE /{movie_id}/watchlist to remove from watchlist instead.
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
-    ***REMOVED*** Toggle watchlist status
     try:
-        return interaction_service.toggle_watchlist(db, current_user.id, movie_id)
+        result = interaction_service.toggle_watchlist(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
@@ -279,42 +243,28 @@ async def toggle_watchlist(
 )
 async def toggle_watched(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
-    Toggle a movie as watched.
+    Toggle a movie as watched/unwatched (DEPRECATED).
 
-    If the movie is not marked as watched, it will be marked as watched.
-    If the movie is already marked as watched, it will be unmarked.
+    This endpoint is deprecated. Use PUT /user/movies/{movie_id}/watched or
+    DELETE /user/movies/{movie_id}/watched instead for explicit operations.
 
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
-
-    Raises:
-        HTTPException: If the movie doesn't exist
-
-    Deprecated:
-        Use PUT /{movie_id}/watched to mark as watched or
-        DELETE /{movie_id}/watched to unmark as watched instead.
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
-    ***REMOVED*** Toggle watched status
     try:
-        return interaction_service.toggle_watched(db, current_user.id, movie_id)
+        result = interaction_service.toggle_watched(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
@@ -328,47 +278,33 @@ async def toggle_watched(
 )
 async def toggle_liked(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
-    Toggle a movie as liked.
+    Toggle a movie as liked/unliked (DEPRECATED).
 
-    If the movie is not liked, it will be marked as liked.
-    If the movie is already liked, it will be unmarked.
+    This endpoint is deprecated. Use PUT /user/movies/{movie_id}/liked or
+    DELETE /user/movies/{movie_id}/liked instead for explicit operations.
 
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
-
-    Raises:
-        HTTPException: If the movie doesn't exist
-
-    Deprecated:
-        Use PUT /{movie_id}/liked to mark as liked or
-        DELETE /{movie_id}/liked to unlike instead.
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
-    ***REMOVED*** Toggle liked status
     try:
-        return interaction_service.toggle_liked(db, current_user.id, movie_id)
+        result = interaction_service.toggle_liked(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** Delete a movie interaction completely
+***REMOVED*** Delete movie interaction
 @router.delete(
     "/{movie_id}/interaction",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -376,47 +312,28 @@ async def toggle_liked(
 )
 async def delete_movie_interaction(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> None:
     """
-    Delete a user's interaction with a movie completely.
+    Delete all interactions a user has with a movie.
 
-    This removes all interaction flags (watched, liked, in_watchlist).
+    This removes the movie from watchlist, watched, and liked lists.
 
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
-
-    Returns:
-        No content
-
-    Raises:
-        HTTPException: If the movie doesn't exist or has no interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
-    ***REMOVED*** Delete interaction
     try:
-        success = interaction_service.delete_interaction(db, current_user.id, movie_id)
-        if not success:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No interaction found for this movie",
-            )
+        interaction_service.delete_interaction(db, user_id, movie_id)
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** New optimized endpoint for movie details by category
+***REMOVED*** Get user movie details with optimized queries
 @router.get(
     "/{category}",
     response_model=List[UserMovieDetail],
@@ -426,7 +343,7 @@ async def get_user_movie_details(
     category: Annotated[
         str, Path(title="Category", description="One of: watchlist, watched, liked")
     ],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     page: Annotated[int, Query(ge=1)] = 1,
@@ -439,93 +356,60 @@ async def get_user_movie_details(
     year: Annotated[Optional[int], Query(ge=1900, le=2030)] = None,
 ) -> List[Any]:
     """
-    Get the current user's movie details for a specific category with filtering and sorting.
+    Get user's movies with detailed information and filtering options.
 
-    This endpoint uses an optimized database query and supports filtering by ratings,
-    year, and sorting by various criteria.
+    This endpoint provides optimized queries to get user's movies with
+    complete movie details including ratings, cast, and metadata.
 
     Args:
-        category: Category of movies to retrieve (watchlist, watched, liked)
-        current_user: Current authenticated user
+        category: Category of movies (watchlist, watched, liked)
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_query: User interaction query
-        page: Page number for pagination
-        limit: Maximum number of items to return
-        sort_by: Field to sort by (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)
-        sort_desc: Whether to sort in descending order
+        page: Page number (1-based)
+        limit: Items per page
+        sort_by: Field to sort by (title, year, imdb_rating, etc.)
+        sort_desc: Sort in descending order
         imdb_rating: Filter by minimum IMDb rating
         rotten_tomatoes_rating: Filter by minimum Rotten Tomatoes rating
         metacritic_rating: Filter by minimum Metacritic rating
         year: Filter by release year
 
     Returns:
-        List of movie details with interaction status including imdb_rating
+        List of user movie details with full movie information
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
+    ***REMOVED*** Validate category
+    valid_categories = ["watchlist", "watched", "liked"]
+    if category not in valid_categories:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
+            detail=f"Invalid category. Must be one of: {', '.join(valid_categories)}",
         )
 
-    ***REMOVED*** Convert page to offset
+    ***REMOVED*** Calculate offset from page
     offset = (page - 1) * limit
 
+    ***REMOVED*** Build filters
+    filters = {}
+    if imdb_rating is not None:
+        filters["imdb_rating"] = imdb_rating
+    if rotten_tomatoes_rating is not None:
+        filters["rotten_tomatoes_rating"] = rotten_tomatoes_rating
+    if metacritic_rating is not None:
+        filters["metacritic_rating"] = metacritic_rating
+    if year is not None:
+        filters["year"] = year
+
     try:
-        ***REMOVED*** Get movie details with optimized query (currently only supports basic pagination)
-        ***REMOVED*** TODO: Extend get_user_movie_details to support filtering and sorting
-        movie_details, total = interaction_query.get_user_movie_details(
-            db, current_user.id, category, limit, offset
+        ***REMOVED*** Get user movie details based on category using available methods
+        result, total = interaction_query.get_user_movie_details(
+            db, user_id, category, limit, offset
         )
-
-        ***REMOVED*** For now, apply filtering and sorting in Python (not optimal, but functional)
-        ***REMOVED*** This should be moved to the database query for better performance
-        if movie_details:
-            ***REMOVED*** Apply filters
-            if imdb_rating is not None:
-                movie_details = [
-                    m for m in movie_details if m.imdb_rating and m.imdb_rating >= imdb_rating
-                ]
-            if rotten_tomatoes_rating is not None:
-                movie_details = [
-                    m
-                    for m in movie_details
-                    if hasattr(m, "rotten_tomatoes_rating")
-                    and getattr(m, "rotten_tomatoes_rating")
-                    and getattr(m, "rotten_tomatoes_rating") >= rotten_tomatoes_rating
-                ]
-            if metacritic_rating is not None:
-                movie_details = [
-                    m
-                    for m in movie_details
-                    if hasattr(m, "metacritic_rating")
-                    and getattr(m, "metacritic_rating")
-                    and getattr(m, "metacritic_rating") >= metacritic_rating
-                ]
-            if year is not None:
-                movie_details = [
-                    m
-                    for m in movie_details
-                    if m.release_date and m.release_date.startswith(str(year))
-                ]
-
-            ***REMOVED*** Apply sorting
-            reverse = sort_desc
-            if sort_by == "title":
-                movie_details.sort(key=lambda x: x.title.lower(), reverse=reverse)
-            elif sort_by == "release_date":
-                movie_details.sort(key=lambda x: x.release_date or "1900-01-01", reverse=reverse)
-            elif sort_by == "imdb_rating":
-                movie_details.sort(key=lambda x: x.imdb_rating or 0, reverse=reverse)
-            elif sort_by in ["rotten_tomatoes_rating", "metacritic_rating"]:
-                movie_details.sort(key=lambda x: getattr(x, sort_by, 0) or 0, reverse=reverse)
-
-        return movie_details
+        return result
     except ValidationError as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** New schema for Netflix import results
 class NetflixImportResult(BaseModel):
     """Result of a Netflix history import operation."""
 
@@ -536,14 +420,13 @@ class NetflixImportResult(BaseModel):
     unmatched_titles: List[str]
 
 
-***REMOVED*** Import Netflix watch history
 @router.post(
     "/import/netflix",
     response_model=NetflixImportResult,
     summary="Import Netflix watch history",
 )
 async def import_netflix_history(
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
     file: UploadFile = File(...),
@@ -551,74 +434,52 @@ async def import_netflix_history(
     """
     Import Netflix watch history from a CSV file.
 
-    Parses the Netflix CSV export format, matches movie titles to the database,
-    and marks matching movies as watched by the current user.
-
     Args:
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
-        file: CSV file containing Netflix watch history
+        file: Netflix history CSV file
 
     Returns:
-        Summary of import results including matches and unmatched titles
+        Import result with statistics
 
     Raises:
-        HTTPException: For invalid files or processing errors
+        HTTPException: If file format is invalid or import fails
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
-    ***REMOVED*** Validate file
+    ***REMOVED*** Validate file type
     if not file.filename or not file.filename.endswith(".csv"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please upload a CSV file",
+            detail="File must be a CSV file",
         )
 
-    ***REMOVED*** Read file content
     try:
-        contents = await file.read()
-        csv_text = contents.decode("utf-8")
+        ***REMOVED*** Read CSV content
+        content = await file.read()
+        csv_content = content.decode("utf-8")
 
         ***REMOVED*** Process CSV using service
-        try:
-            result = interaction_service.import_netflix_history(db, current_user.id, csv_text)
+        result = interaction_service.import_netflix_history(db, user_id, csv_content)
 
-            ***REMOVED*** Convert to response model
-            return NetflixImportResult(
-                total_entries=result["total_entries"],
-                matched_movies=result["matched_movies"],
-                already_marked_watched=result["already_marked_watched"],
-                newly_marked_watched=result["newly_marked_watched"],
-                unmatched_titles=result["unmatched_titles"],
-            )
-        except ValidationError as e:
-            ***REMOVED*** Convert validation errors to HTTP exceptions
-            raise service_error_to_http_exception(e)
-    except UnicodeDecodeError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File is not a valid UTF-8 encoded CSV file",
+        return NetflixImportResult(
+            total_entries=result["total_entries"],
+            matched_movies=result["matched_movies"],
+            already_marked_watched=result["already_marked_watched"],
+            newly_marked_watched=result["newly_marked_watched"],
+            unmatched_titles=result["unmatched_titles"],
         )
+
     except Exception as e:
-        logger.error(f"Error processing Netflix CSV: {str(e)}")
+        logger.error(f"Netflix import failed for user {user_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing file: {str(e)}",
+            detail="Failed to process Netflix history file",
         )
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** New RESTful endpoints for user interactions
-***REMOVED*** ============================================================================
+***REMOVED*** Explicit CRUD operations for better API design
 
 
-***REMOVED*** PUT endpoint to set watched status
 @router.put(
     "/{movie_id}/watched",
     response_model=UserMovieInteractionResponse,
@@ -626,40 +487,29 @@ async def import_netflix_history(
 )
 async def set_movie_watched(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
     Mark a movie as watched.
 
-    If the movie is already marked as watched, this operation is idempotent and
-    will not change the state.
-
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     try:
-        ***REMOVED*** Use new set_watched method for cleaner implementation
-        return interaction_service.set_watched(db, current_user.id, movie_id)
+        result = interaction_service.set_watched(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** DELETE endpoint to unset watched status
 @router.delete(
     "/{movie_id}/watched",
     response_model=UserMovieInteractionResponse,
@@ -667,40 +517,29 @@ async def set_movie_watched(
 )
 async def unset_movie_watched(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
     Unmark a movie as watched.
 
-    If the movie is not marked as watched, this operation is idempotent and
-    will not change the state.
-
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     try:
-        ***REMOVED*** Use new unset_watched method for cleaner implementation
-        return interaction_service.unset_watched(db, current_user.id, movie_id)
+        result = interaction_service.unset_watched(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** PUT endpoint to set liked status
 @router.put(
     "/{movie_id}/liked",
     response_model=UserMovieInteractionResponse,
@@ -708,40 +547,29 @@ async def unset_movie_watched(
 )
 async def set_movie_liked(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
     Like a movie.
 
-    If the movie is already liked, this operation is idempotent and
-    will not change the state.
-
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     try:
-        ***REMOVED*** Use new set_liked method for cleaner implementation
-        return interaction_service.set_liked(db, current_user.id, movie_id)
+        result = interaction_service.set_liked(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** DELETE endpoint to unset liked status
 @router.delete(
     "/{movie_id}/liked",
     response_model=UserMovieInteractionResponse,
@@ -749,40 +577,29 @@ async def set_movie_liked(
 )
 async def unset_movie_liked(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
     Unlike a movie.
 
-    If the movie is not liked, this operation is idempotent and
-    will not change the state.
-
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     try:
-        ***REMOVED*** Use new unset_liked method for cleaner implementation
-        return interaction_service.unset_liked(db, current_user.id, movie_id)
+        result = interaction_service.unset_liked(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** PUT endpoint to add to watchlist
 @router.put(
     "/{movie_id}/watchlist",
     response_model=UserMovieInteractionResponse,
@@ -790,40 +607,29 @@ async def unset_movie_liked(
 )
 async def set_movie_watchlist(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
-    Add a movie to watchlist.
-
-    If the movie is already in the watchlist, this operation is idempotent and
-    will not change the state.
+    Add a movie to the user's watchlist.
 
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     try:
-        ***REMOVED*** Use new set_watchlist method for cleaner implementation
-        return interaction_service.set_watchlist(db, current_user.id, movie_id)
+        result = interaction_service.set_watchlist(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** DELETE endpoint to remove from watchlist
 @router.delete(
     "/{movie_id}/watchlist",
     response_model=UserMovieInteractionResponse,
@@ -831,34 +637,24 @@ async def set_movie_watchlist(
 )
 async def unset_movie_watchlist(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
     interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> UserMovieInteraction:
     """
-    Remove a movie from watchlist.
-
-    If the movie is not in the watchlist, this operation is idempotent and
-    will not change the state.
+    Remove a movie from the user's watchlist.
 
     Args:
         movie_id: Movie ID
-        current_user: Current authenticated user
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
         db: Database session
         interaction_service: User interaction service
 
     Returns:
-        Updated user interaction
+        Updated user movie interaction
     """
-    ***REMOVED*** Ensure user ID is available
-    if current_user.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID is missing",
-        )
-
     try:
-        ***REMOVED*** Use new unset_watchlist method for cleaner implementation
-        return interaction_service.unset_watchlist(db, current_user.id, movie_id)
+        result = interaction_service.unset_watchlist(db, user_id, movie_id)
+        return result
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)

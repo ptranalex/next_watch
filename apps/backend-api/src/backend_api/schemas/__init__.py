@@ -4,7 +4,6 @@ Schema module for the backend API.
 This module provides Pydantic models for request and response validation.
 """
 
-from .auth import RefreshToken, Token, UserCreate, UserLogin, UserResponse
 from .cast_schema import CastMemberResponse, MovieCastResponse
 from .genre_schema import GenreResponse
 from .movie_schema import MovieResponse, MoviesListResponse
@@ -18,11 +17,6 @@ from .user_interaction_schema import (
 )
 
 __all__ = [
-    "RefreshToken",
-    "Token",
-    "UserCreate",
-    "UserLogin",
-    "UserResponse",
     "CastMemberResponse",
     "MovieCastResponse",
     "GenreResponse",

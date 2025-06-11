@@ -5,7 +5,6 @@ This module contains API route handlers for different API versions.
 """
 
 from .v1 import (
-    auth_router as auth_router_v1,
     movies_router as movies_router_v1,
     actors_router as actors_router_v1,
     search_router as search_router_v1,
@@ -13,7 +12,6 @@ from .v1 import (
 )
 
 __all__ = [
-    "auth_router_v1",
     "movies_router_v1",
     "actors_router_v1",
     "search_router_v1",

@@ -508,3 +508,14 @@ def clear_cache(
         console.print(f"❌ Error: {str(e)}", style="bold red")
         logger.error(f"Error: {str(e)}")
         raise typer.Exit(1)
+
+
+***REMOVED*** Register cache commands directly with cache_app
+from backend_api.cli import cache_app
+
+***REMOVED*** Register each command directly
+cache_app.command("info")(cache_info)
+cache_app.command("keys")(list_keys)
+cache_app.command("get")(get_key)
+cache_app.command("delete")(delete_key)
+cache_app.command("clear")(clear_cache)

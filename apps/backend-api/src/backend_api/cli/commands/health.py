@@ -227,9 +227,18 @@ def check_db_health(
         raise typer.Exit(1)
 
 
-***REMOVED*** Default command - alias to check
-@app.callback(invoke_without_command=True)
-def health(ctx: typer.Context) -> None:
+***REMOVED*** Register health commands directly with health_app
+from backend_api.cli import health_app
+
+***REMOVED*** Register each command directly
+health_app.command("check")(check_health)
+health_app.command("redis")(check_redis_health)
+health_app.command("db")(check_db_health)
+
+
+***REMOVED*** Set default command
+@health_app.callback(invoke_without_command=True)
+def health_default(ctx: typer.Context) -> None:
     """Check the health of all services."""
     if ctx.invoked_subcommand is None:
-        check_health()
+        check_health(verbose=False, timeout=5.0)

@@ -8,7 +8,7 @@ operations, while read operations are in a separate query class.
 import logging
 from typing import Any, Dict, List, Optional, TypedDict, cast
 
-from movie_storage.db.operations import (
+from backend_api.db.operations import (
     get_credits_by_movie_id,
     get_movie_by_id,
 )

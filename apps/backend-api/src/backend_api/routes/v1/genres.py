@@ -9,7 +9,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 
 ***REMOVED*** Import movie-storage operations
-from movie_storage.db.operations import (
+from backend_api.db.operations import (
     get_genre_by_id,
     get_genre_by_name,
     get_genres,

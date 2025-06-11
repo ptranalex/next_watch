@@ -6,8 +6,8 @@ import os
 from contextlib import contextmanager
 from typing import Iterator
 
-from movie_storage.config.app import Config
-from movie_storage.db import get_engine, get_session, init_db
+from backend_api.config.app import Config
+from backend_api.db import get_engine, get_session, init_db
 from sqlmodel import Session
 
 ***REMOVED*** Database URL from environment variable with a PostgreSQL default
