@@ -10,7 +10,7 @@ authors = [
     {name = "Next Watch Team"}
 ]
 readme = {text = "***REMOVED*** Auth API\n\nDedicated authentication service for next_watch movie platform", content-type = "text/markdown"}
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

@@ -26,6 +26,7 @@ exclude = [
 ***REMOVED*** Configure virtual environment to be in project directory
 type = "virtual"
 path = ".venv"
+python = "3.12"
 dependencies = [
   "fastapi>=0.104.0",
   "uvicorn>=0.23.2",
@@ -55,6 +56,7 @@ cli = "python -m auth_api.cli {args}"
 setup-local-deps = "pip install -e ../../libs/movie-storage"
 
 [envs.dev]
+python = "3.12"
 dependencies = [
   "pytest>=7.4.3",
   "pytest-cov>=6.0.0",
