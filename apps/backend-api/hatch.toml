@@ -47,6 +47,7 @@ dependencies = [
   "python-multipart>=0.0.6",
   "email-validator>=2.1.0",
   "python-dateutil>=2.9.0",
+  "psycopg2-binary>=2.9.10",
 ]
 
 ***REMOVED*** Add environment variables for development
@@ -54,13 +55,36 @@ dependencies = [
 PYTHONPATH = "src"
 
 [envs.default.scripts]
+***REMOVED*** Server management
 serve = "python -m backend_api.main"
 dev = "PYTHONPATH=src uvicorn backend_api.main:app --reload --port 8000"
+
+***REMOVED*** CLI access
 cli = "python -m backend_api.cli"
-***REMOVED*** Add script to install the local movie-storage package
-setup-local-deps = "pip install -e ../../libs/movie-storage"
+
+***REMOVED*** Database management
 migrate = "python -m backend_api.cli db migrate"
-upgrade = "python -m backend_api.cli db upgrade"
+db-init = "python -m backend_api.cli db init"
+db-init-tables = "python -m backend_api.cli db init --create-tables"
+db-downgrade = "python -m backend_api.cli db downgrade"
+db-teardown = "python -m backend_api.cli db teardown --confirm"
+
+***REMOVED*** Health checks
+health = "python -m backend_api.cli health"
+health-check = "python -m backend_api.cli health check"
+health-redis = "python -m backend_api.cli health redis"
+health-db = "python -m backend_api.cli health db"
+
+***REMOVED*** Cache management
+cache-info = "python -m backend_api.cli cache info"
+cache-keys = "python -m backend_api.cli cache keys"
+cache-get = "python -m backend_api.cli cache get"
+cache-clear = "python -m backend_api.cli cache clear --confirm"
+
+***REMOVED*** System commands
+config = "python -m backend_api.cli config"
+version = "python -m backend_api.cli version"
+serve-cli = "python -m backend_api.cli serve"
 
 [envs.dev]
 dependencies = [

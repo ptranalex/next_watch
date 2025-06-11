@@ -16,21 +16,16 @@ RUN apk add --no-cache --virtual .build-deps \
     python3-dev \
     libffi-dev \
     openssl-dev \
+    postgresql-dev \
     && pip install --no-cache-dir hatch
 
 ***REMOVED*** Copy only dependency-related files first
-COPY libs/movie-storage /tmp/movie-storage/
 COPY apps/backend-api/pyproject.toml apps/backend-api/hatch.toml ./
 
-***REMOVED*** Install the movie-storage package first
-WORKDIR /tmp/movie-storage
-RUN pip install -e .
-
-***REMOVED*** Return to app directory and install application
-WORKDIR /app
+***REMOVED*** Copy application source code
 COPY apps/backend-api/src ./src/
 
-***REMOVED*** Install the application
+***REMOVED*** Install the application and its dependencies
 RUN pip install --no-cache-dir -e .
 
 ***REMOVED*** Stage 2: Runtime image - use a much smaller base
@@ -56,18 +51,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 ***REMOVED*** Install runtime dependencies including tini for proper process handling
-RUN apk add --no-cache libstdc++ curl tini
+RUN apk add --no-cache libstdc++ curl tini postgresql-libs
 
 ***REMOVED*** Copy the installed packages from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
+COPY --from=builder /usr/local/bin/alembic /usr/local/bin/
 
-***REMOVED*** Copy the movie-storage package
-COPY --from=builder /tmp/movie-storage /app/movie-storage
-RUN pip install -e /app/movie-storage
-
-***REMOVED*** Only copy the application code, not the entire Python installation
-COPY apps/backend-api/src ./src/
+***REMOVED*** Copy the application code
+COPY --from=builder /app/src ./src/
 
 EXPOSE 8000
 
@@ -88,14 +80,14 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 ***REMOVED*** Run the application with production optimizations
 ***REMOVED*** Hardcode log-level=info, proxy_headers=true and no reload for production
-CMD uvicorn backend_api.main:app \
-    --host ${HOST} \
-    --port ${PORT} \
-    --workers ${WORKERS} \
-    --log-level ${LOG_LEVEL} \
-    --timeout-keep-alive ${TIMEOUT} \
-    --limit-max-requests ${LIMIT_MAX_REQUESTS} \
-    --no-access-log \
-    --backlog ${BACKLOG} \
-    --proxy-headers \
-    --forwarded-allow-ips "*" 
+CMD ["uvicorn", "backend_api.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "1", \
+     "--log-level", "info", \
+     "--timeout-keep-alive", "120", \
+     "--limit-max-requests", "10000", \
+     "--no-access-log", \
+     "--backlog", "1024", \
+     "--proxy-headers", \
+     "--forwarded-allow-ips", "*"] 

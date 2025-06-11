@@ -10,7 +10,7 @@ authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
 readme = {text = "***REMOVED*** Backend API\n\nFastAPI backend for Next Watch platform", content-type = "text/markdown"}
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -28,7 +28,8 @@ dependencies = [
     ***REMOVED*** Database and ORM
     "sqlalchemy>=2.0.23",       ***REMOVED*** ORM
     "sqlmodel>=0.0.8",          ***REMOVED*** SQLModel
-    "alembic>=1.12.1",          ***REMOVED*** Database migrations
+    "alembic<=1.13.1",          ***REMOVED*** Database migrations (constrained to match movie-storage)
+    "psycopg2-binary>=2.9.10",  ***REMOVED*** PostgreSQL adapter (from movie-storage)
     
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework

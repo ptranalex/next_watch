@@ -29,6 +29,15 @@ backend-api/
 │   ├── db/                ***REMOVED*** Database models and connections
 │   ├── queries/           ***REMOVED*** Database query operations
 │   ├── schemas/           ***REMOVED*** Pydantic schemas for API contracts
+│   ├── cli/               ***REMOVED*** Command-line interface
+│   │   ├── commands/      ***REMOVED*** CLI command implementations
+│   │   │   ├── database.py ***REMOVED*** Database management commands (consolidated)
+│   │   │   ├── cache.py   ***REMOVED*** Cache management commands
+│   │   │   ├── health.py  ***REMOVED*** Health check commands
+│   │   │   ├── config.py  ***REMOVED*** Configuration commands
+│   │   │   ├── serve.py   ***REMOVED*** Server management commands
+│   │   │   └── version.py ***REMOVED*** Version information commands
+│   │   └── __init__.py    ***REMOVED*** CLI application setup
 │   └── main.py            ***REMOVED*** Clean application entry point
 └── README.md              ***REMOVED*** This file
 ```
@@ -40,6 +49,7 @@ backend-api/
 - **Modular Design**: Well-organized, testable components
 - **Graceful Degradation**: Robust error handling and fallback mechanisms
 - **Clean Separation**: Clear distinction between routes, services, and configuration
+- **Comprehensive CLI**: Full-featured command-line interface with flat, intuitive structure
 
 ***REMOVED******REMOVED*** Features
 
@@ -72,7 +82,7 @@ backend-api/
 ***REMOVED******REMOVED******REMOVED*** Prerequisites
 
 - Python 3.10+
-- Poetry or Hatch for dependency management
+- Hatch for dependency management
 - PostgreSQL database
 - Redis server (optional, for suggestions)
 
@@ -90,21 +100,25 @@ backend-api/
    ```bash
    ***REMOVED*** Using Hatch (recommended)
    hatch env create
-
-   ***REMOVED*** Or using Poetry
-   poetry install
    ```
 
 3. Configure environment variables by creating a `.env` file based on `.env.example`.
 
-4. Run the development server:
+4. Initialize the database:
 
    ```bash
-   ***REMOVED*** Using Hatch
+   ***REMOVED*** Run database migrations
+   hatch run migrate
+   ```
+
+5. Run the development server:
+
+   ```bash
+   ***REMOVED*** Using Hatch (recommended)
    hatch run dev
 
-   ***REMOVED*** Using Poetry
-   poetry run backend-api server start
+   ***REMOVED*** Or using the CLI directly
+   python -m backend_api.cli serve
 
    ***REMOVED*** Or directly with Python
    python -m backend_api.main
@@ -217,29 +231,110 @@ healthcheck:
 
 ***REMOVED******REMOVED*** CLI Reference
 
-The backend API comes with a comprehensive CLI tool:
+The backend API comes with a comprehensive CLI tool with a clean, flat command structure:
+
+***REMOVED******REMOVED******REMOVED*** Command Structure
+
+The CLI is organized with minimal nesting for intuitive usage:
+
+- **Top-level commands**: `config`, `serve`, `version`
+- **Command groups**: `db`, `health`, `cache`
+
+***REMOVED******REMOVED******REMOVED*** Server Management
 
 ```bash
-***REMOVED*** Server management
-hatch run dev                           ***REMOVED*** Start development server with auto-reload
-poetry run backend-api server start    ***REMOVED*** Start the API server
-poetry run backend-api server start --help  ***REMOVED*** Show all available options
+***REMOVED*** Start development server with auto-reload
+hatch run dev
 
-***REMOVED*** Available options:
-***REMOVED*** --host TEXT                 Host to bind the server to
-***REMOVED*** --port INTEGER              Port to bind the server to (overrides config)
-***REMOVED*** --log-level TEXT            Log level (DEBUG, INFO, WARNING, ERROR)
-***REMOVED*** --reload / --no-reload      Enable auto-reload on code changes
-***REMOVED*** --log-dir PATH              Directory to store log files
+***REMOVED*** Start production server
+python -m backend_api.cli serve
 
-***REMOVED*** Database management
-poetry run backend-api db migrate        ***REMOVED*** Run database migrations
-poetry run backend-api db reset          ***REMOVED*** Reset the database (caution!)
-poetry run backend-api db seed           ***REMOVED*** Seed the database with initial data
+***REMOVED*** Start with custom options
+python -m backend_api.cli serve --host 0.0.0.0 --port 8080 --reload
+```
 
-***REMOVED*** Maintenance commands
-poetry run backend-api cache clear       ***REMOVED*** Clear application caches
-poetry run backend-api metrics report    ***REMOVED*** Generate performance report
+***REMOVED******REMOVED******REMOVED*** Database Management
+
+```bash
+***REMOVED*** Initialize database
+python -m backend_api.cli db init
+
+***REMOVED*** Initialize with table creation
+python -m backend_api.cli db init --create-tables
+
+***REMOVED*** Run database migrations
+python -m backend_api.cli db migrate
+hatch run migrate  ***REMOVED*** Shortcut
+
+***REMOVED*** Downgrade migrations
+python -m backend_api.cli db downgrade
+python -m backend_api.cli db downgrade --steps 3
+python -m backend_api.cli db downgrade --target 005_add_ratings_and_awards
+
+***REMOVED*** Teardown database (development only)
+python -m backend_api.cli db teardown --confirm
+```
+
+***REMOVED******REMOVED******REMOVED*** Health Checks
+
+```bash
+***REMOVED*** Check overall system health
+python -m backend_api.cli health
+
+***REMOVED*** Check specific services
+python -m backend_api.cli health redis
+python -m backend_api.cli health db
+```
+
+***REMOVED******REMOVED******REMOVED*** Cache Management
+
+```bash
+***REMOVED*** Display cache information
+python -m backend_api.cli cache info
+
+***REMOVED*** Manage cache keys
+python -m backend_api.cli cache keys --pattern "user:*"
+python -m backend_api.cli cache get "movie:123"
+python -m backend_api.cli cache delete "session:456" --confirm
+python -m backend_api.cli cache clear --pattern "temp:*" --confirm
+```
+
+***REMOVED******REMOVED******REMOVED*** Configuration and System
+
+```bash
+***REMOVED*** Display current configuration
+python -m backend_api.cli config
+
+***REMOVED*** Show detailed configuration
+python -m backend_api.cli config --verbose
+
+***REMOVED*** Display version information
+python -m backend_api.cli version
+```
+
+***REMOVED******REMOVED******REMOVED*** Hatch Shortcuts
+
+For convenience, common commands are available as Hatch shortcuts:
+
+```bash
+***REMOVED*** Database operations
+hatch run migrate
+hatch run db-init
+hatch run db-init-tables
+
+***REMOVED*** Health checks
+hatch run health
+hatch run health-redis
+hatch run health-db
+
+***REMOVED*** Cache management
+hatch run cache-info
+hatch run cache-keys
+hatch run cache-clear
+
+***REMOVED*** System commands
+hatch run config
+hatch run version
 ```
 
 ***REMOVED******REMOVED*** Configuration
@@ -324,22 +419,19 @@ The backend API uses a structured configuration system with environment-aware se
 hatch run test
 
 ***REMOVED*** Run tests with coverage
-hatch run cov
+hatch run test-cov
 
 ***REMOVED*** Run specific test file
-pytest tests/test_health_service.py -v
+hatch run test tests/test_health_service.py -v
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Code Quality
 
 ```bash
-***REMOVED*** Run linting
+***REMOVED*** Run linting and formatting
 hatch run lint
 
-***REMOVED*** Run type checking
-hatch run type-check
-
-***REMOVED*** Format code
+***REMOVED*** Format code only
 hatch run format
 ```
 
@@ -360,6 +452,7 @@ LOG_LEVEL=DEBUG hatch run dev
 
 For detailed information about specific modules:
 
+- **[CLI Module](src/backend_api/cli/README.md)**: Command-line interface documentation
 - **[Core Module](src/backend_api/core/README.md)**: Application factory, middleware, and logging
 - **[Services Module](src/backend_api/services/README.md)**: Business logic and health monitoring
 - **[Routes Module](src/backend_api/routes/README.md)**: HTTP endpoints and API documentation
@@ -375,17 +468,24 @@ For detailed information about specific modules:
    - `JWT_SECRET=<secure-random-string>`
    - `DATABASE_URL=<production-database>`
 
-2. **Health Checks**: Configure load balancer health checks
+2. **Database Setup**: Initialize production database
+
+   ```bash
+   python -m backend_api.cli db init --create-tables
+   python -m backend_api.cli db migrate
+   ```
+
+3. **Health Checks**: Configure load balancer health checks
 
    - Liveness: `/health/live`
    - Readiness: `/health/ready`
 
-3. **Monitoring**: Set up monitoring for health endpoints
+4. **Monitoring**: Set up monitoring for health endpoints
 
    - Monitor `/health` for detailed metrics
    - Alert on service unavailability
 
-4. **Security**: Review security settings
+5. **Security**: Review security settings
    - CORS origins configured properly
    - JWT secrets are secure
    - Database credentials are secure
@@ -405,12 +505,15 @@ RUN hatch env create
 ***REMOVED*** Copy application
 COPY . .
 
+***REMOVED*** Initialize database
+RUN python -m backend_api.cli db init --create-tables
+
 ***REMOVED*** Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:8000/health/live || exit 1
 
 ***REMOVED*** Run application
-CMD ["hatch", "run", "prod"]
+CMD ["hatch", "run", "serve"]
 ```
 
 ***REMOVED******REMOVED*** Contributing
@@ -420,6 +523,8 @@ CMD ["hatch", "run", "prod"]
 3. Update health checks for new dependencies
 4. Document new endpoints in route READMEs
 5. Ensure backward compatibility for health endpoints
+6. Update CLI documentation for new commands
+7. Follow CLI best practices with flat, intuitive command structure
 
 ***REMOVED******REMOVED*** License
 
@@ -427,4 +532,4 @@ MIT License - see LICENSE file for details.
 
 ---
 
-The Next Watch Backend API provides a robust, well-monitored foundation for the movie recommendation platform with comprehensive health monitoring and clean architectural patterns.
+The Next Watch Backend API provides a robust, well-monitored foundation for the movie recommendation platform with comprehensive health monitoring, clean architectural patterns, and a intuitive CLI for operations.
