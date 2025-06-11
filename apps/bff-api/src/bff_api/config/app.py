@@ -58,7 +58,7 @@ DEFAULT_CACHE_TTL = get_env_int("CACHE_TTL", 300)  ***REMOVED*** 5 minutes
 ***REMOVED*** AUTHENTICATION SETTINGS
 ***REMOVED*** ------------------------------------------------------------------------------
 
-DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET")
+DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", "change_this_in_production_very_important")
 DEFAULT_INTERNAL_API_KEY = get_env_var("INTERNAL_API_KEY", "bff-to-backend-secret-key")
 
 ***REMOVED*** ------------------------------------------------------------------------------

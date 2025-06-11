@@ -1,5 +1,5 @@
 ***REMOVED*** Stage 1: Build dependencies and package
-FROM python:3.9-alpine AS builder
+FROM python:3.12-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -29,7 +29,7 @@ COPY apps/bff-api/pyproject.toml ./
 RUN pip install --no-cache-dir --user -e .
 
 ***REMOVED*** Stage 2: Minimal runtime image
-FROM python:3.9-alpine AS final
+FROM python:3.12-alpine AS final
 
 ***REMOVED*** Set production environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -79,14 +79,14 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 ***REMOVED*** Run the application using uvicorn directly with proper worker configuration
 ***REMOVED*** This bypasses our CLI for production to ensure optimal performance
-CMD uvicorn bff_api.main:app \
-    --host ${HOST} \
-    --port ${PORT} \
-    --workers ${WORKERS} \
-    --timeout-keep-alive ${TIMEOUT} \
-    --log-level ${LOG_LEVEL} \
-    --no-access-log \
-    --proxy-headers \
-    --forwarded-allow-ips "*" \
-    --backlog ${BACKLOG} \
-    --limit-max-requests ${LIMIT_MAX_REQUESTS} 
+CMD ["uvicorn", "bff_api.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8001", \
+     "--workers", "1", \
+     "--timeout-keep-alive", "120", \
+     "--log-level", "info", \
+     "--no-access-log", \
+     "--proxy-headers", \
+     "--forwarded-allow-ips", "*", \
+     "--backlog", "1024", \
+     "--limit-max-requests", "10000"] 
