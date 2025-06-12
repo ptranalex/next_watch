@@ -1,19 +1,13 @@
 """Server command for BFF API."""
 
-import logging
 import typer
 from typer import Typer
 import uvicorn
 from typing import Dict, Any, Optional
-from rich.console import Console
 
-from bff_api.config.app import settings, Config
-from bff_api.cli.utils import print_config
-from bff_api.main import create_app
+from bff_api.cli.logging import get_cli_output
 
 app: Typer = typer.Typer(name="serve", help="Server commands for running the BFF API.")
-console = Console()
-logger = logging.getLogger(__name__)
 
 
 @app.callback(invoke_without_command=True)
@@ -122,7 +116,14 @@ def start(
         verbose: Enable verbose console output
         quiet: Suppress console output except errors
     """
+    out = get_cli_output("serve", verbose=verbose, quiet=quiet)
+
     try:
+        ***REMOVED*** Import only when needed (no auto-logging)
+        from bff_api.config.app import get_settings, Config
+        from bff_api.cli.utils import print_config
+        from bff_api.main import get_app  ***REMOVED*** Use lazy loading
+
         ***REMOVED*** Create configuration with CLI overrides
         config_kwargs: Dict[str, Any] = {}
         if host:
@@ -136,36 +137,30 @@ def start(
         if config_kwargs:
             config = Config(**config_kwargs)
         else:
-            config = settings
+            config = get_settings()  ***REMOVED*** Get actual Config instance
 
-        ***REMOVED*** Get the actual host and port values from config (not OptionInfo objects)
+        ***REMOVED*** Get the actual host and port values from config
         host_value = config.host
         port_value = config.port
 
         ***REMOVED*** Display configuration unless quiet mode
         if not quiet:
             if verbose:
-                print_config(config, "BFF Server Configuration", console)
+                print_config(config, "BFF Server Configuration", out.console)
             else:
-                console.print(f"[blue]Starting BFF API server on {host_value}:{port_value}[/blue]")
-                console.print(
-                    f"[dim]Environment: {config.environment} | Debug: {config.debug}[/dim]"
-                )
+                out.info(f"[blue]Starting BFF API server on {host_value}:{port_value}[/blue]")
+                out.info(f"[dim]Environment: {config.environment} | Debug: {config.debug}[/dim]")
 
-        ***REMOVED*** Configure logging level
-        if verbose:
-            logging.basicConfig(level=logging.DEBUG)
-        elif quiet:
-            logging.basicConfig(level=logging.ERROR)
-        else:
-            logging.basicConfig(level=getattr(logging, config.log_level))
+        ***REMOVED*** Log operational info
+        out.log_operation(
+            "Starting BFF API server",
+            host=host_value,
+            port=port_value,
+            reload=reload,
+            environment=config.environment,
+        )
 
-        logger.info(f"Starting BFF API server on {host_value}:{port_value}")
-
-        if verbose:
-            logger.debug(f"Configuration: host={host_value}, port={port_value}, reload={reload}")
-
-        ***REMOVED*** Start server
+        ***REMOVED*** Start server - the get_app() call will configure full logging for web server
         if reload:
             ***REMOVED*** Use import string for reload mode
             uvicorn.run(
@@ -177,8 +172,8 @@ def start(
                 access_log=not config.is_production,
             )
         else:
-            ***REMOVED*** Use app instance for production mode (more efficient)
-            fastapi_app = create_app()
+            ***REMOVED*** Use app instance for production mode - this triggers full logging setup
+            fastapi_app = get_app()
             uvicorn.run(
                 fastapi_app,
                 host=host_value,
@@ -189,6 +184,6 @@ def start(
             )
 
     except Exception as e:
-        console.print(f"[bold red]Error starting server: {e}[/bold red]")
-        logger.error(f"Failed to start server: {e}")
+        out.error(f"Error starting server: {e}")
+        out.log_error("Server start failed", e)
         raise typer.Exit(code=1)

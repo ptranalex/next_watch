@@ -1,20 +1,16 @@
 """Cache management commands for BFF API Redis cache."""
 
 import asyncio
-import logging
 from typing import Optional, Union
 from typer import Typer
 
 import typer
-from rich.console import Console
 from rich.table import Table
 from rich.prompt import Confirm
 
-from bff_api.config.app import settings
+from bff_api.cli.logging import get_cli_output, CLIOutput
 
 app: Typer = typer.Typer(name="cache", help="Redis cache management commands.")
-console = Console()
-logger = logging.getLogger(__name__)
 
 
 @app.command(name="info")
@@ -31,17 +27,24 @@ def cache_info(
         "-v",
         help="Show detailed Redis information",
     ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
+    ),
 ) -> None:
     """Display Redis cache information and statistics.
 
     Args:
         redis_url: Redis URL to connect to
         verbose: Show detailed Redis information
+        quiet: Suppress output except errors
     """
-    if verbose:
-        console.print("[blue]📊 Gathering Redis cache information...[/blue]")
+    out = get_cli_output("cache.info", verbose=verbose, quiet=quiet)
 
-    asyncio.run(_display_cache_info_async(redis_url, verbose))
+    out.log_operation("Starting cache info command", redis_url=redis_url or "default")
+    asyncio.run(_display_cache_info_async(redis_url, out))
 
 
 @app.command(name="keys")
@@ -62,6 +65,12 @@ def list_keys(
         "-v",
         help="Show key details including TTL",
     ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
+    ),
 ) -> None:
     """List cache keys matching a pattern.
 
@@ -69,11 +78,12 @@ def list_keys(
         pattern: Key pattern to match (supports wildcards)
         limit: Maximum number of keys to display
         verbose: Show key details including TTL
+        quiet: Suppress output except errors
     """
-    if verbose:
-        console.print(f"[blue]🔍 Searching for keys matching pattern: {pattern}[/blue]")
+    out = get_cli_output("cache.keys", verbose=verbose, quiet=quiet)
 
-    asyncio.run(_list_keys_async(pattern, limit, verbose))
+    out.log_operation("Starting key listing", pattern=pattern, limit=limit)
+    asyncio.run(_list_keys_async(pattern, limit, out))
 
 
 @app.command(name="clear")
@@ -94,6 +104,12 @@ def clear_cache(
         "-v",
         help="Show detailed output",
     ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
+    ),
 ) -> None:
     """Clear cache keys matching a pattern.
 
@@ -101,22 +117,23 @@ def clear_cache(
         pattern: Key pattern to clear (supports wildcards)
         confirm: Whether to confirm before clearing
         verbose: Show detailed output
+        quiet: Suppress output except errors
     """
+    out = get_cli_output("cache.clear", verbose=verbose, quiet=quiet)
+
     if confirm:
         if pattern == "*":
-            console.print("[red]⚠️  This will clear ALL cache keys![/red]")
+            out.warning("This will clear ALL cache keys!")
         else:
-            console.print(f"[yellow]This will clear keys matching pattern: {pattern}[/yellow]")
+            out.warning(f"This will clear keys matching pattern: {pattern}")
 
-        confirmed = Confirm.ask("Are you sure you want to proceed?")
+        confirmed = Confirm.ask("Are you sure you want to proceed?", console=out.console)
         if not confirmed:
-            console.print("[yellow]Cache clear operation cancelled.[/yellow]")
+            out.info("Cache clear operation cancelled.")
             return
 
-    if verbose:
-        console.print(f"[blue]🗑️  Clearing cache keys matching: {pattern}[/blue]")
-
-    asyncio.run(_clear_cache_async(pattern, verbose))
+    out.log_operation("Starting cache clear", pattern=pattern)
+    asyncio.run(_clear_cache_async(pattern, out))
 
 
 @app.command(name="get")
@@ -128,17 +145,24 @@ def get_key(
         "-v",
         help="Show detailed output",
     ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
+    ),
 ) -> None:
     """Get value for a specific cache key.
 
     Args:
         key: Cache key to retrieve
         verbose: Show detailed output
+        quiet: Suppress output except errors
     """
-    if verbose:
-        console.print(f"[blue]🔍 Retrieving cache key: {key}[/blue]")
+    out = get_cli_output("cache.get", verbose=verbose, quiet=quiet)
 
-    asyncio.run(_get_key_async(key, verbose))
+    out.log_operation("Retrieving cache key", key=key)
+    asyncio.run(_get_key_async(key, out))
 
 
 @app.command(name="delete")
@@ -155,6 +179,12 @@ def delete_key(
         "-v",
         help="Show detailed output",
     ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
+    ),
 ) -> None:
     """Delete a specific cache key.
 
@@ -162,30 +192,37 @@ def delete_key(
         key: Cache key to delete
         confirm: Whether to confirm before deleting
         verbose: Show detailed output
+        quiet: Suppress output except errors
     """
+    out = get_cli_output("cache.delete", verbose=verbose, quiet=quiet)
+
     if confirm:
-        confirmed = Confirm.ask(f"Are you sure you want to delete key '{key}'?")
+        confirmed = Confirm.ask(
+            f"Are you sure you want to delete key '{key}'?", console=out.console
+        )
         if not confirmed:
-            console.print("[yellow]Key deletion cancelled.[/yellow]")
+            out.info("Key deletion cancelled.")
             return
 
-    if verbose:
-        console.print(f"[blue]🗑️  Deleting cache key: {key}[/blue]")
-
-    asyncio.run(_delete_key_async(key, verbose))
+    out.log_operation("Deleting cache key", key=key)
+    asyncio.run(_delete_key_async(key, out))
 
 
-async def _display_cache_info_async(redis_url: Optional[str], verbose: bool) -> None:
+async def _display_cache_info_async(redis_url: Optional[str], out: CLIOutput) -> None:
     """Async implementation of cache info display.
 
     Args:
         redis_url: Redis URL to connect to
-        verbose: Show detailed information
+        out: CLI output handler
     """
     try:
         import redis.asyncio as redis
+        from bff_api.config.app import get_settings
 
+        settings = get_settings()
         url = redis_url or settings.redis_url
+
+        out.log_operation("Connecting to Redis", url=url)
         client = redis.Redis.from_url(url, decode_responses=True)
 
         ***REMOVED*** Get Redis info
@@ -217,38 +254,43 @@ async def _display_cache_info_async(redis_url: Optional[str], verbose: bool) -> 
         for metric, value in basic_metrics:
             table.add_row(metric, value)
 
-        console.print(table)
+        out.console.print(table)
 
-        if verbose:
+        if out.verbose:
             ***REMOVED*** Additional detailed info
-            console.print("\n[bold]Detailed Information:[/bold]")
-            console.print(f"  • Uptime: {info.get('uptime_in_seconds', 0)} seconds")
-            console.print(
-                f"  • Total Commands Processed: {info.get('total_commands_processed', 0)}"
-            )
-            console.print(f"  • Instantaneous Ops/sec: {info.get('instantaneous_ops_per_sec', 0)}")
-            console.print(f"  • Role: {info.get('role', 'Unknown')}")
-            console.print(f"  • Redis Mode: {info.get('redis_mode', 'Unknown')}")
+            out.info("\n[bold]Detailed Information:[/bold]")
+            out.info(f"  • Uptime: {info.get('uptime_in_seconds', 0)} seconds")
+            out.info(f"  • Total Commands Processed: {info.get('total_commands_processed', 0)}")
+            out.info(f"  • Instantaneous Ops/sec: {info.get('instantaneous_ops_per_sec', 0)}")
+            out.info(f"  • Role: {info.get('role', 'Unknown')}")
+            out.info(f"  • Redis Mode: {info.get('redis_mode', 'Unknown')}")
 
+        out.log_operation(
+            "Cache info retrieved successfully",
+            redis_version=info.get("redis_version"),
+            total_keys=await client.dbsize(),
+        )
         await client.close()
 
     except Exception as e:
-        console.print(f"[red]❌ Error connecting to Redis: {e}[/red]")
-        logger.error(f"Redis connection error: {e}")
+        out.error(f"Error connecting to Redis: {e}")
+        out.log_error("Redis connection failed", e, url=redis_url or "default")
         raise typer.Exit(1)
 
 
-async def _list_keys_async(pattern: str, limit: int, verbose: bool) -> None:
+async def _list_keys_async(pattern: str, limit: int, out: CLIOutput) -> None:
     """Async implementation of key listing.
 
     Args:
         pattern: Key pattern to match
         limit: Maximum number of keys
-        verbose: Show detailed information
+        out: CLI output handler
     """
     try:
         import redis.asyncio as redis
+        from bff_api.config.app import get_settings
 
+        settings = get_settings()
         client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
         ***REMOVED*** Get keys matching pattern
@@ -259,11 +301,11 @@ async def _list_keys_async(pattern: str, limit: int, verbose: bool) -> None:
                 break
 
         if not keys:
-            console.print(f"[yellow]No keys found matching pattern: {pattern}[/yellow]")
+            out.warning(f"No keys found matching pattern: {pattern}")
             await client.close()
             return
 
-        if verbose:
+        if out.verbose:
             ***REMOVED*** Create detailed table with TTL info
             table = Table(
                 title=f"Cache Keys (showing {len(keys)} of max {limit})",
@@ -299,31 +341,36 @@ async def _list_keys_async(pattern: str, limit: int, verbose: bool) -> None:
 
                 table.add_row(key, key_type, ttl_display, size_display)
 
-            console.print(table)
+            out.console.print(table)
         else:
             ***REMOVED*** Simple list
-            console.print(f"[green]Found {len(keys)} keys matching pattern: {pattern}[/green]")
+            out.success(f"Found {len(keys)} keys matching pattern: {pattern}")
             for key in keys:
-                console.print(f"  • {key}")
+                out.info(f"  • {key}")
 
+        out.log_operation(
+            "Key listing completed", pattern=pattern, keys_found=len(keys), limit=limit
+        )
         await client.close()
 
     except Exception as e:
-        console.print(f"[red]❌ Error listing keys: {e}[/red]")
-        logger.error(f"Redis key listing error: {e}")
+        out.error(f"Error listing keys: {e}")
+        out.log_error("Redis key listing failed", e, pattern=pattern)
         raise typer.Exit(1)
 
 
-async def _clear_cache_async(pattern: str, verbose: bool) -> None:
+async def _clear_cache_async(pattern: str, out: CLIOutput) -> None:
     """Async implementation of cache clearing.
 
     Args:
         pattern: Key pattern to clear
-        verbose: Show detailed output
+        out: CLI output handler
     """
     try:
         import redis.asyncio as redis
+        from bff_api.config.app import get_settings
 
+        settings = get_settings()
         client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
         ***REMOVED*** Get keys to delete
@@ -332,7 +379,7 @@ async def _clear_cache_async(pattern: str, verbose: bool) -> None:
             keys_to_delete.append(key)
 
         if not keys_to_delete:
-            console.print(f"[yellow]No keys found matching pattern: {pattern}[/yellow]")
+            out.warning(f"No keys found matching pattern: {pattern}")
             await client.close()
             return
 
@@ -345,38 +392,41 @@ async def _clear_cache_async(pattern: str, verbose: bool) -> None:
             deleted = await client.delete(*batch)
             deleted_count += deleted
 
-            if verbose:
-                console.print(f"[dim]Deleted batch {i//batch_size + 1}: {deleted} keys[/dim]")
+            out.debug(f"Deleted batch {i//batch_size + 1}: {deleted} keys")
 
-        console.print(f"[green]✅ Successfully deleted {deleted_count} cache keys![/green]")
+        out.success(f"Successfully deleted {deleted_count} cache keys!")
 
-        if verbose:
-            console.print(f"[dim]Pattern used: {pattern}[/dim]")
-            console.print(f"[dim]Total keys processed: {len(keys_to_delete)}[/dim]")
-
+        out.log_operation(
+            "Cache clear completed",
+            pattern=pattern,
+            keys_deleted=deleted_count,
+            total_processed=len(keys_to_delete),
+        )
         await client.close()
 
     except Exception as e:
-        console.print(f"[red]❌ Error clearing cache: {e}[/red]")
-        logger.error(f"Redis cache clear error: {e}")
+        out.error(f"Error clearing cache: {e}")
+        out.log_error("Redis cache clear failed", e, pattern=pattern)
         raise typer.Exit(1)
 
 
-async def _get_key_async(key: str, verbose: bool) -> None:
+async def _get_key_async(key: str, out: CLIOutput) -> None:
     """Async implementation of key retrieval.
 
     Args:
         key: Cache key to retrieve
-        verbose: Show detailed output
+        out: CLI output handler
     """
     try:
         import redis.asyncio as redis
+        from bff_api.config.app import get_settings
 
+        settings = get_settings()
         client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
         ***REMOVED*** Check if key exists
         if not await client.exists(key):
-            console.print(f"[red]❌ Key '{key}' not found in cache[/red]")
+            out.error(f"Key '{key}' not found in cache")
             await client.close()
             raise typer.Exit(1)
 
@@ -384,66 +434,69 @@ async def _get_key_async(key: str, verbose: bool) -> None:
         key_type = await client.type(key)  ***REMOVED*** type: ignore
         ttl = await client.ttl(key)
 
-        console.print(f"[green]Key: {key}[/green]")
-        console.print(f"[blue]Type: {key_type}[/blue]")
+        out.info(f"[green]Key: {key}[/green]")
+        out.info(f"[blue]Type: {key_type}[/blue]")
 
         if ttl == -1:
-            console.print("[yellow]TTL: No expiry[/yellow]")
+            out.info("[yellow]TTL: No expiry[/yellow]")
         elif ttl == -2:
-            console.print("[red]TTL: Expired[/red]")
+            out.info("[red]TTL: Expired[/red]")
         else:
-            console.print(f"[yellow]TTL: {ttl} seconds[/yellow]")
+            out.info(f"[yellow]TTL: {ttl} seconds[/yellow]")
 
         ***REMOVED*** Get value based on type
         if key_type == "string":
             value = await client.get(key)
-            console.print(f"[cyan]Value: {value}[/cyan]")
+            out.info(f"[cyan]Value: {value}[/cyan]")
         elif key_type == "list":
             length = await client.llen(key)
-            console.print(f"[cyan]List length: {length}[/cyan]")
-            if verbose and length > 0:
+            out.info(f"[cyan]List length: {length}[/cyan]")
+            if out.verbose and length > 0:
                 items = await client.lrange(key, 0, min(10, length - 1))
-                console.print("[cyan]First 10 items:[/cyan]")
+                out.info("[cyan]First 10 items:[/cyan]")
                 for i, item in enumerate(items):
-                    console.print(f"  {i}: {item}")
+                    out.info(f"  {i}: {item}")
         elif key_type == "hash":
             length = await client.hlen(key)
-            console.print(f"[cyan]Hash fields: {length}[/cyan]")
-            if verbose and length > 0:
+            out.info(f"[cyan]Hash fields: {length}[/cyan]")
+            if out.verbose and length > 0:
                 fields = await client.hgetall(key)
-                console.print("[cyan]Hash contents:[/cyan]")
+                out.info("[cyan]Hash contents:[/cyan]")
                 for field, value in list(fields.items())[:10]:
-                    console.print(f"  {field}: {value}")
+                    out.info(f"  {field}: {value}")
         elif key_type == "set":
             length = await client.scard(key)
-            console.print(f"[cyan]Set members: {length}[/cyan]")
+            out.info(f"[cyan]Set members: {length}[/cyan]")
         elif key_type == "zset":
             length = await client.zcard(key)
-            console.print(f"[cyan]Sorted set members: {length}[/cyan]")
+            out.info(f"[cyan]Sorted set members: {length}[/cyan]")
 
+        out.log_operation("Key retrieved successfully", key=key, key_type=key_type, ttl=ttl)
         await client.close()
 
     except Exception as e:
-        console.print(f"[red]❌ Error retrieving key: {e}[/red]")
-        logger.error(f"Redis key retrieval error: {e}")
+        out.error(f"Error retrieving key: {e}")
+        out.log_error("Redis key retrieval failed", e, key=key)
         raise typer.Exit(1)
 
 
-async def _delete_key_async(key: str, verbose: bool) -> None:
+async def _delete_key_async(key: str, out: CLIOutput) -> None:
     """Async implementation of key deletion.
 
     Args:
         key: Cache key to delete
-        verbose: Show detailed output
+        out: CLI output handler
     """
     try:
         import redis.asyncio as redis
+        from bff_api.config.app import get_settings
 
+        settings = get_settings()
         client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
         ***REMOVED*** Check if key exists
         if not await client.exists(key):
-            console.print(f"[yellow]Key '{key}' not found in cache[/yellow]")
+            out.warning(f"Key '{key}' not found in cache")
             await client.close()
             return
 
@@ -451,18 +504,16 @@ async def _delete_key_async(key: str, verbose: bool) -> None:
         deleted = await client.delete(key)
 
         if deleted:
-            console.print(f"[green]✅ Successfully deleted key: {key}[/green]")
+            out.success(f"Successfully deleted key: {key}")
         else:
-            console.print(f"[red]❌ Failed to delete key: {key}[/red]")
+            out.error(f"Failed to delete key: {key}")
 
-        if verbose:
-            console.print(f"[dim]Keys deleted: {deleted}[/dim]")
-
+        out.log_operation("Key deletion completed", key=key, deleted=bool(deleted))
         await client.close()
 
     except Exception as e:
-        console.print(f"[red]❌ Error deleting key: {e}[/red]")
-        logger.error(f"Redis key deletion error: {e}")
+        out.error(f"Error deleting key: {e}")
+        out.log_error("Redis key deletion failed", e, key=key)
         raise typer.Exit(1)
 
 

@@ -5,14 +5,14 @@ including API information, debugging endpoints, and service metadata.
 """
 
 import datetime
-import logging
 from typing import Dict, Any
 
 from fastapi import APIRouter
 
 from bff_api.config.app import settings
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.meta")
 
 router = APIRouter()
 

@@ -5,7 +5,6 @@ and global exception handling for the Next Watch BFF service.
 """
 
 import datetime
-import logging
 import os
 import traceback
 from contextlib import asynccontextmanager
@@ -18,8 +17,9 @@ from fastapi.responses import JSONResponse
 from bff_api.services.backend_client import BackendClient
 from bff_api.services.auth_client import AuthClient
 from bff_api.services.health_service import HealthService, close_health_service
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** Module-level settings for lifespan access
 _app_settings: Optional[Any] = None
@@ -39,80 +39,135 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         None: Application runs between startup and shutdown
     """
     ***REMOVED*** Startup
-    logger.info("Starting BFF service")
+    logger.info("Starting BFF service", service="bff")
     if _app_settings:
-        logger.info(f"Environment: {getattr(_app_settings, 'environment', 'unknown')}")
-        logger.info(f"Backend API URL: {getattr(_app_settings, 'backend_api_url', 'unknown')}")
-        logger.info(f"Recommendation API URL: {getattr(_app_settings, 'reco_api_url', 'unknown')}")
-        logger.info(f"Auth API URL: {getattr(_app_settings, 'auth_api_url', 'unknown')}")
-        logger.info(f"Debug mode: {getattr(_app_settings, 'debug', False)}")
+        logger.info(
+            "BFF service configuration loaded",
+            environment=getattr(_app_settings, "environment", "unknown"),
+            backend_api_url=getattr(_app_settings, "backend_api_url", "unknown"),
+            reco_api_url=getattr(_app_settings, "reco_api_url", "unknown"),
+            auth_api_url=getattr(_app_settings, "auth_api_url", "unknown"),
+            debug_mode=getattr(_app_settings, "debug", False),
+        )
 
     ***REMOVED*** Initialize backend client
-    logger.info("Initializing backend client")
+    logger.info("Initializing backend client", service="bff", component="backend_client")
     try:
         if _app_settings is None:
             raise ValueError("Settings not initialized")
         backend_client = BackendClient(_app_settings)
         app.state.backend_client = backend_client
-        logger.info("Backend client initialized successfully")
+        logger.info(
+            "Backend client initialized successfully", service="bff", component="backend_client"
+        )
     except Exception as e:
-        logger.error(f"Failed to initialize backend client: {e}")
+        logger.error(
+            "Failed to initialize backend client",
+            service="bff",
+            component="backend_client",
+            error=str(e),
+        )
         raise
 
     ***REMOVED*** Initialize auth client
-    logger.info("Initializing auth client")
+    logger.info("Initializing auth client", service="bff", component="auth_client")
     try:
         if _app_settings is None:
             raise ValueError("Settings not initialized")
         auth_client = AuthClient(_app_settings)
         app.state.auth_client = auth_client
-        logger.info("Auth client initialized successfully")
+        logger.info("Auth client initialized successfully", service="bff", component="auth_client")
     except Exception as e:
-        logger.error(f"Failed to initialize auth client: {e}")
+        logger.error(
+            "Failed to initialize auth client", service="bff", component="auth_client", error=str(e)
+        )
         raise
 
     ***REMOVED*** Initialize health service
-    logger.info("Initializing health service")
+    logger.info("Initializing health service", service="bff", component="health_service")
     try:
         health_service = HealthService()
         app.state.health_service = health_service
-        logger.info("Health service initialized successfully")
+        logger.info(
+            "Health service initialized successfully", service="bff", component="health_service"
+        )
     except Exception as e:
-        logger.error(f"Failed to initialize health service: {e}")
+        logger.error(
+            "Failed to initialize health service",
+            service="bff",
+            component="health_service",
+            error=str(e),
+        )
         ***REMOVED*** Continue without health service if it fails
         app.state.health_service = None
 
     yield
 
     ***REMOVED*** Shutdown
-    logger.info("Shutting down BFF service")
+    logger.info("Shutting down BFF service", service="bff", phase="shutdown")
 
     ***REMOVED*** Shutdown health service
     if hasattr(app.state, "health_service") and app.state.health_service is not None:
         try:
-            logger.info("Shutting down health service")
+            logger.info(
+                "Shutting down health service",
+                service="bff",
+                component="health_service",
+                phase="shutdown",
+            )
             await app.state.health_service.close()
-            logger.info("Health service shut down successfully")
+            logger.info(
+                "Health service shut down successfully", service="bff", component="health_service"
+            )
         except Exception as e:
-            logger.error(f"Error shutting down health service: {e}")
+            logger.error(
+                "Error shutting down health service",
+                service="bff",
+                component="health_service",
+                error=str(e),
+            )
 
     ***REMOVED*** Shutdown backend client
     if hasattr(app.state, "backend_client") and app.state.backend_client is not None:
         try:
-            logger.info("Shutting down backend client")
+            logger.info(
+                "Shutting down backend client",
+                service="bff",
+                component="backend_client",
+                phase="shutdown",
+            )
             await app.state.backend_client.close()
-            logger.info("Backend client shut down successfully")
+            logger.info(
+                "Backend client shut down successfully", service="bff", component="backend_client"
+            )
         except Exception as e:
-            logger.error(f"Error shutting down backend client: {e}")
+            logger.error(
+                "Error shutting down backend client",
+                service="bff",
+                component="backend_client",
+                error=str(e),
+            )
 
     ***REMOVED*** Shutdown auth client
     if hasattr(app.state, "auth_client") and app.state.auth_client is not None:
         try:
-            logger.info("Shutting down auth client")
+            logger.info(
+                "Shutting down auth client",
+                service="bff",
+                component="auth_client",
+                phase="shutdown",
+            )
             await app.state.auth_client.close()
-            logger.info("Auth client shut down successfully")
+            logger.info(
+                "Auth client shut down successfully", service="bff", component="auth_client"
+            )
         except Exception as e:
-            logger.error(f"Error shutting down auth client: {e}")
+            logger.error(
+                "Error shutting down auth client",
+                service="bff",
+                component="auth_client",
+                error=str(e),
+            )
 
     ***REMOVED*** Close global health service
     await close_health_service()
@@ -128,7 +183,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     Returns:
         JSONResponse with error details
     """
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    logger.error("Unhandled exception occurred", service="bff", error=str(exc), exc_info=True)
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 

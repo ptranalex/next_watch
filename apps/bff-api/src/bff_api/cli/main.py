@@ -1,31 +1,23 @@
 """Main CLI application for BFF service."""
 
-import logging
 import sys
-from pathlib import Path
-from typing import Optional, Dict, Any, cast
+from typing import Optional, Dict, Any
 
 import typer
-from rich.console import Console
 from rich.traceback import install
 from typing_extensions import Annotated
 
 ***REMOVED*** Import command modules
 from bff_api.cli.commands import health, cache, serve
 
-***REMOVED*** Import configuration and utilities
-from bff_api.config.app import settings, Config
-from bff_api.cli.utils import print_config
-from bff_api.main import create_app
+***REMOVED*** Import CLI logging utilities
+from bff_api.cli.logging import get_cli_output
 
 ***REMOVED*** Define version constant
 DEFAULT_VERSION = "0.1.0"  ***REMOVED*** Should match pyproject.toml
 
 ***REMOVED*** Install rich traceback handler
 install()
-
-console = Console()
-logger = logging.getLogger(__name__)
 
 ***REMOVED*** Create main Typer app
 app: typer.Typer = typer.Typer(
@@ -41,8 +33,12 @@ app.add_typer(serve.app, name="serve")
 
 
 @app.command(name="version")
-def show_version() -> None:
+def show_version(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed version info")
+) -> None:
     """Show BFF API version information."""
+    out = get_cli_output("version", verbose=verbose)
+
     try:
         ***REMOVED*** Try to get version from package metadata
         try:
@@ -52,12 +48,23 @@ def show_version() -> None:
         except (importlib.metadata.PackageNotFoundError, AttributeError):
             version = DEFAULT_VERSION
 
-        console.print(f"[bold blue]BFF API[/bold blue] version [green]{version}[/green]")
-        console.print(f"Environment: [yellow]{settings.environment}[/yellow]")
-        console.print(f"Python: [dim]{sys.version.split()[0]}[/dim]")
+        ***REMOVED*** Import config only when needed (no auto-logging)
+        from bff_api.config.app import settings
+
+        ***REMOVED*** Clean user output
+        out.info(f"[bold blue]BFF API[/bold blue] version [green]{version}[/green]")
+        out.info(f"Environment: [yellow]{settings.environment}[/yellow]")
+        out.info(f"Python: [dim]{sys.version.split()[0]}[/dim]")
+
+        ***REMOVED*** Optional verbose info
+        if verbose:
+            out.log_operation(
+                "Version command completed", version=version, environment=settings.environment
+            )
 
     except Exception as e:
-        console.print(f"[bold red]Error getting version: {e}[/bold red]")
+        out.error(f"Error getting version: {e}")
+        out.log_error("Version command failed", e)
         raise typer.Exit(code=1)
 
 
@@ -81,22 +88,30 @@ def config(
         show_secrets: Whether to show sensitive values unmasked
         verbose: Show additional configuration details
     """
+    out = get_cli_output("config", verbose=verbose)
+
     try:
+        ***REMOVED*** Import config and utilities only when needed
+        from bff_api.config.app import get_settings
+        from bff_api.cli.utils import print_config
+
+        ***REMOVED*** Get the actual Config instance (not proxy)
+        config = get_settings()
+
         title = "BFF Configuration"
         if verbose:
             title += " (Detailed)"
 
-        print_config(settings, title, console, show_secrets=show_secrets)
+        print_config(config, title, out.console, show_secrets=show_secrets)
 
         if verbose:
-            console.print(
-                f"[dim]Configuration loaded from: {settings.environment} environment[/dim]"
-            )
-            console.print(f"[dim]Debug mode: {'Enabled' if settings.debug else 'Disabled'}[/dim]")
+            out.info(f"[dim]Configuration loaded from: {config.environment} environment[/dim]")
+            out.info(f"[dim]Debug mode: {'Enabled' if config.debug else 'Disabled'}[/dim]")
+            out.log_operation("Configuration display completed", show_secrets=show_secrets)
 
     except Exception as e:
-        console.print(f"[bold red]Error displaying configuration: {e}[/bold red]")
-        logger.error(f"Failed to display configuration: {e}")
+        out.error(f"Error displaying configuration: {e}")
+        out.log_error("Configuration command failed", e)
         raise typer.Exit(code=1)
 
 
@@ -110,10 +125,10 @@ def main() -> int:
         app()
         return 0
     except Exception as e:
-        ***REMOVED*** Use basic logging since configure_logging might not be set up yet
-        logger = logging.getLogger("bff_api.cli")
-        logger.error(f"Error running command: {str(e)}")
-        console.print(f"[bold red]CLI Error: {e}[/bold red]")
+        ***REMOVED*** Use CLI output for clean error handling
+        out = get_cli_output("main")
+        out.error(f"CLI Error: {e}")
+        out.log_error("CLI command failed", e)
         return 1
 
 

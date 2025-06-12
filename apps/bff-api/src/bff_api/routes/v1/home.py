@@ -1,28 +1,26 @@
 """Home screen routes for BFF API."""
 
-import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from bff_api.schemas.screen_schemas import HomeScreenData
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.home")
 router = APIRouter(tags=["home"])
 
 
 @router.get("/home", response_model=HomeScreenData)
 async def get_home_screen(
-    user_id: Optional[int] = Query(
-        None, description="User ID for personalized content"
-    ),
+    user_id: Optional[int] = Query(None, description="User ID for personalized content"),
     backend: BackendClient = Depends(get_backend_client),
 ) -> HomeScreenData:
     """Get aggregated data for home screen.
 
     Fetches and aggregates multiple data sources for the main app home screen
-    including featured movies, popular content, recent releases, and 
+    including featured movies, popular content, recent releases, and
     personalized recommendations if user_id is provided.
 
     Args:
@@ -57,7 +55,12 @@ async def get_home_screen(
                 )
                 user_recommendations = recommendations_response.get("results", [])
             except BackendClientError:
-                logger.warning(f"Failed to get recommendations for user {user_id}")
+                logger.warning(
+                    "Failed to get recommendations for user",
+                    user_id=user_id,
+                    service="bff",
+                    endpoint="home_screen",
+                )
 
         return HomeScreenData(
             featured_movies=featured_movies_response.get("results", []),
@@ -68,5 +71,7 @@ async def get_home_screen(
         )
 
     except BackendClientError as e:
-        logger.error(f"Backend error in home screen: {e}")
-        raise HTTPException(status_code=502, detail="Backend service unavailable") 
+        logger.error(
+            "Backend error in home screen", error=str(e), service="bff", endpoint="home_screen"
+        )
+        raise HTTPException(status_code=502, detail="Backend service unavailable")

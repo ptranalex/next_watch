@@ -1,265 +1,284 @@
 """Health check commands for BFF API services."""
 
 import asyncio
-import logging
-import time
 from typer import Typer
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 import typer
-from rich.console import Console
+from rich.table import Table
 
-from bff_api.config.app import settings
-from bff_api.cli.utils import check_service_health, display_service_status
+from bff_api.cli.logging import get_cli_output, CLIOutput
+from bff_api.services.health_service import get_health_service, HealthCheckResult
 
 app: Typer = typer.Typer(
     name="health", help="Health check commands for BFF and dependent services."
 )
-console = Console()
-logger = logging.getLogger(__name__)
 
 
 @app.command(name="check")
 def health_check(
-    backend_api_url: Optional[str] = typer.Option(
-        None,
-        "--backend-api-url",
-        help="Backend API URL to check (overrides config)",
-        envvar="BACKEND_API_URL",
-    ),
-    auth_api_url: Optional[str] = typer.Option(
-        None,
-        "--auth-api-url",
-        help="Auth API URL to check (overrides config)",
-        envvar="AUTH_API_URL",
-    ),
-    timeout: int = typer.Option(
-        5,
-        "--timeout",
-        "-t",
-        help="Request timeout in seconds",
-    ),
     verbose: bool = typer.Option(
         False,
         "--verbose",
         "-v",
         help="Show detailed output",
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
     ),
 ) -> None:
     """Check health of BFF and all dependent services.
 
     This command checks the health of:
     - Backend API service
+    - Recommendation API service
     - Auth API service
-    - Redis cache (if configured)
 
     Args:
-        backend_api_url: Backend API URL to check
-        auth_api_url: Auth API URL to check
-        timeout: Request timeout in seconds
         verbose: Show detailed output including response times
+        quiet: Suppress output except errors
     """
+    out = get_cli_output("health", verbose=verbose, quiet=quiet)
+
     if verbose:
-        console.print("[blue]🔍 Starting comprehensive health check...[/blue]")
-        console.print()
+        out.info("[blue]🔍 Starting comprehensive health check...[/blue]")
+        out.info("")
 
-    ***REMOVED*** Use provided URLs or fall back to configuration
-    backend_url = backend_api_url or settings.backend_api_url
-    auth_url = auth_api_url or settings.auth_api_url
-
-    ***REMOVED*** Run async health checks
-    asyncio.run(
-        _run_health_checks(
-            backend_url=backend_url,
-            auth_url=auth_url,
-            timeout=timeout,
-            verbose=verbose,
-        )
-    )
+    ***REMOVED*** Run async health checks using the health service
+    asyncio.run(_run_comprehensive_health_check(out))
 
 
 @app.command(name="backend")
 def check_backend(
-    url: Optional[str] = typer.Option(
-        None,
-        "--url",
-        help="Backend API URL (overrides config)",
-        envvar="BACKEND_API_URL",
-    ),
-    timeout: int = typer.Option(
-        5,
-        "--timeout",
-        "-t",
-        help="Request timeout in seconds",
-    ),
     verbose: bool = typer.Option(
         False,
         "--verbose",
         "-v",
         help="Show detailed output",
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
     ),
 ) -> None:
     """Check health of Backend API service only.
 
     Args:
-        url: Backend API URL to check
-        timeout: Request timeout in seconds
         verbose: Show detailed output
+        quiet: Suppress output except errors
     """
-    backend_url = url or settings.backend_api_url
-
-    if verbose:
-        console.print(f"[blue]Checking Backend API at: {backend_url}[/blue]")
-
-    asyncio.run(_check_single_service(backend_url, "Backend API", timeout))
+    out = get_cli_output("health.backend", verbose=verbose, quiet=quiet)
+    asyncio.run(_check_single_service("backend_api", "Backend API", out))
 
 
 @app.command(name="auth")
 def check_auth(
-    url: Optional[str] = typer.Option(
-        None,
-        "--url",
-        help="Auth API URL (overrides config)",
-        envvar="AUTH_API_URL",
-    ),
-    timeout: int = typer.Option(
-        5,
-        "--timeout",
-        "-t",
-        help="Request timeout in seconds",
-    ),
     verbose: bool = typer.Option(
         False,
         "--verbose",
         "-v",
         help="Show detailed output",
     ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
+    ),
 ) -> None:
     """Check health of Auth API service only.
 
     Args:
-        url: Auth API URL to check
-        timeout: Request timeout in seconds
         verbose: Show detailed output
+        quiet: Suppress output except errors
     """
-    auth_url = url or settings.auth_api_url
-
-    if verbose:
-        console.print(f"[blue]Checking Auth API at: {auth_url}[/blue]")
-
-    asyncio.run(_check_single_service(auth_url, "Auth API", timeout))
+    out = get_cli_output("health.auth", verbose=verbose, quiet=quiet)
+    asyncio.run(_check_single_service("auth_api", "Auth API", out))
 
 
-async def _run_health_checks(
-    backend_url: str,
-    auth_url: str,
-    timeout: int,
-    verbose: bool,
+@app.command(name="reco")
+def check_reco(
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Show detailed output",
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress output except errors",
+    ),
 ) -> None:
-    """Run comprehensive health checks for all services.
+    """Check health of Recommendation API service only.
 
     Args:
-        backend_url: Backend API URL
-        auth_url: Auth API URL
-        timeout: Request timeout in seconds
         verbose: Show detailed output
+        quiet: Suppress output except errors
     """
-    services: Dict[str, Dict[str, Any]] = {}
-
-    ***REMOVED*** Check Backend API
-    start_time = time.time()
-    backend_healthy = await check_service_health(backend_url, "Backend API", timeout, console)
-    backend_time = round((time.time() - start_time) * 1000, 2)
-
-    services["Backend API"] = {
-        "status": "Healthy" if backend_healthy else "Unhealthy",
-        "url": backend_url,
-        "response_time": f"{backend_time}ms" if backend_healthy else "N/A",
-    }
-
-    ***REMOVED*** Check Auth API
-    start_time = time.time()
-    auth_healthy = await check_service_health(auth_url, "Auth API", timeout, console)
-    auth_time = round((time.time() - start_time) * 1000, 2)
-
-    services["Auth API"] = {
-        "status": "Healthy" if auth_healthy else "Unhealthy",
-        "url": auth_url,
-        "response_time": f"{auth_time}ms" if auth_healthy else "N/A",
-    }
-
-    ***REMOVED*** Check Redis (basic connection test)
-    start_time = time.time()
-    redis_healthy = await _check_redis_health()
-    redis_time = round((time.time() - start_time) * 1000, 2)
-
-    services["Redis Cache"] = {
-        "status": "Healthy" if redis_healthy else "Unhealthy",
-        "url": settings.redis_url,
-        "response_time": f"{redis_time}ms" if redis_healthy else "N/A",
-    }
-
-    console.print()
-    display_service_status(services, console)
-
-    ***REMOVED*** Overall status
-    all_healthy = all(service["status"] == "Healthy" for service in services.values())
-
-    if all_healthy:
-        console.print("[bold green]🎉 All services are healthy![/bold green]")
-        exit_code = 0
-    else:
-        console.print("[bold red]⚠️  Some services are unhealthy![/bold red]")
-        exit_code = 1
-
-    if verbose:
-        console.print(f"\n[dim]Health check completed with exit code: {exit_code}[/dim]")
-
-    raise typer.Exit(code=exit_code)
+    out = get_cli_output("health.reco", verbose=verbose, quiet=quiet)
+    asyncio.run(_check_single_service("recommendation_api", "Recommendation API", out))
 
 
-async def _check_single_service(url: str, service_name: str, timeout: int) -> None:
-    """Check health of a single service.
+async def _run_comprehensive_health_check(out: CLIOutput) -> None:
+    """Run comprehensive health checks for all services using the health service.
 
     Args:
-        url: Service URL
-        service_name: Human-readable service name
-        timeout: Request timeout in seconds
+        out: CLI output handler
     """
-    healthy = await check_service_health(url, service_name, timeout, console)
+    health_service = get_health_service()
 
-    if healthy:
-        console.print(f"[bold green]✅ {service_name} is healthy![/bold green]")
-        raise typer.Exit(code=0)
-    else:
-        console.print(f"[bold red]❌ {service_name} is unhealthy![/bold red]")
-        raise typer.Exit(code=1)
-
-
-async def _check_redis_health() -> bool:
-    """Check Redis connection health.
-
-    Returns:
-        True if Redis is accessible, False otherwise
-    """
     try:
-        import redis.asyncio as redis
+        out.log_operation("Starting comprehensive health check")
+        results = await health_service.check_all()
 
-        client = redis.Redis.from_url(
-            settings.redis_url,
-            decode_responses=True,
-            socket_connect_timeout=2,
-            socket_timeout=2,
-        )
+        ***REMOVED*** Display results in a nice table
+        _display_health_results(results, out)
 
-        ***REMOVED*** Simple ping test
-        await client.ping()
-        await client.close()
+        ***REMOVED*** Determine overall status
+        all_healthy = all(result.is_healthy for result in results.values())
 
-        console.print("✅ Redis Cache is healthy: Connection successful")
-        return True
+        if all_healthy:
+            out.success("All services are healthy!")
+            out.log_operation(
+                "Health check completed", status="all_healthy", service_count=len(results)
+            )
+            exit_code = 0
+        else:
+            unhealthy_services = [name for name, result in results.items() if not result.is_healthy]
+            out.error(f"Some services are unhealthy: {', '.join(unhealthy_services)}")
+            out.log_operation(
+                "Health check completed", status="some_unhealthy", unhealthy=unhealthy_services
+            )
+            exit_code = 1
 
+        raise typer.Exit(code=exit_code)
+
+    except typer.Exit:
+        ***REMOVED*** Re-raise typer.Exit to let it propagate normally
+        raise
     except Exception as e:
-        console.print(f"❌ Redis Cache is unhealthy: {e}")
-        logger.error(f"Redis health check failed: {e}")
-        return False
+        out.error(f"Health check failed: {e}")
+        out.log_error("Health check failed", e)
+        raise typer.Exit(code=1)
+    finally:
+        await health_service.close()
+
+
+async def _check_single_service(service_key: str, service_name: str, out: CLIOutput) -> None:
+    """Check health of a single service using the health service.
+
+    Args:
+        service_key: Key to identify the service in health service results
+        service_name: Human-readable service name
+        out: CLI output handler
+    """
+    health_service = get_health_service()
+
+    try:
+        out.log_operation(f"Checking {service_name}", service_type=service_key)
+
+        ***REMOVED*** Get the appropriate check method
+        if service_key == "backend_api":
+            result = await health_service.check_backend_api()
+        elif service_key == "recommendation_api":
+            result = await health_service.check_recommendation_api()
+        elif service_key == "auth_api":
+            result = await health_service.check_auth_api()
+        else:
+            raise ValueError(f"Unknown service key: {service_key}")
+
+        if result.is_healthy:
+            out.success(f"{service_name} is healthy!")
+            if result.response_time_ms:
+                out.info(f"Response time: {result.response_time_ms}ms")
+            if result.details and out.verbose:
+                for key, value in result.details.items():
+                    out.info(f"  • {key}: {value}")
+
+            out.log_operation(
+                f"{service_name} check completed",
+                service_type=service_key,
+                status="healthy",
+                response_time_ms=result.response_time_ms,
+            )
+            raise typer.Exit(code=0)
+        else:
+            out.error(f"{service_name} is unhealthy!")
+            if result.error:
+                out.error(f"Error: {result.error}")
+
+            out.log_operation(
+                f"{service_name} check completed",
+                service_type=service_key,
+                status="unhealthy",
+                error=result.error,
+            )
+            raise typer.Exit(code=1)
+
+    except typer.Exit:
+        ***REMOVED*** Re-raise typer.Exit to let it propagate normally
+        raise
+    except Exception as e:
+        out.error(f"Failed to check {service_name}: {e}")
+        out.log_error(f"{service_name} check failed", e, service_type=service_key)
+        raise typer.Exit(code=1)
+    finally:
+        await health_service.close()
+
+
+def _display_health_results(results: Dict[str, HealthCheckResult], out: CLIOutput) -> None:
+    """Display health check results in a formatted table.
+
+    Args:
+        results: Dictionary of health check results
+        out: CLI output handler
+    """
+    table = Table(title="Service Health Status", show_header=True, header_style="bold blue")
+    table.add_column("Service", style="cyan", no_wrap=True)
+    table.add_column("Status", style="bold")
+    table.add_column("Response Time", style="yellow", no_wrap=True)
+    table.add_column("Details", style="dim")
+
+    ***REMOVED*** Service name mapping for display
+    service_names = {
+        "backend_api": "Backend API",
+        "recommendation_api": "Recommendation API",
+        "auth_api": "Auth API",
+    }
+
+    for service_key, result in results.items():
+        service_name = service_names.get(service_key, service_key)
+
+        ***REMOVED*** Status with color coding
+        if result.is_healthy and result.status == "healthy":
+            status = "[green]Healthy[/green]"
+        elif result.is_healthy and result.status == "degraded":
+            status = "[yellow]Degraded[/yellow]"
+        elif result.status == "unavailable":
+            status = "[yellow]Unavailable[/yellow]"
+        else:
+            status = "[red]Unhealthy[/red]"
+
+        ***REMOVED*** Response time
+        response_time = f"{result.response_time_ms}ms" if result.response_time_ms else "N/A"
+
+        ***REMOVED*** Details (show error or service status)
+        if result.error:
+            details = f"[red]{result.error}[/red]"
+        elif result.details and result.details.get("service_status"):
+            details = result.details["service_status"]
+        else:
+            details = "-"
+
+        table.add_row(service_name, status, response_time, details)
+
+    out.console.print()
+    out.console.print(table)
+    out.console.print()

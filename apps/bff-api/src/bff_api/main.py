@@ -1,33 +1,52 @@
 """Main FastAPI application for BFF service."""
 
 import os
-import logging
+from typing import Optional
+from fastapi import FastAPI
 
 ***REMOVED*** Import configuration after environment variables are loaded
 from bff_api.config.app import settings
-from bff_api.core.logging import setup_logging
 
-***REMOVED*** Configure logging early
-setup_logging(
-    log_level=settings.log_level,
-    verbose=settings.debug,
-    quiet=False,
-)
+***REMOVED*** Lazy app initialization - only create when needed
+_app: Optional[FastAPI] = None
 
-***REMOVED*** Get logger for this module
-logger = logging.getLogger(__name__)
 
-***REMOVED*** Log main application startup
-logger.info("Initializing Next Watch BFF API")
-logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+def get_app() -> FastAPI:
+    """Get or create the FastAPI application instance with full logging."""
+    global _app
+    if _app is None:
+        ***REMOVED*** Configure logging for web server mode
+        from bff_api.core.logging import setup_logging
+        from bff_api.config.logging import get_logger
 
-***REMOVED*** Import and create app using core module
-from bff_api.core.app import create_app
+        setup_logging(
+            log_level=settings.log_level,
+            verbose=settings.debug,
+            quiet=False,
+            color_theme="modern",
+        )
 
-***REMOVED*** Create default app instance with injected settings
-app = create_app(settings)
+        logger = get_logger("bff_api.main")
 
-logger.info("BFF API initialized successfully")
+        ***REMOVED*** Log main application startup
+        logger.info("Initializing Next Watch BFF API", service="bff")
+        logger.info(
+            "Application environment configured",
+            environment=os.getenv("ENVIRONMENT", "development"),
+        )
+
+        ***REMOVED*** Import and create app using core module
+        from bff_api.core.app import create_app
+
+        _app = create_app(settings)
+        logger.info("BFF API initialized successfully", service="bff")
+
+    return _app
+
+
+***REMOVED*** Create app instance for direct import (web server use)
+app = get_app()
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -13,8 +13,10 @@ from bff_api.schemas.user_interaction_schemas import (
 from bff_api.dependencies.common import get_backend_client
 from bff_api.dependencies.auth import get_current_user_id_and_token
 from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.user_interactions")
+
 router = APIRouter(tags=["user-interactions"])
 
 
@@ -67,9 +69,7 @@ async def set_movie_watched(
         return UserMovieInteractionResponse(**current)
 
     except BackendClientError as e:
-        logger.error(
-            f"Backend error setting watched for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error setting watched for user {user_id}, movie {movie_id}: {e}")
         if "404" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -124,9 +124,7 @@ async def unset_movie_watched(
 
         ***REMOVED*** Only toggle if currently watched
         if current is not None and current.get("watched", False):
-            result = await backend.unset_user_movie_watched(
-                user_id, movie_id, jwt_token
-            )
+            result = await backend.unset_user_movie_watched(user_id, movie_id, jwt_token)
             return UserMovieInteractionResponse(**result)
 
         ***REMOVED*** Already in desired state or no interaction exists
@@ -139,9 +137,7 @@ async def unset_movie_watched(
         return UserMovieInteractionResponse(**current)
 
     except BackendClientError as e:
-        logger.error(
-            f"Backend error unsetting watched for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error unsetting watched for user {user_id}, movie {movie_id}: {e}")
         if "404" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -203,9 +199,7 @@ async def set_movie_liked(
         return UserMovieInteractionResponse(**current)
 
     except BackendClientError as e:
-        logger.error(
-            f"Backend error setting liked for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error setting liked for user {user_id}, movie {movie_id}: {e}")
         if "404" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -273,9 +267,7 @@ async def unset_movie_liked(
         return UserMovieInteractionResponse(**current)
 
     except BackendClientError as e:
-        logger.error(
-            f"Backend error unsetting liked for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error unsetting liked for user {user_id}, movie {movie_id}: {e}")
         if "404" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -330,18 +322,14 @@ async def set_movie_watchlist(
 
         ***REMOVED*** Only toggle if not already in watchlist
         if current is None or not current.get("in_watchlist", False):
-            result = await backend.set_user_movie_watchlist(
-                user_id, movie_id, jwt_token
-            )
+            result = await backend.set_user_movie_watchlist(user_id, movie_id, jwt_token)
             return UserMovieInteractionResponse(**result)
 
         ***REMOVED*** Already in desired state
         return UserMovieInteractionResponse(**current)
 
     except BackendClientError as e:
-        logger.error(
-            f"Backend error setting watchlist for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error setting watchlist for user {user_id}, movie {movie_id}: {e}")
         if "404" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -396,9 +384,7 @@ async def unset_movie_watchlist(
 
         ***REMOVED*** Only toggle if currently in watchlist
         if current is not None and current.get("in_watchlist", False):
-            result = await backend.unset_user_movie_watchlist(
-                user_id, movie_id, jwt_token
-            )
+            result = await backend.unset_user_movie_watchlist(user_id, movie_id, jwt_token)
             return UserMovieInteractionResponse(**result)
 
         ***REMOVED*** Already in desired state or no interaction exists
@@ -411,9 +397,7 @@ async def unset_movie_watchlist(
         return UserMovieInteractionResponse(**current)
 
     except BackendClientError as e:
-        logger.error(
-            f"Backend error unsetting watchlist for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error unsetting watchlist for user {user_id}, movie {movie_id}: {e}")
         if "404" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -482,15 +466,11 @@ async def toggle_user_interaction(
     try:
         ***REMOVED*** Call appropriate backend toggle method based on interaction type
         if interaction_type == "watched":
-            result = await backend.toggle_user_movie_watched(
-                user_id, movie_id, jwt_token
-            )
+            result = await backend.toggle_user_movie_watched(user_id, movie_id, jwt_token)
         elif interaction_type == "liked":
             result = await backend.toggle_user_movie_liked(user_id, movie_id, jwt_token)
         elif interaction_type == "in_watchlist":
-            result = await backend.toggle_user_movie_watchlist(
-                user_id, movie_id, jwt_token
-            )
+            result = await backend.toggle_user_movie_watchlist(user_id, movie_id, jwt_token)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -505,9 +485,7 @@ async def toggle_user_interaction(
             "watched": "watched" if interaction.watched else "unwatched",
             "liked": "liked" if interaction.liked else "unliked",
             "in_watchlist": (
-                "added to watchlist"
-                if interaction.in_watchlist
-                else "removed from watchlist"
+                "added to watchlist" if interaction.in_watchlist else "removed from watchlist"
             ),
         }
 
@@ -587,9 +565,7 @@ async def get_user_interaction(
         return UserMovieInteractionResponse(**result)
 
     except BackendClientError as e:
-        logger.error(
-            f"Backend error getting interaction for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error getting interaction for user {user_id}, movie {movie_id}: {e}")
         if "404" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

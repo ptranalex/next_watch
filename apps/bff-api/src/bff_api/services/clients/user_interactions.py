@@ -5,7 +5,9 @@ from typing import Dict, List, Optional, Any, cast
 
 from .base import BaseBackendClient, BackendClientError
 
-logger = logging.getLogger(__name__)
+from bff_api.config.logging import get_logger
+
+logger = get_logger("bff_api.services.clients.user_interactions")
 
 
 class UserInteractionsClient(BaseBackendClient):

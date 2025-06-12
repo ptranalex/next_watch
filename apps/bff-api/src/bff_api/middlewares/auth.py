@@ -7,7 +7,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response, JSONResponse
 from starlette.types import ASGIApp
 
-logger = logging.getLogger(__name__)
+from bff_api.config.logging import get_logger
+
+logger = get_logger("bff_api.middlewares.auth")
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -61,6 +63,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             request.state.user_id = None
             request.state.authenticated = False
 
+        logger.debug(
+            "Auth middleware processed request",
+            request=request,
+            service="bff",
+            endpoint="auth_middleware",
+        )
         return await call_next(request)
 
     def _validate_token(self, token: str) -> Optional[int]:

@@ -1,6 +1,5 @@
 """Genre-related routes for BFF API."""
 
-import logging
 from typing import Optional, Dict, Any, Union, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -9,8 +8,9 @@ from bff_api.schemas.screen_schemas import GenreScreenData
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.genres")
 router = APIRouter(tags=["genres"])
 
 ***REMOVED*** Security scheme for optional authentication
@@ -75,26 +75,30 @@ async def get_genre_screen(
     """
     ***REMOVED*** Extract user ID from JWT token if provided (overrides query parameter)
     extracted_user_id = None
-    logger.info(f"🔍 Debugging token extraction for genre {genre_id}")
-    logger.info(f"📋 Credentials present: {bool(credentials)}")
+    logger.info(
+        "Processing genre screen request",
+        genre_id=genre_id,
+        has_credentials=bool(credentials),
+        service="bff",
+        endpoint="genre_screen",
+    )
 
     if credentials and credentials.credentials:
-        logger.info(f"🔑 Token present: {bool(credentials.credentials)}")
-        logger.info(f"🔑 Token preview: {credentials.credentials[:20]}...")
-
-        ***REMOVED*** Temporarily enable debug logging for JWT extraction
-        auth_logger = logging.getLogger("bff_api.utils.auth")
-        original_level = auth_logger.level
-        auth_logger.setLevel(logging.DEBUG)
-
         extracted_user_id = extract_user_id_from_token(credentials.credentials)
-
-        ***REMOVED*** Restore original logging level
-        auth_logger.setLevel(original_level)
-
-        logger.info(f"👤 Extracted user_id: {extracted_user_id}")
+        logger.info(
+            "User authenticated for genre screen",
+            genre_id=genre_id,
+            user_id=extracted_user_id,
+            service="bff",
+            endpoint="genre_screen",
+        )
     else:
-        logger.info("❌ No credentials or token found - treating as anonymous user")
+        logger.info(
+            "Anonymous user accessing genre screen",
+            genre_id=genre_id,
+            service="bff",
+            endpoint="genre_screen",
+        )
 
     ***REMOVED*** Use extracted user ID from token, fallback to query parameter
     final_user_id = extracted_user_id or user_id
@@ -103,11 +107,23 @@ async def get_genre_screen(
         ***REMOVED*** Get genre details from backend
         try:
             genre_response = await backend.get_genre(genre_id)
-            logger.info(f"Retrieved genre {genre_id}: {genre_response}")
+            logger.info(
+                "Retrieved genre details",
+                genre_id=genre_id,
+                genre_name=genre_response.get("name", "unknown"),
+                service="bff",
+                component="genres",
+            )
         except BackendClientError as e:
             if "404" in str(e):
                 raise HTTPException(status_code=404, detail="Genre not found")
-            logger.error(f"Failed to get genre {genre_id}: {e}")
+            logger.error(
+                "Failed to get genre details",
+                genre_id=genre_id,
+                error=str(e),
+                service="bff",
+                component="genres",
+            )
             raise HTTPException(status_code=502, detail="Backend service unavailable")
 
         ***REMOVED*** Get movies for this genre with filters
@@ -149,7 +165,14 @@ async def get_genre_screen(
 
         ***REMOVED*** If user is authenticated, fetch user interactions for each movie
         if final_user_id and credentials:
-            logger.info(f"🔄 Fetching user interactions for {len(movies)} movies")
+            logger.info(
+                "Fetching user interactions for genre movies",
+                genre_id=genre_id,
+                user_id=final_user_id,
+                movie_count=len(movies),
+                service="bff",
+                component="user_interactions",
+            )
             for movie in movies:
                 movie_id = movie.get("id")
                 if movie_id:
@@ -182,7 +205,15 @@ async def get_genre_screen(
                                 "is_watched": False,
                             }
                     except Exception as e:
-                        logger.warning(f"Failed to get user interaction for movie {movie_id}: {e}")
+                        logger.warning(
+                            "Failed to get user interaction for genre movie",
+                            genre_id=genre_id,
+                            movie_id=movie_id,
+                            user_id=final_user_id,
+                            error=str(e),
+                            service="bff",
+                            component="user_interactions",
+                        )
                         ***REMOVED*** Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False
@@ -196,7 +227,13 @@ async def get_genre_screen(
                         }
         else:
             ***REMOVED*** For anonymous users, set all interaction fields to false
-            logger.info("No user authenticated - setting default interaction values")
+            logger.info(
+                "Setting default interaction values for anonymous user in genre",
+                genre_id=genre_id,
+                movie_count=len(movies),
+                service="bff",
+                component="user_interactions",
+            )
             for movie in movies:
                 movie["liked"] = False
                 movie["watched"] = False
@@ -221,7 +258,13 @@ async def get_genre_screen(
         )
 
     except BackendClientError as e:
-        logger.error(f"Backend error for genre {genre_id}: {e}")
+        logger.error(
+            "Backend error for genre screen",
+            genre_id=genre_id,
+            error=str(e),
+            service="bff",
+            endpoint="genre_screen",
+        )
         if "404" in str(e):
             raise HTTPException(status_code=404, detail="Genre not found")
         raise HTTPException(status_code=502, detail="Backend service unavailable")

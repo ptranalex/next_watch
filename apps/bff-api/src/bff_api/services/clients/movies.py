@@ -6,7 +6,9 @@ import httpx
 
 from .base import BaseBackendClient, BackendClientError
 
-logger = logging.getLogger(__name__)
+from bff_api.config.logging import get_logger
+
+logger = get_logger("bff_api.services.clients.movies")
 
 
 class MoviesClient(BaseBackendClient):

@@ -31,6 +31,7 @@ dependencies = [
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework
     "rich>=13.7.0",             ***REMOVED*** Terminal formatting
+    "structlog>=23.2.0",        ***REMOVED*** Structured logging
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
     
     ***REMOVED*** Cache
@@ -130,7 +131,8 @@ module = [
     "pyjwt.*",
     "dateutil.*",
     "tenacity.*",
-    "email_validator.*"
+    "email_validator.*",
+    "structlog.*"
 ]
 ignore_missing_imports = true
 

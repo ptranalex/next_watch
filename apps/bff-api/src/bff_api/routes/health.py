@@ -9,6 +9,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from bff_api.config.app import settings
+from bff_api.config.logging import get_logger
+
+logger = get_logger("bff_api.routes.health")
 
 router = APIRouter()
 
@@ -61,6 +64,13 @@ async def health_check(request: Request) -> JSONResponse:
                 if result.error:
                     checks[service_name]["error"] = result.error
 
+            logger.info(
+                "Health check response",
+                status=overall_status,
+                service="bff",
+                endpoint="health_check",
+            )
+
             return JSONResponse(
                 status_code=status_code,
                 content={
@@ -97,6 +107,13 @@ async def health_check(request: Request) -> JSONResponse:
             )
     else:
         ***REMOVED*** Fallback: basic health check without external service monitoring
+        logger.info(
+            "Health check response",
+            status="healthy",
+            service="bff",
+            endpoint="health_check",
+        )
+
         return JSONResponse(
             status_code=200,
             content={
@@ -136,6 +153,12 @@ async def readiness_check(request: Request) -> JSONResponse:
             is_ready = backend_result.is_healthy
             status_code = 200 if is_ready else 503
 
+            logger.info(
+                "Readiness check response",
+                status=is_ready,
+                service="bff",
+                endpoint="readiness_check",
+            )
             return JSONResponse(
                 status_code=status_code,
                 content={
@@ -185,6 +208,12 @@ async def liveness_check() -> Dict[str, str]:
     Returns:
         Basic liveness confirmation
     """
+    logger.info(
+        "Liveness check response",
+        status="alive",
+        service="bff",
+        endpoint="liveness_check",
+    )
     return {
         "status": "alive",
         "service": "bff",
@@ -204,6 +233,12 @@ async def basic_health_check() -> HealthResponse:
     Returns:
         Basic health status information
     """
+    logger.info(
+        "Basic health check response",
+        status="healthy",
+        service="bff",
+        endpoint="basic_health_check",
+    )
     return HealthResponse(
         status="healthy",
         timestamp=datetime.datetime.utcnow().isoformat() + "Z",

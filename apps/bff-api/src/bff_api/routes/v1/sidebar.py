@@ -1,6 +1,5 @@
 """Sidebar-related routes for BFF API."""
 
-import logging
 from typing import Optional, Dict, Any, List, cast
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -13,8 +12,9 @@ from bff_api.schemas.screen_schemas import (
 )
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.sidebar")
 router = APIRouter(tags=["sidebar"])
 
 
@@ -41,15 +41,31 @@ async def get_sidebar_content(
     """
     try:
         ***REMOVED*** Get genres from backend
-        logger.info("Fetching genres from backend...")
+        logger.info(
+            "Fetching genres for sidebar content",
+            user_id=user_id,
+            service="bff",
+            endpoint="sidebar",
+        )
         genres = await backend.get_genres()
-        logger.info(f"Received genres response: {genres}")
 
-        if not isinstance(genres, list):
-            logger.warning(f"Unexpected genres response type: {type(genres)}")
-            genres = []
-        else:
-            logger.info(f"Found {len(genres)} genres")
+        ***REMOVED*** Ensure we have a valid list (defensive programming)
+        if not genres:
+            logger.warning(
+                "No genres returned from backend",
+                user_id=user_id,
+                service="bff",
+                endpoint="sidebar",
+                component="genre_processing",
+            )
+
+        logger.info(
+            "Successfully processed genres for sidebar",
+            genre_count=len(genres),
+            user_id=user_id,
+            service="bff",
+            endpoint="sidebar",
+        )
 
         ***REMOVED*** Build home link
         home = {
@@ -135,7 +151,14 @@ async def get_sidebar_content(
             )
             for genre in genres
         ]
-        logger.info(f"Built {len(genre_links)} genre links")
+        logger.info(
+            "Built genre navigation links for sidebar",
+            genre_link_count=len(genre_links),
+            user_id=user_id,
+            service="bff",
+            endpoint="sidebar",
+            component="navigation_building",
+        )
 
         ***REMOVED*** Build metadata
         metadata = SidebarMetadata(
@@ -154,8 +177,20 @@ async def get_sidebar_content(
         )
 
     except BackendClientError as e:
-        logger.error(f"Backend error while fetching sidebar content: {e}")
+        logger.error(
+            "Backend error while fetching sidebar content",
+            error=str(e),
+            user_id=user_id,
+            service="bff",
+            endpoint="sidebar",
+        )
         raise HTTPException(status_code=502, detail="Backend service unavailable")
     except Exception as e:
-        logger.error(f"Unexpected error in sidebar endpoint: {e}")
+        logger.error(
+            "Unexpected error in sidebar endpoint",
+            error=str(e),
+            user_id=user_id,
+            service="bff",
+            endpoint="sidebar",
+        )
         raise HTTPException(status_code=500, detail="Internal server error")

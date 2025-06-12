@@ -9,8 +9,9 @@ from bff_api.schemas.screen_schemas import MovieListData
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.top")
 router = APIRouter(tags=["top"])
 
 ***REMOVED*** Security scheme for optional authentication
@@ -38,9 +39,7 @@ async def get_top_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -152,20 +151,14 @@ async def get_top_movies(
                             ***REMOVED*** for frontend compatibility
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get(
-                                "in_watchlist", False
-                            )
+                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
 
                             ***REMOVED*** Also include complete user_interactions object for reference
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get(
-                                    "in_watchlist", False
-                                ),
+                                "in_watchlist": interaction_data.get("in_watchlist", False),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get(
-                                    "watch_progress", 0
-                                ),
+                                "watch_progress": interaction_data.get("watch_progress", 0),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
@@ -226,4 +219,4 @@ async def get_top_movies(
 
     except BackendClientError as e:
         logger.error(f"Backend error for top movies: {e}")
-        raise HTTPException(status_code=502, detail="Backend service unavailable") 
+        raise HTTPException(status_code=502, detail="Backend service unavailable")

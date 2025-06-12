@@ -1,6 +1,5 @@
 """Liked movies-related routes for BFF API."""
 
-import logging
 from typing import Optional, List, Dict, Any, cast
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -9,8 +8,9 @@ from bff_api.schemas.screen_schemas import MovieListData
 from bff_api.dependencies.common import get_backend_client
 from bff_api.dependencies.auth import get_current_user_id_and_token
 from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.liked")
 router = APIRouter(tags=["liked"])
 
 
@@ -63,7 +63,14 @@ async def get_user_liked_movies(
     ***REMOVED*** Calculate offset for pagination
     offset = (page - 1) * limit
 
-    logger.info(f"❤️ Fetching liked movies for user {user_id} (page {page}, limit {limit})")
+    logger.info(
+        "Fetching liked movies for user",
+        user_id=user_id,
+        page=page,
+        limit=limit,
+        service="bff",
+        endpoint="liked_movies",
+    )
 
     try:
         ***REMOVED*** Get liked movies interactions from backend (using the same pattern as watched)
@@ -75,7 +82,7 @@ async def get_user_liked_movies(
         )
 
         ***REMOVED*** The backend returns a list of user interaction objects
-        liked_interactions: List[Dict[str, Any]] = (
+        liked_interactions: list[dict[str, Any]] = (
             liked_interactions_response if isinstance(liked_interactions_response, list) else []
         )
 
@@ -85,7 +92,12 @@ async def get_user_liked_movies(
         ]
 
         if not actually_liked:
-            logger.info(f"No liked movies found for user {user_id}")
+            logger.info(
+                "No liked movies found for user",
+                user_id=user_id,
+                service="bff",
+                endpoint="liked_movies",
+            )
             return MovieListData(
                 total=0,
                 page=page,
@@ -105,7 +117,12 @@ async def get_user_liked_movies(
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
         if not movie_ids:
-            logger.info(f"No valid movie IDs found in liked interactions for user {user_id}")
+            logger.info(
+                "No valid movie IDs found in liked interactions",
+                user_id=user_id,
+                service="bff",
+                endpoint="liked_movies",
+            )
             return MovieListData(
                 total=0,
                 page=page,
@@ -128,7 +145,13 @@ async def get_user_liked_movies(
             movies_data = movies_response.get("results", [])
 
         except Exception as e:
-            logger.error(f"Failed to fetch bulk movie details for user {user_id}: {e}")
+            logger.error(
+                "Failed to fetch bulk movie details for liked movies",
+                user_id=user_id,
+                error=str(e),
+                service="bff",
+                endpoint="liked_movies",
+            )
             ***REMOVED*** Fallback to empty response instead of failing completely
             movies_data = []
 
@@ -223,7 +246,12 @@ async def get_user_liked_movies(
         total_pages = page if not has_next else page + 1  ***REMOVED*** Estimate based on current page
 
         logger.info(
-            f"✅ Returning {len(enriched_movies)} liked movies for user {user_id} (enriched from {len(actually_liked)} interactions)"
+            "Returning liked movies for user",
+            user_id=user_id,
+            returned_count=len(enriched_movies),
+            interaction_count=len(actually_liked),
+            service="bff",
+            endpoint="liked_movies",
         )
 
         return MovieListData(
@@ -237,7 +265,13 @@ async def get_user_liked_movies(
         )
 
     except BackendClientError as e:
-        logger.error(f"Backend error fetching liked movies for user {user_id}: {e}")
+        logger.error(
+            "Backend error fetching liked movies",
+            user_id=user_id,
+            error=str(e),
+            service="bff",
+            endpoint="liked_movies",
+        )
         if "401" in str(e):
             raise HTTPException(status_code=401, detail="Authentication failed")
         else:

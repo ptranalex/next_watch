@@ -10,10 +10,10 @@ from typing import Any, Dict, List, Optional, TypedDict
 
 ***REMOVED*** Load environment variables from .env files
 from .env import get_env_var, get_env_bool, get_env_int
+from .logging import get_logger
 
-***REMOVED*** Configure basic logging for this module
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+***REMOVED*** Get logger for this module (logging is configured in main.py)
+logger = get_logger("bff_api.config.app")
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** DEFAULT PATHS AND DIRECTORIES
@@ -206,11 +206,16 @@ class Config:
         self.is_development = environment == "development"
 
         ***REMOVED*** Log configuration
-        logger.info(f"Initializing BFF configuration with environment: {self.environment}")
-        logger.info(f"Backend API URL: {self.backend_api_url}")
-        logger.info(f"Recommendation API URL: {self.reco_api_url}")
-        logger.info(f"Auth service URL: {self.auth_api_url}")
-        logger.info(f"Debug mode: {self.debug}")
+        logger.info(
+            "Initializing BFF configuration",
+            environment=self.environment,
+            backend_api_url=self.backend_api_url,
+            reco_api_url=self.reco_api_url,
+            auth_api_url=self.auth_api_url,
+            debug_mode=self.debug,
+            service="bff",
+            component="config",
+        )
 
     @property
     def is_production_env(self) -> bool:
@@ -254,5 +259,31 @@ class Config:
         )
 
 
-***REMOVED*** Create a singleton instance to be imported elsewhere
-settings = Config()
+***REMOVED*** Lazy singleton pattern
+_settings: Optional[Config] = None
+
+
+def get_settings() -> Config:
+    """Get the singleton settings instance.
+
+    Returns:
+        The global Config instance
+    """
+    global _settings
+    if _settings is None:
+        _settings = Config()
+    return _settings
+
+
+***REMOVED*** Lazy property-like access for backward compatibility
+class SettingsProxy:
+    """Proxy to lazily access settings only when needed."""
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_settings(), name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        setattr(get_settings(), name, value)
+
+
+settings = SettingsProxy()

@@ -10,7 +10,10 @@ from bff_api.dependencies.common import get_backend_client
 from bff_api.dependencies.auth import get_current_user_id_and_token
 from bff_api.services.backend_client import BackendClient, BackendClientError
 
-logger = logging.getLogger(__name__)
+from bff_api.config.logging import get_logger
+
+logger = get_logger("bff_api.routes.watchlist")
+
 router = APIRouter(tags=["watchlist"])
 
 

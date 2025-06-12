@@ -1,6 +1,5 @@
 """Movie-related routes for BFF API."""
 
-import logging
 from typing import Dict, List, Any, Optional, Union, cast
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -9,8 +8,9 @@ from bff_api.schemas.screen_schemas import MovieScreenData, MovieListData, UserI
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.movies")
 router = APIRouter(tags=["movies"])
 
 ***REMOVED*** Security scheme for optional authentication
@@ -41,26 +41,30 @@ async def get_movie_screen(
     """
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.info(f"🔍 Debugging token extraction for movie {movie_id}")
-    logger.info(f"📋 Credentials present: {bool(credentials)}")
+    logger.info(
+        "Processing movie detail request",
+        movie_id=movie_id,
+        has_credentials=bool(credentials),
+        service="bff",
+        endpoint="movie_detail",
+    )
 
     if credentials and credentials.credentials:
-        logger.info(f"🔑 Token present: {bool(credentials.credentials)}")
-        logger.info(f"🔑 Token preview: {credentials.credentials[:20]}...")
-
-        ***REMOVED*** Temporarily enable debug logging for JWT extraction
-        auth_logger = logging.getLogger("bff_api.utils.auth")
-        original_level = auth_logger.level
-        auth_logger.setLevel(logging.DEBUG)
-
         user_id = extract_user_id_from_token(credentials.credentials)
-
-        ***REMOVED*** Restore original logging level
-        auth_logger.setLevel(original_level)
-
-        logger.info(f"👤 Extracted user_id: {user_id}")
+        logger.info(
+            "User authenticated for movie detail",
+            movie_id=movie_id,
+            user_id=user_id,
+            service="bff",
+            endpoint="movie_detail",
+        )
     else:
-        logger.info("❌ No credentials or token found - treating as anonymous user")
+        logger.info(
+            "Anonymous user accessing movie detail",
+            movie_id=movie_id,
+            service="bff",
+            endpoint="movie_detail",
+        )
 
     try:
         ***REMOVED*** Get movie details
@@ -70,14 +74,21 @@ async def get_movie_screen(
         try:
             cast = await backend.get_movie_cast(movie_id)
         except BackendClientError:
-            logger.warning(f"Failed to get cast for movie {movie_id}")
+            logger.warning(
+                "Failed to get cast information", movie_id=movie_id, service="bff", component="cast"
+            )
             cast = []
 
         ***REMOVED*** Get trailers information
         try:
             trailers = await backend.get_movie_trailers(movie_id)
         except BackendClientError:
-            logger.warning(f"Failed to get trailers for movie {movie_id}")
+            logger.warning(
+                "Failed to get trailers information",
+                movie_id=movie_id,
+                service="bff",
+                component="trailers",
+            )
             trailers = []
 
         ***REMOVED*** Get similar movies from recommendation API
@@ -88,7 +99,11 @@ async def get_movie_screen(
                 min_score=0.01,
             )
             logger.info(
-                f"Successfully fetched {len(similar_movies)} similar movies for movie {movie_id}"
+                "Successfully fetched similar movies",
+                movie_id=movie_id,
+                similar_count=len(similar_movies),
+                service="bff",
+                component="similar_movies",
             )
 
             ***REMOVED*** Extract movie IDs for bulk fetching
@@ -99,7 +114,12 @@ async def get_movie_screen(
                     try:
                         similar_movie_ids.append(int(movie_id_value))
                     except (ValueError, TypeError):
-                        logger.warning(f"Invalid movie ID in similar movies: {movie_id_value}")
+                        logger.warning(
+                            "Invalid movie ID in similar movies",
+                            invalid_id=movie_id_value,
+                            service="bff",
+                            component="similar_movies",
+                        )
 
             if similar_movie_ids:
                 ***REMOVED*** Fetch movie details in bulk
@@ -113,12 +133,23 @@ async def get_movie_screen(
 
                     similar_movies = movies_response.get("results", [])
                     logger.info(
-                        f"Successfully enriched {len(similar_movies)} similar movies with details"
+                        "Successfully enriched similar movies with details",
+                        movie_id=movie_id,
+                        enriched_count=len(similar_movies),
+                        service="bff",
+                        component="similar_movies",
                     )
 
                     ***REMOVED*** If user is authenticated, fetch user interactions for each similar movie
                     if user_id and credentials:
-                        logger.info(f"Enriching similar movies with user interaction data")
+                        logger.info(
+                            "Enriching similar movies with user interactions",
+                            movie_id=movie_id,
+                            user_id=user_id,
+                            similar_count=len(similar_movies),
+                            service="bff",
+                            component="user_interactions",
+                        )
                         for similar_movie in similar_movies:
                             similar_movie_id = similar_movie.get("id")
                             if similar_movie_id:
@@ -164,7 +195,13 @@ async def get_movie_screen(
                                         }
                                 except Exception as e:
                                     logger.warning(
-                                        f"Failed to get user interaction for similar movie {similar_movie_id}: {e}"
+                                        "Failed to get user interaction for similar movie",
+                                        movie_id=movie_id,
+                                        similar_movie_id=similar_movie_id,
+                                        user_id=user_id,
+                                        error=str(e),
+                                        service="bff",
+                                        component="user_interactions",
                                     )
                                     ***REMOVED*** Set default values if fetching interaction data fails
                                     similar_movie["liked"] = False
@@ -191,20 +228,41 @@ async def get_movie_screen(
                                 "is_watched": False,
                             }
                 except BackendClientError as e:
-                    logger.warning(f"Failed to get bulk details for similar movies: {e}")
+                    logger.warning(
+                        "Failed to get bulk details for similar movies",
+                        movie_id=movie_id,
+                        error=str(e),
+                        service="bff",
+                        component="similar_movies",
+                    )
                     ***REMOVED*** Keep the original similar_movies if bulk fetch fails
             else:
-                logger.warning("No valid movie IDs found in similar movies response")
+                logger.warning(
+                    "No valid movie IDs found in similar movies response",
+                    movie_id=movie_id,
+                    service="bff",
+                    component="similar_movies",
+                )
         except BackendClientError as e:
             error_msg = str(e)
             if "QueuePool limit" in error_msg or "503" in error_msg:
                 logger.error(
-                    f"Database connection pool limit reached when fetching similar movies for movie {movie_id}: {e}"
+                    "Database connection pool limit reached for similar movies",
+                    movie_id=movie_id,
+                    error=str(e),
+                    service="bff",
+                    component="similar_movies",
                 )
                 ***REMOVED*** Return empty list for similar movies in case of connection pool errors
                 similar_movies = []
             else:
-                logger.warning(f"Failed to get similar movies for movie {movie_id}: {e}")
+                logger.warning(
+                    "Failed to get similar movies",
+                    movie_id=movie_id,
+                    error=str(e),
+                    service="bff",
+                    component="similar_movies",
+                )
                 similar_movies = []
 
         ***REMOVED*** User interactions (watchlist, favorite, rating)
@@ -236,7 +294,11 @@ async def get_movie_screen(
                     }
             except BackendClientError:
                 logger.warning(
-                    f"Failed to get user interactions for user {user_id}, movie {movie_id}"
+                    "Failed to get user interactions",
+                    user_id=user_id,
+                    movie_id=movie_id,
+                    service="bff",
+                    component="user_interactions",
                 )
                 user_interactions_dict = {
                     "in_watchlist": False,
@@ -258,7 +320,13 @@ async def get_movie_screen(
         )
 
     except BackendClientError as e:
-        logger.error(f"Backend error for movie {movie_id}: {e}")
+        logger.error(
+            "Backend error for movie detail",
+            movie_id=movie_id,
+            error=str(e),
+            service="bff",
+            endpoint="movie_detail",
+        )
         if "404" in str(e):
             raise HTTPException(status_code=404, detail="Movie not found")
         raise HTTPException(status_code=502, detail="Backend service unavailable")
@@ -320,26 +388,25 @@ async def get_movies_list(
     """
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.info(f"🔍 Debugging token extraction for movies list")
-    logger.info(f"📋 Credentials present: {bool(credentials)}")
+    logger.info(
+        "Processing movies list request",
+        page=page,
+        limit=limit,
+        has_credentials=bool(credentials),
+        service="bff",
+        endpoint="movies_list",
+    )
 
     if credentials and credentials.credentials:
-        logger.info(f"🔑 Token present: {bool(credentials.credentials)}")
-        logger.info(f"🔑 Token preview: {credentials.credentials[:20]}...")
-
-        ***REMOVED*** Temporarily enable debug logging for JWT extraction
-        auth_logger = logging.getLogger("bff_api.utils.auth")
-        original_level = auth_logger.level
-        auth_logger.setLevel(logging.DEBUG)
-
         user_id = extract_user_id_from_token(credentials.credentials)
-
-        ***REMOVED*** Restore original logging level
-        auth_logger.setLevel(original_level)
-
-        logger.info(f"👤 Extracted user_id: {user_id}")
+        logger.info(
+            "User authenticated for movies list",
+            user_id=user_id,
+            service="bff",
+            endpoint="movies_list",
+        )
     else:
-        logger.info("❌ No credentials or token found - treating as anonymous user")
+        logger.info("Anonymous user accessing movies list", service="bff", endpoint="movies_list")
 
     try:
         ***REMOVED*** Build filter parameters
@@ -385,7 +452,13 @@ async def get_movies_list(
 
         ***REMOVED*** If user is authenticated, fetch user interactions for each movie
         if user_id and credentials:
-            logger.info(f"🔄 Fetching user interactions for {len(movies)} movies")
+            logger.info(
+                "Fetching user interactions for movies list",
+                user_id=user_id,
+                movie_count=len(movies),
+                service="bff",
+                component="user_interactions",
+            )
             for list_movie in movies:
                 list_movie_id = list_movie.get("id")
                 if list_movie_id:
@@ -423,7 +496,12 @@ async def get_movies_list(
                             }
                     except Exception as e:
                         logger.warning(
-                            f"Failed to get user interaction for movie {list_movie_id}: {e}"
+                            "Failed to get user interaction for movie in list",
+                            movie_id=list_movie_id,
+                            user_id=user_id,
+                            error=str(e),
+                            service="bff",
+                            component="user_interactions",
                         )
                         ***REMOVED*** Set default values if fetching interaction data fails
                         list_movie["liked"] = False
@@ -439,7 +517,12 @@ async def get_movies_list(
                         }
         else:
             ***REMOVED*** For anonymous users, set all interaction fields to false
-            logger.info("No user authenticated - setting default interaction values")
+            logger.info(
+                "Setting default interaction values for anonymous user",
+                movie_count=len(movies),
+                service="bff",
+                component="user_interactions",
+            )
             for list_movie in movies:
                 list_movie["liked"] = False
                 list_movie["watched"] = False
@@ -463,5 +546,7 @@ async def get_movies_list(
         )
 
     except BackendClientError as e:
-        logger.error(f"Backend error for movies list: {e}")
+        logger.error(
+            "Backend error for movies list", error=str(e), service="bff", endpoint="movies_list"
+        )
         raise HTTPException(status_code=502, detail="Backend service unavailable")

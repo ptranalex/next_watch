@@ -1,6 +1,5 @@
 """Authentication routes for BFF API."""
 
-import logging
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -16,8 +15,9 @@ from bff_api.schemas.auth_schemas import (
 )
 from bff_api.services.auth_client import AuthClient, AuthClientError
 from bff_api.dependencies.common import get_auth_client
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.auth")
 router = APIRouter(tags=["authentication"])
 
 ***REMOVED*** Security scheme for protected routes
@@ -54,7 +54,13 @@ async def login(
         )
 
     except AuthClientError as e:
-        logger.error(f"Authentication failed for {username}: {e}")
+        logger.error(
+            "Authentication failed",
+            username=username,
+            error=str(e),
+            service="bff",
+            endpoint="login",
+        )
         if "401" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -103,7 +109,13 @@ async def register(
         )
 
     except AuthClientError as e:
-        logger.error(f"Registration failed for {user_data.email}: {e}")
+        logger.error(
+            "Registration failed",
+            email=user_data.email,
+            error=str(e),
+            service="bff",
+            endpoint="register",
+        )
         if "400" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -143,7 +155,7 @@ async def refresh_access_token(
         )
 
     except AuthClientError as e:
-        logger.error(f"Token refresh failed: {e}")
+        logger.error("Token refresh failed", error=str(e), service="bff", endpoint="refresh_token")
         if "401" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -184,7 +196,9 @@ async def verify_token(
         )
 
     except AuthClientError as e:
-        logger.error(f"Token verification failed: {e}")
+        logger.error(
+            "Token verification failed", error=str(e), service="bff", endpoint="verify_token"
+        )
         if "401" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -227,7 +241,9 @@ async def get_current_user(
         )
 
     except AuthClientError as e:
-        logger.error(f"Failed to get user info: {e}")
+        logger.error(
+            "Failed to get user info", error=str(e), service="bff", endpoint="get_current_user"
+        )
         if "401" in str(e):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

@@ -1,13 +1,13 @@
 """Base HTTP client for backend API communication."""
 
-import logging
 from typing import Dict, List, Optional, Any, Union, cast
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bff_api.config.app import Config
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.services.clients.base")
 
 
 class BackendClientError(Exception):
@@ -108,13 +108,35 @@ class BaseBackendClient:
                 return {"data": response.text}
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error {e.response.status_code} for {method} {path}: {e}")
+            logger.error(
+                "HTTP error from backend API",
+                method=method,
+                path=path,
+                status_code=e.response.status_code,
+                error=str(e),
+                service="bff",
+                component="backend_client",
+            )
             raise BackendClientError(f"Backend API error: {e.response.status_code}")
         except httpx.RequestError as e:
-            logger.error(f"Request error for {method} {path}: {e}")
+            logger.error(
+                "Request error to backend API",
+                method=method,
+                path=path,
+                error=str(e),
+                service="bff",
+                component="backend_client",
+            )
             raise BackendClientError(f"Backend API request failed: {e}")
         except Exception as e:
-            logger.error(f"Unexpected error for {method} {path}: {e}")
+            logger.error(
+                "Unexpected error in backend API request",
+                method=method,
+                path=path,
+                error=str(e),
+                service="bff",
+                component="backend_client",
+            )
             raise BackendClientError(f"Unexpected backend error: {e}")
 
     def _get_auth_headers(self, user_id: int) -> Dict[str, str]:

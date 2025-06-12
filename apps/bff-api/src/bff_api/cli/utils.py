@@ -35,7 +35,7 @@ def format_config_table(config: Config, title: str = "BFF Configuration") -> Tab
         ("Environment", config.environment, "ENV/DEFAULT"),
         ("Debug", _format_boolean(config.debug), "ENV/DEFAULT"),
         ("Log Level", config.log_level, "ENV/DEFAULT"),
-        ("Log Directory", config.log_dir, "ENV/DEFAULT"),
+        ("Log Directory", str(config.logs_dir), "ENV/DEFAULT"),
         ("Backend API URL", config.backend_api_url, "ENV/DEFAULT"),
         ("Backend API Timeout", f"{config.backend_api_timeout}s", "ENV/DEFAULT"),
         ("Auth API URL", config.auth_api_url, "ENV/DEFAULT"),
@@ -144,9 +144,7 @@ async def check_service_health(
                 response.raise_for_status()
 
                 data = response.json()
-                console.print(
-                    f"✅ {service_name} is healthy: {data.get('status', 'OK')}"
-                )
+                console.print(f"✅ {service_name} is healthy: {data.get('status', 'OK')}")
 
                 if data.get("details"):
                     for key, value in data["details"].items():
@@ -159,12 +157,8 @@ async def check_service_health(
         logger.error(f"Health check failed for {service_name}: {e}")
         return False
     except httpx.HTTPStatusError as e:
-        console.print(
-            f"❌ {service_name} returned error: HTTP {e.response.status_code}"
-        )
-        logger.error(
-            f"Health check failed for {service_name}: HTTP {e.response.status_code}"
-        )
+        console.print(f"❌ {service_name} returned error: HTTP {e.response.status_code}")
+        logger.error(f"Health check failed for {service_name}: HTTP {e.response.status_code}")
         return False
     except Exception as e:
         console.print(f"❌ Unexpected error checking {service_name}: {e}")
@@ -219,9 +213,7 @@ def display_service_status(
     if console is None:
         console = Console()
 
-    table = Table(
-        title="Service Health Status", show_header=True, header_style="bold blue"
-    )
+    table = Table(title="Service Health Status", show_header=True, header_style="bold blue")
     table.add_column("Service", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
     table.add_column("URL", style="dim")

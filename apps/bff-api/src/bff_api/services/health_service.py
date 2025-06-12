@@ -18,7 +18,9 @@ from httpx import HTTPStatusError, RequestError
 
 from bff_api.config.app import settings
 
-logger = logging.getLogger(__name__)
+from bff_api.config.logging import get_logger
+
+logger = get_logger("bff_api.services.health_service")
 
 
 @dataclass
@@ -261,28 +263,36 @@ class HealthService:
             response = await client.get(health_url)
             response_time = (time.time() - start_time) * 1000
 
-            if response.status_code == 200:
+            ***REMOVED*** Auth API can return 200 (all healthy) or 503 (service up, dependencies unhealthy)
+            if response.status_code in [200, 503]:
                 try:
                     health_data = response.json()
+                    service_status = health_data.get("status", "unknown")
+
+                    ***REMOVED*** Service is considered "reachable" if it responds with health data
+                    ***REMOVED*** Even if some dependencies are unhealthy (503), the auth service itself is up
                     return HealthCheckResult(
-                        is_healthy=True,
-                        status="healthy",
+                        is_healthy=True,  ***REMOVED*** Service is reachable and responding
+                        status="healthy" if response.status_code == 200 else "degraded",
                         response_time_ms=round(response_time, 2),
                         details={
                             "url": health_url,
                             "status_code": response.status_code,
-                            "service_status": health_data.get("status", "unknown"),
+                            "service_status": service_status,
+                            "auth_checks": health_data.get("checks", {}),
+                            "note": "Service responding" if response.status_code == 503 else None,
                         },
                     )
                 except Exception:
+                    ***REMOVED*** Even if JSON parsing fails, a 200/503 response means service is up
                     return HealthCheckResult(
                         is_healthy=True,
-                        status="healthy",
+                        status="healthy" if response.status_code == 200 else "degraded",
                         response_time_ms=round(response_time, 2),
                         details={
                             "url": health_url,
                             "status_code": response.status_code,
-                            "note": "Health endpoint responded but JSON parsing failed",
+                            "note": "Service responding but JSON parsing failed",
                         },
                     )
             else:

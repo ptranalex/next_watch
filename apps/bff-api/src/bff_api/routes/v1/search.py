@@ -1,13 +1,13 @@
 """Search-related routes for BFF API."""
 
-import logging
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.search")
 router = APIRouter(tags=["search"])
 
 
@@ -16,9 +16,7 @@ async def search_screen(
     q: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    user_id: Optional[int] = Query(
-        None, description="User ID for personalized content"
-    ),
+    user_id: Optional[int] = Query(None, description="User ID for personalized content"),
     backend: BackendClient = Depends(get_backend_client),
 ) -> Dict[str, Any]:
     """Get search results for search screen.
@@ -56,16 +54,16 @@ async def search_screen(
         }
 
     except BackendClientError as e:
-        logger.error(f"Backend error for search '{q}': {e}")
+        logger.error(
+            "Backend error for search", query=q, error=str(e), service="bff", endpoint="search"
+        )
         raise HTTPException(status_code=502, detail="Backend service unavailable")
 
 
 @router.get("/search/suggestions")
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
-    limit: int = Query(
-        10, ge=1, le=20, description="Max number of suggestions to return"
-    ),
+    limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
     backend: BackendClient = Depends(get_backend_client),
 ) -> Dict[str, Any]:
     """Get basic search suggestions.
@@ -85,14 +83,20 @@ async def get_search_suggestions(
     """
     try:
         response = await backend._make_request(
-            "GET", 
+            "GET",
             backend._build_api_path("/search/suggestions"),
-            params={"query": query, "limit": limit}
+            params={"query": query, "limit": limit},
         )
         return response
 
     except BackendClientError as e:
-        logger.error(f"Backend error for search suggestions '{query}': {e}")
+        logger.error(
+            "Backend error for search suggestions",
+            query=query,
+            error=str(e),
+            service="bff",
+            endpoint="search_suggestions",
+        )
         raise HTTPException(status_code=502, detail="Backend service unavailable")
 
 
@@ -123,14 +127,20 @@ async def get_text_suggestions(
     """
     try:
         response = await backend._make_request(
-            "GET", 
+            "GET",
             backend._build_api_path("/search/suggestions/text"),
-            params={"query": query, "limit": limit}
+            params={"query": query, "limit": limit},
         )
         return response
 
     except BackendClientError as e:
-        logger.error(f"Backend error for text suggestions '{query}': {e}")
+        logger.error(
+            "Backend error for text suggestions",
+            query=query,
+            error=str(e),
+            service="bff",
+            endpoint="text_suggestions",
+        )
         raise HTTPException(status_code=502, detail="Backend service unavailable")
 
 
@@ -165,12 +175,16 @@ async def search_all_entities(
             params["types"] = types
 
         response = await backend._make_request(
-            "GET", 
-            backend._build_api_path("/search"),
-            params=params
+            "GET", backend._build_api_path("/search"), params=params
         )
         return response
 
     except BackendClientError as e:
-        logger.error(f"Backend error for all entities search '{query}': {e}")
-        raise HTTPException(status_code=502, detail="Backend service unavailable") 
+        logger.error(
+            "Backend error for all entities search",
+            query=query,
+            error=str(e),
+            service="bff",
+            endpoint="search_all",
+        )
+        raise HTTPException(status_code=502, detail="Backend service unavailable")

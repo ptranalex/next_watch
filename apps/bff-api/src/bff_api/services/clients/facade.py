@@ -1,15 +1,15 @@
 """Facade client that combines all specialized backend clients."""
 
-import logging
 from typing import Dict, List, Optional, Any
 
 from bff_api.config.app import Config
+from bff_api.config.logging import get_logger
 
 from .movies import MoviesClient
 from .user_interactions import UserInteractionsClient
 from .content_discovery import ContentDiscoveryClient
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.services.clients.facade")
 
 
 class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient):
@@ -33,10 +33,14 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
         """
         ***REMOVED*** Initialize all parent classes with the same config
         super().__init__(config)
-        logger.info("Initialized unified BackendClient with all specialized clients")
+        logger.info(
+            "Initialized unified BackendClient with all specialized clients",
+            service="bff",
+            component="backend_client",
+        )
 
     async def close(self) -> None:
         """Close all HTTP clients."""
         ***REMOVED*** Only need to call close once since all parents share the same _client
         await super().close()
-        logger.info("Closed BackendClient connections")
+        logger.info("Closed BackendClient connections", service="bff", component="backend_client")

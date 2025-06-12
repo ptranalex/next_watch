@@ -1,14 +1,14 @@
 """Navbar-related routes for BFF API."""
 
-import logging
 from typing import Optional, List, Dict, Any, cast
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from bff_api.schemas.screen_schemas import NavbarData, NavbarLinkData
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.navbar")
 router = APIRouter(tags=["navbar"])
 
 

@@ -8,7 +8,9 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bff_api.config.app import Config
 
-logger = logging.getLogger(__name__)
+from bff_api.config.logging import get_logger
+
+logger = get_logger("bff_api.services.auth_client")
 
 
 class AuthClientError(Exception):

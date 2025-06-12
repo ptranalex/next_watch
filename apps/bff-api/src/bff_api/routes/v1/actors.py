@@ -1,6 +1,5 @@
 """Actor-related routes for BFF API."""
 
-import logging
 from typing import Dict, List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -9,8 +8,9 @@ from bff_api.schemas.screen_schemas import ActorScreenData, MovieListData
 from bff_api.dependencies.common import get_backend_client
 from bff_api.services.backend_client import BackendClient, BackendClientError
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("bff_api.routes.actors")
 router = APIRouter(tags=["actors"])
 
 ***REMOVED*** Security scheme for optional authentication
@@ -44,26 +44,30 @@ async def get_actor_screen(
     """
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.info(f"🔍 Debugging token extraction for actor {actor_id}")
-    logger.info(f"📋 Credentials present: {bool(credentials)}")
+    logger.info(
+        "Processing actor screen request",
+        actor_id=actor_id,
+        has_credentials=bool(credentials),
+        service="bff",
+        endpoint="actor_screen",
+    )
 
     if credentials and credentials.credentials:
-        logger.info(f"🔑 Token present: {bool(credentials.credentials)}")
-        logger.info(f"🔑 Token preview: {credentials.credentials[:20]}...")
-
-        ***REMOVED*** Temporarily enable debug logging for JWT extraction
-        auth_logger = logging.getLogger("bff_api.utils.auth")
-        original_level = auth_logger.level
-        auth_logger.setLevel(logging.DEBUG)
-
         user_id = extract_user_id_from_token(credentials.credentials)
-
-        ***REMOVED*** Restore original logging level
-        auth_logger.setLevel(original_level)
-
-        logger.info(f"👤 Extracted user_id: {user_id}")
+        logger.info(
+            "User authenticated for actor screen",
+            actor_id=actor_id,
+            user_id=user_id,
+            service="bff",
+            endpoint="actor_screen",
+        )
     else:
-        logger.info("❌ No credentials or token found - treating as anonymous user")
+        logger.info(
+            "Anonymous user accessing actor screen",
+            actor_id=actor_id,
+            service="bff",
+            endpoint="actor_screen",
+        )
 
     try:
         ***REMOVED*** Get actor details
@@ -72,11 +76,7 @@ async def get_actor_screen(
             raise HTTPException(status_code=404, detail="Actor not found")
 
         ***REMOVED*** Get actor's movies with pagination support
-        movies_response = await backend.get_movies(
-            page=page,
-            limit=limit,
-            actor_id=actor_id
-        )
+        movies_response = await backend.get_movies(page=page, limit=limit, actor_id=actor_id)
 
         ***REMOVED*** Extract pagination data
         movies = movies_response.get("results", [])
@@ -89,7 +89,14 @@ async def get_actor_screen(
 
         ***REMOVED*** If user is authenticated, fetch user interactions for each movie
         if user_id and credentials:
-            logger.info(f"🔄 Fetching user interactions for {len(movies)} movies")
+            logger.info(
+                "Fetching user interactions for actor movies",
+                actor_id=actor_id,
+                user_id=user_id,
+                movie_count=len(movies),
+                service="bff",
+                component="user_interactions",
+            )
             for movie in movies:
                 movie_id = movie.get("id")
                 if movie_id:
@@ -122,7 +129,15 @@ async def get_actor_screen(
                                 "is_watched": False,
                             }
                     except Exception as e:
-                        logger.warning(f"Failed to get user interaction for movie {movie_id}: {e}")
+                        logger.warning(
+                            "Failed to get user interaction for actor movie",
+                            actor_id=actor_id,
+                            movie_id=movie_id,
+                            user_id=user_id,
+                            error=str(e),
+                            service="bff",
+                            component="user_interactions",
+                        )
                         ***REMOVED*** Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False
@@ -136,7 +151,13 @@ async def get_actor_screen(
                         }
         else:
             ***REMOVED*** For anonymous users, set all interaction fields to false
-            logger.info("No user authenticated - setting default interaction values")
+            logger.info(
+                "Setting default interaction values for anonymous user in actor",
+                actor_id=actor_id,
+                movie_count=len(movies),
+                service="bff",
+                component="user_interactions",
+            )
             for movie in movies:
                 movie["liked"] = False
                 movie["watched"] = False
@@ -159,7 +180,7 @@ async def get_actor_screen(
                 has_next=has_next,
                 has_prev=has_prev,
                 results=movies,
-            )
+            ),
         )
 
     except BackendClientError as e:
@@ -190,9 +211,7 @@ async def get_actor_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -249,9 +268,7 @@ async def get_actor_movies(
 
     try:
         ***REMOVED*** Build filter parameters
-        filters: Dict[str, Any] = {
-            "actor_id": actor_id  ***REMOVED*** Always include actor_id filter
-        }
+        filters: Dict[str, Any] = {"actor_id": actor_id}  ***REMOVED*** Always include actor_id filter
         if genre_id is not None:
             filters["genre_id"] = genre_id
         if sort_by:
@@ -357,4 +374,4 @@ async def get_actor_movies(
 
     except BackendClientError as e:
         logger.error(f"Backend error for actor {actor_id} movies: {e}")
-        raise HTTPException(status_code=502, detail="Backend service unavailable") 
+        raise HTTPException(status_code=502, detail="Backend service unavailable")
