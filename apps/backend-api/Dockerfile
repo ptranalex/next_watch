@@ -49,6 +49,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
+    LOGS_DIR="" \
     WORKERS=1 \
     TIMEOUT=120 \
     RELOAD=false \
