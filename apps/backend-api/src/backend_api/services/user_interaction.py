@@ -1,4 +1,5 @@
 """
+from backend_api.config.logging import get_logger
 User movie interaction service module.
 
 This service handles business logic related to how users interact with movies,
@@ -7,24 +8,24 @@ including tracking movies as watched, liked, and in watchlists.
 
 import csv
 import io
-import logging
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from dateutil import parser as date_parser
+from sqlalchemy import func
+from sqlmodel import Session, select
+
+from backend_api.config.logging import get_logger
 from backend_api.db.operations import (
     delete_user_movie_interaction,
     get_movie_by_id,
     get_user_movie_interaction,
     toggle_user_movie_interaction_flag,
 )
-from backend_api.models import Movie, UserMovieInteraction
-from sqlalchemy import func
-from sqlmodel import Session, select
-
 from backend_api.errors import ResourceNotFoundError, ValidationError
+from backend_api.models import Movie, UserMovieInteraction
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class UserInteractionService:

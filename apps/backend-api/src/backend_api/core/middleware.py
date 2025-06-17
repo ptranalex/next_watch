@@ -5,16 +5,17 @@ and performance monitoring for the Next Watch Backend API service.
 """
 
 import datetime
-import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend_api.config.app import settings
+from backend_api.config.logging import get_logger
 from backend_api.middlewares import ErrorHandlerMiddleware
+from backend_api.middlewares.database_monitoring import DatabaseMonitoringMiddleware
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def setup_middleware(app: FastAPI) -> None:
@@ -45,11 +46,20 @@ def setup_middleware(app: FastAPI) -> None:
     ***REMOVED*** Add error handling middleware
     app.add_middleware(ErrorHandlerMiddleware)
 
+    ***REMOVED*** Database monitoring middleware if enabled
+    if settings.database_monitoring_enabled:
+        app.add_middleware(DatabaseMonitoringMiddleware, log_all_requests=settings.debug)
+        logger.info("Database monitoring middleware enabled", debug_mode=settings.debug)
+
     ***REMOVED*** Performance metrics middleware if enabled
     if settings.enable_performance_metrics:
         setup_performance_middleware(app)
 
-    logger.info("Middleware configuration completed")
+    logger.info(
+        "Middleware configuration completed",
+        monitoring_enabled=settings.database_monitoring_enabled,
+        performance_metrics=settings.enable_performance_metrics,
+    )
 
 
 def setup_performance_middleware(app: FastAPI) -> None:
@@ -74,7 +84,9 @@ def setup_performance_middleware(app: FastAPI) -> None:
         response = await call_next(request)
         process_time = (datetime.datetime.now() - start_time).total_seconds()
         response.headers["X-Process-Time"] = str(process_time)
-        logger.debug(f"Request to {request.url.path} took {process_time:.4f} seconds")
+        logger.debug(
+            "Request processing time", path=str(request.url.path), process_time_seconds=process_time
+        )
         return response
 
     logger.info("Performance monitoring middleware enabled")

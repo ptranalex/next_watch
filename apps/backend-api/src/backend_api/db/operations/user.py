@@ -1,17 +1,18 @@
 """
+from backend_api.config.logging import get_logger
 User database operations module.
 
 This module provides functions for managing user records in the database.
 """
 
-import logging
 from typing import Any, Dict, List, Optional, Union
 
 from sqlmodel import Session, select
 
+from backend_api.config.logging import get_logger
 from backend_api.models.user import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_user(

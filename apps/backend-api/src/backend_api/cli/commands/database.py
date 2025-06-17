@@ -2,20 +2,21 @@
 
 import importlib
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from sqlalchemy import text, Engine
+from sqlalchemy import Engine, text
 
 from backend_api.config.app import Config
 from backend_api.config.logging import configure_logging, get_logger
-from backend_api.db.db import init_db, get_engine
-from backend_api.db.migrations import run_migration, get_applied_migrations
+from backend_api.db.database import get_engine, init_db
+from backend_api.db.migrations import get_applied_migrations, run_migration
 
 ***REMOVED*** Create app for database commands
+from backend_api.config.logging import get_logger
 app = typer.Typer(help="Database management commands")
 console = Console()
 
@@ -43,10 +44,13 @@ def init_database(
         masked_url = config._mask_database_password(config.database_url)
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
+    ***REMOVED*** Update config with custom database URL if provided
+    if database_url:
+        config.database_url = database_url
+
     ***REMOVED*** Initialize database
     with console.status("[bold green]Initializing database...[/]"):
         init_db(
-            db_url=database_url,
             create_tables=create_tables,
             config=config,
         )
@@ -88,9 +92,13 @@ def migrate_database(
         masked_url = config._mask_database_password(config.database_url)
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
+    ***REMOVED*** Update config with custom database URL if provided
+    if database_url:
+        config.database_url = database_url
+
     ***REMOVED*** Run migrations
     with console.status("[bold green]Running database migrations...[/]"):
-        applied_migrations = run_migration(db_url=database_url, config=config)
+        applied_migrations = run_migration(config=config)
 
     ***REMOVED*** Show results
     if not quiet:
@@ -143,8 +151,12 @@ def downgrade_database(
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
     try:
+        ***REMOVED*** Update config with custom database URL if provided
+        if database_url:
+            config.database_url = database_url
+
         ***REMOVED*** Get engine and applied migrations
-        engine = get_engine(database_url, config)
+        engine = get_engine(config)
         applied_migrations = get_applied_migrations(engine)
 
         if not applied_migrations:

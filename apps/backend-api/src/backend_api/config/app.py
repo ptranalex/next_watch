@@ -7,18 +7,17 @@ It combines movie database configuration with API-specific settings including
 authentication, Redis, CORS, and performance monitoring.
 """
 
+import json
 import os
 import sys
-import json
 from pathlib import Path
-from typing import List, Optional, Dict, Any, TypedDict
-import logging
+from typing import Any, Dict, List, Optional, TypedDict
 
 from backend_api.config.env import get_env_bool, get_env_int, get_env_var
+from backend_api.config.logging import get_logger
 
 ***REMOVED*** Configure basic logging first for this module
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** TYPE DEFINITIONS
@@ -67,6 +66,16 @@ DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
 
 ***REMOVED*** Performance monitoring
 DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
+
+***REMOVED*** Database profiling settings (development/debugging only)
+DEFAULT_ENABLE_DB_PROFILING = get_env_bool("ENABLE_DB_PROFILING", False)
+DEFAULT_DB_PROFILING_SLOW_QUERY_THRESHOLD_MS = get_env_int(
+    "DB_PROFILING_SLOW_QUERY_THRESHOLD_MS", 100
+)
+
+***REMOVED*** Database monitoring settings
+DEFAULT_DATABASE_MONITORING_ENABLED = get_env_bool("DATABASE_MONITORING_ENABLED", True)
+DEFAULT_SLOW_QUERY_THRESHOLD_MS = get_env_int("SLOW_QUERY_THRESHOLD_MS", 100)
 
 ***REMOVED*** Redis settings
 DEFAULT_REDIS_URL = get_env_var("REDIS_URL", "redis://localhost:6379/0")
@@ -126,6 +135,14 @@ class Config:
     ***REMOVED*** Security settings
     allowed_hosts: List[str]
 
+    ***REMOVED*** Database profiling settings (development only)
+    enable_db_profiling: bool
+    db_profiling_slow_query_threshold_ms: int
+
+    ***REMOVED*** Database monitoring settings
+    database_monitoring_enabled: bool
+    slow_query_threshold_ms: int
+
     ***REMOVED*** Singleton instance
     _instance = None
 
@@ -170,6 +187,12 @@ class Config:
         refresh_token_expire_days: int = DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS,
         ***REMOVED*** Security settings
         allowed_hosts: str = DEFAULT_ALLOWED_HOSTS,
+        ***REMOVED*** Database profiling settings (development only)
+        enable_db_profiling: bool = DEFAULT_ENABLE_DB_PROFILING,
+        db_profiling_slow_query_threshold_ms: int = DEFAULT_DB_PROFILING_SLOW_QUERY_THRESHOLD_MS,
+        ***REMOVED*** Database monitoring settings
+        database_monitoring_enabled: bool = DEFAULT_DATABASE_MONITORING_ENABLED,
+        slow_query_threshold_ms: int = DEFAULT_SLOW_QUERY_THRESHOLD_MS,
     ):
         """Initialize Backend API configuration.
 
@@ -196,6 +219,10 @@ class Config:
             access_token_expire_minutes: Minutes until access token expires
             refresh_token_expire_days: Days until refresh token expires
             allowed_hosts: Comma-separated list of allowed hosts
+            enable_db_profiling: Whether to enable database profiling
+            db_profiling_slow_query_threshold_ms: Threshold in milliseconds for slow queries
+            database_monitoring_enabled: Whether to enable database monitoring instrumentation
+            slow_query_threshold_ms: Threshold in milliseconds for slow query warnings
         """
         ***REMOVED*** In production, force debug to False
         if get_env_var("ENVIRONMENT", "development") == "production":
@@ -238,6 +265,22 @@ class Config:
         self.allowed_hosts = (
             [host.strip() for host in allowed_hosts.split(",")] if allowed_hosts != "*" else ["*"]
         )
+
+        ***REMOVED*** Database profiling settings (development only)
+        self.enable_db_profiling = enable_db_profiling
+        self.db_profiling_slow_query_threshold_ms = db_profiling_slow_query_threshold_ms
+
+        ***REMOVED*** Database monitoring settings
+        self.database_monitoring_enabled = database_monitoring_enabled
+        self.slow_query_threshold_ms = slow_query_threshold_ms
+
+        ***REMOVED*** Force disable profiling in production for security and performance
+        if self.is_production:
+            if self.enable_db_profiling:
+                logger.warning(
+                    "Database profiling is disabled in production for security and performance"
+                )
+            self.enable_db_profiling = False
 
         ***REMOVED*** Log configuration on initialization
         environment = get_env_var("ENVIRONMENT", "development")

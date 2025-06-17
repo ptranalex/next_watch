@@ -1,17 +1,18 @@
 """Logging configuration wrapper for the Backend API service.
 
+from backend_api.config.logging import get_logger
 This module provides a clean interface to the comprehensive logging
 configuration in the config module.
 """
 
-import logging
 from pathlib import Path
 from typing import Optional
 
-from backend_api.config.logging import configure_logging as _configure_logging
 from backend_api.config.app import settings
+from backend_api.config.logging import configure_logging as _configure_logging
+from backend_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def setup_logging(

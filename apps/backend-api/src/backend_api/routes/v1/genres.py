@@ -1,23 +1,21 @@
 """
+from backend_api.config.logging import get_logger
 Genre-related API routes (v1).
 """
 
-import logging
 import traceback
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-
-***REMOVED*** Import movie-storage operations
-from backend_api.db.operations import (
-    get_genre_by_id,
-    get_genre_by_name,
-    get_genres,
-)
 from sqlmodel import Session
+
+from backend_api.config.logging import get_logger
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
+
+***REMOVED*** Import movie-storage operations
+from backend_api.db.operations import get_genre_by_id, get_genre_by_name, get_genres
 
 ***REMOVED*** Import response schemas
 from backend_api.schemas.genre_schema import GenreResponse, GenresListResponse
@@ -30,7 +28,7 @@ class GenreDetailResponse(GenreResponse):
     pass
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/genres", tags=["genres"])
 

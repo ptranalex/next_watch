@@ -1,12 +1,12 @@
 """
+from backend_api.config.logging import get_logger
 Error handling middleware for FastAPI.
 
 This module provides a middleware that catches application-level exceptions
 and converts them to standardized HTTP responses.
 """
 
-import logging
-from typing import Awaitable, Any, Callable, Dict, Optional, Union
+from typing import Any, Awaitable, Callable, Dict, Optional, Union
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
@@ -21,8 +21,9 @@ from backend_api.errors import (
     ValidationError,
     service_error_to_http_exception,
 )
+from backend_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):

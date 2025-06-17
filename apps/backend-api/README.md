@@ -275,6 +275,27 @@ python -m backend_api.cli db downgrade --target 005_add_ratings_and_awards
 python -m backend_api.cli db teardown --confirm
 ```
 
+***REMOVED******REMOVED******REMOVED*** Database Profiling (Development Only)
+
+```bash
+***REMOVED*** Profile database queries for 30 seconds
+python -m backend_api.scripts.setup_db profile-db
+
+***REMOVED*** Profile for custom duration
+python -m backend_api.scripts.setup_db profile-db --duration 60
+
+***REMOVED*** Check database schema
+python -m backend_api.scripts.setup_db check-schema
+
+***REMOVED*** Enable profiling in development
+export ENABLE_DB_PROFILING=true
+
+***REMOVED*** Set slow query threshold (in milliseconds)
+export DB_PROFILING_SLOW_QUERY_THRESHOLD_MS=50
+```
+
+**Note**: Database profiling is automatically disabled in production environments for security and performance reasons.
+
 ***REMOVED******REMOVED******REMOVED*** Health Checks
 
 ```bash
@@ -358,6 +379,15 @@ The backend API uses a structured configuration system with environment-aware se
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Minutes until access token expires          | `30`                                                       |
 | `REFRESH_TOKEN_EXPIRE_DAYS`   | Days until refresh token expires            | `7`                                                        |
 
+***REMOVED******REMOVED******REMOVED*** Database Profiling (Development Only)
+
+| Variable                               | Description                             | Default |
+| -------------------------------------- | --------------------------------------- | ------- |
+| `ENABLE_DB_PROFILING`                  | Enable database query profiling         | `false` |
+| `DB_PROFILING_SLOW_QUERY_THRESHOLD_MS` | Threshold for slow query detection (ms) | `100`   |
+
+**Important**: Database profiling is automatically disabled in production environments regardless of configuration settings.
+
 ***REMOVED******REMOVED******REMOVED*** Redis Configuration (for Suggestion Engine)
 
 | Variable                       | Description                        | Default |
@@ -409,6 +439,50 @@ The backend API uses a structured configuration system with environment-aware se
 
 - `GET /api/v1/genres/` - List all genres
 - `GET /api/v1/cast/movie/{movie_id}` - Get cast and crew information
+
+***REMOVED******REMOVED*** Database Setup
+
+***REMOVED******REMOVED******REMOVED*** Quick Setup
+
+For development, use the automated setup command:
+
+```bash
+***REMOVED*** Complete database setup with migrations
+python -m backend_api.scripts.setup_db setup-storage
+```
+
+***REMOVED******REMOVED******REMOVED*** Manual Setup
+
+For more control over the process:
+
+```bash
+***REMOVED*** 1. Initialize database connection only
+python -m backend_api.scripts.setup_db initialize-db
+
+***REMOVED*** 2. Run migrations to create tables
+python -m backend_api.scripts.setup_db run-migrations
+```
+
+***REMOVED******REMOVED******REMOVED*** Migration Commands
+
+```bash
+***REMOVED*** Run all pending migrations
+python -m backend_api.scripts.setup_db run-migrations
+
+***REMOVED*** Check if database schema is ready
+python -m backend_api.scripts.setup_db check-schema
+
+***REMOVED*** Profile database queries (for performance analysis)
+python -m backend_api.scripts.setup_db profile-db --duration 30
+
+***REMOVED*** Initialize connection only (no table creation)
+python -m backend_api.scripts.setup_db initialize-db
+
+***REMOVED*** Complete setup (connection + migrations)
+python -m backend_api.scripts.setup_db setup-storage
+```
+
+⚠️ **Important**: The application no longer creates database tables automatically at startup. You must run migrations manually to set up the database schema.
 
 ***REMOVED******REMOVED*** Development
 
@@ -471,8 +545,11 @@ For detailed information about specific modules:
 2. **Database Setup**: Initialize production database
 
    ```bash
-   python -m backend_api.cli db init --create-tables
-   python -m backend_api.cli db migrate
+   ***REMOVED*** Run database migrations (recommended)
+   python -m backend_api.scripts.setup_db run-migrations
+
+   ***REMOVED*** Or use the complete setup command
+   python -m backend_api.scripts.setup_db setup-storage
    ```
 
 3. **Health Checks**: Configure load balancer health checks
@@ -505,8 +582,8 @@ RUN hatch env create
 ***REMOVED*** Copy application
 COPY . .
 
-***REMOVED*** Initialize database
-RUN python -m backend_api.cli db init --create-tables
+***REMOVED*** Initialize database with migrations
+RUN python -m backend_api.scripts.setup_db run-migrations
 
 ***REMOVED*** Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

@@ -1,22 +1,26 @@
 """Migration to add the trailer table.
 
+from backend_api.config.logging import get_logger
 This migration creates a new table for storing movie trailers with YouTube keys
 and optional URL links.
 """
 
-import logging
-
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.engine import Engine
+from typing import Optional
+
+from backend_api.config.logging import get_logger
+from backend_api.config.app import Config
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "006_add_trailer_table"
 MIGRATION_DESCRIPTION = "Add trailer table for storing movie trailers"
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-def upgrade(engine, config=None):
+def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Upgrade database schema to add the trailer table.
 
     Args:
@@ -63,7 +67,7 @@ def upgrade(engine, config=None):
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine, config=None):
+def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Downgrade by removing the trailer table.
 
     Args:

@@ -1,4 +1,5 @@
 """
+from backend_api.config.logging import get_logger
 Migration to add performance optimization indexes.
 
 This migration adds several indexes to improve query performance for common access patterns:
@@ -9,20 +10,23 @@ This migration adds several indexes to improve query performance for common acce
 5. Relationship indexing for genre and credits
 """
 
-import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import MetaData, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.engine import Engine
+
+from backend_api.config.logging import get_logger
+from backend_api.config.app import Config
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "009_add_performance_optimization_indexes"
 MIGRATION_DESCRIPTION = "Add performance optimization indexes"
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-def upgrade(engine, config=None):
+def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """
     Add performance optimization indexes.
 
@@ -163,7 +167,7 @@ def upgrade(engine, config=None):
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine, config=None):
+def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """
     Remove performance optimization indexes.
 

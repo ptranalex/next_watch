@@ -2,14 +2,14 @@
 Query implementations for retrieving detailed information about movies.
 """
 
-import logging
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.sql import text
 
+from backend_api.config.logging import get_logger
 from backend_api.queries.common import DBSession
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_movie_genres(db_session: DBSession, movie_id: Optional[int] = None) -> List[Dict[str, Any]]:
@@ -37,9 +37,57 @@ def get_movie_genres(db_session: DBSession, movie_id: Optional[int] = None) -> L
     return [dict(row._mapping) for row in result.all()]  ***REMOVED*** Convert Row objects to dictionaries
 
 
+def get_movie_genres_bulk(
+    db_session: DBSession, movie_ids: List[int]
+) -> Dict[int, List[Dict[str, Any]]]:
+    """
+    Get genres for multiple movies in a single query (bulk operation).
+
+    This eliminates N+1 query problems when fetching genres for multiple movies.
+
+    Args:
+        db_session: SQLAlchemy database session
+        movie_ids: List of movie IDs to fetch genres for
+
+    Returns:
+        Dictionary mapping movie_id -> list of genre dictionaries
+        Movies with no genres will have an empty list
+    """
+    if not movie_ids:
+        return {}
+
+    ***REMOVED*** Single query to get all genres for all movies
+    query = """
+    SELECT g.*, mgl.movie_id
+    FROM genre g
+    JOIN movie_genre_link mgl ON g.id = mgl.genre_id
+    WHERE mgl.movie_id = ANY(:movie_ids)
+    ORDER BY mgl.movie_id, g.name
+    """
+
+    result = db_session.execute(text(query), {"movie_ids": movie_ids})
+
+    ***REMOVED*** Group genres by movie_id
+    genres_by_movie: Dict[int, List[Dict[str, Any]]] = {}
+
+    ***REMOVED*** Initialize all movie IDs with empty lists
+    for movie_id in movie_ids:
+        genres_by_movie[movie_id] = []
+
+    ***REMOVED*** Populate with actual genre data
+    for row in result.all():
+        movie_id = row.movie_id
+        genre_data = {key: value for key, value in row._mapping.items() if key != "movie_id"}
+        genres_by_movie[movie_id].append(genre_data)
+
+    return genres_by_movie
+
+
 def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> Optional[Dict[str, Any]]:
     """
     Get detailed information about a specific movie by its ID.
+
+    Optimized version that eliminates subqueries for better performance.
 
     Args:
         db_session: SQLAlchemy database session
@@ -48,21 +96,9 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> Optional[Di
     Returns:
         Movie details dictionary or None if not found
     """
-    ***REMOVED*** Get movie details with director, writer, and ratings
+    ***REMOVED*** Get basic movie information
     movie_query = """
-    SELECT m.*, 
-           (SELECT c.name 
-            FROM credit c 
-            WHERE c.movie_id = m.id 
-            AND c.department = 'Directing' 
-            AND c.job = 'Director' 
-            LIMIT 1) as director,
-           (SELECT c.name 
-            FROM credit c 
-            WHERE c.movie_id = m.id 
-            AND c.department = 'Writing' 
-            AND c.job = 'Screenplay' 
-            LIMIT 1) as writer
+    SELECT m.*
     FROM movie m
     WHERE m.id = :movie_id
     """
@@ -73,18 +109,47 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> Optional[Di
     if not movie:
         return None
 
-    ***REMOVED*** Get credits
-    credits_query = """
+    ***REMOVED*** Get director and writer information with optimized query using LIMIT
+    ***REMOVED*** This query will be much faster with the new composite index
+    director_query = """
+    SELECT c.name
+    FROM credit c
+    WHERE c.movie_id = :movie_id
+    AND c.department = 'Directing'
+    AND c.job = 'Director'
+    LIMIT 1
+    """
+
+    writer_query = """
+    SELECT c.name
+    FROM credit c
+    WHERE c.movie_id = :movie_id
+    AND c.department = 'Writing'
+    AND c.job = 'Screenplay'
+    LIMIT 1
+    """
+
+    ***REMOVED*** Execute both queries
+    director_result = db_session.execute(text(director_query), {"movie_id": movie_id})
+    writer_result = db_session.execute(text(writer_query), {"movie_id": movie_id})
+
+    director = director_result.scalar()
+    writer = writer_result.scalar()
+
+    ***REMOVED*** Get all credits for completeness
+    all_credits_query = """
     SELECT c.*
     FROM credit c
     WHERE c.movie_id = :movie_id
     """
 
-    credits_result = db_session.execute(text(credits_query), {"movie_id": movie_id})
-    credits = [dict(row._mapping) for row in credits_result.all()]
+    all_credits_result = db_session.execute(text(all_credits_query), {"movie_id": movie_id})
+    credits = [dict(row._mapping) for row in all_credits_result.all()]
 
     ***REMOVED*** Combine movie and credits
     movie_dict = dict(movie._mapping)
+    movie_dict["director"] = director
+    movie_dict["writer"] = writer
     movie_dict["credits"] = credits
 
     return movie_dict
@@ -121,6 +186,9 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: List[int]) -> List[
     """
     Get detailed information about multiple movies by their IDs.
 
+    Optimized version that eliminates N+1 query problems by using bulk operations
+    instead of subqueries for director/writer information.
+
     Args:
         db_session: SQLAlchemy database session
         movie_ids: List of movie IDs to fetch
@@ -131,33 +199,56 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: List[int]) -> List[
     if not movie_ids:
         return []
 
-    ***REMOVED*** Create placeholders for the IN clause
+    ***REMOVED*** Step 1: Get basic movie information without subqueries
     placeholders = ",".join([":id" + str(i) for i in range(len(movie_ids))])
+    params = {f"id{i}": movie_id for i, movie_id in enumerate(movie_ids)}
 
-    ***REMOVED*** Build the query with proper parameter substitution
-    query = f"""
-    SELECT m.*, 
-           (SELECT c.name 
-            FROM credit c 
-            WHERE c.movie_id = m.id 
-            AND c.department = 'Directing' 
-            AND c.job = 'Director' 
-            LIMIT 1) as director,
-           (SELECT c.name 
-            FROM credit c 
-            WHERE c.movie_id = m.id 
-            AND c.department = 'Writing' 
-            AND c.job = 'Screenplay' 
-            LIMIT 1) as writer
+    movie_query = f"""
+    SELECT m.*
     FROM movie m
     WHERE m.id IN ({placeholders})
     ORDER BY m.id
     """
 
-    ***REMOVED*** Create parameters dictionary
-    params = {f"id{i}": movie_id for i, movie_id in enumerate(movie_ids)}
+    movie_result = db_session.execute(text(movie_query), params)
+    movies = [dict(row._mapping) for row in movie_result.all()]
 
-    result = db_session.execute(text(query), params)
-    movies = [dict(row._mapping) for row in result.all()]
+    if not movies:
+        return []
+
+    ***REMOVED*** Step 2: Bulk fetch director and writer information for all movies
+    credits_query = """
+    SELECT 
+        c.movie_id,
+        c.name,
+        c.department,
+        c.job
+    FROM credit c
+    WHERE c.movie_id = ANY(:movie_ids)
+    AND c.department IN ('Directing', 'Writing')
+    AND c.job IN ('Director', 'Screenplay')
+    ORDER BY c.movie_id, c.department, c.job
+    """
+
+    credits_result = db_session.execute(text(credits_query), {"movie_ids": movie_ids})
+
+    ***REMOVED*** Organize credits by movie_id
+    directors_by_movie = {}
+    writers_by_movie = {}
+
+    for row in credits_result.all():
+        movie_id = row.movie_id
+        if row.department == "Directing" and row.job == "Director":
+            if movie_id not in directors_by_movie:
+                directors_by_movie[movie_id] = row.name
+        elif row.department == "Writing" and row.job == "Screenplay":
+            if movie_id not in writers_by_movie:
+                writers_by_movie[movie_id] = row.name
+
+    ***REMOVED*** Step 3: Add director and writer information to movies
+    for movie in movies:
+        movie_id = movie["id"]
+        movie["director"] = directors_by_movie.get(movie_id)
+        movie["writer"] = writers_by_movie.get(movie_id)
 
     return movies

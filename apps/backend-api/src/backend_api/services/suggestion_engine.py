@@ -1,9 +1,9 @@
 """
+from backend_api.config.logging import get_logger
 Redis-backed search suggestion service.
 """
 
 import json
-import logging
 import math
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, cast
@@ -11,7 +11,9 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 import redis.asyncio
 from redis.exceptions import RedisError
 
-logger = logging.getLogger(__name__)
+from backend_api.config.logging import get_logger
+
+logger = get_logger(__name__)
 
 ***REMOVED*** TMDB image base URLs for different sizes
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"

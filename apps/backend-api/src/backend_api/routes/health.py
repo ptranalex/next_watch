@@ -1,17 +1,18 @@
 """Health check routes for the Backend API."""
 
-import logging
-from datetime import datetime
-from typing import Dict, Any
 
-from fastapi import APIRouter, Request, Depends
+from datetime import datetime
+from typing import Any, Dict
+
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from backend_api.config.app import settings
 from backend_api.db.database import get_db
 
-logger = logging.getLogger(__name__)
+from backend_api.config.logging import get_logger
+logger = get_logger(__name__)
 router = APIRouter()
 
 
@@ -178,8 +179,9 @@ async def db_health_check(db: Session = Depends(get_db)) -> JSONResponse:
         Database health status and connection information
     """
     try:
-        from sqlmodel import text
         import traceback
+
+        from sqlmodel import text
 
         ***REMOVED*** Try a simple query
         result = db.execute(text("SELECT 1")).scalar()

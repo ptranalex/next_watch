@@ -1,23 +1,27 @@
 """
+from backend_api.config.logging import get_logger
 Migration for adding the users table.
 
 This migration adds support for user authentication.
 """
 
-import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.engine import Engine
+
+from backend_api.config.logging import get_logger
+from backend_api.config.app import Config
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "007_add_users_table"
 MIGRATION_DESCRIPTION = "Add users table for authentication"
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-def upgrade(engine: Any, config: Any = None) -> None:
+def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """
     Upgrade database to this revision.
 
@@ -61,7 +65,7 @@ def upgrade(engine: Any, config: Any = None) -> None:
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine: Any, config: Any = None) -> None:
+def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """
     Downgrade database from this revision.
 

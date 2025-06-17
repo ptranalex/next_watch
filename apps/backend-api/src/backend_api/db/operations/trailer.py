@@ -1,13 +1,13 @@
 """Trailer storage operations."""
 
-import logging
 from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, select
 
+from backend_api.config.logging import get_logger
 from backend_api.models.trailer import Trailer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_trailer(session: Session, trailer_data: Dict[str, Any]) -> Trailer:

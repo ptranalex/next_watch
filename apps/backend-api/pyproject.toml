@@ -2,23 +2,39 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [project]
 name = "backend_api"
 version = "0.1.0"
 description = "FastAPI backend for next_watch movie platform"
-authors = [
-    {name = "Your Name", email = "your.email@example.com"}
-]
 readme = {text = "***REMOVED*** Backend API\n\nFastAPI backend for Next Watch platform", content-type = "text/markdown"}
-requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE*"]
+authors = [
+    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
+]
+maintainers = [
+    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
+]
+keywords = [
+    "api",
+    "backend",
+    "nextwatch",
+    "movies",
+    "fastapi",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
 ]
+requires-python = ">=3.12"
 dependencies = [
     ***REMOVED*** Core API framework
     "fastapi>=0.104.0",         ***REMOVED*** API framework
@@ -33,12 +49,13 @@ dependencies = [
     
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework
+    "rich>=13.7.0",             ***REMOVED*** Terminal formatting
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
-    "rich>=14.0.0",             ***REMOVED*** Rich text output
+    "structlog>=24.1.0",        ***REMOVED*** Structured logging
     
     ***REMOVED*** Cache
     "redis>=6.0.0",             ***REMOVED*** Redis client
-    "types-redis>=4.6.0.20241004", ***REMOVED*** Redis type stubs
+    "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
     
     ***REMOVED*** Auth and security
     "pyjwt>=2.8.0",             ***REMOVED*** JWT handling
@@ -46,8 +63,8 @@ dependencies = [
     "bcrypt==3.2.2",            ***REMOVED*** Specific bcrypt version
     
     ***REMOVED*** Form handling
-    "python-multipart>=0.0.6",  ***REMOVED*** Multipart form parsing
-    "email-validator>=2.1.0",   ***REMOVED*** Email validation
+    "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
+    "email-validator>=2.2.0",   ***REMOVED*** Email validation
     
     ***REMOVED*** Date/time handling
     "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
@@ -56,58 +73,196 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    ***REMOVED*** Testing
     "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    
+    ***REMOVED*** Code quality
     "black>=23.10.1",
     "isort>=5.12.0",
     "flake8>=6.1.0",
     "mypy>=1.7.0",
+    
+    ***REMOVED*** HTTP client for API benchmarking
+    "httpx>=0.24.0",
+    
+    ***REMOVED*** System monitoring for memory and CPU usage
+    "psutil>=5.9.0",
+    
+    ***REMOVED*** Data analysis and statistics (optional but useful)
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    
+    ***REMOVED*** Advanced profiling tools (optional)
+    "py-spy>=0.3.14",          ***REMOVED*** Python profiler
+    "memory-profiler>=0.60.0", ***REMOVED*** Memory usage profiler
+    
+    ***REMOVED*** Visualization tools (optional)
+    "matplotlib>=3.7.0",       ***REMOVED*** For creating performance charts
+    "seaborn>=0.12.0",         ***REMOVED*** Statistical data visualization
+    
+    ***REMOVED*** Database profiling
+    "sqlparse>=0.4.4",         ***REMOVED*** SQL query parsing and analysis
+    
+    ***REMOVED*** Local NextWatch libraries (for development)
+    ***REMOVED*** "cache @ file:../../libs/cache",
+    ***REMOVED*** "cli @ file:../../libs/cli",
+    ***REMOVED*** "movie-storage @ file:../../libs/movie-storage",
 ]
 
 [project.scripts]
-backend-api = "backend_api.cli:main"
+backend-api = "backend_api.cli.main:main"
 
-***REMOVED*** Allow direct references to local dependencies
-[tool.hatch.metadata]
-allow-direct-references = true
+[project.urls]
+Homepage = "https://github.com/nextwatch/backend-api"
+Repository = "https://github.com/nextwatch/backend-api"
+Issues = "https://github.com/nextwatch/backend-api/issues"
+Documentation = "https://docs.nextwatch.dev/backend-api"
 
-***REMOVED*** Added to ensure correct package discovery
+***REMOVED*** Hatch configuration
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+dev-mode-exact = true
+
 [tool.hatch.build.targets.wheel]
-packages = ["backend_api"]
+packages = ["src/backend_api"]
 
 [tool.hatch.build.targets.sdist]
-packages = ["backend_api"]
+packages = ["src/backend_api"]
 
-***REMOVED*** Specify that the package is in the src directory
 [tool.hatch.build.sources]
 "src" = ""
 
-[tool.black]
-line-length = 100
-target-version = ["py39"]
+***REMOVED*** Single consolidated environment for everything
+[tool.hatch.envs.default]
+type = "virtual"
+path = ".venv"
+features = ["dev"]
 
-[tool.isort]
-profile = "black"
-line_length = 100
+[tool.hatch.envs.default.env-vars]
+PYTHONPATH = "src"
+
+[tool.hatch.envs.default.scripts]
+
+***REMOVED*** Install local libraries, so it can be reloaded after changes
+install-libs = [
+  "pip install -e ../../libs/cache",
+  "pip install -e ../../libs/cli",
+  "pip install -e ../../libs/movie-storage"
+]
+
+***REMOVED*** Server management
+serve = "python -m backend_api.main"
+dev = "PYTHONPATH=src uvicorn backend_api.main:app --reload --port 8000"
+
+***REMOVED*** CLI access
+cli = "python -m backend_api.cli"
+
+***REMOVED*** Database management
+migrate = "python -m backend_api.cli db migrate"
+db-init = "python -m backend_api.cli db init"
+db-init-tables = "python -m backend_api.cli db init --create-tables"
+db-downgrade = "python -m backend_api.cli db downgrade"
+db-teardown = "python -m backend_api.cli db teardown --confirm"
+
+***REMOVED*** Health checks
+health-check = "python -m backend_api.cli health check"
+health-db = "python -m backend_api.cli health db"
+health-cache = "python -m backend_api.cli health cache"
+
+***REMOVED*** Cache management
+cache-info = "python -m backend_api.cli cache info"
+cache-keys = "python -m backend_api.cli cache keys"
+cache-get = "python -m backend_api.cli cache get"
+cache-clear = "python -m backend_api.cli cache clear --confirm"
+
+***REMOVED*** Cache warming
+warming-start = "python -m backend_api.cli warming start"
+warming-status = "python -m backend_api.cli warming status"
+warming-config = "python -m backend_api.cli warming config"
+
+***REMOVED*** System commands
+config = "python -m backend_api.cli config"
+version = "python -m backend_api.cli version"
+serve-cli = "python -m backend_api.cli serve"
+
+***REMOVED*** Development tools
+lint = [
+    "black .",
+    "isort .",
+    "flake8 .",
+    "mypy src"
+]
+test = "PYTHONPATH=src pytest {args:tests}"
+test-cov = "PYTHONPATH=src pytest --cov=backend_api tests/"
+format = [
+    "black .",
+    "isort ."
+]
+
+***REMOVED*** Performance testing and profiling (now in default env)
+profile-bulk = "python profile_bulk_endpoint.py"
+profile-bulk-quick = "python profile_bulk_endpoint.py --count 20"
+profile-bulk-load = "python profile_bulk_endpoint.py --count 100 --iterations 3"
+
+***REMOVED*** Database profiling
+profile-db = "ENABLE_DB_PROFILING=true python -m backend_api.scripts.setup_db profile-db"
+profile-db-30 = "ENABLE_DB_PROFILING=true python -m backend_api.scripts.setup_db profile-db --duration 30"
+profile-db-60 = "ENABLE_DB_PROFILING=true python -m backend_api.scripts.setup_db profile-db --duration 60"
+
+***REMOVED*** Basic movie API benchmarks  
+benchmark-basic = "python benchmark_movies.py --scenario basic --requests 50"
+benchmark-load = "python benchmark_movies.py --scenario load --requests 200 --concurrent 10"
+benchmark-bulk = "python benchmark_movies.py --scenario bulk_vs_individual --requests 20"
+
+***REMOVED*** Performance monitoring with different settings
+monitor-quick = "python benchmark_movies.py --scenario basic --requests 20 --export results/quick_test.json"
+monitor-comprehensive = "python benchmark_movies.py --scenario comprehensive --requests 100 --export results/comprehensive_test.json"
+
+***REMOVED*** Memory profiling (requires mprof from memory-profiler)
+profile-memory = "mprof run python benchmark_movies.py --scenario basic --requests 30"
+show-memory = "mprof plot"
+
+***REMOVED*** CPU profiling with py-spy (requires running server)
+profile-cpu = "py-spy record -o profile.svg -d 30 -s -- python -m backend_api.main"
+
+***REMOVED*** Create results directory
+setup-results = "mkdir -p results"
+
+***REMOVED*** Combined performance analysis workflow
+perf-analysis = [
+    "mkdir -p results",
+    "echo 'Running basic benchmark...'",
+    "python benchmark_movies.py --scenario basic --requests 50 --export results/basic.json",
+    "echo 'Running database profiler...'", 
+    "python db_profiler.py --simulate > results/db_profile.txt",
+    "echo 'Performance analysis complete. Check results/ directory.'"
+]
+
+
+
+***REMOVED*** Tool configurations
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
 
 [tool.mypy]
 python_version = "3.12"
-***REMOVED*** Common strict settings
+***REMOVED*** Strict settings
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
 disallow_untyped_decorators = true
 no_implicit_optional = true
 strict_optional = true
-
-***REMOVED*** Module resolution
-mypy_path = "src"
-explicit_package_bases = true
-namespace_packages = true
-
-***REMOVED*** Variable annotation settings
-disallow_any_generics = true
-disallow_subclassing_any = true
 disallow_any_unimported = true
+disallow_untyped_calls = true
+disallow_any_generics = true 
+disallow_subclassing_any = true
 
 ***REMOVED*** Warning settings
 warn_redundant_casts = true
@@ -119,26 +274,42 @@ warn_unreachable = true
 ***REMOVED*** Error reporting
 pretty = true
 show_column_numbers = true
-show_error_codes = true
 show_error_context = true
 
-***REMOVED*** Import handling
+***REMOVED*** Importing
+ignore_missing_imports = false
+follow_imports = "normal"
+
+[[tool.mypy.overrides]]
+module = [
+    "fastapi.*",
+    "uvicorn.*",
+    "pydantic.*",
+    "sqlalchemy.*",
+    "sqlmodel.*",
+    "alembic.*",
+    "psycopg2.*",
+    "typer.*",
+    "rich.*",
+    "redis.*",
+    "jwt.*",
+    "pyjwt.*",
+    "passlib.*",
+    "bcrypt.*",
+    "dateutil.*",
+    "email_validator.*"
+]
 ignore_missing_imports = true
 
-***REMOVED*** Special overrides for our own code to be strict
-[[tool.mypy.overrides]]
-module = "backend_api.*"
-disallow_untyped_calls = true
-disallow_any_unimported = true
-warn_return_any = true
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
 
 [tool.flake8]
 max-line-length = 100
 exclude = [".git", "__pycache__", "build", "dist"]
-extend-ignore = ["E203"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*" 
+extend-ignore = ["E203"] 

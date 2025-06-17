@@ -1,7 +1,7 @@
 """Cache management commands for the Backend API CLI."""
 
 import json
-import logging
+
 from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 import typer
@@ -13,6 +13,7 @@ from typer import Typer
 from backend_api.config.app import settings
 from backend_api.config.logging import configure_logging, get_logger
 
+from backend_api.config.logging import get_logger
 app = typer.Typer(
     name="cache",
     help="Redis cache management commands.",
@@ -20,7 +21,7 @@ app = typer.Typer(
 )
 
 console = Console()
-logger = logging.getLogger("backend_api.cli.commands.cache")
+logger = get_logger("backend_api.cli.commands.cache")
 
 
 @app.command(name="info")

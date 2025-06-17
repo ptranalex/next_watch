@@ -1,6 +1,7 @@
 """Meta routes for the Backend API."""
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 from fastapi import APIRouter
 
 router = APIRouter()
@@ -44,10 +45,12 @@ async def debug_info() -> Dict[str, Any]:
         This endpoint is available in all environments but returns
         limited information in production for security.
     """
-    from backend_api.config.app import settings
-    from fastapi import HTTPException
     import datetime
     import os
+
+    from fastapi import HTTPException
+
+    from backend_api.config.app import settings
 
     ***REMOVED*** In production, only return basic info
     if getattr(settings, "environment", "development") == "production":

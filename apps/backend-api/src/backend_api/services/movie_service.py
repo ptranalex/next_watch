@@ -5,20 +5,22 @@ This service follows the CQRS pattern, with this service handling state-changing
 operations, while read operations are in a separate query class.
 """
 
-import logging
 from typing import Any, Dict, List, Optional, TypedDict, cast
 
-from backend_api.db.operations import (
-    get_credits_by_movie_id,
-    get_movie_by_id,
-)
 from sqlmodel import Session
 
 ***REMOVED*** Use absolute import to avoid mypy errors
 import backend_api.errors
+from backend_api.db.operations import (
+    get_credits_by_movie_id,
+    get_movie_by_id,
+)
 from backend_api.errors import ResourceNotFoundError, ValidationError
+from backend_api.config.logging import get_logger
+from backend_api.models import Movie
+from backend_api.queries.movie_query import MovieQuery
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CastMember(TypedDict):

@@ -2,26 +2,27 @@
 
 import asyncio
 import json
-import logging
+
 import os
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import typer
-from typer import Typer
 from rich.console import Console
 from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
 from sqlmodel import Session, create_engine, select, text
+from typer import Typer
 
 from backend_api.cli.utils import display_redis_config
 from backend_api.config.app import settings
 from backend_api.db.database import get_db
 from backend_api.services.suggestion_engine import SuggestionEngine
 
+from backend_api.config.logging import get_logger
 app: Typer = typer.Typer(name="redis", help="Redis data management commands.")
 console = Console()
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @app.command(name="populate-suggestions")

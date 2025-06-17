@@ -1,22 +1,26 @@
 """Migration to rename moviegenrelink table to movie_genre_link.
 
+from backend_api.config.logging import get_logger
 This migration renames the 'moviegenrelink' table to 'movie_genre_link'
 to ensure consistent naming conventions between the SQL queries and the database.
 """
 
-import logging
-
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.engine import Engine
+from typing import Optional
+
+from backend_api.config.logging import get_logger
+from backend_api.config.app import Config
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "004_rename_moviegenrelink_table"
 MIGRATION_DESCRIPTION = "Rename moviegenrelink table to movie_genre_link"
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-def upgrade(engine, config=None):
+def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Upgrade database schema to match the current version.
 
     Args:
@@ -73,7 +77,7 @@ def upgrade(engine, config=None):
                 logger.warning("Neither 'moviegenrelink' nor 'movie_genre_link' tables exist!")
 
 
-def downgrade(engine, config=None):
+def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Downgrade database schema to the previous version.
 
     Args:

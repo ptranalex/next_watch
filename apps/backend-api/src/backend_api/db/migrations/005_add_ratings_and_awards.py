@@ -1,22 +1,26 @@
 """Migration to add ratings and awards columns to the movie table.
 
+from backend_api.config.logging import get_logger
 This migration adds new columns for Rotten Tomatoes rating, Metacritic rating,
 and awards information to the movie table.
 """
 
-import logging
-
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.engine import Engine
+from typing import Optional
+
+from backend_api.config.logging import get_logger
+from backend_api.config.app import Config
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "005_add_ratings_and_awards"
 MIGRATION_DESCRIPTION = "Add Rotten Tomatoes, Metacritic ratings and awards columns"
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-def upgrade(engine, config=None):
+def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Upgrade database schema to add new rating and awards columns.
 
     Args:
@@ -44,7 +48,7 @@ def upgrade(engine, config=None):
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine, config=None):
+def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Downgrade by removing the added columns.
 
     Args:

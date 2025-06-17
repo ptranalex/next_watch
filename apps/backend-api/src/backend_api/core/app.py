@@ -1,11 +1,11 @@
 """Application factory for the Backend API service.
 
+from backend_api.config.logging import get_logger
 This module contains the FastAPI application factory, lifespan management,
 and global exception handling for the Next Watch Backend API service.
 """
 
 import datetime
-import logging
 import os
 import traceback
 from contextlib import asynccontextmanager
@@ -13,6 +13,8 @@ from typing import Any, AsyncGenerator, Dict, Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
+from backend_api.config.logging import get_logger
 
 ***REMOVED*** Import database initialization
 from backend_api.db.database import get_db, init_database
@@ -27,7 +29,7 @@ try:
 except ImportError:
     suggestion_service_enabled = False
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** Module-level settings for lifespan access
 _app_settings: Optional[Any] = None
@@ -158,10 +160,11 @@ def create_app(settings: Optional[Any] = None) -> FastAPI:
 
     _app_settings = settings
 
-    from .middleware import setup_middleware
     from backend_api.routes.api_v1 import api_v1_router
-    from backend_api.routes.meta import router as meta_router
     from backend_api.routes.health import router as health_router
+    from backend_api.routes.meta import router as meta_router
+
+    from .middleware import setup_middleware
 
     ***REMOVED*** Create FastAPI application
     app = FastAPI(

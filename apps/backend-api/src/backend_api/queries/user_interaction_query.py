@@ -2,9 +2,13 @@
 User movie interaction queries for optimized read operations.
 """
 
-import logging
 from typing import Any, Dict, List, Optional, Tuple
 
+from pydantic import BaseModel
+from sqlalchemy import func
+from sqlmodel import Session, select
+
+from backend_api.config.logging import get_logger
 from backend_api.db.operations import (
     get_movie_by_id,
     get_user_liked_movies,
@@ -12,14 +16,10 @@ from backend_api.db.operations import (
     get_user_watched_movies,
     get_user_watchlist,
 )
-from backend_api.models import Movie, UserMovieInteraction
-from pydantic import BaseModel
-from sqlalchemy import func
-from sqlmodel import Session, select
-
 from backend_api.errors import ResourceNotFoundError, ValidationError
+from backend_api.models import Movie, UserMovieInteraction
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class UserMovieDetail(BaseModel):

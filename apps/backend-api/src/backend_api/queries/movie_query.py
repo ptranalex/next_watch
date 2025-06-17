@@ -5,16 +5,17 @@ This module provides query operations for movies following the CQRS pattern,
 separating read operations from write operations.
 """
 
-import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlmodel import Session
 
+from backend_api.config.logging import get_logger
 from backend_api.errors import ResourceNotFoundError, ValidationError
 from backend_api.queries.movie_details import (
     get_movie_details_by_id,
     get_movie_details_by_tmdb_id,
     get_movie_genres,
+    get_movie_genres_bulk,
     get_movies_by_ids_bulk,
 )
 from backend_api.queries.movie_listings import get_movies_with_filters, search_movies_by_title
@@ -23,7 +24,7 @@ from backend_api.queries.movie_listings import get_movies_with_filters, search_m
 from backend_api.queries.top_movies import get_top_rated_movies
 from backend_api.queries.trailer import get_trailers_for_movie
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MovieQuery:
@@ -205,6 +206,41 @@ class MovieQuery:
 
         ***REMOVED*** Get genres
         return get_movie_genres(db, movie_id)
+
+    def get_movie_genres_bulk(
+        self, db: Session, movie_ids: List[int]
+    ) -> Dict[int, List[Dict[str, Any]]]:
+        """
+        Get genres for multiple movies in a single query (eliminates N+1 queries).
+
+        Args:
+            db: Database session
+            movie_ids: List of movie IDs to fetch genres for
+
+        Returns:
+            Dictionary mapping movie_id -> list of genre dictionaries
+
+        Raises:
+            ValidationError: If movie_ids list is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if not movie_ids:
+            return {}
+
+        if not all(isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids):
+            raise ValidationError(
+                message="Invalid movie IDs",
+                field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
+            )
+
+        if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit
+            raise ValidationError(
+                message="Too many movie IDs",
+                field_errors={"movie_ids": ["Maximum 1000 movie IDs allowed"]},
+            )
+
+        ***REMOVED*** Get genres in bulk
+        return get_movie_genres_bulk(db, movie_ids)
 
     def get_movies_by_ids(self, db: Session, movie_ids: List[int]) -> List[Dict[str, Any]]:
         """

@@ -6,19 +6,19 @@ This service provides comprehensive health checks for all dependencies:
 """
 
 import asyncio
-import logging
 import time
-from typing import Dict, Any, Optional, Union
 from dataclasses import dataclass
+from typing import Any, Dict, Optional, Union
 
 import redis
 from redis.exceptions import RedisError
 from sqlmodel import Session, text
 
 from backend_api.config.app import settings
+from backend_api.config.logging import get_logger
 from backend_api.db.database import get_db
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

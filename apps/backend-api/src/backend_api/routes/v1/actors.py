@@ -2,11 +2,17 @@
 Actor-related API routes (v1).
 """
 
-import logging
 import traceback
-from typing import List, Optional, cast, Dict, Any
+from typing import Any, Dict, List, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+
+***REMOVED*** Import schemas
+from pydantic import BaseModel
+from sqlmodel import Session
+
+***REMOVED*** Import database session dependency
+from backend_api.db.database import get_db
 
 ***REMOVED*** Import movie-storage operations
 from backend_api.db.operations import (
@@ -16,14 +22,9 @@ from backend_api.db.operations import (
 
 ***REMOVED*** Import models
 from backend_api.models import Credit
-
-***REMOVED*** Import schemas
-from pydantic import BaseModel
-from sqlmodel import Session
-
-***REMOVED*** Import database session dependency
-from backend_api.db.database import get_db
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
+
+from backend_api.config.logging import get_logger
 
 
 ***REMOVED*** Actor schemas
@@ -58,7 +59,7 @@ class PaginatedActorResponse(BaseModel):
     has_prev: bool
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/actors", tags=["actors"])
 

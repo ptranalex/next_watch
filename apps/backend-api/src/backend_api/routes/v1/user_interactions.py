@@ -1,4 +1,5 @@
 """
+from backend_api.config.logging import get_logger
 User interaction routes for managing user movie relationships.
 
 These routes handle user interactions with movies such as:
@@ -13,30 +14,21 @@ via X-User-ID header after validating JWT tokens.
 
 import csv
 import io
-import logging
-from typing import Any, Dict, List, Optional, Union, Annotated
+from typing import Annotated, Any, Dict, List, Optional, Union
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    HTTPException,
-    Path,
-    Query,
-    UploadFile,
-    status,
-)
+from fastapi import APIRouter, Depends, File, HTTPException, Path, Query, UploadFile, status
 from pydantic import BaseModel
 from sqlmodel import Session
 
+from backend_api.config.logging import get_logger
 from backend_api.db.database import get_db
-from backend_api.models.user_interaction import UserMovieInteraction
 from backend_api.dependencies import get_user_id_from_header
 from backend_api.errors import (
     ResourceNotFoundError,
     ValidationError,
     service_error_to_http_exception,
 )
+from backend_api.models.user_interaction import UserMovieInteraction
 from backend_api.queries import UserInteractionQuery
 from backend_api.schemas import (
     MovieSummary,
@@ -46,7 +38,7 @@ from backend_api.schemas import (
 )
 from backend_api.services.user_interaction import UserInteractionService
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** Create router
 router = APIRouter(prefix="/user/movies", tags=["user-movies"])

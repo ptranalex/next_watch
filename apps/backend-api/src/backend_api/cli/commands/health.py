@@ -1,6 +1,6 @@
 """Health check commands for the Backend API CLI."""
 
-import logging
+
 from typing import Optional
 
 import httpx
@@ -12,6 +12,7 @@ from typer import Typer
 from backend_api.config.app import settings
 from backend_api.config.logging import configure_logging, get_logger
 
+from backend_api.config.logging import get_logger
 app = typer.Typer(
     name="health",
     help="Health check commands for Backend API and dependent services.",
@@ -19,7 +20,7 @@ app = typer.Typer(
 )
 
 console = Console()
-logger = logging.getLogger("backend_api.cli.commands.health")
+logger = get_logger("backend_api.cli.commands.health")
 
 
 @app.command(name="check")

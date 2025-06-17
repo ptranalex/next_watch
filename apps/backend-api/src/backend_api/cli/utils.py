@@ -3,13 +3,14 @@ from typer import Typer
 
 """Utility functions for the CLI interface."""
 
-import logging
+
 from typing import Any, Dict, Optional
 
 from rich.console import Console
 from rich.table import Table
 
-logger = logging.getLogger(__name__)
+from backend_api.config.logging import get_logger
+logger = get_logger(__name__)
 
 
 def format_config_table(config: Any, title: str = "Configuration") -> Table:

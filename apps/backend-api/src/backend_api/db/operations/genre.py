@@ -1,15 +1,15 @@
 """Genre storage operations."""
 
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from sqlmodel import Session, select
 from sqlmodel.sql.expression import SelectOfScalar
 
+from backend_api.config.logging import get_logger
 from backend_api.models import Genre
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_genre(session: Session, name: str, tmdb_id: Optional[int] = None) -> Genre:

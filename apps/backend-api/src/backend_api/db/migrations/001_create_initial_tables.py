@@ -1,6 +1,5 @@
 """Migration to create initial database tables."""
 
-import logging
 from datetime import datetime
 from typing import Optional
 
@@ -16,16 +15,18 @@ from sqlalchemy import (
     create_engine,
     text,
 )
+from sqlalchemy.engine import Engine
 
 from backend_api.config.app import Config
+from backend_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 MIGRATION_ID = "001_create_initial_tables"
 MIGRATION_DESCRIPTION = "Create initial movie and genre tables"
 
 
-def upgrade(engine, config: Optional[Config] = None):
+def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Run the upgrade migration.
 
     Args:
@@ -103,7 +104,7 @@ def upgrade(engine, config: Optional[Config] = None):
     logger.info(f"Applied migration: {MIGRATION_ID}")
 
 
-def downgrade(engine, config: Optional[Config] = None):
+def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Run the downgrade migration.
 
     Args:

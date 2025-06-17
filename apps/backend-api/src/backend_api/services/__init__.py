@@ -6,9 +6,9 @@ state-changing operations, following the CQRS pattern to separate
 command operations from query operations.
 """
 
+from .health_service import HealthService, close_health_service, get_health_service
 from .movie_service import MovieService
 from .user_interaction import UserInteractionService
-from .health_service import HealthService, get_health_service, close_health_service
 
 ***REMOVED*** Optional services
 try:

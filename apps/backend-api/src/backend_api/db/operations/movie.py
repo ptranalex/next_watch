@@ -1,6 +1,5 @@
 """Movie storage operations."""
 
-import logging
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -8,13 +7,11 @@ from sqlalchemy import func
 from sqlalchemy.sql import text
 from sqlmodel import Session, or_, select
 
-from backend_api.db.operations.credit import (
-    create_credits_from_tmdb_data,
-    delete_credits_for_movie,
-)
+from backend_api.config.logging import get_logger
+from backend_api.db.operations.credit import create_credits_from_tmdb_data, delete_credits_for_movie
 from backend_api.models import Credit, Genre, Movie, MovieGenreLink
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_movie(

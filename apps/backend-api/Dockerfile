@@ -1,47 +1,56 @@
+***REMOVED*** Backend API Dockerfile
+***REMOVED*** 
+***REMOVED*** Build context should be the monorepo root to access local dependencies:
+***REMOVED*** docker build -f apps/backend-api/Dockerfile -t backend-api .
+***REMOVED***
+***REMOVED*** This Dockerfile requires:
+***REMOVED*** - libs/movie-storage/ (Movie Storage Library)
+***REMOVED*** - apps/backend-api/ (Backend API application)
+
 ***REMOVED*** Stage 1: Build dependencies and package
 FROM python:3.12-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PATH="${PATH}:/root/.local/bin"
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-***REMOVED*** Install build dependencies - use a single layer and clean up in the same step
-RUN apk add --no-cache --virtual .build-deps \
-    build-base \
-    curl \
+***REMOVED*** Install build dependencies (only needed for building)
+RUN apk add --no-cache \
     gcc \
     musl-dev \
     python3-dev \
     libffi-dev \
     openssl-dev \
-    postgresql-dev \
-    && pip install --no-cache-dir hatch
+    postgresql-dev
 
-***REMOVED*** Copy only dependency-related files first
-COPY apps/backend-api/pyproject.toml apps/backend-api/hatch.toml ./
+***REMOVED*** Copy local dependencies first
+COPY libs/movie-storage ./libs/movie-storage/
 
-***REMOVED*** Copy application source code
+***REMOVED*** Install local dependencies
+RUN pip install --no-cache-dir --user ./libs/movie-storage/
+
+***REMOVED*** Copy application files
+COPY apps/backend-api/pyproject.toml ./pyproject.toml
 COPY apps/backend-api/src ./src/
 
-***REMOVED*** Install the application and its dependencies
-RUN pip install --no-cache-dir -e .
+***REMOVED*** Install the current project and its dependencies (local deps are commented out in pyproject.toml)
+RUN pip install --no-cache-dir --user -e .
 
-***REMOVED*** Stage 2: Runtime image - use a much smaller base
+***REMOVED*** Stage 2: Minimal runtime image
 FROM python:3.12-alpine AS final
 
 ***REMOVED*** Set production environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app:/app/src \
+    PYTHONPATH=/app/src \
+    PATH="/home/app/.local/bin:$PATH" \
     ENVIRONMENT="production" \
     PORT=8000 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
     WORKERS=1 \
     TIMEOUT=120 \
-    MAX_KEEPALIVE=60 \
     RELOAD=false \
     PROXY_HEADERS=true \
     FORWARDED_ALLOW_IPS="*" \
@@ -50,44 +59,43 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-***REMOVED*** Install runtime dependencies including tini for proper process handling
-RUN apk add --no-cache libstdc++ curl tini postgresql-libs
+***REMOVED*** Install only runtime dependencies (curl for healthcheck, postgresql-libs for db connection)
+RUN apk add --no-cache curl tini postgresql-libs
 
-***REMOVED*** Copy the installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
-COPY --from=builder /usr/local/bin/alembic /usr/local/bin/
+***REMOVED*** Create app user
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
-***REMOVED*** Copy the application code
-COPY --from=builder /app/src ./src/
+***REMOVED*** Copy Python packages from builder (user installation)
+COPY --from=builder --chown=app:app /root/.local /home/app/.local
 
-EXPOSE 8000
+***REMOVED*** Copy application code
+COPY --from=builder --chown=app:app /app/src ./src/
 
-***REMOVED*** Use a non-root user for better security
-RUN addgroup -S app && adduser -S app -G app
-
-***REMOVED*** Create logs directory with proper permissions
+***REMOVED*** Create logs directory
 RUN mkdir -p /app/logs && chown -R app:app /app
 
 USER app
 
-***REMOVED*** Add health check configuration
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+***REMOVED*** Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health/live || exit 1
+
+***REMOVED*** Expose port
+EXPOSE 8000
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
 
-***REMOVED*** Run the application with production optimizations
-***REMOVED*** Hardcode log-level=info, proxy_headers=true and no reload for production
+***REMOVED*** Run the application using uvicorn directly with proper worker configuration
+***REMOVED*** This bypasses our CLI for production to ensure optimal performance
 CMD ["uvicorn", "backend_api.main:app", \
      "--host", "0.0.0.0", \
      "--port", "8000", \
      "--workers", "1", \
-     "--log-level", "info", \
      "--timeout-keep-alive", "120", \
-     "--limit-max-requests", "10000", \
+     "--log-level", "info", \
      "--no-access-log", \
-     "--backlog", "1024", \
      "--proxy-headers", \
-     "--forwarded-allow-ips", "*"] 
+     "--forwarded-allow-ips", "*", \
+     "--backlog", "1024", \
+     "--limit-max-requests", "10000"] 

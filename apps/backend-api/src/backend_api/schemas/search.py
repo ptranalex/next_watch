@@ -3,6 +3,7 @@ Search schemas for the backend API.
 """
 
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
 
 

@@ -2,8 +2,9 @@
 
 from typing import List
 
-from backend_api.models import Trailer
 from sqlmodel import Session, select
+
+from backend_api.models import Trailer
 
 
 def get_trailers_for_movie(session: Session, movie_id: int) -> List[Trailer]:

@@ -2,22 +2,20 @@
 Search-related API routes (v1).
 """
 
-import logging
-import os
 import traceback
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-
-***REMOVED*** Import pydantic models for response
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from redis.exceptions import RedisError
 from sqlmodel import Session
 
 from backend_api.config.app import settings
-
-***REMOVED*** Import database session dependency
+from backend_api.config.logging import get_logger
 from backend_api.db.database import get_db
+from backend_api.errors import ResourceNotFoundError, ValidationError
+from backend_api.queries.movie_query import MovieQuery
+
 from backend_api.schemas.movie_schema import MovieResponse
 from backend_api.schemas.search import SearchResponse, SearchResult
 
@@ -58,7 +56,7 @@ class TextSuggestionsResponse(BaseModel):
     total: int
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** Initialize suggestion engine with Redis URL (should be configured in settings)
 ***REMOVED*** This will be initialized properly in the application startup events

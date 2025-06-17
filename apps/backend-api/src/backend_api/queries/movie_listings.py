@@ -2,14 +2,14 @@
 Query implementations for retrieving lists of movies with various filtering options.
 """
 
-import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sqlalchemy.sql import text
 
+from backend_api.config.logging import get_logger
 from backend_api.queries.common import DBSession
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_movies_with_filters(

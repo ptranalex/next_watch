@@ -2,14 +2,14 @@
 Query implementations for genre-related operations.
 """
 
-import logging
 from typing import Any, Dict, Optional
 
 from sqlalchemy.sql import text
 
+from backend_api.config.logging import get_logger
 from backend_api.queries.common import DBSession
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_genre_by_name(db_session: DBSession, genre_name: str) -> Optional[Dict[str, Any]]:

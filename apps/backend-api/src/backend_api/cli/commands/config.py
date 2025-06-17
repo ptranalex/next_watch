@@ -1,6 +1,6 @@
 """Configuration commands for the Backend API CLI."""
 
-import logging
+
 from typing import Optional
 
 import typer
@@ -12,6 +12,7 @@ from backend_api.cli.utils import format_config_table, print_config
 from backend_api.config.app import settings
 from backend_api.config.logging import configure_logging, get_logger
 
+from backend_api.config.logging import get_logger
 app = typer.Typer(
     name="config",
     help="Display and manage configuration settings.",
@@ -19,7 +20,7 @@ app = typer.Typer(
 )
 
 console = Console()
-logger = logging.getLogger("backend_api.cli.commands.config")
+logger = get_logger("backend_api.cli.commands.config")
 
 
 @app.command(name="show")

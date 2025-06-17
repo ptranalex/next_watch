@@ -1,23 +1,21 @@
 """Migration to add Credits table and extend Movie fields."""
 
-import logging
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import (
-    MetaData,
-    text,
-)
+from sqlalchemy import MetaData, text
+from sqlalchemy.engine import Engine
 
 from backend_api.config.app import Config
+from backend_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 MIGRATION_ID = "002_add_credits_and_extended_movie_fields"
 MIGRATION_DESCRIPTION = "Add Credits table and extend Movie fields with additional TMDB data"
 
 
-def upgrade(engine, config: Optional[Config] = None):
+def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Run the upgrade migration.
 
     Args:
@@ -149,7 +147,7 @@ def upgrade(engine, config: Optional[Config] = None):
     logger.info(f"Applied migration: {MIGRATION_ID}")
 
 
-def downgrade(engine, config: Optional[Config] = None):
+def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Run the downgrade migration.
 
     Args:

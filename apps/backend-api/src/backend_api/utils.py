@@ -1,14 +1,14 @@
 """Utility functions for movie storage."""
 
-import logging
-from pathlib import Path
 from typing import Any, Dict, Optional
+from pathlib import Path
 
 from backend_api.config.app import Config
 from backend_api.db import init_db
 from backend_api.db.migrations import run_migration
+from backend_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def setup_backend_api_storage(

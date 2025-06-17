@@ -2,35 +2,33 @@
 Movie-related API routes (v1).
 """
 
-import logging
-from datetime import datetime
 from typing import Any, Dict, List, Optional, cast
 
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
-***REMOVED*** Import database session dependency
-from ...db.database import get_db
-from ...errors import (
+from backend_api.config.logging import get_logger
+from backend_api.db.database import get_db
+from backend_api.errors import (
     ResourceNotFoundError,
     ValidationError,
     service_error_to_http_exception,
 )
-from ...queries.movie_query import MovieQuery
-from ...schemas.cast_schema import (
+from backend_api.queries.movie_query import MovieQuery
+from backend_api.schemas.cast_schema import (
     CastMemberResponse,
     MovieCastResponse,
 )
 
 ***REMOVED*** Import response schemas
-from ...schemas.movie_schema import MovieResponse, MoviesListResponse
-from ...schemas.trailer_schema import TrailerResponse
+from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
+from backend_api.schemas.trailer_schema import TrailerResponse
 
 ***REMOVED*** Import service and query
-from ...services.movie_service import MovieService
+from backend_api.services.movie_service import MovieService
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/movies", tags=["movies"])
 
@@ -170,13 +168,16 @@ async def get_movies_bulk(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
+        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
+        movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
+        genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
+
         ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
             ***REMOVED*** Get movie ID safely
             movie_id = get_movie_id(movie)
-
-            genres = movie_query.get_movie_genres(db, movie_id)
+            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
@@ -241,13 +242,16 @@ async def list_movies(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
+        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
+        movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
+        genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
+
         ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
             ***REMOVED*** Get movie ID safely
             movie_id = get_movie_id(movie)
-
-            genres = movie_query.get_movie_genres(db, movie_id)
+            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
@@ -280,13 +284,16 @@ async def get_top_movies(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
+        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
+        movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
+        genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
+
         ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
             ***REMOVED*** Get movie ID safely
             movie_id = get_movie_id(movie)
-
-            genres = movie_query.get_movie_genres(db, movie_id)
+            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
@@ -353,13 +360,16 @@ async def search_movies(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
+        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
+        movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
+        genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
+
         ***REMOVED*** Convert to response format
         movie_responses = []
         for movie in movies:
             ***REMOVED*** Get movie ID safely
             movie_id = get_movie_id(movie)
-
-            genres = movie_query.get_movie_genres(db, movie_id)
+            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 

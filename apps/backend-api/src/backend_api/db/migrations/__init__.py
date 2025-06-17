@@ -1,5 +1,6 @@
 """Database migrations for the movie storage package.
 
+from backend_api.config.logging import get_logger
 This package handles database schema migrations for the movie-storage library.
 Each migration is defined in a separate Python module, with a standardized
 interface for upgrade and downgrade operations.
@@ -16,15 +17,15 @@ To add a new migration:
 """
 
 import importlib
-import logging
 from typing import Dict, List, Optional
 
 from sqlalchemy import Engine, inspect, text
 from sqlmodel import Session, SQLModel, create_engine
 
 from backend_api.config.app import Config
+from backend_api.config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** List of migration modules to apply in order
 MIGRATIONS = [

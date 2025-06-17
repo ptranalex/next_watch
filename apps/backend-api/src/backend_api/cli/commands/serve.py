@@ -1,6 +1,6 @@
 """Server commands for the Backend API CLI."""
 
-import logging
+
 from pathlib import Path
 from typing import Optional
 
@@ -12,6 +12,7 @@ from typer import Typer
 from backend_api.config.app import settings
 from backend_api.config.logging import configure_logging, get_logger
 
+from backend_api.config.logging import get_logger
 app = typer.Typer(
     name="serve",
     help="Start and manage the Backend API server.",
@@ -19,7 +20,7 @@ app = typer.Typer(
 )
 
 console = Console()
-logger = logging.getLogger("backend_api.cli.commands.serve")
+logger = get_logger("backend_api.cli.commands.serve")
 
 
 @app.command(name="start")
