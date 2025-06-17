@@ -71,10 +71,10 @@ COPY --from=builder --chown=app:app /root/.local /home/app/.local
 ***REMOVED*** Copy application code
 COPY --from=builder --chown=app:app /app/src ./src/
 
-***REMOVED*** Create logs directory with proper ownership
-RUN mkdir -p /app/logs
+***REMOVED*** Create logs directory with write permissions for app user
+RUN mkdir -p /app/logs && chown app:app /app/logs && chmod 755 /app/logs
 
-***REMOVED*** Ensure all app files have correct ownership
+***REMOVED*** Ensure app directory has correct ownership  
 RUN chown -R app:app /app
 
 ***REMOVED*** Switch to app user

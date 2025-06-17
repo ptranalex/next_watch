@@ -62,7 +62,9 @@ DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")
 DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
 DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
 DEFAULT_DEBUG = get_env_bool("DEBUG", False)
-DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
+***REMOVED*** Handle empty LOGS_DIR to disable file logging in production
+_logs_dir_env = get_env_var("LOGS_DIR", "logs")
+DEFAULT_LOGS_DIR = Path(_logs_dir_env) if _logs_dir_env.strip() else None
 
 ***REMOVED*** Performance monitoring
 DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
@@ -113,7 +115,7 @@ class Config:
     debug: bool
     cors_origins: List[str]
     enable_performance_metrics: bool
-    logs_dir: Path
+    logs_dir: Optional[Path]
 
     ***REMOVED*** Logging settings
     log_level: str
@@ -170,7 +172,7 @@ class Config:
         debug: bool = DEFAULT_DEBUG,
         cors_origins: str = DEFAULT_CORS_ORIGINS,
         enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
-        logs_dir: Path = DEFAULT_LOGS_DIR,
+        logs_dir: Optional[Path] = DEFAULT_LOGS_DIR,
         ***REMOVED*** Logging settings
         log_level: str = DEFAULT_LOG_LEVEL,
         sql_log_level: str = DEFAULT_SQL_LOG_LEVEL,

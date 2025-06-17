@@ -9,6 +9,8 @@ from backend_api.config.logging import configure_logging, get_logger
 
 ***REMOVED*** Configure logging early with enhanced settings
 from backend_api.config.logging import get_logger
+
+***REMOVED*** Configure logging early with enhanced settings
 configure_logging(
     log_level=settings.log_level,
     log_dir=settings.logs_dir if hasattr(settings, "logs_dir") else None,
