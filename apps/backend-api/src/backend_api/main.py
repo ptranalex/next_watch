@@ -11,9 +11,13 @@ from backend_api.config.logging import configure_logging, get_logger
 from backend_api.config.logging import get_logger
 
 ***REMOVED*** Configure logging early with enhanced settings
+log_dir = None
+if settings.logs_dir:
+    log_dir = Path(settings.logs_dir)
+
 configure_logging(
     log_level=settings.log_level,
-    log_dir=settings.logs_dir if hasattr(settings, "logs_dir") else None,
+    log_dir=log_dir,
     verbose=settings.debug,
     quiet=False,
     use_coloredlogs=True,

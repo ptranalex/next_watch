@@ -62,7 +62,8 @@ DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")
 DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
 DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
 DEFAULT_DEBUG = get_env_bool("DEBUG", False)
-DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
+***REMOVED*** Set to None to disable file logging, or provide a path to enable it
+DEFAULT_LOGS_DIR = get_env_var("LOGS_DIR", "logs")
 
 ***REMOVED*** Performance monitoring
 DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
@@ -113,7 +114,7 @@ class Config:
     debug: bool
     cors_origins: List[str]
     enable_performance_metrics: bool
-    logs_dir: Path
+    logs_dir: Optional[str]
 
     ***REMOVED*** Logging settings
     log_level: str
@@ -170,7 +171,7 @@ class Config:
         debug: bool = DEFAULT_DEBUG,
         cors_origins: str = DEFAULT_CORS_ORIGINS,
         enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
-        logs_dir: Path = DEFAULT_LOGS_DIR,
+        logs_dir: Optional[str] = DEFAULT_LOGS_DIR,
         ***REMOVED*** Logging settings
         log_level: str = DEFAULT_LOG_LEVEL,
         sql_log_level: str = DEFAULT_SQL_LOG_LEVEL,
@@ -242,7 +243,8 @@ class Config:
             [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
         )
         self.enable_performance_metrics = enable_performance_metrics
-        self.logs_dir = logs_dir
+        ***REMOVED*** Store logs directory - will be None if empty string
+        self.logs_dir = logs_dir if logs_dir else None
 
         ***REMOVED*** Logging settings
         self.log_level = log_level
