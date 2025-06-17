@@ -44,6 +44,7 @@ FROM python:3.12-alpine AS final
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
+    PATH="/home/app/.local/bin:$PATH" \
     ENVIRONMENT="production" \
     PORT=8000 \
     HOST="0.0.0.0" \
