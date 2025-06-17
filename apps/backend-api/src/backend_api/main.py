@@ -21,8 +21,9 @@ def get_app() -> FastAPI:
         from backend_api.config.logging import configure_logging, get_logger
 
         ***REMOVED*** Configure logging with enhanced settings
+        ***REMOVED*** Disable file logging in production to avoid permission issues
         log_dir = None
-        if settings.logs_dir:
+        if settings.logs_dir and settings.environment != "production":
             log_dir = Path(settings.logs_dir)
 
         configure_logging(
@@ -46,9 +47,7 @@ def get_app() -> FastAPI:
 
         ***REMOVED*** Log main application startup
         logger.info("Initializing Next Watch Backend Service", service="backend-api")
-        logger.info(
-            "Environment configuration", environment=os.getenv("ENVIRONMENT", "development")
-        )
+        logger.info("Environment configuration", environment=settings.environment)
 
         ***REMOVED*** Import and create app using core module
         from backend_api.core.app import create_app
@@ -70,7 +69,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "backend_api.main:app",
         host="0.0.0.0",
-        port=settings.port,
+        port=settings.api_port,
         reload=settings.debug,
         log_level=settings.log_level.lower(),
     )

@@ -74,15 +74,22 @@ def configure_logging(
     ***REMOVED*** Simple formatter for handlers - structlog will format the actual messages
     plain_formatter = logging.Formatter("%(message)s")
 
-    ***REMOVED*** File handler (structured JSON)
+    ***REMOVED*** File handler (structured JSON) with error handling
     if log_dir:
-        log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = log_dir / f"{logger_name}_{datetime.now():%Y%m%d_%H%M%S}.json"
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(plain_formatter)
-        root_logger.addHandler(file_handler)
-        config_info["log_file"] = str(log_file)
-        config_info["handlers"].append("file")
+        try:
+            log_dir.mkdir(parents=True, exist_ok=True)
+            log_file = log_dir / f"{logger_name}_{datetime.now():%Y%m%d_%H%M%S}.json"
+            file_handler = logging.FileHandler(log_file)
+            file_handler.setFormatter(plain_formatter)
+            root_logger.addHandler(file_handler)
+            config_info["log_file"] = str(log_file)
+            config_info["handlers"].append("file")
+        except (PermissionError, OSError) as e:
+            ***REMOVED*** Fall back to console-only logging if file logging fails
+            print(f"Warning: Could not create log file at {log_dir}: {e}")
+            print("Falling back to console-only logging.")
+            config_info["log_file"] = None
+            config_info["file_handler_error"] = str(e)
 
     ***REMOVED*** Console handler (human readable)
     renderer: Any = None
