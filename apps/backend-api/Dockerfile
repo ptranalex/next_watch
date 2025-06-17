@@ -91,16 +91,6 @@ EXPOSE 8000
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
 
-***REMOVED*** Run the application using uvicorn directly with proper worker configuration
-***REMOVED*** This bypasses our CLI for production to ensure optimal performance
-CMD ["uvicorn", "backend_api.main:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--workers", "1", \
-     "--timeout-keep-alive", "120", \
-     "--log-level", "info", \
-     "--no-access-log", \
-     "--proxy-headers", \
-     "--forwarded-allow-ips", "*", \
-     "--backlog", "1024", \
-     "--limit-max-requests", "10000"] 
+***REMOVED*** Run the application using Python main function to avoid permission errors
+***REMOVED*** This ensures logging is configured after the container runs as the app user
+CMD ["python", "src/backend_api/main.py"] 

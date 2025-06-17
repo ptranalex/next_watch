@@ -63,7 +63,8 @@ DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
 DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
 DEFAULT_DEBUG = get_env_bool("DEBUG", False)
 ***REMOVED*** Set to None to disable file logging, or provide a path to enable it
-DEFAULT_LOGS_DIR = get_env_var("LOGS_DIR", "logs")
+_logs_dir_env = get_env_var("LOGS_DIR", "logs")
+DEFAULT_LOGS_DIR = _logs_dir_env if _logs_dir_env else None
 
 ***REMOVED*** Performance monitoring
 DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
