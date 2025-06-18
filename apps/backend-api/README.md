@@ -76,6 +76,7 @@ backend-api/
 - CORS configuration for microservice architecture
 - Global exception handling with detailed error reporting
 - Environment-aware configuration with security considerations
+- testing
 
 ***REMOVED******REMOVED*** Quick Start
 
