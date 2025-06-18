@@ -63,7 +63,10 @@ DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
 DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
 DEFAULT_DEBUG = get_env_bool("DEBUG", False)
 ***REMOVED*** Set to None to disable file logging, or provide a path to enable it
-DEFAULT_LOGS_DIR = get_env_var("LOGS_DIR", "logs")
+***REMOVED*** Disable file logging in production to avoid volume permission issues
+_logs_dir_env = get_env_var("LOGS_DIR", "logs")
+_environment = get_env_var("ENVIRONMENT", "development")
+DEFAULT_LOGS_DIR = _logs_dir_env if _environment != "production" else None
 
 ***REMOVED*** Performance monitoring
 DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
@@ -101,6 +104,9 @@ DEFAULT_ALLOWED_HOSTS = get_env_var("ALLOWED_HOSTS", "localhost,127.0.0.1,backen
 
 class Config:
     """Configuration class for the Backend API service."""
+
+    ***REMOVED*** Environment settings
+    environment: str
 
     ***REMOVED*** Database settings
     database_url: str
@@ -160,6 +166,8 @@ class Config:
 
     def __init__(
         self,
+        ***REMOVED*** Environment settings
+        environment: str = get_env_var("ENVIRONMENT", "development"),
         ***REMOVED*** Database settings
         database_url: str = DEFAULT_DATABASE_URL,
         database_echo: bool = DEFAULT_DATABASE_ECHO,
@@ -198,6 +206,7 @@ class Config:
         """Initialize Backend API configuration.
 
         Args:
+            environment: Application environment (development, production, etc.)
             database_url: Database connection URL
             database_echo: Whether to echo SQL commands
             database_pool_size: Connection pool size
@@ -225,8 +234,11 @@ class Config:
             database_monitoring_enabled: Whether to enable database monitoring instrumentation
             slow_query_threshold_ms: Threshold in milliseconds for slow query warnings
         """
+        ***REMOVED*** Store environment setting
+        self.environment = environment
+
         ***REMOVED*** In production, force debug to False
-        if get_env_var("ENVIRONMENT", "development") == "production":
+        if environment == "production":
             debug = False
 
         ***REMOVED*** Database settings
@@ -285,8 +297,7 @@ class Config:
             self.enable_db_profiling = False
 
         ***REMOVED*** Log configuration on initialization
-        environment = get_env_var("ENVIRONMENT", "development")
-        logger.info(f"Initializing backend-api configuration with environment: {environment}")
+        logger.info(f"Initializing backend-api configuration with environment: {self.environment}")
         logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
         logger.info(f"API Port: {self.api_port}")
         logger.info(f"Debug mode: {self.debug}")
@@ -302,12 +313,7 @@ class Config:
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
-        return get_env_var("ENVIRONMENT", "development") == "production"
-
-    @property
-    def environment(self) -> str:
-        """Get the current environment."""
-        return get_env_var("ENVIRONMENT", "development")
+        return self.environment == "production"
 
     def __str__(self) -> str:
         """Return a comprehensive multi-line string representation of the Config instance."""

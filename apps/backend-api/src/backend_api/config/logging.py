@@ -203,7 +203,7 @@ def configure_logging(
         cache_logger_on_first_use=True,
     )
 
-    structlog.get_logger(logger_name).debug("Structlog configured", config=config_info)
+    structlog.get_logger(logger_name).debug("Structlog configured", **config_info)
     return config_info
 
 
