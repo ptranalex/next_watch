@@ -21,9 +21,8 @@ def get_app() -> FastAPI:
         from backend_api.config.logging import configure_logging, get_logger
 
         ***REMOVED*** Configure logging with enhanced settings
-        ***REMOVED*** Disable file logging in production to avoid permission issues
         log_dir = None
-        if settings.logs_dir and settings.environment != "production":
+        if settings.logs_dir:
             log_dir = Path(settings.logs_dir)
 
         configure_logging(

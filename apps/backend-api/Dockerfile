@@ -49,7 +49,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
-    ***REMOVED*** LOGS_DIR="" \
+    LOGS_DIR="/app/logs" \
     WORKERS=1 \
     TIMEOUT=120 \
     RELOAD=false \
@@ -73,7 +73,7 @@ COPY --from=builder --chown=app:app /root/.local /home/app/.local
 COPY --from=builder --chown=app:app /app/src ./src/
 
 ***REMOVED*** Create logs directory with write permissions for app user
-RUN mkdir -p /tmp/logs && chown app:app /tmp/logs && chmod 755 /tmp/logs
+RUN mkdir -p /app/logs && chown app:app /app/logs && chmod 755 /app/logs
 
 ***REMOVED*** Ensure app directory has correct ownership  
 RUN chown -R app:app /app

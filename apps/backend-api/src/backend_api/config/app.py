@@ -63,8 +63,7 @@ DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
 DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
 DEFAULT_DEBUG = get_env_bool("DEBUG", False)
 ***REMOVED*** Set to None to disable file logging, or provide a path to enable it
-_logs_dir_env = get_env_var("LOGS_DIR", "logs")
-DEFAULT_LOGS_DIR = _logs_dir_env if _logs_dir_env else None
+DEFAULT_LOGS_DIR = get_env_var("LOGS_DIR", "logs")
 
 ***REMOVED*** Performance monitoring
 DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
@@ -244,8 +243,8 @@ class Config:
             [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
         )
         self.enable_performance_metrics = enable_performance_metrics
-        ***REMOVED*** Store logs directory - will be None if empty string
-        self.logs_dir = logs_dir if logs_dir else None
+        ***REMOVED*** Store logs directory
+        self.logs_dir = logs_dir
 
         ***REMOVED*** Logging settings
         self.log_level = log_level
