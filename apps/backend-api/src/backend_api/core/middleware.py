@@ -11,7 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend_api.config.app import settings
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.middlewares import ErrorHandlerMiddleware
 from backend_api.middlewares.database_monitoring import DatabaseMonitoringMiddleware
 
@@ -70,7 +70,7 @@ def setup_performance_middleware(app: FastAPI) -> None:
     """
 
     @app.middleware("http")
-    async def add_process_time_header(request: Request, call_next: Any) -> Any:
+    async def add_process_time_header(request: Request, call_next: Any) -> Any:  ***REMOVED*** noqa: F841
         """Add performance timing header to responses.
 
         Args:

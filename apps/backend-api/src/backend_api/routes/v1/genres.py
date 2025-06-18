@@ -1,5 +1,5 @@
 """
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 Genre-related API routes (v1).
 """
 
@@ -9,7 +9,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db

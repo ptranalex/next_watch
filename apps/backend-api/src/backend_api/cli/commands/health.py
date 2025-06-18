@@ -10,9 +10,9 @@ from rich.table import Table
 from typer import Typer
 
 from backend_api.config.app import settings
-from backend_api.config.logging import configure_logging, get_logger
+from config.logging import configure_logging, get_logger
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 app = typer.Typer(
     name="health",
     help="Health check commands for Backend API and dependent services.",
@@ -35,7 +35,7 @@ def check_health(
         timeout: Timeout for health check requests in seconds
     """
     ***REMOVED*** Configure minimal logging for health check
-    configure_logging(log_level="ERROR", quiet=not verbose)
+    configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
     logger = get_logger(__name__)
 
     port = getattr(settings, "api_port", 8000)
@@ -100,7 +100,7 @@ def check_redis_health(
     from redis.exceptions import RedisError
 
     ***REMOVED*** Configure minimal logging
-    configure_logging(log_level="ERROR", quiet=not verbose)
+    configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
     logger = get_logger(__name__)
 
     redis_url = getattr(settings, "redis_url", "redis://localhost:6379/0")
@@ -167,7 +167,7 @@ def check_db_health(
     from sqlalchemy.exc import SQLAlchemyError
 
     ***REMOVED*** Configure minimal logging
-    configure_logging(log_level="ERROR", quiet=not verbose)
+    configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
     logger = get_logger(__name__)
 
     ***REMOVED*** Get database URL from settings

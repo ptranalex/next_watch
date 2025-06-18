@@ -73,7 +73,7 @@ async def debug_info() -> Dict[str, Any]:
         "api_port": settings.api_port,
         "cors_origins": settings.cors_origins,
         "performance_metrics_enabled": settings.enable_performance_metrics,
-        "database_masked": settings._mask_database_password(settings.database_url),
+        "database_masked": settings.get_database_url_masked(),
         "redis_url": settings.redis_url,
         "redis_config": {
             "max_connections": settings.redis_max_connections,

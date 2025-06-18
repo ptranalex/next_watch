@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.db.operations import (
     get_movie_by_id,
     get_user_liked_movies,

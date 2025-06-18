@@ -10,9 +10,9 @@ from typer import Typer
 
 from backend_api.cli.utils import format_config_table, print_config
 from backend_api.config.app import settings
-from backend_api.config.logging import configure_logging, get_logger
+from config.logging import configure_logging, get_logger
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 app = typer.Typer(
     name="config",
     help="Display and manage configuration settings.",
@@ -36,7 +36,7 @@ def show_config(
         verbose: Show detailed configuration including sensitive information masked
         show_secrets: Show sensitive information unmasked (use with caution)
     """
-    configure_logging(log_level="INFO", quiet=not verbose)
+    configure_logging(logger_name="backend_api", log_level="INFO", quiet=not verbose)
     logger = get_logger(__name__)
 
     if not show_secrets:

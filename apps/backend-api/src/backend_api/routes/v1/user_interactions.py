@@ -1,5 +1,5 @@
 """
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 User interaction routes for managing user movie relationships.
 
 These routes handle user interactions with movies such as:
@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Path, Query, Upload
 from pydantic import BaseModel
 from sqlmodel import Session
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.db.database import get_db
 from backend_api.dependencies import get_user_id_from_header
 from backend_api.errors import (

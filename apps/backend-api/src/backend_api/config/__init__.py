@@ -1,26 +1,21 @@
-"""Configuration package for movie storage."""
+"""Configuration package for the Backend API service.
 
-from backend_api.config.app import Config, ConfigDict
-from backend_api.config.env import (
-    find_project_root,
-    get_env_bool,
-    get_env_int,
-    get_env_var,
-    load_environment_variables,
-)
-from backend_api.config.logging import configure_logging
+This package provides configuration using the shared NextWatch configuration
+library with type-safe validation and production-ready defaults.
+"""
 
-***REMOVED*** Export all configuration utilities
+***REMOVED*** Main configuration class and global settings instance
+from backend_api.config.app import BackendAPIConfig as Config, settings
+
+***REMOVED*** Note: Logging utilities now available from shared config library:
+***REMOVED*** from config.logging import configure_logging, get_logger
+
+***REMOVED*** Export configuration utilities
 __all__ = [
-    ***REMOVED*** Core configuration
-    "Config",
-    "ConfigDict",
-    ***REMOVED*** Environment utilities
-    "get_env_var",
-    "get_env_bool",
-    "get_env_int",
-    "load_environment_variables",
-    "find_project_root",
-    ***REMOVED*** Logging utilities
-    "configure_logging",
+    "Config",  ***REMOVED*** Main configuration class (alias for BackendAPIConfig)
+    "BackendAPIConfig",  ***REMOVED*** Original class name for explicit imports
+    "settings",  ***REMOVED*** Global settings instance
+    ***REMOVED*** Logging utilities now available from shared config library:
+    ***REMOVED*** "configure_logging",  ***REMOVED*** Use: from config.logging import configure_logging
+    ***REMOVED*** "get_logger",         ***REMOVED*** Use: from config.logging import get_logger
 ]

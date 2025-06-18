@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.sql import text
 from sqlmodel import Session, or_, select
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.db.operations.credit import create_credits_from_tmdb_data, delete_credits_for_movie
 from backend_api.models import Credit, Genre, Movie, MovieGenreLink
 

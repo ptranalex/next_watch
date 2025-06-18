@@ -15,7 +15,7 @@ from redis.exceptions import RedisError
 from sqlmodel import Session, text
 
 from backend_api.config.app import settings
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.db.database import get_db
 
 logger = get_logger(__name__)

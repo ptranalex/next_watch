@@ -5,7 +5,7 @@ from typing import Any
 
 from sqlalchemy import Engine, event
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.core.request_context import get_request_context_dict, increment_query_count
 
 logger = get_logger(__name__)

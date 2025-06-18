@@ -1,6 +1,6 @@
 """Migration to update budget and revenue columns to BIGINT type.
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 This migration alters the column types for the budget and revenue fields in the movie table
 to use BIGINT instead of INTEGER, allowing for larger financial values.
 """
@@ -11,8 +11,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.engine import Engine
 from typing import Optional
 
-from backend_api.config.logging import get_logger
-from backend_api.config.app import Config
+from config.logging import get_logger
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "003_update_budget_revenue_to_bigint"
@@ -21,7 +20,7 @@ MIGRATION_DESCRIPTION = "Update budget and revenue fields to BIGINT type"
 logger = get_logger(__name__)
 
 
-def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def upgrade(engine: Engine) -> None:
     """Upgrade from previous revision."""
     logger.info("Updating budget and revenue columns to BIGINT type")
 
@@ -45,7 +44,7 @@ def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def downgrade(engine: Engine) -> None:
     """Downgrade to previous revision."""
     logger.info("Downgrading budget and revenue columns back to INTEGER")
 

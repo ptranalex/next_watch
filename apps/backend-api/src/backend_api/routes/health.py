@@ -11,7 +11,7 @@ from sqlmodel import Session
 from backend_api.config.app import settings
 from backend_api.db.database import get_db
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 logger = get_logger(__name__)
 router = APIRouter()
 

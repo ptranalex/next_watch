@@ -11,9 +11,9 @@ from rich.table import Table
 from typer import Typer
 
 from backend_api.config.app import settings
-from backend_api.config.logging import configure_logging, get_logger
+from config.logging import configure_logging, get_logger
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 app = typer.Typer(
     name="cache",
     help="Redis cache management commands.",
@@ -41,7 +41,7 @@ def cache_info(
     from redis.exceptions import RedisError
 
     ***REMOVED*** Configure logging
-    configure_logging(log_level="INFO", quiet=not verbose)
+    configure_logging(logger_name="backend_api", log_level="INFO", quiet=not verbose)
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
@@ -143,7 +143,7 @@ def list_keys(
     from redis.exceptions import RedisError
 
     ***REMOVED*** Configure logging
-    configure_logging(log_level="INFO")
+    configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
@@ -255,7 +255,7 @@ def get_key(
     from redis.exceptions import RedisError
 
     ***REMOVED*** Configure logging
-    configure_logging(log_level="INFO")
+    configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
@@ -378,7 +378,7 @@ def delete_key(
     from redis.exceptions import RedisError
 
     ***REMOVED*** Configure logging
-    configure_logging(log_level="INFO")
+    configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
@@ -437,7 +437,7 @@ def clear_cache(
     from redis.exceptions import RedisError
 
     ***REMOVED*** Configure logging
-    configure_logging(log_level="INFO")
+    configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default

@@ -1,395 +1,251 @@
 """Configuration settings for the Backend API service.
 
-This module provides centralized configuration for the backend-api application,
-loading settings from environment variables with sensible defaults.
+This module provides centralized configuration for the backend-api application
+using the shared NextWatch configuration library with type-safe validation,
+enhanced security features, and production-ready defaults.
 
-It combines movie database configuration with API-specific settings including
-authentication, Redis, CORS, and performance monitoring.
+The configuration combines database, cache, authentication, and monitoring
+settings with backend-api specific customizations. It leverages shared patterns
+for production security overrides and configuration logging.
 """
 
-import json
-import os
-import sys
-from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional
 
-from backend_api.config.env import get_env_bool, get_env_int, get_env_var
-from backend_api.config.logging import get_logger
+from config.base.config import ServiceConfig
+from config.services.auth import AuthConfigMixin
+from config.services.cache import CacheConfigMixin
+from config.services.database import DatabaseConfigMixin
+from config.services.monitoring import MonitoringConfigMixin
+from pydantic import Field, validator
+
+from config.logging import get_logger
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** TYPE DEFINITIONS
-***REMOVED*** ------------------------------------------------------------------------------
 
+class BackendAPIConfig(
+    ServiceConfig, DatabaseConfigMixin, CacheConfigMixin, AuthConfigMixin, MonitoringConfigMixin
+):
+    """Backend API service configuration using shared NextWatch config library.
 
-class ConfigDict(TypedDict, total=False):
-    """Type definition for configuration dictionary."""
+    This configuration class combines all necessary service mixins to provide
+    a comprehensive configuration for the backend API service including:
+    - HTTP service configuration (host, port, CORS)
+    - Database configuration (PostgreSQL with connection pooling)
+    - Cache configuration (Redis with TTL management)
+    - Authentication configuration (JWT with security features)
+    - Monitoring configuration (logging, metrics, health checks)
 
-    database_url: str
-    database_echo: bool
-    database_pool_size: int
-    database_max_overflow: int
-    database_pool_timeout: int
-    log_level: str
-    sql_log_level: str
-    api_port: int
-    debug: bool
-    cors_origins: List[str]
-    redis_url: str
-    jwt_secret: str
+    All settings can be configured via environment variables with sensible defaults.
+    """
 
+    ***REMOVED*** Service identification
+    service_name: str = Field(default="backend-api", description="Service name")
+    version: str = Field(default="0.1.0", description="Service version")
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** DEFAULT CONFIGURATION VALUES
-***REMOVED*** ------------------------------------------------------------------------------
+    ***REMOVED*** HTTP service settings (override defaults from ServiceConfig)
+    host: str = Field(default="0.0.0.0", description="Service host address")
+    port: int = Field(default=8001, description="Service port number")
 
-***REMOVED*** Database URLs and connection settings
-DEFAULT_DATABASE_URL = get_env_var(
-    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch"
-)
-DEFAULT_DATABASE_ECHO = get_env_bool("DATABASE_ECHO", False)
-DEFAULT_DATABASE_POOL_SIZE = get_env_int("DATABASE_POOL_SIZE", 5)
-DEFAULT_DATABASE_MAX_OVERFLOW = get_env_int("DATABASE_MAX_OVERFLOW", 10)
-DEFAULT_DATABASE_POOL_TIMEOUT = get_env_int("DATABASE_POOL_TIMEOUT", 30)
-
-***REMOVED*** API settings
-DEFAULT_API_PORT = get_env_int("BACKEND_API_PORT", 8001)
-DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")
-
-***REMOVED*** Logging settings
-DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
-DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
-DEFAULT_DEBUG = get_env_bool("DEBUG", False)
-***REMOVED*** Set to None to disable file logging, or provide a path to enable it
-***REMOVED*** Disable file logging in production to avoid volume permission issues
-_logs_dir_env = get_env_var("LOGS_DIR", "logs")
-_environment = get_env_var("ENVIRONMENT", "development")
-DEFAULT_LOGS_DIR = _logs_dir_env if _environment != "production" else None
-
-***REMOVED*** Performance monitoring
-DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
-
-***REMOVED*** Database profiling settings (development/debugging only)
-DEFAULT_ENABLE_DB_PROFILING = get_env_bool("ENABLE_DB_PROFILING", False)
-DEFAULT_DB_PROFILING_SLOW_QUERY_THRESHOLD_MS = get_env_int(
-    "DB_PROFILING_SLOW_QUERY_THRESHOLD_MS", 100
-)
-
-***REMOVED*** Database monitoring settings
-DEFAULT_DATABASE_MONITORING_ENABLED = get_env_bool("DATABASE_MONITORING_ENABLED", True)
-DEFAULT_SLOW_QUERY_THRESHOLD_MS = get_env_int("SLOW_QUERY_THRESHOLD_MS", 100)
-
-***REMOVED*** Redis settings
-DEFAULT_REDIS_URL = get_env_var("REDIS_URL", "redis://localhost:6379/0")
-DEFAULT_REDIS_MAX_CONNECTIONS = get_env_int("REDIS_MAX_CONNECTIONS", 10)
-DEFAULT_REDIS_SOCKET_TIMEOUT = get_env_int("REDIS_SOCKET_TIMEOUT", 30)
-DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT = get_env_int("REDIS_SOCKET_CONNECT_TIMEOUT", 10)
-DEFAULT_REDIS_RETRY_ON_TIMEOUT = get_env_bool("REDIS_RETRY_ON_TIMEOUT", True)
-
-***REMOVED*** Authentication settings (for JWT integration with auth-api)
-DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", "change_this_in_production_very_important")
-DEFAULT_JWT_ALGORITHM = get_env_var("JWT_ALGORITHM", "HS256")
-DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = get_env_int("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
-DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = get_env_int("REFRESH_TOKEN_EXPIRE_DAYS", 7)
-
-***REMOVED*** Security settings
-DEFAULT_ALLOWED_HOSTS = get_env_var("ALLOWED_HOSTS", "localhost,127.0.0.1,backend-api")
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** CONFIGURATION CLASS
-***REMOVED*** ------------------------------------------------------------------------------
-
-
-class Config:
-    """Configuration class for the Backend API service."""
-
-    ***REMOVED*** Environment settings
-    environment: str
-
-    ***REMOVED*** Database settings
-    database_url: str
-    database_echo: bool
-    database_pool_size: int
-    database_max_overflow: int
-    database_pool_timeout: int
-
-    ***REMOVED*** API settings
-    api_port: int
-    debug: bool
-    cors_origins: List[str]
-    enable_performance_metrics: bool
-    logs_dir: Optional[str]
-
-    ***REMOVED*** Logging settings
-    log_level: str
-    sql_log_level: str
-
-    ***REMOVED*** Redis settings
-    redis_url: str
-    redis_max_connections: int
-    redis_socket_timeout: int
-    redis_socket_connect_timeout: int
-    redis_retry_on_timeout: bool
-
-    ***REMOVED*** JWT settings (for auth integration)
-    jwt_secret: str
-    jwt_algorithm: str
-    access_token_expire_minutes: int
-    refresh_token_expire_days: int
-
-    ***REMOVED*** Security settings
-    allowed_hosts: List[str]
+    ***REMOVED*** Backend-specific settings
+    backend_performance_metrics: bool = Field(
+        default=False, description="Enable backend-specific performance metrics collection"
+    )
+    logs_dir: Optional[str] = Field(
+        default=None, description="Directory for log files (None disables file logging)"
+    )
 
     ***REMOVED*** Database profiling settings (development only)
-    enable_db_profiling: bool
-    db_profiling_slow_query_threshold_ms: int
+    enable_db_profiling: bool = Field(
+        default=False, description="Enable database query profiling (development only)"
+    )
+    db_profiling_slow_query_threshold_ms: int = Field(
+        default=100, description="Threshold in ms for slow query profiling"
+    )
 
     ***REMOVED*** Database monitoring settings
-    database_monitoring_enabled: bool
-    slow_query_threshold_ms: int
+    database_monitoring_enabled: bool = Field(
+        default=True, description="Enable database performance monitoring"
+    )
+    slow_query_threshold_ms: int = Field(
+        default=100, description="Threshold in ms for slow query warnings"
+    )
 
-    ***REMOVED*** Singleton instance
-    _instance = None
+    class Config:
+        """Pydantic configuration for environment handling."""
 
-    @classmethod
-    def get_instance(cls) -> "Config":
-        """Get the singleton instance of Config.
+        env_file = [".env", ".env.local"]  ***REMOVED*** Load multiple env files
+        env_file_encoding = "utf-8"
+        case_sensitive = False
+        extra = "ignore"
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize backend API configuration."""
+        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        super().__init__(**kwargs)
+
+        ***REMOVED*** Apply shared security and logging patterns
+        self.apply_production_security_overrides()
+        self._apply_backend_specific_overrides()
+        self.log_configuration_summary()
+        self._log_backend_specific_summary()
+
+    def _apply_backend_specific_overrides(self) -> None:
+        """Apply backend-specific production overrides."""
+        if not self.is_production:
+            return
+
+        ***REMOVED*** Backend-specific security overrides
+        if self.enable_db_profiling:
+            logger.warning("Database profiling disabled in production for security and performance")
+            object.__setattr__(self, "enable_db_profiling", False)
+
+        ***REMOVED*** Disable file logging in production to avoid volume permission issues
+        if self.logs_dir:
+            logger.warning("File logging disabled in production to avoid volume permission issues")
+            object.__setattr__(self, "logs_dir", None)
+
+    def _log_backend_specific_summary(self) -> None:
+        """Log backend-specific configuration details."""
+        logger.info(f"Database URL: {self.get_database_url_masked()}")
+        logger.info(f"API Port: {self.port}")
+        logger.info(f"Redis URL: {self.get_redis_url_masked()}")
+        logger.info(f"DB Profiling: {self.enable_db_profiling}")
+        logger.info(f"DB Monitoring: {self.database_monitoring_enabled}")
+        logger.info(f"Performance Metrics: {self.backend_performance_metrics}")
+
+    @validator("enable_db_profiling")
+    def validate_db_profiling(cls, v: bool, values: Dict[str, Any]) -> bool:
+        """Ensure database profiling is disabled in production."""
+        environment = values.get("environment", "development")
+        if v and environment == "production":
+            logger.warning("Database profiling disabled in production for security")
+            return False
+        return v
+
+    def validate_production_settings(self) -> List[str]:
+        """Validate configuration for production deployment.
+
+        Combines validation from all mixins plus backend-specific checks.
 
         Returns:
-            The global Config instance
+            List of validation issues, empty if valid
         """
-        if cls._instance is None:
-            cls._instance = Config()
-        return cls._instance
+        issues = []
 
-    def __init__(
-        self,
-        ***REMOVED*** Environment settings
-        environment: str = get_env_var("ENVIRONMENT", "development"),
-        ***REMOVED*** Database settings
-        database_url: str = DEFAULT_DATABASE_URL,
-        database_echo: bool = DEFAULT_DATABASE_ECHO,
-        database_pool_size: int = DEFAULT_DATABASE_POOL_SIZE,
-        database_max_overflow: int = DEFAULT_DATABASE_MAX_OVERFLOW,
-        database_pool_timeout: int = DEFAULT_DATABASE_POOL_TIMEOUT,
-        ***REMOVED*** API settings
-        api_port: int = DEFAULT_API_PORT,
-        debug: bool = DEFAULT_DEBUG,
-        cors_origins: str = DEFAULT_CORS_ORIGINS,
-        enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
-        logs_dir: Optional[str] = DEFAULT_LOGS_DIR,
-        ***REMOVED*** Logging settings
-        log_level: str = DEFAULT_LOG_LEVEL,
-        sql_log_level: str = DEFAULT_SQL_LOG_LEVEL,
-        ***REMOVED*** Redis settings
-        redis_url: str = DEFAULT_REDIS_URL,
-        redis_max_connections: int = DEFAULT_REDIS_MAX_CONNECTIONS,
-        redis_socket_timeout: int = DEFAULT_REDIS_SOCKET_TIMEOUT,
-        redis_socket_connect_timeout: int = DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT,
-        redis_retry_on_timeout: bool = DEFAULT_REDIS_RETRY_ON_TIMEOUT,
-        ***REMOVED*** JWT settings
-        jwt_secret: str = DEFAULT_JWT_SECRET,
-        jwt_algorithm: str = DEFAULT_JWT_ALGORITHM,
-        access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
-        refresh_token_expire_days: int = DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS,
-        ***REMOVED*** Security settings
-        allowed_hosts: str = DEFAULT_ALLOWED_HOSTS,
-        ***REMOVED*** Database profiling settings (development only)
-        enable_db_profiling: bool = DEFAULT_ENABLE_DB_PROFILING,
-        db_profiling_slow_query_threshold_ms: int = DEFAULT_DB_PROFILING_SLOW_QUERY_THRESHOLD_MS,
-        ***REMOVED*** Database monitoring settings
-        database_monitoring_enabled: bool = DEFAULT_DATABASE_MONITORING_ENABLED,
-        slow_query_threshold_ms: int = DEFAULT_SLOW_QUERY_THRESHOLD_MS,
-    ):
-        """Initialize Backend API configuration.
+        ***REMOVED*** Get validation from parent classes (includes basic debug mode checks)
+        issues.extend(super().validate_production_settings())
+        issues.extend(self.validate_database_production_settings())
+        issues.extend(self.validate_cache_production_settings())
+        issues.extend(self.validate_auth_production_settings())
+        issues.extend(self.validate_monitoring_production_settings(self.environment))
 
-        Args:
-            environment: Application environment (development, production, etc.)
-            database_url: Database connection URL
-            database_echo: Whether to echo SQL commands
-            database_pool_size: Connection pool size
-            database_max_overflow: Maximum overflow connections
-            database_pool_timeout: Pool timeout in seconds
-            api_port: Port for the backend API server
-            debug: Whether to enable debug mode
-            cors_origins: Comma-separated list of allowed origins for CORS
-            enable_performance_metrics: Whether to enable performance metrics
-            logs_dir: Directory to store log files
-            log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
-            sql_log_level: SQL-specific logging level
-            redis_url: Redis connection URL
-            redis_max_connections: Maximum Redis connections
-            redis_socket_timeout: Redis socket timeout in seconds
-            redis_socket_connect_timeout: Redis connection timeout in seconds
-            redis_retry_on_timeout: Whether to retry on Redis timeout
-            jwt_secret: Secret key for JWT token generation
-            jwt_algorithm: Algorithm for JWT token generation
-            access_token_expire_minutes: Minutes until access token expires
-            refresh_token_expire_days: Days until refresh token expires
-            allowed_hosts: Comma-separated list of allowed hosts
-            enable_db_profiling: Whether to enable database profiling
-            db_profiling_slow_query_threshold_ms: Threshold in milliseconds for slow queries
-            database_monitoring_enabled: Whether to enable database monitoring instrumentation
-            slow_query_threshold_ms: Threshold in milliseconds for slow query warnings
-        """
-        ***REMOVED*** Store environment setting
-        self.environment = environment
+        ***REMOVED*** Backend-specific production validation
+        if self.enable_db_profiling:
+            issues.append("Database profiling should be disabled in production")
 
-        ***REMOVED*** In production, force debug to False
-        if environment == "production":
-            debug = False
+        if self.logs_dir:
+            issues.append("File logging should be disabled in production")
 
-        ***REMOVED*** Database settings
-        self.database_url = database_url
-        self.database_echo = database_echo
-        self.database_pool_size = database_pool_size
-        self.database_max_overflow = database_max_overflow
-        self.database_pool_timeout = database_pool_timeout
+        return issues
 
-        ***REMOVED*** API settings
-        self.api_port = api_port
-        self.debug = debug
-        self.cors_origins = (
-            [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
-        )
-        self.enable_performance_metrics = enable_performance_metrics
-        ***REMOVED*** Store logs directory
-        self.logs_dir = logs_dir
-
-        ***REMOVED*** Logging settings
-        self.log_level = log_level
-        self.sql_log_level = sql_log_level
-
-        ***REMOVED*** Redis settings
-        self.redis_url = redis_url
-        self.redis_max_connections = redis_max_connections
-        self.redis_socket_timeout = redis_socket_timeout
-        self.redis_socket_connect_timeout = redis_socket_connect_timeout
-        self.redis_retry_on_timeout = redis_retry_on_timeout
-
-        ***REMOVED*** JWT settings
-        self.jwt_secret = jwt_secret
-        self.jwt_algorithm = jwt_algorithm
-        self.access_token_expire_minutes = access_token_expire_minutes
-        self.refresh_token_expire_days = refresh_token_expire_days
-
-        ***REMOVED*** Security settings
-        self.allowed_hosts = (
-            [host.strip() for host in allowed_hosts.split(",")] if allowed_hosts != "*" else ["*"]
-        )
-
-        ***REMOVED*** Database profiling settings (development only)
-        self.enable_db_profiling = enable_db_profiling
-        self.db_profiling_slow_query_threshold_ms = db_profiling_slow_query_threshold_ms
-
-        ***REMOVED*** Database monitoring settings
-        self.database_monitoring_enabled = database_monitoring_enabled
-        self.slow_query_threshold_ms = slow_query_threshold_ms
-
-        ***REMOVED*** Force disable profiling in production for security and performance
-        if self.is_production:
-            if self.enable_db_profiling:
-                logger.warning(
-                    "Database profiling is disabled in production for security and performance"
-                )
-            self.enable_db_profiling = False
-
-        ***REMOVED*** Log configuration on initialization
-        logger.info(f"Initializing backend-api configuration with environment: {self.environment}")
-        logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
-        logger.info(f"API Port: {self.api_port}")
-        logger.info(f"Debug mode: {self.debug}")
-        logger.info(f"Redis URL: {self._mask_database_password(self.redis_url)}")
-
-        ***REMOVED*** Warn if using default JWT secret in production
-        if self.jwt_secret == DEFAULT_JWT_SECRET and not self.debug:
-            logger.warning(
-                "WARNING: Using default JWT_SECRET in production environment. "
-                "This is insecure. Set a proper JWT_SECRET environment variable."
-            )
+    ***REMOVED*** Backward compatibility properties and methods
+    @property
+    def api_port(self) -> int:
+        """Backward compatibility alias for port."""
+        return self.port
 
     @property
-    def is_production(self) -> bool:
-        """Check if running in production environment."""
-        return self.environment == "production"
+    def sql_log_level(self) -> str:
+        """Backward compatibility: map to log_level."""
+        return self.log_level
+
+    def __getattr__(self, name: str) -> Any:
+        """Handle backward compatibility aliases."""
+        if name == "enable_performance_metrics":
+            return self.backend_performance_metrics
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+
+    def get_database_config(self) -> Dict[str, Any]:
+        """Get SQLAlchemy database configuration dictionary.
+
+        Enhanced version that includes backend-specific settings.
+        """
+        config = super().get_database_config()
+
+        ***REMOVED*** Add backend-specific database settings
+        config.update(
+            {
+                "echo": self.database_echo,
+                "pool_size": self.database_pool_size,
+                "max_overflow": self.database_max_overflow,
+                "pool_timeout": self.database_pool_timeout,
+                "pool_recycle": self.database_pool_recycle,
+                "pool_pre_ping": self.database_pool_pre_ping,
+            }
+        )
+
+        return config
+
+    def get_redis_config(self) -> Dict[str, Any]:
+        """Get Redis configuration dictionary.
+
+        Enhanced version that includes backend-specific settings.
+        """
+        config = super().get_redis_config()
+
+        ***REMOVED*** Add backward compatibility fields
+        config.update(
+            {
+                "socket_timeout": self.redis_socket_timeout,
+                "socket_connect_timeout": self.redis_socket_connect_timeout,
+                "retry_on_timeout": self.redis_retry_on_timeout,
+            }
+        )
+
+        return config
 
     def __str__(self) -> str:
-        """Return a comprehensive multi-line string representation of the Config instance."""
-        ***REMOVED*** Mask password in database_url for security
-        masked_db_url = self._mask_database_password(self.database_url)
-        masked_redis_url = self._mask_database_password(self.redis_url)
-
+        """Return a comprehensive multi-line string representation."""
         return f"""Backend API Configuration:
   Environment: {self.environment}
+  Service: {self.service_name} v{self.version}
   
-  Database Settings:
-    URL: {masked_db_url}
-    Echo SQL: {self.database_echo}
+  HTTP Service:
+    Host: {self.host}
+    Port: {self.port}
+    Debug: {self.debug}
+    CORS Origins: {', '.join(self.cors_origins)}
+    Allowed Hosts: {', '.join(self.allowed_hosts)}
+
+  Database:
+    URL: {self.get_database_url_masked()}
+    Echo: {self.database_echo}
     Pool Size: {self.database_pool_size}
     Max Overflow: {self.database_max_overflow}
     Pool Timeout: {self.database_pool_timeout}s
 
-  API Settings:
-    Port: {self.api_port}
-    Debug: {self.debug}
-    CORS Origins: {', '.join(self.cors_origins)}
-    Performance Metrics: {self.enable_performance_metrics}
-
-  Logging Settings:
-    Log Level: {self.log_level}
-    SQL Log Level: {self.sql_log_level}
-    Logs Directory: {self.logs_dir}
-
-  Redis Settings:
-    URL: {masked_redis_url}
+  Cache:
+    URL: {self.get_redis_url_masked()}
     Max Connections: {self.redis_max_connections}
-    Socket Timeout: {self.redis_socket_timeout}s
-    Connect Timeout: {self.redis_socket_connect_timeout}s
-    Retry on Timeout: {self.redis_retry_on_timeout}
+    Default TTL: {self.cache_ttl_default}s
 
-  Authentication Settings:
-    JWT Algorithm: {self.jwt_algorithm}
-    Access Token Expire: {self.access_token_expire_minutes}min
-    Refresh Token Expire: {self.refresh_token_expire_days}days
+  Authentication:
+    Algorithm: {self.jwt_algorithm}
+    Access Token TTL: {self.access_token_expire_minutes}min
+    Refresh Token TTL: {self.refresh_token_expire_days}days
 
-  Security Settings:
-    Allowed Hosts: {', '.join(self.allowed_hosts)}"""
-
-    @staticmethod
-    def _mask_database_password(url: str) -> str:
-        """Mask the password in a database URL for logging purposes.
-
-        Args:
-            url: Database URL string
-
-        Returns:
-            URL with password masked
-        """
-        if "://" not in url:
-            return url
-
-        try:
-            ***REMOVED*** Simple approach to mask password in standard SQLAlchemy URLs
-            if "@" in url and ":" in url:
-                ***REMOVED*** Split URL into components
-                protocol_part, rest = url.split("://", 1)
-                if "@" in rest:
-                    auth_part, host_part = rest.split("@", 1)
-                    if ":" in auth_part:
-                        username, password = auth_part.split(":", 1)
-                        ***REMOVED*** Replace password with asterisks
-                        return f"{protocol_part}://{username}:******@{host_part}"
-        except Exception:
-            pass
-
-        return url
+  Monitoring:
+    Log Level: {self.log_level}
+    Performance Metrics: {self.backend_performance_metrics}
+    DB Monitoring: {self.database_monitoring_enabled}
+    Logs Directory: {self.logs_dir or 'disabled'}"""
 
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** GLOBAL SETTINGS INSTANCE
 ***REMOVED*** ------------------------------------------------------------------------------
 
-***REMOVED*** Create global settings instance
-settings = Config.get_instance()
+***REMOVED*** Create global settings instance (simplified - no more wrapper!)
+settings = BackendAPIConfig()

@@ -11,7 +11,7 @@ from redis.exceptions import RedisError
 from sqlmodel import Session
 
 from backend_api.config.app import settings
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.db.database import get_db
 from backend_api.errors import ResourceNotFoundError, ValidationError
 from backend_api.queries.movie_query import MovieQuery

@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 from rich.console import Console
 from rich.table import Table
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 logger = get_logger(__name__)
 
 

@@ -26,9 +26,13 @@ RUN apk add --no-cache \
 
 ***REMOVED*** Copy local dependencies first
 COPY libs/movie-storage ./libs/movie-storage/
+COPY libs/cli ./libs/cli/
+COPY libs/config ./libs/config/
 
 ***REMOVED*** Install local dependencies
 RUN pip install --no-cache-dir --user ./libs/movie-storage/
+RUN pip install --no-cache-dir --user ./libs/cli/
+RUN pip install --no-cache-dir --user ./libs/config/
 
 ***REMOVED*** Copy application files
 COPY apps/backend-api/pyproject.toml ./pyproject.toml

@@ -1,5 +1,5 @@
 """
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 User movie interaction service module.
 
 This service handles business logic related to how users interact with movies,
@@ -15,7 +15,7 @@ from dateutil import parser as date_parser
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.db.operations import (
     delete_user_movie_interaction,
     get_movie_by_id,

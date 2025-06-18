@@ -6,13 +6,14 @@ The `core` module contains the foundational components for the Next Watch Backen
 
 The core module follows modern FastAPI best practices:
 
-```
+```text
 core/
 ├── __init__.py      ***REMOVED*** Module exports
 ├── app.py           ***REMOVED*** Application factory & lifespan
-├── middleware.py    ***REMOVED*** Middleware configuration
-└── logging.py       ***REMOVED*** Logging setup wrapper
+└── middleware.py    ***REMOVED*** Middleware configuration
 ```
+
+> **📦 Migration Notice**: Logging configuration has been moved to the shared NextWatch config library (`config.logging`). The local logging wrapper has been removed in favor of direct usage.
 
 ***REMOVED******REMOVED*** Components
 
@@ -47,7 +48,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** 3. Close global health service
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Service Initialization
+***REMOVED******REMOVED******REMOVED******REMOVED*** Service Initialization Example
 
 ```python
 ***REMOVED*** Health service - always initialized
@@ -110,7 +111,7 @@ app.add_middleware(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Error Handling
+***REMOVED******REMOVED******REMOVED******REMOVED*** Error Handling Example
 
 Custom error handling middleware for consistent error responses:
 
@@ -133,52 +134,34 @@ if settings.enable_performance_metrics:
         return response
 ```
 
-***REMOVED******REMOVED******REMOVED*** Logging Configuration (`logging.py`)
+***REMOVED******REMOVED******REMOVED*** Logging Configuration (Shared Library)
 
-Thin wrapper around the comprehensive logging configuration in `config/logging.py`.
+Logging is now handled directly through the shared NextWatch config library (`config.logging`).
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Features
-
-- **Settings Integration**: Uses application settings for log configuration
-- **Environment Awareness**: Adapts to debug mode and environment
-- **Directory Support**: Optional log directory configuration
-- **Clean Interface**: Simple wrapper for complex logging setup
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Usage
+***REMOVED******REMOVED******REMOVED******REMOVED*** Direct Usage
 
 ```python
-from backend_api.core.logging import setup_logging
+from config.logging import configure_logging, get_logger
 
-***REMOVED*** Use application defaults
-setup_logging()
+***REMOVED*** Configure logging with service identity
+configure_logging(
+    log_level="DEBUG",
+    logger_name="backend_api",
+    verbose=True,
+    color_theme="modern"
+)
 
-***REMOVED*** Override specific settings
-setup_logging(log_level="DEBUG", verbose=True, quiet=False)
+***REMOVED*** Get hierarchical loggers
+logger = get_logger(__name__)  ***REMOVED*** Creates "backend_api.core.app"
+logger.info("Application starting", port=8001)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Configuration Flow
+***REMOVED******REMOVED******REMOVED******REMOVED*** Benefits
 
-```python
-def setup_logging(log_level=None, verbose=None, quiet=False):
-    ***REMOVED*** Use settings defaults if not provided
-    if log_level is None:
-        log_level = settings.log_level
-    if verbose is None:
-        verbose = settings.debug
-
-    ***REMOVED*** Determine log directory from settings
-    log_dir = None
-    if hasattr(settings, "log_dir") and settings.log_dir:
-        log_dir = Path(settings.log_dir)
-
-    ***REMOVED*** Configure using comprehensive config module
-    _configure_logging(
-        log_level=log_level,
-        log_dir=log_dir,
-        verbose=verbose,
-        quiet=quiet,
-    )
-```
+- **No Wrapper Overhead**: Direct access to shared library functionality
+- **Hierarchical Logging**: Using `__name__` creates proper logger hierarchy
+- **Consistent**: Same logging setup across all NextWatch services
+- **Full Featured**: Access to all color themes, HTTP verbosity controls, etc.
 
 ***REMOVED******REMOVED*** Integration with Other Modules
 
@@ -216,8 +199,8 @@ app = FastAPI(
 ***REMOVED*** Middleware uses settings
 setup_middleware(app)  ***REMOVED*** Uses settings.cors_origins, etc.
 
-***REMOVED*** Logging uses settings
-setup_logging()  ***REMOVED*** Uses settings.log_level, settings.debug
+***REMOVED*** Logging configured at startup
+configure_logging(log_level=settings.log_level, logger_name="backend_api")
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Route Integration
@@ -237,19 +220,35 @@ app.include_router(api_v1_router)
 
 ***REMOVED******REMOVED*** Configuration
 
-The core module is configured through the `backend_api.config.app.settings` object:
+The core module is configured through the NextWatch shared configuration library with `BackendAPIConfig`:
 
-***REMOVED******REMOVED******REMOVED*** Required Settings
+***REMOVED******REMOVED******REMOVED*** Configuration Mixins
+
+- **ServiceConfig**: HTTP service settings (port, debug mode)
+- **DatabaseConfigMixin**: PostgreSQL connection configuration
+- **CacheConfigMixin**: Redis configuration for suggestion engine
+- **AuthConfigMixin**: JWT authentication settings
+- **MonitoringConfigMixin**: Logging and metrics configuration
+
+***REMOVED******REMOVED******REMOVED*** Key Settings
 
 - `debug`: Boolean for debug mode
 - `log_level`: Logging level (DEBUG, INFO, WARNING, ERROR)
-- `cors_origins`: List of allowed CORS origins
+- `cors_origins`: List of allowed CORS origins (defaults to ["*"] for development)
 - `redis_url`: Redis connection URL for suggestion engine
-
-***REMOVED******REMOVED******REMOVED*** Optional Settings
-
-- `log_dir`: Directory for log files
+- `database_url`: PostgreSQL connection string
+- `jwt_secret`: JWT signing secret
 - `enable_performance_metrics`: Enable performance timing headers
+
+***REMOVED******REMOVED******REMOVED*** Environment Variables
+
+Configuration is loaded from environment variables with fallbacks:
+
+- `DATABASE_URL`: PostgreSQL connection
+- `REDIS_URL`: Redis connection
+- `JWT_SECRET`: JWT signing secret
+- `LOG_LEVEL`: Logging verbosity
+- `DEBUG`: Development mode flag
 
 ***REMOVED******REMOVED*** Usage Examples
 
@@ -257,17 +256,30 @@ The core module is configured through the `backend_api.config.app.settings` obje
 
 ```python
 from backend_api.core.app import create_app
+from config.logging import configure_logging
 
+***REMOVED*** Configure logging first
+configure_logging(logger_name="backend_api")
+
+***REMOVED*** Create application
 app = create_app()
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Custom Logging Setup
 
 ```python
-from backend_api.core.logging import setup_logging
+from config.logging import configure_logging, get_logger
 
-***REMOVED*** Setup with custom parameters
-setup_logging(log_level="DEBUG", verbose=True)
+***REMOVED*** Configure with service identity and options
+configure_logging(
+    log_level="DEBUG",
+    logger_name="backend_api",
+    verbose=True,
+    color_theme="modern"
+)
+
+***REMOVED*** Get logger for specific module
+logger = get_logger(__name__)
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Accessing Services in Routes
@@ -345,7 +357,7 @@ async def test_lifespan():
 2. **Logging**: Log errors with appropriate detail level
 3. **User-Friendly**: Return user-friendly error messages
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+***REMOVED******REMOVED******REMOVED*** Configuration Best Practices
 
 1. **Environment Aware**: Adapt behavior based on environment (dev/prod)
 2. **Validation**: Validate configuration at startup
@@ -375,7 +387,7 @@ async def test_lifespan():
 - `fastapi`: Web framework
 - `uvicorn`: ASGI server
 - `sqlmodel`: Database ORM
-- `redis`: Redis client (optional)
+- `config @ file:../../libs/config`: NextWatch shared configuration library
 
 ***REMOVED******REMOVED******REMOVED*** Optional
 
@@ -383,4 +395,9 @@ async def test_lifespan():
 - `prometheus-client`: For metrics collection
 - `opentelemetry`: For distributed tracing
 
-The core module provides a solid foundation for the Backend API service with clean separation of concerns, comprehensive error handling, and excellent testability.
+***REMOVED******REMOVED******REMOVED*** Shared Libraries
+
+- **Config Library**: Type-safe configuration with Pydantic Settings
+- **Movie Storage**: Shared data models and database operations
+
+The core module provides a solid foundation for the Backend API service with clean separation of concerns, comprehensive error handling, and excellent testability. It leverages the NextWatch shared configuration library for type-safe, environment-aware configuration management and consistent logging across all services.

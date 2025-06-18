@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 from sqlalchemy.sql import text
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.queries.common import DBSession
 
 logger = get_logger(__name__)

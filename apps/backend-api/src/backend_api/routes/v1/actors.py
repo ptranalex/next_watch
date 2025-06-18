@@ -24,7 +24,7 @@ from backend_api.db.operations import (
 from backend_api.models import Credit
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 
 ***REMOVED*** Actor schemas

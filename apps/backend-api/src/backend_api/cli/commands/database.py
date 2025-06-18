@@ -10,13 +10,12 @@ from rich.panel import Panel
 from rich.table import Table
 from sqlalchemy import Engine, text
 
-from backend_api.config.app import Config
-from backend_api.config.logging import configure_logging, get_logger
+from backend_api.config import settings
+from config.logging import configure_logging, get_logger
 from backend_api.db.database import get_engine, init_db
 from backend_api.db.migrations import get_applied_migrations, run_migration
 
 ***REMOVED*** Create app for database commands
-from backend_api.config.logging import get_logger
 app = typer.Typer(help="Database management commands")
 console = Console()
 
@@ -34,26 +33,20 @@ def init_database(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
 ) -> int:
     """Initialize the database and optionally create tables."""
-    ***REMOVED*** Get configuration
-    config = Config.get_instance()
-    if database_url:
-        config.database_url = database_url
-
     ***REMOVED*** Show config if verbose
     if verbose and not quiet:
-        masked_url = config._mask_database_password(config.database_url)
-        console.print(f"[bold blue]Database URL:[/] {masked_url}")
+        if database_url:
+            ***REMOVED*** For custom URLs, just mask the password part
+            import re
 
-    ***REMOVED*** Update config with custom database URL if provided
-    if database_url:
-        config.database_url = database_url
+            masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
+        else:
+            masked_url = settings.get_database_url_masked()
+        console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
     ***REMOVED*** Initialize database
     with console.status("[bold green]Initializing database...[/]"):
-        init_db(
-            create_tables=create_tables,
-            config=config,
-        )
+        init_db(create_tables=create_tables)
 
     ***REMOVED*** Show results
     if not quiet:
@@ -80,25 +73,22 @@ def migrate_database(
 ) -> int:
     """Run database migrations to update schema."""
     ***REMOVED*** Configure logging
-    configure_logging(log_level=log_level, verbose=verbose, quiet=quiet)
-
-    ***REMOVED*** Get configuration
-    config = Config.get_instance()
-    if database_url:
-        config.database_url = database_url
+    configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
 
     ***REMOVED*** Show config if verbose
     if verbose and not quiet:
-        masked_url = config._mask_database_password(config.database_url)
-        console.print(f"[bold blue]Database URL:[/] {masked_url}")
+        if database_url:
+            ***REMOVED*** For custom URLs, just mask the password part
+            import re
 
-    ***REMOVED*** Update config with custom database URL if provided
-    if database_url:
-        config.database_url = database_url
+            masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
+        else:
+            masked_url = settings.get_database_url_masked()
+        console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
     ***REMOVED*** Run migrations
     with console.status("[bold green]Running database migrations...[/]"):
-        applied_migrations = run_migration(config=config)
+        applied_migrations = run_migration(db_url=database_url)
 
     ***REMOVED*** Show results
     if not quiet:
@@ -137,26 +127,24 @@ def downgrade_database(
 ) -> int:
     """Downgrade database migrations."""
     ***REMOVED*** Configure logging
-    configure_logging(log_level=log_level, verbose=verbose, quiet=quiet)
+    configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
     logger = get_logger(__name__)
-
-    ***REMOVED*** Get configuration
-    config = Config.get_instance()
-    if database_url:
-        config.database_url = database_url
 
     ***REMOVED*** Show config if verbose
     if verbose and not quiet:
-        masked_url = config._mask_database_password(config.database_url)
+        if database_url:
+            ***REMOVED*** For custom URLs, just mask the password part
+            import re
+
+            masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
+        else:
+            masked_url = settings.get_database_url_masked()
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
     try:
-        ***REMOVED*** Update config with custom database URL if provided
-        if database_url:
-            config.database_url = database_url
 
         ***REMOVED*** Get engine and applied migrations
-        engine = get_engine(config)
+        engine = get_engine()
         applied_migrations = get_applied_migrations(engine)
 
         if not applied_migrations:
@@ -318,16 +306,11 @@ def teardown_database(
 ) -> int:
     """Teardown database (DEVELOPMENT ONLY - destroys all data!)."""
     ***REMOVED*** Configure logging
-    configure_logging(log_level=log_level, verbose=verbose, quiet=quiet)
+    configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
     logger = get_logger(__name__)
 
-    ***REMOVED*** Get configuration
-    config = Config.get_instance()
-    if database_url:
-        config.database_url = database_url
-
     ***REMOVED*** Safety check for production
-    if config.environment == "production" and not force:
+    if settings.environment == "production" and not force:
         console.print(
             "[bold red]❌ Teardown is not allowed in production environment![/]\n"
             "[dim]Use --force flag if you really know what you're doing.[/dim]"
@@ -336,7 +319,13 @@ def teardown_database(
 
     ***REMOVED*** Show config if verbose
     if verbose and not quiet:
-        masked_url = config._mask_database_password(config.database_url)
+        if database_url:
+            ***REMOVED*** For custom URLs, just mask the password part
+            import re
+
+            masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
+        else:
+            masked_url = settings.get_database_url_masked()
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
     ***REMOVED*** Warning message
@@ -356,13 +345,13 @@ def teardown_database(
 
     ***REMOVED*** Confirm teardown
     if confirm:
-        console.print(f"[bold red]Environment: {config.environment}[/]")
+        console.print(f"[bold red]Environment: {settings.environment}[/]")
         if not typer.confirm("Are you absolutely sure you want to proceed with teardown?"):
             console.print("Teardown cancelled.")
             return 0
 
         ***REMOVED*** Double confirmation for production
-        if config.environment == "production":
+        if settings.environment == "production":
             console.print("[bold red]This is a PRODUCTION environment![/]")
             if not typer.confirm("Type 'yes' to confirm production teardown", default=False):
                 console.print("Teardown cancelled.")
@@ -374,7 +363,8 @@ def teardown_database(
         from sqlalchemy.exc import SQLAlchemyError
 
         ***REMOVED*** Create engine
-        engine = create_engine(config.database_url)
+        db_url = database_url or settings.database_url
+        engine = create_engine(db_url)
 
         with console.status("[bold red]Tearing down database...[/]"):
             with engine.connect() as conn:

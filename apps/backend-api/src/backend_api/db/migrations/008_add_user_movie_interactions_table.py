@@ -3,8 +3,7 @@
 from datetime import datetime
 from typing import Annotated, Any, Dict, List, Optional
 
-from backend_api.config.logging import get_logger
-from backend_api.config.app import Config
+from config.logging import get_logger
 from sqlalchemy import (
     Boolean,
     Column,
@@ -27,7 +26,7 @@ MIGRATION_DESCRIPTION = "Add user movie interactions table"
 logger = get_logger(__name__)
 
 
-def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def upgrade(engine: Engine) -> None:
     """
     Create user_movie_interactions table.
 
@@ -69,7 +68,7 @@ def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def downgrade(engine: Engine) -> None:
     """
     Drop user_movie_interactions table.
 

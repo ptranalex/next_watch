@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sqlmodel import Session, and_, delete, select, update
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.models import Movie, User, UserMovieInteraction
 
 logger = get_logger(__name__)

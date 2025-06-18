@@ -18,7 +18,7 @@ def get_app() -> FastAPI:
     global _app
     if _app is None:
         ***REMOVED*** Configure logging for web server mode
-        from backend_api.config.logging import configure_logging, get_logger
+        from config.logging import configure_logging, get_logger
 
         ***REMOVED*** Configure logging with enhanced settings
         log_dir = None

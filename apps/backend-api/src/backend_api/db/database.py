@@ -5,8 +5,8 @@ from typing import Any, Dict, Generator, Iterator, Optional
 from sqlalchemy import Engine, inspect
 from sqlmodel import Session, SQLModel, create_engine
 
-from backend_api.config.app import Config
-from backend_api.config.logging import get_logger
+from backend_api.config import settings, Config
+from config.logging import get_logger
 from backend_api.models import Credit, Genre, Movie, MovieGenreLink
 
 logger = get_logger(__name__)
@@ -15,11 +15,10 @@ logger = get_logger(__name__)
 _engine: Optional[Engine] = None
 
 
-def get_engine(config: Optional[Config] = None, enable_monitoring: bool = True) -> Engine:
+def get_engine(enable_monitoring: bool = True) -> Engine:
     """Get or create the database engine.
 
     Args:
-        config: Config instance (optional)
         enable_monitoring: Whether to enable database monitoring (default: True)
 
     Returns:
@@ -27,69 +26,51 @@ def get_engine(config: Optional[Config] = None, enable_monitoring: bool = True) 
     """
     global _engine
 
-    ***REMOVED*** Get config if not provided
-    if config is None:
-        config = Config.get_instance()
-
     ***REMOVED*** Create engine if it doesn't exist
     if _engine is None:
-        logger.info(
-            f"Creating database engine with URL: {config._mask_database_password(config.database_url)}"
-        )
+        logger.info(f"Creating database engine with URL: {settings.get_database_url_masked()}")
 
-        ***REMOVED*** Use database_echo from config
-        if config.database_echo:
+        ***REMOVED*** Use database_echo from settings
+        if settings.database_echo:
             logger.info("SQL echo is enabled - SQL statements will be logged")
 
         _engine = create_engine(
-            config.database_url,
-            echo=config.database_echo,
-            pool_size=config.database_pool_size,
-            max_overflow=config.database_max_overflow,
-            pool_timeout=config.database_pool_timeout,
+            settings.database_url,
+            echo=settings.database_echo,
+            pool_size=settings.database_pool_size,
+            max_overflow=settings.database_max_overflow,
+            pool_timeout=settings.database_pool_timeout,
         )
 
         ***REMOVED*** Enable database monitoring if requested
-        if enable_monitoring and getattr(config, "database_monitoring_enabled", True):
+        if enable_monitoring and settings.database_monitoring_enabled:
             from backend_api.db.instrumentation import setup_database_instrumentation
 
-            slow_threshold = getattr(config, "slow_query_threshold_ms", 100.0)
-            setup_database_instrumentation(_engine, slow_threshold)
+            setup_database_instrumentation(_engine, settings.slow_query_threshold_ms)
             logger.info("Database monitoring instrumentation enabled")
 
     return _engine
 
 
-def get_session(config: Optional[Config] = None) -> Generator[Session, None, None]:
+def get_session() -> Generator[Session, None, None]:
     """Get a database session.
-
-    Args:
-        config: Config instance (optional)
 
     Yields:
         SQLModel session
     """
-    engine = get_engine(config)
+    engine = get_engine()
     with Session(engine) as session:
         yield session
 
 
-def init_db(
-    create_tables: bool = False,
-    config: Optional[Config] = None,
-) -> None:
+def init_db(create_tables: bool = False) -> None:
     """Initialize the database.
 
     Args:
         create_tables: Whether to create tables based on SQLModel classes
-        config: Config instance (optional)
     """
-    ***REMOVED*** Get config if not provided
-    if config is None:
-        config = Config.get_instance()
-
     ***REMOVED*** Get engine
-    engine = get_engine(config)
+    engine = get_engine()
 
     if create_tables:
         logger.info("Creating database tables")
@@ -98,17 +79,14 @@ def init_db(
 
 
 def init_database() -> None:
-    """Initialize the database connection using the centralized Config system.
+    """Initialize the database connection using the centralized settings.
 
     This only establishes the connection - database tables should be created
     via migrations using the CLI command: python -m backend_api.scripts.setup_db run-migrations
     """
-    ***REMOVED*** Get the singleton config instance which already has the proper DATABASE_URL
-    config = Config.get_instance()
-
     ***REMOVED*** Initialize database connection only - NO table creation
     ***REMOVED*** Tables should be created via migrations in production
-    init_db(create_tables=False, config=config)
+    init_db(create_tables=False)
 
 
 def get_db() -> Iterator[Session]:
@@ -125,20 +103,14 @@ def get_db() -> Iterator[Session]:
             pass
 
 
-def check_database_schema(config: Optional[Config] = None) -> Dict[str, Any]:
+def check_database_schema() -> Dict[str, Any]:
     """Check if database schema is properly set up.
-
-    Args:
-        config: Config instance (optional)
 
     Returns:
         Dictionary with schema status information
     """
-    if config is None:
-        config = Config.get_instance()
-
     try:
-        engine = get_engine(config=config)
+        engine = get_engine()
         inspector = inspect(engine)
         table_names = inspector.get_table_names()
 

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, select
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.models.trailer import Trailer
 
 logger = get_logger(__name__)

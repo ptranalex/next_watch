@@ -19,7 +19,7 @@ from backend_api.config.app import settings
 from backend_api.db.database import get_db
 from backend_api.services.suggestion_engine import SuggestionEngine
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 app: Typer = typer.Typer(name="redis", help="Redis data management commands.")
 console = Console()
 logger = get_logger(__name__)

@@ -1,5 +1,5 @@
 """
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 Redis-backed search suggestion service.
 """
 
@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 import redis.asyncio
 from redis.exceptions import RedisError
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 

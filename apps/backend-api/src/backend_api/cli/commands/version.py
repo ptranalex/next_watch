@@ -12,9 +12,9 @@ from rich.console import Console
 from rich.table import Table
 from typer import Typer
 
-from backend_api.config.logging import configure_logging, get_logger
+from config.logging import configure_logging, get_logger
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 app = typer.Typer(
     name="version",
     help="Display version information for the Backend API and its dependencies.",
@@ -36,7 +36,7 @@ def show_version(
     Args:
         verbose: Show detailed version information including system and dependencies
     """
-    configure_logging(log_level="ERROR", quiet=not verbose)
+    configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
 
     try:
         ***REMOVED*** Try to get version from package metadata

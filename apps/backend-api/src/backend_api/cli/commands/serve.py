@@ -1,6 +1,5 @@
 """Server commands for the Backend API CLI."""
 
-
 from pathlib import Path
 from typing import Optional
 
@@ -10,9 +9,8 @@ from rich.console import Console
 from typer import Typer
 
 from backend_api.config.app import settings
-from backend_api.config.logging import configure_logging, get_logger
+from config.logging import configure_logging, get_logger
 
-from backend_api.config.logging import get_logger
 app = typer.Typer(
     name="serve",
     help="Start and manage the Backend API server.",
@@ -48,6 +46,7 @@ def start_server(
     """
     ***REMOVED*** Configure logging
     configure_logging(
+        logger_name="backend_api",
         log_level=log_level.upper(),
         log_dir=Path(log_dir) if log_dir else None,
         verbose=verbose,

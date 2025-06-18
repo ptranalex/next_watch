@@ -9,7 +9,7 @@ import os
 import typer
 from typer import Typer
 
-from backend_api.config.app import Config
+from backend_api.config import settings
 from backend_api.db import init_db
 from backend_api.db.database import check_database_schema
 from backend_api.db.migrations import run_migration
@@ -26,8 +26,8 @@ def initialize_db(create_tables: bool = False) -> None:
     Args:
         create_tables: Whether to create tables in the database
     """
-    config = Config.get_instance()
-    masked_url = config._mask_database_password(config.database_url)
+    config = settings
+    masked_url = config.get_database_url_masked()
     typer.echo(f"Initializing database connection to: {masked_url}")
     init_db(create_tables=create_tables, config=config)
     typer.echo("Database connection initialized successfully!")
@@ -38,7 +38,7 @@ def run_migrations() -> None:
     """
     Run database migrations using Alembic.
     """
-    config = Config.get_instance()
+    config = settings
     typer.echo("Running database migrations...")
     run_migration(config.database_url)
     typer.echo("Migrations completed successfully!")
@@ -51,7 +51,7 @@ def setup_storage() -> None:
 
     This will initialize the database and create any necessary tables.
     """
-    config = Config.get_instance()
+    config = settings
     typer.echo("Setting up movie storage...")
     setup_backend_api_storage(database_url=config.database_url, create_tables=True)
     typer.echo("Movie storage setup completed!")
@@ -64,8 +64,8 @@ def check_schema() -> None:
 
     This command verifies that all required tables exist.
     """
-    config = Config.get_instance()
-    masked_url = config._mask_database_password(config.database_url)
+    config = settings
+    masked_url = config.get_database_url_masked()
     typer.echo(f"🔍 Checking database schema on: {masked_url}")
 
     try:
@@ -105,7 +105,7 @@ def profile_database(duration: int = 30) -> None:
     try:
         from backend_api.db.profiler import DatabaseProfiler
 
-        config = Config.get_instance()
+        config = settings
 
         ***REMOVED*** Check if profiling is available
         if config.is_production:
@@ -118,7 +118,7 @@ def profile_database(duration: int = 30) -> None:
             typer.echo("   Set ENABLE_DB_PROFILING=true in your environment to enable")
             raise typer.Exit(1)
 
-        masked_url = config._mask_database_password(config.database_url)
+        masked_url = config.get_database_url_masked()
         profiler = DatabaseProfiler()
 
         typer.echo(f"🔬 Starting database profiling for {duration} seconds")

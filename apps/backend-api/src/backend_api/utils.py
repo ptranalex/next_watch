@@ -3,10 +3,10 @@
 from typing import Any, Dict, Optional
 from pathlib import Path
 
-from backend_api.config.app import Config
+from backend_api.config import settings
 from backend_api.db import init_db
 from backend_api.db.migrations import run_migration
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -51,7 +51,7 @@ def setup_backend_api_storage(
         logger.info("Database migrations completed")
 
     logger.info(
-        f"Backend API storage set up with database URL: {config._mask_database_password(config.database_url)}"
+        f"Backend API storage set up with database URL: {config.get_database_url_masked()}"
     )
 
     ***REMOVED*** Return setup information

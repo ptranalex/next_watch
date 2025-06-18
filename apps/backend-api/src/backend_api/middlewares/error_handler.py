@@ -1,5 +1,5 @@
 """
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 Error handling middleware for FastAPI.
 
 This module provides a middleware that catches application-level exceptions
@@ -21,7 +21,7 @@ from backend_api.errors import (
     ValidationError,
     service_error_to_http_exception,
 )
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 

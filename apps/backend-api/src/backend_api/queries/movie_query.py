@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlmodel import Session
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.errors import ResourceNotFoundError, ValidationError
 from backend_api.queries.movie_details import (
     get_movie_details_by_id,

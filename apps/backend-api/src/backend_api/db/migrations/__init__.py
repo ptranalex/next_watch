@@ -1,6 +1,6 @@
 """Database migrations for the movie storage package.
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 This package handles database schema migrations for the movie-storage library.
 Each migration is defined in a separate Python module, with a standardized
 interface for upgrade and downgrade operations.
@@ -22,8 +22,8 @@ from typing import Dict, List, Optional
 from sqlalchemy import Engine, inspect, text
 from sqlmodel import Session, SQLModel, create_engine
 
-from backend_api.config.app import Config
-from backend_api.config.logging import get_logger
+from backend_api.config import settings
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -102,22 +102,17 @@ def get_applied_migrations(engine: Engine) -> Dict[str, str]:
         return {}
 
 
-def run_migration(db_url: Optional[str] = None, config: Optional[Config] = None) -> List[str]:
+def run_migration(db_url: Optional[str] = None) -> List[str]:
     """Run database migrations.
 
     Args:
-        db_url: Database URL (optional)
-        config: Config instance (optional)
+        db_url: Database URL (optional, uses settings.database_url if not provided)
 
     Returns:
         List of applied migration IDs
     """
-    ***REMOVED*** Get config if not provided
-    if config is None:
-        config = Config.get_instance()
-
-    ***REMOVED*** Use provided URL or config URL
-    db_url = db_url or config.database_url
+    ***REMOVED*** Use provided URL or settings URL
+    db_url = db_url or settings.database_url
 
     ***REMOVED*** Create engine
     engine = create_engine(db_url)
@@ -141,7 +136,7 @@ def run_migration(db_url: Optional[str] = None, config: Optional[Config] = None)
 
             ***REMOVED*** Run migration
             logger.info(f"Applying migration: {migration_id}")
-            module.upgrade(engine, config)
+            module.upgrade(engine)
             applied_ids.append(migration_id)
             logger.info(f"Migration {migration_id} applied successfully")
         except Exception as e:

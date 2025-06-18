@@ -17,8 +17,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Engine
 
-from backend_api.config.app import Config
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -26,12 +25,11 @@ MIGRATION_ID = "001_create_initial_tables"
 MIGRATION_DESCRIPTION = "Create initial movie and genre tables"
 
 
-def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def upgrade(engine: Engine) -> None:
     """Run the upgrade migration.
 
     Args:
         engine: SQLAlchemy engine
-        config: Optional Config object
     """
     metadata = MetaData()
 
@@ -104,12 +102,11 @@ def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     logger.info(f"Applied migration: {MIGRATION_ID}")
 
 
-def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def downgrade(engine: Engine) -> None:
     """Run the downgrade migration.
 
     Args:
         engine: SQLAlchemy engine
-        config: Optional Config object
     """
     with engine.begin() as conn:
         ***REMOVED*** Drop tables in reverse order

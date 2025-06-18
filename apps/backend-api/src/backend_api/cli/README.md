@@ -6,7 +6,7 @@ This module provides a comprehensive command-line interface (CLI) for the Backen
 
 The CLI is organized as follows:
 
-```
+```Text
 backend_api/cli/
 │
 ├── __init__.py       ***REMOVED*** Main CLI application entry point

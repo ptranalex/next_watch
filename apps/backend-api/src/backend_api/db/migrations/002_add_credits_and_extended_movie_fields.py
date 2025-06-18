@@ -6,8 +6,7 @@ from typing import Optional
 from sqlalchemy import MetaData, text
 from sqlalchemy.engine import Engine
 
-from backend_api.config.app import Config
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -15,7 +14,7 @@ MIGRATION_ID = "002_add_credits_and_extended_movie_fields"
 MIGRATION_DESCRIPTION = "Add Credits table and extend Movie fields with additional TMDB data"
 
 
-def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def upgrade(engine: Engine) -> None:
     """Run the upgrade migration.
 
     Args:
@@ -147,7 +146,7 @@ def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     logger.info(f"Applied migration: {MIGRATION_ID}")
 
 
-def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
+def downgrade(engine: Engine) -> None:
     """Run the downgrade migration.
 
     Args:

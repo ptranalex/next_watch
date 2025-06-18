@@ -5,7 +5,9 @@ and logging configuration for the Next Watch Backend API service.
 """
 
 from .app import create_app
-from .logging import setup_logging
+
+***REMOVED*** Logging setup - use shared config library directly:
+***REMOVED*** from config.logging import configure_logging
 from .request_context import (
     RequestContext,
     clear_request_context,
@@ -17,7 +19,7 @@ from .request_context import (
 
 __all__ = [
     "create_app",
-    "setup_logging",
+    ***REMOVED*** "setup_logging",  ***REMOVED*** Use config.logging.configure_logging directly
     "RequestContext",
     "clear_request_context",
     "get_request_context",

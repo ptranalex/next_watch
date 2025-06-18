@@ -6,7 +6,7 @@ from typing import Callable, Any
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.core.request_context import (
     set_request_context,
     get_request_context,

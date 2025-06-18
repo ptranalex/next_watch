@@ -16,7 +16,7 @@ from backend_api.db.operations import (
     get_movie_by_id,
 )
 from backend_api.errors import ResourceNotFoundError, ValidationError
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.models import Movie
 from backend_api.queries.movie_query import MovieQuery
 

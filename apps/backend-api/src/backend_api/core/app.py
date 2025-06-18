@@ -1,6 +1,6 @@
 """Application factory for the Backend API service.
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 This module contains the FastAPI application factory, lifespan management,
 and global exception handling for the Next Watch Backend API service.
 """
@@ -14,7 +14,7 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 
 ***REMOVED*** Import database initialization
 from backend_api.db.database import get_db, init_database
@@ -60,9 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         init_database()
         logger.info("Database connection established successfully")
         if _app_settings:
-            logger.debug(
-                f"Using database URL: {_app_settings._mask_database_password(_app_settings.database_url)}"
-            )
+            logger.debug(f"Using database URL: {_app_settings.get_database_url_masked()}")
     except Exception as e:
         logger.error(f"Failed to connect to database: {e}")
         raise

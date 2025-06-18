@@ -1,5 +1,5 @@
 """
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 User database operations module.
 
 This module provides functions for managing user records in the database.
@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from sqlmodel import Session, select
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.models.user import User
 
 logger = get_logger(__name__)

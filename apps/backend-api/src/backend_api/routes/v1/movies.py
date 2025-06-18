@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
-from backend_api.config.logging import get_logger
+from config.logging import get_logger
 from backend_api.db.database import get_db
 from backend_api.errors import (
     ResourceNotFoundError,
