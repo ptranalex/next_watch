@@ -9,7 +9,7 @@ from cache.metrics import MetricsCollector
 from cache.types import JSONSerializable
 from config.logging import get_logger
 
-from bff_api.config.app import get_settings
+from bff_api.config.app import settings
 
 logger = get_logger(__name__)
 
@@ -20,19 +20,18 @@ _cache_service: Optional["CacheService"] = None
 class CacheService:
     """Cache service wrapper for the NextWatch cache library."""
 
-    def __init__(self, settings: Optional[CacheSettings] = None):
+    def __init__(self, settings_obj: Optional[CacheSettings] = None):
         """Initialize cache service.
 
         Args:
-            settings: Optional cache settings. If None, will use default settings.
+            settings_obj: Optional cache settings. If None, will use default settings.
         """
-        self.settings = settings or CacheSettings()
+        self.settings = settings_obj or CacheSettings()
         self.cache_manager = CacheManager.from_settings(self.settings)
         self._is_healthy = False
 
         ***REMOVED*** Enable metrics if configured
-        app_settings = get_settings()
-        if hasattr(app_settings, "cache_enable_metrics") and app_settings.cache_enable_metrics:
+        if hasattr(settings, "cache_enable_metrics") and settings.cache_enable_metrics:
             set_metrics_enabled(True)
             logger.info("Cache metrics enabled")
 
@@ -146,14 +145,9 @@ def get_cache_service() -> CacheService:
     if _cache_service is None:
         try:
             ***REMOVED*** Create cache settings from app settings
-            app_settings = get_settings()
-            cache_settings = CacheSettings()
+            from bff_api.config.app import get_cache_settings
 
-            ***REMOVED*** Override with app-specific settings if available
-            if hasattr(app_settings, "redis_url"):
-                cache_settings.redis_url = app_settings.redis_url
-            if hasattr(app_settings, "cache_key_prefix"):
-                cache_settings.key_prefix = app_settings.cache_key_prefix
+            cache_settings = get_cache_settings()
 
             _cache_service = CacheService(cache_settings)
             logger.info("Cache service initialized successfully")

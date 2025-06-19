@@ -2,23 +2,39 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [project]
 name = "bff_api"
 version = "0.1.0"
 description = "Backend for Frontend API - Aggregation layer for next_watch UI"
-authors = [
-    {name = "Your Name", email = "your.email@example.com"}
-]
 readme = {text = "***REMOVED*** BFF API\n\nBackend for Frontend API for Next Watch platform", content-type = "text/markdown"}
-requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE*"]
+authors = [
+    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
+]
+maintainers = [
+    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
+]
+keywords = [
+    "api",
+    "bff",
+    "backend-for-frontend",
+    "nextwatch",
+    "aggregation",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
 ]
+requires-python = ">=3.12"
 dependencies = [
     ***REMOVED*** Core API framework
     "fastapi>=0.104.0",         ***REMOVED*** API framework
@@ -54,41 +70,123 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    ***REMOVED*** Testing
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-httpx>=0.21.3",
+    "respx>=0.20.2",
+    
+    ***REMOVED*** Code quality
     "black>=23.10.1",
     "isort>=5.12.0",
     "flake8>=6.1.0",
     "mypy>=1.7.0",
-    "respx>=0.20.2",
+    
+    ***REMOVED*** Local NextWatch libraries (for development)
+    ***REMOVED*** "config @ file:../../libs/config",
+    ***REMOVED*** "cache @ file:../../libs/cache",
+    ***REMOVED*** "cli @ file:../../libs/cli",
 ]
 
 [project.scripts]
 bff-api = "bff_api.cli.main:main"
 
-***REMOVED*** Added to ensure correct package discovery
+[project.urls]
+Homepage = "https://github.com/nextwatch/bff-api"
+Repository = "https://github.com/nextwatch/bff-api"
+Issues = "https://github.com/nextwatch/bff-api/issues"
+Documentation = "https://docs.nextwatch.dev/bff-api"
+
+***REMOVED*** Hatch configuration
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+dev-mode-exact = true
+
 [tool.hatch.build.targets.wheel]
-packages = ["bff_api"]
+packages = ["src/bff_api"]
 
 [tool.hatch.build.targets.sdist]
-packages = ["bff_api"]
+packages = ["src/bff_api"]
 
-***REMOVED*** Specify that the package is in the src directory
 [tool.hatch.build.sources]
 "src" = ""
 
-[tool.black]
-line-length = 100
-target-version = ["py39"]
+***REMOVED*** Single consolidated environment
+[tool.hatch.envs.default]
+type = "virtual"
+path = ".venv"
+features = ["dev"]
 
-[tool.isort]
-profile = "black"
-line_length = 100
+[tool.hatch.envs.default.env-vars]
+PYTHONPATH = "src"
+
+[tool.hatch.envs.default.scripts]
+
+***REMOVED*** Install local libraries, so it can be reloaded after changes
+install-libs = [
+  "pip install -e ../../libs/cache",
+  "pip install -e ../../libs/cli",
+  "pip install -e ../../libs/config",
+]
+
+***REMOVED*** Server management
+serve = "python -m bff_api.main"
+dev = "PYTHONPATH=src uvicorn bff_api.main:app --reload --port 8001"
+
+***REMOVED*** CLI access
+cli = "python -m bff_api.cli"
+
+***REMOVED*** Database management
+migrate = "python -m bff_api.cli db migrate"
+db-init = "python -m bff_api.cli db init"
+db-init-tables = "python -m bff_api.cli db init --create-tables"
+db-downgrade = "python -m bff_api.cli db downgrade"
+db-teardown = "python -m bff_api.cli db teardown --confirm"
+
+***REMOVED*** Health checks
+health-check = "python -m bff_api.cli health check"
+health-backend = "python -m bff_api.cli health backend"
+health-auth = "python -m bff_api.cli health auth"
+health-reco = "python -m bff_api.cli health reco"
+health-cache = "python -m bff_api.cli health cache"
+
+***REMOVED*** Cache management
+cache-info = "python -m bff_api.cli cache info"
+cache-keys = "python -m bff_api.cli cache keys"
+cache-get = "python -m bff_api.cli cache get"
+cache-clear = "python -m bff_api.cli cache clear --confirm"
+
+***REMOVED*** System commands
+config = "python -m bff_api.cli config"
+version = "python -m bff_api.cli version"
+serve-cli = "python -m bff_api.cli serve"
+
+***REMOVED*** Development tools
+lint = [
+    "black .",
+    "isort .",
+    "flake8 .",
+    "mypy src"
+]
+test = "PYTHONPATH=src pytest {args:tests}"
+test-cov = "PYTHONPATH=src pytest --cov=bff_api tests/"
+format = [
+    "black .",
+    "isort ."
+]
+
+***REMOVED*** Tool configurations
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
 
 [tool.mypy]
 python_version = "3.12"
-***REMOVED*** Common strict settings
+***REMOVED*** Strict settings
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
@@ -97,8 +195,6 @@ no_implicit_optional = true
 strict_optional = true
 disallow_any_unimported = true
 disallow_untyped_calls = true
-
-***REMOVED*** Variable annotation settings
 disallow_any_generics = true 
 disallow_subclassing_any = true
 
@@ -136,13 +232,15 @@ module = [
 ]
 ignore_missing_imports = true
 
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
 [tool.flake8]
 max-line-length = 100
 exclude = [".git", "__pycache__", "build", "dist"]
-extend-ignore = ["E203"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*" 
+extend-ignore = ["E203"] 

@@ -113,18 +113,45 @@ hatch run health backend --timeout 10 ***REMOVED*** Check backend with custom ti
 
 ***REMOVED******REMOVED******REMOVED*** Cache Management
 
-Redis cache management and monitoring:
+BFF-specific cache management with domain-aware operations:
 
 ```bash
-***REMOVED*** Display cache information
-hatch run cache info [OPTIONS]
+***REMOVED*** Display BFF cache statistics
+hatch run cache stats [OPTIONS]
 
 Options:
-  --redis-url TEXT      Redis URL (overrides config)
-  --verbose, -v         Show detailed Redis information
+  --verbose, -v         Show detailed cache statistics
 
-***REMOVED*** List cache keys
-hatch run cache keys [OPTIONS]
+***REMOVED*** Check cache health
+hatch run cache health
+
+***REMOVED*** Get cached movie data
+hatch run cache get-movie MOVIE_ID
+
+***REMOVED*** Get cached trending movies
+hatch run cache get-trending [OPTIONS]
+
+Options:
+  --page, -p INTEGER    Page number to retrieve [default: 1]
+
+***REMOVED*** Invalidate user cache
+hatch run cache invalidate-user USER_ID [OPTIONS]
+
+Options:
+  --confirm             Skip confirmation prompt
+
+***REMOVED*** Clear domain-specific cache
+hatch run cache clear-domain DOMAIN [OPTIONS]
+
+Arguments:
+  DOMAIN                Domain to clear (movie, user, trending, search)
+
+Options:
+  --confirm             Skip confirmation prompt
+
+***REMOVED*** Generic Redis cache operations
+hatch run redis-cache info [OPTIONS]
+hatch run redis-cache keys [OPTIONS]
 
 Options:
   --pattern TEXT        Key pattern to match [default: *]
@@ -226,7 +253,18 @@ GET /health/live      ***REMOVED*** Liveness check (K8s)
 
 - **backend-api**: Primary source for movie metadata, genres, cast
 - **auth-api**: Authentication and user management
+- **recommendation-api**: Movie recommendations and similar content
 - **Redis**: Caching layer for performance optimization
+
+***REMOVED******REMOVED******REMOVED*** Cache Integration
+
+The BFF API uses the **NextWatch Cache Library** for intelligent caching:
+
+- **Domain-specific TTLs**: Different cache durations for movies (10min), users (30min), popular content (15min)
+- **Structured keys**: Organized cache keys like `bff:movie:details:123`, `bff:user:watchlist:456`
+- **Health monitoring**: Cache health checks integrated into service monitoring
+- **CLI management**: Rich CLI commands for cache inspection and management
+- **Graceful fallback**: Cache failures don't break the API, just reduce performance
 
 ***REMOVED******REMOVED******REMOVED*** Configuration
 
@@ -254,6 +292,18 @@ INTERNAL_API_KEY=bff-to-backend-secret-key-change-in-production
 ***REMOVED*** Caching
 REDIS_URL=redis://localhost:6379/0
 CACHE_TTL=300
+
+***REMOVED*** Cache Library Settings
+CACHE_KEY_PREFIX=bff:
+CACHE_REDIS_POOL_SIZE=10
+CACHE_REDIS_TIMEOUT=5
+CACHE_ENABLE_METRICS=true
+
+***REMOVED*** Domain-specific Cache TTLs
+CACHE_MOVIE_TTL=600        ***REMOVED*** 10 minutes for movie data
+CACHE_USER_TTL=1800        ***REMOVED*** 30 minutes for user sessions
+CACHE_POPULAR_TTL=900      ***REMOVED*** 15 minutes for popular content
+CACHE_DEFAULT_TTL=300      ***REMOVED*** 5 minutes default
 
 ***REMOVED*** Security
 JWT_SECRET=your-jwt-secret-here-change-in-production

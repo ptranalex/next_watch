@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 
 from config.logging import get_logger
 
-from bff_api.config.app import get_settings
+from bff_api.config.app import settings
 
 logger = get_logger(__name__)
 
@@ -19,7 +19,7 @@ class BFFWarmingFunctions:
 
     def __init__(self) -> None:
         """Initialize the warming functions."""
-        self.settings = get_settings()
+        self.settings = settings
 
     async def warm_movie_screen(
         self, movie_id: int, user_id: Optional[int] = None, **kwargs: Any

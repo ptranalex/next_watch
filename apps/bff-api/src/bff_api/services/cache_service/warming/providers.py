@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 
 from config.logging import get_logger
 
-from bff_api.config.app import get_settings
+from bff_api.config.app import settings
 from bff_api.services.backend_client import BackendClient
 
 logger = get_logger(__name__)
@@ -20,7 +20,7 @@ class BFFDataProviders:
 
     def __init__(self) -> None:
         """Initialize the data providers."""
-        self.settings = get_settings()
+        self.settings = settings
 
     async def get_popularity_data(self) -> Dict[str, Any]:
         """Get BFF-specific popularity data for warming.

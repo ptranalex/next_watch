@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+When running script in python
+
+Always use hatch shell to activate the environment

@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional, Set
 
 from config.logging import get_logger
 
-from bff_api.config.app import get_settings
+from bff_api.config.app import settings
 from bff_api.services.cache_service.warming import get_bff_warming_service
 
 logger = get_logger(__name__)
@@ -22,7 +22,7 @@ class BackgroundWarmingService:
 
     def __init__(self) -> None:
         """Initialize the background warming service."""
-        self.settings = get_settings()
+        self.settings = settings
         self.warming_service = get_bff_warming_service()
         self._running_tasks: Set[asyncio.Task[Any]] = set()
         self._should_stop = False

@@ -1,3 +1,13 @@
+***REMOVED*** BFF API Dockerfile
+***REMOVED*** 
+***REMOVED*** Build context should be the monorepo root to access local dependencies:
+***REMOVED*** docker build -f apps/bff-api/Dockerfile -t bff-api .
+***REMOVED***
+***REMOVED*** This Dockerfile requires:
+***REMOVED*** - libs/cache/ (NextWatch Cache Library)
+***REMOVED*** - libs/cli/ (NextWatch CLI Framework)
+***REMOVED*** - apps/bff-api/ (BFF API application)
+
 ***REMOVED*** Stage 1: Build dependencies and package
 FROM python:3.12-alpine AS builder
 
@@ -13,19 +23,18 @@ RUN apk add --no-cache \
     libffi-dev \
     openssl-dev
 
-***REMOVED*** Copy requirements.txt (pre-generated from poetry export)
-COPY apps/bff-api/requirements.txt ./
+***REMOVED*** Copy local dependencies first
+COPY libs/cache ./libs/cache/
+COPY libs/cli ./libs/cli/
 
-***REMOVED*** Install dependencies to a local directory
-RUN pip install --no-cache-dir --user -r requirements.txt
+***REMOVED*** Install local dependencies
+RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/
 
-***REMOVED*** Copy application code
+***REMOVED*** Copy application files
+COPY apps/bff-api/pyproject.toml ./pyproject.toml
 COPY apps/bff-api/src ./src/
 
-***REMOVED*** Copy pyproject.toml for package metadata
-COPY apps/bff-api/pyproject.toml ./
-
-***REMOVED*** Install the current project to user directory
+***REMOVED*** Install the current project and its dependencies (local deps are commented out in pyproject.toml)
 RUN pip install --no-cache-dir --user -e .
 
 ***REMOVED*** Stage 2: Minimal runtime image

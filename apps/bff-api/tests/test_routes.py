@@ -1,7 +1,8 @@
 """Tests for BFF routes."""
 
-import pytest
 from unittest.mock import AsyncMock
+
+import pytest
 
 from bff_api.services.backend_client import BackendClientError
 
@@ -107,9 +108,7 @@ class TestBFFRoutes:
 
     def test_movie_screen_not_found(self, client, mock_backend_client):
         """Test movie detail screen when movie not found."""
-        mock_backend_client.get_movie.side_effect = BackendClientError(
-            "Backend API error: 404"
-        )
+        mock_backend_client.get_movie.side_effect = BackendClientError("Backend API error: 404")
 
         response = client.get("/bff/movies/999")
 

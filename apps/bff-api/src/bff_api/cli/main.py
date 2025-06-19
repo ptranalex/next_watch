@@ -20,7 +20,7 @@ from cli import (
 )
 
 ***REMOVED*** Local BFF imports
-from bff_api.config.app import get_settings
+from bff_api.config.app import settings
 from bff_api.services.health_service import get_health_service
 
 ***REMOVED*** Import BFF warming service to ensure auto-configuration
@@ -45,6 +45,12 @@ CORE_DEPENDENCIES = ["fastapi", "uvicorn", "redis", "httpx", "typer", "rich"]
 
 ***REMOVED*** Install rich traceback handler
 install()
+
+
+***REMOVED*** Helper function to get settings
+def get_settings() -> Any:
+    """Get settings instance."""
+    return settings
 
 
 ***REMOVED*** Helper functions
@@ -111,13 +117,13 @@ def _log_environment_info(verbose: bool) -> None:
         return
 
     ***REMOVED*** Show config details
-    settings = get_settings()
+    config = get_settings()
     ***REMOVED*** Log basic configuration info
     from config.logging import get_logger
 
     logger = get_logger(__name__)
     logger.info(
-        f"BFF API configuration loaded - Environment: {settings.environment}, Port: {settings.port}"
+        f"BFF API configuration loaded - Environment: {config.environment}, Port: {config.port}"
     )
 
 

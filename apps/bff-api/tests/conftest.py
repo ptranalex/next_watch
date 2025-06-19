@@ -1,12 +1,13 @@
 """Pytest configuration and fixtures for BFF tests."""
 
+from unittest.mock import AsyncMock, Mock
+
+import httpx
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, Mock
-import httpx
 
-from bff_api.main import create_app
 from bff_api.config import Config
+from bff_api.main import get_app
 from bff_api.services.backend_client import BackendClient
 
 
@@ -44,7 +45,7 @@ def mock_httpx_client():
 @pytest.fixture
 def app(test_config, mock_backend_client):
     """FastAPI test application fixture."""
-    app = create_app()
+    app = get_app()
 
     ***REMOVED*** Override dependencies
     app.dependency_overrides = {

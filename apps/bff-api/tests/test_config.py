@@ -1,8 +1,9 @@
 """Tests for BFF configuration."""
 
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from bff_api.config import Config
 

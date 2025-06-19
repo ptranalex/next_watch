@@ -6,11 +6,15 @@ Provides configuration for the BFF API service using the simplified config libra
 from typing import List, Optional, Dict, Any
 
 from pydantic import Field, validator
-from pydantic_settings import SettingsConfigDict
 from config.base.config import ServiceConfig
 from config.services.cache import CacheConfigMixin
 from config.services.auth import AuthConfigMixin
 from config.profiles.service_profiles import apply_profiles, GatewayProfile
+
+from config.logging import get_logger
+
+***REMOVED*** Configure basic logging first for this module
+logger = get_logger(__name__)
 
 
 class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
@@ -62,13 +66,58 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
     enable_metrics: bool = Field(default=True, description="Enable metrics collection")
     cache_enable_metrics: bool = Field(default=True, description="Enable cache metrics collection")
 
-    model_config = SettingsConfigDict(
-        env_prefix="BFF_",
-        env_file=[".env", ".env.local"],
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-    )
+    class Config:
+        """Pydantic configuration for environment handling."""
+
+        env_prefix = "BFF_"
+        env_file = [".env", ".env.local"]
+        env_file_encoding = "utf-8"
+        case_sensitive = False
+        extra = "ignore"
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize BFF API configuration."""
+        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        super().__init__(**kwargs)
+
+        ***REMOVED*** Apply shared security and logging patterns
+        self.apply_production_security_overrides()
+        self._apply_bff_specific_overrides()
+        self.log_configuration_summary()
+        self._log_bff_specific_summary()
+
+    def _apply_bff_specific_overrides(self) -> None:
+        """Apply BFF-specific production overrides."""
+        if not self.is_production:
+            return
+
+        ***REMOVED*** Disable file logging in production to avoid volume permission issues
+        if self.logs_dir:
+            logger.warning("File logging disabled in production to avoid volume permission issues")
+            object.__setattr__(self, "logs_dir", None)
+
+    def _log_bff_specific_summary(self) -> None:
+        """Log BFF-specific configuration details."""
+        ***REMOVED*** Log service URLs in compact format
+        urls = {
+            "backend": self.backend_api_url,
+            "auth": self.auth_api_url,
+            "reco": self.recommendation_api_url,
+        }
+        if self.ml_api_url:
+            urls["ml"] = self.ml_api_url
+
+        logger.info(f"Service URLs: {urls}")
+
+        ***REMOVED*** Log feature flags in compact format if enabled
+        if any([self.enable_recommendations, self.enable_ml_features, self.enable_auth_service]):
+            logger.info(
+                f"Features: recommendations={self.enable_recommendations}, "
+                + f"ml={self.enable_ml_features}, auth={self.enable_auth_service}"
+            )
+
+        ***REMOVED*** Log Redis URL
+        logger.info(f"Redis URL: {self.get_redis_url_masked()}")
 
     @validator("backend_api_url", "auth_api_url", "recommendation_api_url", "ml_api_url")
     def validate_service_url(cls, v: Optional[str]) -> Optional[str]:
@@ -94,9 +143,10 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
 
     def validate_production_settings(self) -> List[str]:
         """Validate configuration for production deployment."""
-        issues = super().validate_production_settings()
+        issues = []
 
-        ***REMOVED*** Add cache and auth validation
+        ***REMOVED*** Get validation from parent classes (includes basic debug mode checks)
+        issues.extend(super().validate_production_settings())
         issues.extend(self.validate_cache_production_settings())
         issues.extend(self.validate_auth_production_settings())
 
@@ -124,68 +174,52 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
 
         return issues
 
-    def log_configuration_summary(self) -> None:
-        """Log service configuration summary with reduced verbosity."""
-        ***REMOVED*** Call parent method first (includes basic service info)
-        super().log_configuration_summary()
+    def __str__(self) -> str:
+        """Return a comprehensive multi-line string representation."""
+        return f"""BFF API Configuration:
+  Environment: {self.environment}
+  Service: {self.service_name}
+  
+  HTTP Service:
+    Host: {self.host}
+    Port: {self.port}
+    Debug: {self.debug}
+    CORS Origins: {', '.join(self.cors_origins)}
+    Allowed Hosts: {', '.join(self.allowed_hosts)}
 
-        from config.logging import get_logger
+  Service URLs:
+    Backend: {self.backend_api_url}
+    Auth: {self.auth_api_url}
+    Recommendation: {self.recommendation_api_url}
+    ML: {self.ml_api_url or 'disabled'}
 
-        logger = get_logger(__name__)
+  Cache:
+    URL: {self.get_redis_url_masked()}
 
-        ***REMOVED*** Log service URLs in compact format
-        urls = {
-            "backend": self.backend_api_url,
-            "auth": self.auth_api_url,
-            "reco": self.recommendation_api_url,
-        }
-        if self.ml_api_url:
-            urls["ml"] = self.ml_api_url
+  Features:
+    Recommendations: {self.enable_recommendations}
+    ML Features: {self.enable_ml_features}
+    Auth Service: {self.enable_auth_service}
+    Performance Metrics: {self.enable_performance_metrics}
 
-        logger.info(f"Service URLs: {urls}")
-
-        ***REMOVED*** Log feature flags in compact format if enabled
-        if any([self.enable_recommendations, self.enable_ml_features, self.enable_auth_service]):
-            logger.info(
-                f"Features: recommendations={self.enable_recommendations}, "
-                + f"ml={self.enable_ml_features}, auth={self.enable_auth_service}"
-            )
-
-        ***REMOVED*** Call mixin logging methods for detailed logs in debug mode
-        if hasattr(self, "log_cache_configuration"):
-            self.log_cache_configuration()
-
-        if hasattr(self, "log_auth_configuration"):
-            self.log_auth_configuration()
+  Logging:
+    Log Level: {self.log_level}
+    Logs Directory: {self.logs_dir or 'disabled'}"""
 
 
-***REMOVED*** Create and configure the application config instance
-def get_settings() -> BFFAPIConfig:
-    """Get the application configuration instance.
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** GLOBAL SETTINGS INSTANCE
+***REMOVED*** ------------------------------------------------------------------------------
 
-    Returns:
-        Configured BFFAPIConfig instance
-    """
-    config = BFFAPIConfig()
+***REMOVED*** Create global settings instance (simplified - no more wrapper!)
+settings = BFFAPIConfig()
 
-    ***REMOVED*** Apply Gateway profile by default
-    apply_profiles(config, GatewayProfile)
+***REMOVED*** Apply Gateway profile by default
+apply_profiles(settings, GatewayProfile)
 
-    ***REMOVED*** Override log level for development
-    if config.is_development:
-        config.log_level = "DEBUG"
-
-    ***REMOVED*** Apply production security overrides
-    config.apply_production_security_overrides()
-
-    ***REMOVED*** Log configuration summary
-    config.log_configuration_summary()
-
-    return config
-
-
-***REMOVED*** Global configuration instance
-settings = get_settings()
+***REMOVED*** Override log level for development
+if settings.is_development:
+    object.__setattr__(settings, "log_level", "DEBUG")
 
 
 ***REMOVED*** Backward compatibility function for cache settings
