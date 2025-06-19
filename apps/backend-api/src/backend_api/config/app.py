@@ -46,7 +46,7 @@ class BackendAPIConfig(
 
     ***REMOVED*** HTTP service settings (override defaults from ServiceConfig)
     host: str = Field(default="0.0.0.0", description="Service host address")
-    port: int = Field(default=8001, description="Service port number")
+    port: int = Field(default=8000, description="Service port number")
 
     ***REMOVED*** Backend-specific settings
     backend_performance_metrics: bool = Field(
@@ -70,6 +70,14 @@ class BackendAPIConfig(
     )
     slow_query_threshold_ms: int = Field(
         default=100, description="Threshold in ms for slow query warnings"
+    )
+
+    ***REMOVED*** Authentication settings
+    access_token_expire_minutes: int = Field(
+        default=30, description="Access token expiration time in minutes"
+    )
+    refresh_token_expire_days: int = Field(
+        default=7, description="Refresh token expiration time in days"
     )
 
     class Config:
@@ -150,62 +158,6 @@ class BackendAPIConfig(
 
         return issues
 
-    ***REMOVED*** Backward compatibility properties and methods
-    @property
-    def api_port(self) -> int:
-        """Backward compatibility alias for port."""
-        return self.port
-
-    @property
-    def sql_log_level(self) -> str:
-        """Backward compatibility: map to log_level."""
-        return self.log_level
-
-    def __getattr__(self, name: str) -> Any:
-        """Handle backward compatibility aliases."""
-        if name == "enable_performance_metrics":
-            return self.backend_performance_metrics
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
-
-    def get_database_config(self) -> Dict[str, Any]:
-        """Get SQLAlchemy database configuration dictionary.
-
-        Enhanced version that includes backend-specific settings.
-        """
-        config = super().get_database_config()
-
-        ***REMOVED*** Add backend-specific database settings
-        config.update(
-            {
-                "echo": self.database_echo,
-                "pool_size": self.database_pool_size,
-                "max_overflow": self.database_max_overflow,
-                "pool_timeout": self.database_pool_timeout,
-                "pool_recycle": self.database_pool_recycle,
-                "pool_pre_ping": self.database_pool_pre_ping,
-            }
-        )
-
-        return config
-
-    def get_redis_config(self) -> Dict[str, Any]:
-        """Get Redis configuration dictionary.
-
-        Enhanced version that includes backend-specific settings.
-        """
-        config = super().get_redis_config()
-
-        ***REMOVED*** Add backward compatibility fields
-        config.update(
-            {
-                "socket_timeout": self.redis_socket_timeout,
-                "socket_connect_timeout": self.redis_socket_connect_timeout,
-                "retry_on_timeout": self.redis_retry_on_timeout,
-            }
-        )
-
-        return config
-
     def __str__(self) -> str:
         """Return a comprehensive multi-line string representation."""
         return f"""Backend API Configuration:
@@ -221,18 +173,8 @@ class BackendAPIConfig(
 
   Database:
     URL: {self.get_database_url_masked()}
-    Echo: {self.database_echo}
-    Pool Size: {self.database_pool_size}
-    Max Overflow: {self.database_max_overflow}
-    Pool Timeout: {self.database_pool_timeout}s
-
-  Cache:
-    URL: {self.get_redis_url_masked()}
-    Max Connections: {self.redis_max_connections}
-    Default TTL: {self.cache_ttl_default}s
 
   Authentication:
-    Algorithm: {self.jwt_algorithm}
     Access Token TTL: {self.access_token_expire_minutes}min
     Refresh Token TTL: {self.refresh_token_expire_days}days
 
@@ -240,7 +182,10 @@ class BackendAPIConfig(
     Log Level: {self.log_level}
     Performance Metrics: {self.backend_performance_metrics}
     DB Monitoring: {self.database_monitoring_enabled}
-    Logs Directory: {self.logs_dir or 'disabled'}"""
+    Logs Directory: {self.logs_dir or 'disabled'}
+
+  Cache:
+    Redis URL: {self.get_redis_url_masked()}"""
 
 
 ***REMOVED*** ------------------------------------------------------------------------------

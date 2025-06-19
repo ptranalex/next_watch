@@ -70,9 +70,9 @@ async def debug_info() -> Dict[str, Any]:
         "timestamp": datetime.datetime.now().isoformat(),
         "debug": settings.debug,
         "log_level": settings.log_level,
-        "api_port": settings.api_port,
+        "port": settings.port,
         "cors_origins": settings.cors_origins,
-        "performance_metrics_enabled": settings.enable_performance_metrics,
+        "performance_metrics_enabled": settings.backend_performance_metrics,
         "database_masked": settings.get_database_url_masked(),
         "redis_url": settings.redis_url,
         "redis_config": {

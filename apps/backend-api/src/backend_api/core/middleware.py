@@ -52,13 +52,13 @@ def setup_middleware(app: FastAPI) -> None:
         logger.info("Database monitoring middleware enabled", debug_mode=settings.debug)
 
     ***REMOVED*** Performance metrics middleware if enabled
-    if settings.enable_performance_metrics:
+    if settings.backend_performance_metrics:
         setup_performance_middleware(app)
 
     logger.info(
         "Middleware configuration completed",
         monitoring_enabled=settings.database_monitoring_enabled,
-        performance_metrics=settings.enable_performance_metrics,
+        performance_metrics=settings.backend_performance_metrics,
     )
 
 
