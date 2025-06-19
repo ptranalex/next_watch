@@ -4,8 +4,9 @@
 ***REMOVED*** docker build -f apps/backend-api/Dockerfile -t backend-api .
 ***REMOVED***
 ***REMOVED*** This Dockerfile requires:
-***REMOVED*** - libs/movie-storage/ (Movie Storage Library)
 ***REMOVED*** - apps/backend-api/ (Backend API application)
+***REMOVED*** - libs/cli/ (CLI library)
+***REMOVED*** - libs/config/ (Config library)
 
 ***REMOVED*** Stage 1: Build dependencies and package
 FROM python:3.12-alpine AS builder
@@ -25,12 +26,10 @@ RUN apk add --no-cache \
     postgresql-dev
 
 ***REMOVED*** Copy local dependencies first
-COPY libs/movie-storage ./libs/movie-storage/
 COPY libs/cli ./libs/cli/
 COPY libs/config ./libs/config/
 
 ***REMOVED*** Install local dependencies
-RUN pip install --no-cache-dir --user ./libs/movie-storage/
 RUN pip install --no-cache-dir --user ./libs/cli/
 RUN pip install --no-cache-dir --user ./libs/config/
 
