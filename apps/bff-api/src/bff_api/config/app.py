@@ -69,7 +69,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
     class Config:
         """Pydantic configuration for environment handling."""
 
-        env_prefix = "BFF_"
+        env_prefix = ""  ***REMOVED*** Remove BFF_ prefix requirement
         env_file = [".env", ".env.local"]
         env_file_encoding = "utf-8"
         case_sensitive = False
