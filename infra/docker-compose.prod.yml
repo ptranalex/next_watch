@@ -255,7 +255,7 @@ services:
       ***REMOVED*** JWT Configuration
       - JWT_SECRET=${JWT_SECRET}
       ***REMOVED*** Security Configuration
-      - CORS_ORIGINS=https://alexsandbox.me,http://localhost:3000
+      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
       - ALLOWED_HOSTS=alexsandbox.me,www.alexsandbox.me,localhost,127.0.0.1,bff-api,0.0.0.0
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
       ***REMOVED*** Performance
