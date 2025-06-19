@@ -1,18 +1,17 @@
 """Watchlist-related routes for BFF API."""
 
-import logging
-from typing import Optional, List, Dict, Any, cast
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any, Dict, List, cast
 
-from bff_api.schemas.screen_schemas import MovieListData
-from bff_api.dependencies.common import get_backend_client
+from config.logging import get_logger
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from bff_api.dependencies.auth import get_current_user_id_and_token
+from bff_api.dependencies.common import get_backend_client
+from bff_api.schemas.screen_schemas import MovieListData
 from bff_api.services.backend_client import BackendClient, BackendClientError
 
-from bff_api.config.logging import get_logger
-
-logger = get_logger("bff_api.routes.watchlist")
+logger = get_logger(__name__)
 
 router = APIRouter(tags=["watchlist"])
 
@@ -77,11 +76,10 @@ async def get_user_watchlist(
             offset=offset,
         )
 
-        ***REMOVED*** The backend returns a list of user interaction objects
-        watchlist_interactions: List[Dict[str, Any]] = (
-            watchlist_interactions_response
-            if isinstance(watchlist_interactions_response, list)
-            else []
+        ***REMOVED*** The backend client wraps list responses in {"data": [...]} format
+        ***REMOVED*** Extract the interactions list from the wrapped response
+        watchlist_interactions: List[Dict[str, Any]] = watchlist_interactions_response.get(
+            "data", []
         )
 
         ***REMOVED*** Filter to only get actually watchlisted movies (since some interactions might have in_watchlist=false)

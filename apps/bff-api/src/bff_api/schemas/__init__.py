@@ -16,24 +16,24 @@ with appropriate separation between input and output models.
 See the README.md file in this directory for detailed documentation.
 """
 
+from bff_api.schemas.auth_schemas import (
+    LoginRequest,
+    RefreshTokenRequest,
+    TokenResponse,
+)
 from bff_api.schemas.screen_schemas import (
-    HomeScreenData,
-    MovieScreenData,
-    MovieListData,
     GenreScreenData,
+    HomeScreenData,
+    MovieListData,
+    MovieScreenData,
     NavbarData,
     NavbarLinkData,
 )
 from bff_api.schemas.user_interaction_schemas import (
-    UserMovieInteractionResponse,
-    UserMovieInteractionUpdate,
     ToggleInteractionRequest,
     ToggleInteractionResponse,
-)
-from bff_api.schemas.auth_schemas import (
-    LoginRequest,
-    TokenResponse,
-    RefreshTokenRequest,
+    UserMovieInteractionResponse,
+    UserMovieInteractionUpdate,
 )
 
 __all__ = [

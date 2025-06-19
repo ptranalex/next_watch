@@ -6,7 +6,8 @@ python -m bff_api.cli
 """
 
 import sys
+
 from bff_api.cli.main import main
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

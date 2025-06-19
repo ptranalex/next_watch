@@ -1,13 +1,14 @@
 """Authentication dependencies for BFF API routes."""
 
 from typing import Optional, Tuple
+
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from config.logging import get_logger
 from bff_api.utils.auth import extract_user_id_from_token
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.dependencies.auth")
+logger = get_logger(__name__)
 
 ***REMOVED*** Security scheme
 security = HTTPBearer()

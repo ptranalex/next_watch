@@ -1,289 +1,213 @@
-"""Application configuration management.
+"""BFF API service configuration.
 
-This module provides centralized configuration for the bff-api application,
-loading settings from environment variables with sensible defaults.
+Provides configuration for the BFF API service using the simplified config library.
 """
 
-import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import List, Optional, Dict, Any
 
-***REMOVED*** Load environment variables from .env files
-from .env import get_env_var, get_env_bool, get_env_int
-from .logging import get_logger
-
-***REMOVED*** Get logger for this module (logging is configured in main.py)
-logger = get_logger("bff_api.config.app")
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** DEFAULT PATHS AND DIRECTORIES
-***REMOVED*** ------------------------------------------------------------------------------
-
-***REMOVED*** Directory paths
-DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** SERVER CONFIGURATION
-***REMOVED*** ------------------------------------------------------------------------------
-
-DEFAULT_HOST = get_env_var("HOST", "0.0.0.0")
-DEFAULT_PORT = get_env_int("PORT", 8001)
-DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")
-DEFAULT_DEBUG = get_env_bool("DEBUG", False)
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** LOGGING AND MONITORING
-***REMOVED*** ------------------------------------------------------------------------------
-
-DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
-DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** BACKEND SERVICE URLS
-***REMOVED*** ------------------------------------------------------------------------------
-
-DEFAULT_BACKEND_API_URL = get_env_var("BACKEND_API_URL", "http://localhost:8000")
-DEFAULT_BACKEND_API_TIMEOUT = get_env_int("BACKEND_API_TIMEOUT", 30)
-DEFAULT_RECO_API_URL = get_env_var("RECO_API_URL", "http://localhost:8002")
-DEFAULT_AUTH_API_URL = get_env_var("AUTH_API_URL", "http://localhost:8003")
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** CACHE AND REDIS SETTINGS
-***REMOVED*** ------------------------------------------------------------------------------
-
-DEFAULT_REDIS_URL = get_env_var("REDIS_URL", "redis://localhost:6379/0")
-DEFAULT_CACHE_TTL = get_env_int("CACHE_TTL", 300)  ***REMOVED*** 5 minutes
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** AUTHENTICATION SETTINGS
-***REMOVED*** ------------------------------------------------------------------------------
-
-DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", "change_this_in_production_very_important")
-DEFAULT_INTERNAL_API_KEY = get_env_var("INTERNAL_API_KEY", "bff-to-backend-secret-key")
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** SECURITY SETTINGS
-***REMOVED*** ------------------------------------------------------------------------------
-
-DEFAULT_ALLOWED_HOSTS = get_env_var("ALLOWED_HOSTS", "localhost,127.0.0.1")
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** CONFIGURATION CLASS
-***REMOVED*** ------------------------------------------------------------------------------
+from pydantic import Field, validator
+from pydantic_settings import SettingsConfigDict
+from config.base.config import ServiceConfig
+from config.services.cache import CacheConfigMixin
+from config.services.auth import AuthConfigMixin
+from config.profiles.service_profiles import apply_profiles, GatewayProfile
 
 
-class ConfigDict(TypedDict):
-    """Type definition for configuration dictionary."""
+class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
+    """BFF API service configuration.
 
-    logs_dir: Path
-    host: str
-    port: int
-    cors_origins: List[str]
-    debug: bool
-    log_level: str
-    enable_performance_metrics: bool
-    backend_api_url: str
-    backend_api_timeout: int
-    reco_api_url: str
-    auth_api_url: str
-    redis_url: str
-    cache_ttl: int
-    jwt_secret: Optional[str]
-    internal_api_key: str
-    allowed_hosts: List[str]
+    Provides configuration for the BFF API service with cache and auth support.
+    """
 
+    ***REMOVED*** Service identification
+    service_name: str = Field(default="bff-api", description="Service name")
+    port: int = Field(default=8001, description="Service port")
 
-class Config:
-    """Configuration class for the BFF service."""
+    ***REMOVED*** Logging configuration
+    logs_dir: Optional[str] = Field(
+        default=None, description="Directory for log files (None disables file logging)"
+    )
 
-    logs_dir: Path
-    host: str
-    port: int
-    log_level: str
-    debug: bool
-    cors_origins: List[str]
-    enable_performance_metrics: bool
-    backend_api_url: str
-    backend_api_timeout: int
-    reco_api_url: str
-    auth_api_url: str
-    redis_url: str
-    cache_ttl: int
-    jwt_secret: Optional[str]
-    internal_api_key: str
-    allowed_hosts: List[str]
+    ***REMOVED*** Backend service URLs
+    backend_api_url: str = Field(default="http://localhost:8000", description="Backend API URL")
+    auth_api_url: str = Field(default="http://localhost:8002", description="Auth API URL")
+    recommendation_api_url: str = Field(
+        default="http://localhost:8003", description="Recommendation API URL"
+    )
+    ***REMOVED*** Backwards compatibility field
+    reco_api_url: str = Field(
+        default="http://localhost:8003", description="Alias for recommendation_api_url"
+    )
+    ml_api_url: Optional[str] = Field(default=None, description="ML API URL (optional)")
 
-    ***REMOVED*** Singleton instance
-    _instance = None
+    ***REMOVED*** Service timeouts
+    backend_api_timeout: int = Field(default=30, description="Backend API timeout in seconds")
+    auth_api_timeout: int = Field(default=10, description="Auth API timeout in seconds")
+    recommendation_api_timeout: int = Field(
+        default=30, description="Recommendation API timeout in seconds"
+    )
+    ml_api_timeout: int = Field(default=60, description="ML API timeout in seconds")
 
-    @classmethod
-    def get_instance(cls) -> "Config":
-        """Get the singleton instance of Config.
+    ***REMOVED*** Feature flags
+    enable_recommendations: bool = Field(default=True, description="Enable recommendation features")
+    enable_ml_features: bool = Field(default=False, description="Enable machine learning features")
+    enable_auth_service: bool = Field(
+        default=True, description="Enable authentication service integration"
+    )
 
-        Returns:
-            The global Config instance
-        """
-        if cls._instance is None:
-            cls._instance = Config()
-        return cls._instance
+    ***REMOVED*** Monitoring settings
+    enable_performance_metrics: bool = Field(
+        default=True, description="Enable performance metrics collection"
+    )
+    enable_metrics: bool = Field(default=True, description="Enable metrics collection")
+    cache_enable_metrics: bool = Field(default=True, description="Enable cache metrics collection")
 
-    def __init__(
-        self,
-        logs_dir: Path = DEFAULT_LOGS_DIR,
-        host: str = DEFAULT_HOST,
-        port: int = DEFAULT_PORT,
-        log_level: str = DEFAULT_LOG_LEVEL,
-        debug: bool = DEFAULT_DEBUG,
-        cors_origins: str = DEFAULT_CORS_ORIGINS,
-        enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
-        backend_api_url: str = DEFAULT_BACKEND_API_URL,
-        backend_api_timeout: int = DEFAULT_BACKEND_API_TIMEOUT,
-        reco_api_url: str = DEFAULT_RECO_API_URL,
-        auth_api_url: str = DEFAULT_AUTH_API_URL,
-        redis_url: str = DEFAULT_REDIS_URL,
-        cache_ttl: int = DEFAULT_CACHE_TTL,
-        jwt_secret: Optional[str] = DEFAULT_JWT_SECRET,
-        internal_api_key: str = DEFAULT_INTERNAL_API_KEY,
-        allowed_hosts: str = DEFAULT_ALLOWED_HOSTS,
-    ):
-        """Initialize BFF configuration.
+    model_config = SettingsConfigDict(
+        env_prefix="BFF_",
+        env_file=[".env", ".env.local"],
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
-        Args:
-            logs_dir: Directory to save log files
-            host: Host for the BFF server
-            port: Port for the BFF server
-            log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
-            debug: Whether to enable debug mode
-            cors_origins: Comma-separated list of allowed origins for CORS
-            enable_performance_metrics: Whether to enable performance metrics
-            backend_api_url: URL for backend API service
-            backend_api_timeout: Timeout for backend API requests in seconds
-            reco_api_url: URL for recommendation API service
-            auth_api_url: URL for authentication service
-            redis_url: URL for Redis connection
-            cache_ttl: Cache TTL in seconds
-            jwt_secret: Secret key for JWT token validation
-            internal_api_key: API key for service-to-service authentication
-            allowed_hosts: Comma-separated list of allowed hosts
-        """
-        ***REMOVED*** In production, force debug to False
-        environment = get_env_var("ENVIRONMENT", "development")
-        if environment == "production":
-            debug = False
+    @validator("backend_api_url", "auth_api_url", "recommendation_api_url", "ml_api_url")
+    def validate_service_url(cls, v: Optional[str]) -> Optional[str]:
+        """Validate service URL format."""
+        if v is None:
+            return None
 
-        self.logs_dir = logs_dir
-        self.host = host
-        self.port = port
-        self.log_level = log_level
-        self.debug = debug
-        self.cors_origins = (
-            [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
-        )
-        self.enable_performance_metrics = enable_performance_metrics
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("Service URL must start with http:// or https://")
 
-        ***REMOVED*** Backend service URLs (strip trailing slashes)
-        self.backend_api_url = backend_api_url.rstrip("/")
-        self.backend_api_timeout = backend_api_timeout
-        self.reco_api_url = reco_api_url.rstrip("/")
-        self.auth_api_url = auth_api_url.rstrip("/")
+        return v
 
-        ***REMOVED*** Cache settings
-        self.redis_url = redis_url
-        self.cache_ttl = cache_ttl
+    @validator(
+        "backend_api_timeout", "auth_api_timeout", "recommendation_api_timeout", "ml_api_timeout"
+    )
+    def validate_timeout(cls, v: int) -> int:
+        """Validate timeout is positive."""
+        if v < 1:
+            raise ValueError("Timeout must be at least 1 second")
+        if v > 300:
+            raise ValueError("Timeout should not exceed 300 seconds")
+        return v
 
-        ***REMOVED*** Authentication settings
-        self.jwt_secret = jwt_secret
-        self.internal_api_key = internal_api_key
+    def validate_production_settings(self) -> List[str]:
+        """Validate configuration for production deployment."""
+        issues = super().validate_production_settings()
 
-        ***REMOVED*** Security settings
-        self.allowed_hosts = (
-            [host.strip() for host in allowed_hosts.split(",")] if allowed_hosts != "*" else ["*"]
-        )
+        ***REMOVED*** Add cache and auth validation
+        issues.extend(self.validate_cache_production_settings())
+        issues.extend(self.validate_auth_production_settings())
 
-        ***REMOVED*** Derived settings
-        self.environment = environment
-        self.is_production = environment == "production"
-        self.is_development = environment == "development"
+        ***REMOVED*** BFF-specific production validations
+        if self.is_production:
+            ***REMOVED*** Check for secure service URLs
+            for url_name, url in [
+                ("backend_api_url", self.backend_api_url),
+                ("auth_api_url", self.auth_api_url),
+                ("recommendation_api_url", self.recommendation_api_url),
+                ("ml_api_url", self.ml_api_url),
+            ]:
+                if url and url.startswith("http://"):
+                    issues.append(f"{url_name} should use HTTPS in production")
 
-        ***REMOVED*** Log configuration
-        logger.info(
-            "Initializing BFF configuration",
-            environment=self.environment,
-            backend_api_url=self.backend_api_url,
-            reco_api_url=self.reco_api_url,
-            auth_api_url=self.auth_api_url,
-            debug_mode=self.debug,
-            service="bff",
-            component="config",
-        )
+            ***REMOVED*** Check for localhost in URLs
+            for url_name, url in [
+                ("backend_api_url", self.backend_api_url),
+                ("auth_api_url", self.auth_api_url),
+                ("recommendation_api_url", self.recommendation_api_url),
+                ("ml_api_url", self.ml_api_url),
+            ]:
+                if url and "localhost" in url:
+                    issues.append(f"{url_name} should not use localhost in production")
 
-    @property
-    def is_production_env(self) -> bool:
-        """Check if running in production environment."""
-        return self.environment == "production"
+        return issues
 
-    def __str__(self) -> str:
-        """Return a string representation of the Config instance with sensitive data masked.
+    def log_configuration_summary(self) -> None:
+        """Log service configuration summary with reduced verbosity."""
+        ***REMOVED*** Call parent method first (includes basic service info)
+        super().log_configuration_summary()
 
-        Returns:
-            String representation of Config
-        """
-        ***REMOVED*** Mask sensitive information
-        masked_jwt = "****" if self.jwt_secret else None
-        masked_api_key = (
-            f"{'*' * (len(self.internal_api_key) - 4)}{self.internal_api_key[-4:]}"
-            if self.internal_api_key
-            else ""
-        )
+        from config.logging import get_logger
 
-        return (
-            f"Config(\n"
-            f"  logs_dir={self.logs_dir},\n"
-            f"  host={self.host},\n"
-            f"  port={self.port},\n"
-            f"  log_level={self.log_level},\n"
-            f"  debug={self.debug},\n"
-            f"  cors_origins={self.cors_origins},\n"
-            f"  enable_performance_metrics={self.enable_performance_metrics},\n"
-            f"  backend_api_url={self.backend_api_url},\n"
-            f"  backend_api_timeout={self.backend_api_timeout},\n"
-            f"  reco_api_url={self.reco_api_url},\n"
-            f"  auth_api_url={self.auth_api_url},\n"
-            f"  redis_url={self.redis_url},\n"
-            f"  cache_ttl={self.cache_ttl},\n"
-            f"  jwt_secret={masked_jwt},\n"
-            f"  internal_api_key={masked_api_key},\n"
-            f"  allowed_hosts={self.allowed_hosts},\n"
-            f"  environment={self.environment}\n"
-            f")"
-        )
+        logger = get_logger(__name__)
+
+        ***REMOVED*** Log service URLs in compact format
+        urls = {
+            "backend": self.backend_api_url,
+            "auth": self.auth_api_url,
+            "reco": self.recommendation_api_url,
+        }
+        if self.ml_api_url:
+            urls["ml"] = self.ml_api_url
+
+        logger.info(f"Service URLs: {urls}")
+
+        ***REMOVED*** Log feature flags in compact format if enabled
+        if any([self.enable_recommendations, self.enable_ml_features, self.enable_auth_service]):
+            logger.info(
+                f"Features: recommendations={self.enable_recommendations}, "
+                + f"ml={self.enable_ml_features}, auth={self.enable_auth_service}"
+            )
+
+        ***REMOVED*** Call mixin logging methods for detailed logs in debug mode
+        if hasattr(self, "log_cache_configuration"):
+            self.log_cache_configuration()
+
+        if hasattr(self, "log_auth_configuration"):
+            self.log_auth_configuration()
 
 
-***REMOVED*** Lazy singleton pattern
-_settings: Optional[Config] = None
-
-
-def get_settings() -> Config:
-    """Get the singleton settings instance.
+***REMOVED*** Create and configure the application config instance
+def get_settings() -> BFFAPIConfig:
+    """Get the application configuration instance.
 
     Returns:
-        The global Config instance
+        Configured BFFAPIConfig instance
     """
-    global _settings
-    if _settings is None:
-        _settings = Config()
-    return _settings
+    config = BFFAPIConfig()
+
+    ***REMOVED*** Apply Gateway profile by default
+    apply_profiles(config, GatewayProfile)
+
+    ***REMOVED*** Override log level for development
+    if config.is_development:
+        config.log_level = "DEBUG"
+
+    ***REMOVED*** Apply production security overrides
+    config.apply_production_security_overrides()
+
+    ***REMOVED*** Log configuration summary
+    config.log_configuration_summary()
+
+    return config
 
 
-***REMOVED*** Lazy property-like access for backward compatibility
-class SettingsProxy:
-    """Proxy to lazily access settings only when needed."""
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(get_settings(), name)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        setattr(get_settings(), name, value)
+***REMOVED*** Global configuration instance
+settings = get_settings()
 
 
-settings = SettingsProxy()
+***REMOVED*** Backward compatibility function for cache settings
+def get_cache_settings() -> Any:
+    """Get cache settings from the global configuration.
+
+    Returns:
+        Cache settings dictionary
+    """
+    from cache.config import CacheSettings
+
+    try:
+        cache_settings = CacheSettings(
+            redis_url=settings.redis_url,
+            key_prefix=settings.cache_key_prefix,
+            ttl_default=settings.cache_ttl_default,
+        )
+        return cache_settings
+    except Exception:
+        ***REMOVED*** Fallback to basic dict if CacheSettings import fails
+        return {
+            "redis_url": settings.redis_url,
+            "key_prefix": settings.cache_key_prefix,
+            "ttl_default": settings.cache_ttl_default,
+        }

@@ -1,23 +1,24 @@
 """Authentication routes for BFF API."""
 
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Form
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any, Dict, Optional
 
+from config.logging import get_logger
+from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from bff_api.dependencies.common import get_auth_client
 from bff_api.schemas.auth_schemas import (
+    AuthenticatedUserResponse,
     LoginRequest,
+    RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
-    RefreshTokenRequest,
-    UserResponse,
-    AuthenticatedUserResponse,
     TokenVerificationResponse,
+    UserResponse,
 )
 from bff_api.services.auth_client import AuthClient, AuthClientError
-from bff_api.dependencies.common import get_auth_client
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.routes.auth")
+logger = get_logger(__name__)
 router = APIRouter(tags=["authentication"])
 
 ***REMOVED*** Security scheme for protected routes

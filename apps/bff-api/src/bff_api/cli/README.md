@@ -1,6 +1,15 @@
 ***REMOVED*** BFF API Command Line Interface
 
-This module provides a comprehensive command-line interface (CLI) for the BFF API service, built using Typer.
+This module provides a comprehensive command-line interface (CLI) for the BFF API service, built using Typer and integrated with the **NextWatch CLI Framework** for consistent UX and enterprise-grade patterns.
+
+***REMOVED******REMOVED*** 🎯 CLI Framework Integration
+
+The BFF API CLI now leverages the **NextWatch CLI Framework** to provide:
+
+- **Consistent UX** across all NextWatch services
+- **Production-ready patterns** with structured logging and monitoring
+- **Auto-generated commands** for common operations (health, cache, config)
+- **Enterprise-grade features** like secret masking, retry logic, and async operations
 
 ***REMOVED******REMOVED*** Structure
 
@@ -9,34 +18,41 @@ The CLI is organized as follows:
 ```
 bff_api/cli/
 │
-├── main.py           ***REMOVED*** Main CLI application entry point
+├── main.py           ***REMOVED*** Main CLI application with framework integration
 ├── __main__.py       ***REMOVED*** Entry point for direct module execution
 ├── __init__.py       ***REMOVED*** Package initialization
 ├── utils.py          ***REMOVED*** Utility functions for CLI commands
-└── commands/         ***REMOVED*** Individual command groups
-    ├── serve.py      ***REMOVED*** Server commands
-    ├── health.py     ***REMOVED*** Health check commands
-    ├── cache.py      ***REMOVED*** Cache management commands
+└── commands/         ***REMOVED*** Remaining command modules
+    ├── serve.py      ***REMOVED*** Server commands (enhanced with framework output)
     └── __init__.py   ***REMOVED*** Command module initialization
 ```
 
+**Note**: Health and cache commands are now **auto-generated** by the CLI framework, providing consistent functionality across all NextWatch services.
+
 ***REMOVED******REMOVED*** Command Groups
 
-- **serve**: Commands for starting and managing the BFF API server
-  - `serve` or `serve start`: Start the BFF API server
-- **health**: Health check commands for BFF and dependent services
-  - `health check`: Check health of all services
-  - `health backend`: Check Backend API health
-  - `health auth`: Check Auth API health
+***REMOVED******REMOVED******REMOVED*** Auto-Generated Commands (via CLI Framework)
+
+- **health**: Health check commands using existing `health_service.py`
+  - `health check`: Check health of all services (Backend API, Auth API, Recommendation API)
+  - `health backend`: Check Backend API health only
+  - `health auth`: Check Auth API health only
+  - `health reco`: Check Recommendation API health only
 - **cache**: Redis cache management commands
-  - `cache info`: Display Redis cache information
-  - `cache keys`: List cache keys
-  - `cache clear`: Clear cache keys
+  - `cache info`: Display Redis cache information and statistics
+  - `cache keys`: List cache keys with pattern matching
   - `cache get`: Get value for a specific key
   - `cache delete`: Delete a specific key
-- **config**: Display current configuration
+  - `cache clear`: Clear cache keys matching a pattern
+- **config**: Configuration display with smart secret masking
+  - `config`: Display current configuration
   - `config --verbose`: Show detailed configuration
-  - `config --show-secrets`: Show sensitive configuration values
+  - `config --show-secrets`: Show sensitive configuration values (use with caution)
+
+***REMOVED******REMOVED******REMOVED*** Custom Commands
+
+- **serve**: Server management commands (enhanced with framework output)
+  - `serve` or `serve start`: Start the BFF API server
 - **version**: Show BFF API version information
 
 ***REMOVED******REMOVED*** Installation
@@ -81,7 +97,7 @@ Start in development mode with auto-reload:
 bff-api serve --reload
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Checks
+***REMOVED******REMOVED******REMOVED*** Health Checks (Framework-Generated)
 
 Check health of all services:
 
@@ -95,13 +111,15 @@ Check with detailed output:
 bff-api health check --verbose
 ```
 
-Check specific backend service:
+Check specific services:
 
 ```bash
-bff-api health backend --timeout 10
+bff-api health backend    ***REMOVED*** Backend API only
+bff-api health auth       ***REMOVED*** Auth API only
+bff-api health reco       ***REMOVED*** Recommendation API only
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cache Management
+***REMOVED******REMOVED******REMOVED*** Cache Management (Framework-Generated)
 
 Display cache information:
 
@@ -109,19 +127,22 @@ Display cache information:
 bff-api cache info --verbose
 ```
 
-List all cache keys:
+List cache keys with patterns:
 
 ```bash
 bff-api cache keys --pattern "user:*" --limit 50
+bff-api cache keys --pattern "movie:*"
 ```
 
-Clear specific cache keys:
+Get and manipulate cache values:
 
 ```bash
-bff-api cache clear --pattern "movie:*" --confirm
+bff-api cache get user:123
+bff-api cache delete session:abc123
+bff-api cache clear --pattern "temp:*" --confirm
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+***REMOVED******REMOVED******REMOVED*** Configuration (Framework-Generated)
 
 Display current configuration:
 
@@ -133,6 +154,12 @@ Show detailed configuration:
 
 ```bash
 bff-api config --verbose
+```
+
+Show sensitive values (development only):
+
+```bash
+bff-api config --show-secrets
 ```
 
 ***REMOVED******REMOVED*** Environment Variables
@@ -148,100 +175,81 @@ The CLI respects the following environment variables:
 | `DEBUG`           | Enable debug mode           | false                    |
 | `BACKEND_API_URL` | URL for backend API service | http://localhost:8000    |
 | `AUTH_API_URL`    | URL for auth API service    | http://localhost:8003    |
+| `RECO_API_URL`    | URL for recommendation API  | http://localhost:8002    |
 | `REDIS_URL`       | URL for Redis connection    | redis://localhost:6379/0 |
+
+***REMOVED******REMOVED*** 🚀 CLI Framework Benefits
+
+***REMOVED******REMOVED******REMOVED*** 1. **Unified Output Management**
+
+- Clean separation between user output (Rich console) and operational logging (structured logs)
+- Consistent styling and color schemes across all commands
+- Verbose mode with detailed operational information
+
+***REMOVED******REMOVED******REMOVED*** 2. **Enterprise-Grade Features**
+
+- **Secret Masking**: Automatic masking of sensitive configuration values
+- **Structured Logging**: JSON-formatted logs for monitoring and debugging
+- **Retry Logic**: Built-in retry mechanisms for unreliable operations
+- **Async Support**: Full async/await support for concurrent operations
+
+***REMOVED******REMOVED******REMOVED*** 3. **Production-Ready Patterns**
+
+- **Health Service Integration**: Uses existing `health_service.py` for complex health checks
+- **Connection Management**: Proper Redis client lifecycle management
+- **Error Handling**: Comprehensive error handling with appropriate exit codes
+- **Progress Indicators**: Rich progress bars for long-running operations
+
+***REMOVED******REMOVED******REMOVED*** 4. **Developer Experience**
+
+- **Type Safety**: Full type annotations throughout
+- **Auto-Completion**: Shell completion support
+- **Consistent Help**: Standardized help text and command structure
+- **Easy Extension**: Simple patterns for adding new commands
 
 ***REMOVED******REMOVED*** Design Principles
 
-1. **Command Structure**: Commands are organized into logical groups with consistent naming
-2. **Sensible Defaults**: Primary commands work without arguments and use sensible defaults
-3. **Rich Output**: User-friendly console output with color and formatting
-4. **Environment Variables**: Support for configuration via environment variables
+1. **Framework Integration**: Leverage CLI framework for consistent UX and enterprise patterns
+2. **Service Separation**: Complex logic stays in service layers (e.g., `health_service.py`)
+3. **Clean Output**: Separation between user-facing output and operational logging
+4. **Production Ready**: Secret masking, structured logging, and monitoring integration
 5. **Type Safety**: Full type annotations for reliability and maintainability
-6. **Comprehensive Help**: Detailed help text for all commands and options
-7. **Error Handling**: Robust error reporting and appropriate exit codes
+6. **Async First**: Built for concurrent operations and scalable patterns
 
 ***REMOVED******REMOVED*** Extending the CLI
 
-To add new command groups or commands:
+***REMOVED******REMOVED******REMOVED*** Using Framework Generators
 
-1. Create a new module in the `commands/` directory
-2. Define a `typer.Typer` app in the module
-3. Add command functions using `@app.command()`
-4. Import and register in `main.py` using `app.add_typer()`
+For common patterns, use the CLI framework generators:
 
-***REMOVED******REMOVED*** Best Practices
+```python
+from cli_framework import create_health_commands, create_cache_commands
 
-- Commands should have clear, descriptive names
-- Use verb-noun format for commands (e.g., `cache clear`, `health check`)
-- Provide sensible defaults for all options
-- Include comprehensive help text for all commands and options
-- Handle errors gracefully with appropriate exit codes
-- Log information at appropriate levels
+***REMOVED*** Auto-generate health commands
+health_app = create_health_commands(
+    health_service_getter=get_health_service,
+    service_checks={
+        "backend": ("check_backend_api", "Backend API"),
+        "auth": ("check_auth_api", "Auth API"),
+    }
+)
+```
+
+***REMOVED******REMOVED******REMOVED*** Custom Commands
+
+For custom functionality, follow the framework patterns:
+
+```python
+from cli_framework import get_cli_output
+
+@app.command()
+def my_command(verbose: bool = False, quiet: bool = False):
+    out = get_cli_output("my-command", verbose=verbose, quiet=quiet)
+
+    out.info("User-facing message")
+    out.log_operation("Operational log", key="value")
+```
 
 ***REMOVED******REMOVED*** Shell Completion
 
-The BFF API CLI supports shell completion for Bash, Zsh, and Fish shells. This enables tab-completion for commands, options, and their values.
-
-***REMOVED******REMOVED******REMOVED*** Installation
-
-To enable shell completion, run one of the following commands based on your shell:
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Automatic Setup
-
-Use the provided setup script to automatically configure shell completion:
-
-```bash
-***REMOVED*** From the project root
-./scripts/setup_completion.sh
-```
-
-This will detect your shell and add the appropriate completion configuration to your shell's config file.
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Manual Setup
-
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** Bash
-
-```bash
-***REMOVED*** Add to your ~/.bashrc file
-eval "$(bff-api --completion bash)"
-
-***REMOVED*** Or temporarily enable for current session
-source <(bff-api --completion bash)
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** Zsh
-
-```bash
-***REMOVED*** Add to your ~/.zshrc file
-eval "$(bff-api --completion zsh)"
-
-***REMOVED*** Or temporarily enable for current session
-source <(bff-api --completion zsh)
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** Fish
-
-```bash
-***REMOVED*** Add to your ~/.config/fish/config.fish
-bff-api --completion fish | source
-
-***REMOVED*** Or temporarily enable for current session
-bff-api --completion fish | source
-```
-
-***REMOVED******REMOVED******REMOVED*** Usage
-
-Once shell completion is set up, you can use tab completion:
-
-```bash
-***REMOVED*** Press Tab to see available commands
-bff-api [TAB]
-
-***REMOVED*** Press Tab to see subcommands
-bff-api health [TAB]
-
-***REMOVED*** Press Tab to see options
-bff-api serve --[TAB]
-```
-
-This makes it easier to discover and use CLI commands without having to refer to the help documentation.
+The BFF API CLI supports shell completion for Bash, Zsh, and Fish shells through the CLI framework integration.

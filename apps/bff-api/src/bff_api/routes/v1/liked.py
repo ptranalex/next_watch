@@ -1,16 +1,16 @@
 """Liked movies-related routes for BFF API."""
 
-from typing import Optional, List, Dict, Any, cast
+from typing import Any, Dict, List, Optional, cast
+
+from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from bff_api.schemas.screen_schemas import MovieListData
-from bff_api.dependencies.common import get_backend_client
 from bff_api.dependencies.auth import get_current_user_id_and_token
+from bff_api.dependencies.common import get_backend_client
+from bff_api.schemas.screen_schemas import MovieListData
 from bff_api.services.backend_client import BackendClient, BackendClientError
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.routes.liked")
+logger = get_logger(__name__)
 router = APIRouter(tags=["liked"])
 
 
@@ -81,10 +81,9 @@ async def get_user_liked_movies(
             offset=offset,
         )
 
-        ***REMOVED*** The backend returns a list of user interaction objects
-        liked_interactions: list[dict[str, Any]] = (
-            liked_interactions_response if isinstance(liked_interactions_response, list) else []
-        )
+        ***REMOVED*** The backend client wraps list responses in {"data": [...]} format
+        ***REMOVED*** Extract the interactions list from the wrapped response
+        liked_interactions: List[Dict[str, Any]] = liked_interactions_response.get("data", [])
 
         ***REMOVED*** Filter to only get actually liked movies (since some interactions might have liked=false)
         actually_liked = [

@@ -1,6 +1,7 @@
 """Authentication schemas for BFF API."""
 
 from typing import Optional
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -57,4 +58,4 @@ class TokenVerificationResponse(BaseModel):
     valid: bool
     user_id: Optional[int] = None
     email: Optional[str] = None
-    message: Optional[str] = None 
+    message: Optional[str] = None

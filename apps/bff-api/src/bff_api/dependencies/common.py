@@ -1,9 +1,11 @@
 """Common dependencies for BFF API routes."""
 
 from typing import cast
+
 from fastapi import Request
-from bff_api.services.backend_client import BackendClient
+
 from bff_api.services.auth_client import AuthClient
+from bff_api.services.backend_client import BackendClient
 
 
 def get_backend_client(request: Request) -> BackendClient:

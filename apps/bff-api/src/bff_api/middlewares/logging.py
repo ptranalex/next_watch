@@ -1,15 +1,16 @@
 """Logging middleware for BFF application with structured logging."""
 
 import time
-from typing import Callable, Awaitable, cast
+from typing import Awaitable, Callable, cast
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-from bff_api.config.logging import get_logger
+from config.logging import get_logger
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):

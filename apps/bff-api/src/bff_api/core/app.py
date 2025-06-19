@@ -13,11 +13,17 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from config.logging import get_logger
+from bff_api.services.auth_client import AuthClient
+
 ***REMOVED*** Import services
 from bff_api.services.backend_client import BackendClient
-from bff_api.services.auth_client import AuthClient
+from bff_api.services.cache_service import close_cache_service, get_cache_service
 from bff_api.services.health_service import HealthService, close_health_service
-from bff_api.config.logging import get_logger
+from bff_api.services.cache_service.background_warming_service import (
+    start_background_warming,
+    stop_background_warming,
+)
 
 logger = get_logger(__name__)
 
@@ -49,6 +55,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             auth_api_url=getattr(_app_settings, "auth_api_url", "unknown"),
             debug_mode=getattr(_app_settings, "debug", False),
         )
+
+    ***REMOVED*** Initialize cache service
+    logger.info("Initializing cache service", service="bff", component="cache_service")
+    cache_service = get_cache_service()
+    cache_healthy = await cache_service.health_check()
+    logger.info(
+        "Cache service initialized",
+        service="bff",
+        component="cache_service",
+        healthy=cache_healthy,
+    )
 
     ***REMOVED*** Initialize backend client
     logger.info("Initializing backend client", service="bff", component="backend_client")
@@ -100,6 +117,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         )
         ***REMOVED*** Continue without health service if it fails
         app.state.health_service = None
+
+    ***REMOVED*** Start background warming service
+    logger.info(
+        "Starting background warming service", service="bff", component="background_warming"
+    )
+    try:
+        await start_background_warming()
+        logger.info(
+            "Background warming service started successfully",
+            service="bff",
+            component="background_warming",
+        )
+    except Exception as e:
+        logger.error(
+            "Failed to start background warming service",
+            service="bff",
+            component="background_warming",
+            error=str(e),
+        )
+        ***REMOVED*** Continue without background warming if it fails
+        pass
 
     yield
 
@@ -172,6 +210,33 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Close global health service
     await close_health_service()
 
+    ***REMOVED*** Stop background warming service
+    try:
+        logger.info(
+            "Stopping background warming service",
+            service="bff",
+            component="background_warming",
+            phase="shutdown",
+        )
+        await stop_background_warming()
+        logger.info(
+            "Background warming service stopped successfully",
+            service="bff",
+            component="background_warming",
+        )
+    except Exception as e:
+        logger.error(
+            "Error stopping background warming service",
+            service="bff",
+            component="background_warming",
+            error=str(e),
+        )
+
+    ***REMOVED*** Close global cache service
+    await close_cache_service()
+
+    logger.info("BFF service shutdown complete", service="bff")
+
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler for unhandled exceptions.
@@ -206,10 +271,11 @@ def create_app(settings: Optional[Any] = None) -> FastAPI:
 
     _app_settings = settings
 
-    from .middleware import setup_middleware
     from bff_api.routes.api_v1 import api_v1_router
-    from bff_api.routes.meta import router as meta_router
     from bff_api.routes.health import router as health_router
+    from bff_api.routes.meta import router as meta_router
+
+    from .middleware import setup_middleware
 
     ***REMOVED*** Create FastAPI application
     app = FastAPI(

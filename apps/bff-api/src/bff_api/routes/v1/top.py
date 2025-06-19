@@ -1,17 +1,18 @@
 """Top movies routes for BFF API."""
 
 import logging
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any, Dict, Optional
 
-from bff_api.schemas.screen_schemas import MovieListData
+from config.logging import get_logger
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from bff_api.dependencies.common import get_backend_client
+from bff_api.schemas.screen_schemas import MovieListData
 from bff_api.services.backend_client import BackendClient, BackendClientError
 from bff_api.utils.auth import extract_user_id_from_token
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.routes.top")
+logger = get_logger(__name__)
 router = APIRouter(tags=["top"])
 
 ***REMOVED*** Security scheme for optional authentication

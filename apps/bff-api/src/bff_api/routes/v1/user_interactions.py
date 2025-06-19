@@ -1,21 +1,20 @@
 """User interaction routes for BFF API."""
 
-import logging
-from typing import Tuple, Optional
-from fastapi import APIRouter, Depends, HTTPException, Path, status, Body
-from pydantic import BaseModel, Field
+from typing import Tuple
 
+from config.logging import get_logger
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
+
+from bff_api.dependencies.auth import get_current_user_id_and_token
+from bff_api.dependencies.common import get_backend_client
 from bff_api.schemas.user_interaction_schemas import (
-    UserMovieInteractionResponse,
     ToggleInteractionRequest,
     ToggleInteractionResponse,
+    UserMovieInteractionResponse,
 )
-from bff_api.dependencies.common import get_backend_client
-from bff_api.dependencies.auth import get_current_user_id_and_token
 from bff_api.services.backend_client import BackendClient, BackendClientError
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.routes.user_interactions")
+logger = get_logger(__name__)
 
 router = APIRouter(tags=["user-interactions"])
 

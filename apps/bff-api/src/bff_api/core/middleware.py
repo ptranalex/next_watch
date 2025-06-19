@@ -5,18 +5,18 @@ including CORS, authentication, logging, and performance monitoring.
 """
 
 import datetime
-from typing import Any
 import uuid
-from structlog.contextvars import bind_contextvars, clear_contextvars
+from typing import Any
 
+from config.logging import get_logger
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from structlog.contextvars import bind_contextvars, clear_contextvars
 
 from bff_api.config.app import settings
-from bff_api.config.logging import get_logger
-from bff_api.middlewares.logging import LoggingMiddleware
 from bff_api.middlewares.auth import AuthMiddleware
+from bff_api.middlewares.logging import LoggingMiddleware
 
 logger = get_logger(__name__)
 

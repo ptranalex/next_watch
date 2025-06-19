@@ -1,8 +1,9 @@
 """User interaction schemas for BFF API."""
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserMovieInteractionResponse(BaseModel):

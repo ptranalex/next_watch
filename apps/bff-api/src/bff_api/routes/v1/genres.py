@@ -1,20 +1,187 @@
 """Genre-related routes for BFF API."""
 
-from typing import Optional, Dict, Any, Union, List
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any, Dict, Optional
 
-from bff_api.schemas.screen_schemas import GenreScreenData
+from cache.decorators import redis_cache
+from cache.keys import build_filtered_key
+from config.logging import get_logger
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from bff_api.dependencies.common import get_backend_client
+from bff_api.schemas.screen_schemas import GenreScreenData
 from bff_api.services.backend_client import BackendClient, BackendClientError
 from bff_api.utils.auth import extract_user_id_from_token
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.routes.genres")
+logger = get_logger(__name__)
 router = APIRouter(tags=["genres"])
 
 ***REMOVED*** Security scheme for optional authentication
 security = HTTPBearer(auto_error=False)
+
+
+def _build_genre_screen_cache_key(
+    genre_id: int,
+    page: int,
+    limit: int,
+    actor_id: Optional[int],
+    sort_by: Optional[str],
+    sort_desc: Optional[bool],
+    imdb_rating: Optional[float],
+    rotten_tomatoes_rating: Optional[int],
+    metacritic_rating: Optional[int],
+    year: Optional[int],
+    start_year: Optional[int],
+    end_year: Optional[int],
+    user_id: Optional[int],
+    backend: BackendClient,
+    credentials: Optional[HTTPAuthorizationCredentials] = None,
+) -> str:
+    """Build cache key for genre screen with all parameters using cache library utilities."""
+    filters = {
+        "page": page,
+        "limit": limit,
+        "actor_id": actor_id,
+        "sort_by": sort_by,
+        "sort_desc": sort_desc,
+        "imdb_rating": imdb_rating,
+        "rotten_tomatoes_rating": rotten_tomatoes_rating,
+        "metacritic_rating": metacritic_rating,
+        "year": year,
+        "start_year": start_year,
+        "end_year": end_year,
+    }
+    return build_filtered_key("screen:genre", str(genre_id), filters, user_id=user_id, prefix="")
+
+
+@redis_cache(ttl=900, key_builder=_build_genre_screen_cache_key)  ***REMOVED*** 15 minutes for genre movie lists
+async def _get_genre_screen_data(
+    genre_id: int,
+    page: int,
+    limit: int,
+    actor_id: Optional[int],
+    sort_by: Optional[str],
+    sort_desc: Optional[bool],
+    imdb_rating: Optional[float],
+    rotten_tomatoes_rating: Optional[int],
+    metacritic_rating: Optional[int],
+    year: Optional[int],
+    start_year: Optional[int],
+    end_year: Optional[int],
+    user_id: Optional[int],
+    backend: BackendClient,
+    credentials: Optional[HTTPAuthorizationCredentials] = None,
+) -> Dict[str, Any]:
+    """Internal cached function for genre screen aggregation."""
+    logger.info(
+        "Building genre screen data",
+        genre_id=genre_id,
+        page=page,
+        limit=limit,
+        user_id=user_id,
+        service="bff",
+        component="genre_screen_data",
+    )
+
+    ***REMOVED*** Get genre details from backend
+    try:
+        genre_response = await backend.get_genre(genre_id)
+        logger.info(
+            "Retrieved genre details",
+            genre_id=genre_id,
+            genre_name=genre_response.get("name", "unknown"),
+            service="bff",
+            component="genres",
+        )
+    except BackendClientError as e:
+        if "404" in str(e):
+            raise HTTPException(status_code=404, detail="Genre not found")
+        logger.error(
+            "Failed to get genre details",
+            genre_id=genre_id,
+            error=str(e),
+            service="bff",
+            component="genres",
+        )
+        raise HTTPException(status_code=502, detail="Backend service unavailable")
+
+    ***REMOVED*** Get movies for this genre with filters
+    kwargs: Dict[str, Any] = {"genre_id": genre_id}
+    if actor_id is not None:
+        kwargs["actor_id"] = actor_id
+    if sort_by is not None:
+        kwargs["sort_by"] = sort_by
+    if sort_desc is not None:
+        kwargs["sort_desc"] = sort_desc
+    if imdb_rating is not None:
+        kwargs["imdb_rating"] = imdb_rating
+    if rotten_tomatoes_rating is not None:
+        kwargs["rotten_tomatoes_rating"] = rotten_tomatoes_rating
+    if metacritic_rating is not None:
+        kwargs["metacritic_rating"] = metacritic_rating
+    if year is not None:
+        kwargs["year"] = year
+    if start_year is not None:
+        kwargs["start_year"] = start_year
+    if end_year is not None:
+        kwargs["end_year"] = end_year
+
+    movies_response = await backend.get_movies(
+        page=page,
+        limit=limit,
+        user_id=user_id,
+        **kwargs,
+    )
+
+    ***REMOVED*** Extract pagination data from backend's standardized format
+    movies = movies_response.get("results", [])
+    total_count = movies_response.get("total", 0)
+    current_page = movies_response.get("page", page)
+    per_page = movies_response.get("per_page", limit)
+    total_pages = movies_response.get("total_pages", 0)
+    has_next = movies_response.get("has_next", False)
+    has_prev = movies_response.get("has_prev", False)
+
+    ***REMOVED*** For anonymous users, set all interaction fields to false
+    logger.info(
+        "Setting default interaction values for genre movies",
+        genre_id=genre_id,
+        movie_count=len(movies),
+        service="bff",
+        component="user_interactions",
+    )
+    for movie in movies:
+        movie["liked"] = False
+        movie["watched"] = False
+        movie["in_watchlist"] = False
+        movie["user_interactions"] = {
+            "in_watchlist": False,
+            "is_favorite": False,
+            "user_rating": None,
+            "watch_progress": 0,
+            "is_watched": False,
+        }
+
+    ***REMOVED*** Return as dictionary for caching
+    genre_screen_data = {
+        "genre": genre_response,
+        "total": total_count,
+        "page": current_page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "has_next": has_next,
+        "has_prev": has_prev,
+        "results": movies,
+    }
+
+    logger.info(
+        "Successfully built genre screen data",
+        genre_id=genre_id,
+        service="bff",
+        component="genre_screen_data",
+    )
+
+    return genre_screen_data
 
 
 @router.get("/genres/{genre_id}", response_model=GenreScreenData)
@@ -104,67 +271,28 @@ async def get_genre_screen(
     final_user_id = extracted_user_id or user_id
 
     try:
-        ***REMOVED*** Get genre details from backend
-        try:
-            genre_response = await backend.get_genre(genre_id)
-            logger.info(
-                "Retrieved genre details",
-                genre_id=genre_id,
-                genre_name=genre_response.get("name", "unknown"),
-                service="bff",
-                component="genres",
-            )
-        except BackendClientError as e:
-            if "404" in str(e):
-                raise HTTPException(status_code=404, detail="Genre not found")
-            logger.error(
-                "Failed to get genre details",
-                genre_id=genre_id,
-                error=str(e),
-                service="bff",
-                component="genres",
-            )
-            raise HTTPException(status_code=502, detail="Backend service unavailable")
-
-        ***REMOVED*** Get movies for this genre with filters
-        kwargs: Dict[str, Any] = {"genre_id": genre_id}
-        if actor_id is not None:
-            kwargs["actor_id"] = actor_id
-        if sort_by is not None:
-            kwargs["sort_by"] = sort_by
-        if sort_desc is not None:
-            kwargs["sort_desc"] = sort_desc
-        if imdb_rating is not None:
-            kwargs["imdb_rating"] = imdb_rating
-        if rotten_tomatoes_rating is not None:
-            kwargs["rotten_tomatoes_rating"] = rotten_tomatoes_rating
-        if metacritic_rating is not None:
-            kwargs["metacritic_rating"] = metacritic_rating
-        if year is not None:
-            kwargs["year"] = year
-        if start_year is not None:
-            kwargs["start_year"] = start_year
-        if end_year is not None:
-            kwargs["end_year"] = end_year
-
-        movies_response = await backend.get_movies(
+        ***REMOVED*** Use the cached function - decorator handles all cache logic
+        genre_screen_dict = await _get_genre_screen_data(
+            genre_id=genre_id,
             page=page,
             limit=limit,
+            actor_id=actor_id,
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+            imdb_rating=imdb_rating,
+            rotten_tomatoes_rating=rotten_tomatoes_rating,
+            metacritic_rating=metacritic_rating,
+            year=year,
+            start_year=start_year,
+            end_year=end_year,
             user_id=final_user_id,
-            **kwargs,
+            backend=backend,
+            credentials=credentials,
         )
 
-        ***REMOVED*** Extract pagination data from backend's standardized format
-        movies = movies_response.get("results", [])
-        total_count = movies_response.get("total", 0)
-        current_page = movies_response.get("page", page)
-        per_page = movies_response.get("per_page", limit)
-        total_pages = movies_response.get("total_pages", 0)
-        has_next = movies_response.get("has_next", False)
-        has_prev = movies_response.get("has_prev", False)
-
-        ***REMOVED*** If user is authenticated, fetch user interactions for each movie
+        ***REMOVED*** Handle user interactions for authenticated users (not cached due to user-specific nature)
         if final_user_id and credentials:
+            movies = genre_screen_dict["results"]
             logger.info(
                 "Fetching user interactions for genre movies",
                 genre_id=genre_id,
@@ -225,37 +353,9 @@ async def get_genre_screen(
                             "watch_progress": 0,
                             "is_watched": False,
                         }
-        else:
-            ***REMOVED*** For anonymous users, set all interaction fields to false
-            logger.info(
-                "Setting default interaction values for anonymous user in genre",
-                genre_id=genre_id,
-                movie_count=len(movies),
-                service="bff",
-                component="user_interactions",
-            )
-            for movie in movies:
-                movie["liked"] = False
-                movie["watched"] = False
-                movie["in_watchlist"] = False
-                movie["user_interactions"] = {
-                    "in_watchlist": False,
-                    "is_favorite": False,
-                    "user_rating": None,
-                    "watch_progress": 0,
-                    "is_watched": False,
-                }
 
-        return GenreScreenData(
-            genre=genre_response,
-            total=total_count,
-            page=current_page,
-            per_page=per_page,
-            total_pages=total_pages,
-            has_next=has_next,
-            has_prev=has_prev,
-            results=movies,
-        )
+        ***REMOVED*** Convert dictionary back to Pydantic model
+        return GenreScreenData(**genre_screen_dict)
 
     except BackendClientError as e:
         logger.error(

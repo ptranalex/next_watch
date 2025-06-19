@@ -1,14 +1,15 @@
 """Home screen routes for BFF API."""
 
 from typing import Optional
+
+from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from bff_api.schemas.screen_schemas import HomeScreenData
 from bff_api.dependencies.common import get_backend_client
+from bff_api.schemas.screen_schemas import HomeScreenData
 from bff_api.services.backend_client import BackendClient, BackendClientError
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.routes.home")
+logger = get_logger(__name__)
 router = APIRouter(tags=["home"])
 
 

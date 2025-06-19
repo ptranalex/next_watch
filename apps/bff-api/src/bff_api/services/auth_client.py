@@ -1,16 +1,15 @@
 """Authentication client for communicating with auth service."""
 
 import logging
-from typing import Dict, Any, Optional, TypeVar, cast
+from typing import Any, Dict, Optional, TypeVar, cast
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from bff_api.config.app import Config
+from bff_api.config.app import BFFAPIConfig
+from config.logging import get_logger
 
-from bff_api.config.logging import get_logger
-
-logger = get_logger("bff_api.services.auth_client")
+logger = get_logger(__name__)
 
 
 class AuthClientError(Exception):
@@ -22,7 +21,7 @@ class AuthClientError(Exception):
 class AuthClient:
     """HTTP client for communicating with authentication service."""
 
-    def __init__(self, config: Config):
+    def __init__(self, config: BFFAPIConfig) -> None:
         """Initialize auth client.
 
         Args:

@@ -1,6 +1,7 @@
 """Pydantic schemas for screen-oriented API responses."""
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -49,7 +50,9 @@ class HomeScreenData(BaseModel):
 class UserInteractions(BaseModel):
     """User interaction data for a movie."""
 
-    in_watchlist: bool = Field(default=False, description="Whether the movie is in user's watchlist")
+    in_watchlist: bool = Field(
+        default=False, description="Whether the movie is in user's watchlist"
+    )
     is_favorite: bool = Field(default=False, description="Whether the movie is marked as favorite")
     user_rating: Optional[float] = Field(default=None, description="User's rating for the movie")
     watch_progress: float = Field(default=0, description="User's watch progress (0-100)")

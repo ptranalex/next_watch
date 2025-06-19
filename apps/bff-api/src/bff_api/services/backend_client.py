@@ -18,9 +18,9 @@ from .clients import (
     BackendClient,
     BackendClientError,
     BaseBackendClient,
+    ContentDiscoveryClient,
     MoviesClient,
     UserInteractionsClient,
-    ContentDiscoveryClient,
 )
 
 ***REMOVED*** Maintain backward compatibility - export the main client and error class

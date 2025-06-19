@@ -2,7 +2,8 @@
 
 import os
 from typing import Optional
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Path
 
 ***REMOVED*** Import configuration after environment variables are loaded
 from bff_api.config.app import settings
@@ -16,30 +17,41 @@ def get_app() -> FastAPI:
     global _app
     if _app is None:
         ***REMOVED*** Configure logging for web server mode
-        from bff_api.core.logging import setup_logging
-        from bff_api.config.logging import get_logger
+        from config.logging import configure_logging, get_logger
 
-        setup_logging(
+        ***REMOVED*** Configure logging with enhanced settings
+        log_dir = None
+        if settings.logs_dir:
+            log_dir = Path(settings.logs_dir)
+
+        configure_logging(
             log_level=settings.log_level,
+            log_dir=log_dir,
             verbose=settings.debug,
             quiet=False,
+            use_coloredlogs=True,
+            logger_name="bff_api",
             color_theme="modern",
+            http_verbose=False,  ***REMOVED*** Keep HTTP logs quiet unless debugging
+            component_levels={
+                "db": "INFO",  ***REMOVED*** Database queries
+                "middlewares": "INFO",  ***REMOVED*** Middleware logs
+                "routes": "INFO",  ***REMOVED*** Route logs
+                "health": "WARNING",  ***REMOVED*** Keep health checks quiet
+            },
         )
 
         logger = get_logger("bff_api.main")
 
         ***REMOVED*** Log main application startup
-        logger.info("Initializing Next Watch BFF API", service="bff")
-        logger.info(
-            "Application environment configured",
-            environment=os.getenv("ENVIRONMENT", "development"),
-        )
+        logger.info("Initializing Next Watch BFF Service", service="bff-api")
+        logger.info("Environment configuration", environment=settings.environment)
 
         ***REMOVED*** Import and create app using core module
         from bff_api.core.app import create_app
 
         _app = create_app(settings)
-        logger.info("BFF API initialized successfully", service="bff")
+        logger.info("BFF Service initialized successfully", service="bff-api")
 
     return _app
 

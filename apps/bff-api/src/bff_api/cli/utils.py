@@ -2,18 +2,18 @@
 
 import logging
 from typing import Any, Dict, Optional
+
 import httpx
-
 from rich.console import Console
-from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
-from bff_api.config.app import Config
+from bff_api.config.app import BFFAPIConfig, settings
 
 logger = logging.getLogger(__name__)
 
 
-def format_config_table(config: Config, title: str = "BFF Configuration") -> Table:
+def format_config_table(config: BFFAPIConfig, title: str = "BFF Configuration") -> Table:
     """Format configuration settings as a Rich table.
 
     Args:
@@ -29,7 +29,7 @@ def format_config_table(config: Config, title: str = "BFF Configuration") -> Tab
     table.add_column("Source", style="yellow", no_wrap=True)
 
     ***REMOVED*** Configuration settings to display
-    settings = [
+    config_settings = [
         ("Host", config.host, "ENV/DEFAULT"),
         ("Port", str(config.port), "ENV/DEFAULT"),
         ("Environment", config.environment, "ENV/DEFAULT"),
@@ -40,30 +40,30 @@ def format_config_table(config: Config, title: str = "BFF Configuration") -> Tab
         ("Backend API Timeout", f"{config.backend_api_timeout}s", "ENV/DEFAULT"),
         ("Auth API URL", config.auth_api_url, "ENV/DEFAULT"),
         ("Redis URL", _mask_redis_url(config.redis_url), "ENV/DEFAULT"),
-        ("Cache TTL", f"{config.cache_ttl}s", "ENV/DEFAULT"),
+        ("Cache TTL Movie Data", f"{config.cache_ttl_movie_data}s", "ENV/DEFAULT"),
         ("CORS Origins", ", ".join(config.cors_origins), "ENV/DEFAULT"),
         (
             "Performance Metrics",
-            _format_boolean(config.enable_performance_metrics),
+            _format_boolean(config.bff_performance_metrics),
             "ENV/DEFAULT",
         ),
     ]
 
     ***REMOVED*** Add sensitive settings with masking
     jwt_display = _mask_sensitive_value(config.jwt_secret)
-    settings.append(("JWT Secret", jwt_display, "ENV/DEFAULT"))
+    config_settings.append(("JWT Secret", jwt_display, "ENV/DEFAULT"))
 
     api_key_display = _mask_sensitive_value(config.internal_api_key)
-    settings.append(("Internal API Key", api_key_display, "ENV/DEFAULT"))
+    config_settings.append(("Internal API Key", api_key_display, "ENV/DEFAULT"))
 
-    for setting, value, source in settings:
+    for setting, value, source in config_settings:
         table.add_row(setting, value, source)
 
     return table
 
 
 def print_config(
-    config: Config,
+    config: BFFAPIConfig,
     title: str = "BFF Configuration",
     console: Optional[Console] = None,
     show_secrets: bool = False,

@@ -15,7 +15,7 @@ are executed in reverse order of registration (last registered is executed first
 See the README.md file in this directory for detailed documentation.
 """
 
-from .logging import LoggingMiddleware
 from .auth import AuthMiddleware
+from .logging import LoggingMiddleware
 
 __all__ = ["LoggingMiddleware", "AuthMiddleware"]

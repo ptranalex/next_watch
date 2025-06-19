@@ -5,14 +5,14 @@ including API information, debugging endpoints, and service metadata.
 """
 
 import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
+from config.logging import get_logger
 from fastapi import APIRouter
 
 from bff_api.config.app import settings
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.routes.meta")
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -71,7 +71,7 @@ async def debug_info() -> Dict[str, Any]:
             "log_level": settings.log_level,
             "api_port": settings.port,
             "cors_origins": settings.cors_origins,
-            "performance_metrics_enabled": settings.enable_performance_metrics,
+            "performance_metrics_enabled": settings.bff_performance_metrics,
             "external_services": {
                 "backend_api_url": settings.backend_api_url,
                 "backend_api_timeout": settings.backend_api_timeout,
@@ -79,7 +79,11 @@ async def debug_info() -> Dict[str, Any]:
                 "auth_api_url": settings.auth_api_url,
             },
             "redis_url": settings.redis_url,
-            "cache_ttl": settings.cache_ttl,
+            "cache_ttl_defaults": {
+                "movie_data": settings.cache_ttl_movie_data,
+                "user_session": settings.cache_ttl_user_session,
+                "popular_content": settings.cache_ttl_popular_content,
+            },
             "security": {
                 "allowed_hosts": settings.allowed_hosts,
                 "jwt_configured": bool(settings.jwt_secret),

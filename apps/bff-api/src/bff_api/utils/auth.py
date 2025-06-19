@@ -1,11 +1,13 @@
 """Authentication utilities for BFF API."""
 
 from typing import Optional
-import jwt
-from bff_api.config.app import settings
-from bff_api.config.logging import get_logger
 
-logger = get_logger("bff_api.utils.auth")
+import jwt
+
+from bff_api.config.app import settings
+from config.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def extract_user_id_from_token(token: str) -> Optional[int]:

@@ -1,15 +1,15 @@
 """Facade client that combines all specialized backend clients."""
 
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
-from bff_api.config.app import Config
-from bff_api.config.logging import get_logger
+from config.logging import get_logger
 
-from .movies import MoviesClient
-from .user_interactions import UserInteractionsClient
-from .content_discovery import ContentDiscoveryClient
+from bff_api.config.app import BFFAPIConfig
+from bff_api.services.clients.content_discovery import ContentDiscoveryClient
+from bff_api.services.clients.movies import MoviesClient
+from bff_api.services.clients.user_interactions import UserInteractionsClient
 
-logger = get_logger("bff_api.services.clients.facade")
+logger = get_logger(__name__)
 
 
 class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient):
@@ -25,13 +25,13 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
     - ContentDiscoveryClient: Content discovery (genres, actors)
     """
 
-    def __init__(self, config: Config):
+    def __init__(self, config: BFFAPIConfig) -> None:
         """Initialize the unified backend client.
 
         Args:
             config: Configuration instance
         """
-        ***REMOVED*** Initialize all parent classes with the same config
+        ***REMOVED*** Initialize all parent classes
         super().__init__(config)
         logger.info(
             "Initialized unified BackendClient with all specialized clients",

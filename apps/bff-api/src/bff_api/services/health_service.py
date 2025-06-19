@@ -10,17 +10,17 @@ This service provides health checks for all external dependencies:
 import asyncio
 import logging
 import time
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 import httpx
+from config.logging import get_logger
 from httpx import HTTPStatusError, RequestError
 
 from bff_api.config.app import settings
+from bff_api.services.cache_service import get_cache_service
 
-from bff_api.config.logging import get_logger
-
-logger = get_logger("bff_api.services.health_service")
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -64,10 +64,11 @@ class HealthService:
         backend_task = asyncio.create_task(self.check_backend_api())
         reco_task = asyncio.create_task(self.check_recommendation_api())
         auth_task = asyncio.create_task(self.check_auth_api())
+        cache_task = asyncio.create_task(self.check_cache())
 
         ***REMOVED*** Wait for all checks to complete
-        backend_result, reco_result, auth_result = await asyncio.gather(
-            backend_task, reco_task, auth_task, return_exceptions=True
+        backend_result, reco_result, auth_result, cache_result = await asyncio.gather(
+            backend_task, reco_task, auth_task, cache_task, return_exceptions=True
         )
 
         ***REMOVED*** Handle any exceptions and build results
@@ -109,7 +110,60 @@ class HealthService:
                 is_healthy=False, status="error", error="Unexpected result type"
             )
 
+        ***REMOVED*** Process cache result
+        if isinstance(cache_result, Exception):
+            results["cache"] = HealthCheckResult(
+                is_healthy=False, status="error", error=str(cache_result)
+            )
+        elif isinstance(cache_result, HealthCheckResult):
+            results["cache"] = cache_result
+        else:
+            results["cache"] = HealthCheckResult(
+                is_healthy=False, status="error", error="Unexpected result type"
+            )
+
         return results
+
+    async def check_cache(self) -> HealthCheckResult:
+        """Check cache service health.
+
+        Returns:
+            Health check result for cache service
+        """
+        start_time = time.time()
+
+        try:
+            cache_service = get_cache_service()
+            is_healthy = await cache_service.health_check()
+            response_time = (time.time() - start_time) * 1000
+
+            if is_healthy:
+                return HealthCheckResult(
+                    is_healthy=True,
+                    status="healthy",
+                    response_time_ms=round(response_time, 2),
+                    details={
+                        "provider": "redis",
+                        "key_prefix": cache_service.settings.key_prefix,
+                    },
+                )
+            else:
+                return HealthCheckResult(
+                    is_healthy=False,
+                    status="unhealthy",
+                    response_time_ms=round(response_time, 2),
+                    error="Cache health check failed",
+                )
+
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            logger.warning(f"Cache health check failed: {e}")
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
 
     async def check_backend_api(self) -> HealthCheckResult:
         """Check Backend API health.

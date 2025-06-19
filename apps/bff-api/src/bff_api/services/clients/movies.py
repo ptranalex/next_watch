@@ -1,14 +1,15 @@
 """Movie-related operations for backend API."""
 
 import logging
-from typing import Dict, List, Optional, Any, cast
+from typing import Any, Dict, List, Optional, cast
+
 import httpx
 
-from .base import BaseBackendClient, BackendClientError
+from config.logging import get_logger
 
-from bff_api.config.logging import get_logger
+from .base import BackendClientError, BaseBackendClient
 
-logger = get_logger("bff_api.services.clients.movies")
+logger = get_logger(__name__)
 
 
 class MoviesClient(BaseBackendClient):
@@ -141,12 +142,8 @@ class MoviesClient(BaseBackendClient):
             BackendClientError: If request fails
         """
         try:
-            ***REMOVED*** Get URL for recommendation API from config or construct it
-            reco_api_url = (
-                self.config.reco_api_url
-                if hasattr(self.config, "reco_api_url")
-                else "http://localhost:8002"
-            )
+            ***REMOVED*** Get URL for recommendation API from settings
+            reco_api_url = self.config.reco_api_url
 
             ***REMOVED*** Create a temporary client for recommendation API
             async with httpx.AsyncClient(base_url=reco_api_url, timeout=self.timeout) as client:

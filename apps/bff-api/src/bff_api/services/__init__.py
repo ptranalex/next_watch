@@ -18,9 +18,15 @@ The clients implement resilient communication with:
 See the README.md file in this directory for detailed documentation.
 """
 
-from .backend_client import BackendClient
-from .auth_client import AuthClient
-from .health_service import HealthService, get_health_service, close_health_service
+from bff_api.services.auth_client import AuthClient
+from bff_api.services.clients.facade import BackendClient
+from bff_api.services.health_service import HealthService, close_health_service, get_health_service
+from bff_api.services.cache_service import (
+    BFFWarmingService,
+    configure_bff_warming,
+    get_bff_warming_config,
+    get_bff_warming_service,
+)
 
 __all__ = [
     "BackendClient",
@@ -28,4 +34,8 @@ __all__ = [
     "HealthService",
     "get_health_service",
     "close_health_service",
+    "BFFWarmingService",
+    "get_bff_warming_service",
+    "configure_bff_warming",
+    "get_bff_warming_config",
 ]

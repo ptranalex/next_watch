@@ -6,19 +6,18 @@ from fastapi import APIRouter
 
 ***REMOVED*** Import v1 route modules from v1 package
 from bff_api.routes.v1 import (
-    home,
-    movies,
-    genres,
-    search,
-    user_interactions,
-    auth,
-    navbar,
-    sidebar,
     actors,
+    auth,
+    genres,
+    home,
+    liked,
+    movies,
+    search,
+    sidebar,
     top,
+    user_interactions,
     watched,
     watchlist,
-    liked,
 )
 
 ***REMOVED*** Create the v1 API router
@@ -31,7 +30,6 @@ api_v1_router.include_router(genres.router, tags=["genres"])
 api_v1_router.include_router(search.router, tags=["search"])
 api_v1_router.include_router(user_interactions.router, tags=["user_interactions"])
 api_v1_router.include_router(auth.router, tags=["auth"])
-api_v1_router.include_router(navbar.router, tags=["navbar"])
 api_v1_router.include_router(sidebar.router, tags=["sidebar"])
 api_v1_router.include_router(actors.router, tags=["actors"])
 api_v1_router.include_router(top.router, tags=["top"])

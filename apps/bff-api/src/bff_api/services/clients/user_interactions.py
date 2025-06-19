@@ -1,13 +1,13 @@
 """User interaction operations for backend API."""
 
 import logging
-from typing import Dict, List, Optional, Any, cast
+from typing import Any, Dict, List, Optional, cast
 
-from .base import BaseBackendClient, BackendClientError
+from config.logging import get_logger
 
-from bff_api.config.logging import get_logger
+from bff_api.services.clients.base import BackendClientError, BaseBackendClient
 
-logger = get_logger("bff_api.services.clients.user_interactions")
+logger = get_logger(__name__)
 
 
 class UserInteractionsClient(BaseBackendClient):

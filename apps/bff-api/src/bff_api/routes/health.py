@@ -1,17 +1,19 @@
 """Health check routes for BFF service."""
 
 import datetime
-import time
-from typing import Dict, Any
+from typing import Dict
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from bff_api.config.app import settings
-from bff_api.config.logging import get_logger
+from config.logging import get_logger
+from bff_api.services.cache_service.background_warming_service import (
+    get_background_warming_service,
+)
 
-logger = get_logger("bff_api.routes.health")
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -246,3 +248,66 @@ async def basic_health_check() -> HealthResponse:
         environment=settings.environment,
         backend_api_url=settings.backend_api_url,
     )
+
+
+@router.get("/health/warming")
+async def warming_status() -> JSONResponse:
+    """Background warming service status endpoint.
+
+    Provides detailed information about the background warming service including:
+    - Service running status
+    - Active warming tasks
+    - Schedule configuration
+    - Task health
+
+    Returns:
+        Background warming service status and configuration
+    """
+    try:
+        warming_service = get_background_warming_service()
+        status = warming_service.get_status()
+        health = await warming_service.health_check()
+
+        logger.info(
+            "Warming status check",
+            running=status["running"],
+            active_tasks=status["active_tasks"],
+            service="bff",
+            endpoint="warming_status",
+        )
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "healthy" if status["running"] else "stopped",
+                "service": "background_warming",
+                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                "details": {
+                    **status,
+                    "health": health,
+                },
+                "schedules": {
+                    "morning_warmup": "7:00 AM - Popular content warming",
+                    "evening_warmup": "5:00 PM - Metrics-driven warming",
+                    "night_optimization": "1:00 AM - Scheduled warming",
+                    "continuous_metrics": "Every 10 minutes - Metrics-driven warming",
+                },
+            },
+        )
+
+    except Exception as e:
+        logger.error(
+            "Warming status check failed",
+            error=str(e),
+            service="bff",
+            endpoint="warming_status",
+        )
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "service": "background_warming",
+                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                "error": f"Failed to get warming status: {str(e)}",
+            },
+        )
