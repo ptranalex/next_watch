@@ -1,56 +1,53 @@
-"""NextWatch Shared Configuration Library.
+"""NextWatch configuration library.
 
-A unified configuration management library for the NextWatch monorepo that provides
-consistent, type-safe, and production-ready configuration patterns across all services.
-
-This library addresses configuration fragmentation by providing:
-- Unified interface across all services
-- Type safety with Pydantic
-- Environment hierarchy with .env support
-- Built-in security and secret masking
-- Rich CLI integration
-- Production-ready validation
+Provides a simplified, standardized way to manage configuration across NextWatch services.
 """
 
+***REMOVED*** Base configuration classes
 from config.base.config import BaseConfig, ServiceConfig, WorkerConfig
-from config.env.loader import EnvironmentLoader, load_environment_for_service
-from config.env.parser import get_env_var, get_env_bool, get_env_int
-from config.logging import configure_logging, get_logger, COLOR_THEMES
-from config.security.masking import mask_config_for_display
-from config.services import (
-    DatabaseConfigMixin,
-    CacheConfigMixin,
-    AuthConfigMixin,
-    MonitoringConfigMixin,
-    VectorDBConfigMixin,
+
+***REMOVED*** Service-specific configuration mixins
+from config.services.auth import AuthConfigMixin
+from config.services.cache import CacheConfigMixin
+from config.services.database import DatabaseConfigMixin
+
+***REMOVED*** Configuration profiles
+from config.profiles import (
+    ApiServiceProfile,
+    BackendServiceProfile,
+    ConfigProfile,
+    DevelopmentProfile,
+    GatewayProfile,
+    HighPerformanceProfile,
+    LowResourceProfile,
+    ProductionProfile,
+    TestProfile,
+    WorkerServiceProfile,
+    apply_profiles,
+    get_profile_by_name,
 )
 
-__version__ = "0.1.0"
-
 __all__ = [
-    ***REMOVED*** Version
-    "__version__",
-    ***REMOVED*** Base configuration classes
+    ***REMOVED*** Base classes
     "BaseConfig",
     "ServiceConfig",
     "WorkerConfig",
-    ***REMOVED*** Environment loading
-    "EnvironmentLoader",
-    "load_environment_for_service",
-    ***REMOVED*** Environment parsing
-    "get_env_var",
-    "get_env_bool",
-    "get_env_int",
-    ***REMOVED*** Logging configuration
-    "configure_logging",
-    "get_logger",
-    "COLOR_THEMES",
-    ***REMOVED*** Security utilities
-    "mask_config_for_display",
-    ***REMOVED*** Service mixins
-    "DatabaseConfigMixin",
-    "CacheConfigMixin",
+    ***REMOVED*** Mixins
     "AuthConfigMixin",
-    "MonitoringConfigMixin",
-    "VectorDBConfigMixin",
+    "CacheConfigMixin",
+    "DatabaseConfigMixin",
+    ***REMOVED*** Profiles
+    "ConfigProfile",
+    "ApiServiceProfile",
+    "BackendServiceProfile",
+    "DevelopmentProfile",
+    "GatewayProfile",
+    "HighPerformanceProfile",
+    "LowResourceProfile",
+    "ProductionProfile",
+    "TestProfile",
+    "WorkerServiceProfile",
+    ***REMOVED*** Profile utilities
+    "apply_profiles",
+    "get_profile_by_name",
 ]

@@ -1,54 +1,40 @@
-"""Database configuration mixin for PostgreSQL connections.
+"""Database configuration mixin.
 
-Provides configuration for PostgreSQL database connections with connection pooling,
-timeouts, and SQLAlchemy-specific settings.
+Provides configuration for database connections with straightforward settings
+and validation.
 """
 
-from typing import Any, Dict, Optional
+from typing import Dict, Any, List, Optional
 from urllib.parse import urlparse
 
 from pydantic import Field, validator
 
 
 class DatabaseConfigMixin:
-    """PostgreSQL database configuration mixin.
+    """Database configuration mixin with simplified approach.
 
     This mixin provides database connection configuration that can be composed
-    into service configurations. It includes connection pooling, timeouts,
-    and SQLAlchemy-specific settings.
+    into service configurations. It includes connection settings and pool
+    configuration with a straightforward approach.
 
     Environment variables (with service prefix):
-    - {SERVICE}_DATABASE_URL: PostgreSQL connection URL
-    - {SERVICE}_DATABASE_ECHO: Enable SQL query logging
+    - {SERVICE}_DATABASE_URL: Database connection URL
     - {SERVICE}_DATABASE_POOL_SIZE: Connection pool size
-    - {SERVICE}_DATABASE_MAX_OVERFLOW: Max overflow connections
-    - {SERVICE}_DATABASE_POOL_TIMEOUT: Pool checkout timeout
-    - {SERVICE}_DATABASE_POOL_RECYCLE: Connection recycle time
+    - {SERVICE}_DATABASE_MAX_OVERFLOW: Maximum overflow connections
+    - {SERVICE}_DATABASE_POOL_TIMEOUT: Connection pool timeout in seconds
+    - {SERVICE}_DATABASE_ECHO: Enable SQL query logging
     """
 
+    ***REMOVED*** Database connection settings
     database_url: str = Field(
-        description="PostgreSQL database connection URL",
-        examples=["postgresql://user:pass@localhost:5432/dbname"],
+        default="sqlite:///./app.db",
+        description="Database connection URL",
     )
-    database_echo: bool = Field(
-        default=False, description="Enable SQLAlchemy query logging"
-    )
-    database_pool_size: int = Field(
-        default=5, description="Number of connections to maintain in the pool"
-    )
-    database_max_overflow: int = Field(
-        default=10,
-        description="Maximum number of connections that can overflow the pool",
-    )
-    database_pool_timeout: int = Field(
-        default=30, description="Timeout in seconds to get connection from pool"
-    )
-    database_pool_recycle: int = Field(
-        default=3600, description="Time in seconds to recycle connections"
-    )
-    database_pool_pre_ping: bool = Field(
-        default=True, description="Enable connection health checks before use"
-    )
+    database_pool_size: int = Field(default=5, description="Connection pool size")
+    database_max_overflow: int = Field(default=10, description="Maximum overflow connections")
+    database_pool_timeout: int = Field(default=30, description="Connection pool timeout in seconds")
+    database_echo: bool = Field(default=False, description="Enable SQL query logging")
+    database_echo_pool: bool = Field(default=False, description="Enable connection pool logging")
 
     @validator("database_url")
     def validate_database_url(cls, v: str) -> str:
@@ -58,17 +44,20 @@ class DatabaseConfigMixin:
 
         try:
             parsed = urlparse(v)
-            if parsed.scheme not in ["postgresql", "postgresql+psycopg2"]:
+            if not parsed.scheme:
+                raise ValueError("Database URL must include scheme")
+
+            allowed_schemes = ["sqlite", "postgresql", "mysql", "oracle", "mssql"]
+            if parsed.scheme not in allowed_schemes and not any(
+                parsed.scheme.startswith(f"{scheme}+") for scheme in allowed_schemes
+            ):
                 raise ValueError(
                     f"Unsupported database scheme: {parsed.scheme}. "
-                    "Only 'postgresql' and 'postgresql+psycopg2' are supported"
+                    f"Allowed schemes: {', '.join(allowed_schemes)}"
                 )
 
-            if not parsed.hostname:
+            if parsed.scheme != "sqlite" and not parsed.hostname:
                 raise ValueError("Database URL must include hostname")
-
-            if not parsed.path or parsed.path == "/":
-                raise ValueError("Database URL must include database name")
 
         except Exception as e:
             raise ValueError(f"Invalid database URL format: {e}")
@@ -80,8 +69,8 @@ class DatabaseConfigMixin:
         """Validate pool size is positive."""
         if v < 1:
             raise ValueError("Database pool size must be at least 1")
-        if v > 50:
-            raise ValueError("Database pool size should not exceed 50")
+        if v > 100:
+            raise ValueError("Database pool size should not exceed 100")
         return v
 
     @validator("database_max_overflow")
@@ -102,29 +91,19 @@ class DatabaseConfigMixin:
             raise ValueError("Database pool timeout should not exceed 300 seconds")
         return v
 
-    @validator("database_pool_recycle")
-    def validate_pool_recycle(cls, v: int) -> int:
-        """Validate pool recycle time is positive."""
-        if v < 300:
-            raise ValueError(
-                "Database pool recycle time should be at least 300 seconds"
-            )
-        return v
-
     def get_database_config(self) -> Dict[str, Any]:
-        """Get SQLAlchemy database configuration dictionary.
+        """Get database connection configuration dictionary.
 
         Returns:
-            Dictionary with SQLAlchemy engine configuration
+            Dictionary with database connection configuration
         """
         return {
             "url": self.database_url,
-            "echo": self.database_echo,
             "pool_size": self.database_pool_size,
             "max_overflow": self.database_max_overflow,
             "pool_timeout": self.database_pool_timeout,
-            "pool_recycle": self.database_pool_recycle,
-            "pool_pre_ping": self.database_pool_pre_ping,
+            "echo": self.database_echo,
+            "echo_pool": self.database_echo_pool,
         }
 
     def get_database_url_masked(self) -> str:
@@ -142,7 +121,7 @@ class DatabaseConfigMixin:
         except Exception:
             return "***"
 
-    def validate_database_production_settings(self) -> list[str]:
+    def validate_database_production_settings(self) -> List[str]:
         """Validate database configuration for production deployment.
 
         Returns:
@@ -150,22 +129,46 @@ class DatabaseConfigMixin:
         """
         issues = []
 
-        ***REMOVED*** Check for development/test databases in production
-        if "localhost" in self.database_url:
-            issues.append("Database should not use localhost in production")
+        ***REMOVED*** Check database URL security
+        if (
+            self.database_url.startswith("sqlite")
+            and hasattr(self, "is_production")
+            and getattr(self, "is_production")
+        ):
+            issues.append("SQLite should not be used in production")
 
-        if "test" in self.database_url.lower():
-            issues.append("Database URL appears to reference test database")
+        if (
+            "localhost" in self.database_url
+            and hasattr(self, "is_production")
+            and getattr(self, "is_production")
+        ):
+            issues.append("Database URL should not use localhost in production")
 
-        ***REMOVED*** Check pool settings for production
-        if self.database_pool_size < 3:
-            issues.append("Database pool size should be at least 3 in production")
+        ***REMOVED*** Check connection pool settings
+        if hasattr(self, "is_production") and getattr(self, "is_production"):
+            if self.database_pool_size < 5:
+                issues.append("Database pool size should be at least 5 in production")
 
-        if self.database_echo:
-            issues.append("Database echo should be disabled in production")
-
-        ***REMOVED*** Check for default credentials
-        if "password" in self.database_url.lower():
-            issues.append("Database URL should not contain default passwords")
+            if self.database_echo:
+                issues.append("SQL query logging should be disabled in production")
 
         return issues
+
+    def log_database_configuration(self) -> None:
+        """Log database configuration with reduced verbosity."""
+        if hasattr(self, "debug") and (
+            getattr(self, "debug") or getattr(self, "log_level", "INFO") == "DEBUG"
+        ):
+            from config.logging import get_logger
+
+            logger = get_logger(__name__)
+
+            ***REMOVED*** Log database URL (masked)
+            logger.debug(f"Database: {self.get_database_url_masked()}")
+
+            ***REMOVED*** Log pool settings in compact format
+            logger.debug(
+                f"DB pool: size={self.database_pool_size}, "
+                + f"max_overflow={self.database_max_overflow}, "
+                + f"timeout={self.database_pool_timeout}s"
+            )

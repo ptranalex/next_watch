@@ -1,27 +1,23 @@
 """Base configuration classes for NextWatch services.
 
-Provides abstract base classes and concrete implementations for different types
-of services in the NextWatch platform.
+Provides base classes for different types of services in the NextWatch platform
+with a simplified, straightforward approach to configuration.
 """
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Union
-
+from typing import Any, Dict, List, Optional, ClassVar
 from pydantic import Field, validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class BaseConfig(BaseSettings, ABC):
-    """Abstract base configuration class for all NextWatch services.
+class BaseConfig(BaseSettings):
+    """Base configuration class for all NextWatch services.
 
     Provides common configuration fields and validation methods that all
-    services should implement.
+    services should implement with a simplified approach.
     """
 
     ***REMOVED*** Common fields across all services
-    environment: str = Field(
-        default="development", description="Deployment environment"
-    )
+    environment: str = Field(default="development", description="Deployment environment")
     debug: bool = Field(default=False, description="Enable debug mode")
     log_level: str = Field(default="INFO", description="Base logging level")
     service_name: str = Field(description="Name of the service")
@@ -32,8 +28,6 @@ class BaseConfig(BaseSettings, ABC):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
-        ***REMOVED*** Handle list parsing manually through validators
-        env_prefix="",
     )
 
     @validator("environment")
@@ -53,13 +47,20 @@ class BaseConfig(BaseSettings, ABC):
             raise ValueError(f"Log level must be one of {allowed_levels}")
         return v_upper
 
-    @abstractmethod
     def validate_production_settings(self) -> List[str]:
         """Validate configuration for production deployment.
 
         Returns:
             List of validation issues, empty if valid
         """
+        issues = []
+
+        ***REMOVED*** Basic production checks
+        if self.environment == "production":
+            if self.debug:
+                issues.append("Debug mode should be disabled in production")
+
+        return issues
 
     @property
     def is_production(self) -> bool:
@@ -85,8 +86,7 @@ class BaseConfig(BaseSettings, ABC):
         """Apply production-specific security overrides.
 
         This method ensures critical security settings are enforced in production
-        regardless of configuration mistakes. Services can override this to add
-        service-specific security overrides.
+        regardless of configuration mistakes.
         """
         if not self.is_production:
             return
@@ -101,45 +101,44 @@ class BaseConfig(BaseSettings, ABC):
             object.__setattr__(self, "debug", False)
 
     def log_configuration_summary(self) -> None:
-        """Log service configuration summary on initialization.
-
-        Provides a standard way for services to log their configuration
-        during startup. Services can override this to add service-specific
-        logging details.
-        """
+        """Log service configuration summary with reduced verbosity."""
         from config.logging import get_logger
 
         logger = get_logger(__name__)
 
-        logger.info(f"Initializing {self.service_name} configuration")
-        logger.info(f"Environment: {self.environment}")
-        logger.info(f"Version: {self.version}")
-        logger.info(f"Debug mode: {self.debug}")
-        logger.info(f"Log level: {self.log_level}")
+        ***REMOVED*** Basic service info - always log this
+        logger.info(f"Initializing {self.service_name} ({self.environment})")
+
+        ***REMOVED*** Group related settings
+        if self.debug:
+            logger.info(f"Debug mode enabled, log level: {self.log_level}")
+        else:
+            logger.info(f"Log level: {self.log_level}")
+
+        ***REMOVED*** Only log detailed configuration in debug mode
+        if self.debug or self.log_level == "DEBUG":
+            logger.debug(f"Service version: {self.version}")
+            logger.debug(f"Config hash: {self.config_hash}")
+
+    @property
+    def config_hash(self) -> str:
+        """Computed hash of configuration for cache invalidation."""
+        import hashlib
+
+        config_str = f"{self.environment}_{self.service_name}_{self.version}_{self.debug}"
+        return hashlib.md5(config_str.encode()).hexdigest()[:8]
 
     def get_config_dict(self) -> Dict[str, Any]:
         """Get configuration as a dictionary.
 
         Returns:
-            Configuration dictionary with all fields
+            Dictionary with configuration values
         """
-        return self.dict()
+        return self.model_dump()
 
     def __str__(self) -> str:
-        """String representation with sensitive data masked."""
-        config_dict = self.get_config_dict()
-        ***REMOVED*** Basic masking for display - will be enhanced by security module
-        masked_dict = {}
-        for key, value in config_dict.items():
-            if any(
-                sensitive in key.lower()
-                for sensitive in ["secret", "password", "token", "key"]
-            ):
-                masked_dict[key] = "***"
-            else:
-                masked_dict[key] = value
-
-        return f"{self.__class__.__name__}({masked_dict})"
+        """Return a string representation of the configuration."""
+        return f"{self.service_name} Configuration (Environment: {self.environment})"
 
 
 class ServiceConfig(BaseConfig):
@@ -155,15 +154,11 @@ class ServiceConfig(BaseConfig):
     allowed_hosts: List[str] = Field(default=["*"], description="Allowed host headers")
 
     @validator("allowed_hosts", pre=True)
-    def parse_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
-        """Parse allowed hosts from various formats."""
+    def parse_allowed_hosts(cls, v: Any) -> List[str]:
+        """Parse allowed hosts from string or list."""
         if isinstance(v, str):
-            if not v.strip():
-                return ["*"]
-            ***REMOVED*** Handle comma-separated string
-            return [host.strip() for host in v.split(",") if host.strip()]
-        elif isinstance(v, list):
-            return v
+            return [x.strip() for x in v.split(",") if x.strip()]
+        return v or []
 
     @validator("port")
     def validate_port(cls, v: int) -> int:
@@ -173,37 +168,68 @@ class ServiceConfig(BaseConfig):
         return v
 
     @validator("cors_origins", pre=True)
-    def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        """Parse CORS origins from various formats."""
+    def parse_cors_origins(cls, v: Any) -> List[str]:
+        """Parse CORS origins from string or list."""
         if isinstance(v, str):
-            if not v.strip():
-                return ["*"]
-            ***REMOVED*** Handle comma-separated string
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        elif isinstance(v, list):
-            return v
+            return [x.strip() for x in v.split(",") if x.strip()]
+        return v or []
 
-    @validator("cors_origins")
-    def validate_cors_origins(cls, v: List[str]) -> List[str]:
-        """Validate CORS origins format."""
-        if not v:
-            raise ValueError("CORS origins cannot be empty")
-        return v
+    def get_server_config(self) -> Dict[str, Any]:
+        """Get server configuration dictionary.
+
+        Returns:
+            Dictionary with server configuration
+        """
+        return {
+            "host": self.host,
+            "port": self.port,
+            "cors_origins": self.cors_origins,
+            "allowed_hosts": self.allowed_hosts,
+        }
 
     def validate_production_settings(self) -> List[str]:
-        """Validate HTTP service configuration for production."""
-        issues = []
+        """Validate configuration for production deployment.
 
-        if self.debug:
-            issues.append("Debug mode should be disabled in production")
+        Returns:
+            List of validation issues, empty if valid
+        """
+        issues = super().validate_production_settings()
 
-        if "*" in self.cors_origins and self.is_production:
-            issues.append("CORS origins should be specific in production (not '*')")
+        if self.is_production:
+            ***REMOVED*** Check CORS settings
+            if "*" in self.cors_origins:
+                issues.append("Wildcard CORS origin should not be used in production")
 
-        if "*" in self.allowed_hosts and self.is_production:
-            issues.append("Allowed hosts should be specific in production (not '*')")
+            ***REMOVED*** Check allowed hosts
+            if "*" in self.allowed_hosts:
+                issues.append("Wildcard allowed hosts should not be used in production")
 
         return issues
+
+    def log_configuration_summary(self) -> None:
+        """Log service configuration summary with reduced verbosity."""
+        ***REMOVED*** Call parent method first
+        super().log_configuration_summary()
+
+        from config.logging import get_logger
+
+        logger = get_logger(__name__)
+
+        ***REMOVED*** Log HTTP service info in compact format
+        logger.info(f"HTTP service: {self.host}:{self.port}")
+
+        ***REMOVED*** Only log detailed configuration in debug mode
+        if self.debug or self.log_level == "DEBUG":
+            ***REMOVED*** Log CORS and allowed hosts settings
+            if len(self.cors_origins) == 1 and self.cors_origins[0] == "*":
+                logger.debug("CORS: Allow all origins")
+            else:
+                logger.debug(f"CORS origins: {self.cors_origins}")
+
+            if len(self.allowed_hosts) == 1 and self.allowed_hosts[0] == "*":
+                logger.debug("Allowed hosts: All")
+            else:
+                logger.debug(f"Allowed hosts: {self.allowed_hosts}")
 
 
 class WorkerConfig(BaseConfig):
@@ -214,18 +240,14 @@ class WorkerConfig(BaseConfig):
     """
 
     workers: int = Field(default=1, description="Number of worker processes")
-    max_concurrent_tasks: int = Field(
-        default=10, description="Maximum concurrent tasks"
-    )
-    task_timeout_seconds: int = Field(
-        default=300, description="Task timeout in seconds"
-    )
+    max_concurrent_tasks: int = Field(default=10, description="Maximum concurrent tasks")
+    task_timeout_seconds: int = Field(default=300, description="Task timeout in seconds")
 
     @validator("workers")
     def validate_workers(cls, v: int) -> int:
-        """Validate worker count is positive."""
+        """Validate workers is positive."""
         if v < 1:
-            raise ValueError("Worker count must be at least 1")
+            raise ValueError("Number of workers must be at least 1")
         return v
 
     @validator("max_concurrent_tasks")
@@ -243,15 +265,32 @@ class WorkerConfig(BaseConfig):
         return v
 
     def validate_production_settings(self) -> List[str]:
-        """Validate worker configuration for production."""
-        issues = []
+        """Validate configuration for production deployment.
 
-        if self.debug:
-            issues.append("Debug mode should be disabled in production")
+        Returns:
+            List of validation issues, empty if valid
+        """
+        issues = super().validate_production_settings()
 
-        if self.workers == 1 and self.is_production:
-            issues.append(
-                "Consider using multiple workers in production for better performance"
-            )
+        if self.is_production:
+            ***REMOVED*** Ensure workers are properly configured for production
+            if self.workers < 2:
+                issues.append("At least 2 workers recommended for production")
 
         return issues
+
+    def log_configuration_summary(self) -> None:
+        """Log service configuration summary with reduced verbosity."""
+        ***REMOVED*** Call parent method first
+        super().log_configuration_summary()
+
+        from config.logging import get_logger
+
+        logger = get_logger(__name__)
+
+        ***REMOVED*** Log worker settings in compact format
+        logger.info(f"Worker config: {self.workers} workers, {self.max_concurrent_tasks} max tasks")
+
+        ***REMOVED*** Only log detailed configuration in debug mode
+        if self.debug or self.log_level == "DEBUG":
+            logger.debug(f"Task timeout: {self.task_timeout_seconds} seconds")

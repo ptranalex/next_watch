@@ -1,14 +1,99 @@
 ***REMOVED*** NextWatch Configuration Library
 
-A shared, type-safe configuration library for the NextWatch monorepo that provides unified configuration patterns across all services.
+A simplified, straightforward configuration library for NextWatch microservices.
 
-***REMOVED******REMOVED*** Features
+***REMOVED******REMOVED*** Overview
 
-- **Type Safety**: Built with Pydantic for comprehensive validation and type checking
-- **Security**: Production validation, secret masking, and security best practices
-- **Environment Management**: Hierarchical environment variable loading with `.env` file support
-- **Service Composition**: Mix-and-match configuration components using mixins
-- **Unified Interface**: Consistent configuration patterns across all NextWatch services
+This library provides a standardized way to manage configuration across NextWatch services with a focus on simplicity and ease of use. It includes:
+
+- Base configuration classes for different service types
+- Environment variable loading and validation
+- Configuration profiles for different deployment scenarios
+- Utilities for secure handling of sensitive configuration
+
+***REMOVED******REMOVED*** Key Features
+
+- **Simple inheritance model**: Clear base classes with minimal inheritance depth
+- **Environment-based configuration**: Easy loading from environment variables
+- **Configuration profiles**: Predefined settings for different service types and environments
+- **Validation**: Built-in validation for configuration values
+- **Security**: Automatic masking of sensitive information and production safeguards
+
+***REMOVED******REMOVED*** Usage
+
+***REMOVED******REMOVED******REMOVED*** Basic Service Configuration
+
+```python
+from config.base.config import ServiceConfig
+
+class MyServiceConfig(ServiceConfig):
+    ***REMOVED*** Service-specific configuration
+    api_key: str
+    feature_flag_enabled: bool = False
+
+    class Config:
+        env_prefix = "MY_SERVICE_"  ***REMOVED*** Environment variables will be prefixed with MY_SERVICE_
+```
+
+***REMOVED******REMOVED******REMOVED*** Adding Cache Support
+
+```python
+from config.base.config import ServiceConfig
+from config.services.cache import CacheConfigMixin
+
+class MyCachedServiceConfig(ServiceConfig, CacheConfigMixin):
+    ***REMOVED*** Service-specific configuration
+    cache_enabled: bool = True
+```
+
+***REMOVED******REMOVED******REMOVED*** Using Configuration Profiles
+
+```python
+from config.base.config import ServiceConfig
+from config.profiles.service_profiles import apply_profiles, GatewayProfile, DevelopmentProfile
+
+***REMOVED*** Create config instance
+config = MyServiceConfig()
+
+***REMOVED*** Apply profiles
+apply_profiles(config, GatewayProfile, DevelopmentProfile)
+```
+
+***REMOVED******REMOVED*** Configuration Mixins
+
+The library provides several mixins for common functionality:
+
+- **CacheConfigMixin**: Redis cache configuration
+- **DatabaseConfigMixin**: Database connection configuration
+- **AuthConfigMixin**: JWT authentication configuration
+- **MonitoringConfigMixin**: Monitoring and observability configuration
+
+***REMOVED******REMOVED*** Configuration Profiles
+
+Predefined profiles for different service types and environments:
+
+- **Development/Test/Production**: Environment-specific settings
+- **ApiService/Gateway/Backend/Worker**: Service type-specific settings
+- **LowResource/HighPerformance**: Resource allocation profiles
+
+***REMOVED******REMOVED*** Best Practices
+
+1. **Keep it simple**: Avoid deep inheritance hierarchies
+2. **Validate early**: Use validators to catch configuration errors at startup
+3. **Secure by default**: Always mask sensitive information in logs
+4. **Use profiles**: Apply appropriate profiles for your service type
+5. **Log configuration**: Always log configuration summary at startup
+6. **Validate production**: Use `validate_production_settings()` before deploying
+
+***REMOVED******REMOVED*** Implementation Notes
+
+The library has been simplified from its previous version to:
+
+- Remove unnecessary caching mechanisms
+- Simplify the inheritance model
+- Make configuration more straightforward
+- Reduce complexity in profiles and mixins
+- Improve error messages and validation
 
 ***REMOVED******REMOVED*** Installation
 

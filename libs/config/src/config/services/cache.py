@@ -1,66 +1,54 @@
 """Cache configuration mixin for Redis connections.
 
-Provides configuration for Redis cache connections with connection pooling,
-timeouts, and cache-specific settings.
+Provides configuration for Redis cache connections with straightforward settings
+and validation.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from urllib.parse import urlparse
 
 from pydantic import Field, validator
 
 
 class CacheConfigMixin:
-    """Redis cache configuration mixin.
+    """Redis cache configuration mixin with simplified approach.
 
     This mixin provides Redis cache connection configuration that can be composed
-    into service configurations. It includes connection pooling, timeouts,
-    and cache-specific settings.
+    into service configurations. It includes connection settings and cache TTLs
+    with a straightforward approach.
 
     Environment variables (with service prefix):
     - {SERVICE}_REDIS_URL: Redis connection URL
     - {SERVICE}_REDIS_MAX_CONNECTIONS: Maximum connections in pool
     - {SERVICE}_REDIS_SOCKET_TIMEOUT: Socket timeout in seconds
-    - {SERVICE}_REDIS_SOCKET_CONNECT_TIMEOUT: Connection timeout in seconds
     - {SERVICE}_CACHE_TTL_DEFAULT: Default cache TTL in seconds
     - {SERVICE}_CACHE_KEY_PREFIX: Prefix for cache keys
     """
 
+    ***REMOVED*** Redis connection settings
     redis_url: str = Field(
         default="redis://localhost:6379/0",
         description="Redis connection URL",
-        examples=["redis://localhost:6379/0", "redis://user:pass@host:6379/1"],
     )
     redis_max_connections: int = Field(
         default=10, description="Maximum number of connections in the Redis pool"
     )
-    redis_socket_timeout: int = Field(
-        default=30, description="Socket timeout in seconds"
-    )
+    redis_socket_timeout: int = Field(default=30, description="Socket timeout in seconds")
     redis_socket_connect_timeout: int = Field(
         default=5, description="Socket connection timeout in seconds"
     )
-    redis_retry_on_timeout: bool = Field(
-        default=True, description="Retry operations on timeout"
-    )
-    redis_health_check_interval: int = Field(
-        default=30, description="Health check interval in seconds"
-    )
+    redis_retry_on_timeout: bool = Field(default=True, description="Retry operations on timeout")
 
     ***REMOVED*** Cache-specific settings
     cache_ttl_default: int = Field(
         default=300, description="Default cache TTL in seconds (5 minutes)"
     )
     cache_key_prefix: str = Field(default="", description="Prefix for all cache keys")
-    cache_ttl_short: int = Field(
-        default=60, description="Short cache TTL in seconds (1 minute)"
-    )
+    cache_ttl_short: int = Field(default=60, description="Short cache TTL in seconds (1 minute)")
     cache_ttl_medium: int = Field(
         default=900, description="Medium cache TTL in seconds (15 minutes)"
     )
-    cache_ttl_long: int = Field(
-        default=3600, description="Long cache TTL in seconds (1 hour)"
-    )
+    cache_ttl_long: int = Field(default=3600, description="Long cache TTL in seconds (1 hour)")
 
     @validator("redis_url")
     def validate_redis_url(cls, v: str) -> str:
@@ -102,27 +90,16 @@ class CacheConfigMixin:
             raise ValueError("Redis max connections should not exceed 100")
         return v
 
-    @validator("redis_socket_timeout")
-    def validate_socket_timeout(cls, v: int) -> int:
-        """Validate socket timeout is positive."""
+    @validator("redis_socket_timeout", "redis_socket_connect_timeout")
+    def validate_timeouts(cls, v: int) -> int:
+        """Validate timeouts are positive."""
         if v < 1:
-            raise ValueError("Redis socket timeout must be at least 1 second")
+            raise ValueError("Timeout must be at least 1 second")
         if v > 300:
-            raise ValueError("Redis socket timeout should not exceed 300 seconds")
+            raise ValueError("Timeout should not exceed 300 seconds")
         return v
 
-    @validator("redis_socket_connect_timeout")
-    def validate_connect_timeout(cls, v: int) -> int:
-        """Validate connection timeout is positive."""
-        if v < 1:
-            raise ValueError("Redis connection timeout must be at least 1 second")
-        if v > 60:
-            raise ValueError("Redis connection timeout should not exceed 60 seconds")
-        return v
-
-    @validator(
-        "cache_ttl_default", "cache_ttl_short", "cache_ttl_medium", "cache_ttl_long"
-    )
+    @validator("cache_ttl_default", "cache_ttl_short", "cache_ttl_medium", "cache_ttl_long")
     def validate_cache_ttl(cls, v: int) -> int:
         """Validate cache TTL is positive."""
         if v < 1:
@@ -152,7 +129,6 @@ class CacheConfigMixin:
             "socket_timeout": self.redis_socket_timeout,
             "socket_connect_timeout": self.redis_socket_connect_timeout,
             "retry_on_timeout": self.redis_retry_on_timeout,
-            "health_check_interval": self.redis_health_check_interval,
         }
 
     def get_cache_config(self) -> Dict[str, Any]:
@@ -194,21 +170,13 @@ class CacheConfigMixin:
             namespace: Optional namespace for the key
 
         Returns:
-            Formatted cache key
+            Formatted cache key with prefix and namespace
         """
-        parts = []
-
-        if self.cache_key_prefix:
-            parts.append(self.cache_key_prefix)
-
         if namespace:
-            parts.append(namespace)
+            return f"{self.cache_key_prefix}{namespace}:{key}"
+        return f"{self.cache_key_prefix}{key}"
 
-        parts.append(key)
-
-        return ":".join(parts)
-
-    def validate_cache_production_settings(self) -> list[str]:
+    def validate_cache_production_settings(self) -> List[str]:
         """Validate cache configuration for production deployment.
 
         Returns:
@@ -216,23 +184,31 @@ class CacheConfigMixin:
         """
         issues = []
 
-        ***REMOVED*** Check for development/test Redis in production
-        if "localhost" in self.redis_url:
-            issues.append("Redis should not use localhost in production")
-
-        if "test" in self.redis_url.lower():
-            issues.append("Redis URL appears to reference test instance")
-
-        ***REMOVED*** Check connection pool settings for production
-        if self.redis_max_connections < 5:
-            issues.append("Redis max connections should be at least 5 in production")
-
-        ***REMOVED*** Check for default or weak credentials
-        if "password" in self.redis_url.lower() and "redis://:" in self.redis_url:
-            issues.append("Redis should have authentication in production")
-
-        ***REMOVED*** Check cache key prefix for multi-tenant scenarios
-        if not self.cache_key_prefix:
-            issues.append("Consider setting cache key prefix to avoid key collisions")
+        if (
+            self.redis_url.startswith("redis://localhost")
+            and hasattr(self, "is_production")
+            and getattr(self, "is_production")
+        ):
+            issues.append("Redis URL should not use localhost in production")
 
         return issues
+
+    def log_cache_configuration(self) -> None:
+        """Log cache configuration with reduced verbosity."""
+        if hasattr(self, "debug") and (
+            getattr(self, "debug") or getattr(self, "log_level", "INFO") == "DEBUG"
+        ):
+            from config.logging import get_logger
+
+            logger = get_logger(__name__)
+
+            ***REMOVED*** Log Redis URL (masked) only in debug mode
+            logger.debug(f"Redis: {self.get_redis_url_masked()}")
+
+            ***REMOVED*** Log cache TTL settings in compact format
+            logger.debug(
+                f"Cache TTLs: default={self.cache_ttl_default}s, "
+                + f"short={self.cache_ttl_short}s, "
+                + f"medium={self.cache_ttl_medium}s, "
+                + f"long={self.cache_ttl_long}s"
+            )
