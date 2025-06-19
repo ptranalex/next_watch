@@ -26,9 +26,10 @@ RUN apk add --no-cache \
 ***REMOVED*** Copy local dependencies first
 COPY libs/cache ./libs/cache/
 COPY libs/cli ./libs/cli/
+COPY libs/config ./libs/config/
 
 ***REMOVED*** Install local dependencies
-RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/
+RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/ ./libs/config/
 
 ***REMOVED*** Copy application files
 COPY apps/bff-api/pyproject.toml ./pyproject.toml
