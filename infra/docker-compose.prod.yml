@@ -50,10 +50,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.25"
           memory: 1G
         reservations:
-          cpus: "0.25"
+          cpus: "0.1"
           memory: 512M
     logging:
       driver: "json-file"
@@ -75,13 +75,7 @@ services:
       - PORT=8002 ***REMOVED*** Changed from API_PORT to match what the application expects
       - DEBUG=false
       ***REMOVED*** Using default WORKERS=1 since we only have 1 CPU available
-      ***REMOVED*** Database Configuration
-      - POSTGRES_HOST=host.docker.internal
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
+      ***REMOVED*** Note: The recommendation API doesn't connect directly to the database
       ***REMOVED*** Redis Configuration (using CACHE_ prefix for consistency)
       - CACHE_REDIS_URL=redis://host.docker.internal:6379/0
       - CACHE_REDIS_MAX_CONNECTIONS=20
@@ -95,10 +89,7 @@ services:
       - CORS_ORIGINS=["https://alexsandbox.me","http://localhost:3000"]
       - ALLOWED_HOSTS=["alexsandbox.me","www.alexsandbox.me","localhost","127.0.0.1","recommendation-api","0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
-      ***REMOVED*** Database Connection Pool Settings
-      - DB_POOL_SIZE=20
-      - DB_MAX_OVERFLOW=30
-      - DB_POOL_TIMEOUT=60
+      ***REMOVED*** Performance Settings
       ***REMOVED*** Performance
       - ENABLE_PERFORMANCE_METRICS=true
       - SQLALCHEMY_LOG_LEVEL=WARNING
@@ -117,10 +108,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.25"
           memory: 1G
         reservations:
-          cpus: "0.2"
+          cpus: "0.1"
           memory: 512M
     logging:
       driver: "json-file"
@@ -160,10 +151,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.8"
+          cpus: "0.3"
           memory: 2G
         reservations:
-          cpus: "0.4"
+          cpus: "0.15"
           memory: 1G
     logging:
       driver: "json-file"
@@ -220,10 +211,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.15"
           memory: 512M
         reservations:
-          cpus: "0.25"
+          cpus: "0.05"
           memory: 256M
     logging:
       driver: "json-file"
@@ -288,10 +279,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.15"
           memory: 512M
         reservations:
-          cpus: "0.25"
+          cpus: "0.05"
           memory: 256M
     logging:
       driver: "json-file"
@@ -325,10 +316,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.15"
           memory: 512M
         reservations:
-          cpus: "0.25"
+          cpus: "0.05"
           memory: 256M
     logging:
       driver: "json-file"
@@ -369,10 +360,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.15"
           memory: 512M
         reservations:
-          cpus: "0.25"
+          cpus: "0.05"
           memory: 256M
     logging:
       driver: "json-file"
@@ -401,10 +392,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.25"
           memory: 1G
         reservations:
-          cpus: "0.2"
+          cpus: "0.1"
           memory: 512M
     logging:
       driver: "json-file"
