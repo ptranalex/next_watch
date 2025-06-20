@@ -1,7 +1,6 @@
 """Health check service for the Recommendation API.
 
 This service provides comprehensive health checks for all dependencies:
-- PostgreSQL database
 - Redis cache
 - Qdrant vector database
 """
@@ -11,7 +10,6 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
-import asyncpg
 import redis
 from config.logging import get_logger
 from qdrant_client import QdrantClient
@@ -51,21 +49,15 @@ class HealthService:
         results = {}
 
         ***REMOVED*** Run all health checks concurrently
-        postgres_task = asyncio.create_task(self.check_postgres())
         redis_task = asyncio.create_task(self.check_redis())
         qdrant_task = asyncio.create_task(self.check_qdrant())
 
         ***REMOVED*** Wait for all checks to complete
-        postgres_result, redis_result, qdrant_result = await asyncio.gather(
-            postgres_task, redis_task, qdrant_task, return_exceptions=True
+        redis_result, qdrant_result = await asyncio.gather(
+            redis_task, qdrant_task, return_exceptions=True
         )
 
         ***REMOVED*** Handle any exceptions
-        if isinstance(postgres_result, Exception):
-            postgres_result = HealthCheckResult(
-                is_healthy=False, status="error", error=str(postgres_result)
-            )
-
         if isinstance(redis_result, Exception):
             redis_result = HealthCheckResult(
                 is_healthy=False, status="error", error=str(redis_result)
@@ -76,49 +68,10 @@ class HealthService:
                 is_healthy=False, status="error", error=str(qdrant_result)
             )
 
-        results["postgres"] = postgres_result
         results["redis"] = redis_result
         results["qdrant"] = qdrant_result
 
         return results
-
-    async def check_postgres(self) -> HealthCheckResult:
-        """Check PostgreSQL database health.
-
-        Returns:
-            Health check result for PostgreSQL
-        """
-        start_time = time.time()
-
-        try:
-            ***REMOVED*** Connect and execute a simple query
-            conn = await asyncpg.connect(settings.database_url)
-            try:
-                result = await conn.execute("SELECT 1")
-                version_result = await conn.fetchrow("SELECT version()")
-                version = version_result["version"] if version_result else "Unknown"
-
-                response_time = (time.time() - start_time) * 1000
-
-                return HealthCheckResult(
-                    is_healthy=True,
-                    status="healthy",
-                    response_time_ms=round(response_time, 2),
-                    details={"version": version, "connection_successful": True},
-                )
-            finally:
-                await conn.close()
-
-        except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            logger.error(f"PostgreSQL health check failed: {e}")
-
-            return HealthCheckResult(
-                is_healthy=False,
-                status="unhealthy",
-                response_time_ms=round(response_time, 2),
-                error=str(e),
-            )
 
     async def check_redis(self) -> HealthCheckResult:
         """Check Redis cache health.
@@ -132,7 +85,7 @@ class HealthService:
             ***REMOVED*** Create Redis client if not exists
             if self._redis_client is None:
                 self._redis_client = redis.Redis.from_url(
-                    settings.redis_url,
+                    settings.get_redis_url(),
                     decode_responses=True,
                     socket_connect_timeout=5,
                     socket_timeout=5,

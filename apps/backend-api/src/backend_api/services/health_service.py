@@ -103,10 +103,11 @@ class HealthService:
         try:
             ***REMOVED*** Create Redis client if not exists
             if self._redis_client is None:
+                redis_url = settings.redis_url
                 self._redis_client = redis.Redis.from_url(
-                    settings.redis_url,
+                    redis_url,
                     decode_responses=True,
-                    socket_connect_timeout=settings.redis_socket_connect_timeout,
+                    socket_connect_timeout=settings.redis_socket_timeout,
                     socket_timeout=settings.redis_socket_timeout,
                     retry_on_timeout=settings.redis_retry_on_timeout,
                     max_connections=settings.redis_max_connections,

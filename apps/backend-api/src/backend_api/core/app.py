@@ -83,9 +83,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             ***REMOVED*** Get Redis URL from settings
             if _app_settings is None:
                 raise ValueError("Settings not initialized")
-            logger.info(f"Initializing Redis suggestion engine with URL: {_app_settings.redis_url}")
+            redis_url = _app_settings.redis_url
+            ***REMOVED*** Log with masking for security
+            masked_url = (
+                redis_url.replace(":" + redis_url.split(":")[-2], ":***")
+                if ":" in redis_url
+                else redis_url
+            )
+            logger.info(f"Initializing Redis suggestion engine with URL: {masked_url}")
 
-            suggestion_engine = SuggestionEngine(_app_settings.redis_url)
+            suggestion_engine = SuggestionEngine(redis_url)
             await suggestion_engine.initialize()
             app.state.suggestion_engine = suggestion_engine
 
