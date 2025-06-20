@@ -6,6 +6,7 @@ This service provides comprehensive health checks for all dependencies:
 """
 
 import asyncio
+import os
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
@@ -84,8 +85,14 @@ class HealthService:
         try:
             ***REMOVED*** Create Redis client if not exists
             if self._redis_client is None:
+                ***REMOVED*** Get Redis URL from environment variable first, then fall back to settings
+                redis_url = os.getenv("CACHE_REDIS_URL")
+                if not redis_url:
+                    redis_url = settings.redis_url
+
+                logger.debug(f"Connecting to Redis at {redis_url}")
                 self._redis_client = redis.Redis.from_url(
-                    settings.get_redis_url(),
+                    redis_url,
                     decode_responses=True,
                     socket_connect_timeout=5,
                     socket_timeout=5,
