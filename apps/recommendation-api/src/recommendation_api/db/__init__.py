@@ -1,33 +1,13 @@
-"""Database operations package for the Recommendation API service."""
+"""Database operations package for the Recommendation API service.
 
-***REMOVED*** Import from movie_storage.db
-from movie_storage.db import get_engine
+Note: Movie-related database operations have been moved to API-based approach.
+This module now only handles vector database and cache connections.
+"""
 
-***REMOVED*** Import from local connection.py
-from .connection import get_db_session, get_db_context, init_database, test_connection, get_simple_session
+***REMOVED*** Movie operations are now handled via MovieDataAdapter and Backend API
+***REMOVED*** Only vector database operations remain here if needed
 
-***REMOVED*** Import from operations.py
-from .operations import (
-    get_movies_for_embeddings,
-    get_movie_features,
-    get_movies_by_ids,
-    get_movie_by_id,
-    get_all_movie_ids,
-)
-
-__all__ = [
-    ***REMOVED*** Database connection
-    "get_db_session",
-    "get_db_context",
-    "init_database",
-    "test_connection",
-    "get_engine",  ***REMOVED*** This replaces get_db_engine
-    "get_simple_session",
-    
-    ***REMOVED*** Database operations
-    "get_movies_for_embeddings",
-    "get_movie_features",
-    "get_movies_by_ids",
-    "get_movie_by_id",
-    "get_all_movie_ids",
-] 
+__all__: list[str] = [
+    ***REMOVED*** Movie operations are now handled via MovieDataAdapter and Backend API
+    ***REMOVED*** This module is kept for potential vector database operations
+]

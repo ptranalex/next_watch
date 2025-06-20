@@ -12,7 +12,7 @@ from rich.table import Table
 
 from recommendation_api.config.app import settings, Config
 from recommendation_api.cli.utils import print_error, print_success
-from recommendation_api.config.logging import configure_logging
+from config.logging import configure_logging, get_logger
 
 app: Typer = typer.Typer(
     name="serve",
@@ -20,7 +20,7 @@ app: Typer = typer.Typer(
 )
 
 console = Console()
-logger = logging.getLogger(__name__)
+logger = get_logger("recommendation_api.cli.commands.serve")
 
 
 def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
@@ -36,7 +36,15 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         log_level = "DEBUG"
     elif quiet:
         log_level = "WARNING"
-    configure_logging(log_level=log_level, verbose=verbose)
+
+    configure_logging(
+        log_level=log_level,
+        verbose=verbose,
+        quiet=quiet,
+        logger_name="recommendation_api",
+        color_theme="modern",
+        http_verbose=False,
+    )
 
 
 @app.command()

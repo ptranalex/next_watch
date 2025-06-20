@@ -4,49 +4,39 @@ This module provides functionality for generating movie recommendations
 based on various criteria and user preferences.
 """
 
-import logging
+from config.logging import get_logger
 from typing import List, Optional, Dict, Any, Tuple, Union, TypeVar, cast
-from sqlmodel import Session
+import time
 
-from recommendation_api.db.operations import (
-    ***REMOVED*** Comment out unavailable functions
-    ***REMOVED*** get_trending_movies,
-    ***REMOVED*** get_popular_movies,
-    get_movie_features,
-    ***REMOVED*** get_user_preference_movies,
-    get_movies_by_ids,
-    get_movie_by_id,
-    get_popular_movies_direct,
-    get_personalized_recommendations_direct,
-)
+***REMOVED*** No longer importing database operations - using API-based approach via MovieDataAdapter
 from recommendation_api.services.vector_service import VectorService, get_vector_service
-from recommendation_api.repositories.redis import get_redis_repository
 
 ***REMOVED*** Replace local embedding import with ML API client
 ***REMOVED*** from recommendation_api.services.embedding import generate_user_preference_vector
 from recommendation_api.services.ml_api_client import get_ml_api_client
 
-***REMOVED*** Import Movie from a local stub or use type ignores
-from movie_storage.models.movie import Movie  ***REMOVED*** type: ignore
+***REMOVED*** Remove movie_storage dependency - now using API-based approach
 from recommendation_api.models.recommendation import MovieRecommendation
+from recommendation_api.services.movie_adapter import MovieDataAdapter, get_movie_adapter
 from recommendation_api.config import settings
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RecommendationService:
     """Service for generating movie recommendations."""
 
-    def __init__(self, session: Session, vector_service: Optional[VectorService] = None):
+    def __init__(
+        self, movie_adapter: MovieDataAdapter, vector_service: Optional[VectorService] = None
+    ):
         """Initialize the recommendation service.
 
         Args:
-            session: Database session
+            movie_adapter: Movie data adapter for API communication
             vector_service: Vector service for similarity searches
         """
-        self.session = session
+        self.movie_adapter = movie_adapter
         self.vector_service = vector_service or get_vector_service()
-        self.redis_repo = get_redis_repository()
 
     ***REMOVED*** Comment out methods that use unavailable functions
     """
@@ -69,16 +59,16 @@ class RecommendationService:
         ***REMOVED*** ...
     """
 
-    def get_popular_recommendations_direct(
+    async def get_popular_recommendations_direct(
         self,
         limit: int = 20,
         min_rating: float = 7.0,
         min_vote_count: int = 1000,
     ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
-        """Get popular movie recommendations using the direct database query.
+        """Get popular movie recommendations using the backend API.
 
-        This is a replacement for get_popular_recommendations that uses
-        the simplified get_popular_movies_direct function.
+        This now uses the MovieDataAdapter to fetch data from backend-api
+        instead of direct database queries.
 
         Args:
             limit: Maximum number of recommendations
@@ -88,44 +78,24 @@ class RecommendationService:
         Returns:
             Tuple of (recommendations list, filters dict)
         """
-        ***REMOVED*** Get popular movies from database
-        movies = get_popular_movies_direct(
-            self.session,
+        ***REMOVED*** Get popular movies from backend API via adapter
+        return await self.movie_adapter.get_popular_movies(
             limit=limit,
             min_rating=min_rating,
             min_vote_count=min_vote_count,
         )
 
-        ***REMOVED*** Convert to recommendations
-        recommendations = []
-        for movie in movies:
-            recommendation = MovieRecommendation.from_movie(
-                movie,
-                reason="popular movie with high ratings",
-                score=float(movie.imdb_rating) if movie.imdb_rating else 0.0,
-            )
-            recommendations.append(recommendation)
-
-        ***REMOVED*** Create filters dictionary for response
-        filters = {
-            "limit": limit,
-            "min_rating": min_rating,
-            "min_vote_count": min_vote_count,
-        }
-
-        return recommendations, filters
-
-    def get_user_recommendations_direct(
+    async def get_user_recommendations_direct(
         self,
         user_id: int,
         limit: int = 20,
         min_rating: float = 7.0,
         min_vote_count: int = 1000,
     ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
-        """Get personalized movie recommendations using the direct database query.
+        """Get personalized movie recommendations using the backend API.
 
-        This is a replacement for get_user_recommendations that uses
-        the simplified get_personalized_recommendations_direct function.
+        This now uses the MovieDataAdapter to fetch data from backend-api
+        instead of direct database queries.
 
         Args:
             user_id: User ID to get recommendations for
@@ -140,40 +110,13 @@ class RecommendationService:
         if user_id <= 0:
             raise ValueError(f"Invalid user ID: {user_id}")
 
-        ***REMOVED*** Get personalized recommendations from database
-        movies = get_personalized_recommendations_direct(
-            self.session,
+        ***REMOVED*** Get personalized recommendations from backend API via adapter
+        return await self.movie_adapter.get_personalized_movies(
             user_id=user_id,
             limit=limit,
             min_rating=min_rating,
             min_vote_count=min_vote_count,
         )
-
-        ***REMOVED*** Convert to recommendations
-        recommendations = []
-        for movie in movies:
-            ***REMOVED*** Add a personalized reason
-            reason = "recommended for you based on your preferences"
-
-            ***REMOVED*** Use rating as a base score, and add some randomness for variety
-            base_score = float(movie.imdb_rating) / 10.0 if movie.imdb_rating else 0.5
-
-            recommendation = MovieRecommendation.from_movie(
-                movie,
-                reason=reason,
-                score=base_score,
-            )
-            recommendations.append(recommendation)
-
-        ***REMOVED*** Create filters dictionary for response
-        filters = {
-            "user_id": user_id,
-            "limit": limit,
-            "min_rating": min_rating,
-            "min_vote_count": min_vote_count,
-        }
-
-        return recommendations, filters
 
     """
     def get_user_recommendations(
@@ -186,7 +129,7 @@ class RecommendationService:
         ***REMOVED*** ...
     """
 
-    def get_similar_movies(
+    async def get_similar_movies(
         self,
         movie_id: int,
         limit: int = 20,
@@ -200,105 +143,140 @@ class RecommendationService:
             movie_id: Movie ID to find similar movies for
             limit: Maximum number of recommendations
             min_rating: Minimum IMDb rating
-            min_vote_count: Minimum vote count threshold
+            min_vote_count: Minimum vote count threshold (DEPRECATED - not available in backend API)
             min_score: Minimum similarity score
 
         Returns:
             Tuple of (recommendations list, filters dict)
         """
-        ***REMOVED*** First check if similar movies are cached in Redis
-        if settings.enable_caching:
-            cached_similar_movies = self.redis_repo.get_similar_movies(
-                movie_id=movie_id,
-                limit=limit * 2,  ***REMOVED*** Get more to filter
-                min_score=min_score,
-            )
-
-            if cached_similar_movies:
-                logger.debug(
-                    f"Found {len(cached_similar_movies)} cached similar movies for movie ID {movie_id}"
+        ***REMOVED*** First try the optimized path: get similar movies with metadata from vector DB
+        try:
+            start_time = time.time()
+            similar_movies_with_metadata = (
+                self.vector_service.find_similar_movies_by_id_with_metadata(
+                    movie_id=movie_id,
+                    limit=limit * 2,  ***REMOVED*** Get more to filter
+                    min_score=min_score,
                 )
-
-                ***REMOVED*** Get movie to use for recommendation reason
-                source_movie = get_movie_by_id(self.session, movie_id)
-                if not source_movie:
-                    logger.warning(f"Movie with ID {movie_id} not found")
-                    return [], {"error": "Movie not found"}
-
-                ***REMOVED*** Get movie details for the IDs
-                movie_ids = [m_id for m_id, _ in cached_similar_movies]
-                movies = get_movies_by_ids(self.session, movie_ids)
-
-                ***REMOVED*** Create mapping of movie ID to similarity score
-                similarity_scores = {m_id: score for m_id, score in cached_similar_movies}
-
-                ***REMOVED*** Filter movies by rating and vote count if specified
-                filtered_movies = []
-                for movie in movies:
-                    if movie.id is None:
-                        continue
-
-                    ***REMOVED*** Apply filters
-                    if min_rating is not None and (
-                        movie.imdb_rating is None or movie.imdb_rating < min_rating
-                    ):
-                        continue
-
-                    if min_vote_count is not None and (
-                        movie.vote_count is None or movie.vote_count < min_vote_count
-                    ):
-                        continue
-
-                    filtered_movies.append(movie)
-
-                    ***REMOVED*** Limit to requested number
-                    if len(filtered_movies) >= limit:
-                        break
-
-                ***REMOVED*** Create recommendation objects with similarity scores and source movie
-                recommendations = []
-                for movie in filtered_movies:
-                    if movie.id is None:
-                        continue
-
-                    score = similarity_scores.get(movie.id, 0)
-                    reason = f"similar to {source_movie.title}" if source_movie else "similar"
-
-                    recommendation = MovieRecommendation.from_movie(
-                        movie,
-                        reason=reason,
-                        score=score,
-                    )
-                    recommendations.append(recommendation)
-
-                filters = {
-                    "source_movie_id": movie_id,
-                    "min_rating": min_rating,
-                    "min_vote_count": min_vote_count,
-                    "min_score": min_score,
-                    "limit": limit,
-                    "from_cache": True,
-                }
-
-                return recommendations, filters
-
-            logger.debug(
-                f"No cached similar movies found for movie ID {movie_id}, querying vector service"
             )
 
-        ***REMOVED*** If not cached or caching disabled, use the original implementation
+            ***REMOVED*** Check if we got results with v2 metadata (comprehensive data)
+            if similar_movies_with_metadata:
+                ***REMOVED*** Filter out any results with v1 metadata (legacy format)
+                v2_results = [
+                    (mid, score, metadata)
+                    for mid, score, metadata in similar_movies_with_metadata
+                    if metadata.get("metadata_version") == "v2"
+                ]
 
-        ***REMOVED*** Get movie features
-        features = get_movie_features(self.session, movie_id)
-        if not features:
-            logger.warning(f"No features found for movie ID {movie_id}")
-            return [], {"error": "Movie not found"}
+                if v2_results:
+                    vector_search_time = time.time() - start_time
+                    logger.info(
+                        f"Using optimized path: found {len(v2_results)} movies with comprehensive metadata in {vector_search_time:.3f}s"
+                    )
 
-        ***REMOVED*** Get movie to use for recommendation reason
-        source_movie = get_movie_by_id(self.session, movie_id)
+                    ***REMOVED*** Get source movie title for reason (try from vector metadata first)
+                    source_movie_title = "Unknown"
+                    source_embedding = self.vector_service.get_movie_embedding(movie_id)
+                    if source_embedding:
+                        ***REMOVED*** Try to get source movie metadata from vector DB
+                        try:
+                            from recommendation_api.repositories.vector import get_qdrant_client
+
+                            client = get_qdrant_client()
+                            source_point = client.get_point(movie_id, with_payload=True)
+                            if source_point and source_point.payload:
+                                source_movie_title = source_point.payload.get("title", "Unknown")
+                        except Exception as e:
+                            logger.debug(f"Could not get source movie title from vector DB: {e}")
+
+                    ***REMOVED*** If we couldn't get it from vector DB, try backend API as fallback
+                    if source_movie_title == "Unknown":
+                        source_movie = await self.movie_adapter.get_movie_by_id(movie_id)
+                        if source_movie:
+                            source_movie_title = source_movie.get("title", "Unknown")
+
+                    ***REMOVED*** Filter movies by rating (metadata is already available)
+                    filtered_movies = []
+                    rejected_count = {"rating": 0, "missing_data": 0}
+
+                    for movie_id_val, score, movie_metadata in v2_results:
+                        ***REMOVED*** Apply filters
+                        imdb_rating = movie_metadata.get("imdb_rating")
+
+                        if min_rating is not None and (
+                            imdb_rating is None or imdb_rating < min_rating
+                        ):
+                            rejected_count["rating"] += 1
+                            logger.debug(
+                                f"Movie {movie_id_val} rejected: rating {imdb_rating} < {min_rating}"
+                            )
+                            continue
+
+                        logger.debug(f"Movie {movie_id_val} accepted: rating={imdb_rating}")
+                        filtered_movies.append((movie_id_val, score, movie_metadata))
+
+                        ***REMOVED*** Limit to requested number
+                        if len(filtered_movies) >= limit:
+                            break
+
+                    logger.info(
+                        f"Movie filtering results (optimized): {len(filtered_movies)} accepted, "
+                        f"{rejected_count['rating']} rejected by rating, "
+                        f"{rejected_count['missing_data']} missing data"
+                    )
+
+                    ***REMOVED*** Create recommendation objects with similarity scores
+                    recommendations = []
+
+                    for movie_id_val, score, movie_metadata in filtered_movies:
+                        reason = f"similar to {source_movie_title}"
+
+                        ***REMOVED*** Convert metadata to recommendation using adapter's helper
+                        recommendation = self.movie_adapter._convert_to_recommendation(
+                            movie_metadata,
+                            reason=reason,
+                            score=score,
+                        )
+                        recommendations.append(recommendation)
+
+                    total_time = time.time() - start_time
+                    filters = {
+                        "source_movie_id": movie_id,
+                        "min_rating": min_rating,
+                        "min_vote_count": min_vote_count,  ***REMOVED*** Keep for API compatibility
+                        "min_score": min_score,
+                        "limit": limit,
+                        "optimized_path": True,  ***REMOVED*** Indicate we used the optimized path
+                        "processing_time": f"{total_time:.3f}s",
+                    }
+
+                    logger.info(
+                        f"Optimized path completed in {total_time:.3f}s (vs typical 4-5s for API path)"
+                    )
+                    return recommendations, filters
+
+                else:
+                    logger.info(
+                        "Found results but all have legacy metadata format, falling back to API path"
+                    )
+            else:
+                logger.info("No results from vector similarity search, falling back to API path")
+
+        except Exception as e:
+            logger.warning(
+                f"Error in optimized similarity search path: {e}, falling back to API path"
+            )
+
+        ***REMOVED*** Fallback to original API-based approach
+        logger.info("Using fallback path: querying vector service + backend API")
+
+        ***REMOVED*** Get movie to use for recommendation reason (optional - may not exist in backend DB)
+        source_movie = await self.movie_adapter.get_movie_by_id(movie_id)
         if not source_movie:
-            logger.warning(f"Movie with ID {movie_id} not found")
-            return [], {"error": "Movie not found"}
+            logger.info(
+                f"Source movie {movie_id} not found in backend DB, but continuing with vector similarity search"
+            )
 
         ***REMOVED*** Get similar movies from vector service
         similar_movies = self.vector_service.find_similar_movies_by_id(
@@ -311,59 +289,66 @@ class RecommendationService:
             logger.warning(f"No similar movies found for movie ID {movie_id}")
             return [], {"error": "No similar movies found"}
 
-        ***REMOVED*** Cache the similar movies in Redis if caching is enabled
-        if settings.enable_caching:
-            try:
-                self.redis_repo.store_similar_movies(
-                    movie_id=movie_id,
-                    similar_movies=similar_movies,
-                    ttl=settings.redis_ttl,  ***REMOVED*** Use TTL from settings
-                )
-                logger.debug(f"Cached {len(similar_movies)} similar movies for movie ID {movie_id}")
-            except Exception as e:
-                logger.warning(f"Failed to cache similar movies for movie ID {movie_id}: {e}")
-
         ***REMOVED*** Get movie details for the IDs
         movie_ids = [movie_id for movie_id, _ in similar_movies]
-        movies = get_movies_by_ids(self.session, movie_ids)
+        logger.debug(f"Fetching details for {len(movie_ids)} similar movies: {movie_ids[:10]}...")
+        movies = await self.movie_adapter.get_movies_by_ids(movie_ids)
+        logger.debug(
+            f"Successfully retrieved {len(movies)} movie details out of {len(movie_ids)} requested"
+        )
 
         ***REMOVED*** Create mapping of movie ID to similarity score
         similarity_scores = {movie_id: score for movie_id, score in similar_movies}
 
-        ***REMOVED*** Filter movies by rating and vote count if specified
+        ***REMOVED*** Filter movies by rating only (vote_count not available from backend API)
         filtered_movies = []
-        for movie in movies:
-            if movie.id is None:
+        rejected_count = {"rating": 0, "missing_data": 0}
+
+        for movie_data in movies:
+            movie_id_val = movie_data.get("id")
+            if movie_id_val is None:
+                rejected_count["missing_data"] += 1
                 continue
 
             ***REMOVED*** Apply filters
-            if min_rating is not None and (
-                movie.imdb_rating is None or movie.imdb_rating < min_rating
-            ):
+            imdb_rating = movie_data.get("imdb_rating")
+
+            if min_rating is not None and (imdb_rating is None or imdb_rating < min_rating):
+                rejected_count["rating"] += 1
+                logger.debug(f"Movie {movie_id_val} rejected: rating {imdb_rating} < {min_rating}")
                 continue
 
-            if min_vote_count is not None and (
-                movie.vote_count is None or movie.vote_count < min_vote_count
-            ):
-                continue
-
-            filtered_movies.append(movie)
+            logger.debug(f"Movie {movie_id_val} accepted: rating={imdb_rating}")
+            filtered_movies.append(movie_data)
 
             ***REMOVED*** Limit to requested number
             if len(filtered_movies) >= limit:
                 break
 
+        logger.info(
+            f"Movie filtering results: {len(filtered_movies)} accepted, "
+            f"{rejected_count['rating']} rejected by rating, "
+            f"{rejected_count['missing_data']} missing data"
+        )
+
         ***REMOVED*** Create recommendation objects with similarity scores and source movie
         recommendations = []
-        for movie in filtered_movies:
-            if movie.id is None:
+
+        for movie_data in filtered_movies:
+            movie_id_val = movie_data.get("id")
+            if movie_id_val is None:
                 continue
 
-            score = similarity_scores.get(movie.id, 0)
-            reason = f"similar to {source_movie.title}" if source_movie else "similar"
+            score = similarity_scores.get(movie_id_val, 0)
+            reason = (
+                f"similar to {source_movie.get('title', 'Unknown')}"
+                if source_movie
+                else f"similar to movie {movie_id}"
+            )
 
-            recommendation = MovieRecommendation.from_movie(
-                movie,
+            ***REMOVED*** Convert movie data to recommendation using adapter's helper
+            recommendation = self.movie_adapter._convert_to_recommendation(
+                movie_data,
                 reason=reason,
                 score=score,
             )
@@ -372,10 +357,9 @@ class RecommendationService:
         filters = {
             "source_movie_id": movie_id,
             "min_rating": min_rating,
-            "min_vote_count": min_vote_count,
+            "min_vote_count": min_vote_count,  ***REMOVED*** Keep for API compatibility
             "min_score": min_score,
             "limit": limit,
-            "from_cache": False,
         }
 
         return recommendations, filters
@@ -405,3 +389,21 @@ class RecommendationService:
             liked_movies=liked_movies,
             watched_genres=watched_genres,
         )
+
+
+***REMOVED*** Global recommendation service instance
+_recommendation_service: Optional[RecommendationService] = None
+
+
+def get_recommendation_service() -> RecommendationService:
+    """Get the global recommendation service instance.
+
+    Returns:
+        Global recommendation service instance
+    """
+    global _recommendation_service
+    if _recommendation_service is None:
+        ***REMOVED*** Get movie adapter and initialize recommendation service
+        movie_adapter = get_movie_adapter()
+        _recommendation_service = RecommendationService(movie_adapter=movie_adapter)
+    return _recommendation_service

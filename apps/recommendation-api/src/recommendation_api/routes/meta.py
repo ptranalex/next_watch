@@ -3,6 +3,10 @@
 from typing import Dict, Any
 from fastapi import APIRouter
 
+from config.logging import get_logger
+
+logger = get_logger(__name__)
+
 router = APIRouter()
 
 

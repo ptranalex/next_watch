@@ -1,33 +1,17 @@
 """Embedding generation and management commands."""
 
 import asyncio
+import logging
+from typing import Optional, List
+
 import typer
 from typer import Typer
 from rich.console import Console
-from rich.progress import Progress, TaskID
 from rich.table import Table
-from typing import Optional, List, Dict, Any, Tuple
-import rich
-import logging
 
 from recommendation_api.config import settings
-from recommendation_api.db.connection import (
-    get_db_context,
-    test_connection,
-    get_simple_session,
-)
-from recommendation_api.db.operations import (
-    get_movies_for_embeddings,
-    get_movie_features,
-)
-from recommendation_api.repositories.vector import (
-    create_collection,
-    store_movie_embedding,
-    get_embeddings_stats,
-    get_collection_info,
-)
-from recommendation_api.services.vector_service import get_vector_service
 from recommendation_api.config.logging import configure_logging
+from recommendation_api.services.embedding_service import get_embedding_service
 
 app: Typer = typer.Typer()
 console = Console()
@@ -47,7 +31,7 @@ def generate(
     """Generate embeddings for movies.
 
     This command generates vector embeddings for movies and stores them in the vector database.
-    It fetches movie data from PostgreSQL, generates embeddings using the configured model,
+    It fetches movie data from the backend API, generates embeddings using the configured model,
     and stores them in Qdrant vector database for similarity search.
     """
     ***REMOVED*** Configure logging for this command
@@ -61,7 +45,7 @@ def generate(
 
     configure_logging(log_level=log_level, verbose=verbose)
 
-    ***REMOVED*** Always suppress noisy logs unless in debug mode
+    ***REMOVED*** Suppress noisy logs unless in verbose mode
     noisy_loggers = [
         "httpx",
         "qdrant_client",
@@ -70,6 +54,7 @@ def generate(
         "recommendation_api.repositories.vector.client",
         "recommendation_api.services.vector_service",
         "recommendation_api.services.embedding_service",
+        "recommendation_api.services.clients.base",
     ]
 
     if verbose:
@@ -81,231 +66,151 @@ def generate(
         for logger_name in noisy_loggers:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
 
-    ***REMOVED*** Use config defaults if not provided
-    actual_batch_size = batch_size or settings.batch_size
+    ***REMOVED*** Use asyncio to run the async function
+    asyncio.run(
+        _run_generate(
+            batch_size=batch_size,
+            force=force,
+            limit=limit,
+            movie_id=movie_id,
+            verbose=verbose,
+            quiet=quiet,
+            noisy_loggers=noisy_loggers,
+        )
+    )
 
-    console.print("[cyan]Starting movie embedding generation...[/cyan]")
 
-    ***REMOVED*** Indicate when force mode is active
-    if force:
-        console.print("[yellow]Force mode enabled - all embeddings will be regenerated.[/yellow]")
+async def _run_generate(
+    batch_size: Optional[int],
+    force: bool,
+    limit: Optional[int],
+    movie_id: Optional[int],
+    verbose: bool,
+    quiet: bool,
+    noisy_loggers: List[str],
+) -> None:
+    """Async implementation of generate command."""
+    ***REMOVED*** Temporarily suppress logs during generation unless verbose
+    temp_loggers = {}
+    if not verbose:
+        for logger_name in noisy_loggers:
+            logger = logging.getLogger(logger_name)
+            temp_loggers[logger_name] = logger.level
+            logger.setLevel(logging.CRITICAL)
 
-    ***REMOVED*** Test database connection
-    if not test_connection():
-        console.print("[red]Database connection failed. Please check your configuration.[/red]")
-        raise typer.Exit(1)
-
-    ***REMOVED*** Get vector service
-    vector_service = get_vector_service()
-
-    ***REMOVED*** Create Qdrant collection if it doesn't exist
-    console.print("[yellow]Setting up vector database collection...[/yellow]")
-    if not vector_service.ensure_collection_exists():
-        console.print("[red]Failed to create vector database collection.[/red]")
-        raise typer.Exit(1)
-
-    ***REMOVED*** Define async function to process movies
-    async def process_movies(
-        session: Any, movie_ids: List[int], force: bool = False
-    ) -> Dict[str, int]:
-        return await vector_service.batch_process_movies(session, movie_ids, force=force)
-
+    embedding_service = None
     try:
-        with get_db_context() as session:
-            ***REMOVED*** Handle specific movie ID if provided
-            if movie_id is not None:
-                console.print(f"[yellow]Processing specific movie ID: {movie_id}[/yellow]")
+        ***REMOVED*** Initialize embedding service
+        console.print("[cyan]Initializing embedding service...[/cyan]")
+        embedding_service = await get_embedding_service()
 
-                ***REMOVED*** Use asyncio.run to handle async method
-                results = asyncio.run(process_movies(session, [movie_id], force=force))
-
-                processed = results.get("processed", 0)
-                errors = results.get("failed", 0)
-                skipped = results.get("skipped", 0)
-
-                console.print(f"[green]Processed: {processed}[/green]")
-                if errors > 0:
-                    console.print(f"[yellow]Errors: {errors}[/yellow]")
-                if skipped > 0:
-                    console.print(f"[blue]Skipped: {skipped}[/blue]")
-                return
-
-            ***REMOVED*** Get movies that need embeddings
-            console.print(f"[yellow]Fetching movies for embedding generation...[/yellow]")
-            movies = get_movies_for_embeddings(
-                session=session,
-                limit=limit,
+        ***REMOVED*** Indicate when force mode is active
+        if force:
+            console.print(
+                "[yellow]Force mode enabled - all embeddings will be regenerated.[/yellow]"
             )
 
-            if not movies:
-                console.print("[yellow]No movies found for embedding generation.[/yellow]")
-                return
+        ***REMOVED*** Process specific movie or all movies
+        movie_ids = [movie_id] if movie_id is not None else None
 
-            console.print(f"[green]Found {len(movies)} movies to process[/green]")
+        if movie_id is not None:
+            console.print(f"[yellow]Processing specific movie ID: {movie_id}[/yellow]")
 
-            ***REMOVED*** Track overall statistics
-            overall_stats = {
-                "total": len(movies),
-                "processed": 0,
-                "skipped": 0,
-                "failed": 0,
-            }
+        ***REMOVED*** Run embedding generation with progress tracking if not quiet
+        if not quiet:
+            with console.status(
+                "[bold green]Generating embeddings...[/bold green]", spinner="dots"
+            ):
+                results = await embedding_service.generate_embeddings(
+                    movie_ids=movie_ids,
+                    force=force,
+                    limit=limit,
+                    batch_size=batch_size,
+                )
+        else:
+            ***REMOVED*** Silent mode
+            results = await embedding_service.generate_embeddings(
+                movie_ids=movie_ids,
+                force=force,
+                limit=limit,
+                batch_size=batch_size,
+            )
 
-            ***REMOVED*** Track last reported batch for cleaner output
-            last_batch_report = 0
-            report_interval = max(1, len(movies) // 20)  ***REMOVED*** Report every 5% or at least every batch
+        ***REMOVED*** Print results
+        if not quiet:
+            console.print("\n[bold cyan]Embedding Generation Summary:[/bold cyan]")
 
-            ***REMOVED*** Process movies in batches
-            with Progress(
-                "[progress.description]{task.description}",
-                rich.progress.BarColumn(),
-                "[progress.percentage]{task.percentage:>3.0f}%",
-                rich.progress.TimeRemainingColumn(),
-                "[cyan]{task.fields[processed]}[/cyan] processed, "
-                "[blue]{task.fields[skipped]}[/blue] skipped, "
-                "[red]{task.fields[failed]}[/red] failed",
-                console=console,
-                transient=False,  ***REMOVED*** Keep progress bar visible
-                refresh_per_second=2,  ***REMOVED*** Reduce refresh rate to minimize flicker
-            ) as progress:
-                task = progress.add_task(
-                    "[cyan]Processing movies...",
-                    total=len(movies),
-                    processed=0,
-                    skipped=0,
-                    failed=0,
+            ***REMOVED*** Create a table for summary statistics
+            table = Table()
+            table.add_column("Metric", style="cyan")
+            table.add_column("Count", style="white")
+            table.add_column("Percentage", style="green")
+
+            total = results["total"]
+            processed = results["processed"]
+            skipped = results["skipped"]
+            failed = results["failed"]
+
+            table.add_row("Total Movies", str(total), "100.0%")
+
+            if processed > 0:
+                table.add_row(
+                    "Processed",
+                    str(processed),
+                    f"{processed / total * 100:.1f}%" if total > 0 else "0.0%",
                 )
 
-                for i in range(0, len(movies), actual_batch_size):
-                    batch = movies[i : i + actual_batch_size]
-                    batch_num = i // actual_batch_size + 1
-                    total_batches = (len(movies) + actual_batch_size - 1) // actual_batch_size
+            if skipped > 0:
+                table.add_row(
+                    "Skipped (Already Exists)",
+                    str(skipped),
+                    f"{skipped / total * 100:.1f}%" if total > 0 else "0.0%",
+                )
 
-                    ***REMOVED*** Process movies and collect IDs for batch processing
-                    movie_ids = []
-                    for movie in batch:
-                        if movie.id is not None:
-                            movie_ids.append(movie.id)
+            if failed > 0:
+                table.add_row(
+                    "Failed",
+                    str(failed),
+                    f"{failed / total * 100:.1f}%" if total > 0 else "0.0%",
+                )
 
-                    ***REMOVED*** Use batch processing through vector service with asyncio.run
-                    if movie_ids:
-                        ***REMOVED*** Temporarily suppress logs during batch processing unless verbose
-                        if not verbose:
-                            ***REMOVED*** Temporarily increase log level for batch processing
-                            temp_loggers = {}
-                            for logger_name in noisy_loggers:
-                                logger = logging.getLogger(logger_name)
-                                temp_loggers[logger_name] = logger.level
-                                logger.setLevel(logging.CRITICAL)
+            console.print(table)
 
-                        try:
-                            results = asyncio.run(process_movies(session, movie_ids, force=force))
-                        finally:
-                            ***REMOVED*** Restore log levels
-                            if not verbose:
-                                for logger_name, level in temp_loggers.items():
-                                    logging.getLogger(logger_name).setLevel(level)
+            ***REMOVED*** Add explanatory message if all skipped
+            if processed == 0 and skipped > 0:
+                console.print(
+                    "\n[yellow]All movies already have embeddings. Use --force to regenerate.[/yellow]"
+                )
 
-                        ***REMOVED*** Update statistics
-                        batch_processed = results.get("processed", 0)
-                        batch_failed = results.get("failed", 0)
-                        batch_skipped = results.get("skipped", 0)
-
-                        overall_stats["processed"] += batch_processed
-                        overall_stats["failed"] += batch_failed
-                        overall_stats["skipped"] += batch_skipped
-
-                        ***REMOVED*** Update progress bar with detailed stats
-                        progress.update(
-                            task,
-                            advance=len(batch),
-                            processed=overall_stats["processed"],
-                            skipped=overall_stats["skipped"],
-                            failed=overall_stats["failed"],
-                        )
-
-                        ***REMOVED*** Report batch progress periodically or if verbose
-                        should_report = (
-                            verbose
-                            or batch_num - last_batch_report >= report_interval
-                            or batch_num == total_batches
-                            or batch_failed > 0
-                        )
-
-                        if should_report:
-                            last_batch_report = batch_num
-
-                            if verbose:
-                                console.print(
-                                    f"[dim]Batch {batch_num}/{total_batches}: "
-                                    f"{batch_processed} processed, "
-                                    f"{batch_skipped} skipped, "
-                                    f"{batch_failed} failed[/dim]"
-                                )
-                            elif batch_failed > 0:
-                                console.print(
-                                    f"[yellow]Batch {batch_num}: {batch_failed} failures detected[/yellow]"
-                                )
-
-                ***REMOVED*** Final summary
-                console.print("\n[bold cyan]Embedding Generation Summary:[/bold cyan]")
-
-                ***REMOVED*** Create a table for summary statistics
-                table = Table()
-                table.add_column("Metric", style="cyan")
-                table.add_column("Count", style="white")
-                table.add_column("Percentage", style="green")
-
-                table.add_row("Total Movies", str(overall_stats["total"]), "100.0%")
-
-                if overall_stats["processed"] > 0:
-                    table.add_row(
-                        "Processed",
-                        str(overall_stats["processed"]),
-                        f"{overall_stats['processed'] / overall_stats['total'] * 100:.1f}%",
-                    )
-
-                if overall_stats["skipped"] > 0:
-                    table.add_row(
-                        "Skipped (Already Exists)",
-                        str(overall_stats["skipped"]),
-                        f"{overall_stats['skipped'] / overall_stats['total'] * 100:.1f}%",
-                    )
-
-                if overall_stats["failed"] > 0:
-                    table.add_row(
-                        "Failed",
-                        str(overall_stats["failed"]),
-                        f"{overall_stats['failed'] / overall_stats['total'] * 100:.1f}%",
-                    )
-
-                console.print(table)
-
-                ***REMOVED*** Add explanatory message if all skipped
-                if overall_stats["processed"] == 0 and overall_stats["skipped"] > 0:
-                    console.print(
-                        "\n[yellow]All movies already have embeddings. Use --force to regenerate.[/yellow]"
-                    )
-
-                ***REMOVED*** Add a completion message
-                if overall_stats["processed"] > 0:
-                    console.print("\n[green]✓ Embedding generation completed successfully![/green]")
-                elif overall_stats["failed"] > 0:
-                    console.print(
-                        "\n[yellow]⚠ Embedding generation completed with some failures.[/yellow]"
-                    )
-                    if not verbose:
-                        console.print("[dim]Use --verbose to see detailed error information.[/dim]")
-                else:
-                    console.print("\n[blue]ℹ No new embeddings were generated.[/blue]")
+            ***REMOVED*** Add a completion message
+            if processed > 0:
+                console.print("\n[green]✓ Embedding generation completed successfully![/green]")
+            elif failed > 0:
+                console.print(
+                    "\n[yellow]⚠ Embedding generation completed with some failures.[/yellow]"
+                )
+                if not verbose:
+                    console.print("[dim]Use --verbose to see detailed error information.[/dim]")
+            else:
+                console.print("\n[blue]ℹ No new embeddings were generated.[/blue]")
 
     except Exception as e:
-        console.print(f"[red]Error during embedding generation: {e}[/red]")
+        console.print(f"[bold red]Error:[/bold red] {e}")
         if verbose:
             import traceback
 
-            console.print(f"[red]{traceback.format_exc()}[/red]")
-        raise typer.Exit(1)
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise typer.Exit(code=1)
+
+    finally:
+        ***REMOVED*** Restore log levels
+        if not verbose:
+            for logger_name, level in temp_loggers.items():
+                logging.getLogger(logger_name).setLevel(level)
+
+        ***REMOVED*** Clean up embedding service
+        if embedding_service:
+            await embedding_service.close()
 
 
 @app.command()
@@ -323,24 +228,30 @@ def status(
     """
     console.print("[cyan]Checking embedding status...[/cyan]")
 
-    ***REMOVED*** Test database connection
-    if not test_connection():
-        console.print("[red]Database connection failed.[/red]")
-        raise typer.Exit(1)
+    ***REMOVED*** Use asyncio to run the async function
+    asyncio.run(_run_status(verbose=verbose))
 
+
+async def _run_status(verbose: bool) -> None:
+    """Async implementation of status command."""
+    embedding_service = None
     try:
-        ***REMOVED*** Get database stats
-        session = get_simple_session()
-        try:
-            movies = get_movies_for_embeddings(session, limit=None)
-            total_movies = len(movies)
-        finally:
-            session.close()
+        ***REMOVED*** Initialize embedding service
+        embedding_service = await get_embedding_service()
 
-        ***REMOVED*** Get vector service stats
-        vector_service = get_vector_service()
-        stats = vector_service.get_vector_stats()
-        collection_info = get_collection_info()
+        ***REMOVED*** Get status information
+        with console.status(
+            "[bold green]Retrieving status information...[/bold green]", spinner="dots"
+        ):
+            status_info = embedding_service.get_embedding_status()
+
+            ***REMOVED*** Get total movies from API
+            all_movies = await embedding_service.get_movies_for_embeddings()
+            total_movies = len(all_movies)
+
+        if "error" in status_info:
+            console.print(f"[bold red]Error:[/bold red] {status_info['error']}")
+            raise typer.Exit(code=1)
 
         ***REMOVED*** Create status table
         table = Table(title="Embedding Status")
@@ -348,26 +259,36 @@ def status(
         table.add_column("Value", style="green")
 
         table.add_row("Total Movies in Database", str(total_movies))
-        table.add_row("Movies with Embeddings", str(stats.get("total_embeddings", 0)))
-        table.add_row("Indexed Embeddings", str(stats.get("indexed_embeddings", 0)))
-        table.add_row("Collection Status", stats.get("collection_status", "unknown"))
-        table.add_row("Service Status", stats.get("service_status", "unknown"))
+        table.add_row("Movies with Embeddings", str(status_info.get("total_embeddings", 0)))
+        table.add_row("Indexed Embeddings", str(status_info.get("indexed_embeddings", 0)))
+        table.add_row("Collection Status", status_info.get("collection_status", "unknown"))
+        table.add_row("Service Status", status_info.get("service_status", "unknown"))
 
-        if verbose and collection_info:
-            table.add_row("Vector Dimension", str(stats.get("vector_size", 0)))
-            table.add_row("Distance Metric", stats.get("distance_metric", "unknown"))
+        if verbose:
+            collection_info = status_info.get("collection_info", {})
+            table.add_row("Vector Dimension", str(status_info.get("vector_dimension", 0)))
+            table.add_row("Distance Metric", status_info.get("distance_metric", "unknown"))
             table.add_row("Segments Count", str(collection_info.get("segments_count", 0)))
 
         console.print(table)
 
         ***REMOVED*** Calculate completion percentage
         if total_movies > 0:
-            completion = (stats.get("total_embeddings", 0) / total_movies) * 100
+            completion = (status_info.get("total_embeddings", 0) / total_movies) * 100
             console.print(f"\n[cyan]Completion: {completion:.1f}%[/cyan]")
 
     except Exception as e:
-        console.print(f"[red]Error checking status: {e}[/red]")
-        raise typer.Exit(1)
+        console.print(f"[bold red]Error:[/bold red] {e}")
+        if verbose:
+            import traceback
+
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise typer.Exit(code=1)
+
+    finally:
+        ***REMOVED*** Clean up embedding service
+        if embedding_service:
+            await embedding_service.close()
 
 
 @app.command()
@@ -385,38 +306,9 @@ def cleanup(
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
 
-    try:
-        ***REMOVED*** Test database connection
-        if not test_connection():
-            console.print("[red]Database connection failed.[/red]")
-            raise typer.Exit(1)
-
-        ***REMOVED*** Get collection info
-        collection_info = get_collection_info()
-        if not collection_info:
-            console.print("[yellow]No vector collection found - nothing to clean up.[/yellow]")
-            return
-
-        console.print(
-            f"[green]Found collection with {collection_info.get('points_count', 0)} embeddings[/green]"
-        )
-
-        ***REMOVED*** TODO: Implement actual cleanup logic
-        ***REMOVED*** This would involve:
-        ***REMOVED*** 1. Getting all movie IDs from vector database
-        ***REMOVED*** 2. Checking which ones don't exist in PostgreSQL
-        ***REMOVED*** 3. Removing orphaned embeddings
-
-        if dry_run:
-            console.print(
-                "[yellow]Cleanup functionality will be implemented in future versions[/yellow]"
-            )
-        else:
-            console.print("[yellow]Cleanup executed (placeholder)[/yellow]")
-
-    except Exception as e:
-        console.print(f"[red]Error during cleanup: {e}[/red]")
-        raise typer.Exit(1)
+    ***REMOVED*** TODO: Implement cleanup using EmbeddingService
+    console.print("[yellow]Cleanup functionality will be implemented in future versions[/yellow]")
+    console.print("[dim]This would check for orphaned embeddings and remove them.[/dim]")
 
 
 @app.command()
@@ -428,22 +320,49 @@ def info(
     This command displays the current configuration for embedding generation,
     including the model being used, vector dimensions, and database settings.
     """
-    table = Table(title="Embedding Configuration")
-    table.add_column("Setting", style="cyan")
-    table.add_column("Value", style="green")
+    ***REMOVED*** Use asyncio to run the async function
+    asyncio.run(_run_info(verbose=verbose))
 
-    table.add_row("Embedding Model", settings.embedding_model)
-    table.add_row("Vector Dimension", str(settings.embedding_dimension))
-    table.add_row("Batch Size", str(settings.batch_size))
-    table.add_row("Max Sequence Length", str(settings.max_sequence_length))
-    table.add_row("Qdrant URL", settings.qdrant_url)
-    table.add_row("Collection Name", settings.qdrant_collection_name)
 
-    if verbose:
-        table.add_row("Similarity Threshold", str(settings.similarity_threshold))
-        table.add_row("Generation Timeout", f"{settings.embedding_generation_timeout}s")
+async def _run_info(verbose: bool) -> None:
+    """Async implementation of info command."""
+    embedding_service = None
+    try:
+        ***REMOVED*** Initialize embedding service
+        embedding_service = await get_embedding_service()
 
-    console.print(table)
+        ***REMOVED*** Get configuration information
+        config_info = embedding_service.get_configuration_info()
+
+        table = Table(title="Embedding Configuration")
+        table.add_column("Setting", style="cyan")
+        table.add_column("Value", style="green")
+
+        table.add_row("Embedding Model", config_info.get("embedding_model", "unknown"))
+        table.add_row("Vector Dimension", str(config_info.get("vector_dimension", 0)))
+        table.add_row("Batch Size", str(config_info.get("batch_size", 0)))
+        table.add_row("Max Sequence Length", str(config_info.get("max_sequence_length", 0)))
+        table.add_row("Qdrant URL", config_info.get("qdrant_url", "unknown"))
+        table.add_row("Collection Name", config_info.get("collection_name", "unknown"))
+
+        if verbose:
+            table.add_row("Similarity Threshold", str(config_info.get("similarity_threshold", 0)))
+            table.add_row("Generation Timeout", f"{config_info.get('generation_timeout', 0)}s")
+
+        console.print(table)
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {e}")
+        if verbose:
+            import traceback
+
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise typer.Exit(code=1)
+
+    finally:
+        ***REMOVED*** Clean up embedding service
+        if embedding_service:
+            await embedding_service.close()
 
 
 @app.command()
@@ -481,7 +400,7 @@ def repair_embeddings(
 
     configure_logging(log_level=log_level, verbose=verbose)
 
-    ***REMOVED*** Always suppress noisy logs unless in debug mode
+    ***REMOVED*** Suppress noisy logs unless in verbose mode
     noisy_loggers = [
         "httpx",
         "qdrant_client",
@@ -490,6 +409,7 @@ def repair_embeddings(
         "recommendation_api.repositories.vector.client",
         "recommendation_api.services.vector_service",
         "recommendation_api.services.embedding_service",
+        "recommendation_api.services.clients.base",
     ]
 
     if verbose:
@@ -503,206 +423,108 @@ def repair_embeddings(
 
     console.print("[cyan]Repairing movie embeddings with missing vectors[/cyan]")
 
-    from recommendation_api.repositories.vector.client import get_qdrant_client
-    from recommendation_api.services.vector_service import get_vector_service
-    from recommendation_api.db.connection import get_db_context
-    from qdrant_client.http import models
-    from recommendation_api.config import settings
+    ***REMOVED*** Use asyncio to run the async function
+    asyncio.run(
+        _run_repair(
+            batch_size=batch_size,
+            specific_movie_id=specific_movie_id,
+            dry_run=dry_run,
+            quiet=quiet,
+            verbose=verbose,
+            noisy_loggers=noisy_loggers,
+        )
+    )
 
-    ***REMOVED*** Create vector service
-    vector_service = get_vector_service()
 
-    ***REMOVED*** Get direct client access for checking points
-    client = get_qdrant_client()
+async def _run_repair(
+    batch_size: int,
+    specific_movie_id: Optional[int],
+    dry_run: bool,
+    quiet: bool,
+    verbose: bool,
+    noisy_loggers: List[str],
+) -> None:
+    """Async implementation of repair command."""
+    ***REMOVED*** Temporarily suppress logs during repair unless verbose
+    temp_loggers = {}
+    if not verbose:
+        for logger_name in noisy_loggers:
+            logger = logging.getLogger(logger_name)
+            temp_loggers[logger_name] = logger.level
+            logger.setLevel(logging.CRITICAL)
 
-    ***REMOVED*** Use a dummy vector for search (to find all points)
-    vector_size = settings.embedding_dimension
-    dummy_vector = [0.1] * vector_size
-
-    ***REMOVED*** Track progress
-    stats = {
-        "checked": 0,
-        "needing_repair": 0,
-        "repaired": 0,
-        "failed": 0,
-    }
-
-    ***REMOVED*** Function to check if a movie needs repair
-    def needs_repair(movie_id: int) -> bool:
-        try:
-            ***REMOVED*** Get point directly with vectors explicitly requested
-            point = client.get_point(movie_id, with_vectors=True)
-            if point:
-                ***REMOVED*** Has metadata but missing vector
-                if point.vector is None:
-                    return True
-            return False
-        except Exception as e:
-            if verbose:
-                console.print(f"[red]Error checking movie {movie_id}: {e}[/red]")
-            return False
-
+    embedding_service = None
     try:
+        ***REMOVED*** Initialize embedding service
+        if not quiet:
+            console.print("[cyan]Initializing embedding service...[/cyan]")
+
+        embedding_service = await get_embedding_service()
+
         ***REMOVED*** Handle case for specific movie ID
+        movie_ids = [specific_movie_id] if specific_movie_id is not None else None
+
         if specific_movie_id is not None:
             console.print(f"[cyan]Checking specific movie ID: {specific_movie_id}[/cyan]")
 
-            if needs_repair(specific_movie_id):
-                stats["needing_repair"] += 1
-                console.print(
-                    f"[yellow]Movie ID {specific_movie_id} needs repair (has metadata but vector is None)[/yellow]"
+        ***REMOVED*** Run repair process
+        if not quiet and not dry_run:
+            with console.status("[bold green]Repairing embeddings...[/bold green]", spinner="dots"):
+                results = await embedding_service.repair_embeddings(
+                    movie_ids=movie_ids,
+                    batch_size=batch_size,
+                    dry_run=dry_run,
                 )
-
-                if not dry_run:
-                    ***REMOVED*** Repair the embedding
-                    with get_db_context() as session:
-                        ***REMOVED*** Temporarily suppress logs during repair unless verbose
-                        if not verbose:
-                            temp_loggers = {}
-                            for logger_name in noisy_loggers:
-                                logger = logging.getLogger(logger_name)
-                                temp_loggers[logger_name] = logger.level
-                                logger.setLevel(logging.CRITICAL)
-
-                        try:
-                            embedding = vector_service.generate_and_store_movie_embedding(
-                                session, specific_movie_id
-                            )
-                        finally:
-                            if not verbose:
-                                for logger_name, level in temp_loggers.items():
-                                    logging.getLogger(logger_name).setLevel(level)
-
-                        if embedding:
-                            stats["repaired"] += 1
-                            console.print(
-                                f"[green]Successfully repaired embedding for movie {specific_movie_id}[/green]"
-                            )
-                        else:
-                            stats["failed"] += 1
-                            console.print(
-                                f"[red]Failed to repair embedding for movie {specific_movie_id}[/red]"
-                            )
-            else:
-                console.print(f"[green]Movie ID {specific_movie_id} does not need repair[/green]")
-
-            stats["checked"] += 1
-        ***REMOVED*** Handle case for scanning all movies
         else:
-            console.print("[cyan]Scanning all movies for those needing repair...[/cyan]")
-
-            ***REMOVED*** Get all movies with metadata in the vector database
-            all_points = client.search(
-                collection_name=settings.qdrant_collection_name,
-                query_vector=dummy_vector,
-                limit=10000,  ***REMOVED*** Set a large limit to get as many as possible
-                score_threshold=None,  ***REMOVED*** No score threshold
+            ***REMOVED*** Silent mode or dry run
+            results = await embedding_service.repair_embeddings(
+                movie_ids=movie_ids,
+                batch_size=batch_size,
+                dry_run=dry_run,
             )
 
-            movies_to_check = [int(point.id) for point in all_points]
-            total_movies = len(movies_to_check)
-            console.print(f"[cyan]Found {total_movies} movies in vector database to check[/cyan]")
+        ***REMOVED*** Print summary
+        if not quiet:
+            console.print("\n[cyan]Repair Summary:[/cyan]")
+            table = Table()
+            table.add_column("Metric", style="cyan")
+            table.add_column("Count", style="green")
 
-            ***REMOVED*** Find which movies need repair
-            movies_needing_repair = []
+            table.add_row("Movies Checked", str(results.get("checked", 0)))
+            table.add_row("Movies Needing Repair", str(results.get("needing_repair", 0)))
 
-            if not quiet:
-                with typer.progressbar(movies_to_check, label="Checking movies") as progress:
-                    for movie_id in progress:
-                        stats["checked"] += 1
-                        if needs_repair(movie_id):
-                            movies_needing_repair.append(movie_id)
-                            stats["needing_repair"] += 1
+            if not dry_run:
+                table.add_row("Movies Repaired", str(results.get("repaired", 0)))
+                table.add_row("Repair Failures", str(results.get("failed", 0)))
             else:
-                ***REMOVED*** Silent checking in quiet mode
-                for movie_id in movies_to_check:
-                    stats["checked"] += 1
-                    if needs_repair(movie_id):
-                        movies_needing_repair.append(movie_id)
-                        stats["needing_repair"] += 1
+                table.add_row("Dry Run", "No changes made")
 
-            console.print(
-                f"[yellow]Found {len(movies_needing_repair)} movies needing repair[/yellow]"
-            )
+            console.print(table)
 
-            ***REMOVED*** Process in batches
-            if not dry_run and movies_needing_repair:
-                console.print("[cyan]Repairing embeddings...[/cyan]")
-
-                ***REMOVED*** Process in batches
-                batches = [
-                    movies_needing_repair[i : i + batch_size]
-                    for i in range(0, len(movies_needing_repair), batch_size)
-                ]
-
-                for batch_num, batch in enumerate(batches, 1):
-                    if not quiet:
-                        console.print(
-                            f"[cyan]Processing batch {batch_num}/{len(batches)} ({len(batch)} movies)[/cyan]"
-                        )
-
-                    with get_db_context() as session:
-                        ***REMOVED*** Temporarily suppress logs during batch repair unless verbose
-                        if not verbose:
-                            temp_loggers = {}
-                            for logger_name in noisy_loggers:
-                                logger = logging.getLogger(logger_name)
-                                temp_loggers[logger_name] = logger.level
-                                logger.setLevel(logging.CRITICAL)
-
-                        try:
-                            if not quiet:
-                                for movie_id in typer.progressbar(batch, label="Repairing"):
-                                    embedding = vector_service.generate_and_store_movie_embedding(
-                                        session, movie_id
-                                    )
-                                    if embedding:
-                                        stats["repaired"] += 1
-                                    else:
-                                        stats["failed"] += 1
-                            else:
-                                ***REMOVED*** Silent processing in quiet mode
-                                for movie_id in batch:
-                                    embedding = vector_service.generate_and_store_movie_embedding(
-                                        session, movie_id
-                                    )
-                                    if embedding:
-                                        stats["repaired"] += 1
-                                    else:
-                                        stats["failed"] += 1
-                        finally:
-                            if not verbose:
-                                for logger_name, level in temp_loggers.items():
-                                    logging.getLogger(logger_name).setLevel(level)
+            if dry_run and results.get("needing_repair", 0) > 0:
+                console.print(
+                    "[yellow]Run again without --dry-run to repair these embeddings[/yellow]"
+                )
+            elif not dry_run and results.get("failed", 0) > 0 and not verbose:
+                console.print("[dim]Use --verbose to see detailed error information.[/dim]")
 
     except Exception as e:
-        console.print(f"[red]Error repairing embeddings: {e}[/red]")
+        console.print(f"[bold red]Error:[/bold red] {e}")
         if verbose:
             import traceback
 
-            console.print(f"[red]{traceback.format_exc()}[/red]")
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise typer.Exit(code=1)
 
-    ***REMOVED*** Print summary
-    console.print("\n[cyan]Repair Summary:[/cyan]")
-    table = rich.table.Table()
-    table.add_column("Metric", style="cyan")
-    table.add_column("Count", style="green")
+    finally:
+        ***REMOVED*** Restore log levels
+        if not verbose:
+            for logger_name, level in temp_loggers.items():
+                logging.getLogger(logger_name).setLevel(level)
 
-    table.add_row("Movies Checked", str(stats["checked"]))
-    table.add_row("Movies Needing Repair", str(stats["needing_repair"]))
-
-    if not dry_run:
-        table.add_row("Movies Repaired", str(stats["repaired"]))
-        table.add_row("Repair Failures", str(stats["failed"]))
-    else:
-        table.add_row("Dry Run", "No changes made")
-
-    console.print(table)
-
-    if dry_run and stats["needing_repair"] > 0:
-        console.print("[yellow]Run again without --dry-run to repair these embeddings[/yellow]")
-    elif not dry_run and stats["failed"] > 0 and not verbose:
-        console.print("[dim]Use --verbose to see detailed error information.[/dim]")
+        ***REMOVED*** Clean up embedding service
+        if embedding_service:
+            await embedding_service.close()
 
 
 @app.callback(invoke_without_command=True)

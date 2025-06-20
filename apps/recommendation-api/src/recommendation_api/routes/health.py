@@ -1,6 +1,6 @@
 """Health check routes for the Recommendation API."""
 
-import logging
+from config.logging import get_logger
 from datetime import datetime
 from typing import Dict, Any
 
@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from recommendation_api.config import settings
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter()
 
 

@@ -7,20 +7,20 @@ This service provides comprehensive health checks for all dependencies:
 """
 
 import asyncio
-import logging
 import time
-from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any, Dict, Optional, Tuple
 
 import asyncpg
 import redis
-from redis.exceptions import RedisError
+from config.logging import get_logger
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import ResponseHandlingException
+from redis.exceptions import RedisError
 
 from recommendation_api.config import settings
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -297,7 +297,7 @@ def get_health_service() -> HealthService:
     return _health_service
 
 
-def close_health_service() -> None:
+async def close_health_service() -> None:
     """Close the global health service instance."""
     global _health_service
 

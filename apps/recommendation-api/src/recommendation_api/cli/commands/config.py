@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple, cast
 
@@ -10,18 +11,19 @@ from rich.console import Console
 from rich.table import Table
 from rich import print as rprint
 from typer import Typer
+from rich.panel import Panel
 
-from recommendation_api.config import settings
-from recommendation_api.cli.utils import print_config, print_error
-from recommendation_api.config.logging import configure_logging
+from recommendation_api.config.app import settings
+from recommendation_api.cli.utils import print_config, print_error, print_success
+from config.logging import configure_logging, get_logger
 
-app: typer.Typer = typer.Typer(
+app: Typer = typer.Typer(
     name="config",
     help="Configuration management commands",
 )
 
 console = Console()
-logger = logging.getLogger(__name__)
+logger = get_logger("recommendation_api.cli.commands.config")
 
 
 def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
@@ -37,7 +39,15 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         log_level = "DEBUG"
     elif quiet:
         log_level = "WARNING"
-    configure_logging(log_level=log_level, verbose=verbose)
+
+    configure_logging(
+        log_level=log_level,
+        verbose=verbose,
+        quiet=quiet,
+        logger_name="recommendation_api",
+        color_theme="modern",
+        http_verbose=False,
+    )
 
 
 @app.command()

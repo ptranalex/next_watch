@@ -4,14 +4,15 @@ This module provides a client for interacting with the ML API service
 to generate embeddings for movies and user preferences.
 """
 
-import logging
-from typing import Dict, List, Any, Optional, cast
+from typing import Any, Dict, List, Optional, cast
+
 import httpx
+from config.logging import get_logger
 from httpx import Response
 
 from recommendation_api.config import settings
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MLApiClient:

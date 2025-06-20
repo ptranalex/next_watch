@@ -13,7 +13,7 @@ from qdrant_client.http import models
 
 from recommendation_api.config.app import settings
 from recommendation_api.cli.utils import check_service_health, display_service_status, print_error
-from recommendation_api.config.logging import configure_logging
+from config.logging import configure_logging, get_logger
 
 app: Typer = typer.Typer(
     name="health",
@@ -21,7 +21,7 @@ app: Typer = typer.Typer(
 )
 
 console = Console()
-logger = logging.getLogger(__name__)
+logger = get_logger("recommendation_api.cli.commands.health")
 
 
 def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
@@ -37,7 +37,15 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         log_level = "DEBUG"
     elif quiet:
         log_level = "WARNING"
-    configure_logging(log_level=log_level, verbose=verbose)
+
+    configure_logging(
+        log_level=log_level,
+        verbose=verbose,
+        quiet=quiet,
+        logger_name="recommendation_api",
+        color_theme="modern",
+        http_verbose=False,
+    )
 
 
 async def check_database_health() -> bool:

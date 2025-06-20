@@ -1,33 +1,64 @@
 """Main FastAPI application for the Recommendation API service."""
 
 import os
-import logging
+from typing import Optional
+from pathlib import Path
+
+from fastapi import FastAPI
 
 ***REMOVED*** Import configuration after environment variables are loaded
-from recommendation_api.config import settings
-from recommendation_api.core.logging import setup_logging
+from recommendation_api.config.app import settings
 
-***REMOVED*** Configure logging early
-setup_logging(
-    log_level=settings.log_level,
-    verbose=settings.debug,
-    quiet=False,
-)
+***REMOVED*** Lazy app initialization - only create when needed
+_app: Optional[FastAPI] = None
 
-***REMOVED*** Get logger for this module
-logger = logging.getLogger(__name__)
 
-***REMOVED*** Log main application startup
-logger.info("Initializing Next Watch Recommendation Service")
-logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+def get_app() -> FastAPI:
+    """Get or create the FastAPI application instance with full logging."""
+    global _app
+    if _app is None:
+        ***REMOVED*** Configure logging for web server mode
+        from config.logging import configure_logging, get_logger
 
-***REMOVED*** Import and create app using core module
-from recommendation_api.core.app import create_app
+        ***REMOVED*** Configure logging with enhanced settings
+        log_dir = None
+        if settings.logs_dir:
+            log_dir = Path(settings.logs_dir)
 
-***REMOVED*** Create the FastAPI application with injected settings
-app = create_app(settings)
+        configure_logging(
+            log_level=settings.log_level,
+            log_dir=log_dir,
+            verbose=settings.debug,
+            quiet=False,
+            use_coloredlogs=True,
+            logger_name="recommendation_api",
+            color_theme="modern",
+            http_verbose=False,  ***REMOVED*** Keep HTTP logs quiet unless debugging
+            component_levels={
+                "db": "INFO",  ***REMOVED*** Database queries
+                "middlewares": "INFO",  ***REMOVED*** Middleware logs
+                "routes": "INFO",  ***REMOVED*** Route logs
+                "health": "WARNING",  ***REMOVED*** Keep health checks quiet
+            },
+        )
 
-logger.info("Recommendation Service initialized successfully")
+        logger = get_logger("recommendation_api.main")
+
+        ***REMOVED*** Log main application startup
+        logger.info("Initializing Next Watch Recommendation Service", service="recommendation-api")
+        logger.info("Environment configuration", environment=settings.environment)
+
+        ***REMOVED*** Import and create app using core module
+        from recommendation_api.core.app import create_app
+
+        _app = create_app(settings)
+        logger.info("Recommendation Service initialized successfully", service="recommendation-api")
+
+    return _app
+
+
+***REMOVED*** Create app instance for direct import (web server use)
+app = get_app()
 
 
 if __name__ == "__main__":

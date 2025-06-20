@@ -3,18 +3,20 @@
 This module provides a service layer for interacting with the vector database.
 """
 
-import logging
-from typing import List, Optional, Dict, Any, Tuple
-from sqlmodel import Session
+from typing import Any, Dict, List, Optional, Tuple
+
+from config.logging import get_logger
 
 from recommendation_api.repositories.vector import (
     VectorRepository,
+    close_vector_repository,
     get_vector_repository,
 )
 from recommendation_api.services.ml_api_client import get_ml_api_client
-from recommendation_api.db.operations import get_movie_features
 
-logger = logging.getLogger(__name__)
+***REMOVED*** Movie features now come from API - see movie_adapter.py
+
+logger = get_logger(__name__)
 
 
 class VectorService:
@@ -47,48 +49,46 @@ class VectorService:
         """
         return self.repository.get_movie_embedding(movie_id)
 
+    ***REMOVED*** NOTE: This method is deprecated in favor of API-based approach
+    ***REMOVED*** Movie features now come from the backend API via MovieDataAdapter
+    ***REMOVED*** Vector embeddings should be generated and stored by the ML service directly
     async def generate_and_store_movie_embedding(
-        self, session: Session, movie_id: int
+        self, movie_features: Dict[str, Any]
     ) -> Optional[List[float]]:
-        """Generate and store an embedding for a movie.
+        """Generate and store an embedding for a movie using API-provided features.
 
         This method will:
-        1. Get movie features from the database
+        1. Use provided movie features (from API)
         2. Generate an embedding using the ML API
         3. Store the embedding in the vector database
         4. Return the generated embedding
 
         Args:
-            session: Database session
-            movie_id: Movie ID
+            movie_features: Movie features dict from API
 
         Returns:
-            Generated embedding or None if movie features not found
+            Generated embedding or None if generation failed
         """
-        ***REMOVED*** Get movie features
-        features = get_movie_features(session, movie_id)
-        if not features:
-            logger.warning(f"No features found for movie {movie_id}")
+        movie_id = movie_features.get("id")
+        if not movie_id:
+            logger.warning("No movie_id in features")
             return None
-
-        ***REMOVED*** Ensure movie_id is in the features dict
-        features["movie_id"] = movie_id
 
         ***REMOVED*** Generate embedding using ML API
         try:
             ml_client = get_ml_api_client()
-            embedding = await ml_client.generate_movie_embedding(features)
+            embedding = await ml_client.generate_movie_embedding(movie_features)
         except Exception as e:
             logger.error(f"Failed to generate embedding for movie {movie_id}: {e}")
             return None
 
         ***REMOVED*** Prepare metadata
         metadata = {
-            "title": features.get("title", ""),
-            "release_year": features.get("release_year"),
-            "genres": features.get("genres", []),
-            "imdb_rating": features.get("imdb_rating"),
-            "movie_id": movie_id,  ***REMOVED*** Explicitly add movie_id to metadata
+            "title": movie_features.get("title", ""),
+            "release_year": movie_features.get("release_year"),
+            "genres": movie_features.get("genres", []),
+            "imdb_rating": movie_features.get("imdb_rating"),
+            "movie_id": movie_id,
         }
 
         ***REMOVED*** Store embedding
@@ -146,9 +146,7 @@ class VectorService:
         Returns:
             List of tuples (movie_id, similarity_score)
         """
-        logger.debug(
-            f"Finding similar movies for movie ID {movie_id} with min_score={min_score}"
-        )
+        logger.debug(f"Finding similar movies for movie ID {movie_id} with min_score={min_score}")
 
         ***REMOVED*** Delegate to repository layer, which now handles fallbacks internally
         similar_movies = self.repository.search_by_movie_id(
@@ -169,114 +167,130 @@ class VectorService:
         stats = self.repository.get_embeddings_stats()
 
         ***REMOVED*** Add service-level info
-        stats["service_status"] = (
-            "healthy" if stats.get("total_embeddings", 0) > 0 else "warning"
-        )
+        stats["service_status"] = "healthy" if stats.get("total_embeddings", 0) > 0 else "warning"
 
         return stats
 
-    async def batch_process_movies(
+    ***REMOVED*** NOTE: This method is deprecated - use ML service for batch processing
+    ***REMOVED*** Movie data should now come from the backend API
+    def batch_process_movies_deprecated(
         self,
-        session: Session,
-        movie_ids: List[int],
+        movie_features_list: List[Dict[str, Any]],
         force: bool = False,
     ) -> Dict[str, Any]:
-        """Process multiple movies in batch, generating and storing embeddings.
+        """DEPRECATED: Process multiple movies in batch, generating and storing embeddings.
+
+        This method is deprecated in favor of using the ML service directly
+        for batch processing of embeddings.
 
         Args:
-            session: Database session
-            movie_ids: List of movie IDs to process
+            movie_features_list: List of movie features from API
             force: Force regeneration of existing embeddings
 
         Returns:
             Dictionary with processing results
         """
+        logger.warning("batch_process_movies is deprecated - use ML service for batch processing")
+
         results = {
-            "total": len(movie_ids),
+            "total": len(movie_features_list),
             "processed": 0,
             "failed": 0,
             "skipped": 0,
+            "deprecated": True,
         }
-
-        ***REMOVED*** Ensure collection exists
-        if not self.ensure_collection_exists():
-            logger.error("Failed to ensure collection exists")
-            results["error"] = "Failed to ensure collection exists"  ***REMOVED*** type: ignore
-            return results
-
-        ***REMOVED*** Process movies
-        embeddings_data = []
-
-        for movie_id in movie_ids:
-            ***REMOVED*** Check if embedding already exists (unless force=True)
-            if not force:
-                existing_embedding = self.get_movie_embedding(movie_id)
-                if existing_embedding:
-                    logger.info(f"Skipping movie {movie_id}, embedding already exists")
-                    results["skipped"] += 1
-                    continue
-
-            ***REMOVED*** Get movie features
-            features = get_movie_features(session, movie_id)
-            if not features:
-                logger.warning(f"No features found for movie {movie_id}")
-                results["failed"] += 1
-                continue
-
-            ***REMOVED*** Ensure movie_id is in the features dict
-            features["movie_id"] = movie_id
-
-            try:
-                ***REMOVED*** Generate embedding using ML API
-                ml_client = get_ml_api_client()
-                embedding = await ml_client.generate_movie_embedding(features)
-
-                ***REMOVED*** Prepare metadata
-                metadata = {
-                    "title": features.get("title", ""),
-                    "release_year": features.get("release_year"),
-                    "genres": features.get("genres", []),
-                    "imdb_rating": features.get("imdb_rating"),
-                    "movie_id": movie_id,
-                }
-
-                ***REMOVED*** Add to batch
-                embeddings_data.append(
-                    {
-                        "id": movie_id,  ***REMOVED*** Use 'id' instead of 'movie_id' to match repository interface
-                        "vector": embedding,  ***REMOVED*** Use 'vector' instead of 'embedding' to match repository interface
-                        "metadata": metadata,
-                    }
-                )
-
-                results["processed"] += 1
-                logger.info(f"Processed movie {movie_id}")
-
-            except Exception as e:
-                logger.error(f"Failed to process movie {movie_id}: {e}")
-                results["failed"] += 1
-
-        ***REMOVED*** Store embeddings in batch if any were processed
-        if embeddings_data:
-            success = self.repository.upsert_batch(embeddings_data)
-            if not success:
-                logger.error("Failed to store batch embeddings")
-                results["error"] = "Failed to store batch embeddings"  ***REMOVED*** type: ignore
 
         return results
 
+    def find_similar_movies_with_metadata(
+        self,
+        query_embedding: List[float],
+        limit: int = 10,
+        min_score: float = 0.6,
+        exclude_movie_ids: Optional[List[int]] = None,
+    ) -> List[Tuple[int, float, Dict[str, Any]]]:
+        """Find movies similar to a query embedding with metadata.
 
-***REMOVED*** Singleton instance
+        Args:
+            query_embedding: Query embedding vector
+            limit: Maximum number of results
+            min_score: Minimum similarity score (0-1)
+            exclude_movie_ids: Movie IDs to exclude from results
+
+        Returns:
+            List of tuples (movie_id, similarity_score, metadata)
+        """
+        return self.repository.search_similar_movies_with_metadata(
+            query_embedding=query_embedding,
+            limit=limit,
+            score_threshold=min_score,
+            exclude_movie_ids=exclude_movie_ids,
+        )
+
+    def find_similar_movies_by_id_with_metadata(
+        self,
+        movie_id: int,
+        limit: int = 10,
+        min_score: float = 0.01,  ***REMOVED*** Use a much lower default threshold
+    ) -> List[Tuple[int, float, Dict[str, Any]]]:
+        """Find movies similar to a specific movie by ID with metadata.
+
+        Args:
+            movie_id: Movie ID to find similar movies for
+            limit: Maximum number of results
+            min_score: Minimum similarity score (0-1)
+
+        Returns:
+            List of tuples (movie_id, similarity_score, metadata)
+        """
+        logger.debug(
+            f"Finding similar movies with metadata for movie ID {movie_id} with min_score={min_score}"
+        )
+
+        ***REMOVED*** Delegate to repository layer, which handles fallbacks internally
+        similar_movies = self.repository.search_by_movie_id_with_metadata(
+            movie_id=movie_id,
+            limit=limit,
+            score_threshold=min_score,
+        )
+
+        logger.debug(
+            f"Found {len(similar_movies)} similar movies with metadata for movie {movie_id}"
+        )
+        return similar_movies
+
+    async def close(self) -> None:
+        """Close the vector service and release resources."""
+        ***REMOVED*** Currently, no async resources to close in the service itself
+        ***REMOVED*** But we'll keep this method async for future compatibility
+        pass
+
+
+***REMOVED*** Global vector service instance
 _vector_service: Optional[VectorService] = None
 
 
 def get_vector_service() -> VectorService:
-    """Get the global vector service instance.
+    """Get or create a global vector service instance.
 
     Returns:
         VectorService instance
     """
     global _vector_service
+
     if _vector_service is None:
         _vector_service = VectorService()
+
     return _vector_service
+
+
+async def close_vector_service() -> None:
+    """Close the global vector service and release resources."""
+    global _vector_service
+
+    if _vector_service is not None:
+        await _vector_service.close()
+        _vector_service = None
+
+    ***REMOVED*** Close the underlying vector repository
+    await close_vector_repository()

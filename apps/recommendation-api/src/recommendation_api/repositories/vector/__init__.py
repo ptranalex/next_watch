@@ -14,6 +14,9 @@ from recommendation_api.repositories.vector.repository import (
     search_by_movie_id,
     get_embeddings_stats,
     get_vector_repository,
+    close_vector_repository,
+    search_similar_movies_with_metadata,
+    search_by_movie_id_with_metadata,
 )
 
 ***REMOVED*** Define the public API
@@ -29,7 +32,10 @@ __all__ = [
     "search_by_movie_id",
     "get_embeddings_stats",
     "get_vector_repository",
+    "close_vector_repository",
+    "search_similar_movies_with_metadata",
+    "search_by_movie_id_with_metadata",
 ]
 
 ***REMOVED*** For backward compatibility and cleaner imports, also export the repository class
-from recommendation_api.repositories.vector.repository import VectorRepository 
+from recommendation_api.repositories.vector.repository import VectorRepository

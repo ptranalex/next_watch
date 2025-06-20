@@ -19,15 +19,7 @@ RUN apk add --no-cache --virtual .build-deps \
     && pip install --no-cache-dir hatch
 
 ***REMOVED*** Copy only dependency-related files first
-COPY libs/movie-storage /tmp/movie-storage/
 COPY apps/recommendation-api/pyproject.toml apps/recommendation-api/hatch.toml ./
-
-***REMOVED*** Install the movie-storage package first
-WORKDIR /tmp/movie-storage
-RUN pip install -e .
-
-***REMOVED*** Return to app directory and install application
-WORKDIR /app
 COPY apps/recommendation-api/src ./src/
 
 ***REMOVED*** Install the application
@@ -62,10 +54,6 @@ RUN apk add --no-cache libstdc++ curl tini
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
 
-***REMOVED*** Copy the movie-storage package and reinstall to fix path references
-COPY --from=builder /tmp/movie-storage /app/movie-storage
-RUN pip install --no-deps -e /app/movie-storage
-
 ***REMOVED*** Only copy the application code, not the entire Python installation
 COPY apps/recommendation-api/src ./src/
 
@@ -81,7 +69,7 @@ USER app
 
 ***REMOVED*** Add health check configuration
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8002/health || exit 1
+    CMD curl -f http://localhost:8002/health || exit 1
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
