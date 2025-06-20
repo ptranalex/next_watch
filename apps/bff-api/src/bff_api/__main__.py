@@ -7,14 +7,14 @@ import sys
 import uvicorn
 
 from bff_api.config.app import settings
-from bff_api.config.logging import get_logger
+from config.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 def main() -> None:
     """Run the BFF API server."""
-    logger.info(f"Running in environment: {os.getenv('ENVIRONMENT', 'development')}")
+    logger.info(f"Running in environment: {settings.environment}")
 
     try:
         ***REMOVED*** Log that we're starting the server

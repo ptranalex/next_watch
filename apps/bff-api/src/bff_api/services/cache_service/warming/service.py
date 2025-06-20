@@ -7,18 +7,17 @@ including configuration, functions, providers, and factories.
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from cache import CacheManager, get_global_collector
-from cache.warming import (
-    WarmingConfig,
+from cache import (
+    CacheManager,
     WarmingEngine,
-    WarmingStats,
     WarmingStrategy,
-    set_global_warming_engine,
+    get_global_collector,
 )
+from cache.warming import set_global_warming_engine
 from cache.warming.strategies import PopularContentStrategy
 from config.logging import get_logger
 
-from bff_api.services.cache_service.cache_service import CacheService
+from bff_api.services.cache_service.cache_service import get_cache
 from bff_api.services.cache_service.warming.config import get_bff_warming_config
 from bff_api.services.cache_service.warming.factories import BFFTargetFactories
 from bff_api.services.cache_service.warming.functions import BFFWarmingFunctions
@@ -33,8 +32,7 @@ class BFFWarmingService:
     def __init__(self) -> None:
         """Initialize the BFF warming service."""
         self.config = get_bff_warming_config()
-        self.cache_service = CacheService()
-        self.cache_manager = CacheManager.from_settings()
+        self.cache_manager = get_cache()
         self.metrics_collector = get_global_collector()
 
         ***REMOVED*** Initialize component classes

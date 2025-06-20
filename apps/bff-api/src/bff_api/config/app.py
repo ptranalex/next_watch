@@ -235,7 +235,7 @@ def get_cache_settings() -> Any:
         cache_settings = CacheSettings(
             redis_url=settings.redis_url,
             key_prefix=settings.cache_key_prefix,
-            ttl_default=settings.cache_ttl_default,
+            cache_ttl_default=settings.cache_ttl_default,
         )
         return cache_settings
     except Exception:
@@ -243,5 +243,5 @@ def get_cache_settings() -> Any:
         return {
             "redis_url": settings.redis_url,
             "key_prefix": settings.cache_key_prefix,
-            "ttl_default": settings.cache_ttl_default,
+            "cache_ttl_default": settings.cache_ttl_default,
         }
