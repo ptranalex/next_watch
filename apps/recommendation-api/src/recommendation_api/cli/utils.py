@@ -56,9 +56,21 @@ def format_config_table(config: Config, title: str = "Recommendation API Configu
         ("Max Concurrent Requests", str(config.max_concurrent_requests), "ENV/DEFAULT"),
         ("Request Timeout", f"{config.request_timeout_seconds}s", "ENV/DEFAULT"),
         ("Embedding Generation Timeout", f"{config.embedding_generation_timeout}s", "ENV/DEFAULT"),
-        ("Enable Collaborative Filtering", _format_boolean(config.enable_collaborative_filtering), "ENV/DEFAULT"),
-        ("Enable Content Filtering", _format_boolean(config.enable_content_filtering), "ENV/DEFAULT"),
-        ("Enable Trending Fallback", _format_boolean(config.enable_trending_fallback), "ENV/DEFAULT"),
+        (
+            "Enable Collaborative Filtering",
+            _format_boolean(config.enable_collaborative_filtering),
+            "ENV/DEFAULT",
+        ),
+        (
+            "Enable Content Filtering",
+            _format_boolean(config.enable_content_filtering),
+            "ENV/DEFAULT",
+        ),
+        (
+            "Enable Trending Fallback",
+            _format_boolean(config.enable_trending_fallback),
+            "ENV/DEFAULT",
+        ),
         ("Enable Diversity Boost", _format_boolean(config.enable_diversity_boost), "ENV/DEFAULT"),
         ("Enable Metrics", _format_boolean(config.enable_metrics), "ENV/DEFAULT"),
         ("Metrics Port", str(config.metrics_port), "ENV/DEFAULT"),
@@ -67,7 +79,9 @@ def format_config_table(config: Config, title: str = "Recommendation API Configu
 
     ***REMOVED*** Add sensitive settings with masking
     if config.qdrant_api_key:
-        settings.append(("Qdrant API Key", _mask_sensitive_value(config.qdrant_api_key), "ENV/DEFAULT"))
+        settings.append(
+            ("Qdrant API Key", _mask_sensitive_value(config.qdrant_api_key), "ENV/DEFAULT")
+        )
 
     for setting, value, source in settings:
         table.add_row(setting, value, source)
@@ -153,9 +167,7 @@ async def check_service_health(
                 response.raise_for_status()
 
                 data = response.json()
-                console.print(
-                    f"✅ {service_name} is healthy: {data.get('status', 'OK')}"
-                )
+                console.print(f"✅ {service_name} is healthy: {data.get('status', 'OK')}")
 
                 if data.get("details"):
                     for key, value in data["details"].items():
@@ -168,12 +180,8 @@ async def check_service_health(
         logger.error(f"Health check failed for {service_name}: {e}")
         return False
     except httpx.HTTPStatusError as e:
-        console.print(
-            f"❌ {service_name} returned error: HTTP {e.response.status_code}"
-        )
-        logger.error(
-            f"Health check failed for {service_name}: HTTP {e.response.status_code}"
-        )
+        console.print(f"❌ {service_name} returned error: HTTP {e.response.status_code}")
+        logger.error(f"Health check failed for {service_name}: HTTP {e.response.status_code}")
         return False
     except Exception as e:
         console.print(f"❌ Unexpected error checking {service_name}: {e}")
@@ -224,9 +232,7 @@ def display_service_status(
     if console is None:
         console = Console()
 
-    table = Table(
-        title="Service Health Status", show_header=True, header_style="bold blue"
-    )
+    table = Table(title="Service Health Status", show_header=True, header_style="bold blue")
     table.add_column("Service", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
     table.add_column("URL", style="dim")
@@ -290,7 +296,7 @@ def print_error(
     error_text = Text(message, style="bold red")
     if error:
         error_text.append(f"\n\n{str(error)}", style="red")
-    
+
     console.print(Panel(error_text, title="Error", border_style="red"))
 
 
@@ -304,8 +310,10 @@ def print_success(
         message: Success message to display
         console: Rich console instance
     """
-    console.print(Panel(
-        Text(message, style="bold green"),
-        title="Success",
-        border_style="green",
-    )) 
+    console.print(
+        Panel(
+            Text(message, style="bold green"),
+            title="Success",
+            border_style="green",
+        )
+    )
