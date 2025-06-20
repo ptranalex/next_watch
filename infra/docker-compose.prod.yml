@@ -19,11 +19,13 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
-      ***REMOVED*** Redis Configuration
-      - REDIS_URL=redis://host.docker.internal:6379/0
-      - REDIS_MAX_CONNECTIONS=20
-      - REDIS_TIMEOUT=5
-      - REDIS_RETRY_ON_TIMEOUT=true
+      ***REMOVED*** Redis Configuration (using CACHE_ prefix for consistency)
+      - CACHE_REDIS_URL=redis://host.docker.internal:6379/0
+      - CACHE_REDIS_MAX_CONNECTIONS=20
+      - CACHE_REDIS_SOCKET_TIMEOUT=5
+      - CACHE_REDIS_RETRY_ON_TIMEOUT=true
+      - CACHE_TTL_DEFAULT=3600
+      - CACHE_KEY_PREFIX=backend
       ***REMOVED*** JWT Configuration
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ALGORITHM=HS256
@@ -67,11 +69,12 @@ services:
     ports:
       - "8002:8002"
     environment:
-      - ENVIRONMENT=production
-      - API_PORT=8002
+      ***REMOVED*** Environment variables for recommendation-api
+      ***REMOVED*** Note: Only variables that differ from Dockerfile defaults or are deployment-specific are included here.
+      ***REMOVED*** Default values like ENVIRONMENT, LOG_LEVEL, LOGS_DIR, ENABLE_CACHING, etc. are defined in the Dockerfile.
+      - PORT=8002 ***REMOVED*** Changed from API_PORT to match what the application expects
       - DEBUG=false
-      - LOG_LEVEL=info
-      - LOGS_DIR=/app/logs
+      ***REMOVED*** Using default WORKERS=1 since we only have 1 CPU available
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
       - POSTGRES_PORT=5432
@@ -79,19 +82,18 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
-      ***REMOVED*** Redis Configuration
-      - REDIS_URL=redis://host.docker.internal:6379/0
-      - REDIS_MAX_CONNECTIONS=20
-      - REDIS_TIMEOUT=5
-      - REDIS_RETRY_ON_TIMEOUT=true
-      - ENABLE_CACHING=true
-      - REDIS_TTL=3600
+      ***REMOVED*** Redis Configuration (using CACHE_ prefix for consistency)
+      - CACHE_REDIS_URL=redis://host.docker.internal:6379/0
+      - CACHE_REDIS_MAX_CONNECTIONS=20
+      - CACHE_REDIS_SOCKET_TIMEOUT=5
+      - CACHE_REDIS_RETRY_ON_TIMEOUT=true
+      ***REMOVED*** Note: CACHE_TTL_DEFAULT and CACHE_KEY_PREFIX are already defined in Dockerfile
       ***REMOVED*** Vector Database Configuration
       - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=movies
       ***REMOVED*** Security Configuration
-      - CORS_ORIGINS=https://alexsandbox.me,http://localhost:3000
-      - ALLOWED_HOSTS=alexsandbox.me,www.alexsandbox.me,localhost,127.0.0.1,recommendation-api,0.0.0.0
+      - CORS_ORIGINS=["https://alexsandbox.me","http://localhost:3000"]
+      - ALLOWED_HOSTS=["alexsandbox.me","www.alexsandbox.me","localhost","127.0.0.1","recommendation-api","0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
       ***REMOVED*** Database Connection Pool Settings
       - DB_POOL_SIZE=20
@@ -249,9 +251,13 @@ services:
       - RECO_API_URL=http://recommendation-api:8002
       - ML_API_URL=http://ml-api:8004
       - BACKEND_API_TIMEOUT=30
-      ***REMOVED*** Redis Configuration
-      - REDIS_URL=redis://host.docker.internal:6379/0
-      - CACHE_TTL=300
+      ***REMOVED*** Redis Configuration for BFF API (using CACHE_ prefix for consistency)
+      - CACHE_REDIS_URL=redis://host.docker.internal:6379/0
+      - CACHE_REDIS_MAX_CONNECTIONS=20
+      - CACHE_REDIS_SOCKET_TIMEOUT=5
+      - CACHE_REDIS_RETRY_ON_TIMEOUT=true
+      - CACHE_TTL_DEFAULT=300
+      - CACHE_KEY_PREFIX=bff
       ***REMOVED*** JWT Configuration
       - JWT_SECRET=${JWT_SECRET}
       ***REMOVED*** Security Configuration
