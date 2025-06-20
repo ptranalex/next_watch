@@ -1,7 +1,8 @@
 """Trailer storage operations."""
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from sqlmodel import Session, select
 
 from movie_storage.config.logging import with_logging
@@ -25,7 +26,7 @@ def create_trailer(session: Session, trailer_data: Dict[str, Any]) -> Trailer:
     session.add(trailer)
     session.commit()
     session.refresh(trailer)
-    logger.info(f"Created trailer: {trailer.name} for movie ID {trailer.movie_id}")
+    logger.debug(f"Created trailer: {trailer.name} for movie ID {trailer.movie_id}")
     return trailer
 
 
@@ -58,5 +59,5 @@ def delete_trailers_for_movie(session: Session, movie_id: int) -> int:
     for trailer in trailers:
         session.delete(trailer)
     session.commit()
-    logger.info(f"Deleted {len(trailers)} trailers for movie ID {movie_id}")
+    logger.debug(f"Deleted {len(trailers)} trailers for movie ID {movie_id}")
     return len(trailers)

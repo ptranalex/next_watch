@@ -1,8 +1,8 @@
 """Credit storage operations."""
 
 import logging
-from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 from sqlmodel import Session, select
 from sqlmodel.sql.expression import SelectOfScalar
@@ -163,7 +163,7 @@ def delete_credits_for_movie(session: Session, movie_id: int) -> int:
         session.delete(credit)
 
     session.commit()
-    logger.info(f"Deleted {count} credits for movie ID {movie_id}")
+    logger.debug(f"Deleted {count} credits for movie ID {movie_id}")
     return count
 
 
@@ -237,5 +237,5 @@ def create_credits_from_tmdb_data(
         created_credits.append(credit)
 
     session.commit()
-    logger.info(f"Added {len(created_credits)} credits to movie ID {movie_id}")
+    logger.debug(f"Added {len(created_credits)} credits to movie ID {movie_id}")
     return created_credits

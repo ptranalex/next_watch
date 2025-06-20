@@ -3,19 +3,19 @@
 import pytest
 from sqlmodel import Session
 
-from movie_storage.models import Credit, Movie
 from movie_storage.db.operations import (
     create_credit,
-    get_credit_by_id,
-    get_credits_by_movie_id,
-    get_credits_by_person_id,
-    get_credits,
-    update_credit,
-    delete_credit,
-    delete_credits_for_movie,
     create_credits_from_tmdb_data,
     create_movie,
+    delete_credit,
+    delete_credits_for_movie,
+    get_credit_by_id,
+    get_credits,
+    get_credits_by_movie_id,
+    get_credits_by_person_id,
+    update_credit,
 )
+from movie_storage.models import Credit, Movie
 
 
 def test_create_credit(db_session: Session):

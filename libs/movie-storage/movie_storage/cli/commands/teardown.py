@@ -1,18 +1,18 @@
 """Database teardown commands."""
 
-import typer
-from typing import Optional, List
 from pathlib import Path
+from typing import List, Optional
+
+import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm
 from sqlalchemy import text
+from sqlmodel import SQLModel
 
 from movie_storage.config.app import Config
 from movie_storage.db.db import get_engine
-from sqlmodel import SQLModel
-
-from movie_storage.models import Movie, Genre, MovieGenreLink, Credit
+from movie_storage.models import Credit, Genre, Movie, MovieGenreLink
 
 ***REMOVED*** Create app for this command group
 app = typer.Typer(help="Database teardown commands (DEVELOPMENT ONLY)")
@@ -30,24 +30,14 @@ def main(
         help="Clear specific tables",
         show_default=False,
     ),
-    confirm: bool = typer.Option(
-        False, "--confirm", help="Confirm destructive operation"
-    ),
-    database_url: Optional[str] = typer.Option(
-        None, help="Database URL (overrides config)"
-    ),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose logging"
-    ),
-    quiet: bool = typer.Option(
-        False, "--quiet", "-q", help="Suppress non-essential output"
-    ),
-):
+    confirm: bool = typer.Option(False, "--confirm", help="Confirm destructive operation"),
+    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
+) -> int:
     """Teardown database for development purposes."""
     if not confirm:
-        console.print(
-            "[bold red]Error:[/] Teardown requires --confirm flag due to data loss risk"
-        )
+        console.print("[bold red]Error:[/] Teardown requires --confirm flag due to data loss risk")
         if not quiet:
             console.print("Run with --confirm to proceed with the teardown.")
         raise typer.Exit(code=1)
@@ -97,9 +87,7 @@ def main(
         invalid_tables = set(clear) - valid_tables
 
         if invalid_tables:
-            console.print(
-                f"[bold red]Error:[/] Invalid table(s): {', '.join(invalid_tables)}"
-            )
+            console.print(f"[bold red]Error:[/] Invalid table(s): {', '.join(invalid_tables)}")
             if not quiet:
                 console.print(f"Valid tables: {', '.join(valid_tables)}")
             raise typer.Exit(code=1)

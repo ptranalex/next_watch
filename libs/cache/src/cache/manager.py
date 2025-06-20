@@ -1,6 +1,6 @@
 """Cache manager - main interface for the cache library."""
 
-from typing import Optional
+from typing import Any, Dict, List, Optional, TypeVar, cast
 
 import structlog
 
@@ -11,11 +11,16 @@ from cache.types import CacheKey, CacheResult, CacheSetResult, JSONSerializable,
 
 logger = structlog.get_logger(__name__)
 
+***REMOVED*** Type variable for generic return types
+T = TypeVar("T")
+
 
 class CacheManager:
     """Main cache manager providing unified interface to cache operations."""
 
-    def __init__(self, provider: CacheProvider, settings: Optional[CacheSettings] = None) -> None:
+    def __init__(
+        self, provider: CacheProvider, settings: Optional[CacheSettings] = None
+    ) -> None:
         """Initialize cache manager.
 
         Args:
@@ -24,7 +29,9 @@ class CacheManager:
         """
         self.provider = provider
         self.settings = settings or CacheSettings()
-        self.logger = logger.bind(manager="CacheManager", provider=provider.__class__.__name__)
+        self.logger = logger.bind(
+            manager="CacheManager", provider=provider.__class__.__name__
+        )
 
         self.logger.info("Cache manager initialized")
 
@@ -69,9 +76,9 @@ class CacheManager:
         Returns:
             True if successful, False otherwise
         """
-        ***REMOVED*** Use default TTL if not specified
+        ***REMOVED*** Use default TTL from settings if not specified
         if ttl is None:
-            ttl = self.settings.ttl_default
+            ttl = self.settings.cache_ttl_default
 
         return await self.provider.set_json(key, value, ttl)
 
@@ -125,6 +132,116 @@ class CacheManager:
         ttl = self.get_ttl_for_domain(domain)
         return await self.set_json(key, value, ttl)
 
+    ***REMOVED*** Enhanced methods with error handling and type safety
+    async def get_json_safe(
+        self, key: CacheKey, log_errors: bool = True
+    ) -> Optional[JSONSerializable]:
+        """Get JSON value from cache with error handling.
+
+        Args:
+            key: The cache key
+            log_errors: Whether to log errors (default: True)
+
+        Returns:
+            The cached value or None if not found or on error
+        """
+        try:
+            return await self.get_json(key)
+        except Exception as e:
+            if log_errors:
+                self.logger.error(f"Failed to get cache key {key}", error=str(e))
+            return None
+
+    async def get_dict(
+        self, key: CacheKey, log_errors: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """Get dictionary value from cache with type safety and error handling.
+
+        Args:
+            key: The cache key
+            log_errors: Whether to log errors (default: True)
+
+        Returns:
+            The cached dictionary or None if not found, not a dict, or on error
+        """
+        try:
+            result = await self.get_json(key)
+            if isinstance(result, dict):
+                return cast(Dict[str, Any], result)
+            return None
+        except Exception as e:
+            if log_errors:
+                self.logger.error(
+                    f"Failed to get dict from cache key {key}", error=str(e)
+                )
+            return None
+
+    async def get_list(
+        self, key: CacheKey, log_errors: bool = True
+    ) -> Optional[List[Any]]:
+        """Get list value from cache with type safety and error handling.
+
+        Args:
+            key: The cache key
+            log_errors: Whether to log errors (default: True)
+
+        Returns:
+            The cached list or None if not found, not a list, or on error
+        """
+        try:
+            result = await self.get_json(key)
+            if isinstance(result, list):
+                return cast(List[Any], result)
+            return None
+        except Exception as e:
+            if log_errors:
+                self.logger.error(
+                    f"Failed to get list from cache key {key}", error=str(e)
+                )
+            return None
+
+    async def set_json_safe(
+        self,
+        key: CacheKey,
+        value: JSONSerializable,
+        ttl: TTL = None,
+        log_errors: bool = True,
+    ) -> bool:
+        """Set JSON value in cache with error handling.
+
+        Args:
+            key: The cache key
+            value: The value to cache (must be JSON serializable)
+            ttl: Time to live in seconds, None for default TTL
+            log_errors: Whether to log errors (default: True)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            return await self.set_json(key, value, ttl)
+        except Exception as e:
+            if log_errors:
+                self.logger.error(f"Failed to set cache key {key}", error=str(e))
+            return False
+
+    async def delete_key_safe(self, key: CacheKey, log_errors: bool = True) -> bool:
+        """Delete a key from cache with error handling.
+
+        Args:
+            key: The cache key to delete
+            log_errors: Whether to log errors (default: True)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            return await self.delete_key(key)
+        except Exception as e:
+            if log_errors:
+                self.logger.error(f"Failed to delete cache key {key}", error=str(e))
+            return False
+
     ***REMOVED*** Health and management operations
     async def health_check(self) -> bool:
         """Perform health check on the cache system.
@@ -158,7 +275,10 @@ class CacheManager:
         return self
 
     async def __aexit__(
-        self, exc_type: Optional[type], exc_val: Optional[Exception], exc_tb: Optional[object]
+        self,
+        exc_type: Optional[type],
+        exc_val: Optional[Exception],
+        exc_tb: Optional[object],
     ) -> None:
         """Async context manager exit."""
         await self.close()

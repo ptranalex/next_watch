@@ -1,8 +1,9 @@
 """Database initialization commands."""
 
-import typer
-from typing import Optional
 from pathlib import Path
+from typing import Optional
+
+import typer
 from rich.console import Console
 from rich.panel import Panel
 
@@ -17,19 +18,11 @@ console = Console()
 
 @app.callback(invoke_without_command=True)
 def main(
-    create_tables: bool = typer.Option(
-        False, "--create-tables", help="Create database tables"
-    ),
-    database_url: Optional[str] = typer.Option(
-        None, help="Database URL (overrides config)"
-    ),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose logging"
-    ),
-    quiet: bool = typer.Option(
-        False, "--quiet", "-q", help="Suppress non-essential output"
-    ),
-):
+    create_tables: bool = typer.Option(False, "--create-tables", help="Create database tables"),
+    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
+) -> int:
     """Initialize the database and optionally create tables."""
     ***REMOVED*** Get configuration
     config = Config.get_instance()
@@ -52,9 +45,7 @@ def main(
     ***REMOVED*** Show results
     if not quiet:
         if create_tables:
-            console.print(
-                "[bold green]✓[/] Database initialized and tables created successfully!"
-            )
+            console.print("[bold green]✓[/] Database initialized and tables created successfully!")
         else:
             console.print("[bold green]✓[/] Database initialized successfully!")
             console.print("[dim]Use --create-tables to create database tables.[/dim]")

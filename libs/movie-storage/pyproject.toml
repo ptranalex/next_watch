@@ -1,47 +1,120 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
 name = "movie-storage"
 version = "0.1.0"
 description = "Database storage operations for movie data"
-authors = ["Your Name <your.email@example.com>"]
-readme = "README.md"
-packages = [{include = "movie_storage"}]
-include = ["movie_storage/py.typed"]
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+readme = {text = "***REMOVED*** Movie Storage\n\nDatabase storage operations for movie data", content-type = "text/markdown"}
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers", 
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    ***REMOVED*** Core database dependencies
+    "sqlmodel>=0.0.8",           ***REMOVED*** SQLModel for ORM
+    "sqlalchemy>=2.0.23",        ***REMOVED*** SQLAlchemy for database operations
+    "alembic<=1.13.1",           ***REMOVED*** Database migrations
+    "psycopg2-binary>=2.9.10",   ***REMOVED*** PostgreSQL adapter
+    
+    ***REMOVED*** Configuration and utilities
+    "python-dotenv>=1.0.0",      ***REMOVED*** Environment variable loading
+    "passlib[bcrypt]>=1.7.4",    ***REMOVED*** Password hashing
+    
+    ***REMOVED*** CLI dependencies
+    "typer>=0.15.2",             ***REMOVED*** CLI framework
+    "rich>=14.0.0",              ***REMOVED*** Rich text output
+]
 
-[tool.poetry.dependencies]
-python = ">=3.8"
-sqlmodel = ">=0.0.8"
-sqlalchemy = ">=1.4.0"
-python-dotenv = ">=0.19.0"
-psycopg2-binary = "^2.9.10"
-typer = "^0.15.2"
-rich = "^14.0.0"
-alembic = "<=1.13.1"
-passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "black>=23.10.1",
+    "isort>=5.12.0",
+    "mypy>=1.7.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=7.0.0"
-black = ">=22.3.0"
-isort = ">=5.10.1"
-mypy = ">=0.950"
-
-[tool.poetry.scripts]
+[project.scripts]
 movie-db = "movie_storage.cli:main"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+***REMOVED*** Allow direct references to local dependencies
+[tool.hatch.metadata]
+allow-direct-references = true
+
+***REMOVED*** Package discovery configuration
+[tool.hatch.build.targets.wheel]
+packages = ["movie_storage"]
+include = ["movie_storage/py.typed"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["movie_storage"]
+
+***REMOVED*** Version configuration (temporarily static)
+***REMOVED*** [tool.hatch.version]
+***REMOVED*** source = "vcs"
 
 [tool.black]
-line-length = 88
-target-version = ['py38']
+line-length = 100
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 100
 
 [tool.mypy]
-python_version = "3.8"
-warn_return_any = true
-warn_unused_configs = true
+python_version = "3.12"
+***REMOVED*** Common strict settings
 disallow_untyped_defs = true
-disallow_incomplete_defs = true 
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_optional = true
+
+***REMOVED*** Warning settings
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+***REMOVED*** Error reporting
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+
+***REMOVED*** Import handling
+ignore_missing_imports = true
+
+***REMOVED*** Specific override for SQLAlchemy to handle import issues
+[[tool.mypy.overrides]]
+module = "sqlalchemy.*"
+ignore_missing_imports = true
+
+***REMOVED*** Allow untyped calls for third-party libraries
+[[tool.mypy.overrides]]
+module = "movie_storage.db.migrations.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+***REMOVED*** Allow more flexible typing for models due to SQLModel/SQLAlchemy
+[[tool.mypy.overrides]]
+module = "movie_storage.models.*"
+disallow_untyped_decorators = false
+
+***REMOVED*** CLI commands - less strict for typer integration
+[[tool.mypy.overrides]]
+module = "movie_storage.cli.commands.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*" 

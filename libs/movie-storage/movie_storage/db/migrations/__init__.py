@@ -15,12 +15,12 @@ To add a new migration:
 4. Add the module to the MIGRATIONS list in this file
 """
 
-import logging
 import importlib
-from typing import Dict, Optional, List
+import logging
+from typing import Dict, List, Optional
 
-from sqlalchemy import text, inspect
-from sqlmodel import SQLModel, create_engine, Session
+from sqlalchemy import inspect, text
+from sqlmodel import Session, SQLModel, create_engine
 
 from movie_storage.config.app import Config
 
@@ -101,9 +101,7 @@ def get_applied_migrations(engine) -> Dict[str, str]:
         return {}
 
 
-def run_migration(
-    db_url: Optional[str] = None, config: Optional[Config] = None
-) -> List[str]:
+def run_migration(db_url: Optional[str] = None, config: Optional[Config] = None) -> List[str]:
     """Run database migrations.
 
     Args:

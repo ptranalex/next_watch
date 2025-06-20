@@ -1,44 +1,40 @@
 """Configuration settings for the movie storage module."""
 
-import os
-from pathlib import Path
-from typing import Optional
+from typing import Optional, TypedDict
 
-***REMOVED*** Load environment variables from .env files
-try:
-    from dotenv import load_dotenv  ***REMOVED*** type: ignore
-
-    ***REMOVED*** Find the module root directory (looking for .env file)
-    module_root = Path(__file__).parent.parent.parent
-    env_path = module_root / ".env"
-    env_local_path = module_root / ".env.local"
-
-    ***REMOVED*** Load .env first (default values)
-    load_dotenv(dotenv_path=env_path)
-
-    ***REMOVED*** Then override with .env.local if it exists (custom values)
-    if env_local_path.exists():
-        load_dotenv(dotenv_path=env_local_path, override=True)
-except ImportError:
-    print("python-dotenv not installed. Using environment variables only.")
+from movie_storage.config.env import get_env_bool, get_env_int, get_env_var
 
 ***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** DATABASE SETTINGS
+***REMOVED*** TYPE DEFINITIONS
+***REMOVED*** ------------------------------------------------------------------------------
+
+
+class ConfigDict(TypedDict, total=False):
+    """Type definition for configuration dictionary."""
+
+    database_url: str
+    database_echo: bool
+    database_pool_size: int
+    database_max_overflow: int
+    database_pool_timeout: int
+    log_level: str
+    sql_log_level: str
+
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** DEFAULT CONFIGURATION VALUES
 ***REMOVED*** ------------------------------------------------------------------------------
 
 ***REMOVED*** Database URLs and connection settings
-DEFAULT_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///movies.db")
-DEFAULT_DATABASE_ECHO = os.getenv("DATABASE_ECHO", "false").lower() == "true"
-DEFAULT_DATABASE_POOL_SIZE = int(os.getenv("DATABASE_POOL_SIZE", "5"))
-DEFAULT_DATABASE_MAX_OVERFLOW = int(os.getenv("DATABASE_MAX_OVERFLOW", "10"))
-DEFAULT_DATABASE_POOL_TIMEOUT = int(os.getenv("DATABASE_POOL_TIMEOUT", "30"))
+DEFAULT_DATABASE_URL = get_env_var("DATABASE_URL", "sqlite:///movies.db")
+DEFAULT_DATABASE_ECHO = get_env_bool("DATABASE_ECHO", False)
+DEFAULT_DATABASE_POOL_SIZE = get_env_int("DATABASE_POOL_SIZE", 5)
+DEFAULT_DATABASE_MAX_OVERFLOW = get_env_int("DATABASE_MAX_OVERFLOW", 10)
+DEFAULT_DATABASE_POOL_TIMEOUT = get_env_int("DATABASE_POOL_TIMEOUT", 30)
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** LOGGING SETTINGS
-***REMOVED*** ------------------------------------------------------------------------------
-
-DEFAULT_LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-DEFAULT_SQL_LOG_LEVEL = os.getenv("SQL_LOG_LEVEL", "WARNING")
+***REMOVED*** Logging settings
+DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
+DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** CONFIGURATION CLASS
@@ -100,19 +96,21 @@ class Config:
         self.sql_log_level = sql_log_level
 
     def __str__(self) -> str:
-        """Return a string representation of the Config instance."""
+        """Return a comprehensive multi-line string representation of the Config instance."""
         ***REMOVED*** Mask password in database_url for security
         masked_url = self._mask_database_password(self.database_url)
 
-        return (
-            f"Config(database_url={masked_url}, "
-            f"database_echo={self.database_echo}, "
-            f"database_pool_size={self.database_pool_size}, "
-            f"database_max_overflow={self.database_max_overflow}, "
-            f"database_pool_timeout={self.database_pool_timeout}, "
-            f"log_level={self.log_level}, "
-            f"sql_log_level={self.sql_log_level})"
-        )
+        return f"""Movie Storage Configuration:
+  Database Settings:
+    URL: {masked_url}
+    Echo SQL: {self.database_echo}
+    Pool Size: {self.database_pool_size}
+    Max Overflow: {self.database_max_overflow}
+    Pool Timeout: {self.database_pool_timeout}s
+
+  Logging Settings:
+    Log Level: {self.log_level}
+    SQL Log Level: {self.sql_log_level}"""
 
     @staticmethod
     def _mask_database_password(url: str) -> str:

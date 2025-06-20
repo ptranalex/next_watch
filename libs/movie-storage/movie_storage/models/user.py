@@ -3,9 +3,10 @@ User model for authentication and user management.
 """
 
 from datetime import datetime
-from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import Field, SQLModel, Relationship
+from typing import TYPE_CHECKING, List, Optional
+
 import passlib.hash
+from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from movie_storage.models.user_interaction import UserMovieInteraction
@@ -33,9 +34,7 @@ class User(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     ***REMOVED*** Relationships
-    movie_interactions: List["UserMovieInteraction"] = Relationship(
-        back_populates="user"
-    )
+    movie_interactions: List["UserMovieInteraction"] = Relationship(back_populates="user")
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -48,7 +47,7 @@ class User(SQLModel, table=True):
         Returns:
             Securely hashed password string
         """
-        return passlib.hash.bcrypt.hash(password)
+        return str(passlib.hash.bcrypt.hash(password))
 
     def verify_password(self, password: str) -> bool:
         """
@@ -60,4 +59,4 @@ class User(SQLModel, table=True):
         Returns:
             True if the password matches, False otherwise
         """
-        return passlib.hash.bcrypt.verify(password, self.hashed_password)
+        return bool(passlib.hash.bcrypt.verify(password, self.hashed_password))

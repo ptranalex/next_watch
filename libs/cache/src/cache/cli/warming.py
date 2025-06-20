@@ -1,7 +1,9 @@
 """CLI commands for cache warming operations."""
 
+import structlog
 import asyncio
-from typing import Optional, Dict, Any
+import json
+from typing import Optional, List, Dict, Any
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -16,6 +18,8 @@ from cache.warming import (
     get_global_warming_engine,
 )
 from cache import CacheManager, get_global_collector
+
+logger = structlog.get_logger(__name__)
 
 console = Console()
 warming_app = typer.Typer(help="Cache warming commands")
@@ -44,14 +48,7 @@ def start_warming(
         try:
             ***REMOVED*** Configure logging if verbose mode is enabled
             if verbose:
-                import logging
-
-                logging.basicConfig(
-                    level=logging.DEBUG,
-                    format="%(asctime)s [%(levelname)-5s] %(name)-40s | %(message)s",
-                    datefmt="%H:%M:%S",
-                )
-                console.print("[dim]Verbose logging enabled[/dim]")
+                logger.info("Verbose logging enabled")
 
             ***REMOVED*** Use global warming engine if available, otherwise create default
             engine = get_global_warming_engine()

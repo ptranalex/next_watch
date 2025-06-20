@@ -1,13 +1,12 @@
 """Popular content warming strategy."""
 
+import structlog
 from typing import List, Optional, Dict, Any, Callable, Awaitable
-import logging
-from datetime import datetime, timedelta
 
 from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
 from .base import BaseWarmingStrategy
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class PopularContentStrategy(BaseWarmingStrategy):

@@ -1,8 +1,8 @@
 """Core cache warming engine."""
 
 import asyncio
-import logging
 import time
+import structlog
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Callable, Awaitable
 
@@ -25,7 +25,7 @@ from cache.warming.strategies import (
     ScheduledStrategy,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class WarmingEngine:
@@ -47,7 +47,6 @@ class WarmingEngine:
         self.cache_manager = cache_manager
         self.metrics_collector = metrics_collector
         self.config = config or WarmingConfig()
-        self.logger = logging.getLogger(f"{__name__}.WarmingEngine")
 
         ***REMOVED*** Registry for warming functions
         self._warming_functions: Dict[str, Callable[..., Awaitable[Any]]] = {}
@@ -69,7 +68,7 @@ class WarmingEngine:
             func: The actual function to call for warming
         """
         self._warming_functions[function_name] = func
-        self.logger.debug(f"Registered warming function: {function_name}")
+        logger.debug(f"Registered warming function: {function_name}")
 
     def _initialize_strategies(self) -> None:
         """Initialize warming strategies based on configuration."""
@@ -92,11 +91,15 @@ class WarmingEngine:
             )
 
         if self.config.enable_scheduled:
-            self._strategies[WarmingStrategy.SCHEDULED] = ScheduledStrategy(config=self.config)
+            self._strategies[WarmingStrategy.SCHEDULED] = ScheduledStrategy(
+                config=self.config
+            )
 
-        self.logger.info(f"Initialized {len(self._strategies)} warming strategies")
+        logger.info(f"Initialized {len(self._strategies)} warming strategies")
 
-    def set_popularity_provider(self, provider: Callable[[], Awaitable[Dict[str, Any]]]) -> None:
+    def set_popularity_provider(
+        self, provider: Callable[[], Awaitable[Dict[str, Any]]]
+    ) -> None:
         """Set popularity data provider for popular content strategy.
 
         Args:
@@ -107,7 +110,9 @@ class WarmingEngine:
             if isinstance(strategy, PopularContentStrategy):
                 strategy.popularity_provider = provider
 
-    def set_user_data_provider(self, provider: Callable[[int], Awaitable[Dict[str, Any]]]) -> None:
+    def set_user_data_provider(
+        self, provider: Callable[[int], Awaitable[Dict[str, Any]]]
+    ) -> None:
         """Set user data provider for user-specific strategy.
 
         Args:
@@ -148,12 +153,12 @@ class WarmingEngine:
             Warming statistics
         """
         if not targets:
-            self.logger.info("No targets provided for warming")
+            logger.info("No targets provided for warming")
             return WarmingStats()
 
         max_concurrent = max_concurrent or self.config.max_concurrent_operations
 
-        self.logger.info(
+        logger.info(
             f"Starting warming of {len(targets)} targets",
             extra={
                 "target_count": len(targets),
@@ -166,7 +171,9 @@ class WarmingEngine:
         semaphore = asyncio.Semaphore(max_concurrent)
 
         ***REMOVED*** Execute warming tasks
-        tasks = [self._warm_single_target(target, semaphore, dry_run) for target in targets]
+        tasks = [
+            self._warm_single_target(target, semaphore, dry_run) for target in targets
+        ]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -178,7 +185,7 @@ class WarmingEngine:
             if isinstance(result, WarmingResult):
                 self._warming_history.append(result)
 
-        self.logger.info(
+        logger.info(
             f"Warming completed",
             extra={
                 "total_targets": stats.total_targets,
@@ -210,24 +217,26 @@ class WarmingEngine:
             Warming statistics
         """
         if strategy not in self._strategies:
-            self.logger.warning(f"Strategy {strategy} not available or not enabled")
+            logger.warning(f"Strategy {strategy} not available or not enabled")
             return WarmingStats()
 
         strategy_instance = self._strategies[strategy]
 
         try:
             ***REMOVED*** Get targets from strategy
-            targets = await strategy_instance.identify_targets(limit=limit, context=context)
+            targets = await strategy_instance.identify_targets(
+                limit=limit, context=context
+            )
 
             if not targets:
-                self.logger.info(f"No targets identified by {strategy} strategy")
+                logger.info(f"No targets identified by {strategy} strategy")
                 return WarmingStats()
 
             ***REMOVED*** Warm the identified targets
             return await self.warm_targets(targets, dry_run=dry_run)
 
         except Exception as e:
-            self.logger.error(f"Error executing {strategy} strategy: {e}")
+            logger.error(f"Error executing {strategy} strategy: {e}")
             return WarmingStats()
 
     async def warm_all_strategies(
@@ -250,21 +259,24 @@ class WarmingEngine:
 
         for strategy in self._strategies.keys():
             try:
-                self.logger.info(f"Executing {strategy} warming strategy")
+                logger.info(f"Executing {strategy} warming strategy")
                 stats = await self.warm_by_strategy(
-                    strategy=strategy, limit=limit_per_strategy, dry_run=dry_run, context=context
+                    strategy=strategy,
+                    limit=limit_per_strategy,
+                    dry_run=dry_run,
+                    context=context,
                 )
                 results[strategy] = stats
 
             except Exception as e:
-                self.logger.error(f"Error in {strategy} strategy: {e}")
+                logger.error(f"Error in {strategy} strategy: {e}")
                 results[strategy] = WarmingStats()
 
         ***REMOVED*** Log summary
         total_targets = sum(stats.total_targets for stats in results.values())
         total_successful = sum(stats.successful_targets for stats in results.values())
 
-        self.logger.info(
+        logger.info(
             f"All strategies completed: {total_successful}/{total_targets} targets warmed successfully"
         )
 
@@ -304,18 +316,18 @@ class WarmingEngine:
             Warming statistics
         """
         if not self.metrics_collector:
-            self.logger.warning("No metrics collector available for metrics-driven warming")
+            logger.warning("No metrics collector available for metrics-driven warming")
             return WarmingStats()
 
         ***REMOVED*** Get all function metrics
         metrics_data = self.metrics_collector.get_metrics()
         if not metrics_data or "functions" not in metrics_data:
-            self.logger.info("No metrics data available for warming")
+            logger.info("No metrics data available for warming")
             return WarmingStats()
 
         all_functions = metrics_data["functions"]
         if not all_functions:
-            self.logger.info("No function metrics available for warming")
+            logger.info("No function metrics available for warming")
             return WarmingStats()
 
         ***REMOVED*** Identify warming targets
@@ -328,7 +340,9 @@ class WarmingEngine:
                     self.miss_ratio: float = (
                         data.get("miss_ratio", 0.0) / 100.0
                     )  ***REMOVED*** Convert percentage to ratio
-                    self.avg_uncached_time_ms: float = data.get("avg_uncached_time_ms", 0.0)
+                    self.avg_uncached_time_ms: float = data.get(
+                        "avg_uncached_time_ms", 0.0
+                    )
                     self.avg_cache_time_ms: float = data.get("avg_cache_time_ms", 0.0)
                     self.misses: int = data.get("misses", 0)
 
@@ -363,7 +377,7 @@ class WarmingEngine:
         if limit:
             targets = targets[:limit]
 
-        self.logger.info(f"Identified {len(targets)} targets for metrics-driven warming")
+        logger.info(f"Identified {len(targets)} targets for metrics-driven warming")
 
         return await self.warm_targets(targets, dry_run=dry_run)
 
@@ -406,13 +420,15 @@ class WarmingEngine:
                 result.status = WarmingStatus.FAILED
                 result.error = str(e)
                 result.end_time = datetime.now()
-                self.logger.error(
+                logger.error(
                     f"Failed to warm target {target.function_name}: {e}", exc_info=True
                 )
 
             return result
 
-    async def _execute_warming(self, target: WarmingTarget, result: WarmingResult) -> None:
+    async def _execute_warming(
+        self, target: WarmingTarget, result: WarmingResult
+    ) -> None:
         """Execute the actual warming operation.
 
         Args:
@@ -432,7 +448,9 @@ class WarmingEngine:
                 raise Exception(f"Warming function failed: {e}")
         else:
             ***REMOVED*** For now, just log that we would warm this function
-            self.logger.info(f"Would warm function {func_name} with params {target.parameters}")
+            logger.info(
+                f"Would warm function {func_name} with params {target.parameters}"
+            )
             result.cache_key = f"placeholder:{func_name}"
 
     def _should_warm_function(self, func_name: str, metrics: Any) -> bool:
@@ -482,7 +500,9 @@ class WarmingEngine:
         Returns:
             Estimated benefit score
         """
-        time_saved_per_miss = float(metrics.avg_cache_miss_time) - float(metrics.avg_cache_hit_time)
+        time_saved_per_miss = float(metrics.avg_cache_miss_time) - float(
+            metrics.avg_cache_hit_time
+        )
         return time_saved_per_miss * float(metrics.miss_count)
 
     def _calculate_warming_stats(self, results: List[Any]) -> WarmingStats:
@@ -537,4 +557,4 @@ class WarmingEngine:
     def clear_warming_history(self) -> None:
         """Clear warming operation history."""
         self._warming_history.clear()
-        self.logger.info("Warming history cleared")
+        logger.info("Warming history cleared")

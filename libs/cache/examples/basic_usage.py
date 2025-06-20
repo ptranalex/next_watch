@@ -38,7 +38,9 @@ async def basic_example() -> None:
 
         key = "user:123"
         print(f"   Setting cache key: {key}")
-        success = await cache.set_json(key, cast(JSONSerializable, user_data), ttl=300)  ***REMOVED*** 5 minutes
+        success = await cache.set_json(
+            key, cast(JSONSerializable, user_data), ttl=300
+        )  ***REMOVED*** 5 minutes
         print(f"   Set successful: {success}")
 
         ***REMOVED*** Get the data back
@@ -104,11 +106,15 @@ async def custom_settings_example() -> None:
 
     ***REMOVED*** Create custom settings
     settings = CacheSettings(
-        redis_url="redis://localhost:6379/1",  ***REMOVED*** Different database
-        key_prefix="myapp",
-        ttl_default=600,  ***REMOVED*** 10 minutes default
-        ttl_movie_data=1800,  ***REMOVED*** 30 minutes for movies
+        redis_url="redis://localhost:6379/0",
+        key_prefix="example",
+        cache_ttl_default=600,  ***REMOVED*** 10 minutes default
     )
+
+    ***REMOVED*** Print settings
+    print(f"Redis URL: {settings.redis_url}")
+    print(f"Key prefix: {settings.key_prefix}")
+    print(f"Default TTL: {settings.cache_ttl_default}")
 
     cache = CacheManager.from_settings(settings)
 
@@ -118,8 +124,7 @@ async def custom_settings_example() -> None:
 
         if healthy:
             print(f"Key prefix: {settings.key_prefix}")
-            print(f"Default TTL: {settings.ttl_default}")
-            print(f"Movie TTL: {settings.ttl_movie_data}")
+            print(f"Default TTL: {settings.cache_ttl_default}")
 
             ***REMOVED*** Test with custom prefix
             test_key = "test:custom"

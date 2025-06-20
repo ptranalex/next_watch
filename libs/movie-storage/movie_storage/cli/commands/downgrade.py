@@ -1,13 +1,14 @@
 """Database downgrade commands."""
 
-import typer
 import importlib
-from typing import Optional, Dict
 from pathlib import Path
+from typing import Dict, Optional
+
+import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm
-from sqlalchemy import text
+from sqlalchemy import text, Engine
 
 from movie_storage.config.app import Config
 from movie_storage.config.logging import with_logging
@@ -22,24 +23,14 @@ console = Console()
 @app.callback(invoke_without_command=True)
 def main(
     all: bool = typer.Option(False, "--all", help="Downgrade all migrations"),
-    confirm: bool = typer.Option(
-        False, "--confirm", help="Confirm destructive operation"
-    ),
-    database_url: Optional[str] = typer.Option(
-        None, help="Database URL (overrides config)"
-    ),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose logging"
-    ),
-    quiet: bool = typer.Option(
-        False, "--quiet", "-q", help="Suppress non-essential output"
-    ),
-):
+    confirm: bool = typer.Option(False, "--confirm", help="Confirm destructive operation"),
+    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
+) -> int:
     """Downgrade the database by reverting migrations."""
     if not confirm:
-        console.print(
-            "[bold red]Error:[/] Downgrade requires --confirm flag due to data loss risk"
-        )
+        console.print("[bold red]Error:[/] Downgrade requires --confirm flag due to data loss risk")
         if not quiet:
             console.print("Run with --confirm to proceed with the downgrade.")
         raise typer.Exit(code=1)
@@ -115,7 +106,7 @@ def main(
 
 
 def _downgrade_single_migration(
-    engine, migration_id: str, migration_desc: str, verbose: bool, quiet: bool
+    engine: Engine, migration_id: str, migration_desc: str, verbose: bool, quiet: bool
 ) -> bool:
     """Downgrade a single migration.
 
@@ -137,9 +128,7 @@ def _downgrade_single_migration(
     try:
         module = importlib.import_module(f"movie_storage.db.migrations.{migration_id}")
     except ImportError as e:
-        console.print(
-            f"[bold red]Error:[/] Could not import migration module: {migration_id}"
-        )
+        console.print(f"[bold red]Error:[/] Could not import migration module: {migration_id}")
         if verbose:
             console.print(f"[red]{str(e)}[/]")
         return False
@@ -149,9 +138,7 @@ def _downgrade_single_migration(
         with console.status("Running downgrade..."):
             module.downgrade(engine)
     except Exception as e:
-        console.print(
-            f"[bold red]Error:[/] Failed to downgrade migration {migration_id}"
-        )
+        console.print(f"[bold red]Error:[/] Failed to downgrade migration {migration_id}")
         if verbose:
             console.print(f"[red]{str(e)}[/]")
         return False
@@ -164,9 +151,7 @@ def _downgrade_single_migration(
                 {"id": migration_id},
             )
     except Exception as e:
-        console.print(
-            f"[bold red]Error:[/] Failed to remove migration record for {migration_id}"
-        )
+        console.print(f"[bold red]Error:[/] Failed to remove migration record for {migration_id}")
         if verbose:
             console.print(f"[red]{str(e)}[/]")
         return False

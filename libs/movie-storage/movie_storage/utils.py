@@ -1,8 +1,8 @@
 """Utility functions for movie storage."""
 
 import logging
-from typing import Optional, Dict, Any
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 from movie_storage.config.app import Config
 from movie_storage.config.logging import with_logging

@@ -1,20 +1,21 @@
 """Migration to create initial database tables."""
 
-from sqlalchemy import (
-    Table,
-    Column,
-    Integer,
-    String,
-    Float,
-    DateTime,
-    ForeignKey,
-    MetaData,
-    create_engine,
-    text,
-)
 import logging
 from datetime import datetime
 from typing import Optional
+
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    create_engine,
+    text,
+)
 
 from movie_storage.config.app import Config
 

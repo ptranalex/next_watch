@@ -128,6 +128,12 @@ cache = CacheManager.from_settings()
 await cache.get_json(key="user:123")
 await cache.set_json(key="user:123", value=user_data, ttl=600)
 await cache.delete_key(key="user:123")
+
+***REMOVED*** Enhanced operations with error handling and type safety
+user_data = await cache.get_dict(key="user:123")  ***REMOVED*** Returns Dict[str, Any] or None
+movie_list = await cache.get_list(key="popular:movies")  ***REMOVED*** Returns List[Any] or None
+await cache.set_json_safe(key="user:123", value=user_data, ttl=600)  ***REMOVED*** With error handling
+await cache.delete_key_safe(key="user:123")  ***REMOVED*** With error handling
 ```
 
 ***REMOVED******REMOVED******REMOVED*** @redis_cache Decorator (Production Ready)

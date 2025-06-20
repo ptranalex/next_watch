@@ -1,8 +1,8 @@
 """Genre storage operations."""
 
 import logging
-from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 from sqlmodel import Session, select
 from sqlmodel.sql.expression import SelectOfScalar

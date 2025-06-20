@@ -1,12 +1,12 @@
 """Logging configuration for movie storage."""
 
+import functools
 import logging
 import os
 import sys
-import functools
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any, Callable, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 from movie_storage.config.app import Config
 
@@ -55,9 +55,7 @@ def configure_logging(
 
     ***REMOVED*** Configure root logger for movie_storage
     root_logger = logging.getLogger("movie_storage")
-    root_logger.setLevel(
-        logging.DEBUG
-    )  ***REMOVED*** Set to lowest level, handlers filter from there
+    root_logger.setLevel(logging.DEBUG)  ***REMOVED*** Set to lowest level, handlers filter from there
     root_logger.propagate = False
 
     ***REMOVED*** Remove any existing handlers
@@ -91,8 +89,7 @@ def configure_logging(
 
             ***REMOVED*** Create log file path with timestamp
             log_file_path = (
-                log_dir
-                / f"movie_storage_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+                log_dir / f"movie_storage_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
             )
 
             ***REMOVED*** Create file handler

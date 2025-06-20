@@ -1,0 +1,88 @@
+[env]
+requires = ["hatch-vcs"]
+
+[env.paths]
+***REMOVED*** Configure module paths - movie-storage is already at root level
+src = ""
+tests = "tests"
+
+[build]
+***REMOVED*** Use hatch-vcs for versioning
+dev-mode-exact = true
+
+***REMOVED*** [version]
+***REMOVED*** source = "vcs"
+
+[dirs]
+***REMOVED*** Exclude certain directories from packaging
+exclude = [
+  "tests",
+  "docs",
+  ".github",
+  ".vscode",
+  "poetry.lock",
+  ".env*",
+]
+
+[build.targets.wheel]
+packages = ["movie_storage"]
+
+[build.sources]
+***REMOVED*** Package is at root level, no need for src mapping
+"." = ""
+
+[envs.default]
+***REMOVED*** Configure virtual environment to be in project directory
+type = "virtual"
+path = ".venv"
+dependencies = [
+  ***REMOVED*** Core dependencies
+  "sqlmodel>=0.0.8",
+  "sqlalchemy>=2.0.23",        ***REMOVED*** Updated to match backend-api
+  "python-dotenv>=1.0.0",
+  "psycopg2-binary>=2.9.10",
+  "alembic<=1.13.1",
+  "passlib[bcrypt]>=1.7.4",
+  
+  ***REMOVED*** CLI dependencies
+  "typer>=0.15.2",
+  "rich>=14.0.0",
+]
+
+***REMOVED*** Add environment variables for development
+[envs.default.env-vars]
+PYTHONPATH = "."
+
+[envs.default.scripts]
+***REMOVED*** CLI script
+cli = "python -m movie_storage.cli"
+movie-db = "python -m movie_storage.cli"
+
+***REMOVED*** Database management scripts
+migrate = "python -m movie_storage.cli migrate"
+upgrade = "python -m movie_storage.cli upgrade"
+reset-db = "bash reset-db.sh"
+
+***REMOVED*** Development scripts
+install-dev = "pip install -e ."
+
+[envs.dev]
+dependencies = [
+  "pytest>=7.4.3",
+  "black>=23.10.1",
+  "isort>=5.12.0",
+  "mypy>=1.7.0",
+]
+
+[envs.dev.scripts]
+lint = [
+  "black .",
+  "isort .",
+  "mypy movie_storage"
+]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=movie_storage tests/"
+format = [
+  "black .",
+  "isort ."
+] 

@@ -1,8 +1,9 @@
 """Database migration commands."""
 
-import typer
-from typing import Optional
 from pathlib import Path
+from typing import Optional
+
+import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -18,17 +19,11 @@ console = Console()
 
 @app.callback(invoke_without_command=True)
 def main(
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose logging"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     log_level: str = typer.Option("INFO", help="Logging level", show_default=True),
-    quiet: bool = typer.Option(
-        False, "--quiet", "-q", help="Suppress non-essential output"
-    ),
-    database_url: Optional[str] = typer.Option(
-        None, help="Database URL (overrides config)"
-    ),
-):
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
+    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+) -> int:
     """Run database migrations to update schema."""
     ***REMOVED*** Configure logging
     configure_logging(log_level=log_level, verbose=verbose, quiet=quiet)

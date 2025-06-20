@@ -3,13 +3,14 @@ User Movie Interactions model for tracking user engagement with movies.
 """
 
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
-from sqlmodel import Field, SQLModel, Relationship
+from typing import TYPE_CHECKING, Optional
+
 from sqlalchemy import UniqueConstraint
+from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from movie_storage.models.user import User
     from movie_storage.models.movie import Movie
+    from movie_storage.models.user import User
 
 
 class UserMovieInteraction(SQLModel, table=True):
@@ -27,12 +28,10 @@ class UserMovieInteraction(SQLModel, table=True):
         updated_at: Timestamp when the interaction was last updated
     """
 
-    __tablename__ = "user_movie_interactions"  ***REMOVED*** type: ignore
+    __tablename__ = "user_movie_interactions"
 
     ***REMOVED*** Table constraints
-    __table_args__ = (
-        UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),)
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)

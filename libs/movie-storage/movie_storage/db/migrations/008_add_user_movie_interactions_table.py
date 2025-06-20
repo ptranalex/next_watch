@@ -1,18 +1,18 @@
 """Migration to add user movie interactions table."""
 
-from datetime import datetime
 import logging
-from typing import Annotated, List, Optional, Dict, Any
+from datetime import datetime
+from typing import Annotated, Any, Dict, List, Optional
 
 from sqlalchemy import (
-    Column,
-    Integer,
-    String,
     Boolean,
+    Column,
     DateTime,
     ForeignKey,
-    Table,
+    Integer,
     MetaData,
+    String,
+    Table,
     UniqueConstraint,
     text,
 )
@@ -26,7 +26,7 @@ MIGRATION_DESCRIPTION = "Add user movie interactions table"
 logger = logging.getLogger(__name__)
 
 
-def upgrade(engine, config=None):
+def upgrade(engine: Engine, config: Optional[Any] = None) -> None:
     """
     Create user_movie_interactions table.
 
@@ -60,9 +60,7 @@ def upgrade(engine, config=None):
     with engine.begin() as conn:
         try:
             conn.execute(
-                text(
-                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
-                ),
+                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")
@@ -70,7 +68,7 @@ def upgrade(engine, config=None):
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine, config=None):
+def downgrade(engine: Engine, config: Optional[Any] = None) -> None:
     """
     Drop user_movie_interactions table.
 

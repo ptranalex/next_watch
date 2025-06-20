@@ -1,19 +1,23 @@
 """Metrics-driven warming strategy."""
 
+import structlog
 from typing import List, Optional, Dict, Any
-import logging
 
 from cache.metrics import MetricsCollector
 from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
 from .base import BaseWarmingStrategy
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class MetricsDrivenStrategy(BaseWarmingStrategy):
     """Warming strategy based on cache performance metrics."""
 
-    def __init__(self, config: WarmingConfig, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(
+        self,
+        config: WarmingConfig,
+        metrics_collector: Optional[MetricsCollector] = None,
+    ):
         """Initialize metrics-driven strategy.
 
         Args:
@@ -92,7 +96,12 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
         time_factor = min(avg_miss_time / 1000.0, 5.0)  ***REMOVED*** Cap at 5 seconds
         usage_factor = min(total_calls / 100.0, 10.0)  ***REMOVED*** Cap at 10x
 
-        return miss_rate_factor * time_factor * usage_factor * self.config.metrics_driven_weight
+        return (
+            miss_rate_factor
+            * time_factor
+            * usage_factor
+            * self.config.metrics_driven_weight
+        )
 
     def should_warm_target(self, target_data: Dict[str, Any]) -> bool:
         """Check if function should be warmed based on metrics thresholds.

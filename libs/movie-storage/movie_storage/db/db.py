@@ -2,10 +2,12 @@
 
 import logging
 from typing import Generator, Optional
-from sqlmodel import Session, create_engine, SQLModel
+
+from sqlalchemy import Engine
+from sqlmodel import Session, SQLModel, create_engine
 
 from movie_storage.config.app import Config
-from movie_storage.models import Movie, Genre, MovieGenreLink, Credit
+from movie_storage.models import Credit, Genre, Movie, MovieGenreLink
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +15,7 @@ logger = logging.getLogger(__name__)
 engine = None
 
 
-def get_engine(db_url: Optional[str] = None, config: Optional[Config] = None):
+def get_engine(db_url: Optional[str] = None, config: Optional[Config] = None) -> Engine:
     """Get or create the database engine.
 
     Args:
@@ -35,11 +37,13 @@ def get_engine(db_url: Optional[str] = None, config: Optional[Config] = None):
     if not url:
         raise ValueError("Database URL must be provided")
 
-    ***REMOVED*** Create new engine if needed or requested
-    if engine is None or db_url is not None:
-        logger.info(
-            f"Creating new database engine with URL: {config._mask_database_password(url)}"
-        )
+    ***REMOVED*** Create new engine if needed or if a specific URL is requested
+    should_create_new = engine is None
+    if db_url is not None and db_url != config.database_url:
+        should_create_new = True
+
+    if should_create_new:
+        logger.info(f"Creating new database engine with URL: {config._mask_database_password(url)}")
 
         ***REMOVED*** Use database_echo from config, but default to False for safety
         ***REMOVED*** Set DATABASE_ECHO=true in .env/.env.local to enable SQL logging
@@ -55,6 +59,10 @@ def get_engine(db_url: Optional[str] = None, config: Optional[Config] = None):
             max_overflow=config.database_max_overflow,
             pool_timeout=config.database_pool_timeout,
         )
+
+    ***REMOVED*** At this point, engine should never be None
+    if engine is None:
+        raise RuntimeError("Failed to create database engine")
 
     return engine
 

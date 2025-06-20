@@ -5,7 +5,8 @@ This module provides functions for managing user records in the database.
 """
 
 import logging
-from typing import List, Optional, Dict, Any, Union
+from typing import Any, Dict, List, Optional, Union
+
 from sqlmodel import Session, select
 
 from movie_storage.models.user import User

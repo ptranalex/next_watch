@@ -5,9 +5,10 @@ This migration adds support for user authentication.
 """
 
 import logging
+from typing import Any, Dict, List
+
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, ProgrammingError
-from typing import Dict, Any
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "007_add_users_table"
@@ -16,7 +17,7 @@ MIGRATION_DESCRIPTION = "Add users table for authentication"
 logger = logging.getLogger(__name__)
 
 
-def upgrade(engine, config=None):
+def upgrade(engine: Any, config: Any = None) -> None:
     """
     Upgrade database to this revision.
 
@@ -47,16 +48,12 @@ def upgrade(engine, config=None):
         conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_email ON "user"(email)'))
 
         ***REMOVED*** Create index on username
-        conn.execute(
-            text('CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username)')
-        )
+        conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username)'))
 
         ***REMOVED*** Record the migration
         try:
             conn.execute(
-                text(
-                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
-                ),
+                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")
@@ -64,7 +61,7 @@ def upgrade(engine, config=None):
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine, config=None):
+def downgrade(engine: Any, config: Any = None) -> None:
     """
     Downgrade database from this revision.
 
@@ -105,7 +102,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> list[str]:
+def get_affected_tables() -> List[str]:
     """
     Get list of affected tables.
 

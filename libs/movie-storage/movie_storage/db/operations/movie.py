@@ -1,19 +1,19 @@
 """Movie storage operations."""
 
 import logging
-from typing import List, Dict, Any, Optional, Tuple, Union
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from sqlmodel import Session, select, or_
-from sqlalchemy.sql import text
 from sqlalchemy import func
+from sqlalchemy.sql import text
+from sqlmodel import Session, or_, select
 
 from movie_storage.config.logging import with_logging
-from movie_storage.models import Movie, Genre, MovieGenreLink, Credit
 from movie_storage.db.operations.credit import (
-    delete_credits_for_movie,
     create_credits_from_tmdb_data,
+    delete_credits_for_movie,
 )
+from movie_storage.models import Credit, Genre, Movie, MovieGenreLink
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +171,7 @@ def update_movie(
         logger.warning(f"Attempted to update non-existent movie with ID {movie_id}")
         return None
 
-    logger.info(f"Updating movie: {movie.title} (ID: {movie_id})")
+    logger.debug(f"Updating movie: {movie.title} (ID: {movie_id})")
 
     ***REMOVED*** Create a copy to avoid modifying the input
     movie_dict = movie_data.copy()
@@ -212,7 +212,7 @@ def update_movie(
     session.add(movie)
     session.commit()
     session.refresh(movie)
-    logger.info(f"Movie updated successfully: {movie.title}")
+    logger.debug(f"Movie updated successfully: {movie.title}")
     return movie
 
 
@@ -236,9 +236,7 @@ def delete_movie(session: Session, movie_id: int) -> bool:
     logger.info(f"Deleting movie: {movie.title} (ID: {movie_id})")
 
     ***REMOVED*** Delete genre links
-    links = session.exec(
-        select(MovieGenreLink).where(MovieGenreLink.movie_id == movie_id)
-    ).all()
+    links = session.exec(select(MovieGenreLink).where(MovieGenreLink.movie_id == movie_id)).all()
     for link in links:
         session.delete(link)
     logger.debug(f"Deleted {len(links)} genre links")
@@ -252,9 +250,7 @@ def delete_movie(session: Session, movie_id: int) -> bool:
 
 
 @with_logging(log_level="INFO")
-def create_movie_from_tmdb_details(
-    session: Session, tmdb_details: Dict[str, Any]
-) -> Movie:
+def create_movie_from_tmdb_details(session: Session, tmdb_details: Dict[str, Any]) -> Movie:
     """Create or update a movie from TMDB movie details API response.
 
     This function processes a TMDB movie details API response and maps it
@@ -319,9 +315,7 @@ def create_movie_from_tmdb_details(
         movie_data["poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
     if backdrop_path := tmdb_details.get("backdrop_path"):
-        movie_data["backdrop_url"] = (
-            f"https://image.tmdb.org/t/p/original{backdrop_path}"
-        )
+        movie_data["backdrop_url"] = f"https://image.tmdb.org/t/p/original{backdrop_path}"
 
     movie_data["homepage"] = tmdb_details.get("homepage")
 
@@ -329,7 +323,7 @@ def create_movie_from_tmdb_details(
     genre_ids = None
     if genres := tmdb_details.get("genres"):
         ***REMOVED*** Import here to avoid circular imports
-        from movie_storage.db.operations.genre import get_genre_by_tmdb_id, create_genre
+        from movie_storage.db.operations.genre import create_genre, get_genre_by_tmdb_id
 
         ***REMOVED*** Process each genre and ensure it exists in database
         valid_genre_ids = []
@@ -342,9 +336,7 @@ def create_movie_from_tmdb_details(
             db_genre = get_genre_by_tmdb_id(session, tmdb_genre_id)
             if not db_genre:
                 genre_name = genre_data.get("name", f"Genre {tmdb_genre_id}")
-                logger.info(
-                    f"Creating missing genre: {genre_name} (TMDB ID: {tmdb_genre_id})"
-                )
+                logger.info(f"Creating missing genre: {genre_name} (TMDB ID: {tmdb_genre_id})")
                 db_genre = create_genre(session, name=genre_name, tmdb_id=tmdb_genre_id)
 
             ***REMOVED*** Add the database genre ID to our list
@@ -354,9 +346,7 @@ def create_movie_from_tmdb_details(
 
     ***REMOVED*** Create or update movie
     if existing_movie:
-        logger.info(
-            f"Updating existing movie: {movie_data['title']} (ID: {existing_movie.id})"
-        )
+        logger.debug(f"Updating existing movie: {movie_data['title']} (ID: {existing_movie.id})")
         movie = update_movie(session, existing_movie.id, movie_data, genre_ids)
     else:
         logger.info(f"Creating new movie: {movie_data['title']}")
@@ -373,10 +363,7 @@ def create_movie_from_tmdb_details(
     ***REMOVED*** Process trailers if present
     if videos := tmdb_details.get("videos", {}).get("results", []):
         ***REMOVED*** Import here to avoid circular imports
-        from movie_storage.db.operations.trailer import (
-            delete_trailers_for_movie,
-            create_trailer,
-        )
+        from movie_storage.db.operations.trailer import create_trailer, delete_trailers_for_movie
 
         ***REMOVED*** Delete existing trailers
         delete_trailers_for_movie(session, movie.id)
@@ -392,9 +379,7 @@ def create_movie_from_tmdb_details(
                     "url_link": f"https://www.youtube.com/watch?v={video.get('key')}",
                 }
                 create_trailer(session, trailer_data)
-                logger.info(
-                    f"Created trailer: {trailer_data['name']} for movie {movie.title}"
-                )
+                logger.debug(f"Created trailer: {trailer_data['name']} for movie {movie.title}")
 
     ***REMOVED*** Refresh the movie to include relationships
     session.refresh(movie)

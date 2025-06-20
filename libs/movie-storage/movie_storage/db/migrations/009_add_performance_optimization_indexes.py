@@ -10,8 +10,9 @@ This migration adds several indexes to improve query performance for common acce
 """
 
 import logging
-from typing import Dict, Any, List
-from sqlalchemy import text, MetaData
+from typing import Any, Dict, List
+
+from sqlalchemy import MetaData, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ***REMOVED*** Migration identification
@@ -154,9 +155,7 @@ def upgrade(engine, config=None):
     with engine.begin() as conn:
         try:
             conn.execute(
-                text(
-                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
-                ),
+                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")

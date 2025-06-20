@@ -3,9 +3,11 @@ Operations for user movie interactions.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Union, Tuple
-from sqlmodel import Session, select, update, delete, and_
-from movie_storage.models import UserMovieInteraction, User, Movie
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from sqlmodel import Session, and_, delete, select, update
+
+from movie_storage.models import Movie, User, UserMovieInteraction
 
 
 def create_user_movie_interaction(

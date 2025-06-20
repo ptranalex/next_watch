@@ -11,14 +11,13 @@ class TestCacheSettings:
     """Test cache settings configuration."""
 
     def test_default_settings(self):
-        """Test default settings values."""
+        """Test default settings."""
         settings = CacheSettings()
-
         assert settings.redis_url == "redis://localhost:6379/0"
         assert settings.redis_pool_size == 10
         assert settings.redis_timeout == 5
         assert settings.key_prefix == "nextwatch"
-        assert settings.ttl_default == 300
+        assert settings.cache_ttl_default == 300
         assert settings.ttl_movie_data == 600
         assert settings.ttl_user_session == 3600
         assert settings.ttl_popular_content == 1800
@@ -38,7 +37,9 @@ class TestRedisProvider:
 
     def test_redis_provider_initialization(self):
         """Test Redis provider can be initialized."""
-        provider = RedisProvider(redis_url="redis://localhost:6379/0", key_prefix="test")
+        provider = RedisProvider(
+            redis_url="redis://localhost:6379/0", key_prefix="test"
+        )
 
         assert provider.redis_url == "redis://localhost:6379/0"
         assert provider.key_prefix == "test"
@@ -47,7 +48,9 @@ class TestRedisProvider:
 
     def test_redis_provider_from_settings(self):
         """Test Redis provider creation from settings."""
-        settings = CacheSettings(redis_url="redis://localhost:6379/1", key_prefix="myapp")
+        settings = CacheSettings(
+            redis_url="redis://localhost:6379/1", key_prefix="myapp"
+        )
 
         provider = RedisProvider.from_settings(settings)
 

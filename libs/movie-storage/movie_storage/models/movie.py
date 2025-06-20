@@ -1,13 +1,14 @@
 """Movie model definition."""
 
-from typing import Optional, List, TYPE_CHECKING
 from datetime import date, datetime
-from sqlmodel import SQLModel, Field, Relationship
+from typing import TYPE_CHECKING, List, Optional
+
 from sqlalchemy import BigInteger, Column
+from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from movie_storage.models.genre import Genre
     from movie_storage.models.credit import Credit
+    from movie_storage.models.genre import Genre
     from movie_storage.models.trailer import Trailer
     from movie_storage.models.user_interaction import UserMovieInteraction
 
@@ -15,14 +16,10 @@ if TYPE_CHECKING:
 class MovieGenreLink(SQLModel, table=True):
     """Association table for Movie-Genre many-to-many relationship."""
 
-    __tablename__ = "movie_genre_link"  ***REMOVED*** type: ignore
+    __tablename__ = "movie_genre_link"
 
-    movie_id: Optional[int] = Field(
-        default=None, foreign_key="movie.id", primary_key=True
-    )
-    genre_id: Optional[int] = Field(
-        default=None, foreign_key="genre.id", primary_key=True
-    )
+    movie_id: Optional[int] = Field(default=None, foreign_key="movie.id", primary_key=True)
+    genre_id: Optional[int] = Field(default=None, foreign_key="genre.id", primary_key=True)
 
 
 class Movie(SQLModel, table=True):
@@ -86,11 +83,7 @@ class Movie(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     ***REMOVED*** Relationships
-    genres: List["Genre"] = Relationship(
-        back_populates="movies", link_model=MovieGenreLink
-    )
+    genres: List["Genre"] = Relationship(back_populates="movies", link_model=MovieGenreLink)
     credits: List["Credit"] = Relationship(back_populates="movie")
     trailers: List["Trailer"] = Relationship(back_populates="movie")
-    user_interactions: List["UserMovieInteraction"] = Relationship(
-        back_populates="movie"
-    )
+    user_interactions: List["UserMovieInteraction"] = Relationship(back_populates="movie")

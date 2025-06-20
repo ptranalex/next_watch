@@ -1,14 +1,14 @@
 """Scheduled warming strategy."""
 
 from typing import List, Optional, Dict, Any, Callable, Awaitable
-import logging
+import structlog
 from datetime import datetime, timedelta, time
 from enum import Enum
 
 from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
 from .base import BaseWarmingStrategy
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class ScheduleType(Enum):
@@ -25,7 +25,9 @@ class ScheduleType(Enum):
 class ScheduledStrategy(BaseWarmingStrategy):
     """Warming strategy based on time-based patterns and schedules."""
 
-    def __init__(self, config: WarmingConfig, schedule_config: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, config: WarmingConfig, schedule_config: Optional[Dict[str, Any]] = None
+    ):
         """Initialize scheduled strategy.
 
         Args:
@@ -80,7 +82,9 @@ class ScheduledStrategy(BaseWarmingStrategy):
         Returns:
             List of warming targets for scheduled content
         """
-        current_time = context.get("current_time", datetime.now()) if context else datetime.now()
+        current_time = (
+            context.get("current_time", datetime.now()) if context else datetime.now()
+        )
 
         targets = []
 
@@ -88,17 +92,27 @@ class ScheduledStrategy(BaseWarmingStrategy):
         schedule_context = self._analyze_schedule_context(current_time)
 
         ***REMOVED*** Generate targets based on schedule context
-        targets.extend(await self._create_peak_hour_targets(current_time, schedule_context))
-        targets.extend(await self._create_daily_schedule_targets(current_time, schedule_context))
-        targets.extend(await self._create_weekly_schedule_targets(current_time, schedule_context))
-        targets.extend(await self._create_seasonal_targets(current_time, schedule_context))
+        targets.extend(
+            await self._create_peak_hour_targets(current_time, schedule_context)
+        )
+        targets.extend(
+            await self._create_daily_schedule_targets(current_time, schedule_context)
+        )
+        targets.extend(
+            await self._create_weekly_schedule_targets(current_time, schedule_context)
+        )
+        targets.extend(
+            await self._create_seasonal_targets(current_time, schedule_context)
+        )
 
         ***REMOVED*** Sort by priority and apply limit
         targets.sort(key=lambda t: t.priority, reverse=True)
         if limit:
             targets = targets[:limit]
 
-        logger.info(f"Identified {len(targets)} scheduled targets for warming at {current_time}")
+        logger.info(
+            f"Identified {len(targets)} scheduled targets for warming at {current_time}"
+        )
         return targets
 
     def _analyze_schedule_context(self, current_time: datetime) -> Dict[str, Any]:
@@ -116,14 +130,18 @@ class ScheduledStrategy(BaseWarmingStrategy):
         month_name = current_time.strftime("%B").lower()
 
         ***REMOVED*** Determine if it's peak hours
-        peak_ranges = self.schedule_config["peak_hours"]["weekend" if is_weekend else "weekday"]
+        peak_ranges = self.schedule_config["peak_hours"][
+            "weekend" if is_weekend else "weekday"
+        ]
         is_peak_hour = any(start <= current_hour <= end for start, end in peak_ranges)
 
         ***REMOVED*** Determine if it's off-peak hours
         off_peak_ranges = self.schedule_config["off_peak_hours"][
             "weekend" if is_weekend else "weekday"
         ]
-        is_off_peak = any(start <= current_hour <= end for start, end in off_peak_ranges)
+        is_off_peak = any(
+            start <= current_hour <= end for start, end in off_peak_ranges
+        )
 
         return {
             "is_weekend": is_weekend,
@@ -405,7 +423,9 @@ class ScheduledStrategy(BaseWarmingStrategy):
 
         return targets
 
-    def _is_near_time(self, current_time: time, target_time: time, minutes: int = 30) -> bool:
+    def _is_near_time(
+        self, current_time: time, target_time: time, minutes: int = 30
+    ) -> bool:
         """Check if current time is near target time.
 
         Args:
@@ -487,4 +507,9 @@ class ScheduledStrategy(BaseWarmingStrategy):
         if time_context.get("is_weekend"):
             context_boost *= 1.1
 
-        return base_priority * urgency_multiplier * context_boost * self.config.scheduled_weight
+        return (
+            base_priority
+            * urgency_multiplier
+            * context_boost
+            * self.config.scheduled_weight
+        )
