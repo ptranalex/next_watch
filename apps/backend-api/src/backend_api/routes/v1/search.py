@@ -2,6 +2,7 @@
 Search-related API routes (v1).
 """
 
+import os
 import traceback
 from typing import Any, Dict, List, Optional
 
@@ -73,7 +74,18 @@ async def get_suggestion_engine() -> SuggestionEngine:
     """
     global suggestion_engine
     if suggestion_engine is None:
-        suggestion_engine = SuggestionEngine(settings.redis_url)
+        ***REMOVED*** Get Redis URL with priority:
+        ***REMOVED*** 1. SUGGESTION_REDIS_URL (specific to suggestion engine)
+        ***REMOVED*** 2. CACHE_REDIS_URL (general cache configuration)
+        ***REMOVED*** 3. settings.redis_url (fallback)
+        redis_url = os.getenv("SUGGESTION_REDIS_URL")
+        if not redis_url:
+            redis_url = os.getenv("CACHE_REDIS_URL")
+        if not redis_url:
+            redis_url = settings.redis_url
+
+        logger.debug(f"Initializing suggestion engine with Redis URL: {redis_url}")
+        suggestion_engine = SuggestionEngine(redis_url)
         await suggestion_engine.initialize()
     return suggestion_engine
 
