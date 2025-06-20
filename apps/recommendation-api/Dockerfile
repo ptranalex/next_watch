@@ -46,6 +46,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8002 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
+    LOGS_DIR="/app/logs" \
     WORKERS=1 \
     TIMEOUT=120 \
     MAX_KEEPALIVE=60 \
@@ -53,7 +54,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PROXY_HEADERS=true \
     FORWARDED_ALLOW_IPS="*" \
     LIMIT_MAX_REQUESTS=10000 \
-    BACKLOG=1024
+    BACKLOG=1024 \
+    ENABLE_CACHING=true \
+    CACHE_TTL_DEFAULT=3600 \
+    CACHE_KEY_PREFIX=recommendation
 
 WORKDIR /app
 
@@ -77,6 +81,9 @@ USER app
 ***REMOVED*** Add health check configuration
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8002/health || exit 1
+
+***REMOVED*** Expose port
+EXPOSE 8002
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]

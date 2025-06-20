@@ -1,7 +1,7 @@
 """Cache configuration settings."""
 
 import os
-from typing import Optional
+from typing import Dict, List, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -52,10 +52,42 @@ class CacheSettings(BaseSettings):
     def get_redis_url(self) -> str:
         """Get the Redis URL, with environment variable override.
 
-        Checks for CACHE_REDIS_URL first, then falls back to REDIS_URL,
-        and finally uses the configured redis_url value.
+        Checks for CACHE_REDIS_URL only, then uses the configured redis_url value.
+        No fallback to REDIS_URL to ensure consistent configuration.
         """
-        return os.getenv("CACHE_REDIS_URL", os.getenv("REDIS_URL", self.redis_url))
+        return os.getenv("CACHE_REDIS_URL", self.redis_url)
+
+    def validate_config(self) -> List[str]:
+        """Validate the cache configuration.
+
+        Checks that Redis configuration is using the proper CACHE_ prefixed environment variables.
+
+        Returns:
+            List of validation issues, empty if valid
+        """
+        issues = []
+
+        ***REMOVED*** Check if non-prefixed Redis environment variables are being used
+        legacy_vars = {
+            "REDIS_URL": "CACHE_REDIS_URL",
+            "REDIS_MAX_CONNECTIONS": "CACHE_REDIS_MAX_CONNECTIONS",
+            "REDIS_SOCKET_TIMEOUT": "CACHE_REDIS_SOCKET_TIMEOUT",
+            "REDIS_RETRY_ON_TIMEOUT": "CACHE_REDIS_RETRY_ON_TIMEOUT",
+        }
+
+        for old_var, new_var in legacy_vars.items():
+            if os.getenv(old_var) is not None and os.getenv(new_var) is None:
+                issues.append(
+                    f"Found {old_var} but {new_var} is not set. Use {new_var} instead."
+                )
+
+        ***REMOVED*** Check if Redis URL is set properly
+        if os.getenv("CACHE_REDIS_URL") is None and "localhost" in self.redis_url:
+            issues.append(
+                f"CACHE_REDIS_URL is not set, using default: {self.redis_url}"
+            )
+
+        return issues
 
     def get_ttl_for_domain(self, domain: str) -> int:
         """Get TTL for a specific domain, falling back to default."""

@@ -44,9 +44,26 @@ class CacheManager:
 
         Returns:
             Configured cache manager instance
+
+        Raises:
+            ValueError: If configuration validation fails
         """
         if settings is None:
             settings = CacheSettings()
+
+        ***REMOVED*** Validate configuration
+        issues = settings.validate_config()
+        if issues:
+            for issue in issues:
+                logger.warning(f"Cache configuration issue: {issue}")
+
+            ***REMOVED*** In strict mode, we would raise an exception here
+            ***REMOVED*** Uncomment the following lines to enforce strict configuration
+            ***REMOVED*** if any issue indicates a legacy environment variable is being used
+            if any("Found" in issue for issue in issues):
+                error_msg = "Invalid cache configuration: " + "; ".join(issues)
+                logger.error(error_msg)
+                raise ValueError(error_msg)
 
         provider = RedisProvider.from_settings(settings)
         return cls(provider=provider, settings=settings)
