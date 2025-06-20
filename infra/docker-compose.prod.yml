@@ -21,6 +21,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
       ***REMOVED*** Redis Configuration (using CACHE_ prefix for consistency)
       - CACHE_REDIS_URL=redis://host.docker.internal:6379/0
+      - SUGGESTION_REDIS_URL=redis://host.docker.internal:6379/0
       - CACHE_REDIS_MAX_CONNECTIONS=20
       - CACHE_REDIS_SOCKET_TIMEOUT=5
       - CACHE_REDIS_RETRY_ON_TIMEOUT=true
