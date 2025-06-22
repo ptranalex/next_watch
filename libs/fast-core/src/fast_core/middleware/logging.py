@@ -8,12 +8,12 @@ import time
 import uuid
 from typing import Any, Callable, List, Optional, cast
 
-from config.logging import get_logger
+import structlog
 from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -186,7 +186,7 @@ def get_request_logger(request: Request) -> Any:
         request: HTTP request
 
     Returns:
-        Logger with request context
+        Structlog logger bound with request context
     """
     request_id = request.headers.get("X-Request-ID", "unknown")
 

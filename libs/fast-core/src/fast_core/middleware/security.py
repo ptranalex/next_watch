@@ -6,12 +6,12 @@ and protection mechanisms to FastAPI applications.
 
 from typing import Any, Callable, Dict, List, Optional, cast
 
-from config.logging import get_logger
+import structlog
 from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):

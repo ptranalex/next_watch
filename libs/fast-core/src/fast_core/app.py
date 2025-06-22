@@ -4,20 +4,28 @@ This module provides a standardized way to create FastAPI applications
 with consistent configuration, middleware, and error handling.
 """
 
+import structlog
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Sequence, Type, Union
+from typing import (
+    Any,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+    TYPE_CHECKING,
+)
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 
-try:
-    from config.logging import get_logger
-except ImportError:
-    import logging
+if TYPE_CHECKING:
+    from fast_core.middleware import MiddlewareConfig
 
-    get_logger = lambda name: logging.getLogger(name)
-
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class AppOptions:
@@ -26,16 +34,12 @@ class AppOptions:
     def __init__(
         self,
         *,
-        middleware: bool = True,
         exception_handlers: bool = True,
         health_checks: bool = True,
-        cors: bool = True,
         docs: bool = True,
     ):
-        self.middleware = middleware
         self.exception_handlers = exception_handlers
         self.health_checks = health_checks
-        self.cors = cors
         self.docs = docs
 
 
@@ -57,11 +61,9 @@ async def default_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Get settings if available
     settings = getattr(app.state, "settings", None)
     if settings:
-        logger.info(
-            "Application configuration",
-            environment=getattr(settings, "environment", "unknown"),
-            debug=getattr(settings, "debug", False),
-        )
+        environment = getattr(settings, "environment", "unknown")
+        debug = getattr(settings, "debug", False)
+        logger.info(f"Application configuration - environment: {environment}, debug: {debug}")
 
     yield
 
@@ -89,6 +91,7 @@ def create_app(
     description: Optional[str] = None,
     version: str = "0.1.0",
     options: Optional[AppOptions] = None,
+    middleware: Optional["MiddlewareConfig"] = None,
     routers: Optional[List[APIRouter]] = None,
     lifespan: Optional[Callable] = None,
     on_startup: Optional[List[Callable]] = None,
@@ -101,7 +104,8 @@ def create_app(
         title: API title (defaults to service_name from settings)
         description: API description
         version: API version
-        options: Application options
+        options: Application options for non-middleware features
+        middleware: Middleware configuration using the new MiddlewareConfig system
         routers: List of routers to include
         lifespan: Custom lifespan manager (overrides default)
         on_startup: Startup event handlers
@@ -109,6 +113,18 @@ def create_app(
 
     Returns:
         Configured FastAPI application
+
+    Example:
+        ***REMOVED*** Create middleware configuration
+        middleware_config = MiddlewareConfig()
+        middleware_config.cors(origins=["https://app.example.com"]).security_headers()
+
+        ***REMOVED*** Create app
+        app = create_app(
+            settings=settings,
+            middleware=middleware_config,
+            routers=[api_router]
+        )
     """
     options = options or AppOptions()
 
@@ -131,24 +147,20 @@ def create_app(
     ***REMOVED*** Store settings in app state
     app.state.settings = settings
 
-    ***REMOVED*** Setup middleware
-    if options.middleware:
+    ***REMOVED*** Setup middleware using the new system
+    if middleware is not None:
         try:
             from fast_core.middleware import setup_middleware
 
-            setup_middleware(app, settings)
+            setup_middleware(app, middleware)
         except ImportError:
             logger.warning("Middleware module not available, skipping middleware setup")
 
     ***REMOVED*** Setup exception handlers
     if options.exception_handlers:
-        try:
-            from fast_core.errors import setup_exception_handlers
-
-            setup_exception_handlers(app)
-        except ImportError:
-            logger.warning("Error handlers module not available, using default handler only")
-            app.add_exception_handler(Exception, global_exception_handler)
+        ***REMOVED*** For now, just use the global exception handler
+        ***REMOVED*** In the future, we can add more sophisticated error handling
+        app.add_exception_handler(Exception, global_exception_handler)
 
     ***REMOVED*** Setup health checks
     if options.health_checks:

@@ -1,68 +1,37 @@
-"""Middleware components for FastAPI applications.
+"""
+Fast Core Middleware Configuration
 
-This module provides middleware components for FastAPI applications,
-including CORS, logging, metrics, security, and tracing.
+This module provides a flexible builder pattern for configuring FastAPI middleware
+with granular control over individual middleware settings.
+
+Features:
+- CORS configuration with specific origins, methods, and headers
+- Security headers with customizable policies
+- Rate limiting with per-endpoint rules
+- Logging configuration with filtering and formatting options
+- Request/response middleware with custom processing
+- Builder pattern for easy composition and reuse
 """
 
-from typing import Any
+from .config import (
+    MiddlewareConfig,
+    CORSConfig,
+    SecurityConfig,
+    LoggingConfig,
+    RateLimitConfig,
+    RequestConfig,
+)
+from .setup import setup_middleware
 
-from fastapi import FastAPI
-
-try:
-    from config.logging import get_logger
-except ImportError:
-    import logging
-
-    get_logger = lambda name: logging.getLogger(name)
-
-logger = get_logger(__name__)
-
-
-def setup_middleware(app: FastAPI, settings: Any) -> None:
-    """Set up standard middleware stack for FastAPI application.
-
-    Args:
-        app: FastAPI application
-        settings: Application settings
-    """
-    ***REMOVED*** Set up CORS middleware
-    try:
-        from .cors import setup_cors
-
-        setup_cors(app, settings)
-    except ImportError:
-        logger.warning("CORS middleware not available, skipping")
-
-    ***REMOVED*** Set up security middleware
-    try:
-        from .security import setup_security
-
-        setup_security(app, settings)
-    except ImportError:
-        logger.warning("Security middleware not available, skipping")
-
-    ***REMOVED*** Set up logging middleware
-    try:
-        from .logging import setup_logging
-
-        setup_logging(app, settings)
-    except ImportError:
-        logger.warning("Logging middleware not available, skipping")
-
-    ***REMOVED*** Set up metrics middleware
-    try:
-        from .metrics import setup_metrics
-
-        setup_metrics(app, settings)
-    except ImportError:
-        logger.warning("Metrics middleware not available, skipping")
-
-    ***REMOVED*** Set up tracing middleware
-    try:
-        from .tracing import setup_tracing
-
-        setup_tracing(app, settings)
-    except ImportError:
-        logger.warning("Tracing middleware not available, skipping")
-
-    logger.info("Middleware setup complete")
+__all__ = [
+    ***REMOVED*** Main configuration class
+    "MiddlewareConfig",
+    ***REMOVED*** Individual config classes
+    "CORSConfig",
+    "SecurityConfig",
+    "LoggingConfig",
+    "RateLimitConfig",
+    "RequestConfig",
+    ***REMOVED*** Setup function
+    "setup_middleware",
+]

@@ -1,421 +1,419 @@
-***REMOVED*** Middleware Module
+***REMOVED*** Fast Core Middleware Builder
 
-The middleware module provides essential middleware components for FastAPI applications. These middleware handle cross-cutting concerns like CORS, logging, security headers, rate limiting, metrics, and tracing across Next Watch services.
+The Fast Core Middleware Builder provides a flexible, granular approach to configuring FastAPI middleware with a clean builder pattern interface. This system replaces the all-or-nothing middleware approach with fine-grained control over individual middleware components.
 
-***REMOVED******REMOVED*** Overview
+***REMOVED******REMOVED*** Features
 
-This module contains middleware for:
+- **Builder Pattern**: Fluent interface for chaining middleware configurations
+- **Granular Control**: Configure each middleware type independently
+- **Type Safety**: Full type annotations and IDE support
+- **Backward Compatibility**: Works alongside existing AppOptions system
+- **Production Ready**: Comprehensive middleware implementations
 
-- **CORS**: Cross-Origin Resource Sharing configuration
-- **Logging**: Request/response logging with timing and context
-- **Security**: Security headers, rate limiting, and trusted hosts
-- **Metrics**: Request metrics collection (placeholder)
-- **Tracing**: Distributed tracing support (placeholder)
+***REMOVED******REMOVED*** Middleware Types
 
-***REMOVED******REMOVED*** Module Structure
+***REMOVED******REMOVED******REMOVED*** 1. CORS Middleware
 
-***REMOVED******REMOVED******REMOVED*** `cors.py` - CORS Middleware
-
-Handles Cross-Origin Resource Sharing with production and development configurations.
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Basic Usage
+Configure Cross-Origin Resource Sharing with specific origins, methods, and headers.
 
 ```python
-from fastapi import FastAPI
-from fast_core.middleware.cors import setup_cors, setup_production_cors
-
-app = FastAPI()
-
-***REMOVED*** Development CORS (permissive)
-setup_cors(app)
-
-***REMOVED*** Production CORS (restrictive)
-setup_production_cors(app, allowed_origins=["https://example.com"])
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Configuration Options
-
-```python
-from fast_core.middleware.cors import get_default_cors_config
-
-***REMOVED*** Get default configuration
-cors_config = get_default_cors_config()
-
-***REMOVED*** Custom configuration
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://frontend.example.com"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
+middleware.cors(
+    origins=["https://app.example.com", "https://mobile.example.com"],
+    credentials=True,
+    methods=["GET", "POST", "PUT", "DELETE"],
+    headers=["Content-Type", "Authorization"],
     expose_headers=["X-Request-ID"],
+    max_age=3600
 )
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Environment-Based Setup
+***REMOVED******REMOVED******REMOVED*** 2. Security Headers Middleware
+
+Add comprehensive security headers to protect your application.
 
 ```python
-import os
-from fast_core.middleware.cors import setup_cors, setup_production_cors
-
-if os.getenv("ENVIRONMENT") == "production":
-    setup_production_cors(
-        app,
-        allowed_origins=os.getenv("CORS_ORIGINS", "").split(",")
-    )
-else:
-    setup_cors(app)
-```
-
-***REMOVED******REMOVED******REMOVED*** `logging.py` - Request Logging Middleware
-
-Provides comprehensive request/response logging with timing, context, and structured data.
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Features
-
-- Request/response timing
-- Request ID generation and tracking
-- Structured logging with context
-- Configurable log levels
-- Error logging integration
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Basic Usage
-
-```python
-from fastapi import FastAPI
-from fast_core.middleware.logging import setup_logging, LoggingMiddleware
-
-app = FastAPI()
-
-***REMOVED*** Simple setup
-setup_logging(app)
-
-***REMOVED*** Custom setup
-app.add_middleware(
-    LoggingMiddleware,
-    logger_name="my-api",
-    log_level="INFO",
-    include_request_body=True,
-    include_response_body=False,
-)
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Request Logger Access
-
-```python
-from fast_core.middleware.logging import get_request_logger
-
-@app.get("/users")
-async def get_users(request: Request):
-    logger = get_request_logger(request)
-    logger.info("Fetching users", extra={"user_count": 100})
-    return {"users": []}
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Log Format
-
-The middleware produces structured logs:
-
-```json
-{
-  "timestamp": "2024-01-15T10:30:00Z",
-  "level": "INFO",
-  "message": "Request completed",
-  "request_id": "req-abc123",
-  "method": "GET",
-  "path": "/api/users",
-  "status_code": 200,
-  "duration_ms": 45.2,
-  "client_ip": "192.168.1.1",
-  "user_agent": "Mozilla/5.0...",
-  "response_size": 1024
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** `security.py` - Security Middleware
-
-Provides security headers, rate limiting, and trusted host validation.
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Components
-
-- `SecurityHeadersMiddleware`: Adds security headers
-- `RateLimitMiddleware`: Request rate limiting
-- Trusted host validation
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Security Headers
-
-```python
-from fast_core.middleware.security import setup_security, get_security_headers
-
-app = FastAPI()
-
-***REMOVED*** Setup all security middleware
-setup_security(app)
-
-***REMOVED*** Custom security headers
-headers = get_security_headers(
-    hsts_max_age=31536000,
-    content_type_options=True,
+middleware.security_headers(
+    hsts=True,
+    hsts_max_age=31536000,  ***REMOVED*** 1 year
     frame_options="DENY",
-    xss_protection=True
+    content_type_options=True,
+    xss_protection=True,
+    csp="default-src 'self'; script-src 'self' 'unsafe-inline'",
+    referrer_policy="strict-origin-when-cross-origin",
+    trusted_hosts=["app.example.com"]
 )
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Default Security Headers
+***REMOVED******REMOVED******REMOVED*** 3. Rate Limiting Middleware
 
-```http
-Strict-Transport-Security: max-age=31536000; includeSubDomains
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-X-XSS-Protection: 1; mode=block
-Referrer-Policy: strict-origin-when-cross-origin
-Content-Security-Policy: default-src 'self'
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Rate Limiting Integration
+Implement rate limiting with per-endpoint rules and IP exemptions.
 
 ```python
-from fast_core.middleware.security import RateLimitMiddleware
-from fast_core.security.rate_limit import RedisRateLimiter
-
-rate_limiter = RedisRateLimiter(redis_url="redis://localhost:6379")
-
-app.add_middleware(
-    RateLimitMiddleware,
-    rate_limiter=rate_limiter,
-    max_requests=1000,
-    window_seconds=3600,
-    key_func=lambda request: request.client.host
+middleware.rate_limiting(
+    default_limit="100/minute",
+    storage_url="redis://localhost:6379/0",  ***REMOVED*** For distributed rate limiting
+    endpoints={
+        "/api/auth/login": "5/minute",
+        "/api/auth/register": "3/minute",
+        "/api/upload": "10/minute"
+    },
+    exempt_ips=["127.0.0.1", "10.0.0.0/8"],
+    headers=True  ***REMOVED*** Include rate limit headers in responses
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** `metrics.py` - Metrics Middleware (Placeholder)
+***REMOVED******REMOVED******REMOVED*** 4. Request Logging Middleware
 
-Placeholder for request metrics collection.
+Log requests and responses with configurable detail levels.
 
 ```python
-from fast_core.middleware.metrics import setup_metrics
-
-app = FastAPI()
-setup_metrics(app)
+middleware.logging(
+    level="INFO",
+    include_request_body=False,  ***REMOVED*** Be careful in production
+    include_response_body=False,
+    max_body_size=1024,
+    exclude_paths=["/health", "/metrics"],
+    include_headers=True,
+    exclude_headers=["authorization", "cookie"],
+    log_timing=True,
+    log_user_agent=True
+)
 ```
 
-***REMOVED******REMOVED******REMOVED*** `tracing.py` - Tracing Middleware (Placeholder)
+***REMOVED******REMOVED******REMOVED*** 5. Request Processing Middleware
 
-Placeholder for distributed tracing integration.
+Handle request IDs, process timing, compression, and size limits.
 
 ```python
-from fast_core.middleware.tracing import setup_tracing
-
-app = FastAPI()
-setup_tracing(app)
+middleware.request_processing(
+    max_request_size=5 * 1024 * 1024,  ***REMOVED*** 5MB
+    timeout=30,
+    include_request_id=True,
+    request_id_header="X-Request-ID",
+    include_process_time=True,
+    process_time_header="X-Process-Time",
+    gzip_compression=True,
+    gzip_minimum_size=1000
+)
 ```
 
-***REMOVED******REMOVED*** Complete Middleware Setup
+***REMOVED******REMOVED*** Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Basic Setup
-
-```python
-from fastapi import FastAPI
-from fast_core.middleware import setup_middleware
-
-app = FastAPI()
-
-***REMOVED*** Setup all middleware with defaults
-setup_middleware(app)
-```
-
-***REMOVED******REMOVED******REMOVED*** Custom Setup
+***REMOVED******REMOVED******REMOVED*** Basic Configuration
 
 ```python
-from fastapi import FastAPI
-from fast_core.middleware import (
-    setup_cors,
-    setup_logging,
-    setup_security
+from fast_core.app import create_app
+from fast_core.middleware import MiddlewareConfig
+
+***REMOVED*** Create middleware configuration
+middleware = MiddlewareConfig()
+middleware.cors(
+    origins=["http://localhost:3000"],
+    credentials=True
+).request_processing(
+    include_request_id=True,
+    include_process_time=True
 )
 
-app = FastAPI()
-
-***REMOVED*** Setup individual middleware
-setup_cors(app)
-setup_logging(app, log_level="DEBUG")
-setup_security(app)
+***REMOVED*** Create app with middleware
+app = create_app(
+    settings=settings,
+    middleware=middleware,
+    routers=[api_router]
+)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Production Setup
+***REMOVED******REMOVED******REMOVED*** Production Configuration
 
 ```python
-import os
-from fastapi import FastAPI
-from fast_core.middleware import (
-    setup_production_cors,
-    setup_logging,
-    setup_security
+***REMOVED*** Production-ready middleware stack
+middleware = MiddlewareConfig()
+middleware.cors(
+    origins=[
+        "https://app.example.com",
+        "https://mobile.example.com"
+    ],
+    credentials=True,
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    headers=["Content-Type", "Authorization", "X-Requested-With"],
+    expose_headers=["X-Request-ID", "X-Process-Time"]
+).security_headers(
+    hsts=True,
+    hsts_max_age=63072000,  ***REMOVED*** 2 years
+    hsts_include_subdomains=True,
+    frame_options="DENY",
+    content_type_options=True,
+    xss_protection=True,
+    csp="default-src 'self'; connect-src 'self' https://api.example.com",
+    referrer_policy="strict-origin-when-cross-origin",
+    trusted_hosts=["app.example.com", "api.example.com"]
+).rate_limiting(
+    default_limit="1000/hour",
+    storage_url="redis://localhost:6379/0",
+    endpoints={
+        "/api/auth/login": "10/minute",
+        "/api/auth/refresh": "20/minute",
+        "/api/upload": "5/minute"
+    },
+    exempt_ips=["10.0.0.0/8", "192.168.0.0/16"]
+).logging(
+    level="INFO",
+    include_request_body=False,
+    include_response_body=False,
+    exclude_paths=["/health", "/metrics", "/favicon.ico"],
+    include_headers=True,
+    exclude_headers=["authorization", "cookie", "x-api-key"],
+    log_timing=True,
+    log_user_agent=False
+).request_processing(
+    max_request_size=5 * 1024 * 1024,
+    timeout=30,
+    include_request_id=True,
+    include_process_time=True,
+    gzip_compression=True,
+    gzip_minimum_size=1000
 )
 
-app = FastAPI()
-
-***REMOVED*** Production-ready middleware
-setup_production_cors(
-    app,
-    allowed_origins=os.getenv("CORS_ORIGINS", "").split(",")
-)
-setup_logging(
-    app,
-    log_level=os.getenv("LOG_LEVEL", "INFO"),
-    include_request_body=False  ***REMOVED*** Don't log request bodies in production
-)
-setup_security(app)
+app = create_app(settings=settings, middleware=middleware)
 ```
 
-***REMOVED******REMOVED*** Configuration
-
-Middleware can be configured through environment variables:
-
-```bash
-***REMOVED*** CORS Configuration
-CORS_ORIGINS=https://example.com,https://app.example.com
-CORS_ALLOW_CREDENTIALS=true
-CORS_ALLOW_METHODS=GET,POST,PUT,DELETE
-CORS_ALLOW_HEADERS=*
-
-***REMOVED*** Logging Configuration
-LOG_LEVEL=INFO
-LOG_INCLUDE_REQUEST_BODY=false
-LOG_INCLUDE_RESPONSE_BODY=false
-LOG_MAX_BODY_SIZE=1024
-
-***REMOVED*** Security Configuration
-SECURITY_HSTS_MAX_AGE=31536000
-SECURITY_FRAME_OPTIONS=DENY
-SECURITY_CONTENT_TYPE_OPTIONS=true
-SECURITY_XSS_PROTECTION=true
-
-***REMOVED*** Rate Limiting
-RATE_LIMIT_MAX_REQUESTS=1000
-RATE_LIMIT_WINDOW_SECONDS=3600
-RATE_LIMIT_REDIS_URL=redis://localhost:6379
-```
-
-***REMOVED******REMOVED*** Middleware Order
-
-Middleware order is important. The recommended order is:
-
-1. **CORS Middleware** - Handle preflight requests first
-2. **Security Headers** - Add security headers early
-3. **Rate Limiting** - Block requests before processing
-4. **Logging Middleware** - Log all requests and responses
-5. **Metrics/Tracing** - Collect performance data
-6. **Application Routes** - Your actual application logic
+***REMOVED******REMOVED******REMOVED*** Development Configuration
 
 ```python
-from fastapi import FastAPI
-from fast_core.middleware import (
-    setup_cors,
-    setup_security,
-    setup_logging
+***REMOVED*** Development-friendly configuration
+middleware = MiddlewareConfig()
+middleware.cors(
+    origins=["*"],  ***REMOVED*** Allow all origins in development
+    credentials=False
+).logging(
+    level="DEBUG",
+    include_request_body=True,
+    include_response_body=True,
+    max_body_size=2048,
+    exclude_paths=["/health"],
+    log_timing=True,
+    log_user_agent=True
+).request_processing(
+    include_request_id=True,
+    include_process_time=True,
+    gzip_compression=True
 )
 
-app = FastAPI()
-
-***REMOVED*** Order matters!
-setup_cors(app)          ***REMOVED*** 1. CORS first
-setup_security(app)      ***REMOVED*** 2. Security headers
-setup_logging(app)       ***REMOVED*** 3. Logging last (to capture everything)
+app = create_app(settings=settings, middleware=middleware)
 ```
+
+***REMOVED******REMOVED******REMOVED*** Security-Focused Configuration
+
+```python
+***REMOVED*** Security-focused configuration
+middleware = MiddlewareConfig()
+middleware.cors(
+    origins=["https://secure-app.example.com"],
+    credentials=True,
+    methods=["GET", "POST", "PUT", "DELETE"]
+).security_headers(
+    hsts=True,
+    hsts_max_age=31536000,
+    frame_options="DENY",
+    csp="default-src 'self'; script-src 'self' 'unsafe-inline'",
+    trusted_hosts=["secure-app.example.com", "api.example.com"]
+).rate_limiting(
+    default_limit="100/minute",
+    endpoints={
+        "/api/auth/login": "5/minute",
+        "/api/auth/register": "3/minute"
+    },
+    exempt_ips=["127.0.0.1"]
+)
+
+app = create_app(settings=settings, middleware=middleware)
+```
+
+***REMOVED******REMOVED*** Migration from AppOptions
+
+***REMOVED******REMOVED******REMOVED*** Before (Legacy)
+
+```python
+from fast_core.app import create_app, AppOptions
+
+app = create_app(
+    settings=settings,
+    options=AppOptions(
+        middleware=True,
+        cors=True,
+        docs=True
+    )
+)
+```
+
+***REMOVED******REMOVED******REMOVED*** After (New System)
+
+```python
+from fast_core.app import create_app
+from fast_core.middleware import MiddlewareConfig
+
+middleware = MiddlewareConfig()
+middleware.cors().request_processing()
+
+app = create_app(
+    settings=settings,
+    middleware=middleware  ***REMOVED*** Takes precedence over options
+)
+```
+
+***REMOVED******REMOVED******REMOVED*** Backward Compatibility
+
+The new system is fully backward compatible. You can use both systems simultaneously:
+
+```python
+***REMOVED*** This works - middleware takes precedence
+app = create_app(
+    settings=settings,
+    options=AppOptions(middleware=True),  ***REMOVED*** Fallback
+    middleware=middleware_config  ***REMOVED*** Primary
+)
+```
+
+***REMOVED******REMOVED*** Configuration Reference
+
+***REMOVED******REMOVED******REMOVED*** CORSConfig
+
+- `enabled: bool = True` - Enable/disable CORS middleware
+- `origins: List[str] = ["*"]` - Allowed origins
+- `methods: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]` - Allowed methods
+- `headers: List[str] = ["*"]` - Allowed headers
+- `credentials: bool = False` - Allow credentials
+- `expose_headers: List[str] = []` - Headers to expose to client
+- `max_age: int = 600` - Cache duration for preflight requests
+
+***REMOVED******REMOVED******REMOVED*** SecurityConfig
+
+- `enabled: bool = True` - Enable/disable security headers
+- `hsts: bool = True` - Enable HTTP Strict Transport Security
+- `hsts_max_age: int = 31536000` - HSTS max age in seconds
+- `hsts_include_subdomains: bool = True` - Include subdomains in HSTS
+- `frame_options: str = "DENY"` - X-Frame-Options header value
+- `content_type_options: bool = True` - Enable X-Content-Type-Options: nosniff
+- `xss_protection: bool = True` - Enable X-XSS-Protection
+- `csp: Optional[str] = None` - Content Security Policy header value
+- `referrer_policy: str = "strict-origin-when-cross-origin"` - Referrer-Policy header
+- `trusted_hosts: List[str] = []` - List of trusted host patterns
+
+***REMOVED******REMOVED******REMOVED*** LoggingConfig
+
+- `enabled: bool = True` - Enable/disable logging middleware
+- `level: str = "INFO"` - Logging level (DEBUG, INFO, WARNING, ERROR)
+- `include_request_body: bool = False` - Whether to log request bodies
+- `include_response_body: bool = False` - Whether to log response bodies
+- `max_body_size: int = 1024` - Maximum body size to log in bytes
+- `exclude_paths: List[str] = ["/health", "/metrics"]` - Paths to exclude from logging
+- `include_headers: bool = True` - Whether to log headers
+- `exclude_headers: List[str] = ["authorization", "cookie"]` - Headers to exclude
+- `log_timing: bool = True` - Whether to log request timing
+- `log_user_agent: bool = True` - Whether to log user agent
+
+***REMOVED******REMOVED******REMOVED*** RateLimitConfig
+
+- `enabled: bool = True` - Enable/disable rate limiting
+- `default_limit: str = "100/minute"` - Default rate limit (format: "requests/period")
+- `storage_url: Optional[str] = None` - Redis URL for distributed rate limiting
+- `key_func: str = "ip"` - Key function for rate limiting ("ip", "user", or custom)
+- `endpoints: Dict[str, str] = {}` - Per-endpoint rate limits {"/path": "limit"}
+- `exempt_ips: List[str] = []` - IP addresses exempt from rate limiting
+- `headers: bool = True` - Whether to include rate limit headers in responses
+
+***REMOVED******REMOVED******REMOVED*** RequestConfig
+
+- `enabled: bool = True` - Enable/disable request processing middleware
+- `max_request_size: int = 10 * 1024 * 1024` - Maximum request size in bytes (10MB)
+- `timeout: int = 30` - Request timeout in seconds
+- `include_request_id: bool = True` - Whether to add request ID header
+- `request_id_header: str = "X-Request-ID"` - Header name for request ID
+- `include_process_time: bool = True` - Whether to add process time header
+- `process_time_header: str = "X-Process-Time"` - Header name for process time
+- `gzip_compression: bool = True` - Whether to enable gzip compression
+- `gzip_minimum_size: int = 1000` - Minimum response size for compression
 
 ***REMOVED******REMOVED*** Best Practices
 
-***REMOVED******REMOVED******REMOVED*** CORS Configuration
+***REMOVED******REMOVED******REMOVED*** 1. Environment-Specific Configurations
 
-1. **Production**: Always specify exact origins, never use `*`
-2. **Development**: Use `*` for convenience but not in production
-3. **Credentials**: Only allow credentials with specific origins
-4. **Headers**: Expose necessary headers like `X-Request-ID`
+Create different middleware configurations for different environments:
 
-***REMOVED******REMOVED******REMOVED*** Logging
+```python
+def get_middleware_config(environment: str) -> MiddlewareConfig:
+    middleware = MiddlewareConfig()
 
-1. **Sensitive Data**: Never log passwords, tokens, or personal data
-2. **Request Bodies**: Disable in production to avoid logging sensitive data
-3. **Log Levels**: Use appropriate levels (DEBUG for development, INFO/WARNING for production)
-4. **Structured Logging**: Always use structured JSON logs
+    if environment == "development":
+        return middleware.cors(origins=["*"]).logging(level="DEBUG")
+    elif environment == "staging":
+        return middleware.cors(origins=["https://staging.example.com"]).logging(level="INFO")
+    elif environment == "production":
+        return middleware.cors(origins=["https://app.example.com"]).security_headers().rate_limiting()
 
-***REMOVED******REMOVED******REMOVED*** Security
+    return middleware
+```
 
-1. **HTTPS Only**: Always use HTTPS in production
-2. **Security Headers**: Enable all security headers
-3. **Rate Limiting**: Implement rate limiting to prevent abuse
-4. **Trusted Hosts**: Validate Host headers to prevent host header injection
+***REMOVED******REMOVED******REMOVED*** 2. Security Considerations
+
+- Never use `origins=["*"]` with `credentials=True` in production
+- Always enable security headers in production
+- Use rate limiting to prevent abuse
+- Be careful with request/response body logging in production
+- Use trusted hosts to prevent host header attacks
+
+***REMOVED******REMOVED******REMOVED*** 3. Performance Considerations
+
+- Rate limiting with Redis for distributed systems
+- Adjust gzip compression settings based on your content
+- Monitor middleware performance impact
+- Use appropriate log levels to avoid performance overhead
+
+***REMOVED******REMOVED******REMOVED*** 4. Monitoring and Observability
+
+- Use request IDs for tracing requests across services
+- Monitor rate limit metrics
+- Log security header violations
+- Track middleware performance metrics
 
 ***REMOVED******REMOVED*** Testing
 
-***REMOVED******REMOVED******REMOVED*** CORS Testing
+The middleware system includes comprehensive tests:
 
-```python
-from fastapi.testclient import TestClient
+```bash
+***REMOVED*** Run middleware tests
+pytest libs/fast-core/tests/test_middleware_config.py
 
-def test_cors_headers(client: TestClient):
-    response = client.options("/api/users", headers={
-        "Origin": "https://example.com",
-        "Access-Control-Request-Method": "GET"
-    })
-
-    assert response.status_code == 200
-    assert "Access-Control-Allow-Origin" in response.headers
+***REMOVED*** Run with coverage
+pytest --cov=fast_core.middleware libs/fast-core/tests/test_middleware_config.py
 ```
 
-***REMOVED******REMOVED******REMOVED*** Logging Testing
+***REMOVED******REMOVED*** Implementation Notes
+
+***REMOVED******REMOVED******REMOVED*** Middleware Order
+
+Middleware is applied in reverse order (last added = first executed):
+
+1. Request processing (innermost)
+2. Rate limiting
+3. Logging
+4. Security headers
+5. CORS (outermost)
+
+This order ensures proper request flow and security header application.
+
+***REMOVED******REMOVED******REMOVED*** Rate Limiting Implementation
+
+The current rate limiting implementation is basic and uses in-memory storage. For production use with multiple instances, configure Redis storage:
 
 ```python
-import logging
-from fastapi.testclient import TestClient
-
-def test_request_logging(client: TestClient, caplog):
-    with caplog.at_level(logging.INFO):
-        response = client.get("/api/users")
-
-    assert response.status_code == 200
-    assert "Request completed" in caplog.text
-    assert "GET /api/users" in caplog.text
+middleware.rate_limiting(storage_url="redis://localhost:6379/0")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Security Testing
+***REMOVED******REMOVED******REMOVED*** Future Enhancements
 
-```python
-def test_security_headers(client: TestClient):
-    response = client.get("/api/users")
-
-    assert "X-Content-Type-Options" in response.headers
-    assert "X-Frame-Options" in response.headers
-    assert response.headers["X-Content-Type-Options"] == "nosniff"
-```
-
-***REMOVED******REMOVED*** Integration with Next Watch Services
-
-The middleware module integrates with:
-
-- **Config Library**: Environment-based configuration
-- **CLI Library**: Structured logging integration
-- **Cache Library**: Redis backend for rate limiting
-- **Security Module**: JWT validation and rate limiting
-- **All APIs**: Consistent middleware across services
-
-***REMOVED******REMOVED*** Performance Considerations
-
-1. **Middleware Order**: Place expensive middleware last
-2. **Rate Limiting**: Use Redis for distributed systems
-3. **Logging**: Avoid logging large request/response bodies
-4. **Security Headers**: Minimal performance impact
-5. **CORS**: Preflight requests add latency for complex requests
-
-***REMOVED******REMOVED*** Troubleshooting
-
-***REMOVED******REMOVED******REMOVED*** Common Issues
-
-1. **CORS Errors**: Check origin configuration and preflight handling
-2. **Rate Limit False Positives**: Verify client key extraction logic
-3. **Missing Request IDs**: Ensure logging middleware is properly configured
-4. **Security Header Conflicts**: Check for duplicate middleware registration
+- Distributed rate limiting with Redis
+- Advanced CSP configuration
+- Custom middleware plugins
+- Middleware metrics and monitoring
+- Response body logging for streaming responses

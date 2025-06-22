@@ -7,10 +7,10 @@ and reporting their status through a standard health check endpoint.
 import time
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Union
 
-from config.logging import get_logger
+import structlog
 from fastapi import Depends, FastAPI, Response, status
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class HealthCheckResult:

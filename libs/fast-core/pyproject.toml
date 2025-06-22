@@ -23,6 +23,7 @@ dependencies = [
     "uvicorn>=0.23.0",
     "httpx>=0.24.0",
     "python-multipart>=0.0.6",
+    "structlog>=23.1.0",
     "config",  ***REMOVED*** Local dependency
 ]
 

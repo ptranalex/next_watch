@@ -1,249 +1,172 @@
-"""Error handlers for FastAPI applications.
+"""Generic error handling utilities for FastAPI applications."""
 
-This module provides error handlers for custom exception classes
-and other common error scenarios.
-"""
+import functools
+import re
+from typing import Any, Callable, Dict, Optional, TypeVar, Union
 
-from typing import Any, Dict
+import httpx
+from fastapi import HTTPException
+from fast_core.errors.exceptions import ExternalServiceException
+from fast_core.responses import ResponseBuilder
 
-from config.logging import get_logger
-from fastapi import Request
-from fastapi.responses import JSONResponse
-
-from .exceptions import (
-    APIException,
-    AuthenticationException,
-    AuthorizationException,
-    BusinessLogicException,
-    ConflictException,
-    ExternalServiceException,
-    RateLimitException,
-    ResourceNotFoundException,
-    ServiceUnavailableException,
-    ValidationException,
-)
-
-logger = get_logger(__name__)
+F = TypeVar("F", bound=Callable[..., Any])
 
 
-async def api_exception_handler(request: Request, exc: APIException) -> JSONResponse:
-    """Handle API exceptions.
+def handle_service_error(
+    e: Exception, operation: str, service_name: str, logger: Any, **context: Any
+) -> None:
+    """Handle external service errors consistently.
 
     Args:
-        request: HTTP request
-        exc: API exception
+        e: The exception that occurred
+        operation: Description of the operation that failed
+        service_name: Name of the external service
+        logger: Logger instance to use
+        **context: Additional context for logging
 
-    Returns:
-        JSON response with error details
+    Raises:
+        HTTPException: For specific HTTP status codes (401, 404)
+        ExternalServiceException: For general service unavailability
     """
-    ***REMOVED*** Base error response
-    error_response: Dict[str, Any] = {
-        "detail": exc.detail,
-    }
+    logger.error(
+        f"Service error for {operation}",
+        error=str(e),
+        service=service_name,
+        endpoint=operation,
+        **context,
+    )
 
-    ***REMOVED*** Add error code if available
-    if exc.error_code:
-        error_response["error_code"] = exc.error_code
+    ***REMOVED*** Handle specific HTTP status codes
+    if isinstance(e, httpx.HTTPStatusError):
+        if e.response.status_code == 401:
+            raise HTTPException(status_code=401, detail="Authentication failed")
+        elif e.response.status_code == 404:
+            raise HTTPException(status_code=404, detail="Resource not found")
+        elif e.response.status_code == 403:
+            raise HTTPException(status_code=403, detail="Access forbidden")
+        elif e.response.status_code == 429:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded")
 
-    ***REMOVED*** Add context if available
-    if exc.context:
-        error_response["context"] = exc.context
-
-    ***REMOVED*** Add exception-specific fields
-    if isinstance(exc, ValidationException) and exc.field_errors:
-        error_response["field_errors"] = exc.field_errors
-
-    elif isinstance(exc, AuthorizationException) and exc.required_permissions:
-        error_response["required_permissions"] = exc.required_permissions
-
-    elif isinstance(exc, ResourceNotFoundException):
-        if exc.resource_type:
-            error_response["resource_type"] = exc.resource_type
-        if exc.resource_id:
-            error_response["resource_id"] = exc.resource_id
-
-    elif isinstance(exc, ConflictException) and exc.conflicting_resource:
-        error_response["conflicting_resource"] = exc.conflicting_resource
-
-    elif isinstance(exc, RateLimitException) and exc.retry_after:
-        error_response["retry_after"] = exc.retry_after
-
-    elif isinstance(exc, ServiceUnavailableException) and exc.service_name:
-        error_response["service_name"] = exc.service_name
-
-    elif isinstance(exc, ExternalServiceException):
-        if exc.service_name:
-            error_response["service_name"] = exc.service_name
-        if exc.upstream_status:
-            error_response["upstream_status"] = exc.upstream_status
-
-    ***REMOVED*** Log the error
-    log_data = {
-        "error_code": exc.error_code,
-        "status_code": exc.status_code,
-        "detail": exc.detail,
-        "url": str(request.url),
-        "method": request.method,
-    }
-
-    if exc.status_code >= 500:
-        logger.error("API exception", extra=log_data)
-    elif exc.status_code >= 400:
-        logger.warning("API exception", extra=log_data)
-    else:
-        logger.info("API exception", extra=log_data)
-
-    return JSONResponse(
-        status_code=exc.status_code,
-        content=error_response,
-        headers=exc.headers,
+    ***REMOVED*** Default to service unavailable
+    raise ExternalServiceException(
+        detail=f"{service_name} service unavailable",
+        service_name=service_name,
+        error_code="SERVICE_UNAVAILABLE",
     )
 
 
-async def validation_exception_handler(request: Request, exc: ValidationException) -> JSONResponse:
-    """Handle validation exceptions.
+def create_error_response(
+    responses: ResponseBuilder,
+    page: int,
+    limit: int,
+    collection_type: str,
+    service_names: Optional[list[str]] = None,
+    error_message: str = "Service unavailable",
+    user_id: Optional[int] = None,
+    **metadata_extras: Any,
+) -> Any:
+    """Create a consistent paginated error response.
 
     Args:
-        request: HTTP request
-        exc: Validation exception
+        responses: ResponseBuilder instance
+        page: Page number for pagination
+        limit: Items per page
+        collection_type: Type of collection (e.g., "liked_movies", "top_movies")
+        service_names: List of service names that were unavailable
+        error_message: Error message to include
+        user_id: Optional user ID for context
+        **metadata_extras: Additional metadata to include
 
     Returns:
-        JSON response with validation error details
+        Paginated response with error information
     """
-    return await api_exception_handler(request, exc)
-
-
-async def authentication_exception_handler(
-    request: Request, exc: AuthenticationException
-) -> JSONResponse:
-    """Handle authentication exceptions.
-
-    Args:
-        request: HTTP request
-        exc: Authentication exception
-
-    Returns:
-        JSON response with authentication error
-    """
-    return await api_exception_handler(request, exc)
-
-
-async def authorization_exception_handler(
-    request: Request, exc: AuthorizationException
-) -> JSONResponse:
-    """Handle authorization exceptions.
-
-    Args:
-        request: HTTP request
-        exc: Authorization exception
-
-    Returns:
-        JSON response with authorization error
-    """
-    return await api_exception_handler(request, exc)
-
-
-async def not_found_exception_handler(
-    request: Request, exc: ResourceNotFoundException
-) -> JSONResponse:
-    """Handle resource not found exceptions.
-
-    Args:
-        request: HTTP request
-        exc: Resource not found exception
-
-    Returns:
-        JSON response with not found error
-    """
-    return await api_exception_handler(request, exc)
-
-
-async def conflict_exception_handler(request: Request, exc: ConflictException) -> JSONResponse:
-    """Handle conflict exceptions.
-
-    Args:
-        request: HTTP request
-        exc: Conflict exception
-
-    Returns:
-        JSON response with conflict error
-    """
-    return await api_exception_handler(request, exc)
-
-
-async def rate_limit_exception_handler(request: Request, exc: RateLimitException) -> JSONResponse:
-    """Handle rate limit exceptions.
-
-    Args:
-        request: HTTP request
-        exc: Rate limit exception
-
-    Returns:
-        JSON response with rate limit error
-    """
-    return await api_exception_handler(request, exc)
-
-
-async def service_unavailable_exception_handler(
-    request: Request, exc: ServiceUnavailableException
-) -> JSONResponse:
-    """Handle service unavailable exceptions.
-
-    Args:
-        request: HTTP request
-        exc: Service unavailable exception
-
-    Returns:
-        JSON response with service unavailable error
-    """
-    return await api_exception_handler(request, exc)
-
-
-async def business_logic_exception_handler(
-    request: Request, exc: BusinessLogicException
-) -> JSONResponse:
-    """Handle business logic exceptions.
-
-    Args:
-        request: HTTP request
-        exc: Business logic exception
-
-    Returns:
-        JSON response with business logic error
-    """
-    return await api_exception_handler(request, exc)
-
-
-async def external_service_exception_handler(
-    request: Request, exc: ExternalServiceException
-) -> JSONResponse:
-    """Handle external service exceptions.
-
-    Args:
-        request: HTTP request
-        exc: External service exception
-
-    Returns:
-        JSON response with external service error
-    """
-    return await api_exception_handler(request, exc)
-
-
-def get_exception_handlers() -> Dict[Any, Any]:
-    """Get dictionary of exception handlers.
-
-    Returns:
-        Dictionary mapping exception classes to handler functions
-    """
-    return {
-        APIException: api_exception_handler,
-        ValidationException: validation_exception_handler,
-        AuthenticationException: authentication_exception_handler,
-        AuthorizationException: authorization_exception_handler,
-        ResourceNotFoundException: not_found_exception_handler,
-        ConflictException: conflict_exception_handler,
-        RateLimitException: rate_limit_exception_handler,
-        ServiceUnavailableException: service_unavailable_exception_handler,
-        BusinessLogicException: business_logic_exception_handler,
-        ExternalServiceException: external_service_exception_handler,
+    metadata = {
+        "error": error_message,
+        "service_info": {"aggregated_from": service_names or ["external-service"]},
+        "api_version": "v1",
+        "response_pattern": "paginated",
+        "collection_type": collection_type,
     }
+
+    if user_id:
+        metadata["user_context"] = {"user_id": user_id}
+
+    metadata.update(metadata_extras)
+
+    return responses.paginated(
+        items=[],
+        page=page,
+        limit=limit,
+        total=0,
+        metadata=metadata,
+    )
+
+
+def service_error_handler(
+    service_name: str, logger: Any, operation_name: Optional[str] = None
+) -> Callable[[F], F]:
+    """Decorator for consistent service error handling.
+
+    Args:
+        service_name: Name of the external service
+        logger: Logger instance to use
+        operation_name: Optional operation name (defaults to function name)
+
+    Returns:
+        Decorator function
+
+    Example:
+        @service_error_handler("backend-api", logger)
+        async def get_movies():
+            ***REMOVED*** This will automatically handle service errors
+            return await backend_client.get("/movies")
+    """
+
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return await func(*args, **kwargs)
+            except Exception as e:
+                operation = operation_name or func.__name__
+                handle_service_error(
+                    e=e,
+                    operation=operation,
+                    service_name=service_name,
+                    logger=logger,
+                    function=func.__name__,
+                    args_count=len(args),
+                    kwargs_keys=list(kwargs.keys()),
+                )
+
+        return wrapper  ***REMOVED*** type: ignore
+
+    return decorator
+
+
+***REMOVED*** Removed: build_api_path moved to fast_core.clients for better separation of concerns
+
+
+class ServiceErrorContext:
+    """Context manager for service error handling with automatic logging."""
+
+    def __init__(self, service_name: str, operation: str, logger: Any, **context: Any):
+        self.service_name = service_name
+        self.operation = operation
+        self.logger = logger
+        self.context = context
+
+    async def __aenter__(self) -> "ServiceErrorContext":
+        self.logger.debug(f"Starting {self.operation} for {self.service_name}")
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
+        if exc_type is not None:
+            handle_service_error(
+                e=exc_val,
+                operation=self.operation,
+                service_name=self.service_name,
+                logger=self.logger,
+                **self.context,
+            )
+        return False  ***REMOVED*** Don't suppress the exception

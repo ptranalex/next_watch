@@ -100,11 +100,13 @@ Comprehensive error handling system:
 
 ***REMOVED******REMOVED******REMOVED*** 🛡️ [Middleware](src/fast_core/middleware/README.md)
 
-Essential middleware components:
+Essential middleware components with builder pattern configuration:
 
-- **CORS**: Cross-Origin Resource Sharing configuration
-- **Logging**: Request/response logging with timing and context
-- **Security**: Security headers, rate limiting, and trusted hosts
+- **CORS**: Cross-Origin Resource Sharing with specific origins, methods, and headers
+- **Security Headers**: HSTS, CSP, frame options, XSS protection, and trusted hosts
+- **Rate Limiting**: Per-endpoint rate limits with Redis support and IP exemptions
+- **Request Logging**: Configurable request/response logging with filtering
+- **Request Processing**: Request IDs, timing headers, compression, and size limits
 
 ***REMOVED******REMOVED******REMOVED*** 🛣️ [Routing](src/fast_core/routing/README.md)
 
@@ -120,23 +122,88 @@ Advanced routing utilities:
 
 ```python
 from fast_core import create_app, AppOptions
+from fast_core.middleware import MiddlewareConfig
 
 ***REMOVED*** Basic app creation
 app = create_app()
 
-***REMOVED*** Advanced configuration
+***REMOVED*** Advanced configuration with middleware builder
+middleware = MiddlewareConfig()
+middleware.cors(
+    origins=["https://app.example.com"],
+    credentials=True
+).security_headers(
+    hsts=True,
+    csp="default-src 'self'"
+).rate_limiting(
+    default_limit="100/minute",
+    endpoints={"/api/auth/login": "5/minute"}
+)
+
 app = create_app(
     config=FastAPIConfig(
         title="My API",
         version="1.0.0",
         debug=False
     ),
-    options=AppOptions(
-        enable_cors=True,
-        enable_security=True,
-        enable_monitoring=True
-    )
+    middleware=middleware
 )
+```
+
+***REMOVED******REMOVED******REMOVED*** Singleton Dependencies
+
+```python
+from fast_core.dependencies.singleton import get_singleton_client, singleton_lifespan
+
+***REMOVED*** Create singleton service clients for performance
+@get_singleton_client("database")
+def create_database_client() -> DatabaseClient:
+    return DatabaseClient("postgresql://localhost/db")
+
+***REMOVED*** Use in FastAPI with automatic cleanup
+app = FastAPI(lifespan=singleton_lifespan)
+
+@app.get("/users")
+async def get_users(db: DatabaseClient = Depends(create_database_client)):
+    return await db.query("SELECT * FROM users")
+```
+
+***REMOVED******REMOVED******REMOVED*** Service Client Factory (NEW!)
+
+```python
+from fast_core.dependencies.client_factory import (
+    register_service, get_service_client, BaseServiceClient, service_client
+)
+
+***REMOVED*** Register services with the factory
+register_service(
+    name="user-service",
+    base_url="https://api.users.com",
+    timeout=30,
+    singleton=True,  ***REMOVED*** Use singleton for performance
+    headers={"Authorization": "Bearer token"}
+)
+
+***REMOVED*** Create custom service clients
+class UserServiceClient(BaseServiceClient):
+    async def get_user(self, user_id: int):
+        client = await self._get_client()
+        response = await client.get(f"/users/{user_id}")
+        return response.json()
+
+***REMOVED*** Register with decorator
+@service_client("notification-service", singleton=True)
+class NotificationClient(BaseServiceClient):
+    async def send_notification(self, user_id: int, message: str):
+        client = await self._get_client()
+        return await client.post("/notify", json={"user_id": user_id, "message": message})
+
+***REMOVED*** Use in FastAPI endpoints
+get_user_client = get_service_client("user-service")
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int, client: UserServiceClient = Depends(get_user_client)):
+    return await client.get_user(user_id)
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Comprehensive Error Handling
@@ -394,6 +461,181 @@ ruff check src/fast_core
 ruff check --fix src/fast_core
 ```
 
+***REMOVED******REMOVED*** 🚀 Enhancement Roadmap
+
+Based on real-world integration experience with the BFF API, the following enhancements are planned to make Fast Core even more powerful and developer-friendly:
+
+***REMOVED******REMOVED******REMOVED*** **Phase 1: Core Patterns** (High Priority)
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **1. Singleton Dependency Pattern** ⭐ **IMMEDIATE**
+
+**Problem**: Current service clients are per-request, but many services need singleton patterns for performance optimization.
+
+**Solution**: Add singleton dependency support:
+
+```python
+***REMOVED*** Proposed API
+from fast_core.dependencies import get_singleton_client, SingletonConfig
+
+@get_singleton_client("backend", lifecycle="app")
+def create_backend_client(config: FastAPIConfig) -> BackendClient:
+    return BackendClient(config)
+
+***REMOVED*** Usage in routes
+async def get_movies(
+    backend: BackendClient = Depends(get_backend_client),  ***REMOVED*** Singleton instance
+):
+    return await backend.get_movies()
+```
+
+**Benefits**:
+
+- 🚀 Performance optimization for heavy clients
+- 🔄 Resource management (connection pooling)
+- 🎯 Cache compatibility with method signatures
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **2. Enhanced Service Client Factory** ⭐ **HIGH**
+
+**Problem**: Basic HTTP clients don't support specialized client types or custom configurations.
+
+**Solution**: Flexible client factory system:
+
+```python
+***REMOVED*** Proposed API
+from fast_core.dependencies import ServiceClientFactory
+
+factory = ServiceClientFactory()
+factory.register_client_type("backend", BackendClient, singleton=True)
+factory.register_client_type("auth", AuthClient, timeout=10)
+
+***REMOVED*** Auto-generates dependencies
+def get_backend_client() -> BackendClient:
+    return factory.get_client("backend")
+```
+
+***REMOVED******REMOVED******REMOVED*** **Phase 2: Developer Experience** (Medium Priority)
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **3. Domain-Specific Response Utilities** ⭐ **MEDIUM**
+
+**Problem**: Services need domain-specific response wrappers beyond basic success/error responses.
+
+**Solution**: Response builder system:
+
+```python
+***REMOVED*** Proposed API
+from fast_core.responses import ResponseBuilder
+
+movie_responses = ResponseBuilder("movies")
+search_responses = ResponseBuilder("search")
+
+***REMOVED*** Smart defaults based on domain
+def get_movies():
+    return movie_responses.list_response(
+        items=movies,
+        total=1000,
+        page=1,
+        per_page=20
+    )
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **4. Middleware Configuration Builder** ⭐ **COMPLETE**
+
+**Problem**: All-or-nothing middleware approach in AppOptions lacks granular control.
+
+**Solution**: Flexible middleware configuration:
+
+```python
+***REMOVED*** Current API
+from fast_core.middleware import MiddlewareConfig
+
+middleware = MiddlewareConfig()
+middleware.cors(origins=["*"], credentials=True)
+middleware.logging(level="INFO", exclude_paths=["/health"])
+middleware.rate_limiting(default_limit="100/minute")
+middleware.security_headers(hsts=True, csp="default-src 'self'")
+
+app = create_app(middleware=middleware)
+```
+
+***REMOVED******REMOVED******REMOVED*** **Phase 3: Convenience Features** (Nice to Have)
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **5. Configuration Auto-Discovery** ⭐ **LOW**
+
+**Problem**: Manual configuration mapping between service configs and FastAPIConfig.
+
+**Solution**: Annotation-based config discovery:
+
+```python
+***REMOVED*** Proposed API
+from fast_core.config import fast_core_config, service_url, feature_flag
+
+@fast_core_config
+class MyServiceConfig:
+    @service_url("backend")
+    backend_api_url: str = "http://localhost:8000"
+
+    @feature_flag("recommendations")
+    enable_recommendations: bool = True
+
+***REMOVED*** Auto-generates FastAPIConfig
+config = auto_discover_config(MyServiceConfig())
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **6. Enhanced Health Check Patterns** ⭐ **LOW**
+
+**Problem**: Basic health checks without service-specific patterns.
+
+**Solution**: Service-specific health check builders:
+
+```python
+***REMOVED*** Proposed API
+from fast_core.monitoring import HealthCheckConfig
+
+health = HealthCheckConfig()
+health.add_database_check("main_db", connection_string)
+health.add_service_check("backend", url, timeout=5)
+health.add_cache_check("redis", redis_url)
+
+***REMOVED*** Auto-generates /health endpoints with detailed status
+```
+
+***REMOVED******REMOVED******REMOVED*** **Implementation Status**
+
+| **Enhancement**        | **Priority** | **Status**      | **Target Version** |
+| ---------------------- | ------------ | --------------- | ------------------ |
+| Singleton Dependencies | High         | ✅ **COMPLETE** | v0.2.0             |
+| Service Client Factory | High         | ✅ **COMPLETE** | v0.2.0             |
+| Response Utilities     | Medium       | ✅ **COMPLETE** | v0.2.0             |
+| Middleware Builder     | Medium       | ✅ **COMPLETE** | v0.3.0             |
+| Config Auto-Discovery  | Low          | 💡 Proposed     | v0.4.0             |
+| Enhanced Health Checks | Low          | 💡 Proposed     | v0.4.0             |
+
+***REMOVED******REMOVED******REMOVED*** **Integration Experience**
+
+These enhancements are based on real-world experience from the **BFF API integration**, which achieved **90% Fast Core adoption** and identified these patterns as the most valuable for production services.
+
+**Key Learnings**:
+
+- ✅ Singleton patterns are critical for performance-sensitive services (**IMPLEMENTED**)
+- ✅ Service client factories enable flexible service-to-service communication (**IMPLEMENTED**)
+- ✅ Domain-specific response utilities reduce boilerplate significantly (**IMPLEMENTED**)
+- ✅ Flexible middleware configuration is essential for different service needs (**IMPLEMENTED**)
+- ✅ Auto-discovery reduces manual configuration mapping overhead
+
+**Latest Achievements**:
+
+- ✅ **Generic Response Patterns System** - Complete implementation with paginated, detail, search, collection, action, and error response patterns. Includes configurable behavior, rich metadata support, type safety, and production-ready integration with BFF API demo endpoints!
+
+- ✅ **Middleware Configuration Builder** - Complete implementation with granular middleware control using builder pattern. Includes CORS, security headers, rate limiting, logging, and request processing middleware with full type safety and production-ready examples!
+
+***REMOVED******REMOVED******REMOVED*** **Contributing to Enhancements**
+
+1. **Review Enhancement Proposals**: Check the detailed specifications in each enhancement
+2. **Implementation Guidelines**: Follow established patterns and maintain backward compatibility
+3. **Testing Requirements**: Each enhancement must include comprehensive tests
+4. **Documentation**: Update relevant README files and examples
+5. **Integration Testing**: Validate with existing services (BFF API as reference)
+
 ***REMOVED******REMOVED*** Contributing
 
 1. Follow the established patterns in existing modules
@@ -401,6 +643,7 @@ ruff check --fix src/fast_core
 3. Update documentation and README files
 4. Ensure type annotations are complete
 5. Follow the Next Watch coding standards
+6. **Enhancement Contributions**: See the Enhancement Roadmap above for priority areas
 
 ***REMOVED******REMOVED*** License
 
@@ -416,3 +659,232 @@ This library is part of the Next Watch project and follows the project's licensi
 - API versioning and pagination
 - Health monitoring and metrics
 - Integration with Next Watch libraries
+
+***REMOVED******REMOVED*** Response Utilities (NEW!) 🎯
+
+Fast Core now includes a powerful `ResponseBuilder` for creating consistent, well-structured API responses across all your services.
+
+***REMOVED******REMOVED******REMOVED*** Key Features
+
+- **Generic Response Patterns**: Paginated, detail, search, collection, action, and error responses
+- **Configurable Behavior**: Customize response structure per service needs
+- **Rich Metadata Support**: Include cache info, service details, performance metrics
+- **Type Safety**: Full TypeScript-style type definitions with TypedDict
+- **Framework Agnostic**: Works with any Python web framework
+
+***REMOVED******REMOVED******REMOVED*** Quick Start
+
+```python
+from fast_core.responses import ResponseBuilder
+
+***REMOVED*** Initialize with optional configuration
+responses = ResponseBuilder(config={
+    "pagination": {"default_limit": 20, "max_limit": 100},
+    "detail": {"include_metadata": True}
+})
+
+***REMOVED*** Paginated responses
+movies_response = responses.paginated(
+    items=movies,
+    page=1,
+    limit=20,
+    total=150,
+    metadata={
+        "filters_applied": {"genre": "action"},
+        "cache_hit": True,
+        "query_time_ms": 45
+    }
+)
+
+***REMOVED*** Detail responses
+movie_response = responses.detail(
+    item=movie,
+    related={
+        "cast": cast_members,
+        "trailers": trailers,
+        "similar_movies": similar
+    },
+    context={
+        "user_interactions": user_data,
+        "personalized": True
+    },
+    metadata={
+        "aggregated_from": ["backend-api", "recommendation-api"],
+        "api_version": "v1"
+    }
+)
+
+***REMOVED*** Search responses
+search_response = responses.search(
+    query="action movies",
+    results=search_results,
+    facets={"genre": {"values": [{"action": 15}]}},
+    suggestions=["action films", "adventure movies"],
+    metadata={"search_time_ms": 25}
+)
+
+***REMOVED*** Action responses (POST/PUT/DELETE)
+action_response = responses.action(
+    success=True,
+    action="movie_added_to_watchlist",
+    data={"movie_id": 123},
+    message="Movie added successfully"
+)
+
+***REMOVED*** Error responses
+error_response = responses.error(
+    code="MOVIE_NOT_FOUND",
+    message="The requested movie was not found",
+    details=[{"field": "movie_id", "code": "INVALID"}],
+    suggestions=["Check movie ID", "Browse popular movies"]
+)
+```
+
+***REMOVED******REMOVED******REMOVED*** Response Patterns
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Paginated Response
+
+```json
+{
+  "results": [...],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 150,
+    "total_pages": 8,
+    "has_next": true,
+    "has_prev": false
+  },
+  "metadata": {
+    "filters_applied": {...},
+    "cache_hit": true
+  }
+}
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Detail Response
+
+```json
+{
+  "data": {...},
+  "related": {
+    "cast": [...],
+    "trailers": [...],
+    "similar_movies": [...]
+  },
+  "context": {
+    "user_interactions": {...},
+    "personalized": true
+  },
+  "metadata": {
+    "aggregated_from": ["backend-api"],
+    "api_version": "v1"
+  }
+}
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Search Response
+
+```json
+{
+  "query": "action movies",
+  "results": [...],
+  "facets": {
+    "genre": {"values": [{"action": 15}]}
+  },
+  "suggestions": ["action films"],
+  "metadata": {"search_time_ms": 25}
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** BFF API Integration
+
+The ResponseBuilder is successfully integrated into the BFF API with demo endpoints:
+
+```python
+***REMOVED*** In BFF API routes
+from fast_core.responses import ResponseBuilder
+
+responses = ResponseBuilder(config={
+    "pagination": {"default_limit": 20, "max_limit": 100},
+    "detail": {"include_metadata": True}
+})
+
+@router.get("/movies/{movie_id}/response-builder-demo")
+async def get_movie_demo(movie_id: int):
+    """Demo endpoint showing ResponseBuilder detail pattern."""
+    movie = await backend.get_movie(movie_id)
+    cast = await backend.get_movie_cast(movie_id)
+    similar = await recommendation_client.get_similar_movies(movie_id)
+
+    return responses.detail(
+        item=movie,
+        related={"cast": cast, "similar_movies": similar},
+        context={"user_interactions": user_data},
+        metadata={
+            "aggregated_from": ["backend-api", "recommendation-api"],
+            "api_version": "v1"
+        }
+    )
+
+@router.get("/movies/response-builder-demo")
+async def get_movies_demo(page: int = 1, limit: int = 20):
+    """Demo endpoint showing ResponseBuilder paginated pattern."""
+    movies_data = await backend.get_movies(page=page, limit=limit)
+
+    return responses.paginated(
+        items=movies_data["results"],
+        page=page,
+        limit=limit,
+        total=movies_data["total"],
+        metadata={
+            "service_info": {"aggregated_from": ["backend-api"]},
+            "performance": {"cache_hit": False}
+        }
+    )
+```
+
+***REMOVED******REMOVED******REMOVED*** Configuration Options
+
+```python
+config = {
+    "pagination": {
+        "default_limit": 20,
+        "max_limit": 100,
+        "include_total_pages": True,
+        "include_has_next_prev": True
+    },
+    "detail": {
+        "include_timestamps": True,
+        "include_metadata": True
+    },
+    "search": {
+        "include_suggestions": True,
+        "include_facets": True
+    },
+    "errors": {
+        "include_suggestions": True,
+        "include_details": True
+    }
+}
+
+builder = ResponseBuilder(config=config)
+```
+
+***REMOVED******REMOVED******REMOVED*** Available Response Types
+
+- **`PaginatedResponse`**: For paginated data with metadata
+- **`DetailResponse`**: For single item details with related data
+- **`CollectionResponse`**: For grouped collections of items
+- **`SearchResponse`**: For search results with facets and suggestions
+- **`ActionResponse`**: For POST/PUT/DELETE operation results
+- **`ErrorResponse`**: For structured error information
+
+***REMOVED******REMOVED******REMOVED*** Benefits
+
+✅ **Consistency**: All APIs use the same response structure  
+✅ **Rich Metadata**: Include performance, cache, and service information  
+✅ **Type Safety**: Full type definitions for better IDE support  
+✅ **Flexibility**: Configurable behavior per service needs  
+✅ **Framework Agnostic**: Works with FastAPI, Flask, Django, etc.  
+✅ **Production Ready**: Used in BFF API with caching and authentication

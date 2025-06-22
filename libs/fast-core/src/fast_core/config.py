@@ -38,6 +38,17 @@ class FastAPIConfigMixin(BaseModel):
         default=["*"], description="List of allowed HTTP headers for CORS"
     )
 
+    ***REMOVED*** Service client configuration
+    service_urls: Dict[str, str] = Field(
+        default_factory=dict, description="URLs for external services"
+    )
+    service_timeouts: Dict[str, int] = Field(
+        default_factory=dict, description="Timeout configurations for external services"
+    )
+
+    ***REMOVED*** Feature flags
+    feature_flags: Dict[str, bool] = Field(default_factory=dict, description="Feature toggle flags")
+
     ***REMOVED*** Performance
     workers: int = Field(default=1, description="Number of worker processes")
     keepalive: int = Field(default=65, description="Keep-alive timeout")
@@ -99,3 +110,37 @@ class FastAPIConfig(ServiceConfig, FastAPIConfigMixin):
             "log_level": self.log_level.lower(),
             "timeout_keep_alive": self.keepalive,
         }
+
+    def get_service_url(self, service_name: str) -> Optional[str]:
+        """Get service URL for a specific service.
+
+        Args:
+            service_name: Name of the service
+
+        Returns:
+            Service URL or None if not configured
+        """
+        return self.service_urls.get(service_name)
+
+    def get_service_timeout(self, service_name: str, default: int = 30) -> int:
+        """Get service timeout for a specific service.
+
+        Args:
+            service_name: Name of the service
+            default: Default timeout if not configured
+
+        Returns:
+            Timeout in seconds
+        """
+        return self.service_timeouts.get(service_name, default)
+
+    def is_feature_enabled(self, feature_name: str) -> bool:
+        """Check if a feature is enabled.
+
+        Args:
+            feature_name: Name of the feature
+
+        Returns:
+            True if feature is enabled, False otherwise
+        """
+        return self.feature_flags.get(feature_name, False)

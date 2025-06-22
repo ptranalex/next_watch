@@ -6,11 +6,11 @@ configuration for FastAPI applications.
 
 from typing import Any, List
 
-from config.logging import get_logger
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def setup_cors(app: FastAPI, settings: Any) -> None:
