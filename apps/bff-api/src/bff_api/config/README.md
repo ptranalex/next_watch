@@ -1,6 +1,6 @@
 ***REMOVED*** BFF API Configuration System
 
-This directory contains the configuration modules for the BFF (Backend for Frontend) API service. The configuration system is designed to be modular, environment-aware, and production-ready.
+This directory contains the configuration modules for the BFF (Backend for Frontend) API service, now integrated with the **fast-core** library for standardized FastAPI application patterns.
 
 ***REMOVED******REMOVED*** 📁 Module Overview
 
@@ -12,45 +12,35 @@ This directory contains the configuration modules for the BFF (Backend for Front
 - Exports main classes and functions used throughout the application
 - Handles initialization order to prevent circular dependencies
 
-***REMOVED******REMOVED******REMOVED*** [`env.py`](./env.py)
-
-**Environment variable loading and validation**
-
-- Hierarchical `.env` file loading (`.env` → `.env.local`)
-- Type-safe environment variable parsing (string, boolean, integer)
-- Project root auto-detection for flexible deployment scenarios
-- Validation for required environment variables
-
 ***REMOVED******REMOVED******REMOVED*** [`app.py`](./app.py)
 
-**Application configuration management**
+**Legacy BFF configuration management**
 
-- Main `Config` class with singleton pattern for global configuration
+- Main `BFFAPIConfig` class with comprehensive service configuration
 - Environment-specific defaults and validation
-- Service URL configuration (backend, auth, recommendation APIs)
+- Service URL configuration (backend, auth, recommendation, ML APIs)
 - Security settings, CORS, caching, and performance metrics
-- Production-safe defaults with debug mode controls
+- **Still actively used** by many modules and the fast-core adapter
 
-***REMOVED******REMOVED******REMOVED*** [`logging.py`](./logging.py)
+***REMOVED******REMOVED******REMOVED*** [`fast_core_config.py`](./fast_core_config.py)
 
-**Structured logging configuration**
+**Fast-core integration adapter**
 
-- Centralized structlog setup with multiple output formats
-- Console logging with customizable color themes
-- JSON file logging for production environments
-- Configurable log levels and noise suppression
-- Standardized logger factory function
+- Converts `BFFAPIConfig` to fast-core's `FastAPIConfig`
+- Maps BFF-specific settings to fast-core configuration structure
+- Enables service client dependencies and feature flags
+- **Primary integration point** between BFF and fast-core
 
-***REMOVED******REMOVED*** 🔄 Configuration Flow
+***REMOVED******REMOVED*** 🔄 Configuration Flow (Fast-Core Integration)
 
 ```mermaid
 graph TD
-    A[Application Start] --> B[env.py loads .env files]
-    B --> C[app.py reads environment variables]
-    C --> D[Config singleton created]
-    D --> E[logging.py configures structlog]
-    E --> F[Application modules import config]
-    F --> G[Runtime configuration access]
+    A[Application Start] --> B[BFFAPIConfig loads environment]
+    B --> C[fast_core_config.py creates adapter]
+    C --> D[FastAPIConfig with service URLs & features]
+    D --> E[fast-core creates app with middleware]
+    E --> F[Service client dependencies registered]
+    F --> G[Application modules use fast-core dependencies]
 ```
 
 ***REMOVED******REMOVED*** 🚀 Quick Start
@@ -58,19 +48,27 @@ graph TD
 ***REMOVED******REMOVED******REMOVED*** Basic Usage
 
 ```python
-***REMOVED*** Import the main configuration
-from bff_api.config import Config, get_logger
+***REMOVED*** Import BFF configuration (legacy, still needed)
+from bff_api.config.app import BFFAPIConfig, settings
+
+***REMOVED*** Import fast-core dependencies (new pattern)
+from fast_core.dependencies import get_backend_client, get_auth_client
+from fast_core import get_logger
 
 ***REMOVED*** Get global configuration instance
-config = Config.get_instance()
+config = BFFAPIConfig()
 
-***REMOVED*** Get a structured logger
-logger = get_logger("my_module")
+***REMOVED*** Get a structured logger (fast-core)
+logger = get_logger(__name__)
 
-***REMOVED*** Use configuration values
-backend_url = config.backend_api_url
-debug_mode = config.debug
-log_level = config.log_level
+***REMOVED*** Use in route handlers with dependency injection
+from fastapi import Depends
+
+async def get_movies(
+    backend_client = Depends(get_backend_client),
+):
+    movies = await backend_client.get_movies()
+    return movies
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Environment Setup
@@ -86,8 +84,20 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:3001
 
 ***REMOVED*** Backend Services
 BACKEND_API_URL=http://localhost:8000
-RECO_API_URL=http://localhost:8002
-AUTH_API_URL=http://localhost:8003
+RECOMMENDATION_API_URL=http://localhost:8003
+AUTH_API_URL=http://localhost:8002
+ML_API_URL=http://localhost:8004
+
+***REMOVED*** Service Timeouts
+BACKEND_API_TIMEOUT=30
+AUTH_API_TIMEOUT=10
+RECOMMENDATION_API_TIMEOUT=30
+ML_API_TIMEOUT=60
+
+***REMOVED*** Feature Flags
+ENABLE_RECOMMENDATIONS=true
+ENABLE_ML_FEATURES=false
+ENABLE_AUTH_SERVICE=true
 
 ***REMOVED*** Security
 JWT_SECRET=your-jwt-secret-here
@@ -102,280 +112,190 @@ REDIS_URL=redis://localhost:6379/0
 CACHE_TTL=300
 ```
 
-***REMOVED******REMOVED******REMOVED*** Local Development Overrides
+***REMOVED******REMOVED*** 📚 Fast-Core Integration Details
 
-Create a `.env.local` file (git-ignored) for local-specific settings:
+***REMOVED******REMOVED******REMOVED*** Configuration Adapter
 
-```bash
-***REMOVED*** Override for local development
-DEBUG=true
-LOG_LEVEL=DEBUG
-BACKEND_API_URL=http://host.docker.internal:8000
-```
-
-***REMOVED******REMOVED*** 📚 Detailed Usage
-
-***REMOVED******REMOVED******REMOVED*** Environment Variables (`env.py`)
-
-The environment loading system supports hierarchical configuration:
+The `fast_core_config.py` module converts BFF configuration to fast-core format:
 
 ```python
-from bff_api.config.env import get_env_var, get_env_bool, get_env_int
+from bff_api.config.fast_core_config import create_fast_core_config
+from bff_api.config.app import BFFAPIConfig
 
-***REMOVED*** String variables with defaults and validation
-api_url = get_env_var("BACKEND_API_URL", default="http://localhost:8000")
-secret = get_env_var("JWT_SECRET", required=True)  ***REMOVED*** Raises if missing
+***REMOVED*** Convert BFF config to fast-core config
+bff_config = BFFAPIConfig()
+fast_core_config = create_fast_core_config(bff_config)
 
-***REMOVED*** Boolean variables (accepts: true, 1, yes, on, enabled)
-debug = get_env_bool("DEBUG", default=False)
-metrics = get_env_bool("ENABLE_PERFORMANCE_METRICS", default=False)
-
-***REMOVED*** Integer variables with error handling
-port = get_env_int("PORT", default=8001)
-timeout = get_env_int("BACKEND_API_TIMEOUT", default=30)
+***REMOVED*** Fast-core config includes:
+***REMOVED*** - service_urls: Dict[str, str] for all service endpoints
+***REMOVED*** - service_timeouts: Dict[str, int] for request timeouts
+***REMOVED*** - feature_flags: Dict[str, bool] for feature toggles
 ```
 
-***REMOVED******REMOVED******REMOVED*** Application Configuration (`app.py`)
+***REMOVED******REMOVED******REMOVED*** Service Client Dependencies
 
-The `Config` class provides structured access to all settings:
+Fast-core provides pre-configured service clients:
 
 ```python
-from bff_api.config.app import Config
-
-***REMOVED*** Get singleton instance (recommended)
-config = Config.get_instance()
-
-***REMOVED*** Access configuration sections
-print(f"Server running on {config.host}:{config.port}")
-print(f"Debug mode: {config.debug}")
-print(f"Backend API: {config.backend_api_url}")
-print(f"CORS origins: {config.cors_origins}")
-
-***REMOVED*** Environment detection
-if config.is_production:
-    print("Running in production mode")
-else:
-    print("Running in development mode")
-
-***REMOVED*** Direct instantiation (not recommended in application code)
-custom_config = Config(
-    host="0.0.0.0",
-    port=8002,
-    debug=True
+from fast_core.dependencies import (
+    get_backend_client,
+    get_auth_client,
+    get_recommendation_client,
+    get_ml_client
 )
+from fastapi import Depends
+
+async def my_route(
+    backend = Depends(get_backend_client),
+    auth = Depends(get_auth_client),
+):
+    ***REMOVED*** Use httpx.AsyncClient instances configured with service URLs
+    movies = await backend.get("/movies")
+    user = await auth.get("/user/profile")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Structured Logging (`logging.py`)
+***REMOVED******REMOVED******REMOVED*** Application Factory Integration
 
-The logging system provides consistent structured logging across the application:
-
-```python
-from bff_api.config.logging import get_logger, configure_logging
-from pathlib import Path
-
-***REMOVED*** Configure logging (typically done in main.py)
-config = configure_logging(
-    log_level="INFO",
-    log_dir=Path("./logs"),
-    verbose=True,
-    color_theme="modern"  ***REMOVED*** modern, classic, minimal, solarized
-)
-
-***REMOVED*** Get logger for your module
-logger = get_logger("bff_api.routes.movies")
-
-***REMOVED*** Structured logging with context
-logger.info(
-    "Processing movie request",
-    movie_id=123,
-    user_id=456,
-    service="bff",
-    endpoint="movie_detail"
-)
-
-logger.error(
-    "Database connection failed",
-    error=str(exception),
-    retry_count=3,
-    service="bff",
-    component="database"
-)
-```
-
-***REMOVED******REMOVED******REMOVED*** Color Themes
-
-Available logging color themes:
-
-- **`modern`** (default): Bold, high-contrast colors for development
-- **`classic`**: Traditional terminal colors
-- **`minimal`**: Subtle colors for focused readability
-- **`solarized`**: Solarized color scheme for compatible terminals
-
-***REMOVED******REMOVED*** 🏗️ Architecture Patterns
-
-***REMOVED******REMOVED******REMOVED*** Singleton Configuration
-
-The `Config` class uses the singleton pattern to ensure consistent configuration across the application:
+The BFF now uses fast-core's application factory:
 
 ```python
-***REMOVED*** All these calls return the same instance
-config1 = Config.get_instance()
-config2 = Config.get_instance()
-assert config1 is config2  ***REMOVED*** True
-```
+***REMOVED*** apps/bff-api/src/bff_api/core/app_fast_core.py
+from fast_core import create_app, AppOptions
+from bff_api.config.fast_core_config import create_fast_core_config
 
-***REMOVED******REMOVED******REMOVED*** Environment Hierarchy
+def create_bff_app(config: Optional[BFFAPIConfig] = None) -> FastAPI:
+    if config is None:
+        config = BFFAPIConfig()
 
-Configuration follows a clear precedence order:
+    ***REMOVED*** Convert to fast-core config
+    fast_core_config = create_fast_core_config(config)
 
-1. **Environment variables** (highest priority)
-2. **`.env.local`** (local overrides, git-ignored)
-3. **`.env`** (default values, committed to git)
-4. **Code defaults** (lowest priority)
-
-***REMOVED******REMOVED******REMOVED*** Circular Dependency Prevention
-
-The modules are designed to avoid circular imports:
-
-- `env.py` has no internal dependencies
-- `app.py` imports from `env.py` only
-- `logging.py` has minimal dependencies
-- `__init__.py` orchestrates exports
-
-***REMOVED******REMOVED*** 🔧 Configuration Options
-
-***REMOVED******REMOVED******REMOVED*** Server Settings
-
-- `HOST`: Server bind address (default: `0.0.0.0`)
-- `PORT`: Server port (default: `8001`)
-- `DEBUG`: Debug mode flag (default: `False`)
-- `CORS_ORIGINS`: Allowed CORS origins (default: `*`)
-
-***REMOVED******REMOVED******REMOVED*** Backend Services
-
-- `BACKEND_API_URL`: Main backend service URL
-- `RECO_API_URL`: Recommendation service URL
-- `AUTH_API_URL`: Authentication service URL
-- `BACKEND_API_TIMEOUT`: Request timeout in seconds
-
-***REMOVED******REMOVED******REMOVED*** Security
-
-- `JWT_SECRET`: Secret for JWT token validation
-- `INTERNAL_API_KEY`: Service-to-service authentication
-- `ALLOWED_HOSTS`: Allowed request hosts
-
-***REMOVED******REMOVED******REMOVED*** Logging & Monitoring
-
-- `LOG_LEVEL`: Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)
-- `LOGS_DIR`: Directory for log files
-- `ENABLE_PERFORMANCE_METRICS`: Enable performance tracking
-
-***REMOVED******REMOVED******REMOVED*** Cache & Storage
-
-- `REDIS_URL`: Redis connection string
-- `CACHE_TTL`: Cache time-to-live in seconds
-
-***REMOVED******REMOVED*** 🚦 Production Considerations
-
-***REMOVED******REMOVED******REMOVED*** Security
-
-- Never commit `.env.local` or production secrets
-- Use strong, unique secrets for `JWT_SECRET` and `INTERNAL_API_KEY`
-- Set `DEBUG=false` in production
-- Configure proper `ALLOWED_HOSTS` and `CORS_ORIGINS`
-
-***REMOVED******REMOVED******REMOVED*** Performance
-
-- Enable `ENABLE_PERFORMANCE_METRICS` for monitoring
-- Set appropriate `CACHE_TTL` values
-- Configure `BACKEND_API_TIMEOUT` for your network conditions
-
-***REMOVED******REMOVED******REMOVED*** Logging
-
-- Use `LOG_LEVEL=INFO` or `WARNING` in production
-- Configure `LOGS_DIR` for persistent storage
-- Consider log rotation and retention policies
-
-***REMOVED******REMOVED*** 📝 Examples
-
-***REMOVED******REMOVED******REMOVED*** FastAPI Integration
-
-```python
-***REMOVED*** main.py
-from bff_api.config import Config, configure_logging, get_logger
-from pathlib import Path
-
-def create_app():
-    ***REMOVED*** Load configuration
-    config = Config.get_instance()
-
-    ***REMOVED*** Configure logging
-    configure_logging(
-        log_level=config.log_level,
-        log_dir=config.logs_dir,
-        verbose=config.debug
-    )
-
-    logger = get_logger("bff_api.main")
-    logger.info("Starting BFF API", config=config.to_dict())
-
-    ***REMOVED*** Create FastAPI app with configuration
-    app = FastAPI(
+    ***REMOVED*** Create app with fast-core
+    app = create_app(
+        settings=fast_core_config,
         title="BFF API",
-        debug=config.debug,
+        options=AppOptions(
+            middleware=True,      ***REMOVED*** Fast-core middleware
+            exception_handlers=True,
+            health_checks=True,
+            cors=True,
+            docs=True,
+        ),
+        routers=routers,
+        lifespan=bff_lifespan,
     )
-
     return app
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment-Specific Configuration
+***REMOVED******REMOVED*** 🏗️ Architecture Changes
 
-```python
-***REMOVED*** Development
-DEBUG=true
-LOG_LEVEL=DEBUG
+***REMOVED******REMOVED******REMOVED*** What Fast-Core Provides
+
+✅ **Middleware**: Logging, CORS, security, error handling  
+✅ **Dependencies**: Service clients, auth, configuration  
+✅ **Health Checks**: Comprehensive health monitoring  
+✅ **Exception Handlers**: Standardized error responses  
+✅ **App Factory**: Consistent application creation pattern
+
+***REMOVED******REMOVED******REMOVED*** What BFF Still Manages
+
+✅ **BFF Config**: Service-specific configuration (`BFFAPIConfig`)  
+✅ **Route Logic**: Business logic and data aggregation  
+✅ **Cache Integration**: BFF-specific caching patterns  
+✅ **Service Facades**: `BackendClient` facade for cache compatibility
+
+***REMOVED******REMOVED******REMOVED*** Migration Benefits
+
+1. **Reduced Code**: Eliminated custom middleware implementations
+2. **Standardization**: Consistent patterns across all services
+3. **Enhanced Features**: Better logging, health checks, error handling
+4. **Maintainability**: Single source of truth for common functionality
+5. **Type Safety**: Better dependency injection and configuration
+
+***REMOVED******REMOVED*** 🔧 Configuration Options
+
+***REMOVED******REMOVED******REMOVED*** Service URLs & Timeouts
+
+```bash
+***REMOVED*** Service endpoints
 BACKEND_API_URL=http://localhost:8000
+AUTH_API_URL=http://localhost:8002
+RECOMMENDATION_API_URL=http://localhost:8003
+ML_API_URL=http://localhost:8004
 
-***REMOVED*** Production
-DEBUG=false
-LOG_LEVEL=WARNING
-BACKEND_API_URL=https://api.production.com
+***REMOVED*** Per-service timeouts
+BACKEND_API_TIMEOUT=30
+AUTH_API_TIMEOUT=10
+RECOMMENDATION_API_TIMEOUT=30
+ML_API_TIMEOUT=60
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Configuration Extensions
+***REMOVED******REMOVED******REMOVED*** Feature Flags
+
+```bash
+***REMOVED*** Control feature availability
+ENABLE_RECOMMENDATIONS=true
+ENABLE_ML_FEATURES=false
+ENABLE_AUTH_SERVICE=true
+```
+
+***REMOVED******REMOVED******REMOVED*** Fast-Core Settings
+
+All standard fast-core configuration options are supported through the adapter.
+
+***REMOVED******REMOVED*** 📝 Migration Examples
+
+***REMOVED******REMOVED******REMOVED*** Old Pattern (Deprecated)
 
 ```python
-***REMOVED*** Extending the config for new features
-from bff_api.config.app import Config
+***REMOVED*** OLD: Manual middleware and client setup
+from bff_api.middlewares import LoggingMiddleware, AuthMiddleware
+from bff_api.services.clients import BackendClient
 
-class ExtendedConfig(Config):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.custom_feature_enabled = get_env_bool("CUSTOM_FEATURE", False)
-        self.custom_api_url = get_env_var("CUSTOM_API_URL")
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(AuthMiddleware)
+backend_client = BackendClient(config)
+```
+
+***REMOVED******REMOVED******REMOVED*** New Pattern (Current)
+
+```python
+***REMOVED*** NEW: Fast-core handles middleware and dependencies
+from fast_core.dependencies import get_backend_client
+from fast_core import create_app
+
+***REMOVED*** Middleware automatically configured by fast-core
+app = create_app(settings=fast_core_config, options=AppOptions(middleware=True))
+
+***REMOVED*** Dependencies injected per-request
+async def route(backend = Depends(get_backend_client)):
+    return await backend.get("/data")
 ```
 
 ***REMOVED******REMOVED*** 🐛 Troubleshooting
 
 ***REMOVED******REMOVED******REMOVED*** Common Issues
 
-1. **Missing .env file**: The system gracefully falls back to environment variables
-2. **Invalid environment values**: Check console output for validation errors
-3. **Circular imports**: Import from `bff_api.config` rather than individual modules
-4. **Logging not working**: Ensure `configure_logging()` is called before using loggers
+1. **Service client errors**: Check service URLs in `.env` file
+2. **Missing dependencies**: Import from `fast_core.dependencies`
+3. **Configuration mismatch**: Verify fast-core adapter mapping
+4. **Legacy imports**: Update imports to use fast-core patterns
 
 ***REMOVED******REMOVED******REMOVED*** Debug Configuration
 
 ```python
-from bff_api.config import Config
+from bff_api.config.app import BFFAPIConfig
+from bff_api.config.fast_core_config import create_fast_core_config
 
-config = Config.get_instance()
-print("Current configuration:")
-for key, value in config.__dict__.items():
-    if 'secret' not in key.lower():  ***REMOVED*** Don't print secrets
-        print(f"  {key}: {value}")
+***REMOVED*** Check BFF config
+bff_config = BFFAPIConfig()
+print("BFF Config:", bff_config.dict())
+
+***REMOVED*** Check fast-core config
+fast_core_config = create_fast_core_config(bff_config)
+print("Fast-core Config:", fast_core_config.dict())
 ```
 
 ---
 
-This configuration system provides a robust foundation for environment management, structured logging, and application settings that scales from development to production deployments.
+This configuration system now provides a robust foundation built on fast-core standards, maintaining BFF-specific functionality while leveraging shared infrastructure patterns.

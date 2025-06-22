@@ -1,6 +1,6 @@
 ***REMOVED*** BFF Core Module
 
-The core module contains the foundational components of the Next Watch BFF (Backend for Frontend) service, implementing a clean and maintainable Application Factory pattern.
+The core module contains the foundational components of the Next Watch BFF (Backend for Frontend) service, now **fully integrated with fast-core** for standardized FastAPI application patterns.
 
 ***REMOVED******REMOVED*** Overview
 
@@ -13,271 +13,360 @@ The BFF service acts as an aggregation layer between frontend applications and b
 - **Error Handling**: Provides consistent error responses
 - **API Versioning**: Supports multiple API versions for frontend compatibility
 
-***REMOVED******REMOVED*** Architecture
+***REMOVED******REMOVED*** Fast-Core Integration Architecture
 
-The core module follows the **Application Factory pattern**, providing clean separation of concerns and dependency injection:
+The core module now leverages **fast-core** for standardized application patterns:
 
 ```
 bff_api/core/
-├── __init__.py      ***REMOVED*** Module exports
-├── app.py           ***REMOVED*** Application factory and lifecycle management
-├── middleware.py    ***REMOVED*** Middleware configuration
-└── logging.py       ***REMOVED*** Logging setup
+├── __init__.py              ***REMOVED*** Module exports (fast-core integration)
+├── app_fast_core.py         ***REMOVED*** Fast-core application factory
+└── README.md               ***REMOVED*** This documentation
 ```
+
+**Removed Files** (replaced by fast-core):
+
+- ~~`app.py`~~ → `app_fast_core.py` (fast-core integration)
+- ~~`middleware.py`~~ → fast-core middleware system
+- ~~`logging.py`~~ → fast-core logging configuration
 
 ***REMOVED******REMOVED*** Components
 
-***REMOVED******REMOVED******REMOVED*** Application Factory (`app.py`)
+***REMOVED******REMOVED******REMOVED*** Fast-Core Application Factory (`app_fast_core.py`)
 
-The main application factory provides:
+The application factory now uses fast-core's standardized patterns:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Lifespan Management**
-
-- **Startup**: Initializes backend clients, auth clients, and health service
-- **Shutdown**: Gracefully closes all connections and resources
-- **Error Handling**: Robust error handling during startup/shutdown
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Application Creation**
 
 ```python
 from bff_api.core import create_app
 
-app = create_app()
+app = create_app()  ***REMOVED*** Uses fast-core internally
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Service Integration**
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Fast-Core Integration**
 
-- **Backend Client**: HTTP client for main backend API
-- **Auth Client**: Authentication service client
-- **Health Service**: External dependency monitoring
-- **Graceful Fallbacks**: Continues operation if non-critical services fail
+- **Configuration Adapter**: Converts `BFFAPIConfig` to fast-core's `FastAPIConfig`
+- **Service Dependencies**: Pre-configured HTTP clients for all backend services
+- **Middleware Stack**: Automatic logging, CORS, security, and error handling
+- **Health Checks**: Comprehensive monitoring of external dependencies
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Route Registration**
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Service Client Dependencies**
 
-- **Meta Routes**: Root endpoint and debug information (`/`, `/debug`)
-- **Health Routes**: Comprehensive health monitoring (`/health/*`)
-- **API Routes**: Versioned BFF endpoints (`/bff/v1/*`)
+Fast-core provides dependency injection for service clients:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Global Exception Handling**
+```python
+from fast_core.dependencies import get_backend_client, get_auth_client
+from fastapi import Depends
 
-- Catches and logs unhandled exceptions
-- Returns consistent error responses
-- Prevents service crashes from unexpected errors
+async def get_movies(
+    backend = Depends(get_backend_client),
+    auth = Depends(get_auth_client),
+):
+    ***REMOVED*** Use pre-configured httpx.AsyncClient instances
+    movies = await backend.get("/movies")
+    user = await auth.get("/user/profile")
+    return {"movies": movies, "user": user}
+```
 
-***REMOVED******REMOVED******REMOVED*** Middleware Configuration (`middleware.py`)
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Lifespan Management**
 
-Configures all middleware in the correct order:
+- **Startup**: Logs configuration, tests service connections
+- **Shutdown**: Closes singleton `BackendClient` and cleans up resources
+- **Error Handling**: Graceful handling of startup/shutdown failures
+
+***REMOVED******REMOVED******REMOVED*** Fast-Core Middleware (Automatic)
+
+Fast-core automatically configures all middleware:
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Logging Middleware**
+
+- Request/response logging with request IDs
+- Configurable exclusion paths (`/health`, `/docs`)
+- Performance timing and structured logging
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** **CORS Middleware**
 
-- Critical for frontend applications
-- Configurable origins from settings
+- Configured from `CORS_ORIGINS` environment variable
 - Supports credentials and custom headers
+- Production-safe origin restrictions
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** **Security Middleware**
 
-- **Trusted Host**: Prevents host header attacks in production
-- **Authentication**: JWT token validation and user context
-- **Request Logging**: Comprehensive request/response logging
+- Trusted host validation in production
+- Security headers and request validation
+- Rate limiting capabilities
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Performance Middleware**
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Error Handling**
 
-- Optional performance metrics collection
-- Response timing headers
-- Service identification headers
+- Global exception handlers
+- Consistent error response format
+- Detailed logging for debugging
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Configuration Example**
+***REMOVED******REMOVED******REMOVED*** Fast-Core Dependencies
 
-```python
-***REMOVED*** Development - Allow specific origins
-CORS_ORIGINS = "http://localhost:3000,http://localhost:8001"
-
-***REMOVED*** Production - Restrict to frontend domain
-CORS_ORIGINS = "https://nextwatch.com"
-```
-
-***REMOVED******REMOVED******REMOVED*** Logging Setup (`logging.py`)
-
-Provides a clean interface to the comprehensive logging system:
+Service clients are automatically configured and injected:
 
 ```python
-from bff_api.core.logging import setup_logging
-
-***REMOVED*** Basic setup
-setup_logging()
-
-***REMOVED*** Advanced setup
-setup_logging(
-    log_level="DEBUG",
-    verbose=True,
-    quiet=False
+***REMOVED*** Available dependencies
+from fast_core.dependencies import (
+    get_backend_client,        ***REMOVED*** Main backend API
+    get_auth_client,          ***REMOVED*** Authentication service
+    get_recommendation_client, ***REMOVED*** Recommendation service
+    get_ml_client,            ***REMOVED*** Machine learning service
 )
 ```
+
+***REMOVED******REMOVED*** Architecture Changes
+
+***REMOVED******REMOVED******REMOVED*** What Fast-Core Provides
+
+✅ **Application Factory**: Standardized FastAPI app creation  
+✅ **Middleware Stack**: Logging, CORS, security, error handling  
+✅ **Service Dependencies**: Pre-configured HTTP clients  
+✅ **Health Monitoring**: Comprehensive health check system  
+✅ **Configuration**: Enhanced configuration with service URLs and features  
+✅ **Exception Handling**: Global error handling and logging
+
+***REMOVED******REMOVED******REMOVED*** What BFF Still Manages
+
+✅ **Business Logic**: Route handlers and data aggregation  
+✅ **BFF Configuration**: Service-specific settings (`BFFAPIConfig`)  
+✅ **Cache Integration**: BFF-specific caching patterns  
+✅ **Service Facades**: `BackendClient` facade for cache compatibility  
+✅ **Route Organization**: BFF-specific route structure
+
+***REMOVED******REMOVED******REMOVED*** Migration Benefits
+
+1. **Reduced Boilerplate**: Eliminated 200+ lines of custom middleware code
+2. **Enhanced Features**: Better logging, health checks, error handling
+3. **Standardization**: Consistent patterns across all services
+4. **Type Safety**: Improved dependency injection and configuration
+5. **Maintainability**: Single source of truth for common functionality
 
 ***REMOVED******REMOVED*** Lifecycle Management
 
 ***REMOVED******REMOVED******REMOVED*** Startup Sequence
 
-1. **Environment Setup**: Load configuration and environment variables
-2. **Logging Initialization**: Configure logging based on environment
-3. **Service Creation**: Initialize backend clients and health service
-4. **Middleware Setup**: Configure all middleware in correct order
-5. **Route Registration**: Register all API routes and endpoints
-6. **Health Checks**: Verify external service connectivity
+1. **Configuration Loading**: `BFFAPIConfig` loads environment variables
+2. **Fast-Core Adapter**: Converts to `FastAPIConfig` with service URLs and features
+3. **App Creation**: Fast-core creates FastAPI app with all middleware
+4. **Dependency Registration**: Service clients configured and registered
+5. **Route Registration**: BFF routes registered with dependency injection
+6. **Health Initialization**: External service monitoring started
 
 ***REMOVED******REMOVED******REMOVED*** Shutdown Sequence
 
-1. **Health Service**: Close health monitoring connections
-2. **Backend Client**: Close HTTP client connections
-3. **Auth Client**: Close authentication service connections
-4. **Global Cleanup**: Close any remaining global resources
+1. **Singleton Cleanup**: Close shared `BackendClient` instance
+2. **Fast-Core Cleanup**: Automatic cleanup of fast-core resources
+3. **Resource Cleanup**: Close any remaining connections
 
-***REMOVED******REMOVED*** Integration with Services
+***REMOVED******REMOVED*** Service Integration
 
-***REMOVED******REMOVED******REMOVED*** Backend Client Integration
+***REMOVED******REMOVED******REMOVED*** Backend Client Integration (Enhanced)
 
-The BFF integrates with the main backend API:
+The BFF uses a singleton `BackendClient` for optimal performance:
 
 ```python
-***REMOVED*** Access in route handlers
-async def get_movies(request: Request):
-    backend_client = request.app.state.backend_client
-    movies = await backend_client.get_movies()
+***REMOVED*** In route handlers
+from bff_api.dependencies.backend import get_backend_client
+from fastapi import Depends
+
+async def get_movies(
+    backend: BackendClient = Depends(get_backend_client),
+):
+    ***REMOVED*** Uses singleton instance with cache compatibility
+    movies = await backend.get_movies()
     return movies
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Service Integration
+***REMOVED******REMOVED******REMOVED*** Service Client Dependencies
 
-Comprehensive monitoring of external dependencies:
-
-```python
-***REMOVED*** External service health checks
-health_service = request.app.state.health_service
-if health_service:
-    results = await health_service.check_all()
-    ***REMOVED*** Check backend_api, recommendation_api, auth_api
-```
-
-***REMOVED******REMOVED******REMOVED*** Authentication Integration
-
-JWT token validation and user context:
+Fast-core provides HTTP clients for all services:
 
 ```python
-***REMOVED*** Access authenticated user
-user = request.state.user  ***REMOVED*** Set by AuthMiddleware
-if user:
-    ***REMOVED*** Handle authenticated requests
+from fast_core.dependencies import get_ml_client
+from fastapi import Depends
+
+async def get_recommendations(
+    ml_client = Depends(get_ml_client),
+):
+    ***REMOVED*** Direct HTTP client for services without facades
+    response = await ml_client.get("/recommendations")
+    return response.json()
 ```
+
+***REMOVED******REMOVED******REMOVED*** Health Monitoring
+
+Fast-core automatically provides health endpoints:
+
+- `/health` - Overall service health
+- `/health/ready` - Readiness probe
+- `/health/live` - Liveness probe
 
 ***REMOVED******REMOVED*** Configuration
 
-The core module uses the centralized configuration system:
+The core module uses the fast-core configuration adapter:
 
 ```python
-from bff_api.config.app import settings
+***REMOVED*** BFF-specific configuration (still used)
+from bff_api.config.app import BFFAPIConfig
 
-***REMOVED*** Service URLs
-settings.backend_api_url     ***REMOVED*** Main backend API
-settings.reco_api_url        ***REMOVED*** Recommendation service
-settings.auth_api_url        ***REMOVED*** Authentication service
+settings = BFFAPIConfig()
 
-***REMOVED*** Security
-settings.cors_origins        ***REMOVED*** CORS allowed origins
-settings.allowed_hosts       ***REMOVED*** Trusted hosts for production
-settings.jwt_secret          ***REMOVED*** JWT validation secret
+***REMOVED*** Fast-core configuration (automatic)
+from bff_api.config.fast_core_config import create_fast_core_config
 
-***REMOVED*** Performance
-settings.enable_performance_metrics  ***REMOVED*** Performance monitoring
-settings.cache_ttl           ***REMOVED*** Cache TTL for responses
+fast_core_config = create_fast_core_config(settings)
+```
+
+***REMOVED******REMOVED******REMOVED*** Service URLs
+
+```bash
+***REMOVED*** All service endpoints configured via environment
+BACKEND_API_URL=http://localhost:8000
+AUTH_API_URL=http://localhost:8002
+RECOMMENDATION_API_URL=http://localhost:8003
+ML_API_URL=http://localhost:8004
+```
+
+***REMOVED******REMOVED******REMOVED*** Feature Flags
+
+```bash
+***REMOVED*** Control feature availability
+ENABLE_RECOMMENDATIONS=true
+ENABLE_ML_FEATURES=false
+ENABLE_AUTH_SERVICE=true
 ```
 
 ***REMOVED******REMOVED*** Error Handling
 
-***REMOVED******REMOVED******REMOVED*** Global Exception Handler
+***REMOVED******REMOVED******REMOVED*** Fast-Core Global Handlers
 
-All unhandled exceptions are caught and logged:
+All exceptions are automatically handled by fast-core:
 
-```python
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
-```
+- **HTTP Exceptions**: Proper status codes and error messages
+- **Validation Errors**: Detailed field-level error information
+- **Unhandled Exceptions**: Logged and converted to 500 responses
 
 ***REMOVED******REMOVED******REMOVED*** Service-Level Error Handling
 
-Individual services handle their own errors gracefully:
+Individual routes handle service-specific errors:
 
-- **Backend Client**: Retries with exponential backoff
-- **Auth Client**: Graceful authentication failures
-- **Health Service**: Non-blocking health checks
+```python
+from bff_api.routes.v1.movies import _handle_backend_error
+
+async def get_movie_details(movie_id: int, backend = Depends(get_backend_client)):
+    try:
+        movie = await backend.get_movie(movie_id)
+        return movie
+    except Exception as e:
+        await _handle_backend_error(e, "get_movie_details")
+```
 
 ***REMOVED******REMOVED*** Testing
 
-***REMOVED******REMOVED******REMOVED*** Unit Testing
-
-Test the application factory:
+***REMOVED******REMOVED******REMOVED*** Fast-Core Integration Testing
 
 ```python
 from bff_api.core import create_app
 
 def test_app_creation():
     app = create_app()
-    assert app.title == "Next Watch BFF"
-    assert app.version == "0.1.0"
+    assert app.title == "BFF API"
+    assert app.version == "1.0.0"
+
+    ***REMOVED*** Fast-core features enabled
+    assert hasattr(app.state, 'settings')
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration Testing
-
-Test with real services:
+***REMOVED******REMOVED******REMOVED*** Service Client Testing
 
 ```python
+from fast_core.dependencies import get_backend_client
+
 @pytest.mark.asyncio
-async def test_health_endpoint():
-    app = create_app()
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.get("/health")
-        assert response.status_code in [200, 503]
+async def test_service_dependencies():
+    ***REMOVED*** Test dependency injection
+    backend = await get_backend_client()
+    assert backend is not None
 ```
 
 ***REMOVED******REMOVED*** Best Practices
 
 ***REMOVED******REMOVED******REMOVED*** Development
 
-1. **Use Debug Mode**: Enable detailed logging and error information
-2. **Mock External Services**: Use test doubles for backend services
-3. **Monitor Health Checks**: Watch for external service connectivity issues
+1. **Use Fast-Core Dependencies**: Import from `fast_core.dependencies`
+2. **BFF Configuration**: Continue using `BFFAPIConfig` for BFF-specific settings
+3. **Service Facades**: Use `BackendClient` facade for cache compatibility
+4. **Error Handling**: Leverage fast-core's global error handling
 
 ***REMOVED******REMOVED******REMOVED*** Production
 
-1. **Security Configuration**:
+1. **Configuration**:
 
-   - Set specific CORS origins
-   - Enable trusted host middleware
-   - Use secure JWT secrets
+   - Set specific service URLs (no localhost)
+   - Configure proper timeouts per service
+   - Enable appropriate feature flags
 
-2. **Performance Optimization**:
+2. **Monitoring**:
 
-   - Enable performance metrics
-   - Configure appropriate cache TTL
-   - Monitor response times
+   - Use fast-core health endpoints for load balancer checks
+   - Monitor service client error rates
+   - Track cache hit/miss ratios
 
-3. **Monitoring**:
-   - Use health endpoints for load balancer checks
-   - Monitor external service connectivity
-   - Track authentication failures
+3. **Security**:
+   - Configure CORS origins properly
+   - Use HTTPS for all service URLs
+   - Set appropriate timeout values
 
-***REMOVED******REMOVED******REMOVED*** Debugging
+***REMOVED******REMOVED*** Migration Guide
 
-1. **Logging**: Use structured logging for better debugging
-2. **Debug Endpoint**: Access `/debug` for configuration information
-3. **Health Checks**: Use `/health` to verify external service status
+***REMOVED******REMOVED******REMOVED*** Old Pattern (Removed)
+
+```python
+***REMOVED*** OLD: Manual setup (no longer available)
+from bff_api.core.app import create_app
+from bff_api.middlewares import LoggingMiddleware, AuthMiddleware
+
+app = create_app()
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(AuthMiddleware)
+```
+
+***REMOVED******REMOVED******REMOVED*** New Pattern (Current)
+
+```python
+***REMOVED*** NEW: Fast-core integration
+from bff_api.core import create_app
+
+***REMOVED*** Everything configured automatically
+app = create_app()
+```
+
+***REMOVED******REMOVED******REMOVED*** Dependency Updates
+
+```python
+***REMOVED*** OLD: Manual client instantiation
+from bff_api.services.clients import BackendClient
+backend_client = BackendClient(config)
+
+***REMOVED*** NEW: Dependency injection
+from fast_core.dependencies import get_backend_client
+from fastapi import Depends
+
+async def route(backend = Depends(get_backend_client)):
+    pass
+```
 
 ***REMOVED******REMOVED*** Future Enhancements
 
-1. **Rate Limiting**: Add request rate limiting middleware
-2. **Circuit Breaker**: Implement circuit breaker pattern for external services
-3. **Metrics Collection**: Enhanced metrics collection and exporters
-4. **Request Tracing**: Distributed tracing integration
-5. **Response Caching**: Intelligent response caching strategies
+1. **Enhanced Monitoring**: Metrics collection and distributed tracing
+2. **Circuit Breakers**: Automatic failure handling for external services
+3. **Request Caching**: Intelligent response caching at the middleware level
+4. **Rate Limiting**: Per-client rate limiting capabilities
+5. **Service Mesh**: Integration with service mesh technologies
+
+---
+
+This core module now provides a robust, standardized foundation built on fast-core, maintaining BFF-specific functionality while leveraging shared infrastructure patterns across the entire platform.

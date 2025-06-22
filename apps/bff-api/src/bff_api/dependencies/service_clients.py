@@ -1,0 +1,126 @@
+"""Service client dependencies using Fast Core's Service Client Factory.
+
+This module configures all service clients used by the BFF API using the new
+Service Client Factory system for better performance, health checking, and
+lifecycle management.
+"""
+
+from typing import Any, Dict
+from fastapi import Depends
+
+from fast_core.dependencies.client_factory import (
+    register_service,
+    register_client_type,
+    get_service_client,
+    health_check_all_services,
+    GenericServiceClient,
+)
+from fast_core.dependencies.singleton import cleanup_singletons
+
+from bff_api.config.app import BFFAPIConfig, settings
+from bff_api.services.clients.facade import BackendClient
+from bff_api.services.clients.recommendation import RecommendationClient
+
+
+def _register_all_services(config: BFFAPIConfig) -> None:
+    """Register all service clients with the factory.
+
+    Args:
+        config: BFF API configuration
+    """
+    ***REMOVED*** Backend API - register service and custom client type
+    register_service(
+        name="backend",
+        base_url=config.backend_api_url,
+        timeout=config.backend_api_timeout,
+        headers={"User-Agent": "NextWatch-BFF/0.1.0"},
+        singleton=True,  ***REMOVED*** Use singleton for performance
+    )
+    register_client_type("backend", BackendClient, singleton=True)
+
+    ***REMOVED*** Auth API - uses generic client
+    register_service(
+        name="auth",
+        base_url=config.auth_api_url,
+        timeout=config.auth_api_timeout,
+        headers={
+            "User-Agent": "NextWatch-BFF/0.1.0",
+            "Authorization": f"Bearer {config.internal_api_key}",
+        },
+        singleton=True,
+    )
+
+    ***REMOVED*** Recommendation API - register service and custom client type
+    register_service(
+        name="recommendation",
+        base_url=config.reco_api_url,
+        timeout=config.recommendation_api_timeout,
+        headers={
+            "User-Agent": "NextWatch-BFF/0.1.0",
+            "Authorization": f"Bearer {config.internal_api_key}",
+        },
+        singleton=True,
+    )
+    register_client_type("recommendation", RecommendationClient, singleton=True)
+
+    ***REMOVED*** ML API - optional service, only register if enabled
+    if config.enable_ml_features and config.ml_api_url:
+        register_service(
+            name="ml",
+            base_url=config.ml_api_url,
+            timeout=config.ml_api_timeout,
+            headers={
+                "User-Agent": "NextWatch-BFF/0.1.0",
+                "Authorization": f"Bearer {config.internal_api_key}",
+            },
+            singleton=True,
+        )
+
+
+***REMOVED*** Register services on module import
+_register_all_services(settings)
+
+
+***REMOVED*** Service client dependency functions
+get_backend_client = get_service_client("backend")
+
+get_auth_client = get_service_client("auth")
+
+get_recommendation_client = get_service_client("recommendation")
+
+
+def get_ml_client(
+    config: BFFAPIConfig = Depends(lambda: settings),
+) -> Any:
+    """Get ML client dependency.
+
+    Returns a singleton GenericServiceClient for the ML service.
+    Only available if ML features are enabled.
+
+    Args:
+        config: BFF API configuration
+
+    Returns:
+        GenericServiceClient instance for ML service
+
+    Raises:
+        ValueError: If ML features are not enabled
+    """
+    if not config.enable_ml_features or not config.ml_api_url:
+        raise ValueError("ML features are not enabled")
+
+    return get_service_client("ml")()
+
+
+async def get_all_services_health() -> Dict[str, Any]:
+    """Get health status for all registered service clients.
+
+    Returns:
+        Dictionary with health status for all services
+    """
+    return await health_check_all_services()
+
+
+async def cleanup_service_clients() -> None:
+    """Clean up all service clients. Called during app shutdown."""
+    await cleanup_singletons()

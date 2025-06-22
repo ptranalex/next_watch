@@ -1,40 +1,148 @@
-"""Watchlist-related routes for BFF API."""
+"""Watchlist movies-related routes for BFF API."""
 
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
+import httpx
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from bff_api.dependencies.auth import get_current_user_id_and_token
-from bff_api.dependencies.common import get_backend_client
-from bff_api.schemas.screen_schemas import MovieListData
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.dependencies import get_backend_client
+from fast_core.responses import ResponseBuilder
 
 logger = get_logger(__name__)
 
 router = APIRouter(tags=["watchlist"])
 
+***REMOVED*** Initialize response builder for consistent API responses
+responses = ResponseBuilder(
+    config={
+        "pagination": {
+            "default_limit": 20,
+            "max_limit": 100,
+        },
+    }
+)
 
-@router.get("/watchlist", response_model=MovieListData)
+
+def _build_api_path(path: str) -> str:
+    """Build API path with version prefix.
+
+    Args:
+        path: Relative API path
+
+    Returns:
+        Full API path with version prefix
+    """
+    ***REMOVED*** Remove leading slash if present to avoid double slashes
+    clean_path = path.lstrip("/")
+    return f"/api/v1/{clean_path}"
+
+
+async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
+    """Handle backend service errors consistently.
+
+    Args:
+        e: The exception that occurred
+        operation: Description of the operation that failed
+        **context: Additional context for logging
+    """
+    logger.error(
+        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
+    )
+    if isinstance(e, httpx.HTTPStatusError) and e.response.status_code == 401:
+        raise HTTPException(status_code=401, detail="Authentication failed")
+    else:
+        raise HTTPException(status_code=502, detail="Backend service unavailable")
+
+
+async def _get_user_watchlist(
+    backend: httpx.AsyncClient,
+    user_id: int,
+    jwt_token: str,
+    limit: int,
+    offset: int,
+) -> Dict[str, Any]:
+    """Get user's watchlist interactions from backend.
+
+    Args:
+        backend: HTTP client for backend service
+        user_id: User ID
+        jwt_token: JWT token for authentication
+        limit: Number of items to fetch
+        offset: Offset for pagination
+
+    Returns:
+        Watchlist interactions response
+
+    Raises:
+        httpx.HTTPStatusError: If HTTP request fails
+        httpx.RequestError: If request cannot be made
+    """
+    response = await backend.get(
+        _build_api_path(f"/users/{user_id}/interactions/watchlist"),
+        params={"limit": limit, "offset": offset},
+        headers={"Authorization": f"Bearer {jwt_token}"},
+    )
+    response.raise_for_status()
+    result: Dict[str, Any] = response.json()
+    return result
+
+
+async def _get_movies_bulk(
+    backend: httpx.AsyncClient,
+    movie_ids: List[int],
+    user_id: int,
+    page: int = 1,
+    limit: int = 100,
+) -> Dict[str, Any]:
+    """Get movie details in bulk from backend.
+
+    Args:
+        backend: HTTP client for backend service
+        movie_ids: List of movie IDs to fetch
+        user_id: User ID for personalized content
+        page: Page number
+        limit: Number of items per page
+
+    Returns:
+        Movies bulk response
+
+    Raises:
+        httpx.HTTPStatusError: If HTTP request fails
+        httpx.RequestError: If request cannot be made
+    """
+    response = await backend.post(
+        _build_api_path("/movies/bulk"),
+        json={"movie_ids": movie_ids},
+        params={"user_id": user_id, "page": page, "limit": limit},
+    )
+    response.raise_for_status()
+    result: Dict[str, Any] = response.json()
+    return result
+
+
+@router.get("/watchlist")
 async def get_user_watchlist(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     ***REMOVED*** Filter parameters
-    imdb_rating: float = Query(None, ge=0, le=10, description="Minimum IMDb rating"),
-    rotten_tomatoes_rating: float = Query(
+    imdb_rating: Optional[float] = Query(None, ge=0, le=10, description="Minimum IMDb rating"),
+    rotten_tomatoes_rating: Optional[float] = Query(
         None, ge=0, le=100, description="Minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: float = Query(None, ge=0, le=100, description="Minimum Metacritic rating"),
-    year: int = Query(None, ge=1900, le=2030, description="Release year"),
+    metacritic_rating: Optional[float] = Query(
+        None, ge=0, le=100, description="Minimum Metacritic rating"
+    ),
+    year: Optional[int] = Query(None, ge=1900, le=2030, description="Release year"),
     sort_by: str = Query(
         "title",
         description="Sort field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
     sort_desc: bool = Query(False, description="Sort in descending order"),
     user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
-    backend: BackendClient = Depends(get_backend_client),
-) -> MovieListData:
+    backend: httpx.AsyncClient = Depends(get_backend_client),
+) -> Dict[str, Any]:
     """Get user's watchlist movies with full movie details.
 
     Provides a paginated list of movies that the authenticated user has added
@@ -50,7 +158,7 @@ async def get_user_watchlist(
         sort_by: Field to sort by
         sort_desc: Whether to sort in descending order
         user_data: Authenticated user ID and JWT token
-        backend: Backend service client
+        backend: Backend HTTP client dependency
 
     Returns:
         Paginated list of watchlist movies with full details and user interactions
@@ -69,7 +177,8 @@ async def get_user_watchlist(
 
     try:
         ***REMOVED*** Get watchlist interactions from backend (using the same pattern as watched)
-        watchlist_interactions_response = await backend.get_user_watchlist(
+        watchlist_interactions_response = await _get_user_watchlist(
+            backend=backend,
             user_id=user_id,
             jwt_token=jwt_token,
             limit=limit,
@@ -91,15 +200,32 @@ async def get_user_watchlist(
 
         if not actually_watchlisted:
             logger.info(f"No watchlist movies found for user {user_id}")
-            return MovieListData(
-                total=0,
+            response = responses.paginated(
+                items=[],
                 page=page,
-                per_page=limit,
-                total_pages=0,
-                has_next=False,
-                has_prev=False,
-                results=[],
+                limit=limit,
+                total=0,
+                metadata={
+                    "filters_applied": {
+                        "imdb_rating": imdb_rating,
+                        "rotten_tomatoes_rating": rotten_tomatoes_rating,
+                        "metacritic_rating": metacritic_rating,
+                        "year": year,
+                        "sort_by": sort_by,
+                        "sort_desc": sort_desc,
+                    },
+                    "service_info": {
+                        "aggregated_from": ["backend-api"],
+                        "user_authenticated": True,
+                        "user_personalized": True,
+                    },
+                    "api_version": "v1",
+                    "response_pattern": "paginated",
+                    "collection_type": "watchlist_movies",
+                    "user_context": {"user_id": user_id},
+                },
             )
+            return cast(Dict[str, Any], response)
 
         ***REMOVED*** Extract movie IDs for bulk fetching - filter out None values first and then convert to int
         valid_movie_ids = [
@@ -111,19 +237,38 @@ async def get_user_watchlist(
 
         if not movie_ids:
             logger.info(f"No valid movie IDs found in watchlist interactions for user {user_id}")
-            return MovieListData(
-                total=0,
+            response = responses.paginated(
+                items=[],
                 page=page,
-                per_page=limit,
-                total_pages=0,
-                has_next=False,
-                has_prev=False,
-                results=[],
+                limit=limit,
+                total=0,
+                metadata={
+                    "filters_applied": {
+                        "imdb_rating": imdb_rating,
+                        "rotten_tomatoes_rating": rotten_tomatoes_rating,
+                        "metacritic_rating": metacritic_rating,
+                        "year": year,
+                        "sort_by": sort_by,
+                        "sort_desc": sort_desc,
+                    },
+                    "service_info": {
+                        "aggregated_from": ["backend-api"],
+                        "user_authenticated": True,
+                        "user_personalized": True,
+                    },
+                    "api_version": "v1",
+                    "response_pattern": "paginated",
+                    "collection_type": "watchlist_movies",
+                    "user_context": {"user_id": user_id},
+                    "error": "No valid movie IDs found",
+                },
             )
+            return cast(Dict[str, Any], response)
 
         ***REMOVED*** Fetch movie details in bulk
         try:
-            movies_response = await backend.get_movies_bulk(
+            movies_response = await _get_movies_bulk(
+                backend=backend,
                 movie_ids=movie_ids,
                 user_id=user_id,
                 page=1,  ***REMOVED*** Get all movies in one request since we already paginated the interactions
@@ -229,23 +374,53 @@ async def get_user_watchlist(
         has_prev = page > 1
         total_pages = page if not has_next else page + 1  ***REMOVED*** Estimate based on current page
 
-        logger.info(
-            f"✅ Returning {len(enriched_movies)} watchlist movies for user {user_id} (enriched from {len(actually_watchlisted)} interactions)"
-        )
-
-        return MovieListData(
-            total=total_count,
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        response = responses.paginated(
+            items=enriched_movies,
             page=page,
-            per_page=limit,
-            total_pages=total_pages,
-            has_next=has_next,
-            has_prev=has_prev,
-            results=enriched_movies,
+            limit=limit,
+            total=total_count,
+            metadata={
+                "filters_applied": {
+                    "imdb_rating": imdb_rating,
+                    "rotten_tomatoes_rating": rotten_tomatoes_rating,
+                    "metacritic_rating": metacritic_rating,
+                    "year": year,
+                    "sort_by": sort_by,
+                    "sort_desc": sort_desc,
+                },
+                "service_info": {
+                    "aggregated_from": ["backend-api"],
+                    "user_authenticated": True,
+                    "user_personalized": True,
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "collection_type": "watchlist_movies",
+                "user_context": {"user_id": user_id},
+                "collection_stats": {
+                    "total_watchlisted": len(actually_watchlisted),
+                    "filtered_count": len(enriched_movies),
+                },
+            },
         )
+        return cast(Dict[str, Any], response)
 
-    except BackendClientError as e:
-        logger.error(f"Backend error fetching watchlist for user {user_id}: {e}")
-        if "401" in str(e):
-            raise HTTPException(status_code=401, detail="Authentication failed")
-        else:
-            raise HTTPException(status_code=502, detail="Backend service unavailable")
+    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        await _handle_backend_error(e, "watchlist_movies", user_id=user_id)
+        ***REMOVED*** This line is unreachable but satisfies type checker
+        response = responses.paginated(
+            items=[],
+            page=page,
+            limit=limit,
+            total=0,
+            metadata={
+                "error": "Backend service unavailable",
+                "service_info": {"aggregated_from": ["backend-api"]},
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "collection_type": "watchlist_movies",
+                "user_context": {"user_id": user_id},
+            },
+        )
+        return cast(Dict[str, Any], response)

@@ -8,9 +8,9 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from config.logging import get_logger
+from fast_core.dependencies.client_factory import get_service_client
 
 from bff_api.config.app import settings
-from bff_api.services.backend_client import BackendClient
 
 logger = get_logger(__name__)
 
@@ -29,13 +29,11 @@ class BFFDataProviders:
             Dictionary containing popular movies, actors, and genres
         """
         try:
-            from bff_api.services.backend_client import BackendClient
-
-            backend_client = BackendClient(config=self.settings)
+            ***REMOVED*** Get backend client from the service factory
+            backend_client = get_service_client("backend")()
 
             logger.debug(
-                "Backend client created for popularity data",
-                backend_url=self.settings.backend_api_url,
+                "Backend client retrieved for popularity data",
                 service="bff",
                 component="warming_providers",
             )
@@ -75,7 +73,7 @@ class BFFDataProviders:
             )
             return {"movies": [], "actors": [], "genres": []}
 
-    async def _fetch_all_movies(self, backend_client: BackendClient) -> List[Dict[str, Any]]:
+    async def _fetch_all_movies(self, backend_client: Any) -> List[Dict[str, Any]]:
         """Fetch all movies from backend API through pagination."""
         all_movies = []
         page = 1
@@ -208,7 +206,7 @@ class BFFDataProviders:
         except Exception:
             return 100
 
-    async def _get_popular_actors_data(self, backend_client: BackendClient) -> List[Dict[str, Any]]:
+    async def _get_popular_actors_data(self, backend_client: Any) -> List[Dict[str, Any]]:
         """Get popular actors data for warming."""
         try:
             popular_actors = [
@@ -237,7 +235,7 @@ class BFFDataProviders:
             )
             return []
 
-    async def _get_popular_genres_data(self, backend_client: BackendClient) -> List[Dict[str, Any]]:
+    async def _get_popular_genres_data(self, backend_client: Any) -> List[Dict[str, Any]]:
         """Get all genres data for warming."""
         try:
             ***REMOVED*** Fetch all genres from backend API

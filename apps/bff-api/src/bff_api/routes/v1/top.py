@@ -1,25 +1,138 @@
 """Top movies routes for BFF API."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union, cast
 
+import httpx
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from bff_api.dependencies.common import get_backend_client
-from bff_api.schemas.screen_schemas import MovieListData
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.dependencies import get_backend_client
+from fast_core.responses import ResponseBuilder
 from bff_api.utils.auth import extract_user_id_from_token
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["top"])
 
+***REMOVED*** Initialize response builder for consistent API responses
+responses = ResponseBuilder(
+    config={
+        "pagination": {
+            "default_limit": 20,
+            "max_limit": 100,
+        },
+    }
+)
+
 ***REMOVED*** Security scheme for optional authentication
 security = HTTPBearer(auto_error=False)
 
 
-@router.get("/top", response_model=MovieListData)
+def _build_api_path(path: str) -> str:
+    """Build API path with version prefix.
+
+    Args:
+        path: Relative API path
+
+    Returns:
+        Full API path with version prefix
+    """
+    ***REMOVED*** Remove leading slash if present to avoid double slashes
+    clean_path = path.lstrip("/")
+    return f"/api/v1/{clean_path}"
+
+
+async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
+    """Handle backend service errors consistently.
+
+    Args:
+        e: The exception that occurred
+        operation: Description of the operation that failed
+        **context: Additional context for logging
+    """
+    logger.error(
+        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
+    )
+    raise HTTPException(status_code=502, detail="Backend service unavailable")
+
+
+async def _get_movies(
+    backend: httpx.AsyncClient,
+    page: int = 1,
+    limit: int = 20,
+    **filters: Any,
+) -> Dict[str, Any]:
+    """Get movies from backend with filters.
+
+    Args:
+        backend: HTTP client for backend service
+        page: Page number for pagination
+        limit: Number of items per page
+        **filters: Additional filter parameters
+
+    Returns:
+        Movies response from backend
+
+    Raises:
+        httpx.HTTPStatusError: If HTTP request fails
+        httpx.RequestError: If request cannot be made
+    """
+    params: Dict[str, Union[str, int, bool, float]] = {
+        "page": page,
+        "limit": limit,
+    }
+
+    ***REMOVED*** Add all filters to params
+    for key, value in filters.items():
+        if value is not None:
+            params[key] = value
+
+    response = await backend.get(
+        _build_api_path("/movies"),
+        params=params,
+    )
+    response.raise_for_status()
+    result: Dict[str, Any] = response.json()
+    return result
+
+
+async def _get_user_movie_interaction(
+    backend: httpx.AsyncClient,
+    user_id: int,
+    movie_id: int,
+    jwt_token: str,
+) -> Optional[Dict[str, Any]]:
+    """Get user's interaction with a specific movie.
+
+    Args:
+        backend: HTTP client for backend service
+        user_id: User ID
+        movie_id: Movie ID
+        jwt_token: JWT token for authentication
+
+    Returns:
+        User interaction data or None if not found
+
+    Raises:
+        httpx.HTTPStatusError: If HTTP request fails
+        httpx.RequestError: If request cannot be made
+    """
+    try:
+        response = await backend.get(
+            _build_api_path(f"/users/{user_id}/interactions/movies/{movie_id}"),
+            headers={"Authorization": f"Bearer {jwt_token}"},
+        )
+        response.raise_for_status()
+        result: Dict[str, Any] = response.json()
+        return result
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            return None
+        raise
+
+
+@router.get("/top")
 async def get_top_movies(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
@@ -42,9 +155,9 @@ async def get_top_movies(
     year: Optional[int] = Query(None, description="Filter by release year"),
     start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
-    backend: BackendClient = Depends(get_backend_client),
+    backend: httpx.AsyncClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> MovieListData:
+) -> Dict[str, Any]:
     """Get top-rated movies with filters.
 
     Provides a curated list of top movies with default high-quality filters
@@ -67,7 +180,7 @@ async def get_top_movies(
         year: Release year filter
         start_year: Start release year filter (inclusive)
         end_year: End release year filter (inclusive)
-        backend: Backend client dependency
+        backend: Backend HTTP client dependency
         credentials: Optional Bearer token for authentication
 
     Returns:
@@ -126,7 +239,7 @@ async def get_top_movies(
         logger.info(f"🎬 Fetching top movies with filters: {filters}")
 
         ***REMOVED*** Get top movies from backend
-        movies_response = await backend.get_movies(page=page, limit=limit, **filters)
+        movies_response = await _get_movies(backend, page=page, limit=limit, **filters)
 
         ***REMOVED*** Extract pagination data from backend's standardized format
         movies = movies_response.get("results", [])
@@ -144,8 +257,8 @@ async def get_top_movies(
                 movie_id = movie.get("id")
                 if movie_id:
                     try:
-                        interaction_data = await backend.get_user_movie_interaction(
-                            user_id, movie_id, jwt_token=credentials.credentials
+                        interaction_data = await _get_user_movie_interaction(
+                            backend, user_id, movie_id, jwt_token=credentials.credentials
                         )
                         if interaction_data:
                             ***REMOVED*** Map user interaction data directly to movie fields
@@ -208,16 +321,40 @@ async def get_top_movies(
 
         logger.info(f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})")
 
-        return MovieListData(
-            total=total_count,
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        response = responses.paginated(
+            items=movies,
             page=current_page,
-            per_page=per_page,
-            total_pages=total_pages,
-            has_next=has_next,
-            has_prev=has_prev,
-            results=movies,
+            limit=per_page,
+            total=total_count,
+            metadata={
+                "filters_applied": filters,
+                "service_info": {
+                    "aggregated_from": ["backend-api"],
+                    "user_authenticated": bool(user_id),
+                    "user_personalized": bool(user_id),
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "collection_type": "top_movies",
+            },
         )
+        return cast(Dict[str, Any], response)
 
-    except BackendClientError as e:
-        logger.error(f"Backend error for top movies: {e}")
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
+    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        await _handle_backend_error(e, "top_movies")
+        ***REMOVED*** This line is unreachable but satisfies type checker
+        response = responses.paginated(
+            items=[],
+            page=page,
+            limit=limit,
+            total=0,
+            metadata={
+                "error": "Backend service unavailable",
+                "service_info": {"aggregated_from": ["backend-api"]},
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "collection_type": "top_movies",
+            },
+        )
+        return cast(Dict[str, Any], response)

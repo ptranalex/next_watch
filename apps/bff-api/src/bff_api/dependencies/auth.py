@@ -2,8 +2,9 @@
 
 from typing import Optional, Tuple
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fast_core.errors.exceptions import AuthenticationException
 
 from config.logging import get_logger
 from bff_api.utils.auth import extract_user_id_from_token
@@ -27,20 +28,18 @@ def get_current_user_id(
         User ID
 
     Raises:
-        HTTPException: 401 if token is invalid or missing
+        AuthenticationException: If token is invalid or missing
     """
     if not credentials or not credentials.credentials:
         logger.error("Authentication required", service="bff", endpoint="get_current_user_id")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise AuthenticationException(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     user_id = extract_user_id_from_token(credentials.credentials)
     if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise AuthenticationException(
             detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -60,14 +59,13 @@ def get_current_user_id_and_token(
         Tuple of (user_id, jwt_token)
 
     Raises:
-        HTTPException: 401 if token is invalid or missing
+        AuthenticationException: If token is invalid or missing
     """
     if not credentials or not credentials.credentials:
         logger.error(
             "Authentication required", service="bff", endpoint="get_current_user_id_and_token"
         )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise AuthenticationException(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -77,8 +75,7 @@ def get_current_user_id_and_token(
         logger.error(
             "Invalid or expired token", service="bff", endpoint="get_current_user_id_and_token"
         )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise AuthenticationException(
             detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"},
         )

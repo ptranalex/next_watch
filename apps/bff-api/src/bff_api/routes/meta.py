@@ -71,7 +71,7 @@ async def debug_info() -> Dict[str, Any]:
             "log_level": settings.log_level,
             "api_port": settings.port,
             "cors_origins": settings.cors_origins,
-            "performance_metrics_enabled": settings.bff_performance_metrics,
+            "performance_metrics_enabled": settings.enable_performance_metrics,
             "external_services": {
                 "backend_api_url": settings.backend_api_url,
                 "backend_api_timeout": settings.backend_api_timeout,
@@ -80,9 +80,10 @@ async def debug_info() -> Dict[str, Any]:
             },
             "redis_url": settings.redis_url,
             "cache_ttl_defaults": {
-                "movie_data": settings.cache_ttl_movie_data,
-                "user_session": settings.cache_ttl_user_session,
-                "popular_content": settings.cache_ttl_popular_content,
+                "default": settings.cache_ttl_default,
+                "short": settings.cache_ttl_short,
+                "medium": settings.cache_ttl_medium,
+                "long": settings.cache_ttl_long,
             },
             "security": {
                 "allowed_hosts": settings.allowed_hosts,

@@ -3,8 +3,9 @@
 from typing import Any, Dict, List, Optional
 
 from config.logging import get_logger
+from fast_core.dependencies.client_factory import ServiceClientConfig
 
-from bff_api.config.app import BFFAPIConfig
+from bff_api.config.app import BFFAPIConfig, settings
 from bff_api.services.clients.content_discovery import ContentDiscoveryClient
 from bff_api.services.clients.movies import MoviesClient
 from bff_api.services.clients.user_interactions import UserInteractionsClient
@@ -18,6 +19,7 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
 
     This facade provides a single interface to all backend API operations,
     maintaining backward compatibility while internally using specialized clients.
+    Now works with Fast Core's Service Client Factory for better lifecycle management.
 
     Inherits from:
     - MoviesClient: Movie-related operations (get_movie, search_movies, etc.)
@@ -25,22 +27,22 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
     - ContentDiscoveryClient: Content discovery (genres, actors)
     """
 
-    def __init__(self, config: BFFAPIConfig) -> None:
+    def __init__(
+        self, config: ServiceClientConfig, bff_config: Optional[BFFAPIConfig] = None
+    ) -> None:
         """Initialize the unified backend client.
 
         Args:
-            config: Configuration instance
+            config: Service client configuration from Fast Core
+            bff_config: BFF-specific configuration (optional, uses global settings if not provided)
         """
-        ***REMOVED*** Initialize all parent classes
-        super().__init__(config)
-        logger.info(
-            "Initialized unified BackendClient with all specialized clients",
+        ***REMOVED*** Initialize all parent classes with the new signature
+        super().__init__(config, bff_config)
+
+        logger.debug(
+            "Initialized unified BackendClient with all specialized clients using Service Client Factory",
             service="bff",
             component="backend_client",
         )
 
-    async def close(self) -> None:
-        """Close all HTTP clients."""
-        ***REMOVED*** Only need to call close once since all parents share the same _client
-        await super().close()
-        logger.info("Closed BackendClient connections", service="bff", component="backend_client")
+    ***REMOVED*** Inherit close() and health_check() methods from BaseBackendClient (via parents)

@@ -2,12 +2,15 @@
 
 from typing import Any, Dict, List, Optional, cast
 
+import httpx
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
+from fast_core.errors.exceptions import ExternalServiceException, APIException
 
-from bff_api.dependencies.common import get_backend_client
+from bff_api.dependencies import get_backend_client
+from bff_api.services.clients.facade import BackendClient
 from bff_api.schemas.screen_schemas import (
     SidebarData,
     SidebarFilters,
@@ -15,10 +18,57 @@ from bff_api.schemas.screen_schemas import (
     SidebarLinkData,
     SidebarMetadata,
 )
-from bff_api.services.backend_client import BackendClient, BackendClientError
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["sidebar"])
+
+
+def _build_api_path(path: str) -> str:
+    """Build API path with version prefix.
+
+    Args:
+        path: Relative API path
+
+    Returns:
+        Full API path with version prefix
+    """
+    ***REMOVED*** Remove leading slash if present to avoid double slashes
+    clean_path = path.lstrip("/")
+    return f"/api/v1/{clean_path}"
+
+
+async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
+    """Handle backend service errors consistently.
+
+    Args:
+        e: The exception that occurred
+        operation: Description of the operation that failed
+        **context: Additional context for logging
+    """
+    logger.error(
+        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
+    )
+    raise ExternalServiceException(
+        detail="Backend service unavailable",
+        service_name="backend-api",
+        error_code="SERVICE_UNAVAILABLE",
+    )
+
+
+async def _get_genres(backend: BackendClient) -> List[Dict[str, Any]]:
+    """Get genres from backend.
+
+    Args:
+        backend: BackendClient for backend service
+
+    Returns:
+        List of genres
+
+    Raises:
+        Exception: If backend request fails
+    """
+    ***REMOVED*** Use BackendClient.get_genres method instead of direct HTTP calls
+    return await backend.get_genres()
 
 
 @redis_cache(
@@ -46,7 +96,7 @@ async def _get_sidebar_content_data(
         service="bff",
         endpoint="sidebar",
     )
-    genres = await backend.get_genres()
+    genres = await _get_genres(backend)
 
     ***REMOVED*** Ensure we have a valid list (defensive programming)
     if not genres:
@@ -199,13 +249,13 @@ async def get_sidebar_content(
 
     Args:
         user_id: Optional user ID for personalized content
-        backend: Backend client dependency
+        backend: BackendClient dependency
 
     Returns:
         Dynamic sidebar configuration with links and metadata
 
     Raises:
-        HTTPException: 502 if backend unavailable
+        ExternalServiceException: If backend unavailable
     """
     logger.info(
         "Processing sidebar content request",
@@ -221,15 +271,17 @@ async def get_sidebar_content(
         ***REMOVED*** Convert dictionary back to Pydantic model
         return SidebarData(**sidebar_data_dict)
 
-    except BackendClientError as e:
-        logger.error(
-            "Backend error while fetching sidebar content",
-            error=str(e),
-            user_id=user_id,
-            service="bff",
-            endpoint="sidebar",
+    except Exception as e:
+        await _handle_backend_error(e, "sidebar_content", user_id=user_id)
+        ***REMOVED*** This line is unreachable but satisfies type checker
+        return SidebarData(
+            home={"label": "Home", "href": "/"},
+            user_links=[],
+            top_links=[],
+            filters=SidebarFilters(show=False, defaults={}, locked=[]),
+            genres=[],
+            metadata=SidebarMetadata(layout="sidebar", version="1.0.0", user_authenticated=False),
         )
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
     except Exception as e:
         logger.error(
             "Unexpected error in sidebar endpoint",
@@ -238,4 +290,6 @@ async def get_sidebar_content(
             service="bff",
             endpoint="sidebar",
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise APIException(
+            detail="Internal server error", status_code=500, error_code="INTERNAL_ERROR"
+        )

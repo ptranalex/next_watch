@@ -7,7 +7,7 @@ import { Movie } from "../movies/types";
 import { Genre } from "../common/types";
 
 /**
- * Standardized pagination response format used by BFF API
+ * Standardized pagination response format used by BFF API (legacy format)
  */
 export interface PaginatedResponse<T> {
   total: number;
@@ -20,12 +20,38 @@ export interface PaginatedResponse<T> {
 }
 
 /**
- * Movie list response from BFF API
+ * ResponseBuilder pagination info
+ */
+export interface PaginationInfo {
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages?: number;
+  has_next?: boolean;
+  has_prev?: boolean;
+}
+
+/**
+ * ResponseBuilder paginated response format
+ */
+export interface ResponseBuilderPaginatedResponse<T> {
+  results: T[];
+  pagination: PaginationInfo;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Movie list response from BFF API (legacy format)
  */
 export type BFFMovieListResponse = PaginatedResponse<Movie>;
 
 /**
- * Enhanced movie with user interactions for movie detail screen
+ * Movie list response from BFF API (ResponseBuilder format)
+ */
+export type BFFMovieListResponseRB = ResponseBuilderPaginatedResponse<Movie>;
+
+/**
+ * Enhanced movie with user interactions for movie detail screen (legacy format)
  */
 export interface MovieDetailData {
   movie: Movie;
@@ -33,6 +59,34 @@ export interface MovieDetailData {
   trailers: Trailer[];
   similar_movies: Movie[];
   user_interactions: UserInteractions;
+}
+
+/**
+ * ResponseBuilder format for movie detail response
+ */
+export interface MovieDetailResponse {
+  data: Movie;
+  related: {
+    cast: Actor[];
+    trailers: Trailer[];
+    similar_movies: SimilarMovie[];
+  };
+  context: {
+    user_interactions: UserInteractions;
+    personalized: boolean;
+  };
+  metadata: {
+    service_info: Record<string, unknown>;
+    api_version: string;
+  };
+}
+
+/**
+ * Similar movie with recommendation metadata
+ */
+export interface SimilarMovie extends Movie {
+  similarity_score?: number;
+  recommendation_reason?: string;
 }
 
 /**

@@ -1,17 +1,53 @@
 """Search-related routes for BFF API."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
+import httpx
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
+from fast_core.errors.exceptions import ExternalServiceException
+from fast_core.security.rate_limit import rate_limit
 
-from bff_api.dependencies.common import get_backend_client
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.dependencies import get_backend_client
+from bff_api.services.clients.facade import BackendClient
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["search"])
 
 
+def _build_api_path(path: str) -> str:
+    """Build API path with version prefix.
+
+    Args:
+        path: Relative API path
+
+    Returns:
+        Full API path with version prefix
+    """
+    ***REMOVED*** Remove leading slash if present to avoid double slashes
+    clean_path = path.lstrip("/")
+    return f"/api/v1/{clean_path}"
+
+
+async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
+    """Handle backend service errors consistently.
+
+    Args:
+        e: The exception that occurred
+        operation: Description of the operation that failed
+        **context: Additional context for logging
+    """
+    logger.error(
+        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
+    )
+    raise ExternalServiceException(
+        detail="Backend service unavailable",
+        service_name="backend-api",
+        error_code="SERVICE_UNAVAILABLE",
+    )
+
+
+@rate_limit(requests=50, window=60)  ***REMOVED*** 50 searches per minute
 @router.get("/search")
 async def search_screen(
     q: str = Query(..., description="Search query"),
@@ -54,13 +90,13 @@ async def search_screen(
             "has_next": results.get("has_next", False),
         }
 
-    except BackendClientError as e:
-        logger.error(
-            "Backend error for search", query=q, error=str(e), service="bff", endpoint="search"
-        )
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
+    except Exception as e:
+        await _handle_backend_error(e, "search", query=q)
+        ***REMOVED*** This line is unreachable but satisfies type checker
+        return {}
 
 
+@rate_limit(requests=100, window=60)  ***REMOVED*** 100 suggestions per minute (higher for typeahead)
 @router.get("/search/suggestions")
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
@@ -83,22 +119,21 @@ async def get_search_suggestions(
         HTTPException: If backend service is unavailable (502)
     """
     try:
-        response = await backend._make_request(
-            "GET",
-            backend._build_api_path("/search/suggestions"),
+        ***REMOVED*** Use the _get_client() method to get the HTTP client
+        ***REMOVED*** since suggestion methods are not yet implemented in BackendClient
+        client = await backend._get_client()
+        response = await client.get(
+            _build_api_path("/search/suggestions"),
             params={"query": query, "limit": limit},
         )
-        return response
+        response.raise_for_status()
+        result = cast(Dict[str, Any], response.json())
+        return result
 
-    except BackendClientError as e:
-        logger.error(
-            "Backend error for search suggestions",
-            query=query,
-            error=str(e),
-            service="bff",
-            endpoint="search_suggestions",
-        )
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
+    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        await _handle_backend_error(e, "search_suggestions", query=query)
+        ***REMOVED*** This line is unreachable but satisfies type checker
+        return {}
 
 
 @router.get("/search/suggestions/text")
@@ -127,22 +162,21 @@ async def get_text_suggestions(
         HTTPException: If backend service is unavailable (502)
     """
     try:
-        response = await backend._make_request(
-            "GET",
-            backend._build_api_path("/search/suggestions/text"),
+        ***REMOVED*** Use the _get_client() method to get the HTTP client
+        ***REMOVED*** since suggestion methods are not yet implemented in BackendClient
+        client = await backend._get_client()
+        response = await client.get(
+            _build_api_path("/search/suggestions/text"),
             params={"query": query, "limit": limit},
         )
-        return response
+        response.raise_for_status()
+        result = cast(Dict[str, Any], response.json())
+        return result
 
-    except BackendClientError as e:
-        logger.error(
-            "Backend error for text suggestions",
-            query=query,
-            error=str(e),
-            service="bff",
-            endpoint="text_suggestions",
-        )
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
+    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        await _handle_backend_error(e, "text_suggestions", query=query)
+        ***REMOVED*** This line is unreachable but satisfies type checker
+        return {}
 
 
 @router.get("/search/all")
@@ -171,21 +205,26 @@ async def search_all_entities(
         HTTPException: If backend service is unavailable (502)
     """
     try:
-        params = {"query": query, "page": page, "limit": limit}
+        params: Dict[str, Union[str, int, List[str]]] = {
+            "query": query,
+            "page": page,
+            "limit": limit,
+        }
         if types:
             params["types"] = types
 
-        response = await backend._make_request(
-            "GET", backend._build_api_path("/search"), params=params
+        ***REMOVED*** Use the _get_client() method to get the HTTP client
+        ***REMOVED*** since this method is not yet implemented in BackendClient
+        client = await backend._get_client()
+        response = await client.get(
+            _build_api_path("/search"),
+            params=params,
         )
-        return response
+        response.raise_for_status()
+        result = cast(Dict[str, Any], response.json())
+        return result
 
-    except BackendClientError as e:
-        logger.error(
-            "Backend error for all entities search",
-            query=query,
-            error=str(e),
-            service="bff",
-            endpoint="search_all",
-        )
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
+    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        await _handle_backend_error(e, "search_all", query=query)
+        ***REMOVED*** This line is unreachable but satisfies type checker
+        return {}

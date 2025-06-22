@@ -1,6 +1,6 @@
 """Actor-related routes for BFF API."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key, build_filtered_key, build_paginated_key
@@ -8,13 +8,25 @@ from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from bff_api.dependencies.common import get_backend_client
-from bff_api.schemas.screen_schemas import ActorScreenData, MovieListData
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.dependencies import get_backend_client
+
+from fast_core.responses import ResponseBuilder
+from fast_core.errors import ExternalServiceException
+from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["actors"])
+
+***REMOVED*** Initialize response builder for consistent API responses
+responses = ResponseBuilder(
+    config={
+        "pagination": {
+            "default_limit": 20,
+            "max_limit": 100,
+        },
+    }
+)
 
 ***REMOVED*** Security scheme for optional authentication
 security = HTTPBearer(auto_error=False)
@@ -245,14 +257,14 @@ async def _get_actor_movies_data(
     return movies_data
 
 
-@router.get("/actors/{actor_id}", response_model=ActorScreenData)
+@router.get("/actors/{actor_id}")
 async def get_actor_screen(
     actor_id: int = Path(..., description="Actor ID"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> ActorScreenData:
+) -> Dict[str, Any]:
     """Get aggregated data for actor detail screen.
 
     Fetches complete actor information including their movies and metadata.
@@ -367,17 +379,42 @@ async def get_actor_screen(
                             "is_watched": False,
                         }
 
-        ***REMOVED*** Convert dictionary back to Pydantic model
-        return ActorScreenData(**actor_screen_dict)
+        ***REMOVED*** Use ResponseBuilder detail pattern for consistent response structure
+        response = responses.detail(
+            item=actor_screen_dict["actor"],
+            related={
+                "movies": actor_screen_dict["movies"],
+            },
+            context={
+                "pagination": {
+                    "page": page,
+                    "limit": limit,
+                    "total_movies": actor_screen_dict["movies"]["total"],
+                },
+                "personalized": bool(user_id),
+            },
+            metadata={
+                "service_info": {
+                    "aggregated_from": ["backend-api"],
+                    "user_authenticated": bool(user_id),
+                },
+                "api_version": "v1",
+                "response_pattern": "detail",
+                "actor_context": {
+                    "actor_id": actor_id,
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error for actor {actor_id}: {e}")
         if "404" in str(e):
             raise HTTPException(status_code=404, detail="Actor not found")
         raise HTTPException(status_code=502, detail="Backend service unavailable")
 
 
-@router.get("/actors/{actor_id}/movies", response_model=MovieListData)
+@router.get("/actors/{actor_id}/movies")
 async def get_actor_movies(
     actor_id: int = Path(..., description="Actor ID"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -402,7 +439,7 @@ async def get_actor_movies(
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> MovieListData:
+) -> Dict[str, Any]:
     """Get paginated list of movies for a specific actor with filters.
 
     Provides paginated movie listings for an actor with support for filtering by genre,
@@ -526,9 +563,42 @@ async def get_actor_movies(
                             "is_watched": False,
                         }
 
-        ***REMOVED*** Convert dictionary back to Pydantic model
-        return MovieListData(**movies_data_dict)
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        filters_applied = {
+            "actor_id": actor_id,
+            "genre_id": genre_id,
+            "sort_by": sort_by,
+            "sort_desc": sort_desc,
+            "imdb_rating": imdb_rating,
+            "rotten_tomatoes_rating": rotten_tomatoes_rating,
+            "metacritic_rating": metacritic_rating,
+            "year": year,
+            "start_year": start_year,
+            "end_year": end_year,
+        }
 
-    except BackendClientError as e:
+        response = responses.paginated(
+            items=movies_data_dict["results"],
+            page=movies_data_dict["page"],
+            limit=movies_data_dict["per_page"],
+            total=movies_data_dict["total"],
+            metadata={
+                "filters_applied": filters_applied,
+                "service_info": {
+                    "aggregated_from": ["backend-api"],
+                    "user_authenticated": bool(user_id),
+                    "user_personalized": bool(user_id),
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "collection_type": "actor_movies",
+                "actor_context": {
+                    "actor_id": actor_id,
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
+
+    except ExternalServiceException as e:
         logger.error(f"Backend error for actor {actor_id} movies: {e}")
         raise HTTPException(status_code=502, detail="Backend service unavailable")

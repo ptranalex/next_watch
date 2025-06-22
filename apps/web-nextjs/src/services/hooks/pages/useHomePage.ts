@@ -1,7 +1,8 @@
 "use client";
 
 import { Movie } from "@/domain/entities";
-import { MovieAPI, MovieListResponse } from "@/services/api";
+import { MoviesAPI } from "@/services/api";
+import { BFFMovieListResponseRB } from "@/services/api/bff/types";
 import { CacheKeys } from "@/services/cache";
 import useMovieFilterStore from "@/store/movieFilterStore";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -167,7 +168,7 @@ export const useHomePage = (options: UseHomePageOptions) => {
         },
       });
 
-      const response = await MovieAPI.getMovies({
+      const response = await MoviesAPI.getMovies({
         page: pageParam,
         limit: options.limit || 20,
         genre_id: options.genre_id,
@@ -180,10 +181,10 @@ export const useHomePage = (options: UseHomePageOptions) => {
         metacritic_rating,
       });
 
-      // Simple prefetching - use the existing MovieAPI.getById method
+      // Simple prefetching - use the existing MoviesAPI.getMovieDetail method
       if (pageParam === 1 && response.results.length > 0) {
         const firstFewMovies = response.results.slice(0, 3);
-        firstFewMovies.forEach((movie) => {
+        firstFewMovies.forEach((movie: Movie) => {
           if (movie.id) {
             // Check if movie details are already cached
             const movieDetailsKey = CacheKeys.movies.detail(movie.id as number);
@@ -191,7 +192,7 @@ export const useHomePage = (options: UseHomePageOptions) => {
               // Prefetch movie details in background
               queryClient.prefetchQuery({
                 queryKey: movieDetailsKey,
-                queryFn: () => MovieAPI.getById(movie.id as number),
+                queryFn: () => MoviesAPI.getMovieDetail(movie.id as number),
                 staleTime: 1000 * 60 * 5, // 5 minutes
               });
             }
@@ -201,8 +202,11 @@ export const useHomePage = (options: UseHomePageOptions) => {
 
       return response;
     },
-    getNextPageParam: (lastPage: MovieListResponse) => {
-      return lastPage.has_next ? lastPage.page + 1 : undefined;
+    getNextPageParam: (lastPage: BFFMovieListResponseRB) => {
+      // New ResponseBuilder format only
+      return lastPage.pagination.has_next
+        ? (lastPage.pagination.page || 0) + 1
+        : undefined;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
@@ -217,10 +221,10 @@ export const useHomePage = (options: UseHomePageOptions) => {
     return data?.pages ? data.pages.flatMap((page) => page.results) : [];
   }, [data?.pages]);
 
-  // Get pagination info from the last page
+  // Get pagination info from the last page (ResponseBuilder format)
   const lastPage = data?.pages?.[data.pages.length - 1];
-  const totalMovies = lastPage?.total || 0;
-  const currentPage = lastPage?.page || 1;
+  const totalMovies = lastPage?.pagination?.total || 0;
+  const currentPage = lastPage?.pagination?.page || 1;
 
   // Log results or errors
   useEffect(() => {
@@ -276,7 +280,7 @@ export const useHomePage = (options: UseHomePageOptions) => {
         if (!queryClient.getQueryData(movieDetailsKey)) {
           return queryClient.prefetchQuery({
             queryKey: movieDetailsKey,
-            queryFn: () => MovieAPI.getById(movieId),
+            queryFn: () => MoviesAPI.getMovieDetail(movieId),
             staleTime: 1000 * 60 * 5,
           });
         }

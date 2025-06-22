@@ -6,12 +6,21 @@ from typing import Any, Dict, List, Optional, Union, cast
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key, build_filtered_key
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, Path, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fast_core.errors.exceptions import (
+    ExternalServiceException,
+    ResourceNotFoundException,
+    APIException,
+)
+from fast_core.responses import ResponseBuilder
+from fast_core.security.rate_limit import rate_limit
 
-from bff_api.dependencies.common import get_backend_client
-from bff_api.schemas.screen_schemas import MovieListData, MovieScreenData, UserInteractions
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.dependencies import get_backend_client
+from bff_api.dependencies.service_clients import get_recommendation_client
+from fast_core.errors import ExternalServiceException
+from bff_api.services.clients import BackendClient
+from bff_api.services.clients.recommendation import RecommendationClient
 from bff_api.utils.auth import extract_user_id_from_token
 
 logger = get_logger(__name__)
@@ -19,6 +28,19 @@ router = APIRouter(tags=["movies"])
 
 ***REMOVED*** Security scheme for optional authentication
 security = HTTPBearer(auto_error=False)
+
+***REMOVED*** Initialize response builder for consistent API responses
+responses = ResponseBuilder(
+    config={
+        "pagination": {
+            "default_limit": 20,
+            "max_limit": 100,
+        },
+        "detail": {
+            "include_metadata": True,
+        },
+    }
+)
 
 
 def _build_movies_list_cache_key(
@@ -58,7 +80,7 @@ def _build_movies_list_cache_key(
 
 @redis_cache(
     ttl=1800,  ***REMOVED*** 30 minutes for user-specific, 1 hour for anonymous
-    key_builder=lambda movie_id, user_id, backend, credentials=None: build_cache_key(
+    key_builder=lambda movie_id, user_id, backend, recommendation_client, credentials=None: build_cache_key(
         "screen:movie", [movie_id, "user", user_id or "anon"], prefix=""
     ),
 )
@@ -66,6 +88,7 @@ async def _get_movie_screen_data(
     movie_id: int,
     user_id: Optional[int],
     backend: BackendClient,
+    recommendation_client: RecommendationClient,
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[str, Any]:
     """Internal cached function for movie screen aggregation."""
@@ -87,8 +110,10 @@ async def _get_movie_screen_data(
     logger.info("Fetching movie trailers from backend", movie_id=movie_id, service="bff")
     trailers = await backend.get_movie_trailers(movie_id)
 
-    logger.info("Fetching similar movies from backend", movie_id=movie_id, service="bff")
-    similar_movies = await backend.get_similar_movies(
+    logger.info(
+        "Fetching similar movies from recommendation service", movie_id=movie_id, service="bff"
+    )
+    similar_movies = await recommendation_client.get_similar_movies(
         movie_id,
         limit=20,
         min_score=0.01,
@@ -248,12 +273,16 @@ async def _get_movie_screen_data(
     return screen_data
 
 
-@router.get("/movies/{movie_id}", response_model=MovieScreenData)
+@rate_limit(
+    requests=200, window=60
+)  ***REMOVED*** 200 requests per minute (higher for individual movie requests)
+@router.get("/movies/{movie_id}")
 async def get_movie_screen(
     movie_id: int = Path(..., description="Movie ID"),
     backend: BackendClient = Depends(get_backend_client),
+    recommendation_client: RecommendationClient = Depends(get_recommendation_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> MovieScreenData:
+) -> Dict[str, Any]:
     """Get aggregated data for movie detail screen.
 
     Fetches complete movie information including cast, similar movies,
@@ -268,7 +297,8 @@ async def get_movie_screen(
         Aggregated movie detail screen data
 
     Raises:
-        HTTPException: 404 if movie not found, 502 if backend unavailable
+        ResourceNotFoundException: If movie not found
+        ExternalServiceException: If backend service unavailable
     """
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
@@ -299,12 +329,34 @@ async def get_movie_screen(
 
     try:
         ***REMOVED*** Use the cached function - decorator handles all cache logic
-        screen_data_dict = await _get_movie_screen_data(movie_id, user_id, backend, credentials)
+        screen_data_dict = await _get_movie_screen_data(
+            movie_id, user_id, backend, recommendation_client, credentials
+        )
 
-        ***REMOVED*** Convert dictionary back to Pydantic model
-        return MovieScreenData(**screen_data_dict)
+        ***REMOVED*** Use ResponseBuilder detail pattern for consistent response structure
+        response = responses.detail(
+            item=screen_data_dict["movie"],
+            related={
+                "cast": screen_data_dict["cast"],
+                "trailers": screen_data_dict["trailers"],
+                "similar_movies": screen_data_dict["similar_movies"],
+            },
+            context={
+                "user_interactions": screen_data_dict["user_interactions"],
+                "personalized": bool(user_id),
+            },
+            metadata={
+                "service_info": {
+                    "aggregated_from": ["backend-api", "recommendation-api"],
+                    "user_authenticated": bool(user_id),
+                },
+                "api_version": "v1",
+                "response_pattern": "detail",
+            },
+        )
+        return cast(Dict[str, Any], response)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(
             "Backend error for movie detail",
             movie_id=movie_id,
@@ -313,8 +365,14 @@ async def get_movie_screen(
             endpoint="movie_detail",
         )
         if "404" in str(e):
-            raise HTTPException(status_code=404, detail="Movie not found")
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
+            raise ResourceNotFoundException(
+                detail="Movie not found", resource_id=str(movie_id), resource_type="movie"
+            )
+        raise ExternalServiceException(
+            detail="Backend service unavailable",
+            service_name="backend-api",
+            error_code="SERVICE_UNAVAILABLE",
+        )
     except Exception as e:
         logger.error(
             "Unexpected error in movie detail endpoint",
@@ -323,7 +381,9 @@ async def get_movie_screen(
             service="bff",
             endpoint="movie_detail",
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise APIException(
+            detail="Internal server error", status_code=500, error_code="INTERNAL_ERROR"
+        )
 
 
 @redis_cache(
@@ -504,7 +564,8 @@ async def _get_movies_list_data(
     return list_data
 
 
-@router.get("/movies", response_model=MovieListData)
+@rate_limit(requests=100, window=60)  ***REMOVED*** 100 requests per minute
+@router.get("/movies")
 async def get_movies_list(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
@@ -529,7 +590,7 @@ async def get_movies_list(
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> MovieListData:
+) -> Dict[str, Any]:
     """Get paginated list of movies with filters.
 
     Provides paginated movie listings with support for filtering by genre,
@@ -556,7 +617,7 @@ async def get_movies_list(
         Paginated movie list with metadata
 
     Raises:
-        HTTPException: If backend service is unavailable (502)
+        ExternalServiceException: If backend service is unavailable
     """
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
@@ -600,11 +661,42 @@ async def get_movies_list(
             credentials=credentials,
         )
 
-        ***REMOVED*** Convert dictionary back to Pydantic model
-        return MovieListData(**list_data_dict)
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        response = responses.paginated(
+            items=list_data_dict["results"],
+            page=list_data_dict["page"],
+            limit=list_data_dict["per_page"],
+            total=list_data_dict["total"],
+            metadata={
+                "filters_applied": {
+                    "genre_id": genre_id,
+                    "actor_id": actor_id,
+                    "sort_by": sort_by,
+                    "sort_desc": sort_desc,
+                    "imdb_rating": imdb_rating,
+                    "rotten_tomatoes_rating": rotten_tomatoes_rating,
+                    "metacritic_rating": metacritic_rating,
+                    "year": year,
+                    "start_year": start_year,
+                    "end_year": end_year,
+                },
+                "service_info": {
+                    "aggregated_from": ["backend-api"],
+                    "user_authenticated": bool(user_id),
+                    "user_personalized": bool(user_id),
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+            },
+        )
+        return cast(Dict[str, Any], response)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(
             "Backend error for movies list", error=str(e), service="bff", endpoint="movies_list"
         )
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
+        raise ExternalServiceException(
+            detail="Backend service unavailable",
+            service_name="backend-api",
+            error_code="SERVICE_UNAVAILABLE",
+        )

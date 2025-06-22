@@ -21,7 +21,7 @@ from bff_api.routes.v1 import (
 )
 
 ***REMOVED*** Create the v1 API router
-api_v1_router = APIRouter(prefix="/v1")
+api_v1_router = APIRouter(prefix="/bff/v1")
 
 ***REMOVED*** Include sub-routers
 api_v1_router.include_router(home.router, tags=["home"])

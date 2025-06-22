@@ -5,7 +5,12 @@ from typing import Any, Dict, List, Optional, cast
 
 from config.logging import get_logger
 
-from bff_api.services.clients.base import BackendClientError, BaseBackendClient
+from fast_core.errors import (
+    ResourceNotFoundException,
+    ExternalServiceException,
+    service_error_handler,
+)
+from bff_api.services.clients.base import BaseBackendClient
 
 logger = get_logger(__name__)
 
@@ -27,7 +32,7 @@ class UserInteractionsClient(BaseBackendClient):
             User interaction data if found, None otherwise
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         try:
             headers = self._get_auth_headers(user_id)
@@ -36,12 +41,9 @@ class UserInteractionsClient(BaseBackendClient):
                 self._build_api_path(f"/user/movies/{movie_id}/interaction"),
                 headers=headers,
             )
-        except BackendClientError as e:
-            if "404" in str(e):
-                ***REMOVED*** Return None if interaction not found
-                return None
-            ***REMOVED*** Re-raise other errors
-            raise
+        except ResourceNotFoundException:
+            ***REMOVED*** Return None if interaction not found
+            return None
 
     ***REMOVED*** ============================================================================
     ***REMOVED*** Watchlist Operations
@@ -89,7 +91,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -135,7 +137,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -190,7 +192,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -213,7 +215,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -239,7 +241,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -294,7 +296,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -317,7 +319,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -343,7 +345,7 @@ class UserInteractionsClient(BaseBackendClient):
             Updated user interaction data
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(

@@ -25,7 +25,6 @@ from bff_api.schemas.screen_schemas import (
     GenreScreenData,
     HomeScreenData,
     MovieListData,
-    MovieScreenData,
     NavbarData,
     NavbarLinkData,
 )
@@ -39,7 +38,6 @@ from bff_api.schemas.user_interaction_schemas import (
 __all__ = [
     ***REMOVED*** Screen data schemas
     "HomeScreenData",
-    "MovieScreenData",
     "MovieListData",
     "GenreScreenData",
     "NavbarData",

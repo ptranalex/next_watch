@@ -1,8 +1,8 @@
 import { fetchData } from "../core/api-client";
 import {
-  BFFMovieListResponse,
+  BFFMovieListResponseRB,
   BFFMovieQueryParams,
-  MovieDetailData,
+  MovieDetailResponse,
   HomeScreenData,
   GenreScreenData,
   SearchResults,
@@ -23,7 +23,7 @@ export const MoviesAPI = {
    */
   getMovies: async (
     params: BFFMovieQueryParams = {}
-  ): Promise<BFFMovieListResponse> => {
+  ): Promise<BFFMovieListResponseRB> => {
     const queryParams = new URLSearchParams();
 
     if (params.page) queryParams.append("page", params.page.toString());
@@ -58,15 +58,15 @@ export const MoviesAPI = {
     }`;
 
     logger.debug("Fetching movies with params:", params);
-    return fetchData<BFFMovieListResponse>(endpoint);
+    return fetchData<BFFMovieListResponseRB>(endpoint);
   },
 
   /**
    * Get detailed movie information including cast, trailers, and user interactions
    */
-  getMovieDetail: async (movieId: number): Promise<MovieDetailData> => {
+  getMovieDetail: async (movieId: number): Promise<MovieDetailResponse> => {
     logger.debug("Fetching movie detail:", { movieId });
-    return fetchData<MovieDetailData>(`/bff/v1/movies/${movieId}`);
+    return fetchData<MovieDetailResponse>(`/bff/v1/movies/${movieId}`);
   },
 
   /**
@@ -131,7 +131,7 @@ export const MoviesAPI = {
       year?: number;
       genre_id?: number;
     } = {}
-  ): Promise<BFFMovieListResponse> => {
+  ): Promise<BFFMovieListResponseRB> => {
     // Use the main getMovies endpoint with sorting by rating
     return MoviesAPI.getMovies({
       ...params,
@@ -147,7 +147,7 @@ export const MoviesAPI = {
   getMoviesByActor: async (
     actorId: number,
     params: Omit<BFFMovieQueryParams, "actor_id"> = {}
-  ): Promise<BFFMovieListResponse> => {
+  ): Promise<BFFMovieListResponseRB> => {
     return MoviesAPI.getMovies({
       ...params,
       actor_id: actorId,
@@ -162,7 +162,7 @@ export const MoviesAPI = {
       page?: number;
       limit?: number;
     } = {}
-  ): Promise<BFFMovieListResponse> => {
+  ): Promise<BFFMovieListResponseRB> => {
     const currentYear = new Date().getFullYear();
     return MoviesAPI.getMovies({
       ...params,
@@ -180,7 +180,7 @@ export const MoviesAPI = {
       page?: number;
       limit?: number;
     } = {}
-  ): Promise<BFFMovieListResponse> => {
+  ): Promise<BFFMovieListResponseRB> => {
     return MoviesAPI.getMovies({
       ...params,
       sort_by: "imdb_rating", // Assuming popularity correlates with rating

@@ -47,10 +47,10 @@ def get_app() -> FastAPI:
         logger.info("Initializing Next Watch BFF Service", service="bff-api")
         logger.info("Environment configuration", environment=settings.environment)
 
-        ***REMOVED*** Import and create app using core module
-        from bff_api.core.app import create_app
+        ***REMOVED*** Import and create app using fast-core integration
+        from bff_api.core.app_fast_core import create_bff_app
 
-        _app = create_app(settings)
+        _app = create_bff_app(settings)
         logger.info("BFF Service initialized successfully", service="bff-api")
 
     return _app

@@ -8,12 +8,16 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from bff_api.config.app import settings
+from bff_api.dependencies import get_all_services_health
 from config.logging import get_logger
 from bff_api.services.cache_service.background_warming_service import (
     get_background_warming_service,
 )
 
 logger = get_logger(__name__)
+
+***REMOVED*** Service version - should ideally come from package metadata or environment
+SERVICE_VERSION = getattr(settings, "version", "1.0.0")
 
 router = APIRouter()
 
@@ -26,6 +30,76 @@ class HealthResponse(BaseModel):
     version: str
     environment: str
     backend_api_url: str
+
+
+@router.get("/health/services")
+async def service_clients_health() -> JSONResponse:
+    """Service Client Factory health check endpoint.
+
+    Shows the health status of all service clients managed by the
+    Service Client Factory system.
+
+    Returns:
+        Health status for all registered service clients
+    """
+    try:
+        ***REMOVED*** Get health status from Service Client Factory
+        health_status = await get_all_services_health()
+
+        ***REMOVED*** Determine overall status
+        all_healthy = all(status.get("status") == "healthy" for status in health_status.values())
+        overall_status = "healthy" if all_healthy else "degraded"
+        status_code = 200 if all_healthy else 503
+
+        logger.info(
+            "Service clients health check",
+            status=overall_status,
+            service="bff",
+            endpoint="service_clients_health",
+            services_count=len(health_status),
+        )
+
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "status": overall_status,
+                "service": "bff",
+                "version": "0.1.0",
+                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                "service_client_factory": {
+                    "enabled": True,
+                    "services_registered": len(health_status),
+                    "services": health_status,
+                },
+                "summary": {
+                    "healthy": sum(
+                        1 for s in health_status.values() if s.get("status") == "healthy"
+                    ),
+                    "unhealthy": sum(
+                        1 for s in health_status.values() if s.get("status") == "unhealthy"
+                    ),
+                    "error": sum(1 for s in health_status.values() if s.get("status") == "error"),
+                    "total": len(health_status),
+                },
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Service clients health check failed: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "service": "bff",
+                "version": "0.1.0",
+                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                "error": f"Service Client Factory health check failed: {str(e)}",
+                "service_client_factory": {
+                    "enabled": True,
+                    "error": str(e),
+                },
+            },
+        )
 
 
 @router.get("/health")

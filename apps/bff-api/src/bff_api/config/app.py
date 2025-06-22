@@ -34,13 +34,10 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
 
     ***REMOVED*** Backend service URLs
     backend_api_url: str = Field(default="http://localhost:8000", description="Backend API URL")
-    auth_api_url: str = Field(default="http://localhost:8002", description="Auth API URL")
-    recommendation_api_url: str = Field(
-        default="http://localhost:8003", description="Recommendation API URL"
-    )
-    ***REMOVED*** Backwards compatibility field
+    auth_api_url: str = Field(default="http://localhost:8003", description="Auth API URL")
     reco_api_url: str = Field(
-        default="http://localhost:8003", description="Alias for recommendation_api_url"
+        default="http://localhost:8002",
+        description="Recommendation API URL",
     )
     ml_api_url: Optional[str] = Field(default=None, description="ML API URL (optional)")
 
@@ -51,6 +48,12 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
         default=30, description="Recommendation API timeout in seconds"
     )
     ml_api_timeout: int = Field(default=60, description="ML API timeout in seconds")
+
+    ***REMOVED*** Service-to-service authentication
+    internal_api_key: str = Field(
+        default="bff-to-backend-secret-key",
+        description="API key for service-to-service authentication",
+    )
 
     ***REMOVED*** Feature flags
     enable_recommendations: bool = Field(default=True, description="Enable recommendation features")
@@ -102,7 +105,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
         urls = {
             "backend": self.backend_api_url,
             "auth": self.auth_api_url,
-            "reco": self.recommendation_api_url,
+            "reco": self.reco_api_url,
         }
         if self.ml_api_url:
             urls["ml"] = self.ml_api_url
@@ -119,7 +122,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
         ***REMOVED*** Log Redis URL
         logger.info(f"Redis URL: {self.get_redis_url_masked()}")
 
-    @validator("backend_api_url", "auth_api_url", "recommendation_api_url", "ml_api_url")
+    @validator("backend_api_url", "auth_api_url", "reco_api_url", "ml_api_url")
     def validate_service_url(cls, v: Optional[str]) -> Optional[str]:
         """Validate service URL format."""
         if v is None:
@@ -156,7 +159,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
             for url_name, url in [
                 ("backend_api_url", self.backend_api_url),
                 ("auth_api_url", self.auth_api_url),
-                ("recommendation_api_url", self.recommendation_api_url),
+                ("reco_api_url", self.reco_api_url),
                 ("ml_api_url", self.ml_api_url),
             ]:
                 if url and url.startswith("http://"):
@@ -166,7 +169,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
             for url_name, url in [
                 ("backend_api_url", self.backend_api_url),
                 ("auth_api_url", self.auth_api_url),
-                ("recommendation_api_url", self.recommendation_api_url),
+                ("reco_api_url", self.reco_api_url),
                 ("ml_api_url", self.ml_api_url),
             ]:
                 if url and "localhost" in url:
@@ -190,7 +193,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
   Service URLs:
     Backend: {self.backend_api_url}
     Auth: {self.auth_api_url}
-    Recommendation: {self.recommendation_api_url}
+    Recommendation: {self.reco_api_url}
     ML: {self.ml_api_url or 'disabled'}
 
   Cache:

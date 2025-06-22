@@ -1,16 +1,103 @@
 """Home screen routes for BFF API."""
 
-from typing import Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
+import httpx
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
+from fast_core.errors.exceptions import ExternalServiceException
 
-from bff_api.dependencies.common import get_backend_client
+from bff_api.dependencies import get_backend_client
 from bff_api.schemas.screen_schemas import HomeScreenData
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.services.clients.facade import BackendClient
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["home"])
+
+
+def _build_api_path(path: str) -> str:
+    """Build API path with version prefix.
+
+    Args:
+        path: Relative API path
+
+    Returns:
+        Full API path with version prefix
+    """
+    ***REMOVED*** Remove leading slash if present to avoid double slashes
+    clean_path = path.lstrip("/")
+    return f"/api/v1/{clean_path}"
+
+
+async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
+    """Handle backend service errors consistently.
+
+    Args:
+        e: The exception that occurred
+        operation: Description of the operation that failed
+        **context: Additional context for logging
+    """
+    logger.error(
+        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
+    )
+    raise ExternalServiceException(
+        detail="Backend service unavailable",
+        service_name="backend-api",
+        error_code="SERVICE_UNAVAILABLE",
+    )
+
+
+async def _get_movies(
+    backend: BackendClient,
+    page: int = 1,
+    limit: int = 20,
+    featured: Optional[bool] = None,
+    sort: Optional[str] = None,
+    recommended_for: Optional[int] = None,
+    user_id: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Get movies from backend with various filters.
+
+    Args:
+        backend: Backend client for backend service
+        page: Page number for pagination
+        limit: Number of items per page
+        featured: Filter for featured movies
+        sort: Sort order (popularity, release_date, etc.)
+        recommended_for: User ID for recommendations
+        user_id: User ID for personalized content
+
+    Returns:
+        Movies response from backend
+
+    Raises:
+        Exception: If request fails
+    """
+    ***REMOVED*** Use BackendClient.get_movies method instead of direct HTTP calls
+    return await backend.get_movies(
+        page=page,
+        limit=limit,
+        user_id=user_id,
+        featured=featured,
+        sort=sort,
+        recommended_for=recommended_for,
+    )
+
+
+async def _get_genres(backend: BackendClient) -> List[Dict[str, Any]]:
+    """Get genres from backend.
+
+    Args:
+        backend: Backend client for backend service
+
+    Returns:
+        List of genres
+
+    Raises:
+        Exception: If request fails
+    """
+    ***REMOVED*** Use BackendClient.get_genres method instead of direct HTTP calls
+    return await backend.get_genres()
 
 
 @router.get("/home", response_model=HomeScreenData)
@@ -32,30 +119,30 @@ async def get_home_screen(
         Aggregated home screen data with all content sections
 
     Raises:
-        HTTPException: If backend service is unavailable (502)
+        ExternalServiceException: If backend service is unavailable
     """
     try:
         ***REMOVED*** Fetch data concurrently (in real implementation, use asyncio.gather)
-        featured_movies_response = await backend.get_movies(
-            page=1, limit=10, featured=True, user_id=user_id
+        featured_movies_response = await _get_movies(
+            backend, page=1, limit=10, featured=True, user_id=user_id
         )
-        popular_movies_response = await backend.get_movies(
-            page=1, limit=20, sort="popularity", user_id=user_id
+        popular_movies_response = await _get_movies(
+            backend, page=1, limit=20, sort="popularity", user_id=user_id
         )
-        recent_releases_response = await backend.get_movies(
-            page=1, limit=15, sort="release_date", user_id=user_id
+        recent_releases_response = await _get_movies(
+            backend, page=1, limit=15, sort="release_date", user_id=user_id
         )
-        genres = await backend.get_genres()
+        genres = await _get_genres(backend)
 
         ***REMOVED*** Handle user recommendations
         user_recommendations = []
         if user_id:
             try:
-                recommendations_response = await backend.get_movies(
-                    page=1, limit=20, recommended_for=user_id, user_id=user_id
+                recommendations_response = await _get_movies(
+                    backend, page=1, limit=20, recommended_for=user_id, user_id=user_id
                 )
                 user_recommendations = recommendations_response.get("results", [])
-            except BackendClientError:
+            except Exception:
                 logger.warning(
                     "Failed to get recommendations for user",
                     user_id=user_id,
@@ -71,8 +158,13 @@ async def get_home_screen(
             genres=genres,
         )
 
-    except BackendClientError as e:
-        logger.error(
-            "Backend error in home screen", error=str(e), service="bff", endpoint="home_screen"
+    except Exception as e:
+        await _handle_backend_error(e, "home_screen", user_id=user_id)
+        ***REMOVED*** This line is never reached due to exception being raised, but satisfies type checker
+        return HomeScreenData(
+            featured_movies=[],
+            popular_movies=[],
+            recent_releases=[],
+            user_recommendations=[],
+            genres=[],
         )
-        raise HTTPException(status_code=502, detail="Backend service unavailable")

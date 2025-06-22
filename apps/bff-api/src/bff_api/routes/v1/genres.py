@@ -7,10 +7,11 @@ from cache.keys import build_filtered_key
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fast_core.errors import ExternalServiceException
 
-from bff_api.dependencies.common import get_backend_client
+from bff_api.dependencies import get_backend_client
 from bff_api.schemas.screen_schemas import GenreScreenData
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
 
 logger = get_logger(__name__)
@@ -93,7 +94,7 @@ async def _get_genre_screen_data(
             service="bff",
             component="genres",
         )
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         if "404" in str(e):
             raise HTTPException(status_code=404, detail="Genre not found")
         logger.error(
@@ -357,7 +358,7 @@ async def get_genre_screen(
         ***REMOVED*** Convert dictionary back to Pydantic model
         return GenreScreenData(**genre_screen_dict)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(
             "Backend error for genre screen",
             genre_id=genre_id,

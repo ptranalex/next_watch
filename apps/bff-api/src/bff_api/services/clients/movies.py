@@ -6,8 +6,13 @@ from typing import Any, Dict, List, Optional, cast
 import httpx
 
 from config.logging import get_logger
+from fast_core.errors import (
+    ValidationException,
+    ResourceNotFoundException,
+    service_error_handler,
+)
 
-from .base import BackendClientError, BaseBackendClient
+from .base import BaseBackendClient
 
 logger = get_logger(__name__)
 
@@ -15,6 +20,7 @@ logger = get_logger(__name__)
 class MoviesClient(BaseBackendClient):
     """Client for movie-related operations."""
 
+    @service_error_handler("backend-api", logger, "get_movie")
     async def get_movie(self, movie_id: int, user_id: Optional[int] = None) -> Dict[str, Any]:
         """Get movie details with user-specific data.
 
@@ -24,15 +30,33 @@ class MoviesClient(BaseBackendClient):
 
         Returns:
             Movie data with user interactions
+
+        Raises:
+            ValidationException: If movie_id is invalid
+            ResourceNotFoundException: If movie not found
         """
+        if movie_id <= 0:
+            raise ValidationException("Movie ID must be a positive integer")
+
         params = {}
         if user_id:
+            if user_id <= 0:
+                raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
-        return await self._make_request(
-            "GET", self._build_api_path(f"/movies/{movie_id}"), params=params
-        )
+        try:
+            return await self._make_request(
+                "GET", self._build_api_path(f"/movies/{movie_id}"), params=params
+            )
+        except ResourceNotFoundException:
+            ***REMOVED*** Re-raise with more specific message
+            raise ResourceNotFoundException(
+                detail=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=str(movie_id),
+            )
 
+    @service_error_handler("backend-api", logger, "get_movies")
     async def get_movies(
         self,
         page: int = 1,
@@ -52,16 +76,30 @@ class MoviesClient(BaseBackendClient):
 
         Returns:
             Movies list with pagination and user interactions
+
+        Raises:
+            ValidationException: If pagination parameters are invalid
         """
+        ***REMOVED*** Validate pagination parameters
+        if page <= 0:
+            raise ValidationException("Page number must be a positive integer")
+        if limit <= 0 or limit > 100:
+            raise ValidationException("Limit must be between 1 and 100")
+
         params = {"page": page, "limit": limit, **filters}
 
         if genre_id:
+            if genre_id <= 0:
+                raise ValidationException("Genre ID must be a positive integer")
             params["genre_id"] = genre_id
         if user_id:
+            if user_id <= 0:
+                raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
         return await self._make_request("GET", self._build_api_path("/movies"), params=params)
 
+    @service_error_handler("backend-api", logger, "search_movies")
     async def search_movies(
         self,
         query: str,
@@ -79,20 +117,34 @@ class MoviesClient(BaseBackendClient):
 
         Returns:
             Search results with user interactions
+
+        Raises:
+            ValidationException: If search parameters are invalid
         """
+        ***REMOVED*** Validate search parameters
+        if not query or not query.strip():
+            raise ValidationException("Search query cannot be empty")
+        if page <= 0:
+            raise ValidationException("Page number must be a positive integer")
+        if limit <= 0 or limit > 100:
+            raise ValidationException("Limit must be between 1 and 100")
+
         params = {
-            "q": query,
+            "q": query.strip(),
             "page": page,
             "limit": limit,
         }
 
         if user_id:
+            if user_id <= 0:
+                raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
         return await self._make_request(
             "GET", self._build_api_path("/movies/search"), params=params
         )
 
+    @service_error_handler("backend-api", logger, "get_movie_cast")
     async def get_movie_cast(self, movie_id: int) -> List[Dict[str, Any]]:
         """Get movie cast and crew information.
 
@@ -101,10 +153,28 @@ class MoviesClient(BaseBackendClient):
 
         Returns:
             List of cast members with character and actor details
-        """
-        response = await self._make_request("GET", self._build_api_path(f"/movies/{movie_id}/cast"))
-        return cast(List[Dict[str, Any]], response.get("cast", []))
 
+        Raises:
+            ValidationException: If movie_id is invalid
+            ResourceNotFoundException: If movie not found
+        """
+        if movie_id <= 0:
+            raise ValidationException("Movie ID must be a positive integer")
+
+        try:
+            response = await self._make_request(
+                "GET", self._build_api_path(f"/movies/{movie_id}/cast")
+            )
+            return cast(List[Dict[str, Any]], response.get("cast", []))
+        except ResourceNotFoundException:
+            ***REMOVED*** Re-raise with more specific message
+            raise ResourceNotFoundException(
+                detail=f"Cast information for movie {movie_id} not found",
+                resource_type="Movie",
+                resource_id=str(movie_id),
+            )
+
+    @service_error_handler("backend-api", logger, "get_movie_trailers")
     async def get_movie_trailers(self, movie_id: int) -> List[Dict[str, Any]]:
         """Get movie trailers.
 
@@ -113,71 +183,31 @@ class MoviesClient(BaseBackendClient):
 
         Returns:
             List of movie trailers
-        """
-        response = await self._make_request(
-            "GET", self._build_api_path(f"/movies/{movie_id}/trailers")
-        )
-        ***REMOVED*** Handle both dict responses with trailers key and wrapped list responses
-        if "trailers" in response:
-            return cast(List[Dict[str, Any]], response["trailers"])
-        return cast(List[Dict[str, Any]], response.get("data", []))
-
-    async def get_similar_movies(
-        self,
-        movie_id: int,
-        limit: int = 20,
-        min_score: float = 0.01,
-    ) -> List[Dict[str, Any]]:
-        """Get similar movies from recommendation API.
-
-        Args:
-            movie_id: Movie ID to find similar movies for
-            limit: Maximum number of similar movies
-            min_score: Minimum similarity score threshold
-
-        Returns:
-            List of similar movies
 
         Raises:
-            BackendClientError: If request fails
+            ValidationException: If movie_id is invalid
+            ResourceNotFoundException: If movie not found
         """
+        if movie_id <= 0:
+            raise ValidationException("Movie ID must be a positive integer")
+
         try:
-            ***REMOVED*** Get URL for recommendation API from settings
-            reco_api_url = self.config.reco_api_url
-
-            ***REMOVED*** Create a temporary client for recommendation API
-            async with httpx.AsyncClient(base_url=reco_api_url, timeout=self.timeout) as client:
-                response = await client.get(
-                    f"/reco/v1/movies/{movie_id}/similar",
-                    params={
-                        "limit": limit,
-                        "min_score": min_score,
-                    },
-                )
-                response.raise_for_status()
-                data = response.json()
-
-                ***REMOVED*** Extract just the recommendation movie objects from the response
-                recommendations = data.get("recommendations", [])
-
-                logger.info(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
-                return cast(List[Dict[str, Any]], recommendations)
-
-        except httpx.HTTPStatusError as e:
-            logger.error(
-                f"HTTP error {e.response.status_code} getting similar movies for {movie_id}: {e}"
+            response = await self._make_request(
+                "GET", self._build_api_path(f"/movies/{movie_id}/trailers")
             )
-            ***REMOVED*** If movie is not found, return empty list instead of raising error
-            if e.response.status_code == 404:
-                return []
-            raise BackendClientError(f"Recommendation API error: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"Request error getting similar movies for {movie_id}: {e}")
-            raise BackendClientError(f"Recommendation API request failed: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error getting similar movies for {movie_id}: {e}")
-            raise BackendClientError(f"Unexpected error getting similar movies: {e}")
+            ***REMOVED*** Handle both dict responses with trailers key and wrapped list responses
+            if "trailers" in response:
+                return cast(List[Dict[str, Any]], response["trailers"])
+            return cast(List[Dict[str, Any]], response.get("data", []))
+        except ResourceNotFoundException:
+            ***REMOVED*** Re-raise with more specific message
+            raise ResourceNotFoundException(
+                detail=f"Trailers for movie {movie_id} not found",
+                resource_type="Movie",
+                resource_id=str(movie_id),
+            )
 
+    @service_error_handler("backend-api", logger, "get_movies_bulk")
     async def get_movies_bulk(
         self,
         movie_ids: List[int],
@@ -191,27 +221,32 @@ class MoviesClient(BaseBackendClient):
             movie_ids: List of movie IDs to fetch
             user_id: Optional user ID (not used by bulk endpoint, kept for compatibility)
             page: Page number for pagination
-            limit: Maximum number of movies per page
+            limit: Items per page
 
         Returns:
-            Response containing list of movie details
+            Dictionary containing movies data with pagination
 
         Raises:
-            BackendClientError: If request fails
+            ValidationException: If parameters are invalid
         """
+        ***REMOVED*** Validate parameters
         if not movie_ids:
-            return {"total": 0, "page": page, "per_page": limit, "results": []}
+            raise ValidationException("Movie IDs list cannot be empty")
+        if any(movie_id <= 0 for movie_id in movie_ids):
+            raise ValidationException("All movie IDs must be positive integers")
+        if len(movie_ids) > 100:
+            raise ValidationException("Cannot fetch more than 100 movies at once")
+        if page <= 0:
+            raise ValidationException("Page number must be a positive integer")
+        if limit <= 0 or limit > 100:
+            raise ValidationException("Limit must be between 1 and 100")
 
         ***REMOVED*** Convert movie IDs to comma-separated string
-        ids_str = ",".join(str(movie_id) for movie_id in movie_ids)
-
+        movie_ids_str = ",".join(map(str, movie_ids))
         params = {
-            "ids": ids_str,
+            "ids": movie_ids_str,
             "page": page,
             "limit": limit,
         }
-
-        ***REMOVED*** Note: user_id is not supported by the bulk endpoint
-        ***REMOVED*** The bulk endpoint only returns basic movie data without user interactions
 
         return await self._make_request("GET", self._build_api_path("/movies/bulk"), params=params)

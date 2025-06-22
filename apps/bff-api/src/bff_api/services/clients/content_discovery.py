@@ -3,7 +3,13 @@
 from typing import Any, Dict, List, Optional, cast
 from config.logging import get_logger
 
-from bff_api.services.clients.base import BackendClientError, BaseBackendClient
+from fast_core.errors import (
+    ExternalServiceException,
+    ResourceNotFoundException,
+    ValidationException,
+    service_error_handler,
+)
+from bff_api.services.clients.base import BaseBackendClient
 
 logger = get_logger(__name__)
 
@@ -11,46 +17,40 @@ logger = get_logger(__name__)
 class ContentDiscoveryClient(BaseBackendClient):
     """Client for content discovery operations."""
 
+    @service_error_handler("backend-api", logger, "get_genres")
     async def get_genres(self) -> List[Dict[str, Any]]:
         """Get all genres.
 
         Returns:
             List of genres
+
+        Raises:
+            ExternalServiceException: If request fails
         """
-        try:
-            logger.info(
-                "Fetching genres from backend",
-                service="bff",
-                component="content_discovery",
-                endpoint="get_genres",
-            )
-            response = await self._make_request("GET", self._build_api_path("/genres"))
+        logger.info(
+            "Fetching genres from backend",
+            service="bff",
+            component="content_discovery",
+            endpoint="get_genres",
+        )
+        response = await self._make_request("GET", self._build_api_path("/genres"))
 
-            ***REMOVED*** Handle response with genres key
-            if "genres" in response:
-                genres = cast(List[Dict[str, Any]], response["genres"])
-            else:
-                genres = cast(List[Dict[str, Any]], response.get("data", []))
+        ***REMOVED*** Handle response with genres key
+        if "genres" in response:
+            genres = cast(List[Dict[str, Any]], response["genres"])
+        else:
+            genres = cast(List[Dict[str, Any]], response.get("data", []))
 
-            logger.info(
-                "Successfully fetched genres",
-                genre_count=len(genres),
-                service="bff",
-                component="content_discovery",
-                endpoint="get_genres",
-            )
-            return genres
+        logger.info(
+            "Successfully fetched genres",
+            genre_count=len(genres),
+            service="bff",
+            component="content_discovery",
+            endpoint="get_genres",
+        )
+        return genres
 
-        except BackendClientError as e:
-            logger.error(
-                "Failed to fetch genres from backend",
-                error=str(e),
-                service="bff",
-                component="content_discovery",
-                endpoint="get_genres",
-            )
-            raise
-
+    @service_error_handler("backend-api", logger, "get_genre")
     async def get_genre(self, genre_id: int) -> Dict[str, Any]:
         """Get a specific genre by ID.
 
@@ -61,16 +61,22 @@ class ContentDiscoveryClient(BaseBackendClient):
             Genre data
 
         Raises:
-            BackendClientError: If genre not found or request fails
+            ValidationException: If genre_id is invalid
+            ResourceNotFoundException: If genre not found
+            ExternalServiceException: If request fails
         """
+        if genre_id <= 0:
+            raise ValidationException("Genre ID must be a positive integer")
+
+        logger.info(
+            "Fetching genre details from backend",
+            genre_id=genre_id,
+            service="bff",
+            component="content_discovery",
+            endpoint="get_genre",
+        )
+
         try:
-            logger.info(
-                "Fetching genre details from backend",
-                genre_id=genre_id,
-                service="bff",
-                component="content_discovery",
-                endpoint="get_genre",
-            )
             genre = await self._make_request("GET", self._build_api_path(f"/genres/{genre_id}"))
 
             logger.info(
@@ -82,18 +88,15 @@ class ContentDiscoveryClient(BaseBackendClient):
                 endpoint="get_genre",
             )
             return genre
-
-        except BackendClientError as e:
-            logger.error(
-                "Failed to fetch genre details from backend",
-                genre_id=genre_id,
-                error=str(e),
-                service="bff",
-                component="content_discovery",
-                endpoint="get_genre",
+        except ResourceNotFoundException:
+            ***REMOVED*** Re-raise with more specific message
+            raise ResourceNotFoundException(
+                detail=f"Genre with ID {genre_id} not found",
+                resource_type="Genre",
+                resource_id=str(genre_id),
             )
-            raise
 
+    @service_error_handler("backend-api", logger, "get_actor")
     async def get_actor(self, actor_id: int) -> Dict[str, Any]:
         """Get actor details.
 
@@ -104,16 +107,22 @@ class ContentDiscoveryClient(BaseBackendClient):
             Actor data
 
         Raises:
-            BackendClientError: If actor not found or request fails
+            ValidationException: If actor_id is invalid
+            ResourceNotFoundException: If actor not found
+            ExternalServiceException: If request fails
         """
+        if actor_id <= 0:
+            raise ValidationException("Actor ID must be a positive integer")
+
+        logger.info(
+            "Fetching actor details from backend",
+            actor_id=actor_id,
+            service="bff",
+            component="content_discovery",
+            endpoint="get_actor",
+        )
+
         try:
-            logger.info(
-                "Fetching actor details from backend",
-                actor_id=actor_id,
-                service="bff",
-                component="content_discovery",
-                endpoint="get_actor",
-            )
             actor = await self._make_request("GET", self._build_api_path(f"/actors/{actor_id}"))
 
             logger.info(
@@ -125,14 +134,10 @@ class ContentDiscoveryClient(BaseBackendClient):
                 endpoint="get_actor",
             )
             return actor
-
-        except BackendClientError as e:
-            logger.error(
-                "Failed to fetch actor details from backend",
-                actor_id=actor_id,
-                error=str(e),
-                service="bff",
-                component="content_discovery",
-                endpoint="get_actor",
+        except ResourceNotFoundException:
+            ***REMOVED*** Re-raise with more specific message
+            raise ResourceNotFoundException(
+                detail=f"Actor with ID {actor_id} not found",
+                resource_type="Actor",
+                resource_id=str(actor_id),
             )
-            raise

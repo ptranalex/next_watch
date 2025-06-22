@@ -6,7 +6,7 @@ from config.logging import get_logger
 from fastapi import APIRouter, Depends, Form, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from bff_api.dependencies.common import get_auth_client
+from bff_api.dependencies import get_auth_client
 from bff_api.schemas.auth_schemas import (
     AuthenticatedUserResponse,
     LoginRequest,

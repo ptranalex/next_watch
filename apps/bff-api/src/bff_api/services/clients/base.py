@@ -5,31 +5,52 @@ from typing import Any, Dict, List, Optional, Union, cast
 import httpx
 from config.logging import get_logger
 from tenacity import retry, stop_after_attempt, wait_exponential
+from fast_core.dependencies.client_factory import BaseServiceClient, ServiceClientConfig
+from fast_core.errors import (
+    handle_service_error,
+    service_error_handler,
+)
 
 from bff_api.config.app import BFFAPIConfig, settings
 
 logger = get_logger(__name__)
 
 
-class BackendClientError(Exception):
-    """Base exception for backend client errors."""
+class BaseBackendClient(BaseServiceClient):
+    """Base HTTP client for communicating with backend API.
 
-    pass
+    Now inherits from Fast Core's BaseServiceClient for better integration,
+    singleton support, and automatic health checking with proper error handling.
+    """
 
-
-class BaseBackendClient:
-    """Base HTTP client for communicating with backend API."""
-
-    def __init__(self, config: BFFAPIConfig) -> None:
+    def __init__(
+        self, config: ServiceClientConfig, bff_config: Optional[BFFAPIConfig] = None
+    ) -> None:
         """Initialize backend client.
 
         Args:
-            config: Configuration instance
+            config: Service client configuration from Fast Core
+            bff_config: BFF-specific configuration (optional, uses global settings if not provided)
         """
-        self.config = config
-        self.base_url = config.backend_api_url
-        self.timeout = config.backend_api_timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        super().__init__(config)
+        self.bff_config = bff_config or settings
+        self.timeout = config.timeout
+        self.service_name = "backend-api"  ***REMOVED*** For error handling
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Get or create HTTP client with BFF-specific headers."""
+        if self._client is None:
+            self._client = httpx.AsyncClient(
+                base_url=self.base_url,
+                timeout=self.timeout,
+                headers={
+                    "User-Agent": "NextWatch-BFF/0.1.0",
+                    "Accept": "application/json",
+                    **self.config.headers,  ***REMOVED*** Include any additional headers from config
+                },
+                **self.config.client_kwargs,
+            )
+        return self._client
 
     def _build_api_path(self, path: str) -> str:
         """Build API path with version prefix.
@@ -44,25 +65,7 @@ class BaseBackendClient:
         clean_path = path.lstrip("/")
         return f"/api/v1/{clean_path}"
 
-    async def _get_client(self) -> httpx.AsyncClient:
-        """Get or create HTTP client."""
-        if self._client is None:
-            self._client = httpx.AsyncClient(
-                base_url=self.base_url,
-                timeout=self.timeout,
-                headers={
-                    "User-Agent": "NextWatch-BFF/0.1.0",
-                    "Accept": "application/json",
-                },
-            )
-        return self._client
-
-    async def close(self) -> None:
-        """Close HTTP client."""
-        if self._client:
-            await self._client.aclose()
-            self._client = None
-
+    @service_error_handler("backend-api", logger)
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _make_request(
         self,
@@ -72,7 +75,7 @@ class BaseBackendClient:
         data: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Make HTTP request with retry logic.
+        """Make HTTP request with retry logic and Fast Core error handling.
 
         Args:
             method: HTTP method
@@ -85,71 +88,63 @@ class BaseBackendClient:
             Response data as dictionary
 
         Raises:
-            BackendClientError: If request fails
+            ExternalServiceException: For service errors (handled by decorator)
         """
         client = await self._get_client()
 
-        try:
-            response = await client.request(
-                method=method,
-                url=path,
-                params=params,
-                json=data,
-                headers=headers or {},
-            )
-            response.raise_for_status()
+        response = await client.request(
+            method=method,
+            url=path,
+            params=params,
+            json=data,
+            headers=headers or {},
+        )
+        response.raise_for_status()
 
-            if response.headers.get("content-type", "").startswith("application/json"):
-                json_response = response.json()
-                ***REMOVED*** If the response is a list, wrap it in a dict for consistency
-                if isinstance(json_response, list):
-                    return {"data": json_response}
-                return cast(Dict[str, Any], json_response)
-            else:
-                return {"data": response.text}
-
-        except httpx.HTTPStatusError as e:
-            logger.error(
-                "HTTP error from backend API",
-                method=method,
-                path=path,
-                status_code=e.response.status_code,
-                error=str(e),
-                service="bff",
-                component="backend_client",
-            )
-            raise BackendClientError(f"Backend API error: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(
-                "Request error to backend API",
-                method=method,
-                path=path,
-                error=str(e),
-                service="bff",
-                component="backend_client",
-            )
-            raise BackendClientError(f"Backend API request failed: {e}")
-        except Exception as e:
-            logger.error(
-                "Unexpected error in backend API request",
-                method=method,
-                path=path,
-                error=str(e),
-                service="bff",
-                component="backend_client",
-            )
-            raise BackendClientError(f"Unexpected backend error: {e}")
+        if response.headers.get("content-type", "").startswith("application/json"):
+            json_response = response.json()
+            ***REMOVED*** If the response is a list, wrap it in a dict for consistency
+            if isinstance(json_response, list):
+                return {"data": json_response}
+            return cast(Dict[str, Any], json_response)
+        else:
+            return {"data": response.text}
 
     def _get_auth_headers(self, user_id: int) -> Dict[str, str]:
         """Get service-to-service authentication headers.
 
         Args:
-            user_id: User ID to pass via X-User-ID header
+            user_id: User ID for authentication context
 
         Returns:
-            Authentication headers for backend API
+            Authentication headers
         """
+        ***REMOVED*** TODO: Implement proper service-to-service authentication
+        ***REMOVED*** For now, just pass user context
         return {
-            "Authorization": f"Bearer {self.config.internal_api_key or 'bff-to-backend-secret-key'}",
             "X-User-ID": str(user_id),
+            "X-Service": "bff-api",
         }
+
+    async def health_check(self) -> Dict[str, Any]:
+        """Perform health check against backend API.
+
+        Returns:
+            Health check result with service status
+        """
+        try:
+            response = await self._make_request("GET", "/health")
+            return {
+                "service": self.service_name,
+                "status": "healthy",
+                "url": self.base_url,
+                "backend_status": response.get("status", "unknown"),
+            }
+        except Exception as e:
+            logger.warning(f"Health check failed for {self.service_name}: {e}")
+            return {
+                "service": self.service_name,
+                "status": "unhealthy",
+                "url": self.base_url,
+                "error": str(e),
+            }

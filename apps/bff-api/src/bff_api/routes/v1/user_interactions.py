@@ -4,15 +4,16 @@ from typing import Tuple
 
 from config.logging import get_logger
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
+from fast_core.errors import ExternalServiceException
 
 from bff_api.dependencies.auth import get_current_user_id_and_token
-from bff_api.dependencies.common import get_backend_client
+from bff_api.dependencies import get_backend_client
 from bff_api.schemas.user_interaction_schemas import (
     ToggleInteractionRequest,
     ToggleInteractionResponse,
     UserMovieInteractionResponse,
 )
-from bff_api.services.backend_client import BackendClient, BackendClientError
+from bff_api.services.clients import BackendClient
 
 logger = get_logger(__name__)
 
@@ -67,14 +68,14 @@ async def set_movie_watched(
         ***REMOVED*** Already in desired state
         return UserMovieInteractionResponse(**current)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error setting watched for user {user_id}, movie {movie_id}: {e}")
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",
             )
-        elif "401" in str(e):
+        elif e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
@@ -135,14 +136,14 @@ async def unset_movie_watched(
 
         return UserMovieInteractionResponse(**current)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error unsetting watched for user {user_id}, movie {movie_id}: {e}")
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",
             )
-        elif "401" in str(e):
+        elif e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
@@ -197,14 +198,14 @@ async def set_movie_liked(
         ***REMOVED*** Already in desired state
         return UserMovieInteractionResponse(**current)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error setting liked for user {user_id}, movie {movie_id}: {e}")
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",
             )
-        elif "401" in str(e):
+        elif e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
@@ -265,14 +266,14 @@ async def unset_movie_liked(
 
         return UserMovieInteractionResponse(**current)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error unsetting liked for user {user_id}, movie {movie_id}: {e}")
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",
             )
-        elif "401" in str(e):
+        elif e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
@@ -327,14 +328,14 @@ async def set_movie_watchlist(
         ***REMOVED*** Already in desired state
         return UserMovieInteractionResponse(**current)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error setting watchlist for user {user_id}, movie {movie_id}: {e}")
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",
             )
-        elif "401" in str(e):
+        elif e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
@@ -395,14 +396,14 @@ async def unset_movie_watchlist(
 
         return UserMovieInteractionResponse(**current)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error unsetting watchlist for user {user_id}, movie {movie_id}: {e}")
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",
             )
-        elif "401" in str(e):
+        elif e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
@@ -501,16 +502,16 @@ async def toggle_user_interaction(
             interaction=interaction,
         )
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(
             f"Backend error toggling {interaction_type} for user {user_id}, movie {movie_id}: {e}"
         )
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",
             )
-        elif "401" in str(e):
+        elif e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
@@ -563,9 +564,9 @@ async def get_user_interaction(
 
         return UserMovieInteractionResponse(**result)
 
-    except BackendClientError as e:
+    except ExternalServiceException as e:
         logger.error(f"Backend error getting interaction for user {user_id}, movie {movie_id}: {e}")
-        if "404" in str(e):
+        if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Movie not found",

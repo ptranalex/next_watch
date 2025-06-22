@@ -59,18 +59,6 @@ class UserInteractions(BaseModel):
     is_watched: bool = Field(default=False, description="Whether the movie has been watched")
 
 
-class MovieScreenData(BaseModel):
-    """Aggregated data for movie detail screen."""
-
-    movie: Dict[str, Any] = Field(..., description="Movie details")
-    cast: List[Dict[str, Any]] = Field(default_factory=list, description="Movie cast")
-    trailers: List[Dict[str, Any]] = Field(default_factory=list, description="Movie trailers")
-    similar_movies: List[Dict[str, Any]] = Field(default_factory=list, description="Similar movies")
-    user_interactions: UserInteractions = Field(
-        default_factory=UserInteractions, description="User interaction data"
-    )
-
-
 class MovieListData(BaseModel):
     """Paginated movie list data."""
 

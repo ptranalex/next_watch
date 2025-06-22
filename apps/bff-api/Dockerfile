@@ -6,6 +6,8 @@
 ***REMOVED*** This Dockerfile requires:
 ***REMOVED*** - libs/cache/ (NextWatch Cache Library)
 ***REMOVED*** - libs/cli/ (NextWatch CLI Framework)
+***REMOVED*** - libs/config/ (NextWatch Config Library)
+***REMOVED*** - libs/fast-core/ (FastAPI Core Framework)
 ***REMOVED*** - apps/bff-api/ (BFF API application)
 
 ***REMOVED*** Stage 1: Build dependencies and package
@@ -27,9 +29,10 @@ RUN apk add --no-cache \
 COPY libs/cache ./libs/cache/
 COPY libs/cli ./libs/cli/
 COPY libs/config ./libs/config/
+COPY libs/fast-core ./libs/fast-core/
 
 ***REMOVED*** Install local dependencies
-RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/ ./libs/config/
+RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/ ./libs/config/ ./libs/fast-core/
 
 ***REMOVED*** Copy application files
 COPY apps/bff-api/pyproject.toml ./pyproject.toml
