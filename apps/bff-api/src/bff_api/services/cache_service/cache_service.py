@@ -1,9 +1,13 @@
-"""Cache service for BFF API using the NextWatch cache library."""
+"""Cache service for BFF API using the NextWatch cache library.
+
+This module provides a clean integration using standardized environment variables.
+Both BFF config and cache library read from the same environment variables,
+eliminating any configuration translation or duplication.
+"""
 
 from typing import Optional
 
 from cache import CacheManager, get_global_collector, set_metrics_enabled
-from cache.config import CacheSettings
 from config.logging import get_logger
 
 from bff_api.config.app import settings, get_cache_settings

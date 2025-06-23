@@ -237,7 +237,7 @@ def get_cache_settings() -> Any:
     try:
         cache_settings = CacheSettings(
             redis_url=settings.redis_url,
-            key_prefix=settings.cache_key_prefix,
+            cache_key_prefix=settings.cache_key_prefix,
             cache_ttl_default=settings.cache_ttl_default,
         )
         return cache_settings
@@ -245,6 +245,6 @@ def get_cache_settings() -> Any:
         ***REMOVED*** Fallback to basic dict if CacheSettings import fails
         return {
             "redis_url": settings.redis_url,
-            "key_prefix": settings.cache_key_prefix,
+            "cache_key_prefix": settings.cache_key_prefix,
             "cache_ttl_default": settings.cache_ttl_default,
         }
