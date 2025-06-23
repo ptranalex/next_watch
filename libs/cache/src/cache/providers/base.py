@@ -87,7 +87,9 @@ class CacheProvider(ABC):
         pass
 
     @abstractmethod
-    async def set_raw(self, key: CacheKey, value: str, ttl: TTL = None) -> CacheSetResult:
+    async def set_raw(
+        self, key: CacheKey, value: str, ttl: TTL = None
+    ) -> CacheSetResult:
         """Set raw string value in cache.
 
         Args:
@@ -151,7 +153,9 @@ class CacheProvider(ABC):
             return self._deserialize_json(raw_value)
         except ValueError:
             ***REMOVED*** Log error but don't raise - treat as cache miss
-            self.logger.warning("Found invalid JSON in cache, treating as miss", key=key)
+            self.logger.warning(
+                "Found invalid JSON in cache, treating as miss", key=key
+            )
             return None
 
     async def set_json(

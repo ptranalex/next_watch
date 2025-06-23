@@ -175,10 +175,10 @@ export function useActorPage(id: number) {
       // Simple prefetching - prefetch details for first 3 movies on first page
       if (
         pageParam === 1 &&
-        response.movies?.results &&
-        response.movies.results.length > 0
+        response.related.movies?.results &&
+        response.related.movies.results.length > 0
       ) {
-        const firstFewMovies = response.movies.results.slice(0, 3);
+        const firstFewMovies = response.related.movies.results.slice(0, 3);
         firstFewMovies.forEach((movie) => {
           if (movie.id) {
             // Check if movie details are already cached
@@ -198,8 +198,8 @@ export function useActorPage(id: number) {
       return response;
     },
     getNextPageParam: (lastPage) => {
-      return lastPage.movies?.has_next
-        ? (lastPage.movies.page || 1) + 1
+      return lastPage.related.movies?.has_next
+        ? (lastPage.related.movies.page || 1) + 1
         : undefined;
     },
     enabled: !!id,
@@ -207,16 +207,16 @@ export function useActorPage(id: number) {
     refetchOnWindowFocus: false,
   });
 
-  // Extract actor info from first page
-  const actor = actorData?.pages?.[0]?.actor;
+  // Extract actor info from first page - now from data property
+  const actor = actorData?.pages?.[0]?.data;
   const actorName = actor?.name || "Actor";
 
-  // Flatten all movies from all pages
+  // Flatten all movies from all pages - now from related.movies
   const allMovies = useMemo(() => {
     if (!actorData?.pages) return [];
 
     const movies = actorData.pages.flatMap(
-      (page) => page.movies?.results || []
+      (page) => page.related.movies?.results || []
     ) as unknown as Movie[];
 
     logger.debug(
@@ -228,12 +228,12 @@ export function useActorPage(id: number) {
   // Calculate total fetched movies count
   const fetchedMoviesCount = allMovies.length;
 
-  // Get pagination metadata from the latest page
+  // Get pagination metadata from the latest page - now from related.movies
   const latestPage = actorData?.pages?.[actorData.pages.length - 1];
-  const totalMovies = latestPage?.movies?.total || 0;
-  const currentPage = latestPage?.movies?.page || 1;
-  const totalPages = latestPage?.movies?.total_pages || 0;
-  const hasPrevPage = latestPage?.movies?.has_prev || false;
+  const totalMovies = latestPage?.related.movies?.total || 0;
+  const currentPage = latestPage?.related.movies?.page || 1;
+  const totalPages = latestPage?.related.movies?.total_pages || 0;
+  const hasPrevPage = latestPage?.related.movies?.has_prev || false;
 
   // Load more function
   const loadMore = () => {
@@ -270,8 +270,8 @@ export function useActorPage(id: number) {
         } pages for actor "${actorName}" (total: ${totalMovies})`
       );
 
-      // Log a sample movie to verify user interaction data
-      const firstMovie = actorData?.pages?.[0]?.movies?.results?.[0];
+      // Log a sample movie to verify user interaction data - now from related.movies
+      const firstMovie = actorData?.pages?.[0]?.related.movies?.results?.[0];
       if (firstMovie) {
         logger.debug("Sample actor movie with user interactions:", {
           id: firstMovie.id,
