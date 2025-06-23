@@ -255,7 +255,7 @@ services:
       - RECOMMENDATION_API_TIMEOUT=30
       - ML_API_TIMEOUT=60
 
-      ***REMOVED*** Redis Configuration (matches CacheConfigMixin field names)
+      ***REMOVED*** Redis Configuration (BFF config uses no prefix, cache service bridges to library)
       - REDIS_URL=redis://host.docker.internal:6379/0
       - REDIS_MAX_CONNECTIONS=20
       - REDIS_SOCKET_TIMEOUT=5

@@ -51,19 +51,17 @@ class CacheManager:
         if settings is None:
             settings = CacheSettings()
 
-        ***REMOVED*** Validate configuration
-        issues = settings.validate_config()
-        if issues:
-            for issue in issues:
-                logger.warning(f"Cache configuration issue: {issue}")
-
-            ***REMOVED*** In strict mode, we would raise an exception here
-            ***REMOVED*** Uncomment the following lines to enforce strict configuration
-            ***REMOVED*** if any issue indicates a legacy environment variable is being used
-            if any("Found" in issue for issue in issues):
-                error_msg = "Invalid cache configuration: " + "; ".join(issues)
-                logger.error(error_msg)
-                raise ValueError(error_msg)
+        ***REMOVED*** Log cache configuration for debugging
+        logger.info(
+            "Cache manager created from environment variables",
+            redis_url_masked=(
+                settings.redis_url.replace("@", "@***")
+                if "@" in settings.redis_url
+                else settings.redis_url
+            ),
+            key_prefix=settings.cache_key_prefix,
+            enable_metrics=settings.cache_enable_metrics,
+        )
 
         provider = RedisProvider.from_settings(settings)
         return cls(provider=provider, settings=settings)

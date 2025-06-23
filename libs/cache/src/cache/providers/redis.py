@@ -44,7 +44,9 @@ class RedisProvider(CacheProvider):
         self._client: Optional[redis.Redis] = None  ***REMOVED*** type: ignore
 
         self.logger = logger.bind(
-            provider="RedisProvider", redis_url=self._mask_url(self.redis_url), pool_size=pool_size
+            provider="RedisProvider",
+            redis_url=self._mask_url(self.redis_url),
+            pool_size=pool_size,
         )
 
     @classmethod
@@ -58,10 +60,10 @@ class RedisProvider(CacheProvider):
             Configured Redis provider instance
         """
         return cls(
-            redis_url=settings.get_redis_url(),
-            pool_size=settings.redis_pool_size,
-            timeout=settings.redis_timeout,
-            key_prefix=settings.key_prefix,
+            redis_url=settings.redis_url,
+            pool_size=settings.redis_max_connections,
+            timeout=settings.redis_socket_timeout,
+            key_prefix=settings.cache_key_prefix,
         )
 
     def _mask_url(self, url: str) -> str:
@@ -146,7 +148,9 @@ class RedisProvider(CacheProvider):
             ***REMOVED*** Return None on error to treat as cache miss
             return None
 
-    async def set_raw(self, key: CacheKey, value: str, ttl: TTL = None) -> CacheSetResult:
+    async def set_raw(
+        self, key: CacheKey, value: str, ttl: TTL = None
+    ) -> CacheSetResult:
         """Set raw string value in Redis.
 
         Args:
@@ -199,7 +203,9 @@ class RedisProvider(CacheProvider):
             if deleted:
                 self.logger.debug("Cache delete", key=key, full_key=full_key)
             else:
-                self.logger.debug("Cache delete - key not found", key=key, full_key=full_key)
+                self.logger.debug(
+                    "Cache delete - key not found", key=key, full_key=full_key
+                )
 
             return deleted
 
@@ -223,11 +229,15 @@ class RedisProvider(CacheProvider):
             result = await client.exists(full_key)
 
             exists = result > 0
-            self.logger.debug("Cache exists check", key=key, full_key=full_key, exists=exists)
+            self.logger.debug(
+                "Cache exists check", key=key, full_key=full_key, exists=exists
+            )
             return exists
 
         except Exception as e:
-            self.logger.error("Failed to check key existence in Redis", key=key, error=str(e))
+            self.logger.error(
+                "Failed to check key existence in Redis", key=key, error=str(e)
+            )
             return False
 
     async def health_check(self) -> bool:
@@ -245,7 +255,9 @@ class RedisProvider(CacheProvider):
             if healthy:
                 self.logger.debug("Redis health check passed")
             else:
-                self.logger.warning("Redis health check failed - ping returned", result=result)
+                self.logger.warning(
+                    "Redis health check failed - ping returned", result=result
+                )
 
             return healthy
 
@@ -272,7 +284,10 @@ class RedisProvider(CacheProvider):
         return self
 
     async def __aexit__(
-        self, exc_type: Optional[type], exc_val: Optional[Exception], exc_tb: Optional[object]
+        self,
+        exc_type: Optional[type],
+        exc_val: Optional[Exception],
+        exc_tb: Optional[object],
     ) -> None:
         """Async context manager exit."""
         await self.close()
