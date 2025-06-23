@@ -45,14 +45,19 @@ def get_app() -> FastAPI:
         logger = get_logger("backend_api.main")
 
         ***REMOVED*** Log main application startup
-        logger.info("Initializing Next Watch Backend Service", service="backend-api")
+        logger.info(
+            "Initializing Next Watch Backend Service with Fast Core integration",
+            service="backend-api",
+        )
         logger.info("Environment configuration", environment=settings.environment)
 
-        ***REMOVED*** Import and create app using core module
-        from backend_api.core.app import create_app
+        ***REMOVED*** Import and create app using fast-core integration
+        from backend_api.core.app_fast_core import create_backend_app
 
-        _app = create_app(settings)
-        logger.info("Backend Service initialized successfully", service="backend-api")
+        _app = create_backend_app(settings)
+        logger.info(
+            "Backend Service initialized successfully with Fast Core", service="backend-api"
+        )
 
     return _app
 

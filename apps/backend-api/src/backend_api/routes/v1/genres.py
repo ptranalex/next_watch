@@ -1,5 +1,4 @@
 """
-from config.logging import get_logger
 Genre-related API routes (v1).
 """
 

@@ -1,14 +1,18 @@
 """
-Movie-related API routes (v1).
+Movie-related API routes (v1) with Fast Core integration.
 """
 
 from typing import Any, Dict, List, Optional, cast
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from config.logging import get_logger
+from fast_core.dependencies import get_pagination, get_request_id, get_service_client
+from fast_core.dependencies.common import PaginationParams
+from fast_core.responses import ResponseBuilder, PaginatedResponse
+
 from backend_api.db.database import get_db
 from backend_api.errors import (
     ResourceNotFoundError,
@@ -32,6 +36,42 @@ logger = get_logger(__name__)
 
 router = APIRouter(prefix="/movies", tags=["movies"])
 
+***REMOVED*** Initialize fast-core response builder
+response_builder = ResponseBuilder(
+    {
+        "pagination": {
+            "default_limit": 20,
+            "max_limit": 100,
+            "include_total_pages": True,
+            "include_has_next_prev": True,
+        },
+        "detail": {
+            "include_timestamps": True,
+            "include_metadata": True,
+        },
+    }
+)
+
+
+def convert_paginated_response_to_movies_list(
+    paginated_response: PaginatedResponse, request_id: Optional[str] = None
+) -> MoviesListResponse:
+    """Convert fast-core paginated response to MoviesListResponse format.
+
+    This helper maintains backward compatibility while using fast-core internally.
+    """
+    pagination = paginated_response["pagination"]
+
+    return MoviesListResponse(
+        total=pagination["total"],
+        page=pagination["page"],
+        per_page=pagination["per_page"],
+        total_pages=pagination["total_pages"],
+        has_next=pagination["has_next"],
+        has_prev=pagination["has_prev"],
+        results=paginated_response["results"],
+    )
+
 
 ***REMOVED*** Get dependencies
 def get_movie_service() -> MovieService:
@@ -44,10 +84,12 @@ def get_movie_query() -> MovieQuery:
     return MovieQuery()
 
 
-***REMOVED*** Helper function
-def format_movie_for_response(movie: Any, genres: List[Dict[str, Any]]) -> MovieResponse:
+***REMOVED*** Helper function (enhanced with request tracking)
+def format_movie_for_response(
+    movie: Any, genres: List[Dict[str, Any]], request_id: Optional[str] = None
+) -> MovieResponse:
     """
-    Format a movie database row into a MovieResponse model.
+    Format a movie database row into a MovieResponse model with request tracking.
     """
     ***REMOVED*** Convert genres to the expected format
     genre_list = [
@@ -191,8 +233,9 @@ async def get_movies_bulk(
 
 @router.get("", response_model=MoviesListResponse)
 async def list_movies(
-    page: int = Query(1, ge=1, description="Page number for pagination"),
-    limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
+    request: Request,
+    pagination: PaginationParams = get_pagination(max_page_size=100),
+    request_id: str = Depends(get_request_id),
     genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
     actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
     sort_by: str = Query(
@@ -216,17 +259,20 @@ async def list_movies(
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
     """
-    Get a list of movies with pagination and optional filtering.
+    Get a list of movies with pagination and optional filtering (Fast Core enhanced).
     """
     try:
-        ***REMOVED*** Calculate skip from page number
-        skip = (page - 1) * limit
+        logger.info(
+            f"[{request_id}] Fetching movies - page: {pagination.page}, limit: {pagination.limit}, "
+            f"genre_id: {genre_id}, actor_id: {actor_id}, sort_by: {sort_by}, sort_desc: {sort_desc}",
+            extra={"request_id": request_id, "endpoint": "list_movies"},
+        )
 
-        ***REMOVED*** Get movies from database with pagination and filters
+        ***REMOVED*** Get movies from database with pagination and filters using fast-core pagination
         movies, total_count = movie_query.get_movies_with_filters(
             db,
-            skip=skip,
-            limit=limit,
+            skip=pagination.offset,
+            limit=pagination.limit,
             genre_id=genre_id,
             actor_tmdb_id=actor_id,
             sort_by=sort_by,
@@ -240,23 +286,55 @@ async def list_movies(
         )
 
         if not movies:
-            return create_pagination_response([], 0, page, limit)
+            logger.info(f"[{request_id}] No movies found with given filters")
+            paginated_response = response_builder.paginated(
+                items=[],
+                page=pagination.page,
+                limit=pagination.limit,
+                total=0,
+                metadata={"request_id": request_id, "filters_applied": True},
+            )
+            return convert_paginated_response_to_movies_list(paginated_response, request_id)
 
         ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
         movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
         genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
 
-        ***REMOVED*** Convert to response format
+        ***REMOVED*** Convert to response format with request tracking
         movie_responses = []
         for movie in movies:
             ***REMOVED*** Get movie ID safely
             movie_id = get_movie_id(movie)
             genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
-            movie_response = format_movie_for_response(movie, genres)
+            movie_response = format_movie_for_response(movie, genres, request_id)
             movie_responses.append(movie_response)
 
-        return create_pagination_response(movie_responses, total_count, page, limit)
+        logger.info(
+            f"[{request_id}] Successfully fetched {len(movie_responses)} movies",
+            extra={"request_id": request_id, "count": len(movie_responses), "total": total_count},
+        )
+
+        ***REMOVED*** Use fast-core response builder for consistent pagination
+        paginated_response = response_builder.paginated(
+            items=movie_responses,
+            page=pagination.page,
+            limit=pagination.limit,
+            total=total_count,
+            metadata={
+                "request_id": request_id,
+                "filters_applied": {
+                    "genre_id": genre_id,
+                    "actor_id": actor_id,
+                    "sort_by": sort_by,
+                    "sort_desc": sort_desc,
+                },
+            },
+        )
+        return convert_paginated_response_to_movies_list(paginated_response, request_id)
     except (ResourceNotFoundError, ValidationError) as e:
+        logger.error(
+            f"[{request_id}] Error fetching movies: {str(e)}", extra={"request_id": request_id}
+        )
         raise service_error_to_http_exception(e)
 
 

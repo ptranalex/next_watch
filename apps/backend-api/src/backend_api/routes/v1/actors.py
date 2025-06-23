@@ -7,6 +7,10 @@ from typing import Any, Dict, List, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+***REMOVED*** Import fast-core dependencies and utilities
+from fast_core.dependencies import get_pagination, get_request_id
+from fast_core.responses import ResponseBuilder
+
 ***REMOVED*** Import schemas
 from pydantic import BaseModel
 from sqlmodel import Session
@@ -72,11 +76,47 @@ async def list_actors(
 ) -> ActorsListResponse:
     """
     Get a list of actors with pagination.
+
+    Returns actors extracted from the credits table, with deduplication by TMDB person ID.
     """
     try:
-        ***REMOVED*** This is a placeholder - implement actual actor listing functionality
-        ***REMOVED*** For now, return empty response
-        return ActorsListResponse(actors=[], total=0)
+        ***REMOVED*** Get credits with department filter to get actors
+        from backend_api.db.operations import get_credits
+
+        ***REMOVED*** Calculate offset
+        offset = (page - 1) * limit
+
+        ***REMOVED*** Get credits for actors (Acting department) with pagination
+        credits = get_credits(
+            db, skip=offset, limit=limit * 3, department="Acting"
+        )  ***REMOVED*** Get more to dedupe
+
+        ***REMOVED*** Deduplicate by tmdb_person_id and create actor responses
+        seen_actors = set()
+        actors = []
+
+        for credit in credits:
+            if credit.tmdb_person_id and credit.tmdb_person_id not in seen_actors:
+                seen_actors.add(credit.tmdb_person_id)
+                actors.append(
+                    ActorResponse(
+                        id=credit.tmdb_person_id,
+                        name=credit.name,
+                        profile_path=credit.profile_path,
+                        tmdb_id=credit.tmdb_person_id,
+                    )
+                )
+
+                ***REMOVED*** Stop when we have enough unique actors
+                if len(actors) >= limit:
+                    break
+
+        ***REMOVED*** For total count, get a rough estimate from distinct actors in acting credits
+        ***REMOVED*** Note: This is an approximation as we'd need a more complex query for exact count
+        total = len(seen_actors) + offset  ***REMOVED*** Rough estimate
+
+        return ActorsListResponse(actors=actors, total=total)
+
     except Exception as e:
         logger.error(f"Error fetching actors: {str(e)}")
         logger.error(traceback.format_exc())

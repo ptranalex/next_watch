@@ -1,12 +1,11 @@
 """Database query instrumentation for performance monitoring."""
 
 import time
-from typing import Any
+from typing import Any, Dict
 
 from sqlalchemy import Engine, event
 
 from config.logging import get_logger
-from backend_api.core.request_context import get_request_context_dict, increment_query_count
 
 logger = get_logger(__name__)
 
@@ -37,19 +36,11 @@ def setup_database_instrumentation(engine: Engine, slow_query_threshold_ms: floa
         ***REMOVED*** Calculate duration
         duration_ms = (time.perf_counter() - context._query_start_time) * 1000
 
-        ***REMOVED*** Get request context
-        request_context = get_request_context_dict()
-
-        ***REMOVED*** Increment query count for this request
-        query_count = increment_query_count()
-
         ***REMOVED*** Prepare structured log data
         log_kwargs = {
             "statement": _clean_statement(statement),
             "duration_ms": round(duration_ms, 2),
             "row_count": cursor.rowcount if cursor.rowcount >= 0 else 0,
-            "query_count": query_count,
-            **request_context,  ***REMOVED*** Include request_id, method, path, user_id
         }
 
         ***REMOVED*** Log at appropriate level with structured data

@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-from redis.exceptions import RedisError
+
 from sqlmodel import Session
 
 from backend_api.config.app import settings
@@ -20,8 +20,7 @@ from backend_api.queries.movie_query import MovieQuery
 from backend_api.schemas.movie_schema import MovieResponse
 from backend_api.schemas.search import SearchResponse, SearchResult
 
-***REMOVED*** Import the suggestion engine
-from backend_api.services.suggestion_engine import SuggestionEngine
+***REMOVED*** Note: Backend API focuses on core data - no suggestion engine
 
 
 class Suggestion(BaseModel):
@@ -59,35 +58,10 @@ class TextSuggestionsResponse(BaseModel):
 
 logger = get_logger(__name__)
 
-***REMOVED*** Initialize suggestion engine with Redis URL (should be configured in settings)
-***REMOVED*** This will be initialized properly in the application startup events
-suggestion_engine = None
+***REMOVED*** Backend API provides basic search functionality via database queries
 
 
-***REMOVED*** Dependency to get suggestion engine
-async def get_suggestion_engine() -> SuggestionEngine:
-    """
-    Get an instance of the SuggestionEngine.
-
-    In a production app, you would initialize this during app startup
-    and manage the connection pool lifecycle.
-    """
-    global suggestion_engine
-    if suggestion_engine is None:
-        ***REMOVED*** Get Redis URL with priority:
-        ***REMOVED*** 1. SUGGESTION_REDIS_URL (specific to suggestion engine)
-        ***REMOVED*** 2. CACHE_REDIS_URL (general cache configuration)
-        ***REMOVED*** 3. settings.redis_url (fallback)
-        redis_url = os.getenv("SUGGESTION_REDIS_URL")
-        if not redis_url:
-            redis_url = os.getenv("CACHE_REDIS_URL")
-        if not redis_url:
-            redis_url = settings.redis_url
-
-        logger.debug(f"Initializing suggestion engine with Redis URL: {redis_url}")
-        suggestion_engine = SuggestionEngine(redis_url)
-        await suggestion_engine.initialize()
-    return suggestion_engine
+***REMOVED*** Backend API focuses on core data - suggestion engine moved to recommendation service
 
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -123,49 +97,46 @@ async def get_search_suggestions(
 async def get_text_suggestions(
     query: str = Query(..., min_length=1, description="Search query prefix"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of suggestions"),
-    suggestion_engine: SuggestionEngine = Depends(get_suggestion_engine),
+    db: Session = Depends(get_db),
 ) -> TextSuggestionsResponse:
     """
-    Get text-based search suggestions from Redis based on a query prefix.
+    Get text-based search suggestions based on database queries.
 
-    This endpoint provides rich suggestions for movies, actors, and directors
-    with additional information for rendering in autocomplete UI elements.
-
-    Returns deduplicated and ranked suggestions, with only one entry per entity
-    (choosing the best match) and sorted by relevance score.
+    This endpoint provides basic suggestions for movies using direct database queries.
+    For advanced suggestions with Redis caching, use the recommendation service.
     """
     try:
-        logger.info(f"Getting ranked text suggestions for '{query}'")
+        logger.info(f"Getting basic text suggestions for '{query}' from database")
 
-        ***REMOVED*** Get ranked entity suggestions with deduplication
-        ranked_suggestions = await suggestion_engine.get_ranked_suggestions(query, limit)
+        ***REMOVED*** Use MovieQuery to search for movies that match the query
+        movie_query = MovieQuery()
+        movies, _ = movie_query.search_movies_by_title(db, title_search=query, skip=0, limit=limit)
 
-        ***REMOVED*** Format suggestions
-        formatted_suggestions = [
-            TextSuggestion(
-                text=sugg["text"],
-                type=sugg["type"],
-                id=sugg.get("id"),
-                image_path=sugg.get("image_path"),
-                year=sugg.get("year"),
-                popularity=sugg.get("popularity"),
-                is_partial=sugg.get("is_partial", False),
-                search_type=sugg.get("search_type", "unknown"),
-                additional_info=sugg.get("additional_info"),
+        ***REMOVED*** Format as suggestions
+        formatted_suggestions = []
+        for movie in movies:
+            ***REMOVED*** Extract movie title and basic info
+            title = getattr(movie, "title", "Unknown")
+            movie_id = getattr(movie, "id", None)
+            year = None
+            if hasattr(movie, "release_date") and movie.release_date:
+                year = movie.release_date.year
+
+            formatted_suggestions.append(
+                TextSuggestion(
+                    text=title,
+                    type="movie",
+                    id=movie_id,
+                    year=year,
+                    search_type="title_match",
+                    is_partial=len(query) < len(title),
+                )
             )
-            for sugg in ranked_suggestions
-        ]
 
         return TextSuggestionsResponse(
             suggestions=formatted_suggestions, total=len(formatted_suggestions)
         )
 
-    except RedisError as e:
-        logger.error(f"Redis error while getting suggestions: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(
-            status_code=503, detail="Search suggestion service temporarily unavailable"
-        )
     except Exception as e:
         logger.error(f"Error fetching text suggestions: {str(e)}")
         logger.error(traceback.format_exc())

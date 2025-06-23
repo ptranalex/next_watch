@@ -1,5 +1,4 @@
 """
-from config.logging import get_logger
 User interaction routes for managing user movie relationships.
 
 These routes handle user interactions with movies such as:
@@ -19,6 +18,10 @@ from typing import Annotated, Any, Dict, List, Optional, Union
 from fastapi import APIRouter, Depends, File, HTTPException, Path, Query, UploadFile, status
 from pydantic import BaseModel
 from sqlmodel import Session
+
+***REMOVED*** Import fast-core dependencies and utilities
+from fast_core.dependencies import get_request_id
+from fast_core.responses import ResponseBuilder
 
 from config.logging import get_logger
 from backend_api.db.database import get_db
