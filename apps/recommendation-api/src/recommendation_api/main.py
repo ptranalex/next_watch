@@ -48,10 +48,10 @@ def get_app() -> FastAPI:
         logger.info("Initializing Next Watch Recommendation Service", service="recommendation-api")
         logger.info("Environment configuration", environment=settings.environment)
 
-        ***REMOVED*** Import and create app using core module
-        from recommendation_api.core.app import create_app
+        ***REMOVED*** Import and create app using fast-core integration
+        from recommendation_api.core.app_fast_core import create_recommendation_app
 
-        _app = create_app(settings)
+        _app = create_recommendation_app(settings)
         logger.info("Recommendation Service initialized successfully", service="recommendation-api")
 
     return _app

@@ -17,7 +17,7 @@ from recommendation_api.services.ml_api_client import get_ml_api_client
 
 ***REMOVED*** Remove movie_storage dependency - now using API-based approach
 from recommendation_api.models.recommendation import MovieRecommendation
-from recommendation_api.services.movie_adapter import MovieDataAdapter, get_movie_adapter
+from recommendation_api.services.movie_adapter import MovieDataAdapter
 from recommendation_api.config import settings
 
 logger = get_logger(__name__)
@@ -389,21 +389,3 @@ class RecommendationService:
             liked_movies=liked_movies,
             watched_genres=watched_genres,
         )
-
-
-***REMOVED*** Global recommendation service instance
-_recommendation_service: Optional[RecommendationService] = None
-
-
-def get_recommendation_service() -> RecommendationService:
-    """Get the global recommendation service instance.
-
-    Returns:
-        Global recommendation service instance
-    """
-    global _recommendation_service
-    if _recommendation_service is None:
-        ***REMOVED*** Get movie adapter and initialize recommendation service
-        movie_adapter = get_movie_adapter()
-        _recommendation_service = RecommendationService(movie_adapter=movie_adapter)
-    return _recommendation_service

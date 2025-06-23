@@ -133,7 +133,8 @@ install-libs = [
   "pip install -e ../../libs/cache",
   "pip install -e ../../libs/cli",
   "pip install -e ../../libs/movie-storage",
-  "pip install -e ../../libs/config"
+  "pip install -e ../../libs/config",
+  "pip install -e ../../libs/fast-core"
 ]
 
 ***REMOVED*** Server management

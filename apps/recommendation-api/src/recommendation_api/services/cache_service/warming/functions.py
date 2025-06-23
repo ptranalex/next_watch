@@ -8,8 +8,9 @@ from config.logging import get_logger
 from typing import Any, Dict, List, Optional
 
 from recommendation_api.config import settings
-from recommendation_api.services.movie_adapter import MovieDataAdapter
+from recommendation_api.services.movie_adapter import MovieDataAdapter, get_movie_adapter
 from recommendation_api.services.recommendation import RecommendationService
+from recommendation_api.services.vector_service import get_vector_service
 
 logger = get_logger(__name__)
 
@@ -31,8 +32,6 @@ class RecommendationWarmingFunctions:
             MovieDataAdapter instance
         """
         if self._movie_adapter is None:
-            from recommendation_api.services.movie_adapter import get_movie_adapter
-
             self._movie_adapter = get_movie_adapter()
         return self._movie_adapter
 
@@ -40,13 +39,18 @@ class RecommendationWarmingFunctions:
     def recommendation_service(self) -> RecommendationService:
         """Get or create the recommendation service.
 
+        Creates a RecommendationService with proper dependencies using the factory pattern.
+
         Returns:
             RecommendationService instance
         """
         if self._recommendation_service is None:
-            from recommendation_api.services.recommendation import get_recommendation_service
-
-            self._recommendation_service = get_recommendation_service()
+            ***REMOVED*** Use factory pattern to create service with proper dependencies
+            vector_service = get_vector_service()
+            self._recommendation_service = RecommendationService(
+                movie_adapter=self.movie_adapter,
+                vector_service=vector_service,
+            )
         return self._recommendation_service
 
     async def warm_similar_movies(
@@ -64,14 +68,14 @@ class RecommendationWarmingFunctions:
         """
         try:
             ***REMOVED*** Import the actual cached function
-            from recommendation_api.routes.v1.similar import get_similar_movies
+            from recommendation_api.routes.v1.similar import _get_similar_movies_data
 
-            ***REMOVED*** Call the cached function - this populates the cache
-            similar_movies = await get_similar_movies(
+            ***REMOVED*** Call the cached function directly - this populates the cache
+            similar_movies_data = await _get_similar_movies_data(
                 movie_id=movie_id,
                 limit=limit,
                 min_score=min_score,
-                movie_adapter=self.movie_adapter,
+                recommendation_service=self.recommendation_service,
             )
 
             return {
@@ -80,7 +84,7 @@ class RecommendationWarmingFunctions:
                 "movie_id": movie_id,
                 "limit": limit,
                 "min_score": min_score,
-                "results_count": len(similar_movies.recommendations),
+                "results_count": similar_movies_data["total"],
             }
 
         except Exception as e:
@@ -107,14 +111,14 @@ class RecommendationWarmingFunctions:
         """
         try:
             ***REMOVED*** Import the actual cached function
-            from recommendation_api.routes.v1.popular import get_popular_movies
+            from recommendation_api.routes.v1.popular import _get_popular_recommendations_data
 
-            ***REMOVED*** Call the cached function - this populates the cache
-            popular_movies = await get_popular_movies(
+            ***REMOVED*** Call the cached function directly - this populates the cache
+            popular_movies_data = await _get_popular_recommendations_data(
                 limit=limit,
                 min_rating=min_rating,
                 min_vote_count=min_vote_count,
-                movie_adapter=self.movie_adapter,
+                recommendation_service=self.recommendation_service,
             )
 
             return {
@@ -123,7 +127,7 @@ class RecommendationWarmingFunctions:
                 "limit": limit,
                 "min_rating": min_rating,
                 "min_vote_count": min_vote_count,
-                "results_count": len(popular_movies.recommendations),
+                "results_count": popular_movies_data["total"],
             }
 
         except Exception as e:
@@ -149,14 +153,14 @@ class RecommendationWarmingFunctions:
         """
         try:
             ***REMOVED*** Import the actual cached function
-            from recommendation_api.routes.v1.trending import get_trending_movies
+            from recommendation_api.routes.v1.trending import _get_trending_recommendations_data
 
-            ***REMOVED*** Call the cached function - this populates the cache
-            trending_movies = await get_trending_movies(
+            ***REMOVED*** Call the cached function directly - this populates the cache
+            trending_movies_data = await _get_trending_recommendations_data(
                 limit=limit,
                 days=days,
                 min_rating=min_rating,
-                movie_adapter=self.movie_adapter,
+                recommendation_service=self.recommendation_service,
             )
 
             return {
@@ -165,7 +169,7 @@ class RecommendationWarmingFunctions:
                 "limit": limit,
                 "days": days,
                 "min_rating": min_rating,
-                "results_count": len(trending_movies.recommendations),
+                "results_count": trending_movies_data["total"],
             }
 
         except Exception as e:

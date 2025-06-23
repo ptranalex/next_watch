@@ -1,6 +1,8 @@
-"""Core modules for the Recommendation API."""
+"""Core modules for the Recommendation API.
 
-from .app import create_app
-from .middleware import setup_middleware
+Now integrated with fast-core for standardized patterns.
+"""
 
-__all__ = ["create_app", "setup_middleware"]
+from .app_fast_core import create_recommendation_app as create_app
+
+__all__ = ["create_app"]

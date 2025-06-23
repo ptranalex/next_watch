@@ -1,13 +1,19 @@
 """Popular movie recommendations endpoints."""
 
 import logging
+from typing import Dict, Any, Optional
+
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from sqlalchemy.exc import SQLAlchemyError
 
-from recommendation_api.services.movie_adapter import MovieDataAdapter, get_movie_adapter
+from recommendation_api.services.movie_adapter import MovieDataAdapter
 from recommendation_api.services.recommendation import RecommendationService
+from recommendation_api.dependencies.common import (
+    get_movie_adapter_dependency,
+    get_recommendation_service,
+)
 from recommendation_api.models.recommendation import (
     MovieRecommendation,
     RecommendationsResponse,
@@ -23,7 +29,7 @@ def _build_popular_movies_key(
     limit: int = 20,
     min_rating: float = 7.0,
     min_vote_count: int = 1000,
-    movie_adapter: MovieDataAdapter = None,
+    recommendation_service: RecommendationService = None,
     **kwargs,
 ) -> str:
     """Build a custom cache key for popular movies."""
@@ -34,46 +40,70 @@ def _build_popular_movies_key(
     )
 
 
-@router.get("/popular", response_model=RecommendationsResponse)
 @redis_cache(
-    ttl=1800,  ***REMOVED*** 30 minutes TTL
+    ttl=2700,  ***REMOVED*** 45 minutes TTL
     key_builder=_build_popular_movies_key,
     enable_metrics=True,
 )
+async def _get_popular_recommendations_data(
+    limit: int,
+    min_rating: float,
+    min_vote_count: int,
+    recommendation_service: RecommendationService,
+) -> Dict[str, Any]:
+    """Internal cached function for popular recommendations data.
+
+    This function returns a dictionary that can be JSON serialized for caching.
+    Following the BFF pattern: cached functions return dicts, endpoints return Pydantic models.
+    """
+    recommendations, filters = await recommendation_service.get_popular_recommendations_direct(
+        limit=limit,
+        min_rating=min_rating,
+        min_vote_count=min_vote_count,
+    )
+
+    ***REMOVED*** Convert MovieRecommendation objects to dictionaries for caching
+    ***REMOVED*** Use mode="json" to ensure proper serialization of date objects
+    recommendations_dicts = [rec.model_dump(mode="json") for rec in recommendations]
+
+    ***REMOVED*** Return as dictionary for caching
+    return {
+        "recommendations": recommendations_dicts,
+        "total": len(recommendations),
+        "type": "popular",
+        "filters": filters,
+    }
+
+
+@router.get("/popular", response_model=RecommendationsResponse)
 async def get_popular_recommendations_endpoint(
     limit: int = Query(20, ge=1, le=100),
     min_rating: float = Query(7.0, ge=0, le=10),
     min_vote_count: int = Query(1000, ge=0),
-    movie_adapter: MovieDataAdapter = Depends(get_movie_adapter),
+    recommendation_service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationsResponse:
     """Get popular movie recommendations.
 
     Args:
         limit: Maximum number of recommendations (1-100)
-        min_rating: Minimum IMDb rating (0-10)
-        min_vote_count: Minimum vote count threshold
-        movie_adapter: Movie data adapter
+        min_rating: Minimum IMDb rating filter
+        min_vote_count: Minimum vote count filter
+        recommendation_service: Recommendation service dependency
 
     Returns:
         List of popular movie recommendations
     """
     try:
-        ***REMOVED*** Create recommendation service
-        service = RecommendationService(movie_adapter)
-
-        ***REMOVED*** Use the new direct method instead of the commented-out one
-        recommendations, filters = await service.get_popular_recommendations_direct(
+        ***REMOVED*** Use the cached function to get data as dictionary
+        data = await _get_popular_recommendations_data(
             limit=limit,
             min_rating=min_rating,
             min_vote_count=min_vote_count,
+            recommendation_service=recommendation_service,
         )
 
-        return RecommendationsResponse(
-            recommendations=recommendations,
-            total=len(recommendations),
-            type="popular",
-            filters=filters,
-        )
+        ***REMOVED*** Convert dictionary back to Pydantic model for response
+        return RecommendationsResponse(**data)
 
     except SQLAlchemyError as e:
         logger.error(f"Database error getting popular recommendations: {e}")

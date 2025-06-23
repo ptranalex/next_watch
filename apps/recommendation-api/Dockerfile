@@ -23,9 +23,10 @@ COPY libs/cache ./libs/cache/
 COPY libs/cli ./libs/cli/
 COPY libs/config ./libs/config/
 COPY libs/movie-storage ./libs/movie-storage/
+COPY libs/fast-core ./libs/fast-core/
 
 ***REMOVED*** Install local dependencies
-RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/ ./libs/config/ ./libs/movie-storage/
+RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/ ./libs/config/ ./libs/movie-storage/ ./libs/fast-core/ ./libs/fast-core/
 
 ***REMOVED*** Copy application files
 COPY apps/recommendation-api/pyproject.toml ./pyproject.toml
