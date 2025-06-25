@@ -213,6 +213,69 @@ class RedisProvider(CacheProvider):
             self.logger.error("Failed to delete key from Redis", key=key, error=str(e))
             return False
 
+    async def delete_pattern(self, pattern: str) -> int:
+        """Delete all keys matching a pattern.
+
+        Uses Redis SCAN + MATCH + DELETE for efficient pattern-based deletion.
+
+        Args:
+            pattern: The pattern to match keys against (e.g., "user:123:*")
+
+        Returns:
+            Number of keys deleted
+        """
+        try:
+            client = await self._get_client()
+
+            ***REMOVED*** Apply key prefix if configured
+            full_pattern = self._build_key(pattern)
+
+            ***REMOVED*** Use scan_iter to efficiently iterate through matching keys
+            deleted_count = 0
+            batch_size = 100
+            keys_to_delete = []
+
+            self.logger.debug(
+                "Scanning for keys matching pattern",
+                pattern=pattern,
+                full_pattern=full_pattern,
+            )
+
+            ***REMOVED*** Iterate through matching keys
+            async for key in client.scan_iter(match=full_pattern, count=batch_size):
+                keys_to_delete.append(key)
+
+                ***REMOVED*** Delete in batches for efficiency
+                if len(keys_to_delete) >= batch_size:
+                    if keys_to_delete:
+                        result = await client.delete(*keys_to_delete)
+                        deleted_count += result
+                        self.logger.debug(
+                            "Deleted batch of keys", count=result, total=deleted_count
+                        )
+                    keys_to_delete = []
+
+            ***REMOVED*** Delete any remaining keys
+            if keys_to_delete:
+                result = await client.delete(*keys_to_delete)
+                deleted_count += result
+                self.logger.debug(
+                    "Deleted final batch of keys", count=result, total=deleted_count
+                )
+
+            self.logger.info(
+                "Pattern-based key deletion complete",
+                pattern=pattern,
+                deleted_count=deleted_count,
+            )
+            return deleted_count
+
+        except Exception as e:
+            self.logger.error(
+                "Failed to delete keys by pattern", pattern=pattern, error=str(e)
+            )
+            return 0
+
     async def exists(self, key: CacheKey) -> bool:
         """Check if a key exists in Redis.
 

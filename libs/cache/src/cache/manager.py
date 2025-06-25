@@ -14,6 +14,9 @@ logger = structlog.get_logger(__name__)
 ***REMOVED*** Type variable for generic return types
 T = TypeVar("T")
 
+***REMOVED*** Global cache manager instance for singleton pattern
+_CACHE_MANAGER_INSTANCE: Optional["CacheManager"] = None
+
 
 class CacheManager:
     """Main cache manager providing unified interface to cache operations."""
@@ -34,6 +37,10 @@ class CacheManager:
         )
 
         self.logger.info("Cache manager initialized")
+
+        ***REMOVED*** Store instance in global variable for singleton pattern
+        global _CACHE_MANAGER_INSTANCE
+        _CACHE_MANAGER_INSTANCE = self
 
     @classmethod
     def from_settings(cls, settings: Optional[CacheSettings] = None) -> "CacheManager":
@@ -107,6 +114,24 @@ class CacheManager:
             True if key was deleted, False if key didn't exist
         """
         return await self.provider.delete_key(key)
+
+    async def delete_pattern(self, pattern: str) -> int:
+        """Delete all keys matching a pattern.
+
+        Args:
+            pattern: The pattern to match keys against (e.g., "user:123:*")
+
+        Returns:
+            Number of keys deleted
+        """
+        if hasattr(self.provider, "delete_pattern"):
+            return await self.provider.delete_pattern(pattern)
+        else:
+            self.logger.warning(
+                "Provider does not support pattern deletion",
+                provider=self.provider.__class__.__name__,
+            )
+            return 0
 
     async def exists(self, key: CacheKey) -> bool:
         """Check if a key exists in cache.
@@ -297,3 +322,24 @@ class CacheManager:
     ) -> None:
         """Async context manager exit."""
         await self.close()
+
+
+def get_cache_manager(settings: Optional[CacheSettings] = None) -> CacheManager:
+    """Get or create a singleton cache manager instance.
+
+    This function implements the singleton pattern for the cache manager,
+    ensuring that only one instance is created and reused throughout the application.
+
+    Args:
+        settings: Optional cache settings to use when creating the manager
+
+    Returns:
+        Singleton cache manager instance
+    """
+    global _CACHE_MANAGER_INSTANCE
+
+    if _CACHE_MANAGER_INSTANCE is None:
+        logger.info("Creating singleton cache manager instance")
+        _CACHE_MANAGER_INSTANCE = CacheManager.from_settings(settings)
+
+    return _CACHE_MANAGER_INSTANCE

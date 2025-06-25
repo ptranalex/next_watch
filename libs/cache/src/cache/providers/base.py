@@ -189,3 +189,15 @@ class CacheProvider(ABC):
             True if key was deleted, False if key didn't exist
         """
         return await self.delete(key)
+
+    @abstractmethod
+    async def delete_pattern(self, pattern: str) -> int:
+        """Delete all keys matching a pattern.
+
+        Args:
+            pattern: The pattern to match keys against (e.g., "user:123:*")
+
+        Returns:
+            Number of keys deleted
+        """
+        pass

@@ -10,7 +10,7 @@ Enhanced features:
 """
 
 from cache.config.settings import CacheSettings
-from cache.manager import CacheManager
+from cache.manager import CacheManager, get_cache_manager
 from cache.providers.redis import RedisProvider
 from cache.decorators import redis_cache
 from cache.keys import (
@@ -42,4 +42,5 @@ __all__ = [
     "WarmingConfig",
     "WarmingTarget",
     "WarmingStrategy",
+    "get_cache_manager",
 ]
