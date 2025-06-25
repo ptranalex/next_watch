@@ -3,7 +3,7 @@ import { useAuth } from "@/services/hooks";
 import { useMovieInteractions } from "@/services/hooks/domain/movie/useMovieInteractions";
 import { Box, Card, Image, useColorModeValue } from "@chakra-ui/react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createLogger } from "@/utils/logging";
 import MovieQuickAction from "./MovieQuickAction";
 import MovieRatingIndicator from "./MovieRatingIndicator";
@@ -20,6 +20,7 @@ interface MovieCardProps {
 const MovieCard = ({ movie }: MovieCardProps) => {
   const { user } = useAuth();
   const bgColor = useColorModeValue("bg.secondary", "bg.tertiary");
+  const [isCardHovered, setIsCardHovered] = useState(false);
 
   // Use the same interaction hook pattern as movie details
   const movieInteractions = useMovieInteractions({
@@ -41,6 +42,8 @@ const MovieCard = ({ movie }: MovieCardProps) => {
       borderRadius={5}
       boxShadow="lg"
       overflow="hidden"
+      onMouseEnter={() => setIsCardHovered(true)}
+      onMouseLeave={() => setIsCardHovered(false)}
     >
       <Card
         direction={{ base: "row", md: "row" }}
@@ -91,6 +94,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
             >
               <MovieQuickAction
                 movie={movie}
+                isHovered={isCardHovered}
                 toggleFunctions={{
                   toggleWatched: () =>
                     movieInteractions.toggleWatched(undefined),

@@ -19,6 +19,7 @@ interface Props {
   movie: Movie;
   size?: ComponentSize;
   orientation?: MovieCardOrientation;
+  isHovered?: boolean;
   toggleFunctions?: {
     toggleWatched?: () => Promise<void>;
     toggleLiked?: () => Promise<void>;
@@ -30,11 +31,16 @@ const MovieQuickAction = ({
   movie,
   size = "sm",
   orientation = "vertical",
+  isHovered: parentIsHovered,
   toggleFunctions,
 }: Props) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [internalIsHovered, setInternalIsHovered] = useState(false);
   const Stack = orientation === "vertical" ? VStack : HStack;
   const toast = useToast();
+
+  // Use parent hover state if provided, otherwise fall back to internal state
+  const isHovered =
+    parentIsHovered !== undefined ? parentIsHovered : internalIsHovered;
 
   // Local loading states for immediate UI feedback
   const [loadingStates, setLoadingStates] = useState({
@@ -158,8 +164,12 @@ const MovieQuickAction = ({
       transition="background 0.3s, backdrop-filter 0.3s"
       borderRadius="0"
       height="100%"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() =>
+        parentIsHovered === undefined && setInternalIsHovered(true)
+      }
+      onMouseLeave={() =>
+        parentIsHovered === undefined && setInternalIsHovered(false)
+      }
     >
       <Stack spacing={0} width="100%" height="100%" overflow="hidden">
         <CardToggleIconButton
