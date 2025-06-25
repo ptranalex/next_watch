@@ -335,21 +335,19 @@ async def get_user_watchlist(
             elif sort_by == "metacritic_rating":
                 enriched_movies.sort(key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse)
 
-        ***REMOVED*** Get pagination metadata from backend response
+        ***REMOVED*** Calculate pagination metadata using backend response pagination data
         backend_pagination = watchlist_interactions_response.get("pagination", {})
-        backend_total = backend_pagination.get("total", len(actually_watchlisted))
-
-        ***REMOVED*** Calculate pagination metadata based on the filtered results and backend info
-        total_count = len(enriched_movies)  ***REMOVED*** This is after client-side filtering
-        backend_has_next = backend_pagination.get("has_next", False)
-        backend_has_prev = backend_pagination.get("has_prev", False)
+        total_count = backend_pagination.get("total", len(enriched_movies))
+        has_next = backend_pagination.get("has_next", len(actually_watchlisted) == limit)
+        has_prev = backend_pagination.get("has_prev", page > 1)
+        total_pages = backend_pagination.get("total_pages", 1)
 
         ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=enriched_movies,
             page=page,
             limit=limit,
-            total=backend_total,  ***REMOVED*** Use backend's total count, not filtered count
+            total=total_count,
             metadata={
                 "filters_applied": {
                     "imdb_rating": imdb_rating,
@@ -369,11 +367,24 @@ async def get_user_watchlist(
                 "collection_type": "watchlist_movies",
                 "user_context": {"user_id": user_id},
                 "collection_stats": {
-                    "total_watchlisted": len(actually_watchlisted),
-                    "filtered_count": len(enriched_movies),
+                    "total_watchlisted": total_count,
+                    "current_page_count": len(enriched_movies),
+                    "backend_total": backend_pagination.get("total", "unknown"),
                 },
+                "pagination_source": "backend",
+                "backend_pagination": backend_pagination,
             },
         )
+
+        ***REMOVED*** Manually update pagination fields if ResponseBuilder doesn't support them directly
+        if isinstance(response, dict) and "pagination" in response:
+            response["pagination"].update(
+                {
+                    "has_next": has_next,
+                    "has_prev": has_prev,
+                    "total_pages": total_pages,
+                }
+            )
         return cast(Dict[str, Any], response)
 
     except ExternalServiceException as e:

@@ -156,14 +156,15 @@ async def get_user_liked_movies(
             page=page,
         )
 
-        ***REMOVED*** The backend client wraps list responses in {"data": [...]} format
-        ***REMOVED*** Extract the interactions list from the wrapped response
-        liked_interactions: List[Dict[str, Any]] = liked_interactions_response.get("data", [])
+        ***REMOVED*** The backend client now returns fast-core format with {"results": [...]} format
+        ***REMOVED*** Extract the collection items from the liked-movies collection endpoint
+        liked_collection_items: List[Dict[str, Any]] = liked_interactions_response.get(
+            "results", []
+        )
 
-        ***REMOVED*** Filter to only get actually liked movies (since some interactions might have liked=false)
-        actually_liked = [
-            interaction for interaction in liked_interactions if interaction.get("liked", False)
-        ]
+        ***REMOVED*** All items from the liked-movies collection are liked by definition
+        ***REMOVED*** No need to filter - these are already the liked movies
+        actually_liked = liked_collection_items
 
         if not actually_liked:
             logger.info(
@@ -199,11 +200,9 @@ async def get_user_liked_movies(
             )
             return cast(Dict[str, Any], response)
 
-        ***REMOVED*** Extract movie IDs for bulk fetching - filter out None values first and then convert to int
+        ***REMOVED*** Extract movie IDs for bulk fetching - collection items have movie_id directly
         valid_movie_ids = [
-            mid
-            for mid in [interaction.get("movie_id") for interaction in actually_liked]
-            if mid is not None
+            item["movie_id"] for item in actually_liked if item.get("movie_id") is not None
         ]
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
@@ -257,37 +256,38 @@ async def get_user_liked_movies(
             ***REMOVED*** Graceful fallback - decorator already logged the error
             movies_data = []
 
-        ***REMOVED*** Create a mapping of movie_id to interaction data for efficient lookup
-        interaction_map = {
-            interaction.get("movie_id"): interaction
-            for interaction in actually_liked
-            if interaction.get("movie_id")
+        ***REMOVED*** Create a mapping of movie_id to collection item data for efficient lookup
+        collection_item_map = {
+            item["movie_id"]: item for item in actually_liked if item.get("movie_id")
         }
 
-        ***REMOVED*** Merge movie details with interaction data
+        ***REMOVED*** Merge movie details with collection item data
         enriched_movies: List[Dict[str, Any]] = []
         for movie in movies_data:
             movie_id = movie.get("id")
-            if movie_id and movie_id in interaction_map:
-                interaction = interaction_map[movie_id]
+            if movie_id and movie_id in collection_item_map:
+                collection_item = collection_item_map[movie_id]
 
-                ***REMOVED*** Merge interaction data with movie details
+                ***REMOVED*** Merge collection item data with movie details
                 enriched_movie = {**movie}
 
-                ***REMOVED*** Set the frontend-expected interaction fields
-                enriched_movie["watched"] = interaction.get("watched", False)
-                enriched_movie["liked"] = interaction.get(
-                    "liked", True
-                )  ***REMOVED*** Always true for liked movies
-                enriched_movie["in_watchlist"] = interaction.get("in_watchlist", False)
+                ***REMOVED*** Set the frontend-expected interaction fields for liked movies
+                enriched_movie["watched"] = (
+                    False  ***REMOVED*** Unknown from collection data, would need separate lookup
+                )
+                enriched_movie["liked"] = True  ***REMOVED*** Always true since this is from liked collection
+                enriched_movie["in_watchlist"] = (
+                    False  ***REMOVED*** Unknown from collection data, would need separate lookup
+                )
 
                 ***REMOVED*** Ensure user_interactions object is present with complete structure
                 enriched_movie["user_interactions"] = {
-                    "in_watchlist": interaction.get("in_watchlist", False),
-                    "is_favorite": interaction.get("liked", True),  ***REMOVED*** Always true for liked movies
-                    "user_rating": interaction.get("user_rating"),
-                    "watch_progress": interaction.get("watch_progress", 0),
-                    "is_watched": interaction.get("watched", False),
+                    "in_watchlist": False,  ***REMOVED*** Unknown from collection data
+                    "is_favorite": True,  ***REMOVED*** Always true for liked movies
+                    "user_rating": None,  ***REMOVED*** Unknown from collection data
+                    "watch_progress": 0,  ***REMOVED*** Unknown from collection data
+                    "is_watched": False,  ***REMOVED*** Unknown from collection data
+                    "liked_at": collection_item.get("added_at"),  ***REMOVED*** Use added_at as liked_at
                 }
 
                 enriched_movies.append(enriched_movie)
@@ -339,13 +339,12 @@ async def get_user_liked_movies(
             elif sort_by == "metacritic_rating":
                 enriched_movies.sort(key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse)
 
-        ***REMOVED*** Calculate pagination metadata based on the filtered results
-        total_count = len(enriched_movies)
-        has_next = (
-            len(actually_liked) == limit
-        )  ***REMOVED*** If we got a full page of interactions, assume there might be more
-        has_prev = page > 1
-        total_pages = page if not has_next else page + 1  ***REMOVED*** Estimate based on current page
+        ***REMOVED*** Calculate pagination metadata using backend response pagination data
+        backend_pagination = liked_interactions_response.get("pagination", {})
+        total_count = backend_pagination.get("total", len(enriched_movies))
+        has_next = backend_pagination.get("has_next", len(actually_liked) == limit)
+        has_prev = backend_pagination.get("has_prev", page > 1)
+        total_pages = backend_pagination.get("total_pages", 1)
 
         logger.info(
             "Returning liked movies for user",
@@ -381,11 +380,24 @@ async def get_user_liked_movies(
                 "collection_type": "liked_movies",
                 "user_context": {"user_id": user_id},
                 "collection_stats": {
-                    "total_liked": len(actually_liked),
-                    "filtered_count": len(enriched_movies),
+                    "total_liked": total_count,
+                    "current_page_count": len(enriched_movies),
+                    "backend_total": backend_pagination.get("total", "unknown"),
                 },
+                "pagination_source": "backend",
+                "backend_pagination": backend_pagination,
             },
         )
+
+        ***REMOVED*** Manually update pagination fields if ResponseBuilder doesn't support them directly
+        if isinstance(response, dict) and "pagination" in response:
+            response["pagination"].update(
+                {
+                    "has_next": has_next,
+                    "has_prev": has_prev,
+                    "total_pages": total_pages,
+                }
+            )
         return cast(Dict[str, Any], response)
 
     except ExternalServiceException as e:

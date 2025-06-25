@@ -282,6 +282,7 @@ export function useWatchedPage() {
           watched: firstMovie.watched,
           liked: firstMovie.liked,
           in_watchlist: firstMovie.in_watchlist,
+          has_user_interactions: !!firstMovie.user_interactions,
         });
       }
     }
