@@ -1,4 +1,4 @@
-import { fetchData, postData } from "../core/api-client";
+import { fetchData, postData, putData } from "../core/api-client";
 import { APIError, AuthError, NetworkError } from "../core/errors";
 import { createLogger } from "@/utils/logging";
 import AuthTokenManager from "@/utils/auth/authTokenManager";
@@ -20,7 +20,7 @@ export const AuthAPI = {
     logger.info(`Registering new user with email: ${data.email}`);
 
     try {
-      const userData = await postData<UserData>("/bff/v1/auth/register", {
+      const userData = await postData<UserData>("/bff/v1/users", {
         email: data.email,
         name: data.username, // BFF expects 'name' field, not 'username'
         password: data.password,
@@ -58,15 +58,11 @@ export const AuthAPI = {
       );
 
       // Use BFF client with form data and proper content type
-      const tokens = await postData<AuthTokens>(
-        "/bff/v1/auth/login",
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
-      );
+      const tokens = await postData<AuthTokens>("/bff/v1/tokens", formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
 
       // Store tokens
       AuthTokenManager.setTokens(tokens.access_token, tokens.refresh_token);
@@ -101,7 +97,7 @@ export const AuthAPI = {
 
     try {
       // Using the BFF client which already handles auth headers
-      const userData = await fetchData<UserData>("/bff/v1/auth/me");
+      const userData = await fetchData<UserData>("/bff/v1/users/me");
       logger.debug(`Current user data retrieved for ID: ${userData.id}`);
       return userData;
     } catch (error) {
@@ -149,8 +145,8 @@ export const AuthAPI = {
     logger.debug("Refresh attempt marked");
 
     try {
-      // Use the BFF client for the refresh token request
-      const tokens = await postData<AuthTokens>("/bff/v1/auth/refresh", {
+      // Use the BFF client for the refresh token request (PUT for updates)
+      const tokens = await putData<AuthTokens>("/bff/v1/tokens", {
         refresh_token: refreshToken,
       });
 

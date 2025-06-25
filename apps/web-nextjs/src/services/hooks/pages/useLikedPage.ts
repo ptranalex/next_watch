@@ -14,13 +14,18 @@ const logger = createLogger("useLikedPage");
 
 // Type for liked movies response
 interface LikedMoviesResponse {
-  total: number;
-  page: number;
-  per_page: number;
-  total_pages: number;
-  has_next: boolean;
-  has_prev: boolean;
   results: Movie[];
+  pagination: {
+    page: number;
+    per_page: number;
+    total: number;
+    total_pages: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
+  metadata?: {
+    [key: string]: unknown;
+  };
 }
 
 /**
@@ -200,7 +205,9 @@ export function useLikedPage() {
       return response;
     },
     getNextPageParam: (lastPage) => {
-      return lastPage.has_next ? (lastPage.page || 1) + 1 : undefined;
+      return lastPage.pagination.has_next
+        ? (lastPage.pagination.page || 1) + 1
+        : undefined;
     },
     enabled: true,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -226,10 +233,10 @@ export function useLikedPage() {
 
   // Get pagination metadata from the latest page
   const latestPage = likedData?.pages?.[likedData.pages.length - 1];
-  const totalMovies = latestPage?.total || 0;
-  const currentPage = latestPage?.page || 1;
-  const totalPages = latestPage?.total_pages || 0;
-  const hasPrevPage = latestPage?.has_prev || false;
+  const totalMovies = latestPage?.pagination.total || 0;
+  const currentPage = latestPage?.pagination.page || 1;
+  const totalPages = latestPage?.pagination.total_pages || 0;
+  const hasPrevPage = latestPage?.pagination.has_prev || false;
 
   // Load more function
   const loadMore = () => {

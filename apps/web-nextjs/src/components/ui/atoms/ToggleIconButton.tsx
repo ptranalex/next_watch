@@ -1,7 +1,7 @@
 import { IconButton } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { TiMinus, TiPlus } from "react-icons/ti";
-import type { BaseToggleProps, ComponentSize } from "./types";
+import type { BaseToggleProps } from "./types";
 
 /**
  * ToggleIconButton Props

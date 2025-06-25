@@ -47,6 +47,11 @@ export function useMovieDetailPage(id: number) {
   // Use centralized cache keys for consistency
   const queryKey = useMemo(() => CacheKeys.movies.detail(id), [id]);
 
+  // Check if we have recent mutations that would make the cache fresh
+  const queryMeta = queryClient.getQueryState(queryKey);
+  const hasRecentMutation =
+    queryMeta?.dataUpdatedAt && Date.now() - queryMeta.dataUpdatedAt < 10000; // 10 seconds
+
   // Fetch movie data from BFF (includes user interactions, cast, and similar movies)
   const {
     data: movieDetailResponse,
@@ -55,10 +60,23 @@ export function useMovieDetailPage(id: number) {
     refetch,
   } = useQuery({
     queryKey,
-    queryFn: () => MoviesAPI.getMovieDetail(id),
-    enabled: id > 0,
+    queryFn: () => {
+      logger.debug(
+        `🔄 useMovieDetailPage query function called for movie ${id}`,
+        {
+          hasExistingCache: !!queryClient.getQueryData(queryKey),
+          hasRecentMutation,
+          cacheAge: queryMeta?.dataUpdatedAt
+            ? Date.now() - queryMeta.dataUpdatedAt
+            : null,
+        }
+      );
+      return MoviesAPI.getMovieDetail(id);
+    },
+    enabled: id > 0 && !hasRecentMutation, // Disable if we have fresh mutations
     staleTime: 1000 * 60 * 5, // 5 minutes - consistent with other hooks
     refetchOnWindowFocus: false, // Consistent with other hooks
+    refetchOnMount: false, // Prevent automatic refetch on mount if we have cache
     notifyOnChangeProps: ["data", "error", "isLoading"],
     onSuccess: (response: MovieDetailResponse) => {
       logger.info("Loaded movie data from BFF", {
@@ -144,22 +162,46 @@ export function useMovieDetailPage(id: number) {
   }, [movieDetailResponse?.related?.similar_movies]);
 
   // Convert ResponseBuilder response to Movie with user interactions and cast
-  const movie: Movie | undefined = movieDetailResponse
-    ? ({
-        ...movieDetailResponse.data,
-        // Map BFF user interactions to Movie properties
-        liked:
-          movieDetailResponse.context?.user_interactions?.is_favorite || false,
-        watched:
+  // SIMPLIFIED: Just process the API response, no complex cache logic
+  const movie: Movie | undefined = useMemo(() => {
+    if (!movieDetailResponse) return undefined;
+
+    const baseMovie = {
+      // Use API response data as base
+      ...movieDetailResponse.data,
+      // Use API response interaction states as fallback values
+      liked:
+        movieDetailResponse.context?.user_interactions?.is_favorite || false,
+      watched:
+        movieDetailResponse.context?.user_interactions?.is_watched || false,
+      in_watchlist:
+        movieDetailResponse.context?.user_interactions?.in_watchlist || false,
+      // Include cast data directly in the movie object
+      cast: movieDetailResponse.related?.cast,
+      // Include trailers data
+      trailers: movieDetailResponse.related?.trailers,
+      // Add user_interactions structure for useMovieInteractions hook consistency
+      user_interactions: {
+        is_watched:
           movieDetailResponse.context?.user_interactions?.is_watched || false,
+        is_favorite:
+          movieDetailResponse.context?.user_interactions?.is_favorite || false,
         in_watchlist:
           movieDetailResponse.context?.user_interactions?.in_watchlist || false,
-        // Include cast data directly in the movie object
-        cast: movieDetailResponse.related?.cast,
-        // Include trailers data
-        trailers: movieDetailResponse.related?.trailers,
-      } as Movie)
-    : undefined;
+      },
+    } as unknown as Movie;
+
+    logger.debug(`🎬 useMovieDetailPage processing movie data for ${id}`, {
+      movieTitle: baseMovie.title,
+      interactionStates: {
+        liked: baseMovie.liked,
+        watched: baseMovie.watched,
+        in_watchlist: baseMovie.in_watchlist,
+      },
+    });
+
+    return baseMovie;
+  }, [movieDetailResponse, id]);
 
   // Use the movie interactions hook for toggle functionality
   const {

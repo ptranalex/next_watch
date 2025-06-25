@@ -200,6 +200,33 @@ apiClient.interceptors.response.use(
           throw new AuthError("Access denied");
         case 404:
           throw new APIError("Resource not found");
+        case 409:
+          // For collection endpoints, 409 often means the item is already in the desired state
+          // Check if this is a collection operation (like/watchlist/watched)
+          if (
+            error.config?.url?.includes("/liked-movies") ||
+            error.config?.url?.includes("/watchlist") ||
+            error.config?.url?.includes("/watched-movies")
+          ) {
+            logger.info(
+              `409 Conflict treated as success for ${error.config.url}: ${message}`
+            );
+
+            // Return a successful response with the appropriate data structure
+            // This prevents the UI from showing an error when the operation is essentially successful
+            return Promise.resolve({
+              data: {
+                success: true,
+                message: message || "Operation already completed",
+                movie_id: parseInt(
+                  error.config.url.split("/").pop() || "0",
+                  10
+                ),
+              },
+            } as AxiosResponse);
+          }
+          // For other endpoints, treat 409 as a regular error
+          throw new APIError(message);
         case 429:
           throw new APIError("Too many requests");
         default:

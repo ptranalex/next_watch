@@ -1,8 +1,12 @@
 "use client";
 
 import { Movie } from "@/domain/entities";
-import { deleteData, putData } from "@/services/api";
-import { MovieDetailData } from "@/services/api/bff/types";
+import { deleteData, postData } from "@/services/api";
+import {
+  MovieDetailData,
+  MovieDetailResponse,
+  SimilarMovie,
+} from "@/services/api/bff/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createLogger } from "@/utils/logging";
 import { useAnalytics } from "@/services/hooks/core";
@@ -18,7 +22,8 @@ interface UseMovieInteractionsOptions {
 }
 
 interface InteractionConfig {
-  endpoint: string;
+  addEndpoint: string;
+  removeEndpoint: string;
   currentValue: boolean;
   cacheKey: keyof MovieDetailData["user_interactions"];
   logName: string;
@@ -54,12 +59,28 @@ export function useMovieInteractions({
 
   // Helper function to update cache optimistically using centralized cache keys
   const updateCache = (
-    updateFn: (data: MovieDetailData) => MovieDetailData
+    updateFn: (
+      data: MovieDetailData | MovieDetailResponse
+    ) => MovieDetailData | MovieDetailResponse
   ) => {
     const movieDetailKey = CacheKeys.movies.detail(movieId);
-    queryClient.setQueryData<MovieDetailData>(movieDetailKey, (oldData) => {
+    queryClient.setQueryData(movieDetailKey, (oldData: unknown) => {
       if (!oldData) return oldData;
-      return updateFn(oldData);
+
+      // Handle different response formats (legacy MovieDetailData vs new ResponseBuilder format)
+      const typedData = oldData as MovieDetailData | MovieDetailResponse;
+      if ("data" in typedData && "context" in typedData) {
+        // New ResponseBuilder format: { data: Movie, context: { user_interactions: ... }, ... }
+        console.log("🔄 UPDATING ResponseBuilder FORMAT");
+        return updateFn(typedData);
+      } else if ("movie" in typedData && "user_interactions" in typedData) {
+        // Legacy MovieDetailData format: { movie: Movie, user_interactions: ... }
+        console.log("🔄 UPDATING Legacy FORMAT");
+        return updateFn(typedData);
+      } else {
+        console.log("🔄 UPDATING Unknown FORMAT", oldData);
+        return updateFn(typedData);
+      }
     });
   };
 
@@ -173,6 +194,18 @@ export function useMovieInteractions({
     mutationFn: async () => {
       if (!movie) throw new Error("Movie not loaded");
 
+      console.log("🔧 MUTATION START:", {
+        logName: config.logName,
+        movieId,
+        currentValue: config.currentValue,
+        newValue: !config.currentValue,
+        movie: {
+          watched: movie.watched,
+          liked: movie.liked,
+          in_watchlist: movie.in_watchlist,
+        },
+      });
+
       logger.debug(
         `Toggling ${config.logName} for movie ${movieId}: ${
           config.currentValue
@@ -180,12 +213,18 @@ export function useMovieInteractions({
       );
 
       if (config.currentValue) {
-        await deleteData(config.endpoint);
+        await deleteData(config.removeEndpoint);
       } else {
-        await putData(config.endpoint, {});
+        await postData(config.addEndpoint, { movie_id: movieId });
       }
     },
     onMutate: async () => {
+      console.log("🚀 OPTIMISTIC UPDATE START:", {
+        logName: config.logName,
+        movieId,
+        configCurrentValue: config.currentValue,
+      });
+
       // Cancel outgoing refetches using centralized cache key
       const movieDetailKey = CacheKeys.movies.detail(movieId);
       await queryClient.cancelQueries({ queryKey: movieDetailKey });
@@ -194,27 +233,147 @@ export function useMovieInteractions({
       const previousData =
         queryClient.getQueryData<MovieDetailData>(movieDetailKey);
 
-      // Optimistically update movie detail cache
-      updateCache((oldData) => {
-        const newState = !oldData.user_interactions[config.cacheKey];
-        logger.debug(
-          `Optimistic update: ${config.logName} ${
-            oldData.user_interactions[config.cacheKey]
-          } -> ${newState} for movie ${movieId}`
-        );
+      console.log("📷 CACHE SNAPSHOT:", {
+        movieDetailKey,
+        hasPreviousData: !!previousData,
+        previousUserInteractions: previousData?.user_interactions,
+      });
 
-        return {
-          ...oldData,
-          user_interactions: {
-            ...oldData.user_interactions,
-            [config.cacheKey]: newState,
-          },
-        };
+      // Optimistically update movie detail cache
+      updateCache((oldData: MovieDetailData | MovieDetailResponse) => {
+        const newState = !config.currentValue; // Use config.currentValue, not cache value
+
+        // Handle ResponseBuilder format (NEW - this is what the BFF API returns now)
+        if ("data" in oldData && "context" in oldData) {
+          const responseData = oldData as MovieDetailResponse;
+          const cacheCurrentValue =
+            responseData.context.user_interactions?.[config.cacheKey] ?? false;
+
+          console.log("💾 CACHE UPDATE (ResponseBuilder):", {
+            logName: config.logName,
+            cacheKey: config.cacheKey,
+            oldCacheValue: cacheCurrentValue,
+            configCurrentValue: config.currentValue,
+            newState,
+            oldUserInteractions: responseData.context.user_interactions,
+            similarMoviesCount:
+              responseData.related?.similar_movies?.length || 0,
+          });
+
+          // Update similar movies if the current movie appears in the similar movies list
+          const updatedSimilarMovies =
+            responseData.related?.similar_movies?.map(
+              (similarMovie: SimilarMovie) => {
+                if (similarMovie.id === movieId) {
+                  const movieProperty =
+                    config.cacheKey === "is_watched"
+                      ? "watched"
+                      : config.cacheKey === "is_favorite"
+                      ? "liked"
+                      : "in_watchlist";
+
+                  console.log("🎬 UPDATING SIMILAR MOVIE:", {
+                    movieId: similarMovie.id,
+                    property: movieProperty,
+                    oldValue: similarMovie[movieProperty],
+                    newValue: newState,
+                  });
+
+                  return {
+                    ...similarMovie,
+                    [movieProperty]: newState,
+                  } as SimilarMovie;
+                }
+                return similarMovie;
+              }
+            ) ||
+            responseData.related?.similar_movies ||
+            [];
+
+          const updatedData: MovieDetailResponse = {
+            ...responseData,
+            context: {
+              ...responseData.context,
+              user_interactions: {
+                ...(responseData.context.user_interactions || {}),
+                [config.cacheKey]: newState,
+              },
+            },
+            related: {
+              ...responseData.related,
+              similar_movies: updatedSimilarMovies,
+            },
+          };
+
+          console.log("💾 UPDATED CACHE DATA (ResponseBuilder):", {
+            newUserInteractions: updatedData.context.user_interactions,
+            updatedSimilarMoviesCount: updatedSimilarMovies.length,
+          });
+
+          return updatedData;
+        }
+
+        // Handle legacy format (OLD - fallback for any remaining legacy cache)
+        else if ("user_interactions" in oldData) {
+          const legacyData = oldData as MovieDetailData;
+          const cacheCurrentValue =
+            legacyData.user_interactions?.[config.cacheKey] ?? false;
+
+          console.log("💾 CACHE UPDATE (Legacy):", {
+            logName: config.logName,
+            cacheKey: config.cacheKey,
+            oldCacheValue: cacheCurrentValue,
+            configCurrentValue: config.currentValue,
+            newState,
+            oldUserInteractions: legacyData.user_interactions,
+          });
+
+          const updatedData: MovieDetailData = {
+            ...legacyData,
+            user_interactions: {
+              ...(legacyData.user_interactions || {}),
+              [config.cacheKey]: newState,
+            },
+          };
+
+          console.log("💾 UPDATED CACHE DATA (Legacy):", {
+            newUserInteractions: updatedData.user_interactions,
+          });
+
+          return updatedData;
+        }
+
+        // Unknown format - log and return unchanged
+        console.log("💾 UNKNOWN CACHE FORMAT - NOT UPDATING:", {
+          dataKeys: Object.keys(oldData),
+          hasData: "data" in oldData,
+          hasContext: "context" in oldData,
+          hasUserInteractions: "user_interactions" in oldData,
+          oldData: oldData,
+        });
+        return oldData;
       });
 
       // Optimistically update movie lists cache
       updateMovieListsCache((movie) => {
         const newState = !config.currentValue;
+
+        console.log("📋 LIST UPDATE:", {
+          logName: config.logName,
+          movieId: movie.id,
+          currentMovieProperty:
+            movie[
+              config.cacheKey === "is_watched"
+                ? "watched"
+                : config.cacheKey === "is_favorite"
+                ? "liked"
+                : config.cacheKey === "in_watchlist"
+                ? "in_watchlist"
+                : config.cacheKey
+            ],
+          newState,
+        });
+
         logger.debug(
           `Optimistic update movie lists: ${config.logName} ${config.currentValue} -> ${newState} for movie ${movieId}`
         );
@@ -231,6 +390,62 @@ export function useMovieInteractions({
         };
       });
 
+      // Also update any other movie detail caches that might contain this movie as a similar movie
+      console.log("🔄 CHECKING FOR OTHER MOVIE CACHES TO UPDATE");
+      const allQueries = queryClient.getQueryCache().getAll();
+      const otherMovieDetailQueries = allQueries.filter(
+        (query) =>
+          query.queryKey[0] === "movies" &&
+          query.queryKey[1] === "detail" &&
+          query.queryKey[2] !== movieId &&
+          query.state.data
+      );
+
+      otherMovieDetailQueries.forEach((query) => {
+        const cacheData = query.state.data as MovieDetailResponse;
+        if (cacheData?.related?.similar_movies) {
+          const hasSimilarMovie = cacheData.related.similar_movies.some(
+            (sim: SimilarMovie) => sim.id === movieId
+          );
+          if (hasSimilarMovie) {
+            console.log("🔄 UPDATING SIMILAR MOVIE IN OTHER CACHE:", {
+              otherMovieId: query.queryKey[2],
+              currentMovieId: movieId,
+            });
+
+            queryClient.setQueryData(query.queryKey, (oldData: unknown) => {
+              const typedOldData = oldData as MovieDetailResponse;
+              if (!typedOldData?.related?.similar_movies) return oldData;
+
+              return {
+                ...typedOldData,
+                related: {
+                  ...typedOldData.related,
+                  similar_movies: typedOldData.related.similar_movies.map(
+                    (sim: SimilarMovie) => {
+                      if (sim.id === movieId) {
+                        const movieProperty =
+                          config.cacheKey === "is_watched"
+                            ? "watched"
+                            : config.cacheKey === "is_favorite"
+                            ? "liked"
+                            : "in_watchlist";
+                        return {
+                          ...sim,
+                          [movieProperty]: !config.currentValue,
+                        } as SimilarMovie;
+                      }
+                      return sim;
+                    }
+                  ),
+                },
+              } as MovieDetailResponse;
+            });
+          }
+        }
+      });
+
+      console.log("✅ OPTIMISTIC UPDATE COMPLETE");
       return { previousData };
     },
     onError: (
@@ -238,6 +453,14 @@ export function useMovieInteractions({
       _variables: unknown,
       context: { previousData?: MovieDetailData } | undefined
     ) => {
+      console.log("❌ MUTATION ERROR:", {
+        error: err.message,
+        logName: config.logName,
+        movieId,
+        hasContext: !!context,
+        hasPreviousData: !!context?.previousData,
+      });
+
       logger.error(
         `Failed to toggle ${config.logName} for movie ${movieId}:`,
         err
@@ -250,12 +473,18 @@ export function useMovieInteractions({
         );
         const movieDetailKey = CacheKeys.movies.detail(movieId);
         queryClient.setQueryData(movieDetailKey, context.previousData);
+        console.log("🔄 ROLLBACK COMPLETE");
       }
 
       // Invalidate caches on error to ensure fresh data
       invalidateRelatedCaches();
     },
     onSuccess: () => {
+      console.log("✅ MUTATION SUCCESS:", {
+        logName: config.logName,
+        movieId,
+      });
+
       logger.info(
         `Successfully toggled ${config.logName} for movie ${movieId}`
       );
@@ -276,15 +505,25 @@ export function useMovieInteractions({
       analytics.trackMovie(action, movieId, movie?.title?.toString());
     },
     onSettled: () => {
-      // Do not invalidate caches on success since we have optimistic updates
-      // Only invalidate on error (handled in onError)
+      console.log("🏁 MUTATION SETTLED:", {
+        logName: config.logName,
+        movieId,
+      });
+
+      // Force a cache invalidation to ensure consistency
+      // This might be needed if optimistic updates aren't working properly
+      const movieDetailKey = CacheKeys.movies.detail(movieId);
+      queryClient.invalidateQueries({ queryKey: movieDetailKey });
+
+      console.log("🔄 FORCED CACHE INVALIDATION");
     },
   });
 
   // Create the three mutations using useMutation at the top level
   const toggleWatched = useMutation(
     createMutationConfig({
-      endpoint: `/bff/v1/user/interactions/movies/${movieId}/watched`,
+      addEndpoint: `/bff/v1/me/watched-movies`,
+      removeEndpoint: `/bff/v1/me/watched-movies/${movieId}`,
       currentValue: movie?.watched ?? false,
       cacheKey: "is_watched",
       logName: "watched",
@@ -293,7 +532,8 @@ export function useMovieInteractions({
 
   const toggleLiked = useMutation(
     createMutationConfig({
-      endpoint: `/bff/v1/user/interactions/movies/${movieId}/liked`,
+      addEndpoint: `/bff/v1/me/liked-movies`,
+      removeEndpoint: `/bff/v1/me/liked-movies/${movieId}`,
       currentValue: movie?.liked ?? false,
       cacheKey: "is_favorite",
       logName: "liked",
@@ -302,7 +542,8 @@ export function useMovieInteractions({
 
   const toggleWatchlist = useMutation(
     createMutationConfig({
-      endpoint: `/bff/v1/user/interactions/movies/${movieId}/watchlist`,
+      addEndpoint: `/bff/v1/me/watchlist`,
+      removeEndpoint: `/bff/v1/me/watchlist/movies/${movieId}`,
       currentValue: movie?.in_watchlist ?? false,
       cacheKey: "in_watchlist",
       logName: "watchlist",
