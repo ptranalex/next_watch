@@ -15,7 +15,7 @@ services:
       - DEBUG=false
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
-      
+
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
       - POSTGRES_PORT=5432
@@ -23,24 +23,24 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
-      
+
       ***REMOVED*** Redis Configuration (simplified - no suggestion engine)
       - REDIS_URL=redis://host.docker.internal:6379/0
       - REDIS_MAX_CONNECTIONS=20
       - REDIS_SOCKET_TIMEOUT=5
       - REDIS_RETRY_ON_TIMEOUT=true
-      
+
       ***REMOVED*** JWT Configuration
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - REFRESH_TOKEN_EXPIRE_DAYS=7
-      
+
       ***REMOVED*** Security Configuration
       - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
       - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "backend-api", "0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
-      
+
       ***REMOVED*** Performance & Monitoring
       - BACKEND_PERFORMANCE_METRICS=true
       - DATABASE_MONITORING_ENABLED=true
@@ -204,8 +204,11 @@ services:
     ports:
       - "8003:8003"
     environment:
+      ***REMOVED*** Core Service Configuration (matching ServiceConfig pattern)
       - ENVIRONMENT=production
-      - AUTH_API_PORT=8003
+      - SERVICE_NAME=auth-api
+      - HOST=0.0.0.0
+      - PORT=8003
       - DEBUG=false
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
@@ -228,16 +231,19 @@ services:
       - MAX_LOGIN_ATTEMPTS=5
       - LOGIN_LOCKOUT_DURATION_MINUTES=15
       - SESSION_TIMEOUT_MINUTES=60
-      - CORS_ORIGINS=https://alexsandbox.me,http://localhost:3000,http://localhost:8001
-      - ALLOWED_HOSTS=alexsandbox.me,www.alexsandbox.me,localhost,127.0.0.1,auth-api
-      ***REMOVED*** Performance
+      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000", "http://localhost:8001"]
+      - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "auth-api", "0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+
+      ***REMOVED*** Performance & Monitoring
+      - AUTH_PERFORMANCE_METRICS=true
       - ENABLE_PERFORMANCE_METRICS=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - auth-logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
