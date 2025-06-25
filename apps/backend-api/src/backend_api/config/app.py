@@ -80,6 +80,12 @@ class BackendAPIConfig(
         default=7, description="Refresh token expiration time in days"
     )
 
+    ***REMOVED*** Service-to-service authentication
+    internal_api_key: str = Field(
+        default="bff-to-backend-secret-key",
+        description="Internal API key for service-to-service authentication",
+    )
+
     class Config:
         """Pydantic configuration for environment handling."""
 

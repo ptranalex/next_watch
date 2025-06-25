@@ -5,14 +5,12 @@ In the new architecture, the BFF validates user tokens and authenticates to Back
 using an internal service token, then passes the verified user_id via headers.
 """
 
-import os
 from typing import Annotated, Optional
 
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-***REMOVED*** Internal API key for service-to-service authentication
-INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "bff-to-backend-secret-key")
+from backend_api.config import settings
 
 security = HTTPBearer()
 
@@ -32,7 +30,7 @@ async def verify_internal_token(
     Raises:
         HTTPException: If token is invalid
     """
-    if not credentials or credentials.credentials != INTERNAL_API_KEY:
+    if not credentials or credentials.credentials != settings.internal_api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid internal service token",

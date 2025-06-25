@@ -1,5 +1,4 @@
 """
-from config.logging import get_logger
 User movie interaction service module.
 
 This service handles business logic related to how users interact with movies,
@@ -17,15 +16,17 @@ from sqlmodel import Session, select
 
 from config.logging import get_logger
 from backend_api.db.operations import (
+    create_user_movie_interaction,
     delete_user_movie_interaction,
     get_movie_by_id,
     get_user_movie_interaction,
-    toggle_user_movie_interaction_flag,
 )
 from backend_api.errors import ResourceNotFoundError, ValidationError
 from backend_api.models import Movie, UserMovieInteraction
 
 logger = get_logger(__name__)
+
+***REMOVED*** Cache invalidation is handled by short TTL on user interactions in BFF API
 
 
 class UserInteractionService:
@@ -74,7 +75,28 @@ class UserInteractionService:
             )
 
         logger.info(f"Toggling watchlist for user {user_id} and movie {movie_id}")
-        return toggle_user_movie_interaction_flag(db, user_id, movie_id, "in_watchlist")
+
+        ***REMOVED*** Get current interaction
+        interaction = get_user_movie_interaction(db, user_id, movie_id)
+
+        ***REMOVED*** If no interaction exists, create one with in_watchlist=True
+        if not interaction:
+            result = create_user_movie_interaction(db, user_id, movie_id, in_watchlist=True)
+            return result
+
+        ***REMOVED*** Toggle the watchlist flag
+        interaction.in_watchlist = not interaction.in_watchlist
+        interaction.updated_at = datetime.utcnow()
+
+        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
+        ***REMOVED*** This ensures that operations work correctly even if the movie was previously unmarked
+
+        ***REMOVED*** Save changes to database
+        db.add(interaction)
+        db.commit()
+        db.refresh(interaction)
+
+        return interaction
 
     def toggle_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
@@ -109,7 +131,28 @@ class UserInteractionService:
             )
 
         logger.info(f"Toggling watched status for user {user_id} and movie {movie_id}")
-        return toggle_user_movie_interaction_flag(db, user_id, movie_id, "watched")
+
+        ***REMOVED*** Get current interaction
+        interaction = get_user_movie_interaction(db, user_id, movie_id)
+
+        ***REMOVED*** If no interaction exists, create one with watched=True
+        if not interaction:
+            result = create_user_movie_interaction(db, user_id, movie_id, watched=True)
+            return result
+
+        ***REMOVED*** Toggle the watched flag
+        interaction.watched = not interaction.watched
+        interaction.updated_at = datetime.utcnow()
+
+        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
+        ***REMOVED*** This ensures that operations work correctly even if the movie was previously unmarked
+
+        ***REMOVED*** Save changes to database
+        db.add(interaction)
+        db.commit()
+        db.refresh(interaction)
+
+        return interaction
 
     def toggle_liked(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
@@ -144,7 +187,28 @@ class UserInteractionService:
             )
 
         logger.info(f"Toggling liked status for user {user_id} and movie {movie_id}")
-        return toggle_user_movie_interaction_flag(db, user_id, movie_id, "liked")
+
+        ***REMOVED*** Get current interaction
+        interaction = get_user_movie_interaction(db, user_id, movie_id)
+
+        ***REMOVED*** If no interaction exists, create one with liked=True
+        if not interaction:
+            result = create_user_movie_interaction(db, user_id, movie_id, liked=True)
+            return result
+
+        ***REMOVED*** Toggle the liked flag
+        interaction.liked = not interaction.liked
+        interaction.updated_at = datetime.utcnow()
+
+        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
+        ***REMOVED*** This ensures that operations work correctly even if the movie was previously unmarked
+
+        ***REMOVED*** Save changes to database
+        db.add(interaction)
+        db.commit()
+        db.refresh(interaction)
+
+        return interaction
 
     def delete_interaction(self, db: Session, user_id: int, movie_id: int) -> bool:
         """
@@ -179,7 +243,9 @@ class UserInteractionService:
             )
 
         logger.info(f"Deleting interaction for user {user_id} and movie {movie_id}")
-        return delete_user_movie_interaction(db, user_id, movie_id)
+        result = delete_user_movie_interaction(db, user_id, movie_id)
+
+        return result
 
     def get_interaction(
         self, db: Session, user_id: int, movie_id: int
@@ -215,21 +281,17 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        logger.info(f"Getting interaction for user {user_id} and movie {movie_id}")
         return get_user_movie_interaction(db, user_id, movie_id)
 
     def set_flag(self, db: Session, user_id: int, movie_id: int, flag: str) -> UserMovieInteraction:
         """
-        Set a specific flag to True for a user's interaction with a movie.
-
-        This is an idempotent operation - if the flag is already True,
-        the interaction is returned unchanged.
+        Set a specific flag to True for a user's movie interaction.
 
         Args:
             db: Database session
             user_id: User ID
             movie_id: Movie ID
-            flag: Flag to set ('watched', 'liked', or 'in_watchlist')
+            flag: Flag to set ("watched", "liked", "in_watchlist")
 
         Returns:
             Updated user movie interaction
@@ -264,31 +326,43 @@ class UserInteractionService:
         ***REMOVED*** Get current interaction
         interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-        ***REMOVED*** If already set to True, return unchanged
-        if interaction and getattr(interaction, flag):
-            logger.info(f"Flag {flag} already set to True for user {user_id} and movie {movie_id}")
+        ***REMOVED*** If no interaction exists, create one with the flag set to True
+        if not interaction:
+            logger.info(
+                f"Creating interaction with {flag}=True for user {user_id} and movie {movie_id}"
+            )
+            kwargs = {flag: True}
+            result = create_user_movie_interaction(db, user_id, movie_id, **kwargs)
+            return result
+
+        ***REMOVED*** If flag is already True, return as-is
+        if getattr(interaction, flag):
+            logger.info(f"Flag {flag} already True for user {user_id} and movie {movie_id}")
             return interaction
 
-        ***REMOVED*** If interaction exists but flag is False, or interaction doesn't exist,
-        ***REMOVED*** toggle the flag (which will set it to True)
+        ***REMOVED*** Set the flag to True directly on the interaction object
         logger.info(f"Setting flag {flag} to True for user {user_id} and movie {movie_id}")
-        return toggle_user_movie_interaction_flag(db, user_id, movie_id, flag)
+        setattr(interaction, flag, True)
+        interaction.updated_at = datetime.utcnow()
+
+        ***REMOVED*** Save changes to database
+        db.add(interaction)
+        db.commit()
+        db.refresh(interaction)
+
+        return interaction
 
     def unset_flag(
         self, db: Session, user_id: int, movie_id: int, flag: str
     ) -> UserMovieInteraction:
         """
-        Set a specific flag to False for a user's interaction with a movie.
-
-        This is an idempotent operation - if the flag is already False or
-        the interaction doesn't exist, a representation of the interaction
-        with the flag set to False is returned.
+        Set a specific flag to False for a user's movie interaction.
 
         Args:
             db: Database session
             user_id: User ID
             movie_id: Movie ID
-            flag: Flag to unset ('watched', 'liked', or 'in_watchlist')
+            flag: Flag to unset ("watched", "liked", "in_watchlist")
 
         Returns:
             Updated user movie interaction
@@ -323,27 +397,40 @@ class UserInteractionService:
         ***REMOVED*** Get current interaction
         interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-        ***REMOVED*** If no interaction or flag already False, return interaction or create a
-        ***REMOVED*** representation with the flag set to False
-        if not interaction or not getattr(interaction, flag):
-            logger.info(f"Flag {flag} already False for user {user_id} and movie {movie_id}")
-            if interaction:
-                return interaction
-            else:
-                ***REMOVED*** Create a representation (not saved to DB) with the flag set to False
-                return UserMovieInteraction(
-                    user_id=user_id,
-                    movie_id=movie_id,
-                    watched=False,
-                    liked=False,
-                    in_watchlist=False,
-                    created_at=datetime.utcnow(),
-                    updated_at=datetime.utcnow(),
-                )
+        ***REMOVED*** If no interaction exists, create a representation with the flag set to False
+        if not interaction:
+            logger.info(f"No interaction exists for user {user_id} and movie {movie_id}")
+            ***REMOVED*** Create a representation (not saved to DB) with the flag set to False
+            return UserMovieInteraction(
+                user_id=user_id,
+                movie_id=movie_id,
+                watched=False,
+                liked=False,
+                in_watchlist=False,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow(),
+            )
 
-        ***REMOVED*** If interaction exists and flag is True, toggle the flag (which will set it to False)
+        ***REMOVED*** If flag is already False, return as-is
+        if not getattr(interaction, flag):
+            logger.info(f"Flag {flag} already False for user {user_id} and movie {movie_id}")
+            return interaction
+
+        ***REMOVED*** Set the flag to False directly on the interaction object
         logger.info(f"Setting flag {flag} to False for user {user_id} and movie {movie_id}")
-        return toggle_user_movie_interaction_flag(db, user_id, movie_id, flag)
+        setattr(interaction, flag, False)
+        interaction.updated_at = datetime.utcnow()
+
+        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
+        ***REMOVED*** This ensures that operations like "remove from watchlist" work correctly
+        ***REMOVED*** even if the movie was previously unmarked from all collections
+
+        ***REMOVED*** Save changes to database
+        db.add(interaction)
+        db.commit()
+        db.refresh(interaction)
+
+        return interaction
 
     ***REMOVED*** Now add convenience methods for each flag type
     def set_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
@@ -369,6 +456,316 @@ class UserInteractionService:
     def unset_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set in_watchlist flag to False."""
         return self.unset_flag(db, user_id, movie_id, "in_watchlist")
+
+    ***REMOVED*** ============================================================================
+    ***REMOVED*** NEW COLLECTION-ORIENTED METHODS
+    ***REMOVED*** ============================================================================
+
+    def add_to_watchlist(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> Tuple[UserMovieInteraction, bool]:
+        """
+        Add a movie to user's watchlist.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+
+        Returns:
+            Tuple of (interaction, was_created) where was_created indicates if this was a new addition
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Check if already in watchlist
+        existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
+        if existing_interaction and existing_interaction.in_watchlist:
+            logger.info(f"Movie {movie_id} already in watchlist for user {user_id}")
+            return existing_interaction, False
+
+        ***REMOVED*** Add to watchlist
+        logger.info(f"Adding movie {movie_id} to watchlist for user {user_id}")
+        interaction = self.set_watchlist(db, user_id, movie_id)
+        return interaction, True
+
+    def remove_from_watchlist(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> Tuple[UserMovieInteraction, bool]:
+        """
+        Remove a movie from user's watchlist.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+
+        Returns:
+            Tuple of (interaction, was_removed) where was_removed indicates if movie was actually removed
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Check if in watchlist
+        existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
+        if not existing_interaction or not existing_interaction.in_watchlist:
+            logger.info(f"Movie {movie_id} not in watchlist for user {user_id}")
+            return (
+                existing_interaction
+                or UserMovieInteraction(
+                    user_id=user_id,
+                    movie_id=movie_id,
+                    watched=False,
+                    liked=False,
+                    in_watchlist=False,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
+                ),
+                False,
+            )
+
+        ***REMOVED*** Remove from watchlist
+        logger.info(f"Removing movie {movie_id} from watchlist for user {user_id}")
+        interaction = self.unset_watchlist(db, user_id, movie_id)
+        return interaction, True
+
+    def mark_as_watched(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> Tuple[UserMovieInteraction, bool]:
+        """
+        Mark a movie as watched by user.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+
+        Returns:
+            Tuple of (interaction, was_created) where was_created indicates if this was newly marked
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Check if already watched
+        existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
+        if existing_interaction and existing_interaction.watched:
+            logger.info(f"Movie {movie_id} already watched by user {user_id}")
+            return existing_interaction, False
+
+        ***REMOVED*** Mark as watched
+        logger.info(f"Marking movie {movie_id} as watched for user {user_id}")
+        interaction = self.set_watched(db, user_id, movie_id)
+        return interaction, True
+
+    def unmark_as_watched(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> Tuple[UserMovieInteraction, bool]:
+        """
+        Unmark a movie as watched by user.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+
+        Returns:
+            Tuple of (interaction, was_removed) where was_removed indicates if watch status was actually removed
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Check if watched
+        existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
+        if not existing_interaction or not existing_interaction.watched:
+            logger.info(f"Movie {movie_id} not watched by user {user_id}")
+            return (
+                existing_interaction
+                or UserMovieInteraction(
+                    user_id=user_id,
+                    movie_id=movie_id,
+                    watched=False,
+                    liked=False,
+                    in_watchlist=False,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
+                ),
+                False,
+            )
+
+        ***REMOVED*** Unmark as watched
+        logger.info(f"Unmarking movie {movie_id} as watched for user {user_id}")
+        interaction = self.unset_watched(db, user_id, movie_id)
+        return interaction, True
+
+    def like_movie(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> Tuple[UserMovieInteraction, bool]:
+        """
+        Like a movie for user.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+
+        Returns:
+            Tuple of (interaction, was_created) where was_created indicates if this was newly liked
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Check if already liked
+        existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
+        if existing_interaction and existing_interaction.liked:
+            logger.info(f"Movie {movie_id} already liked by user {user_id}")
+            return existing_interaction, False
+
+        ***REMOVED*** Like movie
+        logger.info(f"Liking movie {movie_id} for user {user_id}")
+        interaction = self.set_liked(db, user_id, movie_id)
+        return interaction, True
+
+    def unlike_movie(
+        self, db: Session, user_id: int, movie_id: int
+    ) -> Tuple[UserMovieInteraction, bool]:
+        """
+        Unlike a movie for user.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_id: Movie ID
+
+        Returns:
+            Tuple of (interaction, was_removed) where was_removed indicates if like was actually removed
+
+        Raises:
+            ResourceNotFoundError: If movie doesn't exist
+            ValidationError: If user_id is invalid
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        ***REMOVED*** Validate movie exists
+        movie = get_movie_by_id(db, movie_id)
+        if not movie:
+            raise ResourceNotFoundError(
+                message=f"Movie with ID {movie_id} not found",
+                resource_type="Movie",
+                resource_id=movie_id,
+            )
+
+        ***REMOVED*** Check if liked
+        existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
+        if not existing_interaction or not existing_interaction.liked:
+            logger.info(f"Movie {movie_id} not liked by user {user_id}")
+            return (
+                existing_interaction
+                or UserMovieInteraction(
+                    user_id=user_id,
+                    movie_id=movie_id,
+                    watched=False,
+                    liked=False,
+                    in_watchlist=False,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow(),
+                ),
+                False,
+            )
+
+        ***REMOVED*** Unlike movie
+        logger.info(f"Unliking movie {movie_id} for user {user_id}")
+        interaction = self.unset_liked(db, user_id, movie_id)
+        return interaction, True
 
     def import_netflix_history(self, db: Session, user_id: int, csv_content: str) -> Dict[str, Any]:
         """
@@ -465,6 +862,7 @@ class UserInteractionService:
                             ***REMOVED*** If date parsing fails, just use current date
                             pass
 
+                        ***REMOVED*** Use the toggle_watched method
                         self.toggle_watched(db, user_id, movie_id)
                         newly_marked_watched += 1
                         matched_movies += 1

@@ -7,11 +7,11 @@ This module contains API route handlers for different API versions.
 from .v1 import actors_router as actors_router_v1
 from .v1 import movies_router as movies_router_v1
 from .v1 import search_router as search_router_v1
-from .v1 import user_interactions_router as user_interactions_router_v1
+from .v1 import user_collections_router as user_collections_router_v1
 
 __all__ = [
     "movies_router_v1",
     "actors_router_v1",
     "search_router_v1",
-    "user_interactions_router_v1",
+    "user_collections_router_v1",
 ]

@@ -10,7 +10,13 @@ from .movie_schema import MovieResponse, MoviesListResponse
 from .search import SearchResponse, SearchResult
 from .trailer_schema import TrailerResponse
 from .user_interaction_schema import (
+    AddToCollectionRequest,
+    CollectionItemResponse,
+    CollectionOperationResponse,
+    CollectionResponse,
+    CollectionStatsResponse,
     MovieSummary,
+    UserCollectionsSummaryResponse,
     UserMovieDetail,
     UserMovieInteractionResponse,
     UserMovieInteractionWithMovie,
@@ -25,8 +31,16 @@ __all__ = [
     "SearchResponse",
     "SearchResult",
     "TrailerResponse",
+    ***REMOVED*** User interaction schemas
     "MovieSummary",
     "UserMovieDetail",
     "UserMovieInteractionResponse",
     "UserMovieInteractionWithMovie",
+    ***REMOVED*** New collection-oriented schemas
+    "AddToCollectionRequest",
+    "CollectionItemResponse",
+    "CollectionOperationResponse",
+    "CollectionResponse",
+    "CollectionStatsResponse",
+    "UserCollectionsSummaryResponse",
 ]
