@@ -143,7 +143,7 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         "/api/v1/movies": "300/minute",
         "/api/v1/movies/{movie_id}": "500/minute",
         "/api/v1/movies/search": "100/minute",
-        "/api/v1/movies/bulk": "50/minute",
+        "/api/v1/movies/bulk": "500/minute",
         "/api/v1/movies/{movie_id}/cast": "200/minute",
         "/api/v1/movies/{movie_id}/trailers": "200/minute",
         ***REMOVED*** User interaction endpoints (managed by BFF auth)
