@@ -15,38 +15,6 @@ logger = get_logger(__name__)
 router = APIRouter(tags=["home"])
 
 
-def _build_api_path(path: str) -> str:
-    """Build API path with version prefix.
-
-    Args:
-        path: Relative API path
-
-    Returns:
-        Full API path with version prefix
-    """
-    ***REMOVED*** Remove leading slash if present to avoid double slashes
-    clean_path = path.lstrip("/")
-    return f"/api/v1/{clean_path}"
-
-
-async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
-    """Handle backend service errors consistently.
-
-    Args:
-        e: The exception that occurred
-        operation: Description of the operation that failed
-        **context: Additional context for logging
-    """
-    logger.error(
-        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
-    )
-    raise ExternalServiceException(
-        detail="Backend service unavailable",
-        service_name="backend-api",
-        error_code="SERVICE_UNAVAILABLE",
-    )
-
-
 async def _get_movies(
     backend: BackendClient,
     page: int = 1,
@@ -159,12 +127,15 @@ async def get_home_screen(
         )
 
     except Exception as e:
-        await _handle_backend_error(e, "home_screen", user_id=user_id)
-        ***REMOVED*** This line is never reached due to exception being raised, but satisfies type checker
-        return HomeScreenData(
-            featured_movies=[],
-            popular_movies=[],
-            recent_releases=[],
-            user_recommendations=[],
-            genres=[],
+        logger.error(
+            "Backend error for home_screen",
+            error=str(e),
+            service="bff",
+            endpoint="home_screen",
+            user_id=user_id,
+        )
+        raise ExternalServiceException(
+            detail="Backend service unavailable",
+            service_name="backend-api",
+            error_code="SERVICE_UNAVAILABLE",
         )

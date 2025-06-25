@@ -13,13 +13,13 @@ from fast_core.dependencies.client_factory import (
     register_client_type,
     get_service_client,
     health_check_all_services,
-    GenericServiceClient,
 )
 from fast_core.dependencies.singleton import cleanup_singletons
 
 from bff_api.config.app import BFFAPIConfig, settings
 from bff_api.services.clients.facade import BackendClient
 from bff_api.services.clients.recommendation import RecommendationClient
+from bff_api.services.auth_client import AuthClient
 
 
 def _register_all_services(config: BFFAPIConfig) -> None:
@@ -33,22 +33,26 @@ def _register_all_services(config: BFFAPIConfig) -> None:
         name="backend",
         base_url=config.backend_api_url,
         timeout=config.backend_api_timeout,
-        headers={"User-Agent": "NextWatch-BFF/0.1.0"},
+        headers={
+            "User-Agent": "NextWatch-BFF/0.1.0",
+            "Authorization": f"Bearer {config.internal_api_key}",
+        },
         singleton=True,  ***REMOVED*** Use singleton for performance
     )
     register_client_type("backend", BackendClient, singleton=True)
 
-    ***REMOVED*** Auth API - uses generic client
+    ***REMOVED*** Auth API - register service and custom client type
     register_service(
         name="auth",
         base_url=config.auth_api_url,
         timeout=config.auth_api_timeout,
         headers={
             "User-Agent": "NextWatch-BFF/0.1.0",
-            "Authorization": f"Bearer {config.internal_api_key}",
+            "Accept": "application/json",
         },
         singleton=True,
     )
+    register_client_type("auth", AuthClient, singleton=True)
 
     ***REMOVED*** Recommendation API - register service and custom client type
     register_service(

@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from bff_api.dependencies import get_backend_client
+from bff_api.services.clients import BackendClient
 from fast_core.responses import ResponseBuilder
 from bff_api.utils.auth import extract_user_id_from_token
 
@@ -29,36 +30,8 @@ responses = ResponseBuilder(
 security = HTTPBearer(auto_error=False)
 
 
-def _build_api_path(path: str) -> str:
-    """Build API path with version prefix.
-
-    Args:
-        path: Relative API path
-
-    Returns:
-        Full API path with version prefix
-    """
-    ***REMOVED*** Remove leading slash if present to avoid double slashes
-    clean_path = path.lstrip("/")
-    return f"/api/v1/{clean_path}"
-
-
-async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
-    """Handle backend service errors consistently.
-
-    Args:
-        e: The exception that occurred
-        operation: Description of the operation that failed
-        **context: Additional context for logging
-    """
-    logger.error(
-        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
-    )
-    raise HTTPException(status_code=502, detail="Backend service unavailable")
-
-
 async def _get_movies(
-    backend: httpx.AsyncClient,
+    backend: BackendClient,
     page: int = 1,
     limit: int = 20,
     **filters: Any,
@@ -66,7 +39,7 @@ async def _get_movies(
     """Get movies from backend with filters.
 
     Args:
-        backend: HTTP client for backend service
+        backend: Backend client
         page: Page number for pagination
         limit: Number of items per page
         **filters: Additional filter parameters
@@ -75,30 +48,17 @@ async def _get_movies(
         Movies response from backend
 
     Raises:
-        httpx.HTTPStatusError: If HTTP request fails
-        httpx.RequestError: If request cannot be made
+        ExternalServiceException: If request fails
     """
-    params: Dict[str, Union[str, int, bool, float]] = {
-        "page": page,
-        "limit": limit,
-    }
-
-    ***REMOVED*** Add all filters to params
-    for key, value in filters.items():
-        if value is not None:
-            params[key] = value
-
-    response = await backend.get(
-        _build_api_path("/movies"),
-        params=params,
+    return await backend.get_movies(
+        page=page,
+        limit=limit,
+        **filters,
     )
-    response.raise_for_status()
-    result: Dict[str, Any] = response.json()
-    return result
 
 
 async def _get_user_movie_interaction(
-    backend: httpx.AsyncClient,
+    backend: BackendClient,
     user_id: int,
     movie_id: int,
     jwt_token: str,
@@ -106,7 +66,7 @@ async def _get_user_movie_interaction(
     """Get user's interaction with a specific movie.
 
     Args:
-        backend: HTTP client for backend service
+        backend: Backend client
         user_id: User ID
         movie_id: Movie ID
         jwt_token: JWT token for authentication
@@ -115,19 +75,14 @@ async def _get_user_movie_interaction(
         User interaction data or None if not found
 
     Raises:
-        httpx.HTTPStatusError: If HTTP request fails
-        httpx.RequestError: If request cannot be made
+        ExternalServiceException: If request fails
     """
     try:
-        response = await backend.get(
-            _build_api_path(f"/users/{user_id}/interactions/movies/{movie_id}"),
-            headers={"Authorization": f"Bearer {jwt_token}"},
-        )
-        response.raise_for_status()
-        result: Dict[str, Any] = response.json()
+        result = await backend.get_user_movie_interaction(user_id, movie_id, jwt_token)
         return result
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
+    except Exception as e:
+        ***REMOVED*** Handle 404 case for not found interactions
+        if "404" in str(e):
             return None
         raise
 
@@ -155,7 +110,7 @@ async def get_top_movies(
     year: Optional[int] = Query(None, description="Filter by release year"),
     start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
     end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
-    backend: httpx.AsyncClient = Depends(get_backend_client),
+    backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Dict[str, Any]:
     """Get top-rated movies with filters.
@@ -341,20 +296,8 @@ async def get_top_movies(
         )
         return cast(Dict[str, Any], response)
 
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
-        await _handle_backend_error(e, "top_movies")
-        ***REMOVED*** This line is unreachable but satisfies type checker
-        response = responses.paginated(
-            items=[],
-            page=page,
-            limit=limit,
-            total=0,
-            metadata={
-                "error": "Backend service unavailable",
-                "service_info": {"aggregated_from": ["backend-api"]},
-                "api_version": "v1",
-                "response_pattern": "paginated",
-                "collection_type": "top_movies",
-            },
+    except Exception as e:
+        logger.error(
+            "Backend error for top_movies", error=str(e), service="bff", endpoint="top_movies"
         )
-        return cast(Dict[str, Any], response)
+        raise HTTPException(status_code=502, detail="Backend service unavailable")

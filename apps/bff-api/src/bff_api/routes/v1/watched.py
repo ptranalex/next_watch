@@ -4,11 +4,13 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 import httpx
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from bff_api.dependencies.auth import get_current_user_id_and_token
 from bff_api.dependencies import get_backend_client
+from bff_api.services.clients import BackendClient
 from fast_core.responses import ResponseBuilder
+from fast_core.errors import ExternalServiceException
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["watched"])
@@ -24,71 +26,38 @@ responses = ResponseBuilder(
 )
 
 
-def _build_api_path(path: str) -> str:
-    """Build API path with version prefix.
-
-    Args:
-        path: Relative API path
-
-    Returns:
-        Full API path with version prefix
-    """
-    ***REMOVED*** Remove leading slash if present to avoid double slashes
-    clean_path = path.lstrip("/")
-    return f"/api/v1/{clean_path}"
-
-
-async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
-    """Handle backend service errors consistently.
-
-    Args:
-        e: The exception that occurred
-        operation: Description of the operation that failed
-        **context: Additional context for logging
-    """
-    logger.error(
-        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
-    )
-    if isinstance(e, httpx.HTTPStatusError) and e.response.status_code == 401:
-        raise HTTPException(status_code=401, detail="Authentication failed")
-    else:
-        raise HTTPException(status_code=502, detail="Backend service unavailable")
-
-
 async def _get_user_watched_movies(
-    backend: httpx.AsyncClient,
+    backend: BackendClient,
     user_id: int,
     jwt_token: str,
     limit: int,
-    offset: int,
+    page: int,
 ) -> Dict[str, Any]:
     """Get user's watched movie interactions from backend.
 
     Args:
-        backend: HTTP client for backend service
+        backend: Backend client
         user_id: User ID
         jwt_token: JWT token for authentication
         limit: Number of items to fetch
-        offset: Offset for pagination
+        page: Page number for pagination
 
     Returns:
         Watched movies interactions response
 
     Raises:
-        httpx.HTTPStatusError: If HTTP request fails
-        httpx.RequestError: If request cannot be made
+        ExternalServiceException: If backend request fails
     """
-    response = await backend.get(
-        _build_api_path(f"/users/{user_id}/interactions/watched"),
-        params={"limit": limit, "offset": offset},
-        headers={"Authorization": f"Bearer {jwt_token}"},
+    return await backend.get_user_watched_movies(
+        user_id=user_id,
+        jwt_token=jwt_token,
+        limit=limit,
+        page=page,
     )
-    response.raise_for_status()
-    return cast(Dict[str, Any], response.json())
 
 
 async def _get_movies_bulk(
-    backend: httpx.AsyncClient,
+    backend: BackendClient,
     movie_ids: List[int],
     user_id: int,
     page: int = 1,
@@ -97,7 +66,7 @@ async def _get_movies_bulk(
     """Get movie details in bulk from backend.
 
     Args:
-        backend: HTTP client for backend service
+        backend: Backend client
         movie_ids: List of movie IDs to fetch
         user_id: User ID for personalized content
         page: Page number
@@ -107,23 +76,14 @@ async def _get_movies_bulk(
         Movies bulk response
 
     Raises:
-        httpx.HTTPStatusError: If HTTP request fails
-        httpx.RequestError: If request cannot be made
+        ExternalServiceException: If backend request fails
     """
-    params: Dict[str, Union[str, int, List[int]]] = {
-        "movie_ids": movie_ids,
-        "user_id": user_id,
-        "page": page,
-        "limit": limit,
-    }
-
-    response = await backend.post(
-        _build_api_path("/movies/bulk"),
-        json={"movie_ids": movie_ids},
-        params={"user_id": user_id, "page": page, "limit": limit},
+    return await backend.get_movies_bulk(
+        movie_ids=movie_ids,
+        user_id=user_id,
+        page=page,
+        limit=limit,
     )
-    response.raise_for_status()
-    return cast(Dict[str, Any], response.json())
 
 
 @router.get("/watched")
@@ -131,7 +91,7 @@ async def get_watched_movies(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
-    backend: httpx.AsyncClient = Depends(get_backend_client),
+    backend: BackendClient = Depends(get_backend_client),
 ) -> Dict[str, Any]:
     """Get user's watched movies.
 
@@ -150,12 +110,10 @@ async def get_watched_movies(
     Raises:
         HTTPException:
             - 401 if not authenticated
+            - 500 if internal server error occurs
             - 502 if backend service is unavailable
     """
     user_id, jwt_token = user_data
-
-    ***REMOVED*** Calculate offset for pagination
-    offset = (page - 1) * limit
 
     logger.info(f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})")
 
@@ -166,7 +124,7 @@ async def get_watched_movies(
             user_id=user_id,
             jwt_token=jwt_token,
             limit=limit,
-            offset=offset,
+            page=page,
         )
 
         ***REMOVED*** The backend client wraps list responses in {"data": [...]} format
@@ -317,21 +275,38 @@ async def get_watched_movies(
         )
         return cast(Dict[str, Any], response)
 
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
-        await _handle_backend_error(e, "watched_movies", user_id=user_id)
-        ***REMOVED*** This line is unreachable but satisfies type checker
-        response = responses.paginated(
-            items=[],
-            page=page,
-            limit=limit,
-            total=0,
-            metadata={
-                "error": "Backend service unavailable",
-                "service_info": {"aggregated_from": ["backend-api"]},
-                "api_version": "v1",
-                "response_pattern": "paginated",
-                "collection_type": "watched_movies",
-                "user_context": {"user_id": user_id},
-            },
+    except ExternalServiceException as e:
+        logger.error(
+            "Backend service error for watched movies",
+            error=str(e),
+            service="bff",
+            endpoint="watched_movies",
+            user_id=user_id,
+            status_code=e.status_code,
         )
-        return cast(Dict[str, Any], response)
+        ***REMOVED*** Map backend service errors to appropriate HTTP status codes
+        if e.status_code == 401:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication failed",
+            )
+        else:
+            ***REMOVED*** This is a legitimate backend service issue (down, timeout, etc.)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Backend service unavailable",
+            )
+    except Exception as e:
+        logger.error(
+            "Internal error processing watched movies request",
+            error=str(e),
+            service="bff",
+            endpoint="watched_movies",
+            user_id=user_id,
+            exc_info=True,  ***REMOVED*** Include stack trace for debugging
+        )
+        ***REMOVED*** Return 500 for internal errors (bugs in our code)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while processing your request",
+        )

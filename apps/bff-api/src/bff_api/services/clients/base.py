@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 import httpx
 from config.logging import get_logger
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from fast_core.dependencies.client_factory import BaseServiceClient, ServiceClientConfig
 from fast_core.errors import (
     handle_service_error,
@@ -14,6 +14,24 @@ from fast_core.errors import (
 from bff_api.config.app import BFFAPIConfig, settings
 
 logger = get_logger(__name__)
+
+
+class BackendClientError(Exception):
+    """Base exception for backend client errors."""
+
+    pass
+
+
+class BackendClientTransientError(BackendClientError):
+    """Transient error that can be retried (network issues, 5xx errors)."""
+
+    pass
+
+
+class BackendClientPermanentError(BackendClientError):
+    """Permanent error that should not be retried (4xx errors)."""
+
+    pass
 
 
 class BaseBackendClient(BaseServiceClient):
@@ -66,7 +84,11 @@ class BaseBackendClient(BaseServiceClient):
         return f"/api/v1/{clean_path}"
 
     @service_error_handler("backend-api", logger)
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_if_exception_type(BackendClientTransientError),
+    )
     async def _make_request(
         self,
         method: str,
@@ -88,27 +110,55 @@ class BaseBackendClient(BaseServiceClient):
             Response data as dictionary
 
         Raises:
-            ExternalServiceException: For service errors (handled by decorator)
+            BackendClientError: For service errors
         """
         client = await self._get_client()
 
-        response = await client.request(
-            method=method,
-            url=path,
-            params=params,
-            json=data,
-            headers=headers or {},
-        )
-        response.raise_for_status()
+        try:
+            response = await client.request(
+                method=method,
+                url=path,
+                params=params,
+                json=data,
+                headers=headers or {},
+            )
+            response.raise_for_status()
 
-        if response.headers.get("content-type", "").startswith("application/json"):
-            json_response = response.json()
-            ***REMOVED*** If the response is a list, wrap it in a dict for consistency
-            if isinstance(json_response, list):
-                return {"data": json_response}
-            return cast(Dict[str, Any], json_response)
-        else:
-            return {"data": response.text}
+            if response.headers.get("content-type", "").startswith("application/json"):
+                json_response = response.json()
+                ***REMOVED*** If the response is a list, wrap it in a dict for consistency
+                if isinstance(json_response, list):
+                    return {"data": json_response}
+                return cast(Dict[str, Any], json_response)
+            else:
+                return {"data": response.text}
+
+        except httpx.HTTPStatusError as e:
+            status_code = e.response.status_code
+
+            ***REMOVED*** 4xx errors are permanent (don't retry)
+            if 400 <= status_code < 500:
+                ***REMOVED*** Log 4xx as appropriate levels
+                if status_code == 401:
+                    logger.debug(f"Authentication failed for {method} {path}: {status_code}")
+                elif status_code == 404:
+                    logger.debug(f"Resource not found for {method} {path}: {status_code}")
+                else:
+                    logger.info(f"Client error {status_code} for {method} {path}")
+                raise BackendClientPermanentError(f"Backend service error: {status_code}")
+            ***REMOVED*** 5xx errors are transient (can retry)
+            else:
+                logger.error(f"Server error {status_code} for {method} {path}: {e}")
+                raise BackendClientTransientError(f"Backend service error: {status_code}")
+
+        except httpx.RequestError as e:
+            logger.error(f"Request error for {method} {path}: {e}")
+            ***REMOVED*** Network errors are transient (can retry)
+            raise BackendClientTransientError(f"Backend service request failed: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error for {method} {path}: {e}")
+            ***REMOVED*** Unexpected errors are treated as permanent
+            raise BackendClientPermanentError(f"Unexpected backend error: {e}")
 
     def _get_auth_headers(self, user_id: int) -> Dict[str, str]:
         """Get service-to-service authentication headers.
@@ -117,14 +167,27 @@ class BaseBackendClient(BaseServiceClient):
             user_id: User ID for authentication context
 
         Returns:
-            Authentication headers
+            Authentication headers including service auth and user context
         """
-        ***REMOVED*** TODO: Implement proper service-to-service authentication
-        ***REMOVED*** For now, just pass user context
-        return {
+        headers = {
             "X-User-ID": str(user_id),
             "X-Service": "bff-api",
         }
+
+        ***REMOVED*** Include Authorization header from service client config if available
+        if self.config.headers and "Authorization" in self.config.headers:
+            auth_header = self.config.headers["Authorization"]
+            headers["Authorization"] = auth_header
+            ***REMOVED*** Mask the token for security but show first/last few chars for debugging
+            masked_auth = (
+                f"{auth_header[:12]}...{auth_header[-4:]}" if len(auth_header) > 16 else "***"
+            )
+        else:
+            logger.warning(
+                f"No Authorization header in config! Config headers: {self.config.headers}"
+            )
+
+        return headers
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check against backend API.

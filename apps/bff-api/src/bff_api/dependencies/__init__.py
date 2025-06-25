@@ -20,8 +20,8 @@ from .service_clients import (
 __all__ = [
     ***REMOVED*** Service client dependencies (now using Service Client Factory)
     "get_backend_client",  ***REMOVED*** Custom BackendClient via Service Client Factory
-    "get_auth_client",  ***REMOVED*** GenericServiceClient via Service Client Factory
-    "get_recommendation_client",  ***REMOVED*** GenericServiceClient via Service Client Factory
+    "get_auth_client",  ***REMOVED*** Custom AuthClient via Service Client Factory
+    "get_recommendation_client",  ***REMOVED*** Custom RecommendationClient via Service Client Factory
     "get_ml_client",  ***REMOVED*** GenericServiceClient via Service Client Factory
     ***REMOVED*** Health and lifecycle
     "get_all_services_health",

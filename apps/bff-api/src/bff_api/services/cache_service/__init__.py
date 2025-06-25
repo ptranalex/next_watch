@@ -25,6 +25,32 @@ from bff_api.services.cache_service.warming import (
     get_bff_warming_settings,
 )
 
+from typing import Optional
+
+from cache import CacheManager, get_cache_manager as _get_cache_manager
+from cache.config import CacheSettings
+
+from bff_api.config.app import get_cache_settings
+
+
+def get_cache_manager(settings: Optional[CacheSettings] = None) -> CacheManager:
+    """Get a cache manager instance configured with BFF API settings.
+
+    This function wraps the cache library's get_cache_manager function
+    to ensure it uses the BFF API's cache settings by default.
+
+    Args:
+        settings: Optional cache settings to use instead of the default
+
+    Returns:
+        Configured cache manager instance
+    """
+    if settings is None:
+        settings = get_cache_settings()
+
+    return _get_cache_manager(settings)
+
+
 ***REMOVED*** For backward compatibility
 get_cache_service = get_cache
 close_cache_service = close_cache
@@ -48,4 +74,5 @@ __all__ = [
     ***REMOVED*** For backward compatibility
     "get_cache_service",
     "close_cache_service",
+    "get_cache_manager",
 ]

@@ -23,38 +23,6 @@ logger = get_logger(__name__)
 router = APIRouter(tags=["sidebar"])
 
 
-def _build_api_path(path: str) -> str:
-    """Build API path with version prefix.
-
-    Args:
-        path: Relative API path
-
-    Returns:
-        Full API path with version prefix
-    """
-    ***REMOVED*** Remove leading slash if present to avoid double slashes
-    clean_path = path.lstrip("/")
-    return f"/api/v1/{clean_path}"
-
-
-async def _handle_backend_error(e: Exception, operation: str, **context: Any) -> None:
-    """Handle backend service errors consistently.
-
-    Args:
-        e: The exception that occurred
-        operation: Description of the operation that failed
-        **context: Additional context for logging
-    """
-    logger.error(
-        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
-    )
-    raise ExternalServiceException(
-        detail="Backend service unavailable",
-        service_name="backend-api",
-        error_code="SERVICE_UNAVAILABLE",
-    )
-
-
 async def _get_genres(backend: BackendClient) -> List[Dict[str, Any]]:
     """Get genres from backend.
 
@@ -272,24 +240,15 @@ async def get_sidebar_content(
         return SidebarData(**sidebar_data_dict)
 
     except Exception as e:
-        await _handle_backend_error(e, "sidebar_content", user_id=user_id)
-        ***REMOVED*** This line is unreachable but satisfies type checker
-        return SidebarData(
-            home={"label": "Home", "href": "/"},
-            user_links=[],
-            top_links=[],
-            filters=SidebarFilters(show=False, defaults={}, locked=[]),
-            genres=[],
-            metadata=SidebarMetadata(layout="sidebar", version="1.0.0", user_authenticated=False),
-        )
-    except Exception as e:
         logger.error(
-            "Unexpected error in sidebar endpoint",
+            "Backend error for sidebar_content",
             error=str(e),
-            user_id=user_id,
             service="bff",
-            endpoint="sidebar",
+            endpoint="sidebar_content",
+            user_id=user_id,
         )
-        raise APIException(
-            detail="Internal server error", status_code=500, error_code="INTERNAL_ERROR"
+        raise ExternalServiceException(
+            detail="Backend service unavailable",
+            service_name="backend-api",
+            error_code="SERVICE_UNAVAILABLE",
         )

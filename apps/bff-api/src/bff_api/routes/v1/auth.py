@@ -1,6 +1,6 @@
 """Authentication routes for BFF API."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, Form, HTTPException, status
@@ -8,15 +8,18 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from bff_api.dependencies import get_auth_client
 from bff_api.schemas.auth_schemas import (
-    AuthenticatedUserResponse,
-    LoginRequest,
-    RefreshTokenRequest,
     RegisterRequest,
+    RefreshTokenRequest,
     TokenResponse,
     TokenVerificationResponse,
     UserResponse,
 )
-from bff_api.services.auth_client import AuthClient, AuthClientError
+from bff_api.services.auth_client import (
+    AuthClient,
+    AuthClientError,
+    AuthClientPermanentError,
+    AuthClientTransientError,
+)
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["authentication"])
@@ -25,8 +28,115 @@ router = APIRouter(tags=["authentication"])
 security = HTTPBearer()
 
 
-@router.post("/auth/login", response_model=TokenResponse)
-async def login(
+***REMOVED*** ============================================================================
+***REMOVED*** Resource-Oriented Authentication Endpoints
+***REMOVED*** ============================================================================
+
+
+@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(
+    user_data: RegisterRequest,
+    auth_client: AuthClient = Depends(get_auth_client),
+) -> UserResponse:
+    """Register a new user account.
+
+    Args:
+        user_data: User registration information
+        auth_client: Authentication service client
+
+    Returns:
+        Created user information
+
+    Raises:
+        HTTPException: 400 if user already exists, 502 if auth service unavailable
+    """
+    try:
+        response = await auth_client.register(
+            email=user_data.email,
+            password=user_data.password,
+            username=user_data.name,  ***REMOVED*** Map name to username for auth-api
+        )
+
+        return UserResponse(
+            id=response["id"],
+            email=response["email"],
+            name=response.get("username"),  ***REMOVED*** Map back from username
+            is_active=response.get("is_active", True),
+            created_at=response.get("created_at", ""),
+        )
+
+    except AuthClientError as e:
+        logger.error(
+            "Registration failed",
+            email=user_data.email,
+            error=str(e),
+            service="bff",
+            endpoint="create_user",
+        )
+        if "400" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User with this email already exists",
+            )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Authentication service unavailable",
+        )
+
+
+@router.get("/users/me", response_model=UserResponse)
+async def get_user_profile(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    auth_client: AuthClient = Depends(get_auth_client),
+) -> UserResponse:
+    """Get current authenticated user information.
+
+    Args:
+        credentials: Bearer token from Authorization header
+        auth_client: Authentication service client
+
+    Returns:
+        Current user information
+
+    Raises:
+        HTTPException: 401 if token invalid, 502 if auth service unavailable
+    """
+    try:
+        user_info = await auth_client.get_current_user(credentials.credentials)
+
+        return UserResponse(
+            id=user_info["id"],
+            email=user_info["email"],
+            name=user_info.get("username"),  ***REMOVED*** Map from auth-api username
+            is_active=user_info.get("is_active", True),
+            created_at=user_info.get("created_at", ""),
+        )
+
+    except AuthClientError as e:
+        if "401" in str(e):
+            ***REMOVED*** Token validation failures are normal - log as info
+            logger.info("Token validation failed", service="bff", endpoint="get_user_profile")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        else:
+            ***REMOVED*** Service errors are actual problems - log as error
+            logger.error(
+                "User profile service error",
+                error=str(e),
+                service="bff",
+                endpoint="get_user_profile",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Authentication service unavailable",
+            )
+
+
+@router.post("/tokens", response_model=TokenResponse)
+async def create_token(
     username: str = Form(...),
     password: str = Form(...),
     auth_client: AuthClient = Depends(get_auth_client),
@@ -55,81 +165,36 @@ async def login(
         )
 
     except AuthClientError as e:
-        logger.error(
-            "Authentication failed",
-            username=username,
-            error=str(e),
-            service="bff",
-            endpoint="login",
-        )
         if "401" in str(e):
+            ***REMOVED*** Authentication failures are normal user behavior - log as info
+            logger.info(
+                "Authentication attempt failed",
+                username=username,
+                service="bff",
+                endpoint="create_token",
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Authentication service unavailable",
-        )
-
-
-@router.post("/auth/register", response_model=UserResponse)
-async def register(
-    user_data: RegisterRequest,
-    auth_client: AuthClient = Depends(get_auth_client),
-) -> UserResponse:
-    """Register a new user account.
-
-    Args:
-        user_data: User registration information
-        auth_client: Authentication service client
-
-    Returns:
-        Created user information
-
-    Raises:
-        HTTPException: 400 if user already exists, 502 if auth service unavailable
-    """
-    try:
-        ***REMOVED*** Create name data as a dictionary if present
-        name_data = {"full_name": user_data.name} if user_data.name else {}
-
-        response = await auth_client.register(
-            email=user_data.email,
-            password=user_data.password,
-            name=name_data,  ***REMOVED*** Pass as a dictionary
-        )
-
-        return UserResponse(
-            id=response["id"],
-            email=response["email"],
-            name=response.get("name"),
-            is_active=response.get("is_active", True),
-            created_at=response.get("created_at", ""),
-        )
-
-    except AuthClientError as e:
-        logger.error(
-            "Registration failed",
-            email=user_data.email,
-            error=str(e),
-            service="bff",
-            endpoint="register",
-        )
-        if "400" in str(e):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User with this email already exists",
+        else:
+            ***REMOVED*** Service errors are actual problems - log as error
+            logger.error(
+                "Authentication service error",
+                username=username,
+                error=str(e),
+                service="bff",
+                endpoint="create_token",
             )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Authentication service unavailable",
-        )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Authentication service unavailable",
+            )
 
 
-@router.post("/auth/refresh", response_model=TokenResponse)
-async def refresh_access_token(
+@router.put("/tokens", response_model=TokenResponse)
+async def update_token(
     token_data: RefreshTokenRequest,
     auth_client: AuthClient = Depends(get_auth_client),
 ) -> TokenResponse:
@@ -156,21 +221,27 @@ async def refresh_access_token(
         )
 
     except AuthClientError as e:
-        logger.error("Token refresh failed", error=str(e), service="bff", endpoint="refresh_token")
         if "401" in str(e):
+            ***REMOVED*** Token refresh failures are normal - log as info
+            logger.info("Token refresh failed", service="bff", endpoint="update_token")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired refresh token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Authentication service unavailable",
-        )
+        else:
+            ***REMOVED*** Service errors are actual problems - log as error
+            logger.error(
+                "Token refresh service error", error=str(e), service="bff", endpoint="update_token"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Authentication service unavailable",
+            )
 
 
-@router.post("/auth/verify", response_model=TokenVerificationResponse)
-async def verify_token(
+@router.post("/tokens/verify", response_model=TokenVerificationResponse)
+async def verify_token_resource(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     auth_client: AuthClient = Depends(get_auth_client),
 ) -> TokenVerificationResponse:
@@ -193,171 +264,16 @@ async def verify_token(
             valid=response.get("valid", False),
             user_id=response.get("user_id"),
             email=response.get("email"),
-            message=response.get("message"),
+            message=response.get("error") if not response.get("valid") else None,
         )
 
     except AuthClientError as e:
         logger.error(
-            "Token verification failed", error=str(e), service="bff", endpoint="verify_token"
+            "Token verification failed",
+            error=str(e),
+            service="bff",
+            endpoint="verify_token_resource",
         )
-        if "401" in str(e):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Authentication service unavailable",
+        return TokenVerificationResponse(
+            valid=False, message="Token verification service unavailable"
         )
-
-
-@router.get("/auth/me", response_model=UserResponse)
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    auth_client: AuthClient = Depends(get_auth_client),
-) -> UserResponse:
-    """Get current authenticated user information.
-
-    Args:
-        credentials: Bearer token from Authorization header
-        auth_client: Authentication service client
-
-    Returns:
-        Current user information
-
-    Raises:
-        HTTPException: 401 if token invalid, 502 if auth service unavailable
-    """
-    try:
-        ***REMOVED*** Use the new dedicated method to get user info directly
-        user_info = await auth_client.get_current_user(credentials.credentials)
-
-        return UserResponse(
-            id=user_info["id"],
-            email=user_info["email"],
-            name=user_info.get("name"),
-            is_active=user_info.get("is_active", True),
-            created_at=user_info.get("created_at", ""),
-        )
-
-    except AuthClientError as e:
-        logger.error(
-            "Failed to get user info", error=str(e), service="bff", endpoint="get_current_user"
-        )
-        if "401" in str(e):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Authentication service unavailable",
-        )
-
-
-***REMOVED*** Add the new RESTful resource-oriented endpoints that mirror the auth-api
-***REMOVED*** These will become the primary endpoints in the future
-
-
-@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(
-    user_data: RegisterRequest,
-    auth_client: AuthClient = Depends(get_auth_client),
-) -> UserResponse:
-    """Create a new user account.
-
-    Args:
-        user_data: User registration information
-        auth_client: Authentication service client
-
-    Returns:
-        Created user information
-
-    Raises:
-        HTTPException: 400 if user already exists, 502 if auth service unavailable
-    """
-    return await register(user_data, auth_client)
-
-
-@router.get("/users/me", response_model=UserResponse)
-async def get_user_profile(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    auth_client: AuthClient = Depends(get_auth_client),
-) -> UserResponse:
-    """Get current authenticated user information.
-
-    Args:
-        credentials: Bearer token from Authorization header
-        auth_client: Authentication service client
-
-    Returns:
-        Current user information
-
-    Raises:
-        HTTPException: 401 if token invalid, 502 if auth service unavailable
-    """
-    return await get_current_user(credentials, auth_client)
-
-
-@router.post("/tokens", response_model=TokenResponse)
-async def create_token(
-    username: str = Form(...),
-    password: str = Form(...),
-    auth_client: AuthClient = Depends(get_auth_client),
-) -> TokenResponse:
-    """Create authentication tokens.
-
-    Args:
-        username: User email address
-        password: User password
-        auth_client: Authentication service client
-
-    Returns:
-        JWT access and refresh tokens
-
-    Raises:
-        HTTPException: 401 if credentials are invalid, 502 if auth service unavailable
-    """
-    return await login(username, password, auth_client)
-
-
-@router.put("/tokens", response_model=TokenResponse)
-async def update_token(
-    token_data: RefreshTokenRequest,
-    auth_client: AuthClient = Depends(get_auth_client),
-) -> TokenResponse:
-    """Refresh access token using refresh token.
-
-    Args:
-        token_data: Refresh token request
-        auth_client: Authentication service client
-
-    Returns:
-        New JWT access and refresh tokens
-
-    Raises:
-        HTTPException: 401 if refresh token invalid, 502 if auth service unavailable
-    """
-    return await refresh_access_token(token_data, auth_client)
-
-
-@router.post("/tokens/verify", response_model=TokenVerificationResponse)
-async def verify_token_resource(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    auth_client: AuthClient = Depends(get_auth_client),
-) -> TokenVerificationResponse:
-    """Verify JWT access token and return user information.
-
-    Args:
-        credentials: Bearer token from Authorization header
-        auth_client: Authentication service client
-
-    Returns:
-        Token verification result and user info
-
-    Raises:
-        HTTPException: 401 if token invalid, 502 if auth service unavailable
-    """
-    return await verify_token(credentials, auth_client)

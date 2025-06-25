@@ -1,7 +1,7 @@
 """User interaction schemas for BFF API."""
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -44,3 +44,43 @@ class ToggleInteractionResponse(BaseModel):
     success: bool
     message: str
     interaction: UserMovieInteractionResponse
+
+
+***REMOVED*** ============================================================================
+***REMOVED*** New Collection-Oriented Schemas
+***REMOVED*** ============================================================================
+
+
+class AddToCollectionRequest(BaseModel):
+    """Request model for adding a movie to a user collection (watchlist, liked, etc.)."""
+
+    movie_id: int = Field(..., description="Movie ID to add to collection", ge=1)
+
+
+class MovieCollectionItem(BaseModel):
+    """Represents a movie in a user collection."""
+
+    movie_id: int
+    user_id: int
+    added_at: str
+    ***REMOVED*** Note: We could expand this later to include movie details if needed
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MovieCollectionResponse(BaseModel):
+    """Response model for movie collections (watchlist, liked movies, watched movies)."""
+
+    items: List[MovieCollectionItem]
+    total_count: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CollectionOperationResponse(BaseModel):
+    """Response model for collection operations (add/remove)."""
+
+    success: bool
+    message: str
+    movie_id: int
+    collection_type: str  ***REMOVED*** "watchlist", "liked_movies", "watched_movies"

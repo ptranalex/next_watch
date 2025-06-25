@@ -38,7 +38,7 @@ class UserInteractionsClient(BaseBackendClient):
             headers = self._get_auth_headers(user_id)
             return await self._make_request(
                 "GET",
-                self._build_api_path(f"/user/movies/{movie_id}/interaction"),
+                self._build_api_path(f"/user/interactions/movies/{movie_id}"),
                 headers=headers,
             )
         except ResourceNotFoundException:
@@ -46,41 +46,44 @@ class UserInteractionsClient(BaseBackendClient):
             return None
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** Watchlist Operations
+    ***REMOVED*** Watchlist Operations (Updated to use new collection endpoints)
     ***REMOVED*** ============================================================================
 
     async def get_user_watchlist(
         self,
         user_id: int,
         jwt_token: str,
+        page: int = 1,
         limit: int = 20,
-        offset: int = 0,
     ) -> Dict[str, Any]:
-        """Get user's watchlist.
+        """Get user's watchlist using new collection endpoint.
 
         Args:
             user_id: User ID
             jwt_token: JWT authentication token (not used - kept for compatibility)
-            limit: Maximum number of items to return
-            offset: Number of items to skip
+            page: Page number for pagination (default: 1)
+            limit: Maximum number of items per page (default: 20)
 
         Returns:
-            Response containing list of watchlist movies with interaction data
+            Fast-core formatted response with results, pagination, and metadata
         """
         headers = self._get_auth_headers(user_id)
-        params = {"limit": limit, "offset": offset}
+        params = {"page": page, "limit": limit}
 
-        return await self._make_request(
+        response = await self._make_request(
             "GET",
-            self._build_api_path("/user/movies/watchlist"),
+            self._build_api_path("/user/watchlist"),
             params=params,
             headers=headers,
         )
 
+        ***REMOVED*** Return the fast-core response directly (contains results, pagination, metadata)
+        return response
+
     async def set_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
-        """Add a movie to a user's watchlist.
+        """Add a movie to a user's watchlist using new collection endpoint.
 
         Args:
             user_id: User ID
@@ -88,22 +91,25 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
+        payload = {"movie_id": movie_id}
+
         return await self._make_request(
-            "PUT",
-            self._build_api_path(f"/user/movies/{movie_id}/watchlist"),
+            "POST",
+            self._build_api_path("/user/watchlist"),
+            data=payload,
             headers=headers,
         )
 
     async def unset_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
-        """Remove movie from user's watchlist.
+        """Remove movie from user's watchlist using new collection endpoint.
 
         Args:
             user_id: User ID
@@ -111,12 +117,12 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT authentication token (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
             "DELETE",
-            self._build_api_path(f"/user/movies/{movie_id}/watchlist"),
+            self._build_api_path(f"/user/watchlist/movies/{movie_id}"),
             headers=headers,
         )
 
@@ -125,8 +131,8 @@ class UserInteractionsClient(BaseBackendClient):
     ) -> Dict[str, Any]:
         """Toggle movie in user's watchlist. (DEPRECATED)
 
-        This method is deprecated. Use set_user_movie_watchlist or
-        unset_user_movie_watchlist instead.
+        This method is deprecated but maintained for backward compatibility.
+        It will check current status and add/remove accordingly.
 
         Args:
             user_id: User ID
@@ -134,54 +140,60 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
         """
-        headers = self._get_auth_headers(user_id)
-        return await self._make_request(
-            "POST",
-            self._build_api_path(f"/user/movies/{movie_id}/watchlist"),
-            headers=headers,
-        )
+        ***REMOVED*** Check current interaction status
+        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
+
+        if interaction and interaction.get("in_watchlist", False):
+            ***REMOVED*** Remove from watchlist
+            return await self.unset_user_movie_watchlist(user_id, movie_id, jwt_token)
+        else:
+            ***REMOVED*** Add to watchlist
+            return await self.set_user_movie_watchlist(user_id, movie_id, jwt_token)
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** Watched Operations
+    ***REMOVED*** Watched Operations (Updated to use new collection endpoints)
     ***REMOVED*** ============================================================================
 
     async def get_user_watched_movies(
         self,
         user_id: int,
         jwt_token: str,
+        page: int = 1,
         limit: int = 20,
-        offset: int = 0,
     ) -> Dict[str, Any]:
-        """Get user's watched movies.
+        """Get user's watched movies using new collection endpoint.
 
         Args:
             user_id: User ID
             jwt_token: JWT authentication token (not used - kept for compatibility)
-            limit: Maximum number of items to return
-            offset: Number of items to skip
+            page: Page number for pagination (default: 1)
+            limit: Maximum number of items per page (default: 20)
 
         Returns:
-            Response containing list of watched movies with interaction data
+            Fast-core formatted response with results, pagination, and metadata
         """
         headers = self._get_auth_headers(user_id)
-        params = {"limit": limit, "offset": offset}
+        params = {"page": page, "limit": limit}
 
-        return await self._make_request(
+        response = await self._make_request(
             "GET",
-            self._build_api_path("/user/movies/watched"),
+            self._build_api_path("/user/watched-movies"),
             params=params,
             headers=headers,
         )
 
+        ***REMOVED*** Return the fast-core response directly
+        return response
+
     async def set_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
-        """Set a movie as watched by a user.
+        """Set a movie as watched by a user using new collection endpoint.
 
         Args:
             user_id: User ID
@@ -189,22 +201,25 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
+        payload = {"movie_id": movie_id}
+
         return await self._make_request(
-            "PUT",
-            self._build_api_path(f"/user/movies/{movie_id}/watched"),
+            "POST",
+            self._build_api_path("/user/watched-movies"),
+            data=payload,
             headers=headers,
         )
 
     async def unset_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
-        """Unset a movie as watched by a user.
+        """Unset a movie as watched by a user using new collection endpoint.
 
         Args:
             user_id: User ID
@@ -212,7 +227,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
@@ -220,7 +235,7 @@ class UserInteractionsClient(BaseBackendClient):
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
             "DELETE",
-            self._build_api_path(f"/user/movies/{movie_id}/watched"),
+            self._build_api_path(f"/user/watched-movies/{movie_id}"),
             headers=headers,
         )
 
@@ -229,8 +244,8 @@ class UserInteractionsClient(BaseBackendClient):
     ) -> Dict[str, Any]:
         """Toggle movie as watched for user. (DEPRECATED)
 
-        This method is deprecated. Use set_user_movie_watched or
-        unset_user_movie_watched instead.
+        This method is deprecated but maintained for backward compatibility.
+        It will check current status and add/remove accordingly.
 
         Args:
             user_id: User ID
@@ -238,54 +253,60 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
         """
-        headers = self._get_auth_headers(user_id)
-        return await self._make_request(
-            "POST",
-            self._build_api_path(f"/user/movies/{movie_id}/watched"),
-            headers=headers,
-        )
+        ***REMOVED*** Check current interaction status
+        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
+
+        if interaction and interaction.get("watched", False):
+            ***REMOVED*** Remove from watched
+            return await self.unset_user_movie_watched(user_id, movie_id, jwt_token)
+        else:
+            ***REMOVED*** Mark as watched
+            return await self.set_user_movie_watched(user_id, movie_id, jwt_token)
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** Liked Operations
+    ***REMOVED*** Liked Operations (Updated to use new collection endpoints)
     ***REMOVED*** ============================================================================
 
     async def get_user_liked_movies(
         self,
         user_id: int,
         jwt_token: str,
+        page: int = 1,
         limit: int = 20,
-        offset: int = 0,
     ) -> Dict[str, Any]:
-        """Get user's liked movies.
+        """Get user's liked movies using new collection endpoint.
 
         Args:
             user_id: User ID
             jwt_token: JWT authentication token (not used - kept for compatibility)
-            limit: Maximum number of items to return
-            offset: Number of items to skip
+            page: Page number for pagination (default: 1)
+            limit: Maximum number of items per page (default: 20)
 
         Returns:
-            Response containing list of liked movies with interaction data
+            Fast-core formatted response with results, pagination, and metadata
         """
         headers = self._get_auth_headers(user_id)
-        params = {"limit": limit, "offset": offset}
+        params = {"page": page, "limit": limit}
 
-        return await self._make_request(
+        response = await self._make_request(
             "GET",
-            self._build_api_path("/user/movies/liked"),
+            self._build_api_path("/user/liked-movies"),
             params=params,
             headers=headers,
         )
 
+        ***REMOVED*** Return the fast-core response directly
+        return response
+
     async def set_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
-        """Set a movie as liked by a user.
+        """Set a movie as liked by a user using new collection endpoint.
 
         Args:
             user_id: User ID
@@ -293,22 +314,25 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
         """
         headers = self._get_auth_headers(user_id)
+        payload = {"movie_id": movie_id}
+
         return await self._make_request(
-            "PUT",
-            self._build_api_path(f"/user/movies/{movie_id}/liked"),
+            "POST",
+            self._build_api_path("/user/liked-movies"),
+            data=payload,
             headers=headers,
         )
 
     async def unset_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
-        """Unset a movie as liked by a user.
+        """Unset a movie as liked by a user using new collection endpoint.
 
         Args:
             user_id: User ID
@@ -316,7 +340,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
@@ -324,7 +348,7 @@ class UserInteractionsClient(BaseBackendClient):
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
             "DELETE",
-            self._build_api_path(f"/user/movies/{movie_id}/liked"),
+            self._build_api_path(f"/user/liked-movies/{movie_id}"),
             headers=headers,
         )
 
@@ -333,8 +357,8 @@ class UserInteractionsClient(BaseBackendClient):
     ) -> Dict[str, Any]:
         """Toggle movie as liked for user. (DEPRECATED)
 
-        This method is deprecated. Use set_user_movie_liked or
-        unset_user_movie_liked instead.
+        This method is deprecated but maintained for backward compatibility.
+        It will check current status and add/remove accordingly.
 
         Args:
             user_id: User ID
@@ -342,20 +366,23 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Updated user interaction data
+            Fast-core ActionResponse with success status and operation data
 
         Raises:
             ExternalServiceException: If request fails
         """
-        headers = self._get_auth_headers(user_id)
-        return await self._make_request(
-            "POST",
-            self._build_api_path(f"/user/movies/{movie_id}/liked"),
-            headers=headers,
-        )
+        ***REMOVED*** Check current interaction status
+        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
+
+        if interaction and interaction.get("liked", False):
+            ***REMOVED*** Remove like
+            return await self.unset_user_movie_liked(user_id, movie_id, jwt_token)
+        else:
+            ***REMOVED*** Add like
+            return await self.set_user_movie_liked(user_id, movie_id, jwt_token)
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** User Details & Category Operations
+    ***REMOVED*** User Details & Category Operations (Updated for fast-core compatibility)
     ***REMOVED*** ============================================================================
 
     async def get_user_favorites(self, user_id: int) -> List[Dict[str, Any]]:
@@ -381,7 +408,7 @@ class UserInteractionsClient(BaseBackendClient):
         limit: int = 20,
         **filters: Any,
     ) -> Dict[str, Any]:
-        """Get user's movie details by category (watchlist, watched, liked).
+        """Get user's movie details by category using new collection endpoints.
 
         Args:
             user_id: User ID
@@ -389,20 +416,33 @@ class UserInteractionsClient(BaseBackendClient):
             category: Category of movies (watchlist, watched, liked)
             page: Page number for pagination
             limit: Maximum number of items per page
-            **filters: Additional filter parameters (imdb_rating, year, sort_by, sort_desc, etc.)
+            **filters: Additional filter parameters (kept for compatibility but may not be supported)
 
         Returns:
-            Response containing list of movie details with interaction data
+            Fast-core formatted response with results, pagination, and metadata
         """
         headers = self._get_auth_headers(user_id)
         params = {"page": page, "limit": limit}
 
-        ***REMOVED*** Add any additional filter parameters
-        params.update(filters)
+        ***REMOVED*** Map old category names to new endpoints
+        endpoint_map = {
+            "watchlist": "/user/watchlist",
+            "watched": "/user/watched-movies",
+            "liked": "/user/liked-movies",
+        }
+
+        endpoint = endpoint_map.get(category)
+        if not endpoint:
+            raise ValueError(
+                f"Invalid category: {category}. Must be one of: watchlist, watched, liked"
+            )
+
+        ***REMOVED*** Note: Additional filters may not be supported by new collection endpoints
+        ***REMOVED*** They were part of the old detailed movie category endpoint that we removed
 
         return await self._make_request(
             "GET",
-            self._build_api_path(f"/user/movies/{category}"),
+            self._build_api_path(endpoint),
             params=params,
             headers=headers,
         )

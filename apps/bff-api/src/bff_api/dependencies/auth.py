@@ -88,13 +88,22 @@ def get_optional_user_id(
 ) -> Optional[int]:
     """Get optional user ID from JWT token.
 
+    For truly optional authentication:
+    - No token provided → Returns None (anonymous user)
+    - Valid token provided → Returns user_id
+    - Invalid token provided → Raises AuthenticationException (security)
+
     Args:
         credentials: Optional Bearer token from Authorization header
 
     Returns:
-        User ID if authenticated, None otherwise
+        User ID if authenticated, None if no token provided
+
+    Raises:
+        AuthenticationException: If invalid token is provided
     """
     if not credentials or not credentials.credentials:
         return None
 
-    return extract_user_id_from_token(credentials.credentials)
+    ***REMOVED*** For optional auth, we still validate tokens if provided (security requirement)
+    return extract_user_id_from_token(credentials.credentials, raise_on_invalid=True)
