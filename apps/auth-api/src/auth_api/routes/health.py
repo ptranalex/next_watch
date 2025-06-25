@@ -11,7 +11,9 @@ from sqlmodel import Session
 from auth_api.config.app import settings
 from auth_api.db.database import get_db
 
-logger = logging.getLogger(__name__)
+from config.logging import get_logger
+
+logger = get_logger(__name__)
 router = APIRouter()
 
 

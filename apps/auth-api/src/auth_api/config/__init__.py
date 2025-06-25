@@ -1,25 +1,24 @@
-"""Configuration package for the auth_api module.
+"""Configuration package for the Authentication API service.
 
-This package provides centralized configuration for the application,
-including app settings.
+This package provides configuration using the shared NextWatch configuration
+library with type-safe validation and production-ready defaults.
 """
 
-from .app import (
-    DEFAULT_LOG_LEVEL,
-    DEFAULT_DATABASE_URL,
-    DEFAULT_API_PORT,
-    DEFAULT_CORS_ORIGINS,
-    DEFAULT_DEBUG,
-    DEFAULT_ENABLE_PERFORMANCE_METRICS,
-    Config,
-)
+***REMOVED*** Main configuration class and global settings instance
+from auth_api.config.app import AuthAPIConfig, settings
 
+***REMOVED*** Create alias for backward compatibility
+Config = AuthAPIConfig
+
+***REMOVED*** Note: Logging utilities now available from shared config library:
+***REMOVED*** from config.logging import configure_logging, get_logger
+
+***REMOVED*** Export configuration utilities
 __all__ = [
-    "Config",
-    "DEFAULT_LOG_LEVEL",
-    "DEFAULT_DATABASE_URL",
-    "DEFAULT_API_PORT",
-    "DEFAULT_CORS_ORIGINS",
-    "DEFAULT_DEBUG",
-    "DEFAULT_ENABLE_PERFORMANCE_METRICS",
+    "Config",  ***REMOVED*** Main configuration class (alias for AuthAPIConfig)
+    "AuthAPIConfig",  ***REMOVED*** Original class name for explicit imports
+    "settings",  ***REMOVED*** Global settings instance
+    ***REMOVED*** Logging utilities now available from shared config library:
+    ***REMOVED*** "configure_logging",  ***REMOVED*** Use: from config.logging import configure_logging
+    ***REMOVED*** "get_logger",         ***REMOVED*** Use: from config.logging import get_logger
 ]

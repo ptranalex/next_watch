@@ -1,231 +1,232 @@
-"""Configuration settings for the authentication API.
+"""Configuration settings for the Authentication API service.
 
-This module provides centralized configuration for the auth-api application,
-loading settings from environment variables with sensible defaults.
+This module provides centralized configuration for the auth-api application
+using the shared NextWatch configuration library with type-safe validation,
+enhanced security features, and production-ready defaults.
 
-It uses the env.py module to load environment variables from .env files,
-with a hierarchical loading pattern where local overrides take precedence over default values.
-
+The configuration combines database, cache, authentication, and monitoring
+settings with auth-api specific customizations. It leverages shared patterns
+for production security overrides and configuration logging.
 """
 
-import os
-import sys
 import json
-from pathlib import Path
-from typing import List, Optional, Dict, Any
-import logging
+from typing import Any, Dict, List, Optional
 
-from .env import get_env_var, get_env_bool, get_env_int
+from config.base.config import ServiceConfig
+from config.services.auth import AuthConfigMixin
+from config.services.database import DatabaseConfigMixin
+from config.services.monitoring import MonitoringConfigMixin
+from pydantic import Field, validator
+
+from config.logging import get_logger
 
 ***REMOVED*** Configure basic logging first for this module
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** DEFAULT SETTINGS
-***REMOVED*** ------------------------------------------------------------------------------
-
-***REMOVED*** Database settings (for user management)
-DEFAULT_DATABASE_URL = get_env_var(
-    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/next_watch"
-)
-
-***REMOVED*** Debug: Log what DATABASE_URL was loaded
-logger.info(f"DATABASE_URL loaded: {DEFAULT_DATABASE_URL}")
-
-***REMOVED*** API settings
-DEFAULT_API_PORT = get_env_int("AUTH_API_PORT", 8003)
-DEFAULT_CORS_ORIGINS = get_env_var("CORS_ORIGINS", "*")
-
-***REMOVED*** Logging and debugging
-DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
-DEFAULT_DEBUG = get_env_bool("DEBUG", False)
-DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
-
-***REMOVED*** Performance monitoring
-DEFAULT_ENABLE_PERFORMANCE_METRICS = get_env_bool("ENABLE_PERFORMANCE_METRICS", False)
-
-***REMOVED*** Authentication settings
-DEFAULT_JWT_SECRET = get_env_var("JWT_SECRET", "change_this_in_production_very_important")
-DEFAULT_JWT_ALGORITHM = get_env_var("JWT_ALGORITHM", "HS256")
-DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = get_env_int("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
-DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS = get_env_int("REFRESH_TOKEN_EXPIRE_DAYS", 7)
-DEFAULT_JWT_JWK_ROTATION_INTERVAL = get_env_int("JWT_JWK_ROTATION_INTERVAL", 86400)  ***REMOVED*** 24 hours
-
-***REMOVED*** Security settings
-DEFAULT_ALLOWED_HOSTS = get_env_var("ALLOWED_HOSTS", "localhost,127.0.0.1,auth-api")
-
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** CONFIGURATION CLASS
-***REMOVED*** ------------------------------------------------------------------------------
+logger = get_logger(__name__)
 
 
-class Config:
-    """Configuration class for the authentication API."""
+class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, MonitoringConfigMixin):
+    """Authentication API service configuration using shared NextWatch config library.
 
-    database_url: str
-    api_port: int
-    log_level: str
-    debug: bool
-    cors_origins: List[str]
-    enable_performance_metrics: bool
-    logs_dir: Path
-    ***REMOVED*** JWT settings
-    jwt_secret: str
-    jwt_algorithm: str
-    access_token_expire_minutes: int
-    refresh_token_expire_days: int
-    jwt_jwk: Optional[Dict[str, Any]]
-    jwt_jwk_rotation_interval: int
-    allowed_hosts: List[str]
+    This configuration class combines all necessary service mixins to provide
+    a comprehensive configuration for the authentication API service including:
+    - HTTP service configuration (host, port, CORS)
+    - Database configuration (PostgreSQL with connection pooling)
+    - Authentication configuration (JWT with security features)
+    - Monitoring configuration (logging, metrics, health checks)
 
-    ***REMOVED*** Singleton instance
-    _instance = None
+    All settings can be configured via environment variables with sensible defaults.
+    """
 
-    @classmethod
-    def get_instance(cls) -> "Config":
-        """Get the singleton instance of Config.
+    ***REMOVED*** Service identification
+    service_name: str = Field(default="auth-api", description="Service name")
+    version: str = Field(default="0.1.0", description="Service version")
 
-        Returns:
-            The global Config instance
-        """
-        if cls._instance is None:
-            cls._instance = Config()
-        return cls._instance
+    ***REMOVED*** HTTP service settings (override defaults from ServiceConfig)
+    host: str = Field(default="0.0.0.0", description="Service host address")
+    port: int = Field(default=8003, description="Service port number")
 
-    def __init__(
-        self,
-        database_url: str = DEFAULT_DATABASE_URL,
-        api_port: int = DEFAULT_API_PORT,
-        log_level: str = DEFAULT_LOG_LEVEL,
-        debug: bool = DEFAULT_DEBUG,
-        cors_origins: str = DEFAULT_CORS_ORIGINS,
-        enable_performance_metrics: bool = DEFAULT_ENABLE_PERFORMANCE_METRICS,
-        logs_dir: Path = DEFAULT_LOGS_DIR,
-        jwt_secret: str = DEFAULT_JWT_SECRET,
-        jwt_algorithm: str = DEFAULT_JWT_ALGORITHM,
-        access_token_expire_minutes: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
-        refresh_token_expire_days: int = DEFAULT_REFRESH_TOKEN_EXPIRE_DAYS,
-        jwt_jwk_rotation_interval: int = DEFAULT_JWT_JWK_ROTATION_INTERVAL,
-        allowed_hosts: str = DEFAULT_ALLOWED_HOSTS,
-    ):
-        """Initialize authentication configuration.
+    ***REMOVED*** Auth-specific settings
+    auth_performance_metrics: bool = Field(
+        default=False, description="Enable auth-specific performance metrics collection"
+    )
+    logs_dir: Optional[str] = Field(
+        default=None, description="Directory for log files (None disables file logging)"
+    )
 
-        Args:
-            database_url: URL for database connection
-            api_port: Port for the auth API server
-            log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
-            debug: Whether to enable debug mode
-            cors_origins: Comma-separated list of allowed origins for CORS
-            enable_performance_metrics: Whether to enable performance metrics
-            logs_dir: Directory to store log files
-            jwt_secret: Secret key for JWT token generation
-            jwt_algorithm: Algorithm for JWT token generation
-            access_token_expire_minutes: Minutes until access token expires
-            refresh_token_expire_days: Days until refresh token expires
-            jwt_jwk_rotation_interval: Interval in seconds for JWK rotation
-            allowed_hosts: Comma-separated list of allowed hosts
-        """
-        ***REMOVED*** In production, force debug to False
-        if get_env_var("ENVIRONMENT", "development") == "production":
-            debug = False
+    ***REMOVED*** JWT Web Key settings
+    jwt_jwk: Optional[Dict[str, Any]] = Field(
+        default=None, description="JSON Web Key for advanced JWT validation"
+    )
+    jwt_jwk_rotation_interval: int = Field(
+        default=86400, description="JWK rotation interval in seconds (24 hours)"
+    )
 
-        self.database_url = database_url
-        self.api_port = api_port
-        self.log_level = log_level
-        self.debug = debug
-        self.cors_origins = (
-            [origin.strip() for origin in cors_origins.split(",")] if cors_origins != "*" else ["*"]
-        )
-        self.enable_performance_metrics = enable_performance_metrics
-        self.logs_dir = logs_dir
+    ***REMOVED*** Enhanced security settings for auth service
+    require_https_production: bool = Field(
+        default=True, description="Require HTTPS in production environment"
+    )
+    enable_session_management: bool = Field(
+        default=True, description="Enable session management features"
+    )
+    enable_password_reset: bool = Field(
+        default=True, description="Enable password reset functionality"
+    )
+    enable_user_registration: bool = Field(default=True, description="Enable user registration")
 
-        ***REMOVED*** JWT settings
-        self.jwt_secret = jwt_secret
-        self.jwt_algorithm = jwt_algorithm
-        self.access_token_expire_minutes = access_token_expire_minutes
-        self.refresh_token_expire_days = refresh_token_expire_days
-        self.jwt_jwk_rotation_interval = jwt_jwk_rotation_interval
+    class Config:
+        """Pydantic configuration for environment handling."""
 
-        ***REMOVED*** Parse JWK if available
-        self.jwt_jwk = None
-        if jwk_str := get_env_var("JWT_JWK", ""):
+        env_file = [".env", ".env.local"]  ***REMOVED*** Load multiple env files
+        env_file_encoding = "utf-8"
+        case_sensitive = False
+        extra = "ignore"
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize authentication API configuration."""
+        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        super().__init__(**kwargs)
+
+        ***REMOVED*** Parse JWT JWK if available
+        self._parse_jwt_jwk()
+
+        ***REMOVED*** Apply shared security and logging patterns
+        self.apply_production_security_overrides()
+        self._apply_auth_specific_overrides()
+        self.log_configuration_summary()
+        self._log_auth_specific_summary()
+
+    def _parse_jwt_jwk(self) -> None:
+        """Parse JWT JWK from environment variable."""
+        import os
+
+        if jwk_str := os.getenv("JWT_JWK", ""):
             try:
                 self.jwt_jwk = json.loads(jwk_str)
                 logger.info("JWK configuration loaded successfully")
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse JWK configuration: {e}")
-                if not self.debug:
+                if self.is_production:
                     raise ValueError("Invalid JWK configuration in production environment")
 
-        ***REMOVED*** Log configuration
-        logger.info(
-            f"Initializing auth configuration with environment: {get_env_var('ENVIRONMENT', 'development')}"
-        )
-        logger.info(f"Database URL: {self._mask_database_password(self.database_url)}")
-        logger.info(f"Debug mode: {self.debug}")
-        logger.info(f"JWT algorithm: {self.jwt_algorithm}")
-        logger.info(f"JWK enabled: {self.jwt_jwk is not None}")
+    def _apply_auth_specific_overrides(self) -> None:
+        """Apply auth-specific production overrides."""
+        if not self.is_production:
+            return
 
-        ***REMOVED*** Warn if using default JWT secret in production
-        if self.jwt_secret == DEFAULT_JWT_SECRET and not self.debug:
-            logger.warning(
-                "WARNING: Using default JWT_SECRET in production environment. "
-                "This is insecure. Set a proper JWT_SECRET environment variable."
+        ***REMOVED*** Auth-specific security overrides
+        if not self.require_https_production:
+            logger.warning("HTTPS requirement enforced in production for auth service")
+            object.__setattr__(self, "require_https_production", True)
+
+        ***REMOVED*** Disable file logging in production to avoid volume permission issues
+        if self.logs_dir:
+            logger.warning("File logging disabled in production to avoid volume permission issues")
+            object.__setattr__(self, "logs_dir", None)
+
+        ***REMOVED*** Ensure secure JWT settings in production
+        if self.jwt_secret == "change_this_in_production_very_important":
+            logger.error("Default JWT secret detected in production - this is a security risk!")
+            ***REMOVED*** Don't override in production - let it fail fast
+
+    def _log_auth_specific_summary(self) -> None:
+        """Log auth-specific configuration details."""
+        logger.info(f"Database URL: {self.get_database_url_masked()}")
+        logger.info(f"API Port: {self.port}")
+        logger.info(f"JWT Algorithm: {self.jwt_algorithm}")
+        logger.info(f"JWK Enabled: {self.jwt_jwk is not None}")
+        logger.info(f"Session Management: {self.enable_session_management}")
+        logger.info(f"User Registration: {self.enable_user_registration}")
+        logger.info(f"Password Reset: {self.enable_password_reset}")
+        logger.info(f"Performance Metrics: {self.auth_performance_metrics}")
+
+    @validator("jwt_secret")
+    def validate_jwt_secret_production(cls, v: str, values: Dict[str, Any]) -> str:
+        """Ensure JWT secret is secure in production."""
+        environment = values.get("environment", "development")
+        if environment == "production" and v == "change_this_in_production_very_important":
+            raise ValueError(
+                "Default JWT secret is not allowed in production. "
+                "Set a secure JWT_SECRET environment variable."
             )
+        return v
 
-        ***REMOVED*** Security settings
-        self.allowed_hosts = (
-            [host.strip() for host in allowed_hosts.split(",")] if allowed_hosts != "*" else ["*"]
-        )
+    @validator("cors_origins")
+    def validate_cors_origins_auth(cls, v: List[str], values: Dict[str, Any]) -> List[str]:
+        """Validate CORS origins for auth service security."""
+        environment = values.get("environment", "development")
+        if environment == "production" and "*" in v:
+            logger.warning(
+                "Wildcard CORS origins detected in production auth service. "
+                "Consider restricting to specific origins for enhanced security."
+            )
+        return v
 
-    @property
-    def is_production(self) -> bool:
-        """Check if running in production environment."""
-        return get_env_var("ENVIRONMENT", "development") == "production"
+    def validate_production_settings(self) -> List[str]:
+        """Validate configuration for production deployment.
 
-    def _mask_database_password(self, url: str) -> str:
-        """Mask password in database URL for logging.
-
-        Args:
-            url: Database URL
+        Combines validation from all mixins plus auth-specific checks.
 
         Returns:
-            Masked URL
+            List of validation issues, empty if valid
         """
-        if "@" in url and "://" in url:
-            protocol_part = url.split("://")[0]
-            auth_part = url.split("://")[1].split("@")[0]
-            masked_auth = auth_part.split(":")[0] + ":****"
-            remaining_part = url.split("@", 1)[1]
-            return f"{protocol_part}://{masked_auth}@{remaining_part}"
-        return url
+        issues = []
+
+        ***REMOVED*** Get validation from parent classes
+        issues.extend(super().validate_production_settings())
+        issues.extend(self.validate_database_production_settings())
+        issues.extend(self.validate_auth_production_settings())
+        issues.extend(self.validate_monitoring_production_settings(self.environment))
+
+        ***REMOVED*** Auth-specific production validation
+        if self.is_production:
+            if not self.require_https_production:
+                issues.append("HTTPS should be required in production for auth service")
+
+            if self.logs_dir:
+                issues.append("File logging should be disabled in production")
+
+            if self.jwt_secret == "change_this_in_production_very_important":
+                issues.append("Default JWT secret must be changed in production")
+
+        return issues
 
     def __str__(self) -> str:
-        """Return a string representation of the Config instance with sensitive data masked.
+        """Return a comprehensive multi-line string representation."""
+        return f"""Authentication API Configuration:
+  Environment: {self.environment}
+  Service: {self.service_name} v{self.version}
+  
+  HTTP Service:
+    Host: {self.host}
+    Port: {self.port}
+    Debug: {self.debug}
+    CORS Origins: {', '.join(self.cors_origins)}
+    Allowed Hosts: {', '.join(self.allowed_hosts)}
 
-        Returns:
-            String representation of Config
-        """
-        ***REMOVED*** Mask sensitive information
-        masked_url = self._mask_database_password(self.database_url)
-        masked_jwt = "****" if self.jwt_secret else None
+  Database:
+    URL: {self.get_database_url_masked()}
 
-        return (
-            f"Config(database_url={masked_url}, "
-            f"api_port={self.api_port}, "
-            f"log_level={self.log_level}, "
-            f"debug={self.debug}, "
-            f"cors_origins={self.cors_origins}, "
-            f"logs_dir={self.logs_dir}, "
-            f"enable_performance_metrics={self.enable_performance_metrics}, "
-            f"jwt_algorithm={self.jwt_algorithm}, "
-            f"access_token_expire_minutes={self.access_token_expire_minutes}, "
-            f"refresh_token_expire_days={self.refresh_token_expire_days}, "
-            f"jwt_jwk_enabled={self.jwt_jwk is not None}, "
-            f"allowed_hosts={self.allowed_hosts})"
-        )
+  Authentication:
+    JWT Algorithm: {self.jwt_algorithm}
+    Access Token TTL: {self.jwt_access_token_expire_minutes}min
+    Refresh Token TTL: {self.jwt_refresh_token_expire_days}days
+    JWK Enabled: {self.jwt_jwk is not None}
+    Session Management: {self.enable_session_management}
+
+  Security:
+    Require HTTPS (Prod): {self.require_https_production}
+    User Registration: {self.enable_user_registration}
+    Password Reset: {self.enable_password_reset}
+
+  Monitoring:
+    Log Level: {self.log_level}
+    Performance Metrics: {self.auth_performance_metrics}
+    Logs Directory: {self.logs_dir or 'disabled'}"""
 
 
-***REMOVED*** Create a singleton instance to be imported elsewhere
-settings = Config()
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** GLOBAL SETTINGS INSTANCE
+***REMOVED*** ------------------------------------------------------------------------------
+
+***REMOVED*** Create global settings instance (simplified - no more wrapper!)
+settings = AuthAPIConfig()

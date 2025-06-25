@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from auth_api.config.app import Config
+from auth_api.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -29,16 +29,13 @@ def format_config_table(config: Config, title: str = "Auth API Configuration") -
     table.add_column("Value", style="green")
     table.add_column("Source", style="yellow", no_wrap=True)
 
-    ***REMOVED*** Get environment from environment variable
-    environment = os.getenv("ENVIRONMENT", "development")
-
     ***REMOVED*** Configuration settings to display
     settings = [
-        ("Environment", environment, "ENV/DEFAULT"),
-        ("API Port", str(config.api_port), "ENV/DEFAULT"),
+        ("Environment", config.environment, "ENV/DEFAULT"),
+        ("API Port", str(config.port), "ENV/DEFAULT"),
         ("Debug", _format_boolean(config.debug), "ENV/DEFAULT"),
         ("Log Level", config.log_level, "ENV/DEFAULT"),
-        ("Log Directory", str(config.logs_dir), "ENV/DEFAULT"),
+        ("Log Directory", str(config.logs_dir) if config.logs_dir else "disabled", "ENV/DEFAULT"),
         ("Database URL", _mask_database_url(config.database_url), "ENV/DEFAULT"),
         (
             "CORS Origins",
@@ -48,32 +45,37 @@ def format_config_table(config: Config, title: str = "Auth API Configuration") -
         ("JWT Algorithm", config.jwt_algorithm, "ENV/DEFAULT"),
         (
             "Access Token Expire",
-            f"{config.access_token_expire_minutes} min",
+            f"{config.jwt_access_token_expire_minutes} min",
             "ENV/DEFAULT",
         ),
         (
             "Refresh Token Expire",
-            f"{config.refresh_token_expire_days} days",
+            f"{config.jwt_refresh_token_expire_days} days",
             "ENV/DEFAULT",
         ),
         (
             "Performance Metrics",
-            _format_boolean(config.enable_performance_metrics),
+            _format_boolean(config.auth_performance_metrics),
             "ENV/DEFAULT",
         ),
         (
-            "Password Hash Rounds",
-            str(getattr(config, "password_hash_rounds", "Default")),
+            "User Registration",
+            _format_boolean(config.enable_user_registration),
             "ENV/DEFAULT",
         ),
         (
-            "Max Login Attempts",
-            str(getattr(config, "max_login_attempts", "Default")),
+            "Password Reset",
+            _format_boolean(config.enable_password_reset),
             "ENV/DEFAULT",
         ),
         (
-            "Login Lockout Duration",
-            f"{getattr(config, 'login_lockout_duration_minutes', 'Default')} min",
+            "Session Management",
+            _format_boolean(config.enable_session_management),
+            "ENV/DEFAULT",
+        ),
+        (
+            "HTTPS Required (Prod)",
+            _format_boolean(config.require_https_production),
             "ENV/DEFAULT",
         ),
     ]

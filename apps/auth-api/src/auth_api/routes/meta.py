@@ -9,7 +9,9 @@ from sqlmodel import text
 
 from auth_api.db.database import get_db
 
-logger = logging.getLogger(__name__)
+from config.logging import get_logger
+
+logger = get_logger(__name__)
 router = APIRouter()
 
 

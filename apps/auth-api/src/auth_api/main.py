@@ -1,33 +1,63 @@
-"""Main FastAPI application for the Next Watch Authentication Service."""
+"""Main FastAPI application for BFF service."""
 
 import os
-import logging
+from typing import Optional
+
+from fastapi import FastAPI, Path
 
 ***REMOVED*** Import configuration after environment variables are loaded
 from auth_api.config.app import settings
-from auth_api.core.logging import setup_logging
 
-***REMOVED*** Configure logging early
-setup_logging(
-    log_level=settings.log_level,
-    verbose=settings.debug,
-    quiet=False,
-)
+***REMOVED*** Lazy app initialization - only create when needed
+_app: Optional[FastAPI] = None
 
-***REMOVED*** Get logger for this module
-logger = logging.getLogger(__name__)
 
-***REMOVED*** Log main application startup
-logger.info("Initializing Next Watch Authentication API")
-logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+def get_app() -> FastAPI:
+    """Get or create the FastAPI application instance with full logging."""
+    global _app
+    if _app is None:
+        ***REMOVED*** Configure logging for web server mode
+        from config.logging import configure_logging, get_logger
 
-***REMOVED*** Import and create app using core module
-from auth_api.core.app import create_app
+        ***REMOVED*** Configure logging with enhanced settings
+        log_dir = None
+        if settings.logs_dir:
+            log_dir = Path(settings.logs_dir)
 
-***REMOVED*** Create the FastAPI application with injected settings
-app = create_app(settings)
+        configure_logging(
+            log_level=settings.log_level,
+            log_dir=log_dir,
+            verbose=settings.debug,
+            quiet=False,
+            use_coloredlogs=True,
+            logger_name="auth_api",
+            color_theme="modern",
+            http_verbose=False,  ***REMOVED*** Keep HTTP logs quiet unless debugging
+            component_levels={
+                "db": "INFO",  ***REMOVED*** Database queries
+                "middlewares": "INFO",  ***REMOVED*** Middleware logs
+                "routes": "INFO",  ***REMOVED*** Route logs
+                "health": "WARNING",  ***REMOVED*** Keep health checks quiet
+            },
+        )
 
-logger.info("Authentication API initialized successfully")
+        logger = get_logger("auth_api.main")
+
+        ***REMOVED*** Log main application startup
+        logger.info("Initializing Next Watch Auth Service", service="auth-api")
+        logger.info("Environment configuration", environment=settings.environment)
+
+        ***REMOVED*** Import and create app using fast-core integration
+        from auth_api.core.app_fast_core import create_auth_app
+
+        _app = create_auth_app(settings)
+        logger.info("Auth Service initialized successfully", service="auth-api")
+
+    return _app
+
+
+***REMOVED*** Create app instance for direct import (web server use)
+app = get_app()
 
 
 if __name__ == "__main__":
@@ -37,7 +67,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "auth_api.main:app",
         host="0.0.0.0",
-        port=settings.api_port,
+        port=settings.port,
         reload=settings.debug,
         log_level=settings.log_level.lower(),
     )

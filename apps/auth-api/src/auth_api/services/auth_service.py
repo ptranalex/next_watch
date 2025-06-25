@@ -2,7 +2,7 @@
 Authentication service for JWT-based user authentication in dedicated auth service.
 """
 
-import logging
+from config.logging import get_logger
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, cast
 
@@ -11,14 +11,14 @@ from sqlmodel import Session
 
 from auth_api.config.app import settings
 from auth_api.schemas.auth_schemas import TokenVerificationResponse
-from movie_storage.models.user import User
-from movie_storage.db.operations.user import (
+from auth_api.models.user import User
+from auth_api.db.operations.user import (
     authenticate_user,
     get_user_by_id,
     create_user,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AuthService:
@@ -39,8 +39,8 @@ class AuthService:
         ***REMOVED*** Get JWT settings from config
         self.jwt_secret = self.config.jwt_secret
         self.jwt_algorithm = self.config.jwt_algorithm
-        self.access_token_expire_minutes = self.config.access_token_expire_minutes
-        self.refresh_token_expire_days = self.config.refresh_token_expire_days
+        self.access_token_expire_minutes = self.config.jwt_access_token_expire_minutes
+        self.refresh_token_expire_days = self.config.jwt_refresh_token_expire_days
 
         if not self.jwt_secret:
             raise ValueError("JWT_SECRET must be set in environment")

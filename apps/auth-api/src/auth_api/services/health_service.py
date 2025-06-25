@@ -5,17 +5,19 @@ This service provides comprehensive health checks for all dependencies:
 """
 
 import asyncio
-import logging
+from config.logging import get_logger
 import time
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
+
+from config.logging import get_logger
 
 from sqlmodel import Session, text
 
 from auth_api.config.app import settings
 from auth_api.db.database import get_db
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

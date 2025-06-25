@@ -1,5 +1,22 @@
-"""Database package for auth-api."""
+"""Database package for the auth API.
 
-from .database import get_db
+This package provides database connectivity and session management.
+"""
 
-__all__ = ["get_db"]
+from .database import (
+    check_database_schema,
+    get_db,
+    get_engine,
+    get_session,
+    init_database,
+    init_db,
+)
+
+__all__ = [
+    "check_database_schema",
+    "get_db",
+    "get_engine",
+    "get_session",
+    "init_database",
+    "init_db",
+]

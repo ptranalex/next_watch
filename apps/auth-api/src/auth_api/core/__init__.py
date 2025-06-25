@@ -1,7 +1,5 @@
 """Core modules for the Authentication API."""
 
-from .app import create_app
-from .logging import setup_logging
-from .middleware import setup_middleware
+from .app_fast_core import create_auth_app, get_auth_app
 
-__all__ = ["create_app", "setup_logging", "setup_middleware"]
+__all__ = ["create_auth_app", "get_auth_app"]

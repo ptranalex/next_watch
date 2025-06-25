@@ -1,53 +1,60 @@
+***REMOVED*** Auth API Dockerfile
+***REMOVED*** 
+***REMOVED*** Build context should be the monorepo root to access local dependencies:
+***REMOVED*** docker build -f apps/auth-api/Dockerfile -t auth-api .
+***REMOVED***
+***REMOVED*** This Dockerfile requires:
+***REMOVED*** - apps/auth-api/ (Auth API application)
+***REMOVED*** - libs/config/ (Config library)
+***REMOVED*** - libs/fast-core/ (Fast-core library for enhanced middleware)
+
 ***REMOVED*** Stage 1: Build dependencies and package
 FROM python:3.12-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PATH="${PATH}:/root/.local/bin"
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-***REMOVED*** Install build dependencies - use a single layer and clean up in the same step
-RUN apk add --no-cache --virtual .build-deps \
-    build-base \
-    curl \
+***REMOVED*** Install build dependencies (only needed for building)
+RUN apk add --no-cache \
     gcc \
     musl-dev \
     python3-dev \
     libffi-dev \
     openssl-dev \
-    postgresql-dev \
-    && pip install --no-cache-dir hatch
+    postgresql-dev
 
-***REMOVED*** Copy only dependency-related files first
-COPY libs/movie-storage /tmp/movie-storage/
-COPY apps/auth-api/pyproject.toml apps/auth-api/hatch.toml ./
+***REMOVED*** Copy local dependencies first
+COPY libs/config ./libs/config/
+COPY libs/fast-core ./libs/fast-core/
 
-***REMOVED*** Install the movie-storage package first
-WORKDIR /tmp/movie-storage
-RUN pip install -e .
+***REMOVED*** Install local dependencies
+RUN pip install --no-cache-dir --user ./libs/config/
+RUN pip install --no-cache-dir --user ./libs/fast-core/
 
-***REMOVED*** Return to app directory and install application
-WORKDIR /app
+***REMOVED*** Copy application files
+COPY apps/auth-api/pyproject.toml ./pyproject.toml
 COPY apps/auth-api/src ./src/
 
-***REMOVED*** Install the application using hatch
-RUN pip install --no-cache-dir -e .
+***REMOVED*** Install the current project and its dependencies (local deps are commented out in pyproject.toml)
+RUN pip install --no-cache-dir --user -e .
 
-***REMOVED*** Stage 2: Runtime image - use a much smaller base
+***REMOVED*** Stage 2: Minimal runtime image
 FROM python:3.12-alpine AS final
 
 ***REMOVED*** Set production environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app:/app/src \
+    PYTHONPATH=/app/src \
+    PATH="/home/app/.local/bin:$PATH" \
     ENVIRONMENT="production" \
     PORT=8003 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
+    LOGS_DIR="/app/logs" \
     WORKERS=1 \
     TIMEOUT=120 \
-    MAX_KEEPALIVE=60 \
     RELOAD=false \
     PROXY_HEADERS=true \
     FORWARDED_ALLOW_IPS="*" \
@@ -56,47 +63,48 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-***REMOVED*** Install runtime dependencies including tini for proper process handling
-RUN apk add --no-cache libstdc++ postgresql-libs curl tini
+***REMOVED*** Install only runtime dependencies (curl for healthcheck, postgresql-libs for db connection)
+RUN apk add --no-cache curl tini postgresql-libs
 
-***REMOVED*** Copy the installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
+***REMOVED*** Create app user
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
-***REMOVED*** Copy the movie-storage package
-COPY --from=builder /tmp/movie-storage /app/movie-storage
-RUN pip install -e /app/movie-storage
+***REMOVED*** Copy Python packages from builder (user installation)
+COPY --from=builder --chown=app:app /root/.local /home/app/.local
 
-***REMOVED*** Only copy the application code, not the entire Python installation
-COPY apps/auth-api/src ./src/
+***REMOVED*** Copy application code
+COPY --from=builder --chown=app:app /app/src ./src/
 
-EXPOSE 8003
+***REMOVED*** Create logs directory with write permissions for app user
+RUN mkdir -p /app/logs && chown app:app /app/logs && chmod 755 /app/logs
 
-***REMOVED*** Use a non-root user for better security
-RUN addgroup -S app && adduser -S app -G app
+***REMOVED*** Ensure app directory has correct ownership  
+RUN chown -R app:app /app
 
-***REMOVED*** Create logs directory with proper permissions
-RUN mkdir -p /app/logs && chown -R app:app /app
-
+***REMOVED*** Switch to app user
 USER app
 
-***REMOVED*** Add health check configuration - optimized timeout and start period
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8003/health || exit 1
+***REMOVED*** Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8003/health/live || exit 1
+
+***REMOVED*** Expose port
+EXPOSE 8003
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
 
-***REMOVED*** Run the application with production optimizations
-***REMOVED*** Hardcode log-level=info, proxy_headers=true and no reload for production
-CMD uvicorn auth_api.main:app \
-    --host ${HOST} \
-    --port ${PORT} \
-    --workers ${WORKERS} \
-    --log-level ${LOG_LEVEL} \
-    --timeout-keep-alive ${TIMEOUT} \
-    --limit-max-requests ${LIMIT_MAX_REQUESTS} \
-    --no-access-log \
-    --backlog ${BACKLOG} \
-    --proxy-headers \
-    --forwarded-allow-ips "*" 
+***REMOVED*** Run the application using uvicorn directly with proper worker configuration
+***REMOVED*** This bypasses our CLI for production to ensure optimal performance
+***REMOVED*** Using environment variables for flexibility and consistency
+CMD ["sh", "-c", "uvicorn auth_api.main:app \
+     --host ${HOST} \
+     --port ${PORT} \
+     --workers ${WORKERS} \
+     --timeout-keep-alive ${TIMEOUT} \
+     --log-level ${LOG_LEVEL} \
+     --no-access-log \
+     --proxy-headers \
+     --forwarded-allow-ips \"${FORWARDED_ALLOW_IPS}\" \
+     --backlog ${BACKLOG} \
+     --limit-max-requests ${LIMIT_MAX_REQUESTS}"] 
