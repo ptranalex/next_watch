@@ -81,6 +81,73 @@ class UserInteractionQuery:
         ***REMOVED*** Get existing interaction
         return get_user_movie_interaction(db, user_id, movie_id)
 
+    def get_user_interactions_batch(
+        self, db: Session, user_id: int, movie_ids: List[int]
+    ) -> Dict[int, Optional[UserMovieInteraction]]:
+        """
+        Get a user's interactions with multiple movies in a single query.
+
+        This is an optimized batch operation that retrieves multiple user-movie
+        interactions in one database query instead of N individual queries.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            movie_ids: List of movie IDs to get interactions for
+
+        Returns:
+            Dictionary mapping movie_id to UserMovieInteraction (or None if no interaction)
+
+        Raises:
+            ValidationError: If user_id is invalid or movie_ids is empty
+        """
+        ***REMOVED*** Validate inputs
+        if user_id <= 0:
+            raise ValidationError(
+                message="Invalid user ID",
+                field_errors={"user_id": ["Must be positive"]},
+            )
+
+        if not movie_ids:
+            raise ValidationError(
+                message="Movie IDs list cannot be empty",
+                field_errors={"movie_ids": ["Must contain at least one movie ID"]},
+            )
+
+        ***REMOVED*** Remove duplicates and ensure all are positive integers
+        unique_movie_ids = list(set(movie_id for movie_id in movie_ids if movie_id > 0))
+
+        if not unique_movie_ids:
+            raise ValidationError(
+                message="No valid movie IDs provided",
+                field_errors={"movie_ids": ["Must contain at least one positive movie ID"]},
+            )
+
+            ***REMOVED*** Use a single optimized batch query
+        from sqlmodel import select, col
+
+        ***REMOVED*** Execute single batch query to get all interactions at once
+        query = (
+            select(UserMovieInteraction)
+            .where(UserMovieInteraction.user_id == user_id)
+            .where(col(UserMovieInteraction.movie_id).in_(unique_movie_ids))
+        )
+
+        interactions = db.exec(query).all()
+
+        ***REMOVED*** Build result dictionary
+        result: Dict[int, Optional[UserMovieInteraction]] = {}
+
+        ***REMOVED*** Initialize all movie IDs to None
+        for movie_id in unique_movie_ids:
+            result[movie_id] = None
+
+        ***REMOVED*** Fill in the interactions we found
+        for interaction in interactions:
+            result[interaction.movie_id] = interaction
+
+        return result
+
     def get_user_watchlist(
         self, db: Session, user_id: int, limit: int = 50, offset: int = 0
     ) -> Tuple[List[UserMovieInteraction], int]:

@@ -289,14 +289,37 @@ async def _enrich_similar_movies_with_user_data(
             }
         return similar_movies
 
-    ***REMOVED*** For authenticated users, fetch and add interaction data
-    for movie in similar_movies:
-        movie_id = movie.get("id")
-        if movie_id:
-            try:
-                interaction_data = await backend.get_user_movie_interaction(
-                    user_id, movie_id, jwt_token=credentials.credentials
-                )
+        ***REMOVED*** Extract movie IDs from similar movies
+    movie_ids = [movie.get("id") for movie in similar_movies if movie.get("id") is not None]
+    ***REMOVED*** Filter to ensure we only have valid integers
+    valid_movie_ids = [mid for mid in movie_ids if isinstance(mid, int)]
+
+    if not valid_movie_ids:
+        ***REMOVED*** No valid movie IDs, return with default values
+        for movie in similar_movies:
+            movie["liked"] = False
+            movie["watched"] = False
+            movie["in_watchlist"] = False
+            movie["user_interactions"] = {
+                "in_watchlist": False,
+                "is_favorite": False,
+                "user_rating": None,
+                "watch_progress": 0,
+                "is_watched": False,
+            }
+        return similar_movies
+
+    ***REMOVED*** Use batch method to get all interactions at once
+    try:
+        batch_interactions = await backend.get_user_movie_interactions_batch(
+            user_id, valid_movie_ids, jwt_token=credentials.credentials
+        )
+
+        ***REMOVED*** Enrich each movie with its interaction data
+        for movie in similar_movies:
+            movie_id = movie.get("id")
+            if movie_id and movie_id in batch_interactions:
+                interaction_data = batch_interactions[movie_id]
                 if interaction_data:
                     movie["liked"] = interaction_data.get("liked", False)
                     movie["watched"] = interaction_data.get("watched", False)
@@ -320,14 +343,8 @@ async def _enrich_similar_movies_with_user_data(
                         "watch_progress": 0,
                         "is_watched": False,
                     }
-            except Exception as e:
-                logger.warning(
-                    "Failed to get user interaction for similar movie",
-                    similar_movie_id=movie_id,
-                    error=str(e),
-                    service="bff",
-                )
-                ***REMOVED*** Set default values on error
+            else:
+                ***REMOVED*** Set default values if movie_id not found in batch
                 movie["liked"] = False
                 movie["watched"] = False
                 movie["in_watchlist"] = False
@@ -338,6 +355,26 @@ async def _enrich_similar_movies_with_user_data(
                     "watch_progress": 0,
                     "is_watched": False,
                 }
+
+    except Exception as e:
+        logger.warning(
+            "Failed to get batch user interactions for similar movies",
+            movie_count=len(valid_movie_ids),
+            error=str(e),
+            service="bff",
+        )
+        ***REMOVED*** Set default values for all movies on error
+        for movie in similar_movies:
+            movie["liked"] = False
+            movie["watched"] = False
+            movie["in_watchlist"] = False
+            movie["user_interactions"] = {
+                "in_watchlist": False,
+                "is_favorite": False,
+                "user_rating": None,
+                "watch_progress": 0,
+                "is_watched": False,
+            }
 
     return similar_movies
 
@@ -645,12 +682,16 @@ async def _get_user_movies_batch_interactions(
             interactions_by_movie_id[movie_id] = default_interaction.copy()
         return interactions_by_movie_id
 
-    ***REMOVED*** For authenticated users, fetch interactions for each movie
-    for movie_id in movie_ids:
-        try:
-            interaction_data = await backend.get_user_movie_interaction(
-                user_id, movie_id, jwt_token=credentials.credentials
-            )
+    ***REMOVED*** For authenticated users, use the new batch endpoint
+    try:
+        ***REMOVED*** Use the batch method from the client
+        batch_interactions = await backend.get_user_movie_interactions_batch(
+            user_id, movie_ids, jwt_token=credentials.credentials
+        )
+
+        ***REMOVED*** Convert the batch response to the expected format
+        for movie_id in movie_ids:
+            interaction_data = batch_interactions.get(movie_id)
             if interaction_data:
                 interactions_by_movie_id[movie_id] = {
                     "in_watchlist": interaction_data.get("in_watchlist", False),
@@ -664,15 +705,18 @@ async def _get_user_movies_batch_interactions(
                 }
             else:
                 interactions_by_movie_id[movie_id] = default_interaction.copy()
-        except Exception as e:
-            logger.warning(
-                "Failed to get user interaction for movie",
-                movie_id=movie_id,
-                user_id=user_id,
-                error=str(e),
-                service="bff",
-                component="batch_user_data",
-            )
+
+    except Exception as e:
+        logger.warning(
+            "Failed to get batch user interactions",
+            movie_count=len(movie_ids),
+            user_id=user_id,
+            error=str(e),
+            service="bff",
+            component="batch_user_data",
+        )
+        ***REMOVED*** Fallback to default values for all movies
+        for movie_id in movie_ids:
             interactions_by_movie_id[movie_id] = default_interaction.copy()
 
     return interactions_by_movie_id

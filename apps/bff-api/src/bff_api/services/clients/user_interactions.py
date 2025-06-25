@@ -45,6 +45,75 @@ class UserInteractionsClient(BaseBackendClient):
             ***REMOVED*** Return None if interaction not found
             return None
 
+    async def get_user_movie_interactions_batch(
+        self, user_id: int, movie_ids: List[int], jwt_token: Optional[str] = None
+    ) -> Dict[int, Optional[Dict[str, Any]]]:
+        """Get a user's interactions with multiple movies in a single request.
+
+        This method optimizes API calls by fetching multiple user-movie interactions
+        in a single backend request instead of N individual requests.
+
+        Args:
+            user_id: User ID (already authenticated by BFF)
+            movie_ids: List of movie IDs to get interactions for
+            jwt_token: JWT token (not used - kept for compatibility)
+
+        Returns:
+            Dictionary mapping movie_id to interaction data (or None if no interaction)
+
+        Raises:
+            ExternalServiceException: If request fails
+        """
+        if not movie_ids:
+            return {}
+
+        ***REMOVED*** Remove duplicates and limit to reasonable batch size
+        unique_movie_ids = list(set(movie_ids))[:100]  ***REMOVED*** Limit to 100 movies per batch
+
+        try:
+            headers = self._get_auth_headers(user_id)
+            payload = {"movie_ids": unique_movie_ids}
+
+            response = await self._make_request(
+                "POST",
+                self._build_api_path("/user/interactions/movies/batch"),
+                data=payload,
+                headers=headers,
+            )
+
+            ***REMOVED*** Convert string keys back to integers and handle the response format
+            interactions_dict = response.get("interactions", {})
+            result: Dict[int, Optional[Dict[str, Any]]] = {}
+
+            for movie_id in unique_movie_ids:
+                interaction_data = interactions_dict.get(str(movie_id))
+                result[movie_id] = interaction_data
+
+            return result
+
+        except Exception as e:
+            logger.warning(
+                "Failed to get batch interactions, falling back to individual requests",
+                user_id=user_id,
+                movie_count=len(unique_movie_ids),
+                error=str(e),
+                service="bff",
+                component="user_interactions_client",
+            )
+
+            ***REMOVED*** Fallback to individual requests if batch fails
+            result = {}
+            for movie_id in unique_movie_ids:
+                try:
+                    interaction = await self.get_user_movie_interaction(
+                        user_id, movie_id, jwt_token
+                    )
+                    result[movie_id] = interaction
+                except Exception:
+                    result[movie_id] = None
+
+            return result
+
     ***REMOVED*** ============================================================================
     ***REMOVED*** Watchlist Operations (Updated to use new collection endpoints)
     ***REMOVED*** ============================================================================

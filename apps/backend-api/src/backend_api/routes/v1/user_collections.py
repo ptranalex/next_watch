@@ -11,9 +11,10 @@ Now using fast-core ResponseBuilder for consistent response format across the mo
 """
 
 from datetime import datetime
-from typing import Annotated, List, Union, Dict, Any
+from typing import Annotated, List, Union, Dict, Any, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
+from pydantic import BaseModel, Field
 from sqlmodel import Session
 
 ***REMOVED*** Import fast-core dependencies and utilities
@@ -99,6 +100,87 @@ async def get_movie_interaction(
     try:
         result = interaction_query.get_user_interaction(db, user_id, movie_id)
         return result if result else {}
+    except (ResourceNotFoundError, ValidationError) as e:
+        raise service_error_to_http_exception(e)
+
+
+***REMOVED*** ============================================================================
+***REMOVED*** BATCH INTERACTION ENDPOINTS
+***REMOVED*** ============================================================================
+
+
+class BatchInteractionsRequest(BaseModel):
+    """Request model for batch interactions endpoint."""
+
+    movie_ids: List[int] = Field(
+        ..., min_length=1, max_length=100, description="List of movie IDs (max 100)"
+    )
+
+
+@router.post(
+    "/interactions/movies/batch",
+    summary="Get user interactions with multiple movies",
+)
+async def get_movie_interactions_batch(
+    request: BatchInteractionsRequest,
+    user_id: Annotated[int, Depends(get_user_id_from_header)],
+    db: Annotated[Session, Depends(get_db)],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
+) -> Dict[str, Any]:
+    """
+    Get user's interactions with multiple movies in a single request.
+
+    This is an optimized batch endpoint that reduces the number of API calls
+    needed when checking user interactions for multiple movies.
+
+    Note: Authentication is handled by the BFF layer. This endpoint trusts
+    that the BFF has already verified the user_id via X-User-ID header.
+
+    Args:
+        request: Request containing list of movie IDs
+        user_id: User ID (authenticated by BFF) passed via X-User-ID header
+        db: Database session
+        interaction_query: User interaction query
+
+    Returns:
+        Dictionary mapping movie_id to interaction data (or null if no interaction)
+
+    Raises:
+        HTTPException:
+            - 400 if request validation fails
+            - 422 if movie_ids list is invalid
+    """
+    try:
+        interactions_dict = interaction_query.get_user_interactions_batch(
+            db, user_id, request.movie_ids
+        )
+
+        ***REMOVED*** Convert UserMovieInteraction objects to dictionaries for JSON response
+        result: Dict[str, Optional[Dict[str, Any]]] = {}
+        for movie_id, interaction in interactions_dict.items():
+            if interaction:
+                result[str(movie_id)] = {
+                    "user_id": interaction.user_id,
+                    "movie_id": interaction.movie_id,
+                    "watched": interaction.watched,
+                    "liked": interaction.liked,
+                    "in_watchlist": interaction.in_watchlist,
+                    "created_at": (
+                        interaction.created_at.isoformat() if interaction.created_at else None
+                    ),
+                    "updated_at": (
+                        interaction.updated_at.isoformat() if interaction.updated_at else None
+                    ),
+                }
+            else:
+                result[str(movie_id)] = None
+
+        return {
+            "interactions": result,
+            "total_requested": len(request.movie_ids),
+            "total_found": sum(1 for interaction in interactions_dict.values() if interaction),
+        }
+
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)
 
