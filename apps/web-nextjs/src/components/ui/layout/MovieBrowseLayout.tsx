@@ -4,8 +4,6 @@ import SortSelector from "@/components/ui/molecules/SortSelector";
 import { FilterButton } from "@/components/features/movies/filter";
 import { Box, Flex } from "@chakra-ui/react";
 import React, { memo, ReactNode, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { MovieAPI, GenreAPI, ActorAPI } from "@/services/api";
 import { useResponsive } from "@/providers";
 import { createLogger } from "@/utils/logging";
 import { MobileMovieBrowseLayout } from "@/components/mobile/core/layout/movie-browse";
@@ -28,11 +26,6 @@ interface MovieBrowseLayoutProps
   children: ReactNode; // Map content to children for React conventions
   title: ReactNode; // Keep as ReactNode for flexibility
   rightHeader?: ReactNode; // Legacy prop for backward compatibility
-  prefetchIds?: {
-    genreIds?: number[];
-    actorIds?: number[];
-    movieIds?: number[];
-  };
 }
 
 /**
@@ -50,7 +43,6 @@ interface MovieBrowseLayoutProps
  * @param pagination - Pagination component (from BrowseLayoutProps)
  * @param actions - Action buttons (from BrowseLayoutProps)
  * @param rightHeader - Legacy prop for backward compatibility
- * @param prefetchIds - Movie-specific prefetching configuration
  */
 const MovieBrowseLayout: React.FC<MovieBrowseLayoutProps> = ({
   children,
@@ -62,9 +54,7 @@ const MovieBrowseLayout: React.FC<MovieBrowseLayoutProps> = ({
   pagination,
   actions,
   rightHeader, // Legacy support
-  prefetchIds,
 }) => {
-  const queryClient = useQueryClient();
   const { isMobile, isTablet, isHydrated } = useResponsive();
 
   // Log device type for debugging
@@ -77,41 +67,6 @@ const MovieBrowseLayout: React.FC<MovieBrowseLayoutProps> = ({
       );
     }
   }, [isMobile, isTablet, isHydrated]);
-
-  // Prefetch data for smoother navigation between pages
-  useEffect(() => {
-    if (!prefetchIds) return;
-
-    // Prefetch genre data
-    if (prefetchIds.genreIds?.length) {
-      prefetchIds.genreIds.forEach((id) => {
-        queryClient.prefetchQuery({
-          queryKey: ["genre", id],
-          queryFn: () => GenreAPI.getById(id),
-        });
-      });
-    }
-
-    // Prefetch actor data
-    if (prefetchIds.actorIds?.length) {
-      prefetchIds.actorIds.forEach((id) => {
-        queryClient.prefetchQuery({
-          queryKey: ["actor", id],
-          queryFn: () => ActorAPI.getById(id),
-        });
-      });
-    }
-
-    // Prefetch movie data
-    if (prefetchIds.movieIds?.length) {
-      prefetchIds.movieIds.forEach((id) => {
-        queryClient.prefetchQuery({
-          queryKey: ["movie", id],
-          queryFn: () => MovieAPI.getById(id),
-        });
-      });
-    }
-  }, [prefetchIds, queryClient]);
 
   // Default components following BrowseLayoutProps pattern
   const defaultSort = sort || <MemoizedSortSelector />;
@@ -155,9 +110,7 @@ const MovieBrowseLayout: React.FC<MovieBrowseLayoutProps> = ({
   // Only render mobile layout after hydration is complete and we've confirmed mobile device
   // Use the specialized MobileMovieBrowseLayout for optimized mobile experience
   return (
-    <MobileMovieBrowseLayout title={title} prefetchIds={prefetchIds}>
-      {children}
-    </MobileMovieBrowseLayout>
+    <MobileMovieBrowseLayout title={title}>{children}</MobileMovieBrowseLayout>
   );
 };
 

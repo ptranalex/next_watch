@@ -1,7 +1,5 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode } from "react";
 import { Box, useDisclosure } from "@chakra-ui/react";
-import { useQueryClient } from "@tanstack/react-query";
-import { GenreAPI, ActorAPI, MovieAPI } from "@/services/api";
 import { createLogger } from "@/utils/logging";
 import useMovieFilterStore from "@/store/movieFilterStore";
 import MovieFilterBottomSheet from "@/components/mobile/features/filters/MovieFilterBottomSheet";
@@ -17,24 +15,16 @@ interface MobileMovieBrowseLayoutProps {
   children: ReactNode;
   title: ReactNode;
   rightHeader?: ReactNode;
-  prefetchIds?: {
-    genreIds?: number[];
-    actorIds?: number[];
-    movieIds?: number[];
-  };
 }
 
 /**
  * Mobile-optimized layout for movie browsing pages
  * Provides bottom action bar for key actions and improved touch targets
- * Supports same prefetching capabilities as the desktop version
  */
 const MobileMovieBrowseLayout: React.FC<MobileMovieBrowseLayoutProps> = ({
   children,
   title,
-  prefetchIds,
 }) => {
-  const queryClient = useQueryClient();
   const { filters } = useMovieFilterStore();
 
   // Use disclosures directly for bottom sheets
@@ -52,41 +42,6 @@ const MobileMovieBrowseLayout: React.FC<MobileMovieBrowseLayoutProps> = ({
 
   // Log component initialization
   logger.debug("Mobile layout initialized");
-
-  // Prefetch data for smoother navigation between pages (same as desktop version)
-  useEffect(() => {
-    if (!prefetchIds) return;
-
-    // Prefetch genre data
-    if (prefetchIds.genreIds?.length) {
-      prefetchIds.genreIds.forEach((id) => {
-        queryClient.prefetchQuery({
-          queryKey: ["genre", id],
-          queryFn: () => GenreAPI.getById(id),
-        });
-      });
-    }
-
-    // Prefetch actor data
-    if (prefetchIds.actorIds?.length) {
-      prefetchIds.actorIds.forEach((id) => {
-        queryClient.prefetchQuery({
-          queryKey: ["actor", id],
-          queryFn: () => ActorAPI.getById(id),
-        });
-      });
-    }
-
-    // Prefetch movie data
-    if (prefetchIds.movieIds?.length) {
-      prefetchIds.movieIds.forEach((id) => {
-        queryClient.prefetchQuery({
-          queryKey: ["movie", id],
-          queryFn: () => MovieAPI.getById(id),
-        });
-      });
-    }
-  }, [prefetchIds, queryClient]);
 
   // Helper function to get display name for current sort order
   const getSortDisplayName = () => {

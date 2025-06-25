@@ -21,10 +21,20 @@ export interface Actor {
   also_known_as?: string[];
 }
 
+// Basic movie info for suggestions (to avoid circular imports)
+export interface MovieInfo {
+  id: number;
+  title: string;
+  overview?: string;
+  poster_path?: string;
+  release_date?: string;
+  vote_average?: number;
+}
+
 // Types for search suggestions (legacy format)
 export interface Suggestion {
   type: "movie" | "actor" | "genre";
-  info: any; // Will be Movie | Actor | Genre
+  info: MovieInfo | Actor | Genre;
 }
 
 // Legacy suggestion response format
@@ -47,7 +57,7 @@ export interface TextSuggestion {
     type?: string;
     vote_average?: number;
     original_title_format?: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
 }
 

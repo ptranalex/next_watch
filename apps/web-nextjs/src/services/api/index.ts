@@ -33,8 +33,6 @@ export { default as UserAPI } from "./user/user-api";
 export { default as userInteractionAPI } from "./user/user-interaction-api";
 export { MovieAPI } from "./movies/movie-api";
 export { MoviesAPI } from "./movies/movies-api";
-export { GenreAPI } from "./genres/genre-api";
-export { ActorAPI } from "./actors/actor-api";
 export { SearchAPI } from "./search/search-api";
 
 // Re-export BFF API for backward compatibility (deprecated)
@@ -50,8 +48,9 @@ export {
 // Export types
 export type { Actor } from "./common/types";
 export type { Movie, MovieListResponse } from "./movies/types";
-export type { ActorResponse, ActorScreenData } from "./actors/types";
-export type { Genre, GenreResponse, GenreScreenData } from "./genres/types";
+export type { ActorScreenData } from "./bff/types";
+export type { Genre } from "./common/types";
+export type { GenreScreenData } from "./bff/types";
 export type { User, UserMovieInteractionResponse } from "./user/types";
 export type {
   SuggestionsResponse,
