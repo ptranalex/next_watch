@@ -86,27 +86,11 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
         super().__init__(**kwargs)
 
-        ***REMOVED*** Parse JWT JWK if available
-        self._parse_jwt_jwk()
-
         ***REMOVED*** Apply shared security and logging patterns
         self.apply_production_security_overrides()
         self._apply_auth_specific_overrides()
         self.log_configuration_summary()
         self._log_auth_specific_summary()
-
-    def _parse_jwt_jwk(self) -> None:
-        """Parse JWT JWK from environment variable."""
-        import os
-
-        if jwk_str := os.getenv("JWT_JWK", ""):
-            try:
-                self.jwt_jwk = json.loads(jwk_str)
-                logger.info("JWK configuration loaded successfully")
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse JWK configuration: {e}")
-                if self.is_production:
-                    raise ValueError("Invalid JWK configuration in production environment")
 
     def _apply_auth_specific_overrides(self) -> None:
         """Apply auth-specific production overrides."""
@@ -149,6 +133,25 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
                 "Set a secure JWT_SECRET environment variable."
             )
         return v
+
+    @validator("jwt_jwk", pre=True)
+    def validate_jwt_jwk(cls, v: Any) -> Optional[Dict[str, Any]]:
+        """Parse JWT JWK from string or return None for empty values."""
+        if not v or v == "":
+            return None
+        if isinstance(v, str):
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, dict):
+                    return parsed
+                else:
+                    raise ValueError("JWK must be a JSON object")
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JWK configuration: {e}")
+                raise ValueError(f"Invalid JWK JSON format: {e}")
+        if isinstance(v, dict):
+            return v
+        raise ValueError(f"JWK must be a string, dict, or None, got {type(v)}")
 
     @validator("cors_origins")
     def validate_cors_origins_auth(cls, v: List[str], values: Dict[str, Any]) -> List[str]:
