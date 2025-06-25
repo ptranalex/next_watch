@@ -172,29 +172,6 @@ export function useActorPage(id: number) {
 
       const response = await fetchData<ActorScreenData>(urlWithFilters);
 
-      // Simple prefetching - prefetch details for first 3 movies on first page
-      if (
-        pageParam === 1 &&
-        response.related.movies?.results &&
-        response.related.movies.results.length > 0
-      ) {
-        const firstFewMovies = response.related.movies.results.slice(0, 3);
-        firstFewMovies.forEach((movie) => {
-          if (movie.id) {
-            // Check if movie details are already cached
-            const movieDetailsKey = CacheKeys.movies.detail(movie.id as number);
-            if (!queryClient.getQueryData(movieDetailsKey)) {
-              // Prefetch movie details in background
-              queryClient.prefetchQuery({
-                queryKey: movieDetailsKey,
-                queryFn: () => MovieAPI.getById(movie.id as number),
-                staleTime: 1000 * 60 * 5, // 5 minutes
-              });
-            }
-          }
-        });
-      }
-
       return response;
     },
     getNextPageParam: (lastPage) => {

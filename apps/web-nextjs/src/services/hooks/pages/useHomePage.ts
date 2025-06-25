@@ -181,25 +181,6 @@ export const useHomePage = (options: UseHomePageOptions) => {
         metacritic_rating,
       });
 
-      // Simple prefetching - use the existing MoviesAPI.getMovieDetail method
-      if (pageParam === 1 && response.results.length > 0) {
-        const firstFewMovies = response.results.slice(0, 3);
-        firstFewMovies.forEach((movie: Movie) => {
-          if (movie.id) {
-            // Check if movie details are already cached
-            const movieDetailsKey = CacheKeys.movies.detail(movie.id as number);
-            if (!queryClient.getQueryData(movieDetailsKey)) {
-              // Prefetch movie details in background
-              queryClient.prefetchQuery({
-                queryKey: movieDetailsKey,
-                queryFn: () => MoviesAPI.getMovieDetail(movie.id as number),
-                staleTime: 1000 * 60 * 5, // 5 minutes
-              });
-            }
-          }
-        });
-      }
-
       return response;
     },
     getNextPageParam: (lastPage: BFFMovieListResponseRB) => {
