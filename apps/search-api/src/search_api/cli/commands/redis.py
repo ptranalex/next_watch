@@ -271,10 +271,17 @@ async def _populate_suggestions_async(
                         "year": movie.get("release_year"),
                         "popularity": movie.get("popularity"),
                         "vote_average": movie.get("vote_average"),
+                        "original_title_format": movie["title"],
+                        ***REMOVED*** Store additional movie fields for comprehensive search
+                        "overview": movie.get("overview"),
+                        "release_date": movie.get("release_date"),
+                        "backdrop_url": movie.get("backdrop_url"),
+                        "imdb_rating": movie.get("imdb_rating"),
+                        "runtime": movie.get("runtime"),
+                        "genres": movie.get("genres", []),
+                        "tmdb_id": movie.get("tmdb_id"),
+                        "imdb_id": movie.get("imdb_id"),
                     }
-
-                    ***REMOVED*** Store the original title format in additional_info
-                    movie_data["original_title_format"] = movie["title"]
 
                     pipeline.set(f"entity:movie:{title}", json.dumps(movie_data))
 
@@ -530,7 +537,7 @@ async def _fetch_actor_data_from_backend(
     backend_client: BackendAPIClient, limit: int
 ) -> List[Dict[str, Any]]:
     """
-    Fetch actor data from the Backend API.
+    Fetch actor data from the Backend API with pagination support.
 
     Args:
         backend_client: Backend API client instance
@@ -540,10 +547,49 @@ async def _fetch_actor_data_from_backend(
         List of actor data with complete information
     """
     try:
-        ***REMOVED*** For now, return empty list since we don't have a direct actors endpoint
-        ***REMOVED*** This could be implemented when Backend API adds actors/directors endpoints
-        logger.info(f"Actor fetching not yet implemented for Backend API")
-        return []
+        actors: List[Dict[str, Any]] = []
+        page = 1
+
+        while len(actors) < limit:
+            ***REMOVED*** Calculate how many more actors we need
+            remaining = limit - len(actors)
+            current_page_size = min(remaining, 100)  ***REMOVED*** Backend API limit is 100
+
+            ***REMOVED*** Fetch actors from Backend API
+            response = await backend_client.list_actors(
+                page=page,
+                limit=current_page_size,
+            )
+
+            page_actors = response.get("actors", [])
+
+            ***REMOVED*** If no actors returned, we've reached the end
+            if not page_actors:
+                break
+
+            for actor in page_actors:
+                actor_data = {
+                    "id": actor.get("id"),
+                    "name": actor.get("name"),
+                    "profile_path": actor.get("profile_path"),
+                    "popularity": actor.get("popularity"),
+                }
+
+                actors.append(actor_data)
+
+                ***REMOVED*** Stop if we've reached our limit
+                if len(actors) >= limit:
+                    break
+
+            page += 1
+
+            ***REMOVED*** Safety check to prevent infinite loops
+            if page > 50:  ***REMOVED*** Max 50 pages = 5000 actors
+                logger.warning(f"Reached maximum page limit (50), stopping at {len(actors)} actors")
+                break
+
+        logger.info(f"Fetched {len(actors)} actors from Backend API using {page-1} page(s)")
+        return actors
 
     except Exception as e:
         logger.error(f"Error fetching actor data from Backend API: {e}")
@@ -564,9 +610,12 @@ async def _fetch_director_data_from_backend(
         List of director data with complete information
     """
     try:
-        ***REMOVED*** For now, return empty list since we don't have a direct directors endpoint
-        ***REMOVED*** This could be implemented when Backend API adds actors/directors endpoints
-        logger.info(f"Director fetching not yet implemented for Backend API")
+        ***REMOVED*** Directors are not yet available via a direct endpoint in Backend API
+        ***REMOVED*** They would need to be extracted from movie credits or a dedicated endpoint
+        ***REMOVED*** TODO: Implement when Backend API adds a directors endpoint
+        logger.info(
+            f"Director fetching not yet implemented for Backend API (no dedicated endpoint)"
+        )
         return []
 
     except Exception as e:

@@ -12,7 +12,7 @@ to the dedicated search-api service. It supports advanced features like:
 import json
 import math
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import redis.asyncio
 from redis.exceptions import RedisError
@@ -307,6 +307,7 @@ class SuggestionEngine:
                     entity_data = None
                     entity_type = None
 
+                    ***REMOVED*** First try direct entity lookup
                     for e_type in entity_types:
                         entity_key = f"entity:{e_type}:{suggestion}"
                         data_json = await redis_client.get(entity_key)
@@ -317,6 +318,38 @@ class SuggestionEngine:
                                 break
                             except json.JSONDecodeError:
                                 logger.warning(f"Invalid JSON in Redis for key {entity_key}")
+
+                    ***REMOVED*** If direct lookup failed, try suggestion → entity ID mapping
+                    if not entity_data:
+                        suggestion_key = f"suggestions:{suggestion}"
+                        entity_id = await redis_client.get(suggestion_key)
+
+                        if entity_id:
+                            ***REMOVED*** Find entity record with this ID
+                            for e_type in entity_types:
+                                pattern = f"entity:{e_type}:*"
+                                raw_entity_keys = cast(List[Any], await redis_client.keys(pattern))
+
+                                for raw_entity_key in raw_entity_keys:
+                                    ***REMOVED*** Ensure entity_key is a string
+                                    if isinstance(raw_entity_key, str):
+                                        entity_key = raw_entity_key
+                                    else:
+                                        entity_key = raw_entity_key.decode("utf-8")
+                                    data_json = await redis_client.get(entity_key)
+                                    if data_json:
+                                        try:
+                                            candidate_data = json.loads(data_json)
+                                            ***REMOVED*** Check if this entity has the matching ID
+                                            if str(candidate_data.get("id")) == str(entity_id):
+                                                entity_data = candidate_data
+                                                entity_type = e_type
+                                                break
+                                        except json.JSONDecodeError:
+                                            continue
+
+                                if entity_data:
+                                    break
 
                     if entity_data and entity_type:
                         ***REMOVED*** Build a rich suggestion with entity data

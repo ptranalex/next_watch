@@ -1,3 +1,5 @@
+***REMOVED*** type: ignore
+
 """Test configuration for Search API."""
 
 import pytest

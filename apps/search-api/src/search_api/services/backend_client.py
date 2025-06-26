@@ -235,6 +235,27 @@ class BackendAPIClient:
 
         return await self._make_request("GET", "/api/v1/search", params=params)
 
+    async def list_actors(
+        self,
+        page: int = 1,
+        limit: int = 20,
+    ) -> Dict[str, Any]:
+        """Get a list of actors from Backend API.
+
+        Args:
+            page: Page number for pagination
+            limit: Number of actors per page
+
+        Returns:
+            Actors list from Backend API
+        """
+        params = {
+            "page": page,
+            "limit": limit,
+        }
+
+        return await self._make_request("GET", "/api/v1/actors", params=params)
+
     async def health_check(self) -> Dict[str, Any]:
         """Check Backend API health.
 
