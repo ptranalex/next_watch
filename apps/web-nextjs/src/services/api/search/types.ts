@@ -1,18 +1,20 @@
 /**
- * Types for Search API
+ * Search API types and interfaces
  */
-import {
+
+import type {
   Suggestion,
-  SuggestionsResponse,
   TextSuggestion,
+  SuggestionsResponse,
   TextSuggestionsResponse,
+  MovieSearchResponse,
 } from "../common/types";
 
-export type { MovieSearchResponse } from "./search-api";
-
+// Re-export common types for convenience
 export type {
   Suggestion,
-  SuggestionsResponse,
   TextSuggestion,
+  SuggestionsResponse,
   TextSuggestionsResponse,
+  MovieSearchResponse,
 };

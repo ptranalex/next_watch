@@ -31,18 +31,15 @@ export interface MovieInfo {
   vote_average?: number;
 }
 
-// Types for search suggestions (legacy format)
+// Basic suggestion item (used in search results)
 export interface Suggestion {
-  type: "movie" | "actor" | "genre";
-  info: MovieInfo | Actor | Genre;
+  id: number;
+  name: string;
+  type: string; // "movie", "actor", "genre", etc.
+  image_path?: string | null;
 }
 
-// Legacy suggestion response format
-export interface SuggestionsResponse {
-  suggestions: Suggestion[];
-}
-
-// New enhanced text suggestions format
+// Enhanced text suggestion item with rich metadata
 export interface TextSuggestion {
   text: string;
   type: string; // "movie", "actor", "director", etc.
@@ -54,14 +51,47 @@ export interface TextSuggestion {
   search_type: "exact" | "prefix" | "word" | "contains" | "unknown";
   additional_info?: {
     title?: string;
+    name?: string;
     type?: string;
     vote_average?: number;
     original_title_format?: string;
+    gender?: number | null;
     [key: string]: string | number | boolean | null | undefined;
   };
 }
 
-export interface TextSuggestionsResponse {
-  suggestions: TextSuggestion[];
+// Metadata structure from ResponseBuilder
+export interface SearchMetadata {
   total: number;
+  service_info: {
+    aggregated_from: string[];
+    user_authenticated: boolean;
+  };
+  api_version: string;
+  response_pattern: string;
+  search_context: {
+    search_type: string;
+    suggestion_type?: string;
+    entity_types?: string[] | null;
+  };
 }
+
+// Updated suggestion response format using ResponseBuilder search pattern
+export interface SuggestionsResponse {
+  query: string;
+  results: Suggestion[];
+  metadata: SearchMetadata;
+}
+
+// Updated text suggestions response format using ResponseBuilder search pattern
+export interface TextSuggestionsResponse {
+  query: string;
+  results: TextSuggestion[];
+  metadata: SearchMetadata;
+}
+
+// Movie search response type alias (uses existing ResponseBuilderPaginatedResponse from BFF types)
+export type MovieSearchResponse =
+  import("../bff/types").ResponseBuilderPaginatedResponse<
+    import("../movies/types").Movie
+  >;

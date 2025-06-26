@@ -107,9 +107,9 @@ const SearchInput: React.FC<SearchInputProps> = ({
   } = useSearchSuggestions(enableSuggestions ? debouncedQuery : "");
 
   const suggestions = useMemo(() => {
-    const rawSuggestions = data?.suggestions || [];
+    const rawSuggestions = data?.results || [];
     return rawSuggestions.slice(0, maxSuggestions);
-  }, [data?.suggestions, maxSuggestions]);
+  }, [data?.results, maxSuggestions]);
 
   // Keyboard shortcut handling
   useHotkeys(

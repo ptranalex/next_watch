@@ -1,17 +1,11 @@
 import { fetchData } from "../core/api-client";
-import { SuggestionsResponse, TextSuggestionsResponse } from "./types";
-import { Movie } from "@/domain/entities/movies/Movie.entity";
-
-/**
- * Movie search response from BFF API
- */
-export interface MovieSearchResponse {
-  query: string;
-  results: Movie[];
-  total_count: number;
-  page: number;
-  has_next: boolean;
-}
+import {
+  SuggestionsResponse,
+  TextSuggestionsResponse,
+  MovieSearchResponse,
+  Suggestion,
+} from "./types";
+import type { ResponseBuilderPaginatedResponse } from "../bff/types";
 
 /**
  * Search API with specialized search-related methods
@@ -19,8 +13,9 @@ export interface MovieSearchResponse {
  */
 export const SearchAPI = {
   /**
-   * Get search suggestions based on a query string (legacy/standard endpoint)
+   * Get search suggestions based on a query string
    * Routes through BFF API
+   * Now returns ResponseBuilder search format with query, results, metadata
    */
   getSuggestions: async (
     query: string,
@@ -37,6 +32,7 @@ export const SearchAPI = {
    * Get enhanced text-based search suggestions with rich metadata
    * This uses the improved text suggestions endpoint with deduplication and ranking.
    * Routes through BFF API
+   * Now returns ResponseBuilder search format with query, results, metadata
    */
   getTextSuggestions: async (
     query: string,
@@ -52,6 +48,7 @@ export const SearchAPI = {
   /**
    * Search movies by title with comprehensive filtering options
    * Routes through BFF API for optimized movie search
+   * Now returns ResponseBuilder paginated format with results, pagination, metadata
    */
   searchMovies: async (params: {
     q: string;
@@ -110,6 +107,7 @@ export const SearchAPI = {
   /**
    * Search across all entities (movies, actors, genres)
    * Routes through BFF API
+   * Now returns ResponseBuilder paginated format with results, pagination, metadata
    */
   searchAll: async (params: {
     query: string;
@@ -118,7 +116,7 @@ export const SearchAPI = {
     limit?: number;
     sort_by?: string;
     sort_desc?: boolean;
-  }): Promise<SuggestionsResponse> => {
+  }): Promise<ResponseBuilderPaginatedResponse<Suggestion>> => {
     const queryParams = new URLSearchParams();
 
     queryParams.append("query", params.query);
@@ -135,7 +133,7 @@ export const SearchAPI = {
     if (params.sort_desc !== undefined)
       queryParams.append("sort_desc", params.sort_desc.toString());
 
-    return fetchData<SuggestionsResponse>(
+    return fetchData<ResponseBuilderPaginatedResponse<Suggestion>>(
       `/bff/v1/search/all?${queryParams.toString()}`
     );
   },
