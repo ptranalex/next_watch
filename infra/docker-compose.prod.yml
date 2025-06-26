@@ -223,7 +223,7 @@ services:
 
       ***REMOVED*** Redis Configuration (Search API uses Redis database 2)
       - REDIS_URL=redis://host.docker.internal:6379/2
-      - REDIS_MAX_CONNECTIONS=20
+      - REDIS_MAX_CONNECTIONS=100 ***REMOVED*** SuggestionEngine max connections (fixes "Too many connections")
       - REDIS_SOCKET_TIMEOUT=5
       - REDIS_SOCKET_CONNECT_TIMEOUT=5
       - REDIS_RETRY_ON_TIMEOUT=true
