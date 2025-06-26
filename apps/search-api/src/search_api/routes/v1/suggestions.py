@@ -3,17 +3,27 @@
 This module contains the suggestion endpoints that were moved from backend-api.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fast_core.security.rate_limit import rate_limit
+from fast_core.responses import ResponseBuilder
 from config.logging import get_logger
 
 from search_api.services.search_service import SearchService, SearchServiceException
-from search_api.schemas.search import SuggestionsResponse, TextSuggestionsResponse
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["suggestions"])
+
+***REMOVED*** Initialize response builder for consistent API responses
+responses = ResponseBuilder(
+    config={
+        "search": {
+            "include_suggestions": True,
+            "include_facets": False,  ***REMOVED*** Not needed for simple suggestions
+        },
+    }
+)
 
 
 def get_search_service(request: Request) -> SearchService:
@@ -23,12 +33,12 @@ def get_search_service(request: Request) -> SearchService:
 
 
 @rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute (higher for typeahead)
-@router.get("/suggestions", response_model=SuggestionsResponse)
+@router.get("/suggestions")
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Max number of suggestions to return"),
     search_service: SearchService = Depends(get_search_service),
-) -> SuggestionsResponse:
+) -> Dict[str, Any]:
     """
     Get basic search suggestions.
 
@@ -46,7 +56,25 @@ async def get_search_suggestions(
 
         logger.info(f"Basic suggestions completed successfully", total=result.total, query=query)
 
-        return result
+        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        response = responses.search(
+            query=query,
+            results=result.suggestions,
+            metadata={
+                "total": result.total,
+                "service_info": {
+                    "service_name": "search-api",
+                    "search_backend": "redis",
+                },
+                "api_version": "v1",
+                "response_pattern": "search",
+                "search_context": {
+                    "search_type": "suggestions",
+                    "suggestion_type": "basic",
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
 
     except SearchServiceException as e:
         logger.error(f"Search service error: {str(e)}", query=query)
@@ -59,12 +87,12 @@ async def get_search_suggestions(
 
 
 @rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute
-@router.get("/suggestions/text", response_model=TextSuggestionsResponse)
+@router.get("/suggestions/text")
 async def get_text_suggestions(
     query: str = Query(..., min_length=1, description="Search query prefix"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of suggestions"),
     search_service: SearchService = Depends(get_search_service),
-) -> TextSuggestionsResponse:
+) -> Dict[str, Any]:
     """
     Get text-based search suggestions with rich metadata.
 
@@ -85,7 +113,25 @@ async def get_text_suggestions(
 
         logger.info(f"Text suggestions completed successfully", total=result.total, query=query)
 
-        return result
+        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        response = responses.search(
+            query=query,
+            results=result.suggestions,
+            metadata={
+                "total": result.total,
+                "service_info": {
+                    "service_name": "search-api",
+                    "search_backend": "redis",
+                },
+                "api_version": "v1",
+                "response_pattern": "search",
+                "search_context": {
+                    "search_type": "suggestions",
+                    "suggestion_type": "text",
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
 
     except SearchServiceException as e:
         logger.error(f"Search service error: {str(e)}", query=query)

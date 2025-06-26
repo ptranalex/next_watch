@@ -3,17 +3,31 @@
 This module contains the main search endpoints that were moved from backend-api.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fast_core.security.rate_limit import rate_limit
+from fast_core.responses import ResponseBuilder
 from config.logging import get_logger
 
 from search_api.services.search_service import SearchService, SearchServiceException
-from search_api.schemas.search import SearchResponse
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["search"])
+
+***REMOVED*** Initialize response builder for consistent API responses
+responses = ResponseBuilder(
+    config={
+        "pagination": {
+            "default_limit": 20,
+            "max_limit": 100,
+        },
+        "search": {
+            "include_suggestions": True,
+            "include_facets": True,
+        },
+    }
+)
 
 
 def get_search_service(request: Request) -> SearchService:
@@ -23,7 +37,7 @@ def get_search_service(request: Request) -> SearchService:
 
 
 @rate_limit(requests=100, window=60)  ***REMOVED*** 100 searches per minute
-@router.get("", response_model=Dict[str, Any])
+@router.get("")
 async def search_movies(
     q: str = Query(..., description="Search query for movie titles"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
@@ -79,7 +93,40 @@ async def search_movies(
 
         logger.info(f"Movie search completed successfully", total=result.get("total", 0), page=page)
 
-        return result
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        response = responses.paginated(
+            items=result.get("results", []),
+            page=page,
+            limit=limit,
+            total=result.get("total", 0),
+            metadata={
+                "query": q,
+                "filters_applied": {
+                    "genre_id": genre_id,
+                    "actor_id": actor_id,
+                    "sort_by": sort_by,
+                    "sort_desc": sort_desc,
+                    "imdb_rating": imdb_rating,
+                    "rotten_tomatoes_rating": rotten_tomatoes_rating,
+                    "metacritic_rating": metacritic_rating,
+                    "year": year,
+                    "start_year": start_year,
+                    "end_year": end_year,
+                },
+                "service_info": {
+                    "service_name": "search-api",
+                    "search_backend": "backend-api",
+                    "user_personalized": bool(user_id),
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "search_context": {
+                    "search_type": "movies",
+                    "personalized": bool(user_id),
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
 
     except SearchServiceException as e:
         logger.error(f"Search service error: {str(e)}", query=q)
@@ -90,7 +137,7 @@ async def search_movies(
 
 
 @rate_limit(requests=50, window=60)  ***REMOVED*** 50 searches per minute for all entities
-@router.get("/all", response_model=SearchResponse)
+@router.get("/all")
 async def search_all_entities(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
@@ -99,7 +146,7 @@ async def search_all_entities(
     sort_by: Optional[str] = Query(None, description="Field to sort by"),
     sort_desc: bool = Query(False, description="Sort in descending order"),
     search_service: SearchService = Depends(get_search_service),
-) -> SearchResponse:
+) -> Dict[str, Any]:
     """Search across all entities (movies, actors, genres).
 
     Returns paginated search results that can be filtered by entity type.
@@ -123,7 +170,32 @@ async def search_all_entities(
             types=types,
         )
 
-        return result
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        response = responses.paginated(
+            items=result.suggestions,  ***REMOVED*** Note: search_all_entities returns SearchResponse with suggestions field
+            page=page,
+            limit=limit,
+            total=result.total,
+            metadata={
+                "query": query,
+                "filters_applied": {
+                    "types": types,
+                    "sort_by": sort_by,
+                    "sort_desc": sort_desc,
+                },
+                "service_info": {
+                    "service_name": "search-api",
+                    "search_backend": "redis",
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "search_context": {
+                    "search_type": "all_entities",
+                    "entity_types": types,
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
 
     except SearchServiceException as e:
         logger.error(f"Search service error: {str(e)}", query=query)
