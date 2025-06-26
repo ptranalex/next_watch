@@ -12,6 +12,7 @@ from .service_clients import (
     get_backend_client,
     get_auth_client,
     get_recommendation_client,
+    get_search_client,
     get_ml_client,
     get_all_services_health,
     cleanup_service_clients,
@@ -22,6 +23,7 @@ __all__ = [
     "get_backend_client",  ***REMOVED*** Custom BackendClient via Service Client Factory
     "get_auth_client",  ***REMOVED*** Custom AuthClient via Service Client Factory
     "get_recommendation_client",  ***REMOVED*** Custom RecommendationClient via Service Client Factory
+    "get_search_client",  ***REMOVED*** Custom SearchAPIClient via Service Client Factory
     "get_ml_client",  ***REMOVED*** GenericServiceClient via Service Client Factory
     ***REMOVED*** Health and lifecycle
     "get_all_services_health",

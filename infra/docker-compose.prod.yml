@@ -196,6 +196,97 @@ services:
         max-size: "100m"
         max-file: "3"
 
+  ***REMOVED*** Search API - Dedicated search service with Redis-powered suggestions
+  search-api:
+    image: ${DOCKER_SEARCH_IMAGE}
+    container_name: search-api
+    restart: always
+    ports:
+      - "8005:8004"
+    environment:
+      ***REMOVED*** Core Service Configuration
+      - ENVIRONMENT=production
+      - SERVICE_NAME=search-api
+      - HOST=0.0.0.0
+      - PORT=8004
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Service URLs
+      - BACKEND_API_URL=http://backend-api:8000
+      - ML_API_URL=http://ml-api:8004
+
+      ***REMOVED*** Service Timeouts
+      - BACKEND_API_TIMEOUT=30
+      - ML_API_TIMEOUT=60
+
+      ***REMOVED*** Redis Configuration (Search API uses Redis database 2)
+      - REDIS_URL=redis://host.docker.internal:6379/2
+      - REDIS_MAX_CONNECTIONS=20
+      - REDIS_SOCKET_TIMEOUT=5
+      - REDIS_SOCKET_CONNECT_TIMEOUT=5
+      - REDIS_RETRY_ON_TIMEOUT=true
+      - CACHE_TTL_DEFAULT=3600
+      - CACHE_KEY_PREFIX=search
+      - SEARCH_CACHE_TTL=300
+      - SUGGESTION_CACHE_TTL=3600
+
+      ***REMOVED*** Search-specific settings
+      - MAX_SUGGESTIONS=50
+      - MIN_QUERY_LENGTH=1
+      - MAX_QUERY_LENGTH=100
+      - "REDIS_SUGGESTION_KEY_PREFIX=suggestions:"
+      - "REDIS_ENTITY_KEY_PREFIX=entity:"
+      - "REDIS_SEARCH_RESULT_PREFIX=search_results:"
+
+      ***REMOVED*** Feature flags
+      - ENABLE_SEMANTIC_SEARCH=false
+      - ENABLE_SEARCH_ANALYTICS=true
+      - ENABLE_FUZZY_MATCHING=true
+      - ENABLE_TYPO_TOLERANCE=true
+
+      ***REMOVED*** Performance settings
+      - MAX_CONCURRENT_SEARCHES=100
+      - SEARCH_TIMEOUT_SECONDS=30
+      - SUGGESTION_BATCH_SIZE=1000
+
+      ***REMOVED*** Security Configuration
+      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "search-api", "0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+
+      ***REMOVED*** Performance & Monitoring
+      - ENABLE_PERFORMANCE_METRICS=true
+      - ENABLE_METRICS=true
+      - CACHE_ENABLE_METRICS=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - search-logs:/app/logs
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 768M
+        reservations:
+          cpus: "0.1"
+          memory: 384M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
   ***REMOVED*** Auth API - Authentication service
   auth-api:
     image: ${DOCKER_AUTH_IMAGE}
@@ -283,12 +374,14 @@ services:
       - BACKEND_API_URL=http://backend-api:8000
       - AUTH_API_URL=http://auth-api:8003
       - RECO_API_URL=http://recommendation-api:8002
+      - SEARCH_API_URL=http://search-api:8004
       - ML_API_URL=http://ml-api:8004
 
       ***REMOVED*** Service Timeouts
       - BACKEND_API_TIMEOUT=30
       - AUTH_API_TIMEOUT=10
       - RECOMMENDATION_API_TIMEOUT=30
+      - SEARCH_API_TIMEOUT=15
       - ML_API_TIMEOUT=60
 
       ***REMOVED*** Redis Configuration (BFF config uses no prefix, cache service bridges to library)
@@ -333,6 +426,8 @@ services:
       auth-api:
         condition: service_healthy
       recommendation-api:
+        condition: service_healthy
+      search-api:
         condition: service_healthy
       ml-api:
         condition: service_healthy
@@ -480,6 +575,8 @@ volumes:
   recommendation-logs:
     driver: local
   ml-logs:
+    driver: local
+  search-logs:
     driver: local
   importer-logs:
     driver: local

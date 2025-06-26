@@ -39,6 +39,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
         default="http://localhost:8002",
         description="Recommendation API URL",
     )
+    search_api_url: str = Field(default="http://localhost:8004", description="Search API URL")
     ml_api_url: Optional[str] = Field(default=None, description="ML API URL (optional)")
 
     ***REMOVED*** Service timeouts
@@ -47,6 +48,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
     recommendation_api_timeout: int = Field(
         default=30, description="Recommendation API timeout in seconds"
     )
+    search_api_timeout: int = Field(default=15, description="Search API timeout in seconds")
     ml_api_timeout: int = Field(default=60, description="ML API timeout in seconds")
 
     ***REMOVED*** Service-to-service authentication
@@ -106,6 +108,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
             "backend": self.backend_api_url,
             "auth": self.auth_api_url,
             "reco": self.reco_api_url,
+            "search": self.search_api_url,
         }
         if self.ml_api_url:
             urls["ml"] = self.ml_api_url
@@ -122,7 +125,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
         ***REMOVED*** Log Redis URL
         logger.info(f"Redis URL: {self.get_redis_url_masked()}")
 
-    @validator("backend_api_url", "auth_api_url", "reco_api_url", "ml_api_url")
+    @validator("backend_api_url", "auth_api_url", "reco_api_url", "search_api_url", "ml_api_url")
     def validate_service_url(cls, v: Optional[str]) -> Optional[str]:
         """Validate service URL format."""
         if v is None:
@@ -134,7 +137,11 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
         return v
 
     @validator(
-        "backend_api_timeout", "auth_api_timeout", "recommendation_api_timeout", "ml_api_timeout"
+        "backend_api_timeout",
+        "auth_api_timeout",
+        "recommendation_api_timeout",
+        "search_api_timeout",
+        "ml_api_timeout",
     )
     def validate_timeout(cls, v: int) -> int:
         """Validate timeout is positive."""

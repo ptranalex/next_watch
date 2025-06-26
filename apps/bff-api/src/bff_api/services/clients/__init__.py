@@ -5,6 +5,7 @@ from .content_discovery import ContentDiscoveryClient
 from .facade import BackendClient
 from .movies import MoviesClient
 from .recommendation import RecommendationClient
+from .search import SearchAPIClient
 from .user_interactions import UserInteractionsClient
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "RecommendationClient",
     "UserInteractionsClient",
     "ContentDiscoveryClient",
+    "SearchAPIClient",
 ]

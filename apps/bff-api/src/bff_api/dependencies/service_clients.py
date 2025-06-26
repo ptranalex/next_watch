@@ -19,6 +19,7 @@ from fast_core.dependencies.singleton import cleanup_singletons
 from bff_api.config.app import BFFAPIConfig, settings
 from bff_api.services.clients.facade import BackendClient
 from bff_api.services.clients.recommendation import RecommendationClient
+from bff_api.services.clients.search import SearchAPIClient
 from bff_api.services.auth_client import AuthClient
 
 
@@ -67,6 +68,19 @@ def _register_all_services(config: BFFAPIConfig) -> None:
     )
     register_client_type("recommendation", RecommendationClient, singleton=True)
 
+    ***REMOVED*** Search API - register service and custom client type
+    register_service(
+        name="search",
+        base_url=config.search_api_url,
+        timeout=config.search_api_timeout,
+        headers={
+            "User-Agent": "NextWatch-BFF/0.1.0",
+            "Accept": "application/json",
+        },
+        singleton=True,
+    )
+    register_client_type("search", SearchAPIClient, singleton=True)
+
     ***REMOVED*** ML API - optional service, only register if enabled
     if config.enable_ml_features and config.ml_api_url:
         register_service(
@@ -91,6 +105,8 @@ get_backend_client = get_service_client("backend")
 get_auth_client = get_service_client("auth")
 
 get_recommendation_client = get_service_client("recommendation")
+
+get_search_client = get_service_client("search")
 
 
 def get_ml_client(

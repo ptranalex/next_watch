@@ -6,13 +6,29 @@ import httpx
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, Query
 from fast_core.errors.exceptions import ExternalServiceException
+from fast_core.responses import ResponseBuilder
 from fast_core.security.rate_limit import rate_limit
 
-from bff_api.dependencies import get_backend_client
+from bff_api.dependencies import get_backend_client, get_search_client
 from bff_api.services.clients.facade import BackendClient
+from bff_api.services.clients.search import SearchAPIClient
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["search"])
+
+***REMOVED*** Initialize response builder for consistent API responses
+responses = ResponseBuilder(
+    config={
+        "search": {
+            "include_suggestions": True,
+            "include_facets": True,
+        },
+        "pagination": {
+            "default_limit": 20,
+            "max_limit": 100,
+        },
+    }
+)
 
 
 def _build_api_path(path: str) -> str:
@@ -82,13 +98,29 @@ async def search_screen(
             user_id=user_id,
         )
 
-        return {
-            "query": q,
-            "results": results.get("results", []),
-            "total_count": results.get("total", 0),
-            "page": page,
-            "has_next": results.get("has_next", False),
-        }
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        response = responses.paginated(
+            items=results.get("results", []),
+            page=page,
+            limit=limit,
+            total=results.get("total", 0),
+            metadata={
+                "query": q,
+                "search_info": {
+                    "query": q,
+                    "personalized": bool(user_id),
+                    "has_next": results.get("has_next", False),
+                },
+                "service_info": {
+                    "aggregated_from": ["backend-api"],
+                    "user_authenticated": bool(user_id),
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "search_context": {"search_type": "movies"},
+            },
+        )
+        return cast(Dict[str, Any], response)
 
     except Exception as e:
         await _handle_backend_error(e, "search", query=q)
@@ -101,36 +133,59 @@ async def search_screen(
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
     limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
-    backend: BackendClient = Depends(get_backend_client),
+    search_client: SearchAPIClient = Depends(get_search_client),
 ) -> Dict[str, Any]:
     """Get basic search suggestions.
 
     Returns a small set of search suggestions to power typeahead features.
+    Now uses the dedicated Search API service for better performance.
 
     Args:
         query: Search query string
         limit: Maximum number of suggestions to return
-        backend: Backend client dependency
+        search_client: Search API client dependency
 
     Returns:
         Search suggestions response
 
     Raises:
-        HTTPException: If backend service is unavailable (502)
+        HTTPException: If Search API service is unavailable (502)
     """
     try:
-        ***REMOVED*** Use the _get_client() method to get the HTTP client
-        ***REMOVED*** since suggestion methods are not yet implemented in BackendClient
-        client = await backend._get_client()
-        response = await client.get(
-            _build_api_path("/search/suggestions"),
-            params={"query": query, "limit": limit},
-        )
-        response.raise_for_status()
-        result = cast(Dict[str, Any], response.json())
-        return result
+        logger.info(f"Basic suggestions request via Search API", query=query, limit=limit)
 
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        result = await search_client.get_suggestions(
+            query=query,
+            limit=limit,
+        )
+
+        logger.info(
+            f"Basic suggestions completed successfully",
+            total=result.get("metadata", {}).get("total", 0),
+            query=query,
+        )
+
+        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        response = responses.search(
+            query=query,
+            results=result.get("results", []),
+            metadata={
+                "total": result.get("metadata", {}).get("total", 0),
+                "service_info": {
+                    "aggregated_from": ["search-api"],
+                    "user_authenticated": False,
+                },
+                "api_version": "v1",
+                "response_pattern": "search",
+                "search_context": {
+                    "search_type": "suggestions",
+                    "suggestion_type": "basic",
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
+
+    except Exception as e:
         await _handle_backend_error(e, "search_suggestions", query=query)
         ***REMOVED*** This line is unreachable but satisfies type checker
         return {}
@@ -140,40 +195,62 @@ async def get_search_suggestions(
 async def get_text_suggestions(
     query: str = Query(..., min_length=1, description="Search query prefix"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of suggestions"),
-    backend: BackendClient = Depends(get_backend_client),
+    search_client: SearchAPIClient = Depends(get_search_client),
 ) -> Dict[str, Any]:
     """Get text-based search suggestions with rich metadata.
 
     This endpoint provides rich suggestions for movies, actors, and directors
     with additional information for rendering in autocomplete UI elements.
 
-    Returns deduplicated and ranked suggestions from the backend's Redis-powered
-    suggestion engine.
+    Returns deduplicated and ranked suggestions from the dedicated Search API's
+    Redis-powered suggestion engine with enhanced performance.
 
     Args:
         query: Search query prefix
         limit: Maximum number of suggestions to return
-        backend: Backend client dependency
+        search_client: Search API client dependency
 
     Returns:
         Rich text suggestions with metadata
 
     Raises:
-        HTTPException: If backend service is unavailable (502)
+        HTTPException: If Search API service is unavailable (502)
     """
     try:
-        ***REMOVED*** Use the _get_client() method to get the HTTP client
-        ***REMOVED*** since suggestion methods are not yet implemented in BackendClient
-        client = await backend._get_client()
-        response = await client.get(
-            _build_api_path("/search/suggestions/text"),
-            params={"query": query, "limit": limit},
-        )
-        response.raise_for_status()
-        result = cast(Dict[str, Any], response.json())
-        return result
+        logger.info(f"Text suggestions request via Search API", query=query, limit=limit)
 
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        result = await search_client.get_text_suggestions(
+            query=query,
+            limit=limit,
+        )
+
+        logger.info(
+            f"Text suggestions completed successfully",
+            total=result.get("metadata", {}).get("total", 0),
+            query=query,
+        )
+
+        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        response = responses.search(
+            query=query,
+            results=result.get("results", []),
+            metadata={
+                "total": result.get("metadata", {}).get("total", 0),
+                "service_info": {
+                    "aggregated_from": ["search-api"],
+                    "user_authenticated": False,
+                },
+                "api_version": "v1",
+                "response_pattern": "search",
+                "search_context": {
+                    "search_type": "suggestions",
+                    "suggestion_type": "text",
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
+
+    except Exception as e:
         await _handle_backend_error(e, "text_suggestions", query=query)
         ***REMOVED*** This line is unreachable but satisfies type checker
         return {}
@@ -185,46 +262,70 @@ async def search_all_entities(
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of results per page"),
     types: Optional[List[str]] = Query(None, description="Entity types to include in results"),
-    backend: BackendClient = Depends(get_backend_client),
+    search_client: SearchAPIClient = Depends(get_search_client),
 ) -> Dict[str, Any]:
     """Search across all entities (movies, actors, genres).
 
     Returns paginated search results that can be filtered by entity type.
+    Now uses the dedicated Search API service for better performance.
 
     Args:
         query: Search query string
         page: Page number for pagination
         limit: Maximum number of results per page
         types: Optional list of entity types to filter by
-        backend: Backend client dependency
+        search_client: Search API client dependency
 
     Returns:
         Search results across all entity types
 
     Raises:
-        HTTPException: If backend service is unavailable (502)
+        HTTPException: If Search API service is unavailable (502)
     """
     try:
-        params: Dict[str, Union[str, int, List[str]]] = {
-            "query": query,
-            "page": page,
-            "limit": limit,
-        }
-        if types:
-            params["types"] = types
+        logger.info(f"Multi-entity search request via Search API", query=query, types=types)
 
-        ***REMOVED*** Use the _get_client() method to get the HTTP client
-        ***REMOVED*** since this method is not yet implemented in BackendClient
-        client = await backend._get_client()
-        response = await client.get(
-            _build_api_path("/search"),
-            params=params,
+        result = await search_client.search_all_entities(
+            query=query,
+            page=page,
+            limit=limit,
+            types=types,
         )
-        response.raise_for_status()
-        result = cast(Dict[str, Any], response.json())
-        return result
 
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        logger.info(
+            f"Multi-entity search completed successfully",
+            total=result.get("pagination", {}).get("total", 0),
+            page=page,
+            query=query,
+            types=types,
+        )
+
+        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        response = responses.paginated(
+            items=result.get("results", []),
+            page=page,
+            limit=limit,
+            total=result.get("pagination", {}).get("total", 0),
+            metadata={
+                "query": query,
+                "filters_applied": {
+                    "types": types,
+                },
+                "service_info": {
+                    "aggregated_from": ["search-api"],
+                    "user_authenticated": False,
+                },
+                "api_version": "v1",
+                "response_pattern": "paginated",
+                "search_context": {
+                    "search_type": "all_entities",
+                    "entity_types": types,
+                },
+            },
+        )
+        return cast(Dict[str, Any], response)
+
+    except Exception as e:
         await _handle_backend_error(e, "search_all", query=query)
         ***REMOVED*** This line is unreachable but satisfies type checker
         return {}
