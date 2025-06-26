@@ -10,6 +10,7 @@ on:
       - "apps/web-nextjs/**"
       - "apps/data-importer/**"
       - "apps/recommendation-api/**"
+      - "apps/search-api/**"
       - "apps/ml-api/**"
       - "infra/**"
   workflow_dispatch:
@@ -49,6 +50,11 @@ on:
         required: false
         type: boolean
         default: false
+      deploy_search:
+        description: "Deploy search API"
+        required: false
+        type: boolean
+        default: false
       deploy_ml:
         description: "Deploy ML API"
         required: false
@@ -65,6 +71,7 @@ jobs:
       frontend_changed: ${{ steps.set-outputs.outputs.frontend_changed }}
       importer_changed: ${{ steps.set-outputs.outputs.importer_changed }}
       recommendation_changed: ${{ steps.set-outputs.outputs.recommendation_changed }}
+      search_changed: ${{ steps.set-outputs.outputs.search_changed }}
       ml_changed: ${{ steps.set-outputs.outputs.ml_changed }}
     steps:
       - uses: actions/checkout@v4
@@ -90,6 +97,8 @@ jobs:
               - 'apps/data-importer/**'
             recommendation:
               - 'apps/recommendation-api/**'
+            search:
+              - 'apps/search-api/**'
             ml:
               - 'apps/ml-api/**'
 
@@ -103,6 +112,7 @@ jobs:
             echo "frontend_changed=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
             echo "importer_changed=${{ steps.filter.outputs.importer }}" >> $GITHUB_OUTPUT
             echo "recommendation_changed=${{ steps.filter.outputs.recommendation }}" >> $GITHUB_OUTPUT
+            echo "search_changed=${{ steps.filter.outputs.search }}" >> $GITHUB_OUTPUT
             echo "ml_changed=${{ steps.filter.outputs.ml }}" >> $GITHUB_OUTPUT
           else
             echo "backend_changed=${{ github.event.inputs.deploy_backend }}" >> $GITHUB_OUTPUT
@@ -111,6 +121,7 @@ jobs:
             echo "frontend_changed=${{ github.event.inputs.deploy_frontend }}" >> $GITHUB_OUTPUT
             echo "importer_changed=${{ github.event.inputs.deploy_importer }}" >> $GITHUB_OUTPUT
             echo "recommendation_changed=${{ github.event.inputs.deploy_recommendation }}" >> $GITHUB_OUTPUT
+            echo "search_changed=${{ github.event.inputs.deploy_search }}" >> $GITHUB_OUTPUT
             echo "ml_changed=${{ github.event.inputs.deploy_ml }}" >> $GITHUB_OUTPUT
           fi
 
@@ -175,6 +186,16 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
+  build_search:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.search_changed == 'true' || github.event.inputs.build_all == true }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: search-api
+      dockerfile_path: ./apps/search-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
   build_ml:
     needs: check_changes
     if: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == true }}
@@ -195,6 +216,7 @@ jobs:
         build_frontend,
         build_importer,
         build_recommendation,
+        build_search,
         build_ml,
       ]
     if: |
@@ -205,17 +227,19 @@ jobs:
        needs.check_changes.outputs.frontend_changed == 'true' || 
        needs.check_changes.outputs.importer_changed == 'true' || 
        needs.check_changes.outputs.recommendation_changed == 'true' || 
+       needs.check_changes.outputs.search_changed == 'true' || 
        needs.check_changes.outputs.ml_changed == 'true' ||
        github.event.inputs.build_all == true)
     uses: ./.github/workflows/deploy.yml
     with:
-      deploy_backend: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == true }}
-      deploy_auth: ${{ needs.check_changes.outputs.auth_changed == 'true' || github.event.inputs.build_all == true }}
-      deploy_bff: ${{ needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == true }}
-      deploy_frontend: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == true }}
-      deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == true }}
-      deploy_recommendation: ${{ needs.check_changes.outputs.recommendation_changed == 'true' || github.event.inputs.build_all == true }}
-      deploy_ml: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == true }}
+      deploy_backend: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_auth: ${{ needs.check_changes.outputs.auth_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_bff: ${{ needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_frontend: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_recommendation: ${{ needs.check_changes.outputs.recommendation_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_search: ${{ needs.check_changes.outputs.search_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_ml: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == 'true' }}
     secrets:
       DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}

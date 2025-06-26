@@ -36,6 +36,9 @@ on:
       image_recommendation:
         description: "Recommendation API image"
         value: ${{ jobs.build_recommendation.outputs.image }}
+      image_search:
+        description: "Search API image"
+        value: ${{ jobs.build_search.outputs.image }}
       image_ml:
         description: "ML API image"
         value: ${{ jobs.build_ml.outputs.image }}
@@ -50,6 +53,7 @@ jobs:
       frontend_changed: ${{ steps.filter.outputs.frontend }}
       importer_changed: ${{ steps.filter.outputs.importer }}
       recommendation_changed: ${{ steps.filter.outputs.recommendation }}
+      search_changed: ${{ steps.filter.outputs.search }}
       ml_changed: ${{ steps.filter.outputs.ml }}
       shared_changed: ${{ steps.filter.outputs.shared }}
     steps:
@@ -77,6 +81,8 @@ jobs:
             recommendation:
               - 'apps/recommendation-api/**'
               - 'libs/movie-storage/**'
+            search:
+              - 'apps/search-api/**'
             ml:
               - 'apps/ml-api/**'
             shared:
@@ -143,6 +149,16 @@ jobs:
     with:
       app_name: recommendation-api
       dockerfile_path: ./apps/recommendation-api/Dockerfile
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+  build_search:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.search_changed == 'true' || github.event.inputs.build_all == 'true' }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app_name: search-api
+      dockerfile_path: ./apps/search-api/Dockerfile
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 

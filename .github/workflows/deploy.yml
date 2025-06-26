@@ -33,6 +33,11 @@ on:
         required: false
         type: boolean
         default: false
+      deploy_search:
+        description: "Deploy search API"
+        required: false
+        type: boolean
+        default: false
       deploy_ml:
         description: "Deploy ML API"
         required: false
@@ -67,6 +72,11 @@ on:
         default: false
       deploy_recommendation:
         description: "Deploy recommendation API"
+        required: false
+        type: boolean
+        default: false
+      deploy_search:
+        description: "Deploy search API"
         required: false
         type: boolean
         default: false
@@ -171,6 +181,7 @@ jobs:
             echo "DOCKER_FRONTEND_IMAGE=ghcr.io/${{ github.repository }}/frontend:latest" >> .env.prod
             echo "DOCKER_IMPORTER_IMAGE=ghcr.io/${{ github.repository }}/data-importer:latest" >> .env.prod
             echo "DOCKER_RECOMMENDATION_IMAGE=ghcr.io/${{ github.repository }}/recommendation-api:latest" >> .env.prod
+            echo "DOCKER_SEARCH_IMAGE=ghcr.io/${{ github.repository }}/search-api:latest" >> .env.prod
             echo "DOCKER_ML_IMAGE=ghcr.io/${{ github.repository }}/ml-api:latest" >> .env.prod
 
             echo "" >> .env.prod
@@ -230,6 +241,9 @@ jobs:
             fi
             if [ "${{ github.event.inputs.deploy_recommendation || inputs.deploy_recommendation }}" = "true" ]; then
               SERVICES="$SERVICES recommendation-api"
+            fi
+            if [ "${{ github.event.inputs.deploy_search || inputs.deploy_search }}" = "true" ]; then
+              SERVICES="$SERVICES search-api"
             fi
             if [ "${{ github.event.inputs.deploy_ml || inputs.deploy_ml }}" = "true" ]; then
               SERVICES="$SERVICES ml-api"
