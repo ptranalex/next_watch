@@ -29,7 +29,15 @@ responses = ResponseBuilder(
 def get_search_service(request: Request) -> SearchService:
     """Get SearchService instance from app state."""
     search_config = getattr(request.app.state, "search_config")
-    return SearchService(search_config)
+
+    ***REMOVED*** Create SearchService with shared suggestion engine from app state
+    search_service = SearchService(search_config)
+
+    ***REMOVED*** Use the global suggestion engine instance if available
+    if hasattr(request.app.state, "suggestion_engine") and request.app.state.suggestion_engine:
+        search_service.suggestion_engine = request.app.state.suggestion_engine
+
+    return search_service
 
 
 @rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute (higher for typeahead)

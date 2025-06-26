@@ -41,18 +41,38 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Environment: {settings.environment}")
 
     ***REMOVED*** Initialize search-specific services
+    suggestion_engine = None
     try:
         ***REMOVED*** Initialize Redis connection for suggestions
         logger.info("Initializing Redis connection for search suggestions")
-        ***REMOVED*** TODO: Initialize suggestion engine here
+        from search_api.services.suggestion_engine import SuggestionEngine
+
+        ***REMOVED*** Create global suggestion engine instance
+        suggestion_engine = SuggestionEngine(redis_url=search_config.redis_url, pool_size=10)
+        await suggestion_engine.initialize()
+
+        ***REMOVED*** Store in app state for access by routes
+        app.state.suggestion_engine = suggestion_engine
+        logger.info("Suggestion engine initialized successfully")
 
         ***REMOVED*** Initialize search analytics if enabled
         if search_config.enable_search_analytics:
             logger.info("Search analytics enabled")
-            ***REMOVED*** TODO: Initialize analytics here
+            ***REMOVED*** TODO: Initialize analytics service here when implemented
+            ***REMOVED*** analytics_service = AnalyticsService(config=search_config)
+            ***REMOVED*** await analytics_service.initialize()
+            ***REMOVED*** app.state.analytics_service = analytics_service
+            ***REMOVED*** logger.info("Analytics service initialized successfully")
 
     except Exception as e:
         logger.error(f"Error initializing search services: {e}")
+        ***REMOVED*** Clean up partially initialized services
+        if suggestion_engine:
+            try:
+                await suggestion_engine.shutdown()
+            except Exception as cleanup_error:
+                logger.error(f"Error cleaning up suggestion engine: {cleanup_error}")
+        raise
 
     ***REMOVED*** Test service connections on startup
     if settings.debug:
@@ -77,8 +97,21 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Clean up search-specific services
     try:
-        ***REMOVED*** TODO: Close suggestion engine connections
-        ***REMOVED*** TODO: Close analytics connections
+        ***REMOVED*** Close suggestion engine connections
+        if hasattr(app.state, "suggestion_engine") and app.state.suggestion_engine:
+            logger.info("Shutting down suggestion engine")
+            await app.state.suggestion_engine.shutdown()
+            app.state.suggestion_engine = None
+            logger.info("Suggestion engine shut down successfully")
+
+        ***REMOVED*** Close analytics connections
+        if hasattr(app.state, "analytics_service") and app.state.analytics_service:
+            logger.info("Shutting down analytics service")
+            ***REMOVED*** TODO: Implement analytics service shutdown when available
+            ***REMOVED*** await app.state.analytics_service.shutdown()
+            ***REMOVED*** app.state.analytics_service = None
+            logger.info("Analytics service shut down successfully")
+
         logger.info("Search services cleaned up successfully")
     except Exception as e:
         logger.error(f"Error during search services cleanup: {e}")
