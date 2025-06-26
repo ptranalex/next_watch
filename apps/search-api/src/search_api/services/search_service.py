@@ -158,7 +158,7 @@ class SearchService:
                     "cached": True,
                     "source": "redis_index",
                 },
-            }
+                }
 
             logger.info(
                 f"Redis movie search completed: {total} total movies, {len(results)} returned"
@@ -204,30 +204,30 @@ class SearchService:
                 f"Getting suggestions from Redis: query='{query}', limit={suggestion_limit}"
             )
 
-            ***REMOVED*** Initialize Redis connection if not already done
-            await self.suggestion_engine.initialize()
+                ***REMOVED*** Initialize Redis connection if not already done
+                await self.suggestion_engine.initialize()
 
-            ***REMOVED*** Get enhanced entity suggestions from Redis
-            redis_suggestions = await self.suggestion_engine.get_entity_suggestions(
-                query=query.strip(),
-                limit=suggestion_limit,
-            )
-
-            ***REMOVED*** Convert to our suggestion format
-            suggestions_data = []
-            for i, sugg in enumerate(redis_suggestions):
-                suggestion_obj = Suggestion(
-                    id=sugg.get("id", i),
-                    name=sugg.get("text", ""),
-                    type=sugg.get("type", "movie"),
-                    image_path=sugg.get("image_path"),
+                ***REMOVED*** Get enhanced entity suggestions from Redis
+                redis_suggestions = await self.suggestion_engine.get_entity_suggestions(
+                    query=query.strip(),
+                    limit=suggestion_limit,
                 )
-                suggestions_data.append(suggestion_obj)
 
-            total = len(suggestions_data)
-            response = SuggestionsResponse(suggestions=suggestions_data, total=total)
+                ***REMOVED*** Convert to our suggestion format
+                suggestions_data = []
+                for i, sugg in enumerate(redis_suggestions):
+                    suggestion_obj = Suggestion(
+                        id=sugg.get("id", i),
+                        name=sugg.get("text", ""),
+                        type=sugg.get("type", "movie"),
+                        image_path=sugg.get("image_path"),
+                    )
+                    suggestions_data.append(suggestion_obj)
 
-            logger.info(f"Redis suggestions completed: {total} suggestions found")
+                total = len(suggestions_data)
+                response = SuggestionsResponse(suggestions=suggestions_data, total=total)
+
+                logger.info(f"Redis suggestions completed: {total} suggestions found")
             return response
 
         except Exception as e:
@@ -269,36 +269,36 @@ class SearchService:
                 f"Getting text suggestions from Redis: query='{query}', limit={suggestion_limit}"
             )
 
-            ***REMOVED*** Initialize Redis connection if not already done
-            await self.suggestion_engine.initialize()
+                ***REMOVED*** Initialize Redis connection if not already done
+                await self.suggestion_engine.initialize()
 
-            ***REMOVED*** Get ranked entity suggestions from Redis
-            redis_suggestions = await self.suggestion_engine.get_ranked_suggestions(
-                query=query.strip(),
-                limit=suggestion_limit,
-                fallback_to_fuzzy=True,
-            )
-
-            ***REMOVED*** Convert to our TextSuggestion format
-            suggestions_data = []
-            for sugg in redis_suggestions:
-                suggestion_obj = TextSuggestion(
-                    text=sugg.get("text", ""),
-                    type=sugg.get("type", "movie"),
-                    id=sugg.get("id"),
-                    image_path=sugg.get("image_path"),
-                    year=sugg.get("year"),
-                    popularity=sugg.get("popularity"),
-                    is_partial=sugg.get("is_partial", False),
-                    search_type=sugg.get("search_type", "unknown"),
-                    additional_info=sugg.get("additional_info", {}),
+                ***REMOVED*** Get ranked entity suggestions from Redis
+                redis_suggestions = await self.suggestion_engine.get_ranked_suggestions(
+                    query=query.strip(),
+                    limit=suggestion_limit,
+                    fallback_to_fuzzy=True,
                 )
-                suggestions_data.append(suggestion_obj)
 
-            total = len(suggestions_data)
-            response = TextSuggestionsResponse(suggestions=suggestions_data, total=total)
+                ***REMOVED*** Convert to our TextSuggestion format
+                suggestions_data = []
+                for sugg in redis_suggestions:
+                    suggestion_obj = TextSuggestion(
+                        text=sugg.get("text", ""),
+                        type=sugg.get("type", "movie"),
+                        id=sugg.get("id"),
+                        image_path=sugg.get("image_path"),
+                        year=sugg.get("year"),
+                        popularity=sugg.get("popularity"),
+                        is_partial=sugg.get("is_partial", False),
+                        search_type=sugg.get("search_type", "unknown"),
+                        additional_info=sugg.get("additional_info", {}),
+                    )
+                    suggestions_data.append(suggestion_obj)
 
-            logger.info(f"Redis text suggestions completed: {total} suggestions found")
+                total = len(suggestions_data)
+                response = TextSuggestionsResponse(suggestions=suggestions_data, total=total)
+
+                logger.info(f"Redis text suggestions completed: {total} suggestions found")
             return response
 
         except Exception as e:

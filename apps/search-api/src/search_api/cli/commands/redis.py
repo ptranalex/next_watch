@@ -476,16 +476,16 @@ async def _fetch_movie_data_from_backend(
             remaining = limit - len(movies)
             current_page_size = min(remaining, 100)
 
-            ***REMOVED*** Use the Backend API search endpoint to get movies
-            ***REMOVED*** We'll search for a common term that returns many results
-            ***REMOVED*** Use 'a' as it appears in most movie titles
-            response = await backend_client.search_movies(
-                query="a",  ***REMOVED*** Common letter to get many movies
+        ***REMOVED*** Use the Backend API search endpoint to get movies
+        ***REMOVED*** We'll search for a common term that returns many results
+        ***REMOVED*** Use 'a' as it appears in most movie titles
+        response = await backend_client.search_movies(
+            query="a",  ***REMOVED*** Common letter to get many movies
                 page=page,
                 limit=current_page_size,
                 sort_by="imdb_rating",  ***REMOVED*** Use a valid sort field
-                sort_desc=True,
-            )
+            sort_desc=True,
+        )
 
             page_movies = response.get("results", [])
 
@@ -494,25 +494,25 @@ async def _fetch_movie_data_from_backend(
                 break
 
             for movie in page_movies:
-                movie_data = {
-                    "id": movie.get("id"),
-                    "title": movie.get("title"),
-                    "poster_path": movie.get("poster_url"),
-                    "release_date": movie.get("release_date"),
-                    "popularity": movie.get("popularity"),
-                    "vote_average": movie.get("vote_average"),
-                    "release_year": None,
-                }
+            movie_data = {
+                "id": movie.get("id"),
+                "title": movie.get("title"),
+                "poster_path": movie.get("poster_url"),
+                "release_date": movie.get("release_date"),
+                "popularity": movie.get("popularity"),
+                "vote_average": movie.get("vote_average"),
+                "release_year": None,
+            }
 
-                ***REMOVED*** Extract year from release_date if available
-                if movie_data["release_date"]:
-                    try:
-                        if isinstance(movie_data["release_date"], str):
-                            movie_data["release_year"] = int(movie_data["release_date"][:4])
-                    except (ValueError, IndexError):
-                        pass
+            ***REMOVED*** Extract year from release_date if available
+            if movie_data["release_date"]:
+                try:
+                    if isinstance(movie_data["release_date"], str):
+                        movie_data["release_year"] = int(movie_data["release_date"][:4])
+                except (ValueError, IndexError):
+                    pass
 
-                movies.append(movie_data)
+            movies.append(movie_data)
 
                 ***REMOVED*** Stop if we've reached our limit
                 if len(movies) >= limit:
