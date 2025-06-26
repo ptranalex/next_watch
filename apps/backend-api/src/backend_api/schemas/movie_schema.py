@@ -50,6 +50,7 @@ class MovieResponse(BaseModel):
     poster_url: Optional[str] = None
     backdrop_url: Optional[str] = None
     vote_average: Optional[float] = None
+    popularity: Optional[float] = None
     imdb_rating: Optional[float] = None
     imdb_id: Optional[str] = None
     runtime: Optional[int] = None

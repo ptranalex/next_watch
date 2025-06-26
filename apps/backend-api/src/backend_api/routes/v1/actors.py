@@ -38,6 +38,7 @@ class ActorResponse(BaseModel):
     profile_path: Optional[str] = None
     biography: Optional[str] = None
     tmdb_id: Optional[int] = None
+    popularity: Optional[float] = None
 
 
 class ActorDetailResponse(ActorResponse):
@@ -75,45 +76,57 @@ async def list_actors(
     db: Session = Depends(get_db),
 ) -> ActorsListResponse:
     """
-    Get a list of actors with pagination.
+    Get a list of actors with pagination, ordered by popularity.
 
-    Returns actors extracted from the credits table, with deduplication by TMDB person ID.
+    Returns actors extracted from the credits table, with deduplication by TMDB person ID
+    and sorted by popularity in descending order.
     """
     try:
-        ***REMOVED*** Get credits with department filter to get actors
-        from backend_api.db.operations import get_credits
+        from sqlmodel import select, text
 
         ***REMOVED*** Calculate offset
         offset = (page - 1) * limit
 
-        ***REMOVED*** Get credits for actors (Acting department) with pagination
-        credits = get_credits(
-            db, skip=offset, limit=limit * 3, department="Acting"
-        )  ***REMOVED*** Get more to dedupe
+        ***REMOVED*** Use a proper SQL query to get unique actors ordered by popularity
+        ***REMOVED*** DISTINCT ON ensures we get only one record per tmdb_person_id (the highest popularity one)
+        query = text(
+            """
+            SELECT DISTINCT ON (tmdb_person_id) 
+                tmdb_person_id, 
+                name, 
+                popularity, 
+                profile_path
+            FROM credit 
+            WHERE department = 'Acting' 
+                AND tmdb_person_id IS NOT NULL
+                AND name IS NOT NULL
+            ORDER BY tmdb_person_id, popularity DESC NULLS LAST
+        """
+        )
 
-        ***REMOVED*** Deduplicate by tmdb_person_id and create actor responses
-        seen_actors = set()
+        ***REMOVED*** Execute the query to get all unique actors first
+        result = db.execute(query)
+        all_actors = result.fetchall()
+
+        ***REMOVED*** Sort all actors by popularity (descending) and apply pagination
+        sorted_actors = sorted(all_actors, key=lambda x: x.popularity or 0, reverse=True)
+        paginated_actors = sorted_actors[offset : offset + limit]
+
+        ***REMOVED*** Create actor response objects
         actors = []
-
-        for credit in credits:
-            if credit.tmdb_person_id and credit.tmdb_person_id not in seen_actors:
-                seen_actors.add(credit.tmdb_person_id)
-                actors.append(
-                    ActorResponse(
-                        id=credit.tmdb_person_id,
-                        name=credit.name,
-                        profile_path=credit.profile_path,
-                        tmdb_id=credit.tmdb_person_id,
-                    )
+        for row in paginated_actors:
+            actors.append(
+                ActorResponse(
+                    id=row.tmdb_person_id,
+                    name=row.name,
+                    profile_path=row.profile_path,
+                    tmdb_id=row.tmdb_person_id,
+                    popularity=row.popularity,
                 )
+            )
 
-                ***REMOVED*** Stop when we have enough unique actors
-                if len(actors) >= limit:
-                    break
-
-        ***REMOVED*** For total count, get a rough estimate from distinct actors in acting credits
-        ***REMOVED*** Note: This is an approximation as we'd need a more complex query for exact count
-        total = len(seen_actors) + offset  ***REMOVED*** Rough estimate
+        ***REMOVED*** Total count is the number of unique actors
+        total = len(all_actors)
 
         return ActorsListResponse(actors=actors, total=total)
 
@@ -140,13 +153,17 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> Act
         ***REMOVED*** (since actor information is stored in each credit)
         first_credit = credits[0]
 
+        ***REMOVED*** Find the credit with highest popularity for this actor
+        best_credit = max(credits, key=lambda c: c.popularity or 0)
+
         ***REMOVED*** Return actor details
         return ActorResponse(
             id=actor_id,
-            name=first_credit.name,
-            profile_path=first_credit.profile_path,
+            name=best_credit.name,
+            profile_path=best_credit.profile_path,
             biography=None,  ***REMOVED*** Not stored in our credit model
-            tmdb_id=first_credit.tmdb_person_id,
+            tmdb_id=best_credit.tmdb_person_id,
+            popularity=best_credit.popularity,
         )
     except HTTPException:
         raise
