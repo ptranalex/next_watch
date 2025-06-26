@@ -48,7 +48,13 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         from search_api.services.suggestion_engine import SuggestionEngine
 
         ***REMOVED*** Create global suggestion engine instance
-        suggestion_engine = SuggestionEngine(redis_url=search_config.redis_url, pool_size=10)
+        suggestion_engine = SuggestionEngine(
+            redis_url=search_config.redis_url,
+            max_connections=search_config.redis_max_connections,
+            suggestion_key_prefix=search_config.redis_suggestion_key_prefix,
+            entity_key_prefix=search_config.redis_entity_key_prefix,
+            search_result_prefix=search_config.redis_search_result_prefix,
+        )
         await suggestion_engine.initialize()
 
         ***REMOVED*** Store in app state for access by routes

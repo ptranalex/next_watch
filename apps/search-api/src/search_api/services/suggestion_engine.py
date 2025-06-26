@@ -34,17 +34,30 @@ class SuggestionEngine:
     depending on how your suggestions are stored in Redis.
     """
 
-    def __init__(self, redis_url: str, pool_size: int = 10):
+    def __init__(
+        self,
+        redis_url: str,
+        max_connections: int = 10,
+        suggestion_key_prefix: str = "suggestions:",
+        entity_key_prefix: str = "entity:",
+        search_result_prefix: str = "search_results:",
+    ):
         """
         Initialize the suggestion engine with Redis connection parameters.
 
         Args:
             redis_url: Redis connection URL in format redis://host:port/db
-            pool_size: Size of the Redis connection pool
+            max_connections: Maximum number of Redis connections in the pool
+            suggestion_key_prefix: Redis key prefix for suggestions (default: "suggestions:")
+            entity_key_prefix: Redis key prefix for entities (default: "entity:")
+            search_result_prefix: Redis key prefix for search results (default: "search_results:")
         """
         self._redis_url = redis_url
         self._pool: Optional[redis.asyncio.ConnectionPool] = None  ***REMOVED*** type: ignore
-        self._pool_size = pool_size
+        self._max_connections = max_connections
+        self._suggestion_key_prefix = suggestion_key_prefix
+        self._entity_key_prefix = entity_key_prefix
+        self._search_result_prefix = search_result_prefix
 
     async def initialize(self) -> None:
         """
@@ -55,7 +68,7 @@ class SuggestionEngine:
             logger.info(f"Initializing Redis connection pool to {self._redis_url}")
             self._pool = redis.asyncio.ConnectionPool.from_url(
                 self._redis_url,
-                max_connections=self._pool_size,
+                max_connections=self._max_connections,
                 decode_responses=True,  ***REMOVED*** Auto-decode bytes to strings
             )
 
@@ -99,7 +112,7 @@ class SuggestionEngine:
         try:
             async with redis.asyncio.Redis(connection_pool=self._pool) as redis_client:
                 ***REMOVED*** First try exact match to catch known titles
-                exact_key = f"suggestions:{query_prefix}"
+                exact_key = f"{self._suggestion_key_prefix}{query_prefix}"
                 exists = await redis_client.exists(exact_key)
                 if exists:
                     ***REMOVED*** If exact match exists, prioritize it
@@ -137,7 +150,7 @@ class SuggestionEngine:
             try:
                 ***REMOVED*** Redis 6.2+ method - Using simplified approach for type safety
                 suggestions = await redis_client.zrange(
-                    "suggestions",
+                    self._suggestion_key_prefix,
                     0,  ***REMOVED*** Start index (simplified)
                     -1,  ***REMOVED*** End index (simplified)
                 )
@@ -152,7 +165,7 @@ class SuggestionEngine:
                 logger.warning("Falling back to older Redis zrangebylex method")
                 suggestions = await redis_client.execute_command(
                     "ZRANGEBYLEX",
-                    "suggestions",
+                    self._suggestion_key_prefix,
                     f"[{query_prefix}",
                     f"[{query_prefix}\xff",
                     "LIMIT",
@@ -169,7 +182,7 @@ class SuggestionEngine:
 
         ***REMOVED*** Method 2: Use keys with pattern matching as fallback
         ***REMOVED*** This is less efficient but more compatible
-        pattern = f"suggestions:{query_prefix}*"
+        pattern = f"{self._suggestion_key_prefix}{query_prefix}*"
 
         ***REMOVED*** Try KEYS command for small datasets
         try:
@@ -211,7 +224,7 @@ class SuggestionEngine:
             ***REMOVED*** If we still don't have any matches, try a more flexible approach
             if not suggestions and len(query_prefix) > 2:
                 ***REMOVED*** Try with * wildcard for more flexible matching
-                pattern = f"suggestions:*{query_prefix}*"
+                pattern = f"{self._suggestion_key_prefix}*{query_prefix}*"
                 cursor = 0
 
                 while len(suggestions) < limit:
@@ -284,7 +297,7 @@ class SuggestionEngine:
                     ***REMOVED*** If the query might be a word prefix, try a more aggressive matching approach
                     if len(suggestions) < min(5, limit):
                         ***REMOVED*** Try with prefix wildcard matching for shorter queries
-                        pattern = f"suggestions:*{query_prefix}*"
+                        pattern = f"{self._suggestion_key_prefix}*{query_prefix}*"
                         keys = await redis_client.keys(pattern)
                         for key in keys:
                             ***REMOVED*** Process key properly based on its type
@@ -309,7 +322,7 @@ class SuggestionEngine:
 
                     ***REMOVED*** First try direct entity lookup
                     for e_type in entity_types:
-                        entity_key = f"entity:{e_type}:{suggestion}"
+                        entity_key = f"{self._entity_key_prefix}{e_type}:{suggestion}"
                         data_json = await redis_client.get(entity_key)
                         if data_json:
                             try:
@@ -321,13 +334,13 @@ class SuggestionEngine:
 
                     ***REMOVED*** If direct lookup failed, try suggestion → entity ID mapping
                     if not entity_data:
-                        suggestion_key = f"suggestions:{suggestion}"
+                        suggestion_key = f"{self._suggestion_key_prefix}{suggestion}"
                         entity_id = await redis_client.get(suggestion_key)
 
                         if entity_id:
                             ***REMOVED*** Find entity record with this ID
                             for e_type in entity_types:
-                                pattern = f"entity:{e_type}:*"
+                                pattern = f"{self._entity_key_prefix}{e_type}:*"
                                 raw_entity_keys = cast(List[Any], await redis_client.keys(pattern))
 
                                 for raw_entity_key in raw_entity_keys:
@@ -612,7 +625,7 @@ class SuggestionEngine:
                         if "@" in self._redis_url
                         else self._redis_url
                     ),
-                    "pool_size": self._pool_size,
+                    "max_connections": self._max_connections,
                     "test_suggestions_count": len(test_suggestions),
                     "features": {
                         "basic_suggestions": True,

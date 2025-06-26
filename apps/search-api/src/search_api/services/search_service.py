@@ -38,7 +38,13 @@ class SearchService:
         self.config = config
         ***REMOVED*** Remove backend_client - Search API should be self-contained
         ***REMOVED*** Initialize Redis-backed suggestion engine
-        self.suggestion_engine = SuggestionEngine(redis_url=config.redis_url, pool_size=10)
+        self.suggestion_engine = SuggestionEngine(
+            redis_url=config.redis_url,
+            max_connections=config.redis_max_connections,
+            suggestion_key_prefix=config.redis_suggestion_key_prefix,
+            entity_key_prefix=config.redis_entity_key_prefix,
+            search_result_prefix=config.redis_search_result_prefix,
+        )
 
     async def search_movies(
         self,
