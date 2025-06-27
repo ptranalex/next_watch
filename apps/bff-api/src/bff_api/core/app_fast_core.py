@@ -34,10 +34,37 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Startup
     logger.info("Starting BFF API application with Service Client Factory")
     settings = app.state.settings
+    bff_config = app.state.bff_config
 
     ***REMOVED*** Log configuration summary
     logger.info(f"BFF API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
+
+    ***REMOVED*** Initialize BFF-specific metrics (if enabled)
+    if bff_config.enable_metrics:
+        try:
+            from bff_api.core.metrics import initialize_bff_metrics
+
+            metrics_instance = initialize_bff_metrics()
+            if metrics_instance:
+                logger.info("BFF metrics initialized successfully")
+                app.state.metrics = metrics_instance
+            else:
+                logger.warning(
+                    "BFF metrics initialization returned None - metrics registry not available"
+                )
+        except ImportError as e:
+            logger.error(f"Metrics dependencies not installed: {e}")
+            logger.info(
+                "Install prometheus-client to enable metrics: pip install prometheus-client"
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize BFF metrics: {e}", exc_info=True)
+            if bff_config.is_production:
+                ***REMOVED*** In production, we want to know about metrics failures
+                raise
+    else:
+        logger.info("BFF metrics disabled by configuration")
 
     ***REMOVED*** Test service connections on startup
     if settings.debug:
@@ -164,6 +191,17 @@ def create_bff_middleware_config(config: BFFAPIConfig) -> MiddlewareConfig:
         process_time_header="X-Process-Time",
         gzip_compression=True,
         gzip_minimum_size=1000,
+    )
+
+    ***REMOVED*** Configure Prometheus metrics for BFF monitoring
+    middleware.metrics(
+        endpoint_path="/metrics",
+        include_endpoint=True,
+        exclude_paths=["/health", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_methods=["OPTIONS"],
+        track_request_size=True,
+        track_response_size=True,
+        enabled=True,  ***REMOVED*** Always enable metrics for BFF
     )
 
     logger.info(f"BFF middleware configured for {config.environment} environment")
