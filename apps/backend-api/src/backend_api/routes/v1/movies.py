@@ -31,6 +31,12 @@ from backend_api.schemas.trailer_schema import TrailerResponse
 
 ***REMOVED*** Import service and query
 from backend_api.services.movie_service import MovieService
+from backend_api.core.metrics import (
+    get_backend_metrics,
+    track_movie_operation,
+    track_search_operation,
+    track_bulk_operation,
+)
 
 logger = get_logger(__name__)
 
@@ -161,6 +167,7 @@ def get_movie_id(movie: Any) -> int:
 
 
 @router.get("/bulk", response_model=MoviesListResponse)
+@track_bulk_operation
 async def get_movies_bulk(
     ids: str = Query(..., description="Comma-separated list of movie IDs"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
@@ -199,6 +206,14 @@ async def get_movies_bulk(
 
         if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit to prevent abuse
             raise ValidationError("Too many movie IDs provided. Maximum 1000 IDs per request.")
+
+        ***REMOVED*** Record bulk operation metrics
+        metrics = get_backend_metrics()
+        if metrics:
+            metrics.record_movie_operation("bulk", "success")
+            metrics.record_bulk_operation(
+                "bulk_get", len(movie_ids), 0.0
+            )  ***REMOVED*** Duration will be tracked by decorator
 
         ***REMOVED*** Calculate pagination for the movie IDs list
         skip = (page - 1) * limit
@@ -381,6 +396,7 @@ async def get_top_movies(
 
 
 @router.get("/search", response_model=MoviesListResponse)
+@track_search_operation
 async def search_movies(
     q: str = Query(..., description="Search query for movie titles"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
@@ -414,6 +430,31 @@ async def search_movies(
     all the same filtering options as the main movie listing endpoint.
     """
     try:
+        ***REMOVED*** Count applied filters for metrics
+        filters_count = sum(
+            [
+                1
+                for x in [
+                    genre_id,
+                    actor_id,
+                    imdb_rating,
+                    rotten_tomatoes_rating,
+                    metacritic_rating,
+                    year,
+                    start_year,
+                    end_year,
+                ]
+                if x is not None
+            ]
+        )
+
+        ***REMOVED*** Record search operation metrics
+        metrics = get_backend_metrics()
+        if metrics:
+            metrics.record_movie_operation("search", "success")
+            ***REMOVED*** Duration will be tracked by decorator, pass 0.0 for now
+            metrics.record_movie_search("title", filters_count, 0.0)
+
         ***REMOVED*** Calculate skip from page number
         skip = (page - 1) * limit
 
@@ -457,6 +498,7 @@ async def search_movies(
 
 
 @router.get("/{movie_id}", response_model=MovieResponse)
+@track_movie_operation
 async def get_movie_details(
     movie_id: int = Path(..., ge=1, description="Movie database ID"),
     db: Session = Depends(get_db),
