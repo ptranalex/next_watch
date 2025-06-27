@@ -12,7 +12,7 @@ Fast Core standardizes FastAPI application development by providing:
 - **Security**: JWT authentication, rate limiting, and security headers
 - **Middleware**: CORS, logging, security, metrics, and tracing
 - **Routing**: API versioning, pagination, and base router utilities
-- **Monitoring**: Health checks and system monitoring
+- **Monitoring**: Health checks, system monitoring, and comprehensive metrics collection
 
 ***REMOVED******REMOVED*** Quick Start
 
@@ -107,6 +107,16 @@ Essential middleware components with builder pattern configuration:
 - **Rate Limiting**: Per-endpoint rate limits with Redis support and IP exemptions
 - **Request Logging**: Configurable request/response logging with filtering
 - **Request Processing**: Request IDs, timing headers, compression, and size limits
+- **Metrics Collection**: Prometheus metrics for requests, responses, errors, and performance
+
+***REMOVED******REMOVED******REMOVED*** 📊 [Monitoring](src/fast_core/monitoring/README.md)
+
+Comprehensive monitoring and observability features:
+
+- **Prometheus Metrics**: Request duration, error rates, response sizes, and custom metrics
+- **Health Checks**: Service health monitoring with dependency validation
+- **Performance Tracking**: Response times, throughput, and resource utilization
+- **Error Monitoring**: Exception tracking, error rates, and failure analysis
 
 ***REMOVED******REMOVED******REMOVED*** 🛣️ [Routing](src/fast_core/routing/README.md)
 
@@ -138,6 +148,9 @@ middleware.cors(
 ).rate_limiting(
     default_limit="100/minute",
     endpoints={"/api/auth/login": "5/minute"}
+).metrics(
+    buckets=[0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
+    exclude_paths=["/health", "/metrics"]
 )
 
 app = create_app(
@@ -148,6 +161,35 @@ app = create_app(
     ),
     middleware=middleware
 )
+```
+
+***REMOVED******REMOVED******REMOVED*** Metrics Integration
+
+```python
+from fast_core.monitoring.metrics import (
+    REQUESTS_TOTAL, REQUEST_DURATION_SECONDS, track_operation
+)
+
+***REMOVED*** Track custom operations
+@track_operation("user_creation")
+async def create_user(user_data: dict):
+    ***REMOVED*** Custom metrics are automatically collected
+    return await db.create_user(user_data)
+
+***REMOVED*** Access built-in metrics
+@app.get("/api/v1/movies")
+async def get_movies():
+    ***REMOVED*** Request metrics automatically tracked:
+    ***REMOVED*** - http_requests_total{method="GET", endpoint="/api/v1/movies", status="200"}
+    ***REMOVED*** - http_request_duration_seconds{method="GET", endpoint="/api/v1/movies"}
+    ***REMOVED*** - http_response_size_bytes{method="GET", endpoint="/api/v1/movies"}
+    return {"movies": []}
+
+***REMOVED*** View metrics at /metrics endpoint (Prometheus format)
+***REMOVED*** Example metrics output:
+***REMOVED*** http_requests_total{method="GET",endpoint="/api/v1/movies",status="200"} 150
+***REMOVED*** http_request_duration_seconds_bucket{method="GET",endpoint="/api/v1/movies",le="0.1"} 120
+***REMOVED*** http_response_size_bytes{method="GET",endpoint="/api/v1/movies"} 2048
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Singleton Dependencies
@@ -314,6 +356,12 @@ CORS_ORIGINS=https://example.com,https://app.example.com
 SECURITY_HSTS_MAX_AGE=31536000
 RATE_LIMIT_MAX_REQUESTS=1000
 
+***REMOVED*** Monitoring
+METRICS_ENABLED=true
+METRICS_INCLUDE_REQUEST_SIZE=true
+METRICS_INCLUDE_RESPONSE_SIZE=true
+METRICS_BUCKETS=0.1,0.25,0.5,1.0,2.5,5.0,10.0
+
 ***REMOVED*** Logging
 LOG_LEVEL=INFO
 ```
@@ -326,6 +374,79 @@ Fast Core is designed to work seamlessly with other Next Watch libraries:
 - **Cache Library**: Redis and memory caching integration
 - **CLI Library**: Command-line utilities and structured logging
 - **Movie Storage**: Database models and operations
+
+***REMOVED******REMOVED******REMOVED*** Production Metrics Integration
+
+Fast Core's metrics system is successfully deployed across all NextWatch services in production:
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Deployed Services with Metrics** ✅
+
+- **BFF API** (`bff-api:8001/metrics`) - API gateway with authentication, caching, and service orchestration metrics
+- **Backend API** (`backend-api:8002/metrics`) - Core movie data operations and database performance metrics
+- **Search API** (`search-api:8003/metrics`) - Search operations, Redis performance, and query analytics metrics
+- **Recommendation API** (`recommendation-api:8004/metrics`) - ML-powered recommendations, vector operations, and personalization metrics
+- **Auth API** (`auth-api:8005/metrics`) - Authentication, JWT operations, and security metrics
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Metrics Categories**
+
+Each service collects comprehensive metrics across these categories:
+
+1. **HTTP Request Metrics**:
+
+   - Request volume, latency, and error rates by endpoint
+   - Response sizes and status code distributions
+   - Rate limiting and throttling statistics
+
+2. **Service-Specific Operations**:
+
+   - **BFF**: Service orchestration, cache hit rates, authentication flows
+   - **Backend**: Database queries, movie operations, collection management
+   - **Search**: Search queries, suggestion generation, Redis operations
+   - **Recommendation**: ML API calls, vector searches, personalization features
+   - **Auth**: JWT operations, user authentication, session management
+
+3. **Infrastructure Metrics**:
+
+   - Redis connection pools and operation timing
+   - Database connection health and query performance
+   - External service dependencies and health checks
+
+4. **Business Metrics**:
+   - Feature usage patterns and user interaction analytics
+   - Error categorization and failure analysis
+   - Performance benchmarking and SLA monitoring
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Prometheus Configuration**
+
+All services are automatically discovered and scraped by Prometheus:
+
+```yaml
+***REMOVED*** Production prometheus.yml
+scrape_configs:
+  - job_name: "nextwatch-services"
+    static_configs:
+      - targets:
+          [
+            "bff-api:8001",
+            "backend-api:8002",
+            "search-api:8003",
+            "recommendation-api:8004",
+            "auth-api:8005",
+          ]
+    metrics_path: "/metrics"
+    scrape_interval: 15s
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Grafana Dashboards**
+
+Production monitoring includes specialized dashboards for:
+
+- **Service Performance**: Request latency, throughput, error rates
+- **Infrastructure Health**: Redis, database, and service dependency status
+- **Business Intelligence**: User engagement, feature adoption, recommendation effectiveness
+- **Security Monitoring**: Authentication patterns, rate limiting, and security events
+
+This comprehensive metrics integration provides full observability across the NextWatch platform, enabling proactive monitoring, performance optimization, and business intelligence.
 
 ***REMOVED******REMOVED*** Best Practices
 
@@ -659,6 +780,20 @@ This library is part of the Next Watch project and follows the project's licensi
 - API versioning and pagination
 - Health monitoring and metrics
 - Integration with Next Watch libraries
+
+***REMOVED******REMOVED******REMOVED*** v0.2.0
+
+- **Enhanced Monitoring**: Comprehensive Prometheus metrics integration
+- **Singleton Dependencies**: Performance-optimized service client patterns
+- **Service Client Factory**: Flexible HTTP client management with custom configurations
+- **Response Utilities**: Generic response patterns for consistent API responses
+
+***REMOVED******REMOVED******REMOVED*** v0.3.0
+
+- **Middleware Builder**: Granular middleware configuration with builder pattern
+- **Metrics Middleware**: Automatic request/response metrics collection
+- **Production Integration**: Full deployment across NextWatch services (BFF, Backend, Search, Recommendation, Auth APIs)
+- **Performance Optimization**: Custom metric buckets and efficient data collection
 
 ***REMOVED******REMOVED*** Response Utilities (NEW!) 🎯
 

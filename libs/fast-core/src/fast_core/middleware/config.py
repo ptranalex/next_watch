@@ -82,6 +82,22 @@ class RequestConfig:
     gzip_minimum_size: int = 1000  ***REMOVED*** bytes
 
 
+@dataclass
+class MetricsConfig:
+    """Configuration for Prometheus metrics middleware."""
+
+    enabled: bool = True
+    endpoint_path: str = "/metrics"
+    include_endpoint: bool = True  ***REMOVED*** Whether to add the /metrics endpoint
+    exclude_paths: List[str] = field(
+        default_factory=lambda: ["/metrics", "/health", "/docs", "/openapi.json"]
+    )
+    exclude_methods: List[str] = field(default_factory=lambda: ["OPTIONS"])
+    custom_buckets: Optional[List[float]] = None  ***REMOVED*** Custom histogram buckets
+    track_request_size: bool = True
+    track_response_size: bool = True
+
+
 class MiddlewareConfig:
     """
     Builder class for configuring FastAPI middleware with granular control.
@@ -111,6 +127,7 @@ class MiddlewareConfig:
         self._logging: Optional[LoggingConfig] = None
         self._rate_limit: Optional[RateLimitConfig] = None
         self._request: Optional[RequestConfig] = None
+        self._metrics: Optional[MetricsConfig] = None
 
     def cors(
         self,
@@ -311,6 +328,44 @@ class MiddlewareConfig:
         )
         return self
 
+    def metrics(
+        self,
+        endpoint_path: str = "/metrics",
+        include_endpoint: bool = True,
+        exclude_paths: Optional[List[str]] = None,
+        exclude_methods: Optional[List[str]] = None,
+        custom_buckets: Optional[List[float]] = None,
+        track_request_size: bool = True,
+        track_response_size: bool = True,
+        enabled: bool = True,
+    ) -> "MiddlewareConfig":
+        """Configure Prometheus metrics middleware.
+
+        Args:
+            endpoint_path: Path for the metrics endpoint
+            include_endpoint: Whether to add the /metrics endpoint to the app
+            exclude_paths: List of paths to exclude from metrics collection
+            exclude_methods: List of HTTP methods to exclude from metrics
+            custom_buckets: Custom histogram buckets for response times
+            track_request_size: Whether to track request sizes
+            track_response_size: Whether to track response sizes
+            enabled: Whether to enable metrics collection
+
+        Returns:
+            Self for method chaining
+        """
+        self._metrics = MetricsConfig(
+            enabled=enabled,
+            endpoint_path=endpoint_path,
+            include_endpoint=include_endpoint,
+            exclude_paths=exclude_paths or ["/metrics", "/health", "/docs", "/openapi.json"],
+            exclude_methods=exclude_methods or ["OPTIONS"],
+            custom_buckets=custom_buckets,
+            track_request_size=track_request_size,
+            track_response_size=track_response_size,
+        )
+        return self
+
     ***REMOVED*** Property accessors for the setup module
     @property
     def cors_config(self) -> Optional[CORSConfig]:
@@ -337,9 +392,23 @@ class MiddlewareConfig:
         """Get request processing configuration."""
         return self._request
 
+    @property
+    def metrics_config(self) -> Optional[MetricsConfig]:
+        """Get metrics configuration."""
+        return self._metrics
+
     def has_any_middleware(self) -> bool:
         """Check if any middleware is configured."""
-        return any([self._cors, self._security, self._logging, self._rate_limit, self._request])
+        return any(
+            [
+                self._cors,
+                self._security,
+                self._logging,
+                self._rate_limit,
+                self._request,
+                self._metrics,
+            ]
+        )
 
 
 ***REMOVED*** Simple test to verify the system works

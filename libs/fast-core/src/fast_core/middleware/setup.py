@@ -25,6 +25,7 @@ from .config import (
     LoggingConfig,
     RateLimitConfig,
     RequestConfig,
+    MetricsConfig,
 )
 
 logger = structlog.get_logger(__name__)
@@ -48,19 +49,23 @@ def setup_middleware(app: FastAPI, config: MiddlewareConfig) -> None:
     if config.request_config and config.request_config.enabled:
         _setup_request_middleware(app, config.request_config)
 
-    ***REMOVED*** 2. Rate limiting middleware
+    ***REMOVED*** 2. Metrics middleware (needs to be early to track all requests)
+    if config.metrics_config and config.metrics_config.enabled:
+        _setup_metrics_middleware(app, config.metrics_config)
+
+    ***REMOVED*** 3. Rate limiting middleware
     if config.rate_limit_config and config.rate_limit_config.enabled:
         _setup_rate_limiting_middleware(app, config.rate_limit_config)
 
-    ***REMOVED*** 3. Logging middleware
+    ***REMOVED*** 4. Logging middleware
     if config.logging_config and config.logging_config.enabled:
         _setup_logging_middleware(app, config.logging_config)
 
-    ***REMOVED*** 4. Security headers middleware
+    ***REMOVED*** 5. Security headers middleware
     if config.security_config and config.security_config.enabled:
         _setup_security_middleware(app, config.security_config)
 
-    ***REMOVED*** 5. CORS middleware (outermost)
+    ***REMOVED*** 6. CORS middleware (outermost)
     if config.cors_config and config.cors_config.enabled:
         _setup_cors_middleware(app, config.cors_config)
 
@@ -361,3 +366,43 @@ def _setup_request_middleware(app: FastAPI, config: RequestConfig) -> None:
 
     app.add_middleware(RequestProcessingMiddleware)
     logger.debug("Request processing middleware configured")
+
+
+def _setup_metrics_middleware(app: FastAPI, config: MetricsConfig) -> None:
+    """Set up Prometheus metrics middleware."""
+    try:
+        from fast_core.monitoring.metrics import (
+            MetricsRegistry,
+            PrometheusMiddleware,
+            setup_metrics_endpoint,
+            initialize_metrics,
+        )
+
+        ***REMOVED*** Get or create metrics registry
+        service_name = getattr(app.state, "settings", None)
+        if service_name and hasattr(service_name, "service_name"):
+            service_name = service_name.service_name
+        else:
+            service_name = app.title or "unknown-service"
+
+        ***REMOVED*** Initialize metrics registry
+        metrics_registry = initialize_metrics(service_name)
+
+        ***REMOVED*** Add prometheus middleware
+        app.add_middleware(
+            PrometheusMiddleware,
+            metrics_registry=metrics_registry,
+            exclude_paths=set(config.exclude_paths),
+            exclude_methods=set(config.exclude_methods),
+        )
+
+        ***REMOVED*** Add metrics endpoint if requested
+        if config.include_endpoint:
+            setup_metrics_endpoint(app, metrics_registry, config.endpoint_path)
+
+        logger.debug(f"Metrics middleware configured with endpoint: {config.endpoint_path}")
+
+    except ImportError as e:
+        logger.warning(f"Prometheus metrics not available (missing dependency): {e}")
+    except Exception as e:
+        logger.error(f"Failed to setup metrics middleware: {e}", exc_info=True)
