@@ -11,6 +11,10 @@ from fast_core.responses import ResponseBuilder
 from config.logging import get_logger
 
 from search_api.services.search_service import SearchService, SearchServiceException
+from search_api.core.metrics import (
+    get_search_metrics,
+    track_suggestion_operation,
+)
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["suggestions"])
@@ -42,6 +46,7 @@ def get_search_service(request: Request) -> SearchService:
 
 @rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute (higher for typeahead)
 @router.get("/suggestions")
+@track_suggestion_operation
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Max number of suggestions to return"),
@@ -56,6 +61,11 @@ async def get_search_suggestions(
     try:
         logger.info(f"Basic suggestions request", query=query, limit=limit)
 
+        ***REMOVED*** Record suggestion analytics
+        metrics = get_search_metrics()
+        if metrics:
+            metrics.record_query_pattern("basic_suggestion", len(query))
+
         ***REMOVED*** Use the search service to get suggestions
         result = await search_service.get_suggestions(
             query=query,
@@ -63,6 +73,13 @@ async def get_search_suggestions(
         )
 
         logger.info(f"Basic suggestions completed successfully", total=result.total, query=query)
+
+        ***REMOVED*** Record successful suggestion metrics
+        if metrics:
+            metrics.record_suggestion_request(
+                "basic", "success", 0.0, len(query)
+            )  ***REMOVED*** Duration tracked by decorator
+            metrics.record_search_request("suggestion", "success", 0.0, result.total)
 
         ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
         response = responses.search(
@@ -96,6 +113,7 @@ async def get_search_suggestions(
 
 @rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute
 @router.get("/suggestions/text")
+@track_suggestion_operation
 async def get_text_suggestions(
     query: str = Query(..., min_length=1, description="Search query prefix"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of suggestions"),

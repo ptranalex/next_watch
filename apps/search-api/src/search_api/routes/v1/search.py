@@ -11,6 +11,11 @@ from fast_core.responses import ResponseBuilder
 from config.logging import get_logger
 
 from search_api.services.search_service import SearchService, SearchServiceException
+from search_api.core.metrics import (
+    get_search_metrics,
+    track_movie_search,
+    track_entity_search,
+)
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["search"])
@@ -46,6 +51,7 @@ def get_search_service(request: Request) -> SearchService:
 
 @rate_limit(requests=100, window=60)  ***REMOVED*** 100 searches per minute
 @router.get("")
+@track_movie_search
 async def search_movies(
     q: str = Query(..., description="Search query for movie titles"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
@@ -82,6 +88,39 @@ async def search_movies(
     try:
         logger.info(f"Movie search request", query=q, page=page, limit=limit)
 
+        ***REMOVED*** Record search analytics
+        metrics = get_search_metrics()
+        if metrics:
+            ***REMOVED*** Count applied filters for metrics
+            filters_count = sum(
+                [
+                    1
+                    for x in [
+                        genre_id,
+                        actor_id,
+                        imdb_rating,
+                        rotten_tomatoes_rating,
+                        metacritic_rating,
+                        year,
+                        start_year,
+                        end_year,
+                    ]
+                    if x is not None
+                ]
+            )
+            metrics.record_query_pattern("movie_search", len(q))
+            metrics.record_pagination_usage(page, limit)
+            for filter_type, filter_value in [
+                ("genre", genre_id),
+                ("actor", actor_id),
+                ("year", year),
+                ("imdb_rating", imdb_rating),
+                ("rt_rating", rotten_tomatoes_rating),
+                ("metacritic_rating", metacritic_rating),
+            ]:
+                if filter_value is not None:
+                    metrics.record_filter_usage(filter_type, filter_value)
+
         ***REMOVED*** Use the search service to perform the movie search
         result = await search_service.search_movies(
             query=q,
@@ -100,6 +139,20 @@ async def search_movies(
         )
 
         logger.info(f"Movie search completed successfully", total=result.get("total", 0), page=page)
+
+        ***REMOVED*** Record successful search metrics
+        if metrics:
+            total_results = result.get("total", 0)
+            metrics.record_search_request(
+                "movie", "success", 0.0, total_results
+            )  ***REMOVED*** Duration tracked by decorator
+            metrics.record_entity_search("movie", "moderate", 0.0)  ***REMOVED*** Duration tracked by decorator
+
+            ***REMOVED*** Record result quality metrics
+            if total_results > 0:
+                ***REMOVED*** Estimate search quality based on result count and query length
+                quality_score = min(1.0, total_results / (len(q) * 10))  ***REMOVED*** Simple heuristic
+                metrics.record_search_quality("relevance_score", quality_score)
 
         ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
@@ -137,15 +190,26 @@ async def search_movies(
         return cast(Dict[str, Any], response)
 
     except SearchServiceException as e:
+        ***REMOVED*** Record search service errors
+        if metrics:
+            metrics.record_search_error("service_error", "movie")
+            metrics.record_search_request("movie", "error", 0.0, 0)
+
         logger.error(f"Search service error: {str(e)}", query=q)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        ***REMOVED*** Record unexpected errors
+        if metrics:
+            metrics.record_search_error("internal_error", "movie")
+            metrics.record_search_request("movie", "error", 0.0, 0)
+
         logger.error(f"Unexpected error in movie search: {str(e)}", query=q, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @rate_limit(requests=50, window=60)  ***REMOVED*** 50 searches per minute for all entities
 @router.get("/all")
+@track_entity_search
 async def search_all_entities(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
