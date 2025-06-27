@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import redis.asyncio
 from redis.exceptions import RedisError
+import asyncio
 
 from config.logging import get_logger
 
@@ -143,51 +144,46 @@ class SuggestionEngine:
         Returns:
             List of matching suggestion strings
         """
-        ***REMOVED*** Method 1: Use sorted set with lexicographical range
+        ***REMOVED*** Add timeout to prevent operations from running forever
+        timeout_seconds = 2  ***REMOVED*** Reduced timeout for production
+
+        ***REMOVED*** Method 1: Use sorted set with lexicographical range (OPTIMIZED)
         try:
-            ***REMOVED*** Get suggestions using lexicographical range query (Redis 6.2+)
-            ***REMOVED*** Implementation depends on Redis version:
+            ***REMOVED*** Use proper lexicographical range instead of loading all data
             try:
-                ***REMOVED*** Redis 6.2+ method - Using simplified approach for type safety
-                suggestions = await redis_client.zrange(
-                    self._suggestion_key_prefix,
-                    0,  ***REMOVED*** Start index (simplified)
-                    -1,  ***REMOVED*** End index (simplified)
-                )
-                ***REMOVED*** Filter the results manually since we can't use the params directly
-                filtered_suggestions = [
-                    s for s in suggestions if isinstance(s, str) and s.startswith(query_prefix)
-                ]
-                if filtered_suggestions:
-                    return filtered_suggestions[:limit]
-            except Exception:
-                ***REMOVED*** Older Redis versions fallback
-                logger.warning("Falling back to older Redis zrangebylex method")
-                suggestions = await redis_client.execute_command(
-                    "ZRANGEBYLEX",
-                    self._suggestion_key_prefix,
-                    f"[{query_prefix}",
-                    f"[{query_prefix}\xff",
-                    "LIMIT",
-                    "0",
-                    str(limit),
+                ***REMOVED*** Use ZRANGEBYLEX on the main suggestions sorted set
+                suggestions = await asyncio.wait_for(
+                    redis_client.execute_command(
+                        "ZRANGEBYLEX",
+                        "suggestions",  ***REMOVED*** Use the main sorted set name
+                        f"[{query_prefix}",
+                        f"[{query_prefix}\xff",
+                        "LIMIT",
+                        "0",
+                        str(limit),
+                    ),
+                    timeout=timeout_seconds,
                 )
                 ***REMOVED*** Convert bytes to strings if needed
                 if suggestions and isinstance(suggestions[0], bytes):
                     suggestions = [s.decode("utf-8") for s in suggestions]
                 if suggestions:
                     return cast(List[str], suggestions[:limit])
+            except Exception as e:
+                logger.warning(f"Error using ZRANGEBYLEX: {str(e)}")
+        except asyncio.TimeoutError:
+            logger.error(
+                f"Redis ZRANGEBYLEX timed out after {timeout_seconds}s for query: {query_prefix}"
+            )
         except Exception as e:
             logger.warning(f"Error using sorted set method: {str(e)}")
 
-        ***REMOVED*** Method 2: Use keys with pattern matching as fallback
-        ***REMOVED*** This is less efficient but more compatible
+        ***REMOVED*** Method 2: Limited KEYS with timeout (for small datasets only)
         pattern = f"{self._suggestion_key_prefix}{query_prefix}*"
-
-        ***REMOVED*** Try KEYS command for small datasets
         try:
-            keys = await redis_client.keys(pattern)
-            ***REMOVED*** Extract suggestions from keys (format: suggestions:<suggestion>)
+            keys = await asyncio.wait_for(redis_client.keys(pattern), timeout=timeout_seconds)
+            ***REMOVED*** Process all keys (no arbitrary limits)
+
             suggestions = []
             for key in keys:
                 if ":" in key:
@@ -197,57 +193,46 @@ class SuggestionEngine:
                         if len(suggestions) >= limit:
                             break
             return cast(List[str], suggestions)
+        except asyncio.TimeoutError:
+            logger.error(f"Redis KEYS timed out after {timeout_seconds}s for pattern: {pattern}")
         except Exception as e:
             logger.warning(f"Error using KEYS: {str(e)}")
 
-        ***REMOVED*** Method 3: Use SCAN as final fallback (most compatible but slowest)
+        ***REMOVED*** Method 3: Limited SCAN with timeout (most compatible but controlled)
         try:
             cursor = 0
             suggestions = []
+            max_iterations = 10  ***REMOVED*** Limit SCAN iterations to prevent infinite loops
 
-            scan_complete = False
-            while len(suggestions) < limit and not scan_complete:
-                cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
-                ***REMOVED*** Extract suggestions from keys
-                for key in keys:
-                    if ":" in key:
-                        parts = key.split(":", 1)
-                        if len(parts) > 1:
-                            suggestions.append(parts[1])
-                            if len(suggestions) >= limit:
-                                break
+            for iteration in range(max_iterations):
+                try:
+                    cursor, keys = await asyncio.wait_for(
+                        redis_client.scan(cursor=cursor, match=pattern, count=100),
+                        timeout=timeout_seconds,
+                    )
 
-                ***REMOVED*** Check if we've scanned all keys
-                if cursor == 0:
-                    scan_complete = True
-
-            ***REMOVED*** If we still don't have any matches, try a more flexible approach
-            if not suggestions and len(query_prefix) > 2:
-                ***REMOVED*** Try with * wildcard for more flexible matching
-                pattern = f"{self._suggestion_key_prefix}*{query_prefix}*"
-                cursor = 0
-
-                while len(suggestions) < limit:
-                    cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
                     ***REMOVED*** Extract suggestions from keys
                     for key in keys:
-                        ***REMOVED*** Process key properly based on its type
-                        key_str = key if isinstance(key, str) else key.decode("utf-8")
-
-                        if ":" in key_str:
-                            parts = key_str.split(":", 1)
-                            if len(parts) > 1 and parts[1] not in suggestions:
+                        if ":" in key:
+                            parts = key.split(":", 1)
+                            if len(parts) > 1:
                                 suggestions.append(parts[1])
                                 if len(suggestions) >= limit:
-                                    break
+                                    return cast(List[str], suggestions[:limit])
 
-                    ***REMOVED*** Break if we've scanned all keys
+                    ***REMOVED*** Check if we've scanned all keys
                     if cursor == 0:
                         break
 
+                except asyncio.TimeoutError:
+                    logger.error(
+                        f"Redis SCAN iteration {iteration} timed out for pattern: {pattern}"
+                    )
+                    break
+
             return cast(List[str], suggestions[:limit])
         except Exception as e:
-            logger.error(f"All Redis suggestion methods failed: {str(e)}")
+            logger.error(f"SCAN fallback failed: {str(e)}")
             return []
 
     async def get_entity_suggestions(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
@@ -294,21 +279,31 @@ class SuggestionEngine:
                                     if len(suggestions) >= limit:
                                         break
 
-                    ***REMOVED*** If the query might be a word prefix, try a more aggressive matching approach
+                    ***REMOVED*** If the query might be a word prefix, try a more aggressive matching approach (with timeout)
                     if len(suggestions) < min(5, limit):
                         ***REMOVED*** Try with prefix wildcard matching for shorter queries
                         pattern = f"{self._suggestion_key_prefix}*{query_prefix}*"
-                        keys = await redis_client.keys(pattern)
-                        for key in keys:
-                            ***REMOVED*** Process key properly based on its type
-                            key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+                        try:
+                            keys = await asyncio.wait_for(
+                                redis_client.keys(pattern),
+                                timeout=3,  ***REMOVED*** Shorter timeout for fallback operation
+                            )
+                            ***REMOVED*** Process wildcard keys (no arbitrary limits)
 
-                            if ":" in key_str:
-                                parts = key_str.split(":", 1)
-                                if len(parts) > 1 and parts[1] not in suggestions:
-                                    suggestions.append(parts[1])
-                                    if len(suggestions) >= limit:
-                                        break
+                            for key in keys:
+                                ***REMOVED*** Process key properly based on its type
+                                key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+
+                                if ":" in key_str:
+                                    parts = key_str.split(":", 1)
+                                    if len(parts) > 1 and parts[1] not in suggestions:
+                                        suggestions.append(parts[1])
+                                        if len(suggestions) >= limit:
+                                            break
+                        except asyncio.TimeoutError:
+                            logger.warning(f"Wildcard KEYS timed out for pattern: {pattern}")
+                        except Exception as e:
+                            logger.warning(f"Error with wildcard matching: {str(e)}")
 
                 ***REMOVED*** For each suggestion, try to get detailed entity information
                 detailed_suggestions = []
@@ -338,28 +333,68 @@ class SuggestionEngine:
                         entity_id = await redis_client.get(suggestion_key)
 
                         if entity_id:
-                            ***REMOVED*** Find entity record with this ID
+                            ***REMOVED*** Find entity record with this ID (with timeout and limits)
                             for e_type in entity_types:
-                                pattern = f"{self._entity_key_prefix}{e_type}:*"
-                                raw_entity_keys = cast(List[Any], await redis_client.keys(pattern))
-
-                                for raw_entity_key in raw_entity_keys:
-                                    ***REMOVED*** Ensure entity_key is a string
-                                    if isinstance(raw_entity_key, str):
-                                        entity_key = raw_entity_key
-                                    else:
-                                        entity_key = raw_entity_key.decode("utf-8")
-                                    data_json = await redis_client.get(entity_key)
+                                ***REMOVED*** Try direct key format first: entity:type:id
+                                direct_key = f"{self._entity_key_prefix}{e_type}:{str(entity_id)}"
+                                try:
+                                    data_json = await asyncio.wait_for(
+                                        redis_client.get(direct_key), timeout=2
+                                    )
                                     if data_json:
                                         try:
-                                            candidate_data = json.loads(data_json)
-                                            ***REMOVED*** Check if this entity has the matching ID
-                                            if str(candidate_data.get("id")) == str(entity_id):
-                                                entity_data = candidate_data
-                                                entity_type = e_type
-                                                break
+                                            entity_data = json.loads(data_json)
+                                            entity_type = e_type
+                                            break
                                         except json.JSONDecodeError:
                                             continue
+                                except asyncio.TimeoutError:
+                                    logger.warning(
+                                        f"Direct entity lookup timed out for key: {direct_key}"
+                                    )
+
+                                ***REMOVED*** Fallback: scan with pattern (limited and with timeout)
+                                if not entity_data:
+                                    pattern = f"{self._entity_key_prefix}{e_type}:*"
+                                    try:
+                                        raw_entity_keys = await asyncio.wait_for(
+                                            redis_client.keys(pattern), timeout=2
+                                        )
+                                        ***REMOVED*** Process entity keys (no arbitrary limits)
+
+                                        for raw_entity_key in raw_entity_keys:
+                                            ***REMOVED*** Ensure entity_key is a string
+                                            entity_key = (
+                                                raw_entity_key.decode("utf-8")
+                                                if isinstance(raw_entity_key, bytes)
+                                                else str(raw_entity_key)
+                                            )
+
+                                            try:
+                                                data_json = await asyncio.wait_for(
+                                                    redis_client.get(entity_key), timeout=1
+                                                )
+                                                if data_json:
+                                                    try:
+                                                        candidate_data = json.loads(data_json)
+                                                        ***REMOVED*** Check if this entity has the matching ID
+                                                        if str(candidate_data.get("id")) == str(
+                                                            entity_id
+                                                        ):
+                                                            entity_data = candidate_data
+                                                            entity_type = e_type
+                                                            break
+                                                    except json.JSONDecodeError:
+                                                        continue
+                                            except asyncio.TimeoutError:
+                                                continue  ***REMOVED*** Skip this key and continue
+
+                                        if entity_data:
+                                            break
+                                    except asyncio.TimeoutError:
+                                        logger.warning(
+                                            f"Entity pattern scan timed out for pattern: {pattern}"
+                                        )
 
                                 if entity_data:
                                     break
