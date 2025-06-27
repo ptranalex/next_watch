@@ -1,0 +1,139 @@
+***REMOVED*** Prometheus Configuration for NextWatch Platform
+global:
+  scrape_interval: 15s ***REMOVED*** Default scrape interval
+  evaluation_interval: 15s ***REMOVED*** Rule evaluation interval
+  external_labels:
+    cluster: "nextwatch"
+    environment: "${ENVIRONMENT:-development}"
+
+***REMOVED*** Rule files
+rule_files:
+  - "rules/*.yml"
+
+***REMOVED*** Alert manager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+***REMOVED*** Scrape configurations
+scrape_configs:
+  ***REMOVED*** Prometheus itself
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  ***REMOVED*** NextWatch Services - Development
+  - job_name: "nextwatch-services-dev"
+    static_configs:
+      - targets:
+          - "host.docker.internal:8001" ***REMOVED*** BFF API
+          - "host.docker.internal:8002" ***REMOVED*** Backend API
+          - "host.docker.internal:8003" ***REMOVED*** Auth API
+          - "host.docker.internal:8004" ***REMOVED*** Search API
+          - "host.docker.internal:8005" ***REMOVED*** Recommendation API
+          - "host.docker.internal:8006" ***REMOVED*** ML API
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    params:
+      format: ["prometheus"]
+    relabel_configs:
+      ***REMOVED*** Extract service name from target
+      - source_labels: [__address__]
+        regex: '.*:(\d+)'
+        target_label: port
+      - source_labels: [port]
+        regex: "8001"
+        target_label: service
+        replacement: "bff-api"
+      - source_labels: [port]
+        regex: "8002"
+        target_label: service
+        replacement: "backend-api"
+      - source_labels: [port]
+        regex: "8003"
+        target_label: service
+        replacement: "auth-api"
+      - source_labels: [port]
+        regex: "8004"
+        target_label: service
+        replacement: "search-api"
+      - source_labels: [port]
+        regex: "8005"
+        target_label: service
+        replacement: "recommendation-api"
+      - source_labels: [port]
+        regex: "8006"
+        target_label: service
+        replacement: "ml-api"
+      ***REMOVED*** Add environment label
+      - target_label: environment
+        replacement: "development"
+
+  ***REMOVED*** NextWatch Services - Production (Docker)
+  - job_name: "nextwatch-services-prod"
+    static_configs:
+      - targets:
+          - "bff-api:8001"
+          - "backend-api:8002"
+          - "auth-api:8003"
+          - "search-api:8004"
+          - "recommendation-api:8005"
+          - "ml-api:8006"
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    relabel_configs:
+      ***REMOVED*** Extract service name from hostname
+      - source_labels: [__address__]
+        regex: "([^:]+):.*"
+        target_label: service
+      ***REMOVED*** Add environment label
+      - target_label: environment
+        replacement: "production"
+
+  ***REMOVED*** Infrastructure Services
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis:6379"]
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  ***REMOVED*** System Metrics
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+    scrape_interval: 30s
+    relabel_configs:
+      - target_label: instance
+        replacement: "nextwatch-host"
+
+  ***REMOVED*** Container Metrics
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  ***REMOVED*** Alert Manager
+  - job_name: "alertmanager"
+    static_configs:
+      - targets: ["alertmanager:9093"]
+    scrape_interval: 30s
+
+  ***REMOVED*** Service Discovery for Docker Swarm (if used)
+  ***REMOVED*** - job_name: 'docker-swarm'
+  ***REMOVED***   dockerswarm_sd_configs:
+  ***REMOVED***     - host: unix:///var/run/docker.sock
+  ***REMOVED***       role: tasks
+  ***REMOVED***   relabel_configs:
+  ***REMOVED***     - source_labels: [__meta_dockerswarm_task_label_monitoring]
+  ***REMOVED***       action: keep
+  ***REMOVED***       regex: 'true'
+  ***REMOVED***     - source_labels: [__meta_dockerswarm_service_name]
+  ***REMOVED***       target_label: service
+***REMOVED*** Storage retention is configured via command line parameters in docker-compose

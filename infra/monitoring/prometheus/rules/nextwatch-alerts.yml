@@ -1,0 +1,236 @@
+groups:
+  ***REMOVED*** Service Availability Alerts
+  - name: nextwatch.service.availability
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"nextwatch-services-.*"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "NextWatch service {{ $labels.service }} is down"
+          description: "Service {{ $labels.service }} on {{ $labels.instance }} has been down for more than 30 seconds."
+
+      - alert: ServiceHighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{job=~"nextwatch-services-.*", status_code=~"5.."}[5m]) /
+            rate(http_requests_total{job=~"nextwatch-services-.*"}[5m])
+          ) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has error rate above 5% for more than 2 minutes."
+
+      - alert: ServiceHighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            rate(http_request_duration_seconds_bucket{job=~"nextwatch-services-.*"}[5m])
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.service }}"
+          description: "95th percentile latency on {{ $labels.service }} is above 2 seconds."
+
+  ***REMOVED*** HTTP Request Alerts
+  - name: nextwatch.http.requests
+    rules:
+      - alert: HighRequestVolume
+        expr: |
+          rate(http_requests_total{job=~"nextwatch-services-.*"}[5m]) > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High request volume on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} is receiving more than 100 requests per second."
+
+      - alert: NoRequests
+        expr: |
+          rate(http_requests_total{job=~"nextwatch-services-.*"}[10m]) == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No requests to {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has not received any requests in the last 10 minutes."
+
+      - alert: TooManyRequestsInProgress
+        expr: |
+          http_requests_in_progress{job=~"nextwatch-services-.*"} > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many requests in progress on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has more than 50 requests in progress."
+
+  ***REMOVED*** BFF-Specific Alerts
+  - name: nextwatch.bff.alerts
+    rules:
+      - alert: BFFServiceCallFailures
+        expr: |
+          rate(bff_service_calls_total{status="error"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BFF service call failures detected"
+          description: "BFF is experiencing failures calling {{ $labels.service_name }} endpoint {{ $labels.endpoint }}."
+
+      - alert: BFFHighAggregationLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(bff_aggregation_duration_seconds_bucket[5m])
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BFF aggregation operations are slow"
+          description: "95th percentile aggregation time for {{ $labels.operation }} is above 5 seconds."
+
+      - alert: BFFCacheMissRate
+        expr: |
+          (
+            rate(bff_cache_operations_total{status="miss"}[5m]) /
+            rate(bff_cache_operations_total{operation="get"}[5m])
+          ) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High cache miss rate on BFF"
+          description: "Cache {{ $labels.cache_name }} has a miss rate above 80%."
+
+  ***REMOVED*** Business Logic Alerts
+  - name: nextwatch.business.alerts
+    rules:
+      - alert: LowMovieRequestVolume
+        expr: |
+          rate(bff_movie_requests_total[10m]) < 0.1
+        for: 15m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low movie request volume"
+          description: "Movie request volume is unusually low (less than 0.1/sec over 10 minutes)."
+
+      - alert: HighSearchErrorRate
+        expr: |
+          (
+            rate(bff_search_requests_total{status="error"}[5m]) /
+            rate(bff_search_requests_total[5m])
+          ) * 100 > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High search error rate"
+          description: "Search error rate is above 10% for search type {{ $labels.search_type }}."
+
+  ***REMOVED*** Infrastructure Alerts
+  - name: nextwatch.infrastructure.alerts
+    rules:
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is above 80% on {{ $labels.instance }}."
+
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 80% on {{ $labels.instance }}."
+
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) /
+            node_filesystem_size_bytes{fstype!="tmpfs"}
+          ) * 100 > 85
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space low"
+          description: "Disk usage is above 85% on {{ $labels.instance }} ({{ $labels.mountpoint }})."
+
+  ***REMOVED*** Container Alerts
+  - name: nextwatch.container.alerts
+    rules:
+      - alert: ContainerKilled
+        expr: |
+          time() - container_last_seen > 60
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container killed"
+          description: "Container {{ $labels.name }} has been killed."
+
+      - alert: ContainerCpuUsage
+        expr: |
+          (sum(rate(container_cpu_usage_seconds_total{name!=""}[3m])) BY (instance, name) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container CPU usage"
+          description: "Container {{ $labels.name }} CPU usage is above 80%."
+
+      - alert: ContainerMemoryUsage
+        expr: |
+          (sum(container_memory_working_set_bytes{name!=""}) BY (instance, name) / sum(container_spec_memory_limit_bytes > 0) BY (instance, name) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container memory usage"
+          description: "Container {{ $labels.name }} memory usage is above 80%."
+
+  ***REMOVED*** Redis Alerts (if using Redis exporter)
+  - name: nextwatch.redis.alerts
+    rules:
+      - alert: RedisDown
+        expr: |
+          redis_up == 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis down"
+          description: "Redis instance is down on {{ $labels.instance }}."
+
+      - alert: RedisHighMemoryUsage
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is above 90% on {{ $labels.instance }}."
+
+      - alert: RedisHighConnectionCount
+        expr: |
+          redis_connected_clients > 100
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis high connection count"
+          description: "Redis has more than 100 connected clients on {{ $labels.instance }}."

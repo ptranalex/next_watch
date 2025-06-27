@@ -1,0 +1,84 @@
+global:
+  ***REMOVED*** Global SMTP configuration (optional - disable for now)
+  ***REMOVED*** smtp_smarthost: "localhost:587"
+  ***REMOVED*** smtp_from: "alerts@nextwatch.local"
+
+***REMOVED*** Route configuration
+route:
+  group_by: ["alertname", "cluster", "service"]
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: "default-receiver"
+  routes:
+    ***REMOVED*** Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: "critical-alerts"
+      group_wait: 5s
+      repeat_interval: 5m
+
+    ***REMOVED*** Warning alerts - less frequent notifications
+    - match:
+        severity: warning
+      receiver: "warning-alerts"
+      group_wait: 30s
+      repeat_interval: 1h
+
+    ***REMOVED*** Service-specific routes
+    - match:
+        service: "bff-api"
+      receiver: "bff-alerts"
+
+    - match:
+        service: "backend-api"
+      receiver: "backend-alerts"
+
+    - match:
+        service: "search-api"
+      receiver: "search-alerts"
+
+***REMOVED*** Inhibition rules (suppress alerts based on other alerts)
+inhibit_rules:
+  ***REMOVED*** Suppress warning alerts if critical alert is firing
+  - source_match:
+      severity: "critical"
+    target_match:
+      severity: "warning"
+    equal: ["alertname", "cluster", "service"]
+
+***REMOVED*** Notification receivers
+receivers:
+  - name: "default-receiver"
+    webhook_configs:
+      - url: "http://localhost:8080/webhook"
+        send_resolved: true
+
+  - name: "critical-alerts"
+    webhook_configs:
+      - url: "http://localhost:8080/webhook/critical"
+        send_resolved: true
+
+  - name: "warning-alerts"
+    webhook_configs:
+      - url: "http://localhost:8080/webhook/warning"
+        send_resolved: true
+
+  - name: "bff-alerts"
+    webhook_configs:
+      - url: "http://localhost:8080/webhook/bff"
+        send_resolved: true
+
+  - name: "backend-alerts"
+    webhook_configs:
+      - url: "http://localhost:8080/webhook/backend"
+        send_resolved: true
+
+  - name: "search-alerts"
+    webhook_configs:
+      - url: "http://localhost:8080/webhook/search"
+        send_resolved: true
+
+***REMOVED*** Templates for notifications
+templates:
+  - "/etc/alertmanager/templates/*.tmpl"
