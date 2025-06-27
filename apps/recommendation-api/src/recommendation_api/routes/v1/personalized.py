@@ -18,6 +18,10 @@ from recommendation_api.models.recommendation import (
     MovieRecommendation,
     PersonalizedRecommendationsResponse,
 )
+from recommendation_api.core.metrics import (
+    get_recommendation_metrics,
+    track_personalized_recommendation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +87,7 @@ async def _get_personalized_recommendations_data(
 
 
 @router.get("/users/{user_id}/recommendations", response_model=PersonalizedRecommendationsResponse)
+@track_personalized_recommendation
 async def get_personalized_recommendations_endpoint(
     user_id: int,
     limit: int = Query(20, ge=1, le=100),
@@ -102,6 +107,16 @@ async def get_personalized_recommendations_endpoint(
     Returns:
         Personalized movie recommendations for the user
     """
+    ***REMOVED*** Record recommendation request metrics
+    metrics = get_recommendation_metrics()
+    if metrics:
+        ***REMOVED*** Record filter usage
+        metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
+        metrics.record_recommendation_filter_usage(
+            "min_vote_count", _categorize_vote_count(min_vote_count)
+        )
+        metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
+
     try:
         ***REMOVED*** Use the cached function to get data as dictionary
         data = await _get_personalized_recommendations_data(
@@ -112,25 +127,76 @@ async def get_personalized_recommendations_endpoint(
             recommendation_service=recommendation_service,
         )
 
+        ***REMOVED*** Record successful recommendation request
+        if metrics:
+            metrics.record_recommendation_request(
+                "personalized", "success", 0.0, data.get("total", 0)
+            )
+            metrics.record_backend_api_request("get_personalized_movies", "success", 0.0)
+
         ***REMOVED*** Convert dictionary back to Pydantic model for response
         return PersonalizedRecommendationsResponse(**data)
 
     except ValueError as e:
+        ***REMOVED*** Record recommendation failure
+        if metrics:
+            failure_reason = "invalid_user_id" if "Invalid user ID" in str(e) else "not_found"
+            metrics.record_recommendation_request("personalized", "failure", 0.0, 0)
+
         ***REMOVED*** Handle business logic errors (invalid user ID, etc.)
         if "Invalid user ID" in str(e):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except SQLAlchemyError as e:
+        ***REMOVED*** Record database error
+        if metrics:
+            metrics.record_recommendation_request("personalized", "failure", 0.0, 0)
+            metrics.record_backend_api_request("get_personalized_movies", "failure", 0.0)
+
         logger.error(f"Database error getting personalized recommendations for user {user_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database service temporarily unavailable",
         )
     except Exception as e:
+        ***REMOVED*** Record general error
+        if metrics:
+            metrics.record_recommendation_request("personalized", "failure", 0.0, 0)
+
         logger.error(
             f"Error getting personalized recommendations for user {user_id}: {e}", exc_info=True
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
         )
+
+
+def _categorize_rating(rating: float) -> str:
+    """Categorize rating for metrics."""
+    if rating < 6.0:
+        return "low"
+    elif rating < 8.0:
+        return "medium"
+    else:
+        return "high"
+
+
+def _categorize_vote_count(count: int) -> str:
+    """Categorize vote count for metrics."""
+    if count < 500:
+        return "low"
+    elif count < 2000:
+        return "medium"
+    else:
+        return "high"
+
+
+def _categorize_limit(limit: int) -> str:
+    """Categorize limit for metrics."""
+    if limit <= 10:
+        return "small"
+    elif limit <= 50:
+        return "medium"
+    else:
+        return "large"

@@ -18,6 +18,10 @@ from recommendation_api.models.recommendation import (
     MovieRecommendation,
     SimilarMoviesResponse,
 )
+from recommendation_api.core.metrics import (
+    get_recommendation_metrics,
+    track_similar_recommendation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +90,7 @@ async def _get_similar_movies_data(
 
 
 @router.get("/movies/{movie_id}/similar", response_model=SimilarMoviesResponse)
+@track_similar_recommendation
 async def get_similar_movies_endpoint(
     movie_id: int,
     limit: int = Query(20, ge=1, le=50),
@@ -103,6 +108,15 @@ async def get_similar_movies_endpoint(
     Returns:
         Similar movie recommendations
     """
+    ***REMOVED*** Record recommendation request metrics
+    metrics = get_recommendation_metrics()
+    if metrics:
+        ***REMOVED*** Record filter usage for similar movies
+        metrics.record_recommendation_filter_usage(
+            "min_score", _categorize_similarity_score(min_score)
+        )
+        metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
+
     try:
         ***REMOVED*** Use the cached function to get data as dictionary
         data = await _get_similar_movies_data(
@@ -112,23 +126,64 @@ async def get_similar_movies_endpoint(
             recommendation_service=recommendation_service,
         )
 
+        ***REMOVED*** Record successful similar movies request
+        if metrics:
+            metrics.record_recommendation_request("similar", "success", 0.0, data.get("total", 0))
+            metrics.record_vector_operation("search_similar", "success", 0.0)
+
         ***REMOVED*** Convert dictionary back to Pydantic model for response
         return SimilarMoviesResponse(**data)
 
     except ValueError as e:
+        ***REMOVED*** Record similar movies failure
+        if metrics:
+            failure_reason = "invalid_movie_id" if "Invalid movie ID" in str(e) else "not_found"
+            metrics.record_recommendation_request("similar", "failure", 0.0, 0)
+            metrics.record_vector_operation("search_similar", "failure", 0.0)
+
         ***REMOVED*** Handle business logic errors (invalid movie ID, not found, etc.)
         if "Invalid movie ID" in str(e):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except SQLAlchemyError as e:
+        ***REMOVED*** Record database error
+        if metrics:
+            metrics.record_recommendation_request("similar", "failure", 0.0, 0)
+
         logger.error(f"Database error getting similar movies for movie {movie_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database service temporarily unavailable",
         )
     except Exception as e:
+        ***REMOVED*** Record general error
+        if metrics:
+            metrics.record_recommendation_request("similar", "failure", 0.0, 0)
+
         logger.error(f"Error getting similar movies for movie {movie_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
         )
+
+
+def _categorize_similarity_score(score: float) -> str:
+    """Categorize similarity score for metrics."""
+    if score < 0.1:
+        return "very_low"
+    elif score < 0.3:
+        return "low"
+    elif score < 0.6:
+        return "medium"
+    else:
+        return "high"
+
+
+def _categorize_limit(limit: int) -> str:
+    """Categorize limit for metrics."""
+    if limit <= 10:
+        return "small"
+    elif limit <= 30:
+        return "medium"
+    else:
+        return "large"

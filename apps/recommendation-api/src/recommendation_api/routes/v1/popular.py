@@ -18,6 +18,10 @@ from recommendation_api.models.recommendation import (
     MovieRecommendation,
     RecommendationsResponse,
 )
+from recommendation_api.core.metrics import (
+    get_recommendation_metrics,
+    track_popular_recommendation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +80,7 @@ async def _get_popular_recommendations_data(
 
 
 @router.get("/popular", response_model=RecommendationsResponse)
+@track_popular_recommendation
 async def get_popular_recommendations_endpoint(
     limit: int = Query(20, ge=1, le=100),
     min_rating: float = Query(7.0, ge=0, le=10),
@@ -93,6 +98,16 @@ async def get_popular_recommendations_endpoint(
     Returns:
         List of popular movie recommendations
     """
+    ***REMOVED*** Record recommendation request metrics
+    metrics = get_recommendation_metrics()
+    if metrics:
+        ***REMOVED*** Record filter usage for popular movies
+        metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
+        metrics.record_recommendation_filter_usage(
+            "min_vote_count", _categorize_vote_count(min_vote_count)
+        )
+        metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
+
     try:
         ***REMOVED*** Use the cached function to get data as dictionary
         data = await _get_popular_recommendations_data(
@@ -102,17 +117,61 @@ async def get_popular_recommendations_endpoint(
             recommendation_service=recommendation_service,
         )
 
+        ***REMOVED*** Record successful popular recommendations request
+        if metrics:
+            metrics.record_recommendation_request("popular", "success", 0.0, data.get("total", 0))
+            metrics.record_backend_api_request("get_popular_movies", "success", 0.0)
+
         ***REMOVED*** Convert dictionary back to Pydantic model for response
         return RecommendationsResponse(**data)
 
     except SQLAlchemyError as e:
+        ***REMOVED*** Record database error
+        if metrics:
+            metrics.record_recommendation_request("popular", "failure", 0.0, 0)
+            metrics.record_backend_api_request("get_popular_movies", "failure", 0.0)
+
         logger.error(f"Database error getting popular recommendations: {e}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database service temporarily unavailable",
         )
     except Exception as e:
+        ***REMOVED*** Record general error
+        if metrics:
+            metrics.record_recommendation_request("popular", "failure", 0.0, 0)
+
         logger.error(f"Error getting popular recommendations: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
         )
+
+
+def _categorize_rating(rating: float) -> str:
+    """Categorize rating for metrics."""
+    if rating < 6.0:
+        return "low"
+    elif rating < 8.0:
+        return "medium"
+    else:
+        return "high"
+
+
+def _categorize_vote_count(count: int) -> str:
+    """Categorize vote count for metrics."""
+    if count < 500:
+        return "low"
+    elif count < 2000:
+        return "medium"
+    else:
+        return "high"
+
+
+def _categorize_limit(limit: int) -> str:
+    """Categorize limit for metrics."""
+    if limit <= 20:
+        return "small"
+    elif limit <= 50:
+        return "medium"
+    else:
+        return "large"
