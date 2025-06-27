@@ -98,13 +98,13 @@ ENTRYPOINT ["/sbin/tini", "--"]
 ***REMOVED*** This bypasses our CLI for production to ensure optimal performance
 ***REMOVED*** Using environment variables for flexibility and consistency
 CMD ["sh", "-c", "uvicorn auth_api.main:app \
-     --host ${HOST} \
-     --port ${PORT} \
-     --workers ${WORKERS} \
+    --host ${HOST} \
+    --port ${PORT} \
+    --workers ${WORKERS} \
      --timeout-keep-alive ${TIMEOUT} \
-     --log-level ${LOG_LEVEL} \
-     --no-access-log \
+    --log-level ${LOG_LEVEL} \
+    --no-access-log \
      --proxy-headers \
      --forwarded-allow-ips \"${FORWARDED_ALLOW_IPS}\" \
-     --backlog ${BACKLOG} \
+    --backlog ${BACKLOG} \
      --limit-max-requests ${LIMIT_MAX_REQUESTS}"] 
