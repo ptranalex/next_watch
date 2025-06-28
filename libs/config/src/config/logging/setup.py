@@ -115,10 +115,13 @@ def configure_logging(
         else:
             from structlog.processors import KeyValueRenderer
 
-            ***REMOVED*** Plain key=value format for production
+            ***REMOVED*** Plain key=value format for production - consistent formatting
             renderer = KeyValueRenderer(
                 key_order=["timestamp", "level", "logger", "event"],
                 drop_missing=True,
+                ***REMOVED*** Ensure consistent formatting without quotes
+                sort_keys=False,
+                repr_native_str=False,  ***REMOVED*** Don't add quotes around string values
             )
 
         console_handler.setFormatter(plain_formatter)
@@ -162,9 +165,7 @@ def configure_logging(
     ***REMOVED*** Apply component-specific log levels
     if component_levels:
         for component, component_level in component_levels.items():
-            component_level_int = getattr(
-                logging, component_level.upper(), logging.INFO
-            )
+            component_level_int = getattr(logging, component_level.upper(), logging.INFO)
             component_logger_name = f"{logger_name}.{component}"
             logging.getLogger(component_logger_name).setLevel(component_level_int)
             config_info["component_levels"][component] = component_level.upper()
