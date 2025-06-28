@@ -58,11 +58,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: 1G
+          cpus: "0.3"
+          memory: 1.2G
         reservations:
-          cpus: "0.1"
-          memory: 512M
+          cpus: "0.15"
+          memory: 640M
     logging:
       driver: "json-file"
       options:
@@ -142,11 +142,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: 1G
+          cpus: "0.3"
+          memory: 1.2G
         reservations:
-          cpus: "0.1"
-          memory: 512M
+          cpus: "0.15"
+          memory: 640M
     logging:
       driver: "json-file"
       options:
@@ -276,11 +276,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.2"
-          memory: 768M
+          cpus: "0.25"
+          memory: 1G
         reservations:
-          cpus: "0.1"
-          memory: 384M
+          cpus: "0.12"
+          memory: 512M
     logging:
       driver: "json-file"
       options:
@@ -553,11 +553,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: 1G
+          cpus: "0.3"
+          memory: 1.2G
         reservations:
-          cpus: "0.1"
-          memory: 512M
+          cpus: "0.15"
+          memory: 640M
     logging:
       driver: "json-file"
       options:
@@ -583,7 +583,10 @@ volumes:
   qdrant-data:
     driver: local
 
-***REMOVED*** Networks (using default bridge network)
+***REMOVED*** Networks - Explicitly named to match Docker Compose auto-generation pattern
+***REMOVED*** Uses 'next_watch_default' to maintain compatibility with existing deployments
+***REMOVED*** and provide predictable network naming for monitoring service integration
 networks:
   default:
     driver: bridge
+    name: next_watch_default
