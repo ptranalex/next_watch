@@ -119,9 +119,8 @@ def configure_logging(
             renderer = KeyValueRenderer(
                 key_order=["timestamp", "level", "logger", "event"],
                 drop_missing=True,
-                ***REMOVED*** Ensure consistent formatting without quotes
                 sort_keys=False,
-                repr_native_str=False,  ***REMOVED*** Don't add quotes around string values
+                repr_native_str=True,  ***REMOVED*** ✅ Safe parsing in logfmt
             )
 
         console_handler.setFormatter(plain_formatter)
