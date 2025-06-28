@@ -113,14 +113,13 @@ def configure_logging(
                 pad_event=35,
             )
         else:
-            from structlog.processors import KeyValueRenderer
+            from structlog.processors import LogfmtRenderer
 
-            ***REMOVED*** Plain key=value format for production - consistent formatting
-            renderer = KeyValueRenderer(
+            ***REMOVED*** Standard logfmt format for production - perfect for Grafana parsing
+            renderer = LogfmtRenderer(
                 key_order=["timestamp", "level", "logger", "event"],
                 drop_missing=True,
                 sort_keys=False,
-                repr_native_str=True,  ***REMOVED*** ✅ Safe parsing in logfmt
             )
 
         console_handler.setFormatter(plain_formatter)
