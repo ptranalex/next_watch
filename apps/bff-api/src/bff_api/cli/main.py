@@ -59,8 +59,8 @@ async def _get_redis_client() -> Any:
     from cache.providers.redis import RedisProvider
     from bff_api.services.cache_service import get_cache_service
 
-    cache_service = get_cache_service()
-    provider = cache_service.cache_manager.provider
+    cache_manager = get_cache_service()  ***REMOVED*** This returns CacheManager directly
+    provider = cache_manager.provider
     if isinstance(provider, RedisProvider):
         return await provider._get_client()
     else:
