@@ -30,7 +30,7 @@ def get_app() -> FastAPI:
             log_dir=log_dir,
             verbose=settings.debug,
             quiet=False,
-            use_coloredlogs=True,
+            use_coloredlogs=settings.debug,  ***REMOVED*** Only use colors in debug mode
             logger_name="backend_api",
             color_theme="modern",
             http_verbose=False,  ***REMOVED*** Keep HTTP logs quiet unless debugging
