@@ -4,7 +4,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
-from ml_api.config import config
+from ml_api.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class EmbeddingService:
     _instance = None
     _model: Optional[Any] = None
     _model_info: Dict[str, Any] = {
-        "model_id": config.embedding_model,
+        "model_id": settings.embedding_model,
         "dimensions": 384,  ***REMOVED*** Default for all-MiniLM-L6-v2
         "version": "1.0.0",
         "status": "not_loaded",
@@ -63,16 +63,16 @@ class EmbeddingService:
             ***REMOVED*** Lazy import to avoid loading heavy dependencies until needed
             from sentence_transformers import SentenceTransformer
 
-            logger.info(f"Loading model: {config.embedding_model}")
+            logger.info(f"Loading model: {settings.embedding_model}")
             model_kwargs: Dict[str, Any] = {}
 
-            if config.model_cache_dir:
-                model_kwargs["cache_folder"] = str(config.model_cache_dir)
+            if settings.model_cache_dir:
+                model_kwargs["cache_folder"] = str(settings.model_cache_dir)
 
             start_time = time.time()
             ***REMOVED*** Pass model_kwargs as keyword arguments to avoid type errors
             self._model = SentenceTransformer(
-                model_name_or_path=config.embedding_model,
+                model_name_or_path=settings.embedding_model,
                 cache_folder=model_kwargs.get("cache_folder"),
             )
             load_time = time.time() - start_time

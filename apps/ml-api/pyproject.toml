@@ -2,57 +2,213 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [project]
 name = "ml_api"
 version = "0.1.0"
-description = "ML API for Next Watch platform"
+description = "Machine Learning API for Next Watch platform"
+readme = {text = "***REMOVED*** ML API\n\nMachine Learning API for Next Watch platform", content-type = "text/markdown"}
+license = "MIT"
+license-files = ["LICENSE*"]
 authors = [
     {name = "Next Watch Team"}
 ]
-***REMOVED*** Make README optional by using an inline text
-readme = {text = "***REMOVED*** ML API\n\nMachine Learning API for Next Watch platform", content-type = "text/markdown"}
-requires-python = ">=3.12"
+maintainers = [
+    {name = "Next Watch Team"}
+]
+keywords = [
+    "api",
+    "ml",
+    "machine-learning",
+    "embeddings",
+    "nextwatch",
+    "transformers",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
 ]
-***REMOVED*** Dependencies analyzed based on actual usage in embedding_service.py
+requires-python = ">=3.12"
 dependencies = [
     ***REMOVED*** Core API framework
-    "fastapi>=0.100.0",         ***REMOVED*** API framework
-    "uvicorn>=0.22.0",          ***REMOVED*** ASGI server
-    "pydantic>=2.0.0",          ***REMOVED*** Data validation
+    "fastapi>=0.104.0",         ***REMOVED*** API framework
+    "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
+    "pydantic>=2.4.2",          ***REMOVED*** Data validation
     
     ***REMOVED*** ML functionality - this pulls in torch, transformers, etc.
     "sentence-transformers>=2.2.2",  ***REMOVED*** Core embedding functionality
     
     ***REMOVED*** CLI and utilities
-    "typer>=0.9.0",             ***REMOVED*** CLI framework
-    "rich>=13.0.0",             ***REMOVED*** Terminal formatting
+    "typer>=0.15.2",            ***REMOVED*** CLI framework
+    "rich>=13.7.0",             ***REMOVED*** Terminal formatting
+    "structlog>=23.2.0",        ***REMOVED*** Structured logging
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    
+    ***REMOVED*** Date/time handling
+    "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
+    
+    ***REMOVED*** Form handling
+    "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
+    "email-validator>=2.2.0",   ***REMOVED*** Email validation
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-cov>=6.0.0",
+    ***REMOVED*** Testing
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "pytest-cov>=4.1.0",
     "httpx>=0.24.0",
-    "black>=23.0.0",
+    
+    ***REMOVED*** Code quality
+    "black>=23.10.1",
     "isort>=5.12.0",
-    "mypy>=1.0.0",
-    "ruff>=0.0.250",
+    "ruff>=0.1.6",
+    "mypy>=1.7.0",
+    
+    ***REMOVED*** Local NextWatch libraries (for development)
+    ***REMOVED*** "config @ file:../../libs/config",
+    ***REMOVED*** "cli @ file:../../libs/cli",
+    ***REMOVED*** "fast-core @ file:../../libs/fast-core",
 ]
 
 [project.scripts]
-ml-api = "ml_api.cli:app"
+ml-api = "ml_api.cli.main:main"
 
+[project.urls]
+Homepage = "https://github.com/nextwatch/ml-api"
+Repository = "https://github.com/nextwatch/ml-api"
+Issues = "https://github.com/nextwatch/ml-api/issues"
+Documentation = "https://docs.nextwatch.dev/ml-api"
+
+***REMOVED*** Hatch configuration
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+dev-mode-exact = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ml_api"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["src/ml_api"]
+
+[tool.hatch.build.sources]
+"src" = ""
+
+***REMOVED*** Single consolidated environment
+[tool.hatch.envs.default]
+type = "virtual"
+path = ".venv"
+features = ["dev"]
+
+[tool.hatch.envs.default.env-vars]
+PYTHONPATH = "src"
+
+[tool.hatch.envs.default.scripts]
+
+***REMOVED*** Install local libraries, so they can be reloaded after changes
+install-libs = [
+  "pip install -e ../../libs/config",
+  "pip install -e ../../libs/cli",
+  "pip install -e ../../libs/fast-core",
+]
+
+***REMOVED*** Server management
+serve = "python -m ml_api.main"
+dev = "PYTHONPATH=src uvicorn ml_api.main:app --reload --port 8004"
+
+
+***REMOVED*** CLI access
+cli = "python -m ml_api.cli"
+
+***REMOVED*** Health checks
+health-check = "python -m ml_api.cli health check"
+health-model = "python -m ml_api.cli health model"
+
+***REMOVED*** Model management
+model-info = "python -m ml_api.cli model info"
+model-load = "python -m ml_api.cli model load"
+model-test = "python -m ml_api.cli model test"
+
+***REMOVED*** System commands
+config = "python -m ml_api.cli config"
+version = "python -m ml_api.cli version"
+serve-cli = "python -m ml_api.cli serve"
+
+***REMOVED*** Development tools
+lint = [
+    "black .",
+    "isort .",
+    "ruff check .",
+    "mypy src"
+]
+test = "PYTHONPATH=src pytest {args:tests}"
+test-cov = "PYTHONPATH=src pytest --cov=ml_api tests/"
+format = [
+    "black .",
+    "isort ."
+]
+
+***REMOVED*** Tool configurations
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+
+[tool.mypy]
+python_version = "3.12"
+***REMOVED*** Strict settings
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+strict_optional = true
+disallow_any_unimported = true
+disallow_untyped_calls = true
+disallow_any_generics = true 
+disallow_subclassing_any = true
+
+***REMOVED*** Warning settings
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_return_any = true
+warn_unreachable = true
+
+***REMOVED*** Error reporting
+pretty = true
+show_column_numbers = true
+show_error_context = true
+
+***REMOVED*** Importing
+ignore_missing_imports = false
+follow_imports = "normal"
+
+[[tool.mypy.overrides]]
+module = [
+    "fastapi.*",
+    "uvicorn.*",
+    "pydantic.*",
+    "httpx.*",
+    "typer.*",
+    "rich.*",
+    "sentence_transformers.*",
+    "dateutil.*",
+    "email_validator.*",
+    "structlog.*"
+]
+ignore_missing_imports = true
 
 [tool.black]
 line-length = 100
@@ -62,13 +218,15 @@ target-version = ["py312"]
 profile = "black"
 line_length = 100
 
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = ["E", "F", "I", "N", "W", "B", "C4", "SIM", "ARG", "PIE", "PL", "RUF"]
+ignore = ["E203", "PLR0913"]
 
-[[tool.mypy.overrides]]
-module = ["sentence_transformers.*"]
-ignore_missing_imports = true 
+[tool.ruff.isort]
+known-first-party = ["ml_api"]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["PLR2004"] 

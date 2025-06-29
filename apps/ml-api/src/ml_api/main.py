@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     ***REMOVED*** Use settings for all server parameters
     uvicorn.run(
-        "ml_api.app:app",
+        "ml_api.main:app",
         host=settings.host,
         port=settings.port,
         reload=settings.debug,

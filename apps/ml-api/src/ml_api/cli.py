@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from ml_api import __version__
-from ml_api.config import config
+from ml_api.config import settings
 from ml_api.services import embedding_service
 
 ***REMOVED*** Create the Typer app
@@ -50,11 +50,11 @@ def configure_logging(log_level: str = "INFO", verbose: bool = False) -> None:
 ***REMOVED*** Server commands
 @serve_app.command("start")
 def start_server(
-    host: str = typer.Option(config.host, "--host", help="Host to bind the server to"),
-    port: int = typer.Option(config.port, "--port", "-p", help="Port to bind the server to"),
+    host: str = typer.Option(settings.host, "--host", help="Host to bind the server to"),
+    port: int = typer.Option(settings.port, "--port", "-p", help="Port to bind the server to"),
     reload: bool = typer.Option(False, "--reload", help="Enable auto-reload"),
     workers: int = typer.Option(1, "--workers", "-w", help="Number of worker processes"),
-    log_level: str = typer.Option(config.log_level, "--log-level", "-l", help="Logging level"),
+    log_level: str = typer.Option(settings.log_level, "--log-level", "-l", help="Logging level"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
 ) -> None:
@@ -92,8 +92,9 @@ def show_config(
     table.add_column("Setting", style="cyan")
     table.add_column("Value", style="green")
 
-    for key, value in config.as_dict().items():
-        table.add_row(key, str(value))
+    for key, value in settings.__dict__.items():
+        if not key.startswith("_"):  ***REMOVED*** Skip private attributes
+            table.add_row(key, str(value))
 
     console.print(table)
 
@@ -103,7 +104,8 @@ def validate_config() -> bool:
     """Validate the current configuration."""
     ***REMOVED*** This is a simple validation that just checks if the config can be loaded
     try:
-        cfg = config.as_dict()
+        ***REMOVED*** Try to access settings to validate it's properly loaded
+        _ = settings.service_name
         console.print("[bold green]Configuration is valid[/]")
         return True
     except Exception as e:
@@ -121,9 +123,9 @@ def load_model(
     """Load the embedding model."""
     if model_name:
         console.print(f"[yellow]Warning: Custom model selection not yet implemented[/]")
-        console.print(f"Using default model: [cyan]{config.embedding_model}[/]")
+        console.print(f"Using default model: [cyan]{settings.embedding_model}[/]")
 
-    console.print(f"Loading model: [cyan]{config.embedding_model}[/]")
+    console.print(f"Loading model: [cyan]{settings.embedding_model}[/]")
 
     success = embedding_service.load_model()
 

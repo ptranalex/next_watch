@@ -1,288 +1,256 @@
 ***REMOVED*** ML API
 
-A dedicated microservice for machine learning operations to support the Next Watch recommendation system.
+Machine Learning API for the Next Watch platform, providing embedding generation services for movies and user preferences.
 
 ***REMOVED******REMOVED*** Overview
 
-The ML API is a specialized service that handles all machine learning tasks for the Next Watch platform, specifically focused on generating embeddings for movies and user preferences. This service was extracted from the recommendation-api to:
+The ML API is built with FastAPI and uses the sentence-transformers library to generate embeddings for movies and user preference vectors. It's now integrated with the fast-core framework for standardized patterns across Next Watch services.
 
-1. Separate resource-intensive ML operations from recommendation logic
-2. Allow independent scaling of ML components
-3. Simplify the recommendation-api codebase
-4. Enable specialized deployment options for ML workloads
+***REMOVED******REMOVED*** Features
 
-***REMOVED******REMOVED*** Architecture
+- **Movie Embeddings**: Generate vector embeddings for movies based on metadata
+- **User Preference Vectors**: Create preference vectors for users based on viewing history
+- **Model Management**: Load and manage embedding models
+- **Health Monitoring**: Comprehensive health checks and metrics
+- **Fast-Core Integration**: Standardized middleware, configuration, and monitoring
 
-The ML API follows a clean architecture approach with these main components:
+***REMOVED******REMOVED*** Quick Start
 
-```
-ml_api/
-├── models/      ***REMOVED*** Data models for API requests/responses
-├── routes/      ***REMOVED*** API endpoints and request handling
-├── services/    ***REMOVED*** ML processing logic and model management
-├── config/      ***REMOVED*** Application configuration
-├── utils/       ***REMOVED*** Utility functions and helpers
-└── tests/       ***REMOVED*** Unit and integration tests
-```
-
-***REMOVED******REMOVED******REMOVED*** Key Components
-
-- **API Routes**: FastAPI endpoints for handling embedding generation requests
-- **ML Service**: Manages the embedding model lifecycle and processing
-- **Model Management**: Handles loading, caching, and versioning of ML models
-- **Configuration**: Environment-based configuration for different deployment scenarios
-
-***REMOVED******REMOVED*** System Integration
-
-```
-┌───────────────────┐         ┌───────────────────┐         ┌───────────────────┐
-│                   │         │                   │         │                   │
-│  recommendation   │ ◄─────► │      ml-api       │         │      Qdrant       │
-│      -api         │         │                   │         │  Vector Database  │
-│                   │         │                   │         │                   │
-└───────────────────┘         └───────────────────┘         └───────────────────┘
-        ▲                                                           ▲
-        │                                                           │
-        │                                                           │
-        ▼                                                           │
-┌───────────────────┐                                               │
-│                   │                                               │
-│    PostgreSQL     │ ──────────────────────────────────────────────┘
-│    Database       │          (recommendation-api stores vectors)
-│                   │
-└───────────────────┘
-```
-
-***REMOVED******REMOVED******REMOVED*** Data Flow
-
-1. **recommendation-api** sends movie/user data to **ml-api**
-2. **ml-api** processes data and returns vector embeddings
-3. **recommendation-api** stores these embeddings in **Qdrant**
-4. **recommendation-api** uses these embeddings for similarity searches and recommendations
-
-***REMOVED******REMOVED*** API Endpoints
-
-***REMOVED******REMOVED******REMOVED*** Movie Embedding Generation
-
-```
-POST /api/v1/embeddings/movie
-```
-
-Request:
-
-```json
-{
-  "movie_id": "123",
-  "title": "The Matrix",
-  "overview": "A computer hacker learns about the true nature of reality.",
-  "genres": ["sci-fi", "action"],
-  "additional_metadata": {
-    "director": "Lana Wachowski, Lilly Wachowski",
-    "actors": ["Keanu Reeves", "Laurence Fishburne"]
-  }
-}
-```
-
-Response:
-
-```json
-{
-  "movie_id": "123",
-  "embedding": [0.1, 0.2, ...],
-  "model_id": "all-MiniLM-L6-v2",
-  "dimensions": 384
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** User Preference Vector
-
-```
-POST /api/v1/embeddings/user
-```
-
-Request:
-
-```json
-{
-  "user_id": "456",
-  "liked_movies": [
-    {
-      "movie_id": "123",
-      "rating": 5.0
-    },
-    {
-      "movie_id": "124",
-      "rating": 4.5
-    }
-  ],
-  "watched_genres": {
-    "action": 0.8,
-    "sci-fi": 0.7,
-    "comedy": 0.3
-  }
-}
-```
-
-Response:
-
-```json
-{
-  "user_id": "456",
-  "preference_vector": [0.3, 0.1, ...],
-  "model_id": "all-MiniLM-L6-v2",
-  "dimensions": 384
-}
-```
-
-***REMOVED******REMOVED******REMOVED*** Model Information
-
-```
-GET /api/v1/info
-```
-
-Response:
-
-```json
-{
-  "model_id": "all-MiniLM-L6-v2",
-  "dimensions": 384,
-  "version": "1.0.0",
-  "status": "loaded",
-  "health": "ok",
-  "stats": {
-    "requests_processed": 1250,
-    "average_processing_time_ms": 45.3
-  }
-}
-```
-
-***REMOVED******REMOVED*** Installation
-
-1. Clone the repository
-2. Install dependencies with Hatch:
-   ```bash
-   cd apps/ml-api
-   pip install hatch
-   hatch env create
-   ```
-3. Configure environment:
-   ```bash
-   cp env.example .env
-   ***REMOVED*** Edit .env with your configuration
-   ```
-
-***REMOVED******REMOVED*** Usage
-
-***REMOVED******REMOVED******REMOVED*** Development Mode
-
-Use Hatch for local development to benefit from its environment management:
+***REMOVED******REMOVED******REMOVED*** Installation
 
 ```bash
-***REMOVED*** Run the API in development mode
-hatch run serve
+cd ml-api
 
-***REMOVED*** Run the API with auto-reload
+***REMOVED*** Install local dependencies
+hatch run install-libs
+
+***REMOVED*** Run development server
 hatch run dev
 ```
 
-***REMOVED******REMOVED******REMOVED*** Production Mode
+***REMOVED******REMOVED******REMOVED*** Basic Usage
 
-For production environments, the service runs directly without Hatch:
+The ML API will be available at `http://localhost:8000` with the following endpoints:
 
-```bash
-***REMOVED*** Run with Python directly
-python -m ml_api.app
+- `POST /embeddings/movie` - Generate movie embeddings
+- `POST /embeddings/user` - Generate user preference vectors
+- `GET /embeddings/info` - Get model information
+- `GET /health` - API health check
+- `GET /health/model` - Model health check
 
-***REMOVED*** Or using the installed CLI
-ml-api serve start --workers 4
-```
+***REMOVED******REMOVED******REMOVED*** API Documentation
 
-***REMOVED******REMOVED******REMOVED*** Development Tasks
+Interactive API documentation is available at:
 
-```bash
-***REMOVED*** Run tests
-hatch run dev:test
-
-***REMOVED*** Run tests with coverage
-hatch run dev:test-cov
-
-***REMOVED*** Format code
-hatch run dev:format
-
-***REMOVED*** Lint code
-hatch run dev:lint
-```
-
-***REMOVED******REMOVED******REMOVED*** CLI Commands
-
-Development (with Hatch):
-
-```bash
-***REMOVED*** Show available commands
-hatch run ml-api --help
-
-***REMOVED*** Server Management
-hatch run ml-api serve start [--host HOST] [--port PORT] [--reload] [--log-level LEVEL]
-```
-
-Production (direct execution):
-
-```bash
-***REMOVED*** Show available commands
-ml-api --help
-
-***REMOVED*** Server Management
-ml-api serve start [--host HOST] [--port PORT] [--workers WORKERS] [--log-level LEVEL]
-
-***REMOVED*** Configuration
-ml-api config show [--verbose]
-ml-api config validate
-
-***REMOVED*** Health and Model Commands
-ml-api health check
-ml-api model info
-ml-api model status
-```
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ***REMOVED******REMOVED*** Configuration
 
-The service is configured through environment variables:
+***REMOVED******REMOVED******REMOVED*** Environment Variables
 
-- `HOST`: Server host (default: 0.0.0.0)
-- `PORT`: Server port (default: 8004)
-- `EMBEDDING_MODEL`: SentenceTransformer model name (default: all-MiniLM-L6-v2)
-- `MODEL_CACHE_DIR`: Directory to cache downloaded models
-- `LOG_LEVEL`: Logging level (default: INFO)
-- `MAX_BATCH_SIZE`: Maximum batch size for embedding generation (default: 32)
+```bash
+***REMOVED*** Service configuration
+SERVICE_NAME=ml-api
+ENVIRONMENT=development
+HOST=0.0.0.0
+PORT=8000
+DEBUG=true
+LOG_LEVEL=INFO
+
+***REMOVED*** ML-specific configuration
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+MODEL_CACHE_DIR=/app/model_cache
+MAX_BATCH_SIZE=32
+EMBEDDINGS_DB_PATH=/app/embeddings.db
+
+***REMOVED*** Feature flags
+ENABLE_EMBEDDINGS=true
+ENABLE_BATCH_PROCESSING=true
+ENABLE_MODEL_CACHING=true
+ENABLE_METRICS=true
+```
+
+***REMOVED******REMOVED******REMOVED*** Configuration Files
+
+The ML API supports configuration through:
+
+- Environment variables
+- `.env` files (`.env`, `.env.local`)
+- Configuration validation with Pydantic
 
 ***REMOVED******REMOVED*** Development
 
-***REMOVED******REMOVED******REMOVED*** Running Tests
+***REMOVED******REMOVED******REMOVED*** Available Commands
 
 ```bash
-***REMOVED*** Run all tests
-hatch run dev:test
+***REMOVED*** Development server with auto-reload
+hatch run dev
 
-***REMOVED*** Run tests with coverage
-hatch run dev:test-cov
+***REMOVED*** Production server
+hatch run serve
+
+***REMOVED*** CLI interface
+hatch run cli
+
+***REMOVED*** Code quality
+hatch run lint
+hatch run format
+
+***REMOVED*** Testing
+hatch run test
+hatch run test-cov
+
+***REMOVED*** Health checks
+hatch run health-check
+hatch run health-model
+
+***REMOVED*** Model management
+hatch run model-info
+hatch run model-load
+hatch run model-test
 ```
 
-***REMOVED******REMOVED******REMOVED*** Code Style
+***REMOVED******REMOVED******REMOVED*** Package Structure
+
+```
+src/ml_api/
+├── main.py              ***REMOVED*** Main application entry point
+├── __main__.py          ***REMOVED*** Module execution support
+├── app.py               ***REMOVED*** Legacy FastAPI app (updated)
+├── config/
+│   ├── app.py           ***REMOVED*** MLAPIConfig (ServiceConfig-based)
+│   └── fast_core_config.py  ***REMOVED*** Fast-core configuration adapter
+├── core/
+│   ├── __init__.py      ***REMOVED*** Exports create_app
+│   ├── app_fast_core.py ***REMOVED*** Fast-core application factory
+│   └── metrics.py       ***REMOVED*** ML-specific Prometheus metrics
+├── cli/
+│   ├── main.py          ***REMOVED*** CLI entry point
+│   ├── __main__.py      ***REMOVED*** CLI module execution
+│   └── commands/        ***REMOVED*** CLI command implementations
+├── routes/
+│   ├── embeddings.py    ***REMOVED*** Embedding API endpoints
+│   └── health.py        ***REMOVED*** Health check endpoints
+├── services/
+│   └── embedding_service.py  ***REMOVED*** Embedding service implementation
+├── models/
+│   └── ...              ***REMOVED*** Pydantic models for API requests/responses
+└── utils/
+    └── ...              ***REMOVED*** Utility functions
+```
+
+***REMOVED******REMOVED*** API Endpoints
+
+***REMOVED******REMOVED******REMOVED*** Movie Embeddings
 
 ```bash
-***REMOVED*** Run linters
-hatch run dev:lint  ***REMOVED*** Runs black, isort, ruff, and mypy
-
-***REMOVED*** Format code only
-hatch run dev:format  ***REMOVED*** Runs black and isort
+***REMOVED*** Generate movie embedding
+curl -X POST "http://localhost:8000/embeddings/movie" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "movie_id": "123",
+    "title": "The Matrix",
+    "overview": "A computer hacker learns about the true nature of reality...",
+    "genres": ["Action", "Sci-Fi"]
+  }'
 ```
 
-***REMOVED******REMOVED*** Docker
+***REMOVED******REMOVED******REMOVED*** User Preference Vectors
 
 ```bash
-***REMOVED*** Build the image
-docker build -t ml-api .
-
-***REMOVED*** Run the container
-docker run -p 8004:8004 ml-api
+***REMOVED*** Generate user preference vector
+curl -X POST "http://localhost:8000/embeddings/user" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "456",
+    "liked_movies": [
+      {"movie_id": "123", "rating": 5.0},
+      {"movie_id": "124", "rating": 4.5}
+    ],
+    "watched_genres": ["Action", "Sci-Fi"]
+  }'
 ```
+
+***REMOVED******REMOVED******REMOVED*** Health Checks
+
+```bash
+***REMOVED*** Basic health check
+curl http://localhost:8000/health
+
+***REMOVED*** Model health check
+curl http://localhost:8000/health/model
+
+***REMOVED*** Model information
+curl http://localhost:8000/embeddings/info
+```
+
+***REMOVED******REMOVED*** Monitoring
+
+***REMOVED******REMOVED******REMOVED*** Metrics
+
+The ML API exposes Prometheus metrics at `/metrics` including:
+
+- `ml_embedding_requests_total` - Request counters by model and batch size
+- `ml_embedding_duration_seconds` - Processing time histograms
+- `ml_embedding_batch_size` - Batch size distribution
+- `ml_model_load_duration_seconds` - Model loading performance
+- `ml_model_memory_usage_bytes` - Model memory consumption
+- `ml_embedding_errors_total` - Error counters by type
+
+***REMOVED******REMOVED******REMOVED*** Rate Limiting
+
+- `/embeddings/*`: 100 requests/minute
+- `/embeddings/batch`: 20 requests/minute
+- `/health/*`: 1000 requests/minute
+
+***REMOVED******REMOVED*** Production Deployment
+
+***REMOVED******REMOVED******REMOVED*** Docker
+
+The ML API can be deployed using Docker with the following considerations:
+
+1. **Model Caching**: Mount a volume for model cache to avoid re-downloading
+2. **Memory**: Ensure sufficient memory for model loading (typically 2-4GB)
+3. **Environment**: Set production environment variables
+4. **Security**: Configure proper CORS and allowed hosts
+
+***REMOVED******REMOVED******REMOVED*** Environment Configuration
+
+```bash
+***REMOVED*** Production settings
+ENVIRONMENT=production
+DEBUG=false
+LOG_LEVEL=INFO
+ALLOWED_HOSTS=ml-api.example.com
+CORS_ORIGINS=https://backend.example.com,https://recommendation.example.com
+
+***REMOVED*** Performance settings
+MAX_BATCH_SIZE=64
+ENABLE_MODEL_CACHING=true
+ENABLE_METRICS=true
+```
+
+***REMOVED******REMOVED*** Fast-Core Integration
+
+The ML API now uses the fast-core framework providing:
+
+- **Standardized Configuration**: ServiceConfig-based configuration with validation
+- **Enhanced Middleware**: CORS, security headers, rate limiting, logging, and metrics
+- **Error Handling**: Consistent error responses and service error contexts
+- **Monitoring**: Built-in health checks and Prometheus metrics
+- **Security**: Production-ready security policies by default
+
+For detailed information about the fast-core integration, see [FAST_CORE_INTEGRATION.md](FAST_CORE_INTEGRATION.md).
+
+***REMOVED******REMOVED*** Contributing
+
+1. Follow the established patterns from other Next Watch services
+2. Use the fast-core framework for consistency
+3. Add tests for new features
+4. Update documentation for API changes
+5. Follow the coding standards (black, isort, ruff, mypy)
+
+***REMOVED******REMOVED*** License
+
+MIT License - see LICENSE file for details.
