@@ -11,14 +11,12 @@ authors = [
 ]
 ***REMOVED*** Make README optional by using an inline text
 readme = {text = "***REMOVED*** ML API\n\nMachine Learning API for Next Watch platform", content-type = "text/markdown"}
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 ***REMOVED*** Dependencies analyzed based on actual usage in embedding_service.py
 dependencies = [
@@ -50,50 +48,6 @@ dev = [
 [project.scripts]
 ml-api = "ml_api.cli:app"
 
-***REMOVED*** Hatch configuration
-[tool.hatch.build.targets.wheel]
-packages = ["ml_api"]
-
-[tool.hatch.envs.default]
-dependencies = [
-  "fastapi>=0.100.0",
-  "uvicorn>=0.22.0",
-  "pydantic>=2.0.0",
-  "sentence-transformers>=2.2.2",
-  "typer>=0.9.0",
-  "rich>=13.0.0",
-  "python-dotenv>=1.0.0",
-]
-
-[tool.hatch.envs.default.scripts]
-serve = "python -m ml_api.app"
-dev = "uvicorn ml_api.app:app --reload --port 8004"
-
-[tool.hatch.envs.dev]
-dependencies = [
-  "pytest>=8.0.0",
-  "pytest-cov>=6.0.0",
-  "httpx>=0.24.0",
-  "black>=23.0.0",
-  "isort>=5.12.0",
-  "mypy>=1.0.0",
-  "ruff>=0.0.250",
-]
-
-[tool.hatch.envs.dev.scripts]
-lint = [
-  "black .",
-  "isort .",
-  "ruff check .",
-  "mypy ml_api"
-]
-test = "pytest {args:tests}"
-test-cov = "pytest --cov=ml_api tests/"
-format = [
-  "black .",
-  "isort ."
-]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -102,14 +56,14 @@ python_functions = "test_*"
 
 [tool.black]
 line-length = 100
-target-version = ["py39"]
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"
 line_length = 100
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

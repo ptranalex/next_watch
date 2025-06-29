@@ -3,9 +3,8 @@
 import logging
 import os
 import sys
-from typing import Any, Dict
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator, Dict
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -64,8 +63,9 @@ def create_app() -> FastAPI:
         allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
         allowed_hosts_list = [host.strip() for host in allowed_hosts.split(",")]
         logger.info(f"Adding TrustedHostMiddleware with allowed_hosts: {allowed_hosts_list}")
-        
+
         from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
         app.add_middleware(
             TrustedHostMiddleware,
             allowed_hosts=allowed_hosts_list,

@@ -49,7 +49,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/src \
     PATH="/home/app/.local/bin:$PATH" \
     ENVIRONMENT="production" \
-    PORT=8003 \
+    PORT=8000 \
     HOST="0.0.0.0" \
     LOG_LEVEL="info" \
     LOGS_DIR="/app/logs" \
@@ -86,10 +86,10 @@ USER app
 
 ***REMOVED*** Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8003/health/live || exit 1
+    CMD curl -f http://localhost:8000/health/live || exit 1
 
-***REMOVED*** Expose port
-EXPOSE 8003
+***REMOVED*** Expose port (following Docker best practice of using 8000 internally)
+EXPOSE 8000
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
