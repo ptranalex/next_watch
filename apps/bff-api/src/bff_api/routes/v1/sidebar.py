@@ -50,7 +50,7 @@ async def _get_sidebar_content_data(
     backend: BackendClient,
 ) -> Dict[str, Any]:
     """Internal cached function for sidebar content aggregation."""
-    logger.info(
+    logger.debug(
         "Building sidebar content data",
         user_id=user_id,
         service="bff",
@@ -58,7 +58,7 @@ async def _get_sidebar_content_data(
     )
 
     ***REMOVED*** Get genres from backend
-    logger.info(
+    logger.debug(
         "Fetching genres for sidebar content",
         user_id=user_id,
         service="bff",
@@ -76,7 +76,7 @@ async def _get_sidebar_content_data(
             component="genre_processing",
         )
 
-    logger.info(
+    logger.debug(
         "Successfully processed genres for sidebar",
         genre_count=len(genres),
         user_id=user_id,
@@ -168,7 +168,7 @@ async def _get_sidebar_content_data(
         }
         for genre in genres
     ]
-    logger.info(
+    logger.debug(
         "Built genre navigation links for sidebar",
         genre_link_count=len(genre_links),
         user_id=user_id,
@@ -194,7 +194,7 @@ async def _get_sidebar_content_data(
         "metadata": metadata,
     }
 
-    logger.info(
+    logger.debug(
         "Successfully built sidebar content data",
         user_id=user_id,
         service="bff",

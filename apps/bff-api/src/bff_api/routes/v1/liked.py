@@ -136,7 +136,7 @@ async def get_user_liked_movies(
     """
     user_id, jwt_token = user_data
 
-    logger.info(
+    logger.debug(
         "Fetching liked movies for user",
         user_id=user_id,
         page=page,
@@ -167,7 +167,7 @@ async def get_user_liked_movies(
         actually_liked = liked_collection_items
 
         if not actually_liked:
-            logger.info(
+            logger.debug(
                 "No liked movies found for user",
                 user_id=user_id,
                 service="bff",
@@ -207,7 +207,7 @@ async def get_user_liked_movies(
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
         if not movie_ids:
-            logger.info(
+            logger.debug(
                 "No valid movie IDs found in liked interactions",
                 user_id=user_id,
                 service="bff",
@@ -346,7 +346,7 @@ async def get_user_liked_movies(
         has_prev = backend_pagination.get("has_prev", page > 1)
         total_pages = backend_pagination.get("total_pages", 1)
 
-        logger.info(
+        logger.debug(
             "Returning liked movies for user",
             user_id=user_id,
             returned_count=len(enriched_movies),

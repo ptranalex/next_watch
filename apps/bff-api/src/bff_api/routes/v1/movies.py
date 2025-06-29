@@ -141,7 +141,7 @@ async def _get_static_movie_data(
     recommendation_client: RecommendationClient,
 ) -> Dict[str, Any]:
     """Internal cached function for static movie data."""
-    logger.info(
+    logger.debug(
         "Building static movie data",
         movie_id=movie_id,
         service="bff",
@@ -201,7 +201,7 @@ async def _get_static_movie_data(
         "similar_movies": similar_movies,
     }
 
-    logger.info(
+    logger.debug(
         "Successfully built static movie data",
         movie_id=movie_id,
         service="bff",
@@ -224,7 +224,7 @@ async def _get_user_movie_interactions(
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[str, Any]:
     """Internal cached function for user-specific movie interactions."""
-    logger.info(
+    logger.debug(
         "Fetching user movie interactions",
         movie_id=movie_id,
         user_id=user_id,
@@ -387,7 +387,7 @@ async def _get_movie_screen_data(
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[str, Any]:
     """Compose movie screen data from separate cached components."""
-    logger.info(
+    logger.debug(
         "Composing movie screen data",
         movie_id=movie_id,
         user_id=user_id,
@@ -415,7 +415,7 @@ async def _get_movie_screen_data(
         "user_interactions": user_interactions,
     }
 
-    logger.info(
+    logger.debug(
         "Successfully composed movie screen data",
         movie_id=movie_id,
         user_id=user_id,
@@ -465,7 +465,7 @@ async def get_movie_screen(
 
     if credentials and credentials.credentials:
         user_id = extract_user_id_from_token(credentials.credentials)
-        logger.info(
+        logger.debug(
             "User authenticated for movie detail",
             movie_id=movie_id,
             user_id=user_id,
@@ -473,7 +473,7 @@ async def get_movie_screen(
             endpoint="movie_detail",
         )
     else:
-        logger.info(
+        logger.debug(
             "Anonymous user accessing movie detail",
             movie_id=movie_id,
             service="bff",
@@ -572,7 +572,7 @@ async def _get_static_movies_list_data(
     backend: BackendClient,
 ) -> Dict[str, Any]:
     """Internal cached function for static movies list data."""
-    logger.info(
+    logger.debug(
         "Building static movies list data",
         page=page,
         limit=limit,
@@ -628,7 +628,7 @@ async def _get_static_movies_list_data(
         "results": movies,
     }
 
-    logger.info(
+    logger.debug(
         "Successfully built static movies list data",
         page=page,
         limit=limit,
@@ -653,7 +653,7 @@ async def _get_user_movies_batch_interactions(
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[int, Dict[str, Any]]:
     """Internal cached function for user interactions with a batch of movies."""
-    logger.info(
+    logger.debug(
         "Fetching user interactions for movie batch",
         movie_count=len(movie_ids),
         user_id=user_id,
@@ -740,7 +740,7 @@ async def _get_movies_list_data(
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[str, Any]:
     """Compose movies list data from separate cached components."""
-    logger.info(
+    logger.debug(
         "Composing movies list data",
         page=page,
         limit=limit,
@@ -811,7 +811,7 @@ async def _get_movies_list_data(
                     }
                 )
 
-    logger.info(
+    logger.debug(
         "Successfully composed movies list data",
         page=page,
         limit=limit,
@@ -892,14 +892,14 @@ async def get_movies_list(
 
     if credentials and credentials.credentials:
         user_id = extract_user_id_from_token(credentials.credentials)
-        logger.info(
+        logger.debug(
             "User authenticated for movies list",
             user_id=user_id,
             service="bff",
             endpoint="movies_list",
         )
     else:
-        logger.info("Anonymous user accessing movies list", service="bff", endpoint="movies_list")
+        logger.debug("Anonymous user accessing movies list", service="bff", endpoint="movies_list")
 
     try:
         ***REMOVED*** Compose movies list data from separate cached components
@@ -1050,7 +1050,7 @@ async def invalidate_user_movie_cache(movie_id: int, user_id: int) -> None:
         movie_id: ID of the movie whose cache should be invalidated
         user_id: ID of the user whose interaction changed
     """
-    logger.info(
+    logger.debug(
         "Invalidating user movie cache",
         movie_id=movie_id,
         user_id=user_id,
@@ -1083,7 +1083,7 @@ async def invalidate_user_movie_cache(movie_id: int, user_id: int) -> None:
                     component="cache_invalidation",
                 )
 
-            logger.info(
+            logger.debug(
                 "Successfully invalidated user movie cache",
                 movie_id=movie_id,
                 user_id=user_id,
@@ -1117,7 +1117,7 @@ async def invalidate_static_movie_cache(movie_id: int) -> None:
     Args:
         movie_id: ID of the movie whose cache should be invalidated
     """
-    logger.info(
+    logger.debug(
         "Invalidating static movie cache",
         movie_id=movie_id,
         service="bff",
@@ -1136,7 +1136,7 @@ async def invalidate_static_movie_cache(movie_id: int) -> None:
             static_movie_key = _build_static_movie_cache_key(movie_id)
             await cache_manager.delete_key(static_movie_key)
 
-            logger.info(
+            logger.debug(
                 "Successfully invalidated static movie cache",
                 movie_id=movie_id,
                 service="bff",

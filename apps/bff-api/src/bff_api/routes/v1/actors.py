@@ -46,7 +46,7 @@ async def _get_actor_screen_data(
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[str, Any]:
     """Internal cached function for actor screen aggregation."""
-    logger.info(
+    logger.debug(
         "Building actor screen data",
         actor_id=actor_id,
         page=page,
@@ -73,7 +73,7 @@ async def _get_actor_screen_data(
     has_prev = movies_response.get("has_prev", False)
 
     ***REMOVED*** For anonymous users, set all interaction fields to false
-    logger.info(
+    logger.debug(
         "Setting default interaction values for actor movies",
         actor_id=actor_id,
         movie_count=len(movies),
@@ -106,7 +106,7 @@ async def _get_actor_screen_data(
         },
     }
 
-    logger.info(
+    logger.debug(
         "Successfully built actor screen data",
         actor_id=actor_id,
         service="bff",
@@ -173,7 +173,7 @@ async def _get_actor_movies_data(
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[str, Any]:
     """Internal cached function for actor movies list aggregation."""
-    logger.info(
+    logger.debug(
         "Building actor movies data",
         actor_id=actor_id,
         page=page,
@@ -217,7 +217,7 @@ async def _get_actor_movies_data(
     has_prev = movies_response.get("has_prev", False)
 
     ***REMOVED*** For anonymous users, set all interaction fields to false
-    logger.info(
+    logger.debug(
         "Setting default interaction values for actor movies",
         actor_id=actor_id,
         movie_count=len(movies),
@@ -247,7 +247,7 @@ async def _get_actor_movies_data(
         "results": movies,
     }
 
-    logger.info(
+    logger.debug(
         "Successfully built actor movies data",
         actor_id=actor_id,
         service="bff",
@@ -294,7 +294,7 @@ async def get_actor_screen(
 
     if credentials and credentials.credentials:
         user_id = extract_user_id_from_token(credentials.credentials)
-        logger.info(
+        logger.debug(
             "User authenticated for actor screen",
             actor_id=actor_id,
             user_id=user_id,
@@ -302,7 +302,7 @@ async def get_actor_screen(
             endpoint="actor_screen",
         )
     else:
-        logger.info(
+        logger.debug(
             "Anonymous user accessing actor screen",
             actor_id=actor_id,
             service="bff",
@@ -318,7 +318,7 @@ async def get_actor_screen(
         ***REMOVED*** Handle user interactions for authenticated users (not cached due to user-specific nature)
         if user_id and credentials:
             movies = actor_screen_dict["movies"]["results"]
-            logger.info(
+            logger.debug(
                 "Fetching user interactions for actor movies",
                 actor_id=actor_id,
                 user_id=user_id,
@@ -479,7 +479,7 @@ async def get_actor_movies(
 
     if credentials and credentials.credentials:
         user_id = extract_user_id_from_token(credentials.credentials)
-        logger.info(
+        logger.debug(
             "User authenticated for actor movies",
             actor_id=actor_id,
             user_id=user_id,
@@ -487,7 +487,7 @@ async def get_actor_movies(
             endpoint="actor_movies",
         )
     else:
-        logger.info(
+        logger.debug(
             "Anonymous user accessing actor movies",
             actor_id=actor_id,
             service="bff",
@@ -517,7 +517,7 @@ async def get_actor_movies(
         ***REMOVED*** Handle user interactions for authenticated users (not cached due to user-specific nature)
         if user_id and credentials:
             movies = movies_data_dict["results"]
-            logger.info(f"🔄 Fetching user interactions for {len(movies)} movies")
+            logger.debug(f"🔄 Fetching user interactions for {len(movies)} movies")
             for movie in movies:
                 movie_id = movie.get("id")
                 if movie_id:

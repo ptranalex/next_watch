@@ -115,7 +115,7 @@ async def get_watched_movies(
     """
     user_id, jwt_token = user_data
 
-    logger.info(f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})")
+    logger.debug(f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})")
 
     try:
         ***REMOVED*** Get watched movies interactions from backend
@@ -138,7 +138,7 @@ async def get_watched_movies(
         actually_watched = watched_collection_items
 
         if not actually_watched:
-            logger.info(f"No watched movies found for user {user_id}")
+            logger.debug(f"No watched movies found for user {user_id}")
             response = responses.paginated(
                 items=[],
                 page=page,
@@ -165,7 +165,7 @@ async def get_watched_movies(
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
         if not movie_ids:
-            logger.info(f"No valid movie IDs found in watched interactions for user {user_id}")
+            logger.debug(f"No valid movie IDs found in watched interactions for user {user_id}")
             response = responses.paginated(
                 items=[],
                 page=page,
@@ -248,7 +248,7 @@ async def get_watched_movies(
         has_prev = backend_pagination.get("has_prev", page > 1)
         total_pages = backend_pagination.get("total_pages", 1)
 
-        logger.info(
+        logger.debug(
             f"✅ Returning {len(enriched_movies)} watched movies for user {user_id} (enriched from {len(actually_watched)} interactions)"
         )
 

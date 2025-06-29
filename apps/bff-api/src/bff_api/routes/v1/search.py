@@ -152,14 +152,14 @@ async def get_search_suggestions(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.info(f"Basic suggestions request via Search API", query=query, limit=limit)
+        logger.debug(f"Basic suggestions request via Search API", query=query, limit=limit)
 
         result = await search_client.get_suggestions(
             query=query,
             limit=limit,
         )
 
-        logger.info(
+        logger.debug(
             f"Basic suggestions completed successfully",
             total=result.get("metadata", {}).get("total", 0),
             query=query,
@@ -217,14 +217,14 @@ async def get_text_suggestions(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.info(f"Text suggestions request via Search API", query=query, limit=limit)
+        logger.debug(f"Text suggestions request via Search API", query=query, limit=limit)
 
         result = await search_client.get_text_suggestions(
             query=query,
             limit=limit,
         )
 
-        logger.info(
+        logger.debug(
             f"Text suggestions completed successfully",
             total=result.get("metadata", {}).get("total", 0),
             query=query,
@@ -283,7 +283,7 @@ async def search_all_entities(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.info(f"Multi-entity search request via Search API", query=query, types=types)
+        logger.debug(f"Multi-entity search request via Search API", query=query, types=types)
 
         result = await search_client.search_all_entities(
             query=query,
@@ -292,7 +292,7 @@ async def search_all_entities(
             types=types,
         )
 
-        logger.info(
+        logger.debug(
             f"Multi-entity search completed successfully",
             total=result.get("pagination", {}).get("total", 0),
             page=page,

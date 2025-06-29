@@ -115,7 +115,7 @@ async def get_user_profile(
     except AuthClientError as e:
         if "401" in str(e):
             ***REMOVED*** Token validation failures are normal - log as info
-            logger.info("Token validation failed", service="bff", endpoint="get_user_profile")
+            logger.debug("Token validation failed", service="bff", endpoint="get_user_profile")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired token",
@@ -167,7 +167,7 @@ async def create_token(
     except AuthClientError as e:
         if "401" in str(e):
             ***REMOVED*** Authentication failures are normal user behavior - log as info
-            logger.info(
+            logger.debug(
                 "Authentication attempt failed",
                 username=username,
                 service="bff",
@@ -223,7 +223,7 @@ async def update_token(
     except AuthClientError as e:
         if "401" in str(e):
             ***REMOVED*** Token refresh failures are normal - log as info
-            logger.info("Token refresh failed", service="bff", endpoint="update_token")
+            logger.debug("Token refresh failed", service="bff", endpoint="update_token")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired refresh token",

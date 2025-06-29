@@ -74,7 +74,7 @@ async def _get_genre_screen_data(
     credentials: Optional[HTTPAuthorizationCredentials] = None,
 ) -> Dict[str, Any]:
     """Internal cached function for genre screen aggregation."""
-    logger.info(
+    logger.debug(
         "Building genre screen data",
         genre_id=genre_id,
         page=page,
@@ -87,7 +87,7 @@ async def _get_genre_screen_data(
     ***REMOVED*** Get genre details from backend
     try:
         genre_response = await backend.get_genre(genre_id)
-        logger.info(
+        logger.debug(
             "Retrieved genre details",
             genre_id=genre_id,
             genre_name=genre_response.get("name", "unknown"),
@@ -144,7 +144,7 @@ async def _get_genre_screen_data(
     has_prev = movies_response.get("has_prev", False)
 
     ***REMOVED*** For anonymous users, set all interaction fields to false
-    logger.info(
+    logger.debug(
         "Setting default interaction values for genre movies",
         genre_id=genre_id,
         movie_count=len(movies),
@@ -175,7 +175,7 @@ async def _get_genre_screen_data(
         "results": movies,
     }
 
-    logger.info(
+    logger.debug(
         "Successfully built genre screen data",
         genre_id=genre_id,
         service="bff",
@@ -253,7 +253,7 @@ async def get_genre_screen(
 
     if credentials and credentials.credentials:
         extracted_user_id = extract_user_id_from_token(credentials.credentials)
-        logger.info(
+        logger.debug(
             "User authenticated for genre screen",
             genre_id=genre_id,
             user_id=extracted_user_id,
@@ -261,7 +261,7 @@ async def get_genre_screen(
             endpoint="genre_screen",
         )
     else:
-        logger.info(
+        logger.debug(
             "Anonymous user accessing genre screen",
             genre_id=genre_id,
             service="bff",
@@ -294,7 +294,7 @@ async def get_genre_screen(
         ***REMOVED*** Handle user interactions for authenticated users (not cached due to user-specific nature)
         if final_user_id and credentials:
             movies = genre_screen_dict["results"]
-            logger.info(
+            logger.debug(
                 "Fetching user interactions for genre movies",
                 genre_id=genre_id,
                 user_id=final_user_id,

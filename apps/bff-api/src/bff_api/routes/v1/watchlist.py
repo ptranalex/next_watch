@@ -135,7 +135,7 @@ async def get_user_watchlist(
     """
     user_id, jwt_token = user_data
 
-    logger.info(f"📋 Fetching watchlist for user {user_id} (page {page}, limit {limit})")
+    logger.debug(f"📋 Fetching watchlist for user {user_id} (page {page}, limit {limit})")
 
     try:
         ***REMOVED*** Get watchlist interactions from backend using new collection API
@@ -168,7 +168,7 @@ async def get_user_watchlist(
         ]
 
         if not actually_watchlisted:
-            logger.info(f"No watchlist movies found for user {user_id}")
+            logger.debug(f"No watchlist movies found for user {user_id}")
             response = responses.paginated(
                 items=[],
                 page=page,
@@ -205,7 +205,7 @@ async def get_user_watchlist(
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
         if not movie_ids:
-            logger.info(f"No valid movie IDs found in watchlist interactions for user {user_id}")
+            logger.debug(f"No valid movie IDs found in watchlist interactions for user {user_id}")
             response = responses.paginated(
                 items=[],
                 page=page,

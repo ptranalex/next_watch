@@ -47,7 +47,7 @@ async def get_watchlist(
             - 502 if backend service unavailable
     """
     user_id, jwt_token = user_data
-    logger.info(f"Getting watchlist for user {user_id}")
+    logger.debug(f"Getting watchlist for user {user_id}")
 
     try:
         ***REMOVED*** Backend now returns fast-core format with results, pagination, metadata
@@ -112,7 +112,7 @@ async def add_to_watchlist(
     """
     user_id, jwt_token = user_data
     movie_id = request.movie_id
-    logger.info(f"Adding movie {movie_id} to watchlist for user {user_id}")
+    logger.debug(f"Adding movie {movie_id} to watchlist for user {user_id}")
 
     try:
         ***REMOVED*** Add to watchlist (backend handles idempotency)
@@ -176,7 +176,7 @@ async def remove_from_watchlist(
             - 502 if backend service unavailable
     """
     user_id, jwt_token = user_data
-    logger.info(f"Removing movie {movie_id} from watchlist for user {user_id}")
+    logger.debug(f"Removing movie {movie_id} from watchlist for user {user_id}")
 
     try:
         ***REMOVED*** Remove from watchlist (backend handles idempotency)
@@ -232,7 +232,7 @@ async def get_watched_movies(
             - 502 if backend service unavailable
     """
     user_id, jwt_token = user_data
-    logger.info(f"Getting watched movies for user {user_id}")
+    logger.debug(f"Getting watched movies for user {user_id}")
 
     try:
         ***REMOVED*** Backend now returns fast-core format with results, pagination, metadata
@@ -297,7 +297,7 @@ async def mark_movie_watched(
     """
     user_id, jwt_token = user_data
     movie_id = request.movie_id
-    logger.info(f"Marking movie {movie_id} as watched for user {user_id}")
+    logger.debug(f"Marking movie {movie_id} as watched for user {user_id}")
 
     try:
         ***REMOVED*** Mark as watched (backend handles idempotency)
@@ -361,7 +361,7 @@ async def unmark_movie_watched(
             - 502 if backend service unavailable
     """
     user_id, jwt_token = user_data
-    logger.info(f"Unmarking movie {movie_id} as watched for user {user_id}")
+    logger.debug(f"Unmarking movie {movie_id} as watched for user {user_id}")
 
     try:
         ***REMOVED*** Unmark as watched (backend handles idempotency)
@@ -415,7 +415,7 @@ async def get_liked_movies(
             - 502 if backend service unavailable
     """
     user_id, jwt_token = user_data
-    logger.info(f"Getting liked movies for user {user_id}")
+    logger.debug(f"Getting liked movies for user {user_id}")
 
     try:
         ***REMOVED*** Backend now returns fast-core format with results, pagination, metadata
@@ -480,7 +480,7 @@ async def like_movie(
     """
     user_id, jwt_token = user_data
     movie_id = request.movie_id
-    logger.info(f"Liking movie {movie_id} for user {user_id}")
+    logger.debug(f"Liking movie {movie_id} for user {user_id}")
 
     try:
         ***REMOVED*** Like the movie (backend handles idempotency)
@@ -544,7 +544,7 @@ async def unlike_movie(
             - 502 if backend service unavailable
     """
     user_id, jwt_token = user_data
-    logger.info(f"Unliking movie {movie_id} for user {user_id}")
+    logger.debug(f"Unliking movie {movie_id} for user {user_id}")
 
     try:
         ***REMOVED*** Unlike the movie (backend handles idempotency)
@@ -605,7 +605,7 @@ async def get_movie_interaction(
             - 502 if backend service unavailable
     """
     user_id, jwt_token = user_data
-    logger.info(f"Getting interaction for user {user_id}, movie {movie_id}")
+    logger.debug(f"Getting interaction for user {user_id}, movie {movie_id}")
 
     try:
         interaction = await backend.get_user_movie_interaction(user_id, movie_id, jwt_token)

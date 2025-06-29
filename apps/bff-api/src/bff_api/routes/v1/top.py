@@ -146,12 +146,12 @@ async def get_top_movies(
     """
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.info(f"🔍 Debugging token extraction for top movies")
-    logger.info(f"📋 Credentials present: {bool(credentials)}")
+    logger.debug(f"🔍 Debugging token extraction for top movies")
+    logger.debug(f"📋 Credentials present: {bool(credentials)}")
 
     if credentials and credentials.credentials:
-        logger.info(f"🔑 Token present: {bool(credentials.credentials)}")
-        logger.info(f"🔑 Token preview: {credentials.credentials[:20]}...")
+        logger.debug(f"🔑 Token present: {bool(credentials.credentials)}")
+        logger.debug(f"🔑 Token preview: {credentials.credentials[:20]}...")
 
         ***REMOVED*** Temporarily enable debug logging for JWT extraction
         auth_logger = logging.getLogger("bff_api.utils.auth")
@@ -163,9 +163,9 @@ async def get_top_movies(
         ***REMOVED*** Restore original logging level
         auth_logger.setLevel(original_level)
 
-        logger.info(f"👤 Extracted user_id: {user_id}")
+        logger.debug(f"👤 Extracted user_id: {user_id}")
     else:
-        logger.info("❌ No credentials or token found - treating as anonymous user")
+        logger.debug("❌ No credentials or token found - treating as anonymous user")
 
     try:
         ***REMOVED*** Build filter parameters for top movies
@@ -191,7 +191,7 @@ async def get_top_movies(
         if end_year is not None:
             filters["end_year"] = end_year
 
-        logger.info(f"🎬 Fetching top movies with filters: {filters}")
+        logger.debug(f"🎬 Fetching top movies with filters: {filters}")
 
         ***REMOVED*** Get top movies from backend
         movies_response = await _get_movies(backend, page=page, limit=limit, **filters)
@@ -207,7 +207,7 @@ async def get_top_movies(
 
         ***REMOVED*** If user is authenticated, fetch user interactions for each movie
         if user_id and credentials:
-            logger.info(f"🔄 Fetching user interactions for {len(movies)} top movies")
+            logger.debug(f"🔄 Fetching user interactions for {len(movies)} top movies")
             for movie in movies:
                 movie_id = movie.get("id")
                 if movie_id:
@@ -261,7 +261,7 @@ async def get_top_movies(
                         }
         else:
             ***REMOVED*** For anonymous users, set all interaction fields to false
-            logger.info("No user authenticated - setting default interaction values for top movies")
+            logger.debug("No user authenticated - setting default interaction values for top movies")
             for movie in movies:
                 movie["liked"] = False
                 movie["watched"] = False
@@ -274,7 +274,7 @@ async def get_top_movies(
                     "is_watched": False,
                 }
 
-        logger.info(f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})")
+        logger.debug(f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})")
 
         ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
