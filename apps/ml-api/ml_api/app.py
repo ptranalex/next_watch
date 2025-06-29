@@ -115,7 +115,7 @@ app = create_app()
 if __name__ == "__main__":
     ***REMOVED*** Get environment variables or use defaults
     host = os.getenv("HOST", "0.0.0.0")
-    port = int(os.getenv("PORT", "8004"))
+    port = int(os.getenv("PORT", "8000"))  ***REMOVED*** Updated to use Docker best practice port 8000
     log_level = os.getenv("LOG_LEVEL", "info").lower()
 
     ***REMOVED*** Run the application with uvicorn
