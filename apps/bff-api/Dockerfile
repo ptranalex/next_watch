@@ -82,10 +82,10 @@ USER app
 
 ***REMOVED*** Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8001/health/live || exit 1
+    CMD curl -f http://localhost:8000/health/live || exit 1
 
-***REMOVED*** Expose port
-EXPOSE 8001
+***REMOVED*** Expose port (following Docker best practice of using 8000 internally)
+EXPOSE 8000
 
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
@@ -94,7 +94,7 @@ ENTRYPOINT ["/sbin/tini", "--"]
 ***REMOVED*** This bypasses our CLI for production to ensure optimal performance
 CMD ["uvicorn", "bff_api.main:app", \
      "--host", "0.0.0.0", \
-     "--port", "8001", \
+     "--port", "8000", \
      "--workers", "1", \
      "--timeout-keep-alive", "120", \
      "--log-level", "info", \
