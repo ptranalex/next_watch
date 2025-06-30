@@ -40,25 +40,22 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize Search-specific metrics (temporarily disabled due to registry conflicts)
-    ***REMOVED*** Using fast-core metrics middleware instead for standardized monitoring
-    ***REMOVED*** try:
-    ***REMOVED***     from search_api.core.metrics import initialize_search_metrics
+    ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
+    try:
+        from search_api.core.metrics import initialize_search_metrics
 
-    ***REMOVED***     metrics_instance = initialize_search_metrics()
-    ***REMOVED***     if metrics_instance:
-    ***REMOVED***         logger.info("Search metrics initialized successfully")
-    ***REMOVED***         app.state.metrics = metrics_instance
-    ***REMOVED***     else:
-    ***REMOVED***         logger.warning(
-    ***REMOVED***             "Search metrics initialization returned None - metrics registry not available"
-    ***REMOVED***         )
-    ***REMOVED*** except ImportError as e:
-    ***REMOVED***     logger.error(f"Failed to import Search metrics module: {e}")
-    ***REMOVED*** except Exception as e:
-    ***REMOVED***     logger.error(f"Error initializing Search metrics: {e}")
-
-    logger.info("Using fast-core metrics middleware for Search API monitoring")
+        metrics_instance = initialize_search_metrics()
+        if metrics_instance:
+            logger.info("Search metrics initialized successfully")
+            app.state.metrics = metrics_instance
+        else:
+            logger.warning(
+                "Search metrics initialization returned None - metrics registry not available"
+            )
+    except ImportError as e:
+        logger.error(f"Failed to import Search metrics module: {e}")
+    except Exception as e:
+        logger.error(f"Error initializing Search metrics: {e}")
 
     ***REMOVED*** Initialize search-specific services
     suggestion_engine = None
@@ -242,6 +239,8 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
     )
 
     ***REMOVED*** Configure metrics middleware for Search API monitoring
+    ***REMOVED*** Note: Metrics endpoint is provided by fast-core create_app, so we disable
+    ***REMOVED*** middleware metrics to avoid duplication conflicts
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
@@ -265,9 +264,9 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
         ],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+        enabled=False,  ***REMOVED*** Disabled - fast-core provides metrics endpoint
     )
-    logger.info("Metrics middleware enabled for Search API monitoring")
+    logger.info("Metrics middleware configured (endpoint provided by fast-core)")
 
     logger.info(f"Search middleware configured for {config.environment} environment")
     return middleware
