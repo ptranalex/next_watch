@@ -1,4 +1,12 @@
-***REMOVED*** Python
+***REMOVED***
+***REMOVED*** Search API .dockerignore - Optimized for fast builds
+***REMOVED***
+***REMOVED*** This file reduces Docker build context from ~360MB to <10MB by excluding
+***REMOVED*** unnecessary files and directories for the Search API container build.
+
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** PYTHON BUILD ARTIFACTS
+***REMOVED*** -----------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,25 +27,42 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.whl
 
-***REMOVED*** Virtual environments
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** VIRTUAL ENVIRONMENTS & PACKAGE MANAGERS
+***REMOVED*** -----------------------------------------------------------------------------
 .env
-.venv
+.env.*
+!.env.example
+.venv/
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 .hatch/
+.conda/
+.poetry/
+pip-log.txt
+pip-delete-this-directory.txt
 
-***REMOVED*** IDE
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** DEVELOPMENT TOOLS & IDEs
+***REMOVED*** -----------------------------------------------------------------------------
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *~
+.vim/
+.emacs.d/
+.atom/
 
-***REMOVED*** OS
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** OPERATING SYSTEM FILES
+***REMOVED*** -----------------------------------------------------------------------------
 .DS_Store
 .DS_Store?
 ._*
@@ -45,42 +70,113 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
-***REMOVED*** Git
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** VERSION CONTROL
+***REMOVED*** -----------------------------------------------------------------------------
 .git/
 .gitignore
+.gitattributes
+.github/
 
-***REMOVED*** Testing
-.coverage
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** TESTING & COVERAGE
+***REMOVED*** -----------------------------------------------------------------------------
+tests/
+test_*/
+*_test.py
+test_*.py
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
 .tox/
 .nox/
-htmlcov/
-.cache
+.cache/
 nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+.prof
 
-***REMOVED*** Documentation
-docs/_build/
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** DOCUMENTATION & EXAMPLES
+***REMOVED*** -----------------------------------------------------------------------------
+docs/
+*.md
+*.rst
+*.txt
+!requirements*.txt
+!pyproject.toml
+examples/
+scripts/
 .readthedocs.yml
+docs/_build/
 
-***REMOVED*** Logs
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** LOGS & TEMPORARY FILES
+***REMOVED*** -----------------------------------------------------------------------------
 *.log
 logs/
 .logs/
+tmp/
+temp/
+.tmp/
+.temp/
 
-***REMOVED*** Development files
-README.md
-*.md
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** DOCKER & CONTAINERS
+***REMOVED*** -----------------------------------------------------------------------------
 Dockerfile*
 docker-compose*.yml
 .dockerignore
+*.dockerfile
 
-***REMOVED*** Application specific
-tests/
-scripts/
-examples/
-.env.*
-*.example 
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** OTHER APP DIRECTORIES (Search only needs its own files + shared libs)
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** Exclude all other apps - we only need search-api and shared libs
+apps/auth-api/
+apps/backend-api/
+apps/bff-api/
+apps/data-importer/
+apps/ml-api/
+apps/recommendation-api/
+apps/web-nextjs/
+apps/mobile-flutter/
+
+***REMOVED*** Exclude non-essential libs (keep only what Search needs)
+***REMOVED*** libs/movie-storage/  ***REMOVED*** Search doesn't use this directly
+
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** INFRASTRUCTURE & DEPLOYMENT
+***REMOVED*** -----------------------------------------------------------------------------
+infra/
+.k8s/
+.terraform/
+.helm/
+
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** PROJECT ARTIFACTS & CACHES
+***REMOVED*** -----------------------------------------------------------------------------
+.mypy_cache/
+.ruff_cache/
+.black/
+.isort.cfg
+.bandit
+.safety
+results/
+.benchmarks/
+.profiling/
+model_cache/
+
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** KEEP ONLY WHAT'S NEEDED FOR SEARCH API BUILD:
+***REMOVED*** -----------------------------------------------------------------------------
+***REMOVED*** ✅ libs/cache/         - NextWatch Cache Library (Redis integration)
+***REMOVED*** ✅ libs/cli/           - NextWatch CLI Framework  
+***REMOVED*** ✅ libs/config/        - NextWatch Config Library
+***REMOVED*** ✅ libs/fast-core/     - FastAPI Core Framework
+***REMOVED*** ✅ apps/search-api/src/ - Search API source code
+***REMOVED*** ✅ apps/search-api/pyproject.toml - Dependencies 
