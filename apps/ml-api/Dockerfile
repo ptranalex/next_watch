@@ -88,35 +88,16 @@ COPY apps/ml-api/src ./src/
 ***REMOVED*** Final stage: Runtime image
 FROM python:3.12-slim AS final
 
-***REMOVED*** Set production environment variables
+***REMOVED*** Set essential runtime environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
     PATH="/home/app/.local/bin:$PATH" \
-    ENVIRONMENT="production" \
-    PORT=8004 \
-    HOST="0.0.0.0" \
-    LOG_LEVEL="info" \
-    WORKERS=1 \
-    TIMEOUT=120 \
-    RELOAD=false \
-    PROXY_HEADERS=true \
-    FORWARDED_ALLOW_IPS="*" \
-    LIMIT_MAX_REQUESTS=10000 \
-    BACKLOG=1024 \
-    ***REMOVED*** ML-specific environment variables
-    EMBEDDING_MODEL="all-MiniLM-L6-v2" \
+    ***REMOVED*** ML-specific cache directories (required for model storage)
     TORCH_HOME="/app/.cache/torch" \
     TRANSFORMERS_CACHE="/app/.cache/transformers" \
     SENTENCE_TRANSFORMERS_HOME="/app/.cache/sentence_transformers" \
-    ***REMOVED*** Cache optimization
-    HF_HUB_CACHE="/app/.cache/huggingface" \
-    ***REMOVED*** Configuration variables  
-    SERVICE_NAME="ml-api" \
-    ENABLE_EMBEDDINGS=true \
-    ENABLE_BATCH_PROCESSING=true \
-    ENABLE_MODEL_CACHING=true \
-    ENABLE_METRICS=true
+    HF_HUB_CACHE="/app/.cache/huggingface"
 
 WORKDIR /app
 
@@ -147,7 +128,7 @@ USER app
 
 ***REMOVED*** Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8004/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 ***REMOVED*** Expose port
 EXPOSE 8000
@@ -155,15 +136,17 @@ EXPOSE 8000
 ***REMOVED*** Use tini for proper signal handling
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-***REMOVED*** Run the application
-CMD ["uvicorn", "ml_api.main:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8004", \
-     "--workers", "1", \
-     "--timeout-keep-alive", "120", \
-     "--log-level", "info", \
-     "--no-access-log", \
-     "--proxy-headers", \
-     "--forwarded-allow-ips", "*", \
-     "--backlog", "1024", \
-     "--limit-max-requests", "10000"]
+***REMOVED*** Run the application using uvicorn directly with proper worker configuration
+***REMOVED*** This bypasses our CLI for production to ensure optimal performance
+***REMOVED*** Using environment variables for flexibility and consistency
+CMD ["sh", "-c", "uvicorn ml_api.main:app \
+    --host ${HOST} \
+    --port ${PORT} \
+    --workers ${WORKERS} \
+    --timeout-keep-alive ${TIMEOUT} \
+    --log-level ${LOG_LEVEL} \
+    --no-access-log \
+    --proxy-headers \
+    --forwarded-allow-ips \"${FORWARDED_ALLOW_IPS}\" \
+    --backlog ${BACKLOG} \
+    --limit-max-requests ${LIMIT_MAX_REQUESTS}"]

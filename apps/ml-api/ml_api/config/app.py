@@ -91,7 +91,7 @@ class MLAPIConfig(ServiceConfig):
             "embeddings": self.enable_embeddings,
             "batch_processing": self.enable_batch_processing,
             "model_caching": self.enable_model_caching,
-            "metrics": self.enable_metrics,
+            "metrics": True,  ***REMOVED*** Always enabled for production observability
         }
         disabled_features = [k for k, v in features.items() if not v]
         if disabled_features:
@@ -169,7 +169,7 @@ class MLAPIConfig(ServiceConfig):
     Embeddings: {self.enable_embeddings}
     Batch Processing: {self.enable_batch_processing}
     Model Caching: {self.enable_model_caching}
-    Metrics: {self.enable_metrics}
+    Metrics: True (Always Enabled)
 
   Logging:
     Log Level: {self.log_level}

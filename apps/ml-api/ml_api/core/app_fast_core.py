@@ -16,8 +16,8 @@ from ml_api.config.fast_core_config import create_fast_core_config
 from config.logging import get_logger
 
 ***REMOVED*** Import ML routes
-from ml_api.routes.embeddings import router as embeddings_router
-from ml_api.routes.health import router as health_router
+from ml_api.routes.embeddings import router as embeddings_router  ***REMOVED*** type: ignore
+from ml_api.routes.health import router as health_router  ***REMOVED*** type: ignore
 
 logger = get_logger(__name__)
 
@@ -40,7 +40,7 @@ async def ml_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Initialize ML model if enabled
     if ml_config.enable_embeddings:
         try:
-            from ml_api.services import embedding_service
+            from ml_api.services import embedding_service  ***REMOVED*** type: ignore
 
             logger.info("Loading embedding model...")
             embedding_service.load_model()
@@ -56,31 +56,26 @@ async def ml_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             else:
                 logger.warning("Continuing with mock embeddings in development")
 
-    ***REMOVED*** Initialize ML-specific metrics (if enabled)
-    if ml_config.enable_metrics:
-        try:
-            from ml_api.core.metrics import initialize_ml_metrics
+    ***REMOVED*** Initialize ML-specific metrics (always enabled for observability)
+    try:
+        from ml_api.core.metrics import initialize_ml_metrics
 
-            metrics_instance = initialize_ml_metrics()
-            if metrics_instance:
-                logger.info("ML metrics initialized successfully")
-                app.state.metrics = metrics_instance
-            else:
-                logger.warning(
-                    "ML metrics initialization returned None - metrics registry not available"
-                )
-        except ImportError as e:
-            logger.error(f"Metrics dependencies not installed: {e}")
-            logger.info(
-                "Install prometheus-client to enable metrics: pip install prometheus-client"
+        metrics_instance = initialize_ml_metrics()
+        if metrics_instance:
+            logger.info("ML metrics initialized successfully")
+            app.state.metrics = metrics_instance
+        else:
+            logger.warning(
+                "ML metrics initialization returned None - metrics registry not available"
             )
-        except Exception as e:
-            logger.error(f"Failed to initialize ML metrics: {e}", exc_info=True)
-            if ml_config.is_production:
-                ***REMOVED*** In production, we want to know about metrics failures
-                raise
-    else:
-        logger.info("ML metrics disabled by configuration")
+    except ImportError as e:
+        logger.error(f"Metrics dependencies not installed: {e}")
+        logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
+    except Exception as e:
+        logger.error(f"Failed to initialize ML metrics: {e}", exc_info=True)
+        if ml_config.is_production:
+            ***REMOVED*** In production, we want to know about metrics failures
+            raise
 
     yield
 
@@ -190,9 +185,11 @@ def create_ml_middleware_config(config: MLAPIConfig) -> MiddlewareConfig:
         endpoint_path="/metrics",
         include_endpoint=True,
         exclude_paths=["/health", "/ping", "/docs", "/openapi.json", "/favicon.ico"],
-        include_custom_labels=True,
+        exclude_methods=["OPTIONS"],
+        custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0],
         track_request_size=True,
         track_response_size=True,
+        enabled=True,  ***REMOVED*** Always enable metrics for production observability
     )
 
     return middleware

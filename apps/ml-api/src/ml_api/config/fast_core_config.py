@@ -42,7 +42,7 @@ def create_fast_core_config(ml_config: MLAPIConfig) -> FastAPIConfig:
             "embeddings": ml_config.enable_embeddings,
             "batch_processing": ml_config.enable_batch_processing,
             "model_caching": ml_config.enable_model_caching,
-            "metrics": ml_config.enable_metrics,
+            "metrics": True,  ***REMOVED*** Always enabled for production observability
         },
         ***REMOVED*** FastAPI-specific configuration
         docs_url="/docs",
