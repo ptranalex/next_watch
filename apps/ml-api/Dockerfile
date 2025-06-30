@@ -1,52 +1,91 @@
-***REMOVED*** ML API Dockerfile
+***REMOVED*** Optimized ML API Dockerfile for GitHub Actions
 ***REMOVED*** 
 ***REMOVED*** Build context should be the monorepo root to access local dependencies:
 ***REMOVED*** docker build -f apps/ml-api/Dockerfile -t ml-api .
 ***REMOVED***
-***REMOVED*** This Dockerfile requires:
-***REMOVED*** - libs/cache/ (NextWatch Cache Library) - optional for ML API
-***REMOVED*** - libs/cli/ (NextWatch CLI Framework)
-***REMOVED*** - libs/config/ (NextWatch Config Library)
-***REMOVED*** - libs/fast-core/ (FastAPI Core Framework)
-***REMOVED*** - apps/ml-api/ (ML API application)
+***REMOVED*** Optimization Strategy:
+***REMOVED*** 1. Maximize layer caching by ordering operations by change frequency
+***REMOVED*** 2. Use BuildKit cache mounts for package downloads
+***REMOVED*** 3. Pre-install heavy dependencies in separate layers
+***REMOVED*** 4. Use multi-stage builds to minimize final image size
 
-***REMOVED*** Stage 1: Build dependencies and package
-FROM python:3.12-slim AS builder
+***REMOVED*** Stage 1: Base Python with system dependencies (changes rarely)
+FROM python:3.12-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    ***REMOVED*** Build optimization
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-***REMOVED*** Install build dependencies (needed for ML packages)
-RUN apt-get update && \
+***REMOVED*** Install system dependencies (cached layer - changes rarely)
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     build-essential \
     libffi-dev \
     libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    tini
 
-***REMOVED*** Copy local dependencies first
+***REMOVED*** Stage 2: Python dependencies (changes occasionally)
+FROM base AS python-deps
+
+***REMOVED*** Create user early for consistent permissions
+RUN groupadd -r app && useradd -r -g app app
+
+***REMOVED*** Install pip and setuptools upgrades (cached layer)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip setuptools wheel
+
+***REMOVED*** Install PyTorch first (heaviest dependency - cached layer)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --user torch==2.7.1+cpu --index-url https://download.pytorch.org/whl/cpu
+
+***REMOVED*** Stage 3: Local dependencies (changes more frequently)
+FROM python-deps AS local-deps
+
+***REMOVED*** Copy and install local libraries (these change more often than PyTorch)
 COPY libs/cli ./libs/cli/
 COPY libs/config ./libs/config/
 COPY libs/fast-core ./libs/fast-core/
 
-***REMOVED*** Install local dependencies
-RUN pip install --no-cache-dir --user ./libs/cli/ ./libs/config/ ./libs/fast-core/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --user ./libs/cli/ ./libs/config/ ./libs/fast-core/
 
-***REMOVED*** Copy the pyproject.toml file
+***REMOVED*** Stage 4: App dependencies (changes frequently)
+FROM local-deps AS app-deps
+
+***REMOVED*** Copy only pyproject.toml first (dependency specification)
 COPY apps/ml-api/pyproject.toml ./pyproject.toml
 
-***REMOVED*** Install dependencies first, then install CPU-only PyTorch
-RUN pip install --no-cache-dir --user -e . && \
-pip install --no-cache-dir --user --force-reinstall torch==2.7.1+cpu --index-url https://download.pytorch.org/whl/cpu
+***REMOVED*** Install app dependencies (but not the app itself yet)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --user -e . --no-deps && \
+    pip install --user sentence-transformers>=2.2.2 \
+    fastapi>=0.104.0 \
+    uvicorn>=0.23.2 \
+    pydantic>=2.4.2 \
+    typer>=0.15.2 \
+    rich>=13.7.0 \
+    structlog>=23.2.0 \
+    python-dotenv>=1.0.0 \
+    python-dateutil>=2.9.0 \
+    python-multipart>=0.0.20 \
+    email-validator>=2.2.0
 
-***REMOVED*** Copy application files
+***REMOVED*** Stage 5: Application code (changes most frequently)  
+FROM app-deps AS app-build
+
+***REMOVED*** Copy application source code (this layer changes most often)
 COPY apps/ml-api/src ./src/
 
-***REMOVED*** Stage 2: Minimal runtime image
+***REMOVED*** Final stage: Runtime image
 FROM python:3.12-slim AS final
 
 ***REMOVED*** Set production environment variables
@@ -70,6 +109,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TORCH_HOME="/app/.cache/torch" \
     TRANSFORMERS_CACHE="/app/.cache/transformers" \
     SENTENCE_TRANSFORMERS_HOME="/app/.cache/sentence_transformers" \
+    ***REMOVED*** Cache optimization
+    HF_HUB_CACHE="/app/.cache/huggingface" \
     ***REMOVED*** Configuration variables (JSON format for Pydantic)
     SERVICE_NAME="ml-api" \
     CORS_ORIGINS='["*"]' \
@@ -81,22 +122,28 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-***REMOVED*** Install only runtime dependencies (curl for healthcheck, tini for signal handling)
-RUN apt-get update && \
+***REMOVED*** Install only runtime dependencies
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y --no-install-recommends curl tini && \
     rm -rf /var/lib/apt/lists/*
 
 ***REMOVED*** Create app user
 RUN groupadd -r app && useradd -r -g app app
 
-***REMOVED*** Copy Python packages from builder (user installation)
-COPY --from=builder --chown=app:app /root/.local /home/app/.local
+***REMOVED*** Copy Python packages from builder (all dependencies)
+COPY --from=app-build --chown=app:app /root/.local /home/app/.local
 
 ***REMOVED*** Copy application code
-COPY --from=builder --chown=app:app /app/src ./src/
+COPY --from=app-build --chown=app:app /app/src ./src/
 
-***REMOVED*** Create necessary directories
+***REMOVED*** Create necessary directories with proper permissions
 RUN mkdir -p /app/logs /app/.cache && chown -R app:app /app
+
+***REMOVED*** Pre-create model cache directory to speed up first run
+RUN mkdir -p /app/.cache/torch /app/.cache/transformers /app/.cache/sentence_transformers /app/.cache/huggingface && \
+    chown -R app:app /app/.cache
 
 USER app
 
@@ -104,14 +151,13 @@ USER app
 HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8004/health || exit 1
 
-***REMOVED*** Expose port (using 8004 for ML API)
+***REMOVED*** Expose port
 EXPOSE 8004
 
-***REMOVED*** Use tini for proper signal handling and child process reaping
+***REMOVED*** Use tini for proper signal handling
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-***REMOVED*** Run the application using uvicorn directly with proper worker configuration
-***REMOVED*** This bypasses our CLI for production to ensure optimal performance
+***REMOVED*** Run the application
 CMD ["uvicorn", "ml_api.main:app", \
      "--host", "0.0.0.0", \
      "--port", "8004", \

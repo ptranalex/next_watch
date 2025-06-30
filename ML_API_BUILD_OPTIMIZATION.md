@@ -20,9 +20,9 @@ Your upgraded workflow now includes:
 - **BuildKit optimizations**: Parallel builds, cache mounts
 - **Scoped caching**: Per-app cache isolation
 
-***REMOVED******REMOVED******REMOVED*** **2. Optimized Dockerfile (New)**
+***REMOVED******REMOVED******REMOVED*** **2. Optimized Dockerfile (Consolidated)**
 
-The `Dockerfile.optimized` uses **strategic layer ordering**:
+The main `Dockerfile` now uses **strategic layer ordering**:
 
 ```dockerfile
 ***REMOVED*** Layer 1: System deps (rarely changes) - CACHED
