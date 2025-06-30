@@ -43,23 +43,11 @@ RUN pip install --no-cache-dir --user -e .
 ***REMOVED*** Stage 2: Minimal runtime image
 FROM python:3.12-alpine AS final
 
-***REMOVED*** Set production environment variables
+***REMOVED*** Set essential runtime environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
-    PATH="/home/app/.local/bin:$PATH" \
-    ENVIRONMENT="production" \
-    PORT=8000 \
-    HOST="0.0.0.0" \
-    LOG_LEVEL="info" \
-    LOGS_DIR="/app/logs" \
-    WORKERS=1 \
-    TIMEOUT=120 \
-    RELOAD=false \
-    PROXY_HEADERS=true \
-    FORWARDED_ALLOW_IPS="*" \
-    LIMIT_MAX_REQUESTS=10000 \
-    BACKLOG=1024
+    PATH="/home/app/.local/bin:$PATH"
 
 WORKDIR /app
 

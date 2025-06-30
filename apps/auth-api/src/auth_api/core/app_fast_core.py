@@ -49,23 +49,22 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Auth API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize Auth-specific metrics (if enabled)
-    if getattr(settings, "enable_metrics", True):  ***REMOVED*** Default to enabled
-        try:
-            from auth_api.core.metrics import initialize_auth_metrics
+    ***REMOVED*** Initialize Auth-specific metrics (always enabled for observability)
+    try:
+        from auth_api.core.metrics import initialize_auth_metrics
 
-            metrics_instance = initialize_auth_metrics()
-            if metrics_instance:
-                logger.info("Auth metrics initialized successfully")
-                app.state.metrics = metrics_instance
-            else:
-                logger.warning(
-                    "Auth metrics initialization returned None - metrics registry not available"
-                )
-        except ImportError as e:
-            logger.error(f"Failed to import Auth metrics module: {e}")
-        except Exception as e:
-            logger.error(f"Error initializing Auth metrics: {e}")
+        metrics_instance = initialize_auth_metrics()
+        if metrics_instance:
+            logger.info("Auth metrics initialized successfully")
+            app.state.metrics = metrics_instance
+        else:
+            logger.warning(
+                "Auth metrics initialization returned None - metrics registry not available"
+            )
+    except ImportError as e:
+        logger.error(f"Failed to import Auth metrics module: {e}")
+    except Exception as e:
+        logger.error(f"Error initializing Auth metrics: {e}")
 
     ***REMOVED*** Initialize database
     try:
@@ -197,18 +196,17 @@ def create_auth_middleware_config(config: AuthAPIConfig) -> MiddlewareConfig:
     )
 
     ***REMOVED*** Configure metrics middleware for Auth API monitoring
-    if getattr(config, "enable_metrics", True):  ***REMOVED*** Default to enabled
-        middleware.metrics(
-            endpoint_path="/metrics",
-            include_endpoint=True,
-            exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
-            exclude_methods=["OPTIONS"],
-            custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0],
-            track_request_size=True,
-            track_response_size=True,
-            enabled=True,
-        )
-        logger.info("Metrics middleware enabled for Auth API monitoring")
+    middleware.metrics(
+        endpoint_path="/metrics",
+        include_endpoint=True,
+        exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_methods=["OPTIONS"],
+        custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0],
+        track_request_size=True,
+        track_response_size=True,
+        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+    )
+    logger.info("Metrics middleware enabled for Auth API monitoring")
 
     logger.info(f"Auth middleware configured for {config.environment} environment")
     return middleware
