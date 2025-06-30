@@ -66,7 +66,7 @@ COPY apps/ml-api/pyproject.toml ./pyproject.toml
 
 ***REMOVED*** Install app dependencies (but not the app itself yet)
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --user -e . --no-deps && \
+    pip install --user -e . && \
     pip install --user sentence-transformers>=2.2.2 \
     fastapi>=0.104.0 \
     uvicorn>=0.23.2 \
@@ -136,17 +136,7 @@ EXPOSE 8000
 ***REMOVED*** Use tini for proper signal handling
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-***REMOVED*** Run the application using uvicorn directly with proper worker configuration
-***REMOVED*** This bypasses our CLI for production to ensure optimal performance
-***REMOVED*** Using environment variables for flexibility and consistency
-CMD ["sh", "-c", "uvicorn ml_api.main:app \
-    --host ${HOST} \
-    --port ${PORT} \
-    --workers ${WORKERS} \
-    --timeout-keep-alive ${TIMEOUT} \
-    --log-level ${LOG_LEVEL} \
-    --no-access-log \
-    --proxy-headers \
-    --forwarded-allow-ips \"${FORWARDED_ALLOW_IPS}\" \
-    --backlog ${BACKLOG} \
-    --limit-max-requests ${LIMIT_MAX_REQUESTS}"]
+***REMOVED*** Run the application using Python module entry point
+***REMOVED*** This allows the app to use its own settings configuration
+***REMOVED*** rather than manually passing uvicorn parameters
+CMD ["python", "-m", "ml_api"]
