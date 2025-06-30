@@ -61,7 +61,7 @@ def create_fast_core_config(bff_config: BFFAPIConfig) -> FastAPIConfig:
             "ml_features": bff_config.enable_ml_features,
             "auth_service": bff_config.enable_auth_service,
             "performance_metrics": bff_config.enable_performance_metrics,
-            "metrics": bff_config.enable_metrics,
+            "metrics": True,  ***REMOVED*** Always enabled for production observability
             "cache_metrics": bff_config.cache_enable_metrics,
         },
         ***REMOVED*** FastAPI-specific configuration

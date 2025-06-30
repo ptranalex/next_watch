@@ -44,22 +44,11 @@ RUN pip install --no-cache-dir --user -e .
 ***REMOVED*** Stage 2: Minimal runtime image
 FROM python:3.12-alpine AS final
 
-***REMOVED*** Set production environment variables
+***REMOVED*** Set essential runtime environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
-    PATH="/home/app/.local/bin:$PATH" \
-    ENVIRONMENT="production" \
-    PORT=8001 \
-    HOST="0.0.0.0" \
-    LOG_LEVEL="info" \
-    WORKERS=1 \
-    TIMEOUT=120 \
-    RELOAD=false \
-    PROXY_HEADERS=true \
-    FORWARDED_ALLOW_IPS="*" \
-    LIMIT_MAX_REQUESTS=10000 \
-    BACKLOG=1024
+    PATH="/home/app/.local/bin:$PATH"
 
 WORKDIR /app
 
@@ -92,14 +81,15 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 ***REMOVED*** Run the application using uvicorn directly with proper worker configuration
 ***REMOVED*** This bypasses our CLI for production to ensure optimal performance
-CMD ["uvicorn", "bff_api.main:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--workers", "1", \
-     "--timeout-keep-alive", "120", \
-     "--log-level", "info", \
-     "--no-access-log", \
-     "--proxy-headers", \
-     "--forwarded-allow-ips", "*", \
-     "--backlog", "1024", \
-     "--limit-max-requests", "10000"] 
+***REMOVED*** Using environment variables for flexibility and consistency
+CMD ["sh", "-c", "uvicorn bff_api.main:app \
+    --host ${HOST} \
+    --port ${PORT} \
+    --workers ${WORKERS} \
+    --timeout-keep-alive ${TIMEOUT} \
+    --log-level ${LOG_LEVEL} \
+    --no-access-log \
+    --proxy-headers \
+    --forwarded-allow-ips \"${FORWARDED_ALLOW_IPS}\" \
+    --backlog ${BACKLOG} \
+    --limit-max-requests ${LIMIT_MAX_REQUESTS}"] 

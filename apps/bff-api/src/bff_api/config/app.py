@@ -68,7 +68,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
     enable_performance_metrics: bool = Field(
         default=True, description="Enable performance metrics collection"
     )
-    enable_metrics: bool = Field(default=True, description="Enable metrics collection")
+
     cache_enable_metrics: bool = Field(default=True, description="Enable cache metrics collection")
 
     class Config:
