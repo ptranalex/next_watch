@@ -40,9 +40,22 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize Search-specific metrics after fast-core setup
-    ***REMOVED*** (moved to after create_app to avoid registry conflicts)
-    logger.info("Search-specific metrics will be initialized after fast-core setup")
+    ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
+    try:
+        from search_api.core.metrics import initialize_search_metrics
+
+        metrics_instance = initialize_search_metrics()
+        if metrics_instance:
+            logger.info("Search metrics initialized successfully")
+            app.state.metrics = metrics_instance
+        else:
+            logger.warning(
+                "Search metrics initialization returned None - metrics registry not available"
+            )
+    except ImportError as e:
+        logger.error(f"Failed to import Search metrics module: {e}")
+    except Exception as e:
+        logger.error(f"Error initializing Search metrics: {e}")
 
     ***REMOVED*** Initialize search-specific services
     suggestion_engine = None
@@ -249,9 +262,9 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
         ],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+        enabled=True,  ***REMOVED*** Re-enabled since search metrics are now in lifespan
     )
-    logger.info("Metrics middleware enabled for Search API monitoring")
+    logger.info("Metrics middleware configured for Search API monitoring")
 
     logger.info(f"Search middleware configured for {config.environment} environment")
     return middleware
@@ -303,24 +316,6 @@ def create_search_app(config: Optional[SearchAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** Store the original SearchAPIConfig in app state for access to search-specific settings
     app.state.search_config = config
-
-    ***REMOVED*** Initialize Search-specific metrics after fast-core app creation
-    try:
-        from search_api.core.metrics import initialize_search_metrics
-
-        metrics_instance = initialize_search_metrics()
-        if metrics_instance:
-            logger.info("Search metrics initialized successfully after fast-core setup")
-            app.state.search_metrics = metrics_instance
-        else:
-            logger.warning(
-                "Search metrics initialization returned None - metrics registry not available"
-            )
-    except ImportError as e:
-        logger.error(f"Failed to import Search metrics module: {e}")
-    except Exception as e:
-        logger.error(f"Error initializing Search metrics after fast-core setup: {e}")
-        ***REMOVED*** Don't raise - let the app continue without search-specific metrics
 
     logger.info("Search API application created successfully with fast-core")
     return app
