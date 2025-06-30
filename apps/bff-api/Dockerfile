@@ -61,7 +61,7 @@ COPY apps/bff-api/pyproject.toml ./pyproject.toml
 
 ***REMOVED*** Install app dependencies with cache mount (but not the app itself yet)
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --user -e . --no-deps
+    pip install --user -e .
 
 ***REMOVED*** Stage 5: Application code (changes most frequently)  
 FROM app-deps AS app-build
