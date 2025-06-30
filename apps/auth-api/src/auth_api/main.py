@@ -1,9 +1,10 @@
 """Main FastAPI application for BFF service."""
 
 import os
+from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Path
+from fastapi import FastAPI
 
 ***REMOVED*** Import configuration after environment variables are loaded
 from auth_api.config.app import settings
