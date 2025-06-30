@@ -150,7 +150,7 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8004/health || exit 1
 
 ***REMOVED*** Expose port
-EXPOSE 8004
+EXPOSE 8000
 
 ***REMOVED*** Use tini for proper signal handling
 ENTRYPOINT ["/usr/bin/tini", "--"]
