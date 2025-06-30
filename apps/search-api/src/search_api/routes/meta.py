@@ -110,7 +110,7 @@ async def debug_info(request: Request) -> Dict[str, Any]:
                 "search_analytics": get_search_config(request).enable_search_analytics,
                 "fuzzy_matching": get_search_config(request).enable_fuzzy_matching,
                 "typo_tolerance": get_search_config(request).enable_typo_tolerance,
-                "metrics": get_search_config(request).enable_metrics,
+                "metrics": True,  ***REMOVED*** Always enabled for production observability
                 "cache_metrics": get_search_config(request).cache_enable_metrics,
             },
             "security": {

@@ -75,7 +75,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin):
     suggestion_batch_size: int = Field(default=1000, description="Suggestion indexing batch size")
 
     ***REMOVED*** Monitoring settings
-    enable_metrics: bool = Field(default=True, description="Enable metrics collection")
+
     enable_performance_metrics: bool = Field(
         default=True, description="Enable performance metrics collection"
     )

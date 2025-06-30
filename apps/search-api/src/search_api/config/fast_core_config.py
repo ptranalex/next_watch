@@ -56,7 +56,7 @@ def create_fast_core_config(search_config: SearchAPIConfig) -> FastAPIConfig:
             "fuzzy_matching": search_config.enable_fuzzy_matching,
             "typo_tolerance": search_config.enable_typo_tolerance,
             "performance_metrics": search_config.enable_performance_metrics,
-            "metrics": search_config.enable_metrics,
+            "metrics": True,  ***REMOVED*** Always enabled for production observability
             "cache_metrics": search_config.cache_enable_metrics,
         },
         ***REMOVED*** FastAPI-specific configuration
