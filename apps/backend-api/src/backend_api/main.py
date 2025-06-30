@@ -67,13 +67,7 @@ app = get_app()
 
 
 if __name__ == "__main__":
-    import uvicorn
+    ***REMOVED*** Use the proper main function with full production/development configuration
+    from backend_api.__main__ import main
 
-    ***REMOVED*** Use settings for all server parameters
-    uvicorn.run(
-        "backend_api.main:app",
-        host="0.0.0.0",
-        port=settings.port,
-        reload=settings.debug,
-        log_level=settings.log_level.lower(),
-    )
+    main()
