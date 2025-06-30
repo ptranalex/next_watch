@@ -1,0 +1,55 @@
+***REMOVED*** AWS Scripts Reorganization - June 2025
+
+***REMOVED******REMOVED*** What Was Done
+
+Reorganized the `/infra/aws/` directory from a flat structure to a categorized, maintainable structure.
+
+***REMOVED******REMOVED*** Before (Flat Structure)
+```
+aws/
+├── deploy-monitoring-to-existing.sh
+├── setup-ssl-monitoring.sh  
+├── deploy-monitoring-one-click.sh
+├── check-environment.sh
+├── fix-grafana-subpath.sh
+├── DOCKER_NETWORKING_FIX.md
+├── add-loki-integration.sh
+└── open-monitoring-ports.sh
+```
+
+***REMOVED******REMOVED*** After (Organized Structure)
+```
+aws/
+├── aws-helper.sh              ***REMOVED*** NEW: Interactive menu
+├── README.md                  ***REMOVED*** NEW: Comprehensive documentation
+├── deployment/                ***REMOVED*** Main deployment scripts
+│   ├── deploy-monitoring-one-click.sh
+│   └── deploy-monitoring-to-existing.sh
+├── setup/                     ***REMOVED*** Environment and configuration
+│   ├── check-environment.sh
+│   ├── open-monitoring-ports.sh
+│   └── setup-ssl-monitoring.sh
+├── monitoring/                ***REMOVED*** Monitoring utilities
+│   └── add-loki-integration.sh
+├── troubleshooting/           ***REMOVED*** Fix and diagnostic scripts
+│   └── fix-grafana-subpath.sh
+└── docs/                      ***REMOVED*** Documentation
+    └── DOCKER_NETWORKING_FIX.md
+```
+
+***REMOVED******REMOVED*** Key Improvements
+
+1. **Categorized Organization**: Scripts grouped by purpose
+2. **Interactive Helper**: `aws-helper.sh` provides easy access to all functions
+3. **Comprehensive Documentation**: Detailed README with usage examples
+4. **Fixed Script References**: Updated path references in orchestrator scripts
+5. **Better Maintainability**: Clear separation of concerns
+
+***REMOVED******REMOVED*** Usage
+
+Instead of remembering script names, users can now:
+```bash
+./aws-helper.sh
+```
+
+This provides an interactive menu for all AWS operations. 
