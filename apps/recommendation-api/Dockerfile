@@ -47,7 +47,7 @@ FROM local-deps AS app-deps
 COPY apps/recommendation-api/pyproject.toml ./pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --user -e . --no-deps
+    pip install --user -e .
 
 ***REMOVED*** Stage 5: Application code (most frequent changes)
 FROM app-deps AS app-build
