@@ -595,6 +595,11 @@ def initialize_search_metrics() -> Optional[SearchMetrics]:
         SearchMetrics instance if successful, None if metrics registry unavailable
     """
     global _search_metrics
+
+    ***REMOVED*** Return existing instance if already initialized
+    if _search_metrics is not None:
+        return _search_metrics
+
     _search_metrics = SearchMetrics()
     ***REMOVED*** Return None if the metrics instance couldn't initialize properly
     if _search_metrics and not _search_metrics.registry:
