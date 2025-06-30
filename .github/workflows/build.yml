@@ -1,5 +1,10 @@
 name: Build Application (All Services)
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -168,6 +173,11 @@ jobs:
     uses: ./.github/workflows/build-app.yml
     with:
       app_name: ml-api
-      dockerfile_path: ./apps/ml-api/Dockerfile
+      dockerfile_path: ./apps/ml-api/Dockerfile.optimized
+      build_args: |
+        BUILDKIT_INLINE_CACHE=1
+        ENVIRONMENT=production
+        EMBEDDING_MODEL=all-MiniLM-L6-v2
+        ENABLE_METRICS=true
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
