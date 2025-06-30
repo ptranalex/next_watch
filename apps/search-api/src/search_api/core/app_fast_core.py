@@ -96,23 +96,9 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.warning(f"Could not test service connections during startup: {e}")
 
-    ***REMOVED*** Initialize Search-specific metrics AFTER all services are ready
-    ***REMOVED*** This avoids potential race conditions with fast-core middleware
-    try:
-        from search_api.core.metrics import initialize_search_metrics
-
-        metrics_instance = initialize_search_metrics()
-        if metrics_instance:
-            logger.info("Search metrics initialized successfully")
-            app.state.metrics = metrics_instance
-        else:
-            logger.warning(
-                "Search metrics initialization returned None - metrics registry not available"
-            )
-    except ImportError as e:
-        logger.error(f"Failed to import Search metrics module: {e}")
-    except Exception as e:
-        logger.error(f"Error initializing Search metrics: {e}")
+    ***REMOVED*** TEMPORARILY DISABLED: Search-specific metrics initialization
+    ***REMOVED*** TODO: Re-enable after fixing the race condition with fast-core middleware
+    logger.info("Search-specific metrics temporarily disabled - using fast-core metrics only")
 
     yield
 
