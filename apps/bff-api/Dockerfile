@@ -1,47 +1,75 @@
-***REMOVED*** BFF API Dockerfile
+***REMOVED*** Optimized BFF API Dockerfile for fast builds
 ***REMOVED*** 
 ***REMOVED*** Build context should be the monorepo root to access local dependencies:
 ***REMOVED*** docker build -f apps/bff-api/Dockerfile -t bff-api .
 ***REMOVED***
-***REMOVED*** This Dockerfile requires:
-***REMOVED*** - libs/cache/ (NextWatch Cache Library)
-***REMOVED*** - libs/cli/ (NextWatch CLI Framework)
-***REMOVED*** - libs/config/ (NextWatch Config Library)
-***REMOVED*** - libs/fast-core/ (FastAPI Core Framework)
-***REMOVED*** - apps/bff-api/ (BFF API application)
+***REMOVED*** Optimization Strategy:
+***REMOVED*** 1. Maximize layer caching by ordering operations by change frequency
+***REMOVED*** 2. Use BuildKit cache mounts for package downloads  
+***REMOVED*** 3. Separate dependency installation from app code for better caching
+***REMOVED*** 4. Use multi-stage builds to minimize final image size
 
-***REMOVED*** Stage 1: Build dependencies and package
-FROM python:3.12-alpine AS builder
+***REMOVED*** Stage 1: Base Python with system dependencies (changes rarely)
+FROM python:3.12-alpine AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    ***REMOVED*** Build optimization
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-***REMOVED*** Install build dependencies (only needed for building)
-RUN apk add --no-cache \
+***REMOVED*** Install system dependencies with cache mounts (cached layer - changes rarely)
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    apk add --no-cache \
     gcc \
     musl-dev \
     libffi-dev \
-    openssl-dev
+    openssl-dev \
+    curl \
+    tini
 
-***REMOVED*** Copy local dependencies first
+***REMOVED*** Stage 2: Python dependencies (changes occasionally)
+FROM base AS python-deps
+
+***REMOVED*** Create user early for consistent permissions
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
+
+***REMOVED*** Install pip and setuptools upgrades (cached layer)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip setuptools wheel
+
+***REMOVED*** Stage 3: Local dependencies (changes more frequently than base deps)
+FROM python-deps AS local-deps
+
+***REMOVED*** Copy and install local libraries (order by change frequency)
+COPY libs/fast-core ./libs/fast-core/
+COPY libs/config ./libs/config/
 COPY libs/cache ./libs/cache/
 COPY libs/cli ./libs/cli/
-COPY libs/config ./libs/config/
-COPY libs/fast-core ./libs/fast-core/
 
-***REMOVED*** Install local dependencies
-RUN pip install --no-cache-dir --user ./libs/cache/ ./libs/cli/ ./libs/config/ ./libs/fast-core/
+***REMOVED*** Install local dependencies with cache mount
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --user ./libs/fast-core/ ./libs/config/ ./libs/cache/ ./libs/cli/
 
-***REMOVED*** Copy application files
+***REMOVED*** Stage 4: App dependencies (changes frequently)
+FROM local-deps AS app-deps
+
+***REMOVED*** Copy only pyproject.toml first (dependency specification)
 COPY apps/bff-api/pyproject.toml ./pyproject.toml
+
+***REMOVED*** Install app dependencies with cache mount (but not the app itself yet)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --user -e . --no-deps
+
+***REMOVED*** Stage 5: Application code (changes most frequently)  
+FROM app-deps AS app-build
+
+***REMOVED*** Copy application source code (this layer changes most often)
 COPY apps/bff-api/src ./src/
 
-***REMOVED*** Install the current project and its dependencies (local deps are commented out in pyproject.toml)
-RUN pip install --no-cache-dir --user -e .
-
-***REMOVED*** Stage 2: Minimal runtime image
+***REMOVED*** Final stage: Minimal runtime image
 FROM python:3.12-alpine AS final
 
 ***REMOVED*** Set essential runtime environment variables
@@ -52,19 +80,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-***REMOVED*** Install only runtime dependencies (curl for healthcheck)
-RUN apk add --no-cache curl tini
+***REMOVED*** Install only runtime dependencies with cache mount
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    apk add --no-cache curl tini
 
 ***REMOVED*** Create app user
 RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
-***REMOVED*** Copy Python packages from builder (user installation)
-COPY --from=builder --chown=app:app /root/.local /home/app/.local
+***REMOVED*** Copy Python packages from builder (all dependencies)
+COPY --from=app-build --chown=app:app /root/.local /home/app/.local
 
 ***REMOVED*** Copy application code
-COPY --from=builder --chown=app:app /app/src ./src/
+COPY --from=app-build --chown=app:app /app/src ./src/
 
-***REMOVED*** Create logs directory
+***REMOVED*** Create logs directory with proper permissions
 RUN mkdir -p /app/logs && chown -R app:app /app
 
 USER app
