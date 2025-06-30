@@ -127,12 +127,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ steps.build-args.outputs.args }}
-          ***REMOVED*** Enhanced caching strategy
+          ***REMOVED*** Self-hosted runner optimized caching strategy
           cache-from: |
-            type=gha,scope=${{ inputs.app_name }}
+            type=local,src=/opt/buildkit-cache/${{ inputs.app_name }}
             type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache
           cache-to: |
-            type=gha,mode=max,scope=${{ inputs.app_name }}
+            type=local,dest=/opt/buildkit-cache/${{ inputs.app_name }},mode=max
             type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache,mode=max
           ***REMOVED*** Build optimizations
           provenance: mode=max
