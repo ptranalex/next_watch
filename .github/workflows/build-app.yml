@@ -57,6 +57,11 @@ jobs:
         with:
           fetch-depth: 0 ***REMOVED*** Full history for better caching
 
+      - name: Create cache directory
+        run: |
+          sudo mkdir -p /tmp/buildkit-cache/${{ inputs.app_name }}
+          sudo chown -R $(whoami):$(whoami) /tmp/buildkit-cache
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -129,10 +134,10 @@ jobs:
           build-args: ${{ steps.build-args.outputs.args }}
           ***REMOVED*** Self-hosted runner optimized caching strategy
           cache-from: |
-            type=local,src=/opt/buildkit-cache/${{ inputs.app_name }}
+            type=local,src=/tmp/buildkit-cache/${{ inputs.app_name }}
             type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache
           cache-to: |
-            type=local,dest=/opt/buildkit-cache/${{ inputs.app_name }},mode=max
+            type=local,dest=/tmp/buildkit-cache/${{ inputs.app_name }},mode=max
             type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache,mode=max
           ***REMOVED*** Build optimizations
           provenance: mode=max
