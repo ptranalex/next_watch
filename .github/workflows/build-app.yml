@@ -42,7 +42,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, nextwatch]
     permissions:
       contents: read
       packages: write
