@@ -262,7 +262,7 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
         ],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Re-enabled since search metrics are now in lifespan
+        enabled=False,  ***REMOVED*** Temporarily disabled while investigating middleware duplication issue
     )
     logger.info("Metrics middleware configured for Search API monitoring")
 
