@@ -16,6 +16,13 @@ services:
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
 
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
+
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
       - POSTGRES_PORT=5432
@@ -85,7 +92,14 @@ services:
       - DEBUG=false
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
       - WORKERS=1
+      - TIMEOUT=120
+      - MAX_KEEPALIVE=60
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
 
       ***REMOVED*** Service URLs
       - BACKEND_API_URL=http://backend-api:8000
@@ -161,11 +175,27 @@ services:
     ports:
       - "127.0.0.1:8004:8000" ***REMOVED*** Map external 8004 to internal 8000 (Docker best practice)
     environment:
+      ***REMOVED*** Core Service Configuration
       - ENVIRONMENT=production
-      - API_PORT=8000
+      - SERVICE_NAME=ml-api
+      - HOST=0.0.0.0
+      - PORT=8000
       - DEBUG=false
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
+
+      ***REMOVED*** ML-specific Configuration
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - ENABLE_EMBEDDINGS=true
+      - ENABLE_BATCH_PROCESSING=true
+      - ENABLE_MODEL_CACHING=true
       ***REMOVED*** Security Configuration
       - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
       - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "ml-api", "0.0.0.0"]
@@ -213,6 +243,14 @@ services:
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
 
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - MAX_KEEPALIVE=60
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=15000
+      - BACKLOG=2048
+
       ***REMOVED*** Service URLs
       - BACKEND_API_URL=http://backend-api:8000
       - ML_API_URL=http://ml-api:8000
@@ -258,7 +296,6 @@ services:
 
       ***REMOVED*** Performance & Monitoring
       - ENABLE_PERFORMANCE_METRICS=true
-      - ENABLE_METRICS=true
       - CACHE_ENABLE_METRICS=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -303,6 +340,13 @@ services:
       - DEBUG=false
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
       ***REMOVED*** Database Configuration
       - POSTGRES_HOST=host.docker.internal
       - POSTGRES_PORT=5432
@@ -370,6 +414,13 @@ services:
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
 
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
+
       ***REMOVED*** Service URLs
       - BACKEND_API_URL=http://backend-api:8000
       - AUTH_API_URL=http://auth-api:8000
@@ -414,7 +465,6 @@ services:
 
       ***REMOVED*** Performance & Monitoring
       - ENABLE_PERFORMANCE_METRICS=true
-      - ENABLE_METRICS=true
       - CACHE_ENABLE_METRICS=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
