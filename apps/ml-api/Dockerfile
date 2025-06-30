@@ -111,10 +111,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SENTENCE_TRANSFORMERS_HOME="/app/.cache/sentence_transformers" \
     ***REMOVED*** Cache optimization
     HF_HUB_CACHE="/app/.cache/huggingface" \
-    ***REMOVED*** Configuration variables (JSON format for Pydantic)
+    ***REMOVED*** Configuration variables  
     SERVICE_NAME="ml-api" \
-    CORS_ORIGINS='["*"]' \
-    ALLOWED_HOSTS='["*"]' \
     ENABLE_EMBEDDINGS=true \
     ENABLE_BATCH_PROCESSING=true \
     ENABLE_MODEL_CACHING=true \
