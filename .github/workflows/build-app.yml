@@ -16,69 +16,163 @@ on:
         required: false
         type: string
         default: ""
+      platforms:
+        description: "Target platforms for multi-arch builds"
+        required: false
+        type: string
+        default: "linux/amd64"
+      push:
+        description: "Whether to push the image"
+        required: false
+        type: boolean
+        default: true
     secrets:
+      GITHUB_TOKEN:
+        required: false
       GH_PAT:
-        required: true
+        required: false
     outputs:
       image:
         description: "Built image name"
         value: ${{ jobs.build.outputs.image }}
+      digest:
+        description: "Image digest"
+        value: ${{ jobs.build.outputs.digest }}
+      metadata:
+        description: "Build metadata"
+        value: ${{ jobs.build.outputs.metadata }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write ***REMOVED*** For cosign signing
     outputs:
-      image: ${{ steps.image-info.outputs.image }}
+      image: ${{ steps.meta.outputs.tags }}
+      digest: ${{ steps.build.outputs.digest }}
+      metadata: ${{ steps.meta.outputs.json }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 ***REMOVED*** Full history for better caching
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+            image=moby/buildkit:v0.12.5
+          buildkitd-flags: --allow-insecure-entitlement=network.host
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_PAT }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN || github.token }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ inputs.app_name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value={{date 'YYYYMMDD-HHmmss'}}-{{sha}}
+          labels: |
+            org.opencontainers.image.title=${{ inputs.app_name }}
+            org.opencontainers.image.description=NextWatch ${{ inputs.app_name }} service
+            org.opencontainers.image.vendor=NextWatch
+            maintainer=${{ github.actor }}
 
       - name: Prepare build arguments
         id: build-args
         shell: bash
         run: |
-          echo "Raw input:"
-          echo "${{ inputs.build_args }}"
+          echo "Processing build arguments..."
 
-          ***REMOVED*** Cleaned args: preserve lines but remove carriage returns
+          ***REMOVED*** Clean up input args
           CLEANED_ARGS=$(echo "${{ inputs.build_args }}" | tr -d '\r')
 
-          ***REMOVED*** Write output as a multi-line GitHub Actions output
-          echo "args<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$CLEANED_ARGS" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          ***REMOVED*** Add automatic build args
+          BUILD_ARGS="$CLEANED_ARGS"
+          BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILDKIT_INLINE_CACHE=1"
+          BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_VERSION=${{ github.sha }}"
+          BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_BRANCH=${{ github.ref_name }}"
 
+          ***REMOVED*** Output for debugging
           echo "Final build args:"
-          echo "$CLEANED_ARGS"
+          echo "$BUILD_ARGS"
 
-      - name: Set image info
-        id: image-info
-        run: |
-          IMAGE_NAME="${{ github.repository }}/${{ inputs.app_name }}"
-          echo "image=ghcr.io/${IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
-          echo "Building image: ghcr.io/${IMAGE_NAME}:latest"
+          ***REMOVED*** Set output using heredoc
+          {
+            echo "args<<EOF"
+            echo "$BUILD_ARGS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        id: build
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ inputs.dockerfile_path }}
-          push: true
-          tags: ${{ steps.image-info.outputs.image }}
+          platforms: ${{ inputs.platforms }}
+          push: ${{ inputs.push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ steps.build-args.outputs.args }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          ***REMOVED*** Enhanced caching strategy
+          cache-from: |
+            type=gha,scope=${{ inputs.app_name }}
+            type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache
+          cache-to: |
+            type=gha,mode=max,scope=${{ inputs.app_name }}
+            type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache,mode=max
+          ***REMOVED*** Build optimizations
+          provenance: mode=max
+          sbom: true
 
-      - name: Output Image Info
+      - name: Install Cosign
+        if: inputs.push == true
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign container image
+        if: inputs.push == true
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          echo "Built and pushed: ${{ steps.image-info.outputs.image }}"
+          echo "Signing image..."
+          echo "$TAGS" | xargs -I {} cosign sign --yes {}@$DIGEST
+
+      - name: Generate SBOM and sign
+        if: inputs.push == true
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          echo "Generating and signing SBOM..."
+          echo "$TAGS" | head -1 | xargs -I {} cosign attest --yes --type spdxjson --predicate sbom.spdx.json {}@$DIGEST
+
+      - name: Output build summary
+        run: |
+          echo "***REMOVED******REMOVED*** 🚀 Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**App**: ${{ inputs.app_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image**: ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Digest**: \`${{ steps.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Platforms**: ${{ inputs.platforms }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Pushed**: ${{ inputs.push }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "***REMOVED******REMOVED******REMOVED*** 📋 Build Metadata" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.meta.outputs.json }}' >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
