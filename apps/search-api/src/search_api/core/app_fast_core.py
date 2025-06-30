@@ -40,10 +40,22 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** NOTE: Search-specific metrics initialization temporarily disabled
-    ***REMOVED*** Fast-core middleware handles base metrics setup, avoiding duplicate registration
-    ***REMOVED*** TODO: Re-enable search-specific metrics after fixing the race condition
-    logger.info("Search metrics handled by fast-core middleware")
+    ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
+    try:
+        from search_api.core.metrics import initialize_search_metrics
+
+        metrics_instance = initialize_search_metrics()
+        if metrics_instance:
+            logger.info("Search metrics initialized successfully")
+            app.state.metrics = metrics_instance
+        else:
+            logger.warning(
+                "Search metrics initialization returned None - metrics registry not available"
+            )
+    except ImportError as e:
+        logger.error(f"Failed to import Search metrics module: {e}")
+    except Exception as e:
+        logger.error(f"Error initializing Search metrics: {e}")
 
     ***REMOVED*** Initialize search-specific services
     suggestion_engine = None
@@ -230,7 +242,7 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_paths=["/health", "/docs", "/openapi.json", "/favicon.ico"],
         exclude_methods=["OPTIONS"],
         custom_buckets=[
             0.005,
