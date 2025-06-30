@@ -108,17 +108,7 @@ EXPOSE 8000
 ***REMOVED*** Use tini for proper signal handling and child process reaping
 ENTRYPOINT ["/sbin/tini", "--"]
 
-***REMOVED*** Run the application using uvicorn directly with proper worker configuration
-***REMOVED*** This bypasses our CLI for production to ensure optimal performance
-***REMOVED*** Using environment variables for flexibility and consistency
-CMD ["sh", "-c", "uvicorn bff_api.main:app \
-    --host ${HOST} \
-    --port ${PORT} \
-    --workers ${WORKERS} \
-    --timeout-keep-alive ${TIMEOUT} \
-    --log-level ${LOG_LEVEL} \
-    --no-access-log \
-    --proxy-headers \
-    --forwarded-allow-ips \"${FORWARDED_ALLOW_IPS}\" \
-    --backlog ${BACKLOG} \
-    --limit-max-requests ${LIMIT_MAX_REQUESTS}"] 
+***REMOVED*** Run the application using Python module entry point
+***REMOVED*** This allows the app to use its own settings configuration
+***REMOVED*** rather than manually passing uvicorn parameters
+CMD ["python", "-m", "bff_api"] 

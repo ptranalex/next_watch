@@ -2,8 +2,9 @@
 
 import os
 from typing import Optional
+from pathlib import Path
 
-from fastapi import FastAPI, Path
+from fastapi import FastAPI
 
 ***REMOVED*** Import configuration after environment variables are loaded
 from bff_api.config.app import settings
@@ -61,13 +62,7 @@ app = get_app()
 
 
 if __name__ == "__main__":
-    import uvicorn
+    ***REMOVED*** Use the proper main function with full production/development configuration
+    from bff_api.__main__ import main
 
-    ***REMOVED*** Use settings for all server parameters
-    uvicorn.run(
-        "bff_api.main:app",
-        host="0.0.0.0",
-        port=settings.port,
-        reload=settings.debug,
-        log_level=settings.log_level.lower(),
-    )
+    main()
