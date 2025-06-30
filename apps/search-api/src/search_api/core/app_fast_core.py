@@ -40,6 +40,27 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
+    ***REMOVED*** Initialize BFF-specific metrics (always enabled for observability)
+    try:
+        from search_api.core.metrics import initialize_search_metrics
+
+        metrics_instance = initialize_search_metrics()
+        if metrics_instance:
+            logger.info("Search metrics initialized successfully")
+            app.state.metrics = metrics_instance
+        else:
+            logger.warning(
+                "BFF metrics initialization returned None - metrics registry not available"
+            )
+    except ImportError as e:
+        logger.error(f"Metrics dependencies not installed: {e}")
+        logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
+    except Exception as e:
+        logger.error(f"Failed to initialize BFF metrics: {e}", exc_info=True)
+        if search_config.is_production:
+            ***REMOVED*** In production, we want to know about metrics failures
+            raise
+
     ***REMOVED*** Initialize search-specific services first
     suggestion_engine = None
     try:
@@ -95,10 +116,6 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     )
         except Exception as e:
             logger.warning(f"Could not test service connections during startup: {e}")
-
-    ***REMOVED*** TEMPORARILY DISABLED: Search-specific metrics initialization
-    ***REMOVED*** TODO: Re-enable after fixing the race condition with fast-core middleware
-    logger.info("Search-specific metrics temporarily disabled - using fast-core metrics only")
 
     yield
 
