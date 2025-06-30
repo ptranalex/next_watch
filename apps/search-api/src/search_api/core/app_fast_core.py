@@ -40,24 +40,7 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
-    try:
-        from search_api.core.metrics import initialize_search_metrics
-
-        metrics_instance = initialize_search_metrics()
-        if metrics_instance:
-            logger.info("Search metrics initialized successfully")
-            app.state.metrics = metrics_instance
-        else:
-            logger.warning(
-                "Search metrics initialization returned None - metrics registry not available"
-            )
-    except ImportError as e:
-        logger.error(f"Failed to import Search metrics module: {e}")
-    except Exception as e:
-        logger.error(f"Error initializing Search metrics: {e}")
-
-    ***REMOVED*** Initialize search-specific services
+    ***REMOVED*** Initialize search-specific services first
     suggestion_engine = None
     try:
         ***REMOVED*** Initialize Redis connection for suggestions
@@ -112,6 +95,24 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     )
         except Exception as e:
             logger.warning(f"Could not test service connections during startup: {e}")
+
+    ***REMOVED*** Initialize Search-specific metrics AFTER all services are ready
+    ***REMOVED*** This avoids potential race conditions with fast-core middleware
+    try:
+        from search_api.core.metrics import initialize_search_metrics
+
+        metrics_instance = initialize_search_metrics()
+        if metrics_instance:
+            logger.info("Search metrics initialized successfully")
+            app.state.metrics = metrics_instance
+        else:
+            logger.warning(
+                "Search metrics initialization returned None - metrics registry not available"
+            )
+    except ImportError as e:
+        logger.error(f"Failed to import Search metrics module: {e}")
+    except Exception as e:
+        logger.error(f"Error initializing Search metrics: {e}")
 
     yield
 
@@ -242,7 +243,7 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_paths=["/health", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
         exclude_methods=["OPTIONS"],
         custom_buckets=[
             0.005,
