@@ -36,14 +36,15 @@ COPY libs/fast-core ./libs/fast-core/
 ***REMOVED*** Install local dependencies
 RUN pip install --no-cache-dir --user ./libs/cli/ ./libs/config/ ./libs/fast-core/
 
-***REMOVED*** Copy application files
+***REMOVED*** Copy the pyproject.toml file
 COPY apps/ml-api/pyproject.toml ./pyproject.toml
-COPY apps/ml-api/src ./src/
 
-***REMOVED*** Install the current project and its dependencies (local deps are commented out in pyproject.toml)
-***REMOVED*** Note: sentence-transformers will install PyTorch automatically, then we install CPU-only version
+***REMOVED*** Install dependencies first, then install CPU-only PyTorch
 RUN pip install --no-cache-dir --user -e . && \
-    pip install --no-cache-dir --user --force-reinstall torch==2.7.1+cpu --index-url https://download.pytorch.org/whl/cpu
+pip install --no-cache-dir --user --force-reinstall torch==2.7.1+cpu --index-url https://download.pytorch.org/whl/cpu
+
+***REMOVED*** Copy application files
+COPY apps/ml-api/src ./src/
 
 ***REMOVED*** Stage 2: Minimal runtime image
 FROM python:3.12-slim AS final
@@ -68,7 +69,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     EMBEDDING_MODEL="all-MiniLM-L6-v2" \
     TORCH_HOME="/app/.cache/torch" \
     TRANSFORMERS_CACHE="/app/.cache/transformers" \
-    SENTENCE_TRANSFORMERS_HOME="/app/.cache/sentence_transformers"
+    SENTENCE_TRANSFORMERS_HOME="/app/.cache/sentence_transformers" \
+    ***REMOVED*** Configuration variables (JSON format for Pydantic)
+    SERVICE_NAME="ml-api" \
+    CORS_ORIGINS='["*"]' \
+    ALLOWED_HOSTS='["*"]' \
+    ENABLE_EMBEDDINGS=true \
+    ENABLE_BATCH_PROCESSING=true \
+    ENABLE_MODEL_CACHING=true \
+    ENABLE_METRICS=true
 
 WORKDIR /app
 
