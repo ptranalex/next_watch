@@ -42,6 +42,20 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
     try:
+        ***REMOVED*** First, manually initialize the fast-core metrics registry since middleware is disabled
+        from fast_core.monitoring.metrics import initialize_metrics
+
+        service_name = getattr(search_config, "service_name", "search-api")
+        fast_core_registry = initialize_metrics(service_name)
+        logger.info("Fast-core metrics registry initialized manually")
+
+        ***REMOVED*** Manually set up the /metrics endpoint since middleware is disabled
+        from fast_core.monitoring.metrics import setup_metrics_endpoint
+
+        setup_metrics_endpoint(app, fast_core_registry, "/metrics")
+        logger.info("Metrics endpoint registered at: /metrics")
+
+        ***REMOVED*** Now initialize search-specific metrics
         from search_api.core.metrics import initialize_search_metrics
 
         metrics_instance = initialize_search_metrics()
