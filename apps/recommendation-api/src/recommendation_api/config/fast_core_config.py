@@ -61,7 +61,7 @@ def create_fast_core_config(reco_config: RecommendationAPIConfig) -> FastAPIConf
             "trending_fallback": reco_config.enable_trending_fallback,
             "diversity_boost": reco_config.enable_diversity_boost,
             "caching": reco_config.enable_caching,
-            "metrics": reco_config.enable_metrics,
+            "metrics": True,  ***REMOVED*** Always enabled for production observability
             "precompute_similarities": reco_config.precompute_similarities,
         },
         ***REMOVED*** Cache configuration

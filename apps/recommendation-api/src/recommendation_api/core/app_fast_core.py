@@ -41,23 +41,22 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Initialize recommendation-specific services
     try:
-        ***REMOVED*** Initialize Recommendation-specific metrics (if enabled)
-        if getattr(settings, "enable_metrics", True):  ***REMOVED*** Default to enabled
-            try:
-                from recommendation_api.core.metrics import initialize_recommendation_metrics
+        ***REMOVED*** Initialize Recommendation-specific metrics (always enabled for observability)
+        try:
+            from recommendation_api.core.metrics import initialize_recommendation_metrics
 
-                metrics_instance = initialize_recommendation_metrics()
-                if metrics_instance:
-                    logger.info("Recommendation metrics initialized successfully")
-                    app.state.metrics = metrics_instance
-                else:
-                    logger.warning(
-                        "Recommendation metrics initialization returned None - metrics registry not available"
-                    )
-            except ImportError as e:
-                logger.error(f"Failed to import Recommendation metrics module: {e}")
-            except Exception as e:
-                logger.error(f"Error initializing Recommendation metrics: {e}")
+            metrics_instance = initialize_recommendation_metrics()
+            if metrics_instance:
+                logger.info("Recommendation metrics initialized successfully")
+                app.state.metrics = metrics_instance
+            else:
+                logger.warning(
+                    "Recommendation metrics initialization returned None - metrics registry not available"
+                )
+        except ImportError as e:
+            logger.error(f"Failed to import Recommendation metrics module: {e}")
+        except Exception as e:
+            logger.error(f"Error initializing Recommendation metrics: {e}")
 
         ***REMOVED*** Initialize cache service if enabled
         config = getattr(app.state, "settings", None)
@@ -196,18 +195,17 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
     )
 
     ***REMOVED*** Configure metrics middleware for Recommendation API monitoring
-    if getattr(config, "enable_metrics", True):  ***REMOVED*** Default to enabled
-        middleware.metrics(
-            endpoint_path="/metrics",
-            include_endpoint=True,
-            exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
-            exclude_methods=["OPTIONS"],
-            custom_buckets=[0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0],
-            track_request_size=True,
-            track_response_size=True,
-            enabled=True,
-        )
-        logger.info("Metrics middleware enabled for Recommendation API monitoring")
+    middleware.metrics(
+        endpoint_path="/metrics",
+        include_endpoint=True,
+        exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_methods=["OPTIONS"],
+        custom_buckets=[0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0],
+        track_request_size=True,
+        track_response_size=True,
+        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+    )
+    logger.info("Metrics middleware enabled for Recommendation API monitoring")
 
     logger.info("Recommendation middleware configuration created")
     return middleware

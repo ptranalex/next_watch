@@ -96,7 +96,7 @@ class RecommendationAPIConfig(ServiceConfig, CacheConfigMixin, VectorDBConfigMix
     enable_diversity_boost: bool = Field(default=True, description="Enable diversity boost")
 
     ***REMOVED*** Monitoring settings
-    enable_metrics: bool = Field(default=False, description="Enable metrics collection")
+
     metrics_port: int = Field(default=9090, description="Metrics server port")
     health_check_interval: int = Field(default=30, description="Health check interval in seconds")
 

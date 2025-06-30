@@ -72,7 +72,7 @@ def format_config_table(config: Config, title: str = "Recommendation API Configu
             "ENV/DEFAULT",
         ),
         ("Enable Diversity Boost", _format_boolean(config.enable_diversity_boost), "ENV/DEFAULT"),
-        ("Enable Metrics", _format_boolean(config.enable_metrics), "ENV/DEFAULT"),
+        ("Enable Metrics", _format_boolean(True), "ALWAYS ON"),
         ("Metrics Port", str(config.metrics_port), "ENV/DEFAULT"),
         ("Health Check Interval", f"{config.health_check_interval}s", "ENV/DEFAULT"),
     ]
