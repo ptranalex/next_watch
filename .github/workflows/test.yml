@@ -1,0 +1,9 @@
+name: Test Self-Hosted Runner
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: [self-hosted, builder, nextwatch]
+    steps:
+      - run: echo "✅ Self-hosted runner is working!"
