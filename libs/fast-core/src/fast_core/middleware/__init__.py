@@ -20,6 +20,8 @@ from .config import (
     LoggingConfig,
     RateLimitConfig,
     RequestConfig,
+    DEFAULT_METRICS_EXCLUDE_PATHS,
+    DEFAULT_LOGGING_EXCLUDE_PATHS,
 )
 from .setup import setup_middleware
 
@@ -32,6 +34,9 @@ __all__ = [
     "LoggingConfig",
     "RateLimitConfig",
     "RequestConfig",
+    ***REMOVED*** Constants for common configurations
+    "DEFAULT_METRICS_EXCLUDE_PATHS",
+    "DEFAULT_LOGGING_EXCLUDE_PATHS",
     ***REMOVED*** Setup function
     "setup_middleware",
 ]

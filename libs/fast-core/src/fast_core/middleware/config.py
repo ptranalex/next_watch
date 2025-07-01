@@ -8,6 +8,17 @@ using a builder pattern for flexible and granular control.
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field
 
+from config.logging import get_logger
+
+logger = get_logger(__name__)
+
+***REMOVED*** Standard exclude paths that all services typically want to exclude
+DEFAULT_METRICS_EXCLUDE_PATHS = ["/metrics", "/health", "/docs", "/openapi.json"]
+DEFAULT_LOGGING_EXCLUDE_PATHS = ["/health", "/metrics"]
+
+***REMOVED*** Common additional excludes that services often add
+COMMON_ADDITIONAL_EXCLUDES = ["/favicon.ico", "/robots.txt"]
+
 
 @dataclass
 class CORSConfig:
@@ -215,6 +226,7 @@ class MiddlewareConfig:
         include_response_body: bool = False,
         max_body_size: int = 1024,
         exclude_paths: Optional[List[str]] = None,
+        exclude_additional: Optional[List[str]] = None,
         include_headers: bool = True,
         exclude_headers: Optional[List[str]] = None,
         log_timing: bool = True,
@@ -228,7 +240,8 @@ class MiddlewareConfig:
             include_request_body: Whether to log request bodies
             include_response_body: Whether to log response bodies
             max_body_size: Maximum body size to log in bytes
-            exclude_paths: List of paths to exclude from logging
+            exclude_paths: Complete list of paths to exclude (overrides defaults)
+            exclude_additional: Additional paths to exclude beyond defaults
             include_headers: Whether to log headers
             exclude_headers: List of headers to exclude from logging
             log_timing: Whether to log request timing
@@ -238,13 +251,22 @@ class MiddlewareConfig:
         Returns:
             Self for method chaining
         """
+        ***REMOVED*** Handle exclude paths: either full override or extend defaults
+        if exclude_paths is not None:
+            final_exclude_paths = exclude_paths
+        else:
+            ***REMOVED*** Use defaults and optionally extend with additional paths
+            final_exclude_paths = DEFAULT_LOGGING_EXCLUDE_PATHS.copy()
+            if exclude_additional:
+                final_exclude_paths.extend(exclude_additional)
+
         self._logging = LoggingConfig(
             enabled=enabled,
             level=level,
             include_request_body=include_request_body,
             include_response_body=include_response_body,
             max_body_size=max_body_size,
-            exclude_paths=exclude_paths or ["/health", "/metrics"],
+            exclude_paths=final_exclude_paths,
             include_headers=include_headers,
             exclude_headers=exclude_headers or ["authorization", "cookie"],
             log_timing=log_timing,
@@ -333,6 +355,7 @@ class MiddlewareConfig:
         endpoint_path: str = "/metrics",
         include_endpoint: bool = True,
         exclude_paths: Optional[List[str]] = None,
+        exclude_additional: Optional[List[str]] = None,
         exclude_methods: Optional[List[str]] = None,
         custom_buckets: Optional[List[float]] = None,
         track_request_size: bool = True,
@@ -344,7 +367,8 @@ class MiddlewareConfig:
         Args:
             endpoint_path: Path for the metrics endpoint
             include_endpoint: Whether to add the /metrics endpoint to the app
-            exclude_paths: List of paths to exclude from metrics collection
+            exclude_paths: Complete list of paths to exclude (overrides defaults)
+            exclude_additional: Additional paths to exclude beyond defaults
             exclude_methods: List of HTTP methods to exclude from metrics
             custom_buckets: Custom histogram buckets for response times
             track_request_size: Whether to track request sizes
@@ -354,11 +378,20 @@ class MiddlewareConfig:
         Returns:
             Self for method chaining
         """
+        ***REMOVED*** Handle exclude paths: either full override or extend defaults
+        if exclude_paths is not None:
+            final_exclude_paths = exclude_paths
+        else:
+            ***REMOVED*** Use defaults and optionally extend with additional paths
+            final_exclude_paths = DEFAULT_METRICS_EXCLUDE_PATHS.copy()
+            if exclude_additional:
+                final_exclude_paths.extend(exclude_additional)
+
         self._metrics = MetricsConfig(
             enabled=enabled,
             endpoint_path=endpoint_path,
             include_endpoint=include_endpoint,
-            exclude_paths=exclude_paths or ["/metrics", "/health", "/docs", "/openapi.json"],
+            exclude_paths=final_exclude_paths,
             exclude_methods=exclude_methods or ["OPTIONS"],
             custom_buckets=custom_buckets,
             track_request_size=track_request_size,

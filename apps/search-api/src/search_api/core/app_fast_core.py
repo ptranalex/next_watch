@@ -223,7 +223,7 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
         include_request_body=not config.is_production,  ***REMOVED*** Only log bodies in development
         include_response_body=False,  ***REMOVED*** Never log response bodies (too verbose)
         max_body_size=1024,  ***REMOVED*** Smaller for search queries
-        exclude_paths=["/health", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],  ***REMOVED*** Add to defaults
         include_headers=True,
         exclude_headers=["authorization", "cookie", "x-api-key", "internal-api-key"],
         log_timing=True,
@@ -246,7 +246,7 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_additional=["/favicon.ico"],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
         exclude_methods=["OPTIONS"],
         custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0],
         track_request_size=True,
