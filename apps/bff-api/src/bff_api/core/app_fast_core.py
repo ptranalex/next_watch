@@ -4,7 +4,7 @@ This module creates a FastAPI application using the fast-core library
 with BFF-specific configuration and dependencies.
 """
 
-from typing import List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -17,9 +17,34 @@ from bff_api.dependencies import cleanup_service_clients, get_all_services_healt
 from bff_api.services.health_service import get_health_service, close_health_service
 from config.logging import get_logger
 
+***REMOVED*** Add BFF meta configuration constants after imports
+BFF_FEATURES = [
+    "Movie search and discovery",
+    "User authentication and session management",
+    "Personalized recommendations aggregation",
+    "Multi-service data orchestration",
+    "Frontend-optimized response formatting",
+    "Real-time notifications and updates",
+    "Caching and performance optimization",
+    "API rate limiting and security",
+]
+
+BFF_ENDPOINTS = {
+    "/bff/v1/movies": "Movie catalog with aggregated data",
+    "/bff/v1/movies/{id}": "Movie details with recommendations",
+    "/bff/v1/movies/{id}/similar": "Similar movies suggestions",
+    "/bff/v1/search": "Unified search across all services",
+    "/bff/v1/sidebar": "Sidebar widget data aggregation",
+    "/bff/v1/auth/login": "User authentication endpoint",
+    "/bff/v1/auth/register": "User registration endpoint",
+    "/bff/v1/auth/profile": "User profile management",
+    "/bff/v1/recommendations": "Personalized movie recommendations",
+    "/bff/v1/notifications": "Real-time user notifications",
+}
+
 ***REMOVED*** Import BFF routes
 from bff_api.routes.health import router as health_router  ***REMOVED*** Will remove this
-from bff_api.routes.meta import router as meta_router
+
 from bff_api.routes.api_v1 import api_v1_router
 
 logger = get_logger(__name__)
@@ -254,16 +279,18 @@ def create_bff_app(config: Optional[BFFAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** Define routers for the application
     routers = [
-        meta_router,
         ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         api_v1_router,
     ]
 
-    ***REMOVED*** Create app options (disable health_checks to use new system)
+    ***REMOVED*** Create app options with enhanced meta endpoint configuration
     app_options = AppOptions(
         exception_handlers=True,
         health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
-        docs=True,
+        docs=config.debug,
+        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_features=BFF_FEATURES,
+        meta_endpoints_map=BFF_ENDPOINTS,
     )
 
     ***REMOVED*** Create the FastAPI app using fast-core with enhanced middleware
@@ -281,6 +308,8 @@ def create_bff_app(config: Optional[BFFAPIConfig] = None) -> FastAPI:
     ***REMOVED*** Store the original BFF config for backward compatibility
     app.state.bff_config = config
 
+    ***REMOVED*** Meta endpoints are now automatically configured with BFF-specific data
+    logger.info("BFF API meta endpoints configured automatically with static config")
     logger.info("BFF API application created successfully with enhanced middleware")
     return app
 
