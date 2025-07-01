@@ -124,7 +124,7 @@ install-libs = [
 
 ***REMOVED*** Server management
 serve = "python -m ml_api.main"
-dev = "PYTHONPATH=src uvicorn ml_api.main:app --reload --port 8004"
+dev = "PYTHONPATH=src uvicorn ml_api.main:create_app --factory --reload --port 8004"
 
 
 ***REMOVED*** CLI access
