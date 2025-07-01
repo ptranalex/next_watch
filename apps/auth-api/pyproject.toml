@@ -137,7 +137,7 @@ install-libs = [
 
 ***REMOVED*** Server management
 serve = "python -m auth_api.main"
-dev = "PYTHONPATH=src uvicorn auth_api.main:app --reload --port 8003"
+dev = "PYTHONPATH=src uvicorn auth_api.main:create_app --factory --reload --port 8003"
 
 ***REMOVED*** CLI access
 cli = "python -m auth_api.cli"
