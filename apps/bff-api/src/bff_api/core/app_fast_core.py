@@ -14,6 +14,7 @@ from fast_core.middleware import MiddlewareConfig
 from bff_api.config.app import BFFAPIConfig
 from bff_api.config.fast_core_config import create_fast_core_config
 from bff_api.dependencies import cleanup_service_clients, get_all_services_health
+from bff_api.services.health_service import get_health_service, close_health_service
 from config.logging import get_logger
 
 ***REMOVED*** Import BFF routes
@@ -39,6 +40,15 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Log configuration summary
     logger.info(f"BFF API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
+
+    ***REMOVED*** Initialize BFF health service for dependency monitoring
+    try:
+        health_service = get_health_service()
+        app.state.health_service = health_service
+        logger.info("BFF health service initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize BFF health service: {e}", exc_info=True)
+        app.state.health_service = None
 
     ***REMOVED*** Initialize BFF-specific metrics (always enabled for observability)
     try:
@@ -81,6 +91,13 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Shutdown
     logger.info("Shutting down BFF API application")
+
+    ***REMOVED*** Clean up health service
+    try:
+        await close_health_service()
+        logger.info("Health service cleaned up successfully")
+    except Exception as e:
+        logger.error(f"Error during health service cleanup: {e}")
 
     ***REMOVED*** Clean up all service clients managed by Service Client Factory
     try:

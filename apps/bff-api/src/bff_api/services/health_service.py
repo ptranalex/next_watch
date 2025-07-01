@@ -144,7 +144,7 @@ class HealthService:
                     response_time_ms=round(response_time, 2),
                     details={
                         "provider": "redis",
-                        "key_prefix": cache_service.settings.key_prefix,
+                        "key_prefix": cache_service.settings.cache_key_prefix,
                     },
                 )
             else:

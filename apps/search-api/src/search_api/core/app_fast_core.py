@@ -14,6 +14,7 @@ from fast_core.middleware import MiddlewareConfig
 from search_api.config.app import SearchAPIConfig
 from search_api.config.fast_core_config import create_fast_core_config
 from search_api.dependencies.clients import cleanup_service_clients, get_all_services_health
+from search_api.services.health_service import get_health_service, close_health_service
 from config.logging import get_logger
 
 ***REMOVED*** Import Search routes
@@ -82,6 +83,16 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         app.state.suggestion_engine = suggestion_engine
         logger.info("Suggestion engine initialized successfully")
 
+        ***REMOVED*** Initialize health service
+        try:
+            cache_manager = getattr(app.state, "cache_manager", None)
+            health_service = get_health_service(cache_manager=cache_manager)
+            app.state.health_service = health_service
+            logger.info("Health service initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize health service: {e}")
+            app.state.health_service = None
+
         ***REMOVED*** Initialize search analytics if enabled
         if search_config.enable_search_analytics:
             logger.info("Search analytics enabled")
@@ -142,6 +153,13 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Search services cleaned up successfully")
     except Exception as e:
         logger.error(f"Error during search services cleanup: {e}")
+
+    ***REMOVED*** Clean up health service
+    try:
+        close_health_service()
+        logger.info("Health service cleaned up successfully")
+    except Exception as e:
+        logger.error(f"Error during health service cleanup: {e}")
 
     ***REMOVED*** Clean up all service clients managed by Service Client Factory
     try:
