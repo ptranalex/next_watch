@@ -4,12 +4,24 @@ This module provides monitoring utilities for FastAPI applications,
 including health checks and metrics.
 """
 
-from .health import HealthCheck, HealthCheckResult, check_database, check_redis, setup_health_checks
+from .health import (
+    HealthCheckResult,
+    HealthCheckDefinition,
+    HealthCheckRegistry,
+    HealthCheckType,
+    HealthCheckCategory,
+    setup_kubernetes_health_checks,
+    check_database,
+    check_redis,
+)
 
 __all__ = [
-    "HealthCheck",
     "HealthCheckResult",
-    "setup_health_checks",
+    "HealthCheckDefinition",
+    "HealthCheckRegistry",
+    "HealthCheckType",
+    "HealthCheckCategory",
+    "setup_kubernetes_health_checks",
     "check_database",
     "check_redis",
 ]

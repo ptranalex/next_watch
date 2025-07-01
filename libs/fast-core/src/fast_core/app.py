@@ -164,12 +164,13 @@ def create_app(
 
     ***REMOVED*** Setup health checks
     if options.health_checks:
-        try:
-            from fast_core.monitoring import setup_health_checks
-
-            setup_health_checks(app, settings)
-        except ImportError:
-            logger.warning("Health checks module not available, skipping health check setup")
+        ***REMOVED*** BREAKING CHANGE: Old health check system removed
+        ***REMOVED*** Services must now use setup_kubernetes_health_checks() directly
+        ***REMOVED*** and set health_checks=False in AppOptions
+        raise RuntimeError(
+            "Built-in health_checks=True is no longer supported. "
+            "Set health_checks=False and use setup_kubernetes_health_checks() directly in your service."
+        )
 
     ***REMOVED*** Include routers
     if routers:
