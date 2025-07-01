@@ -4,7 +4,7 @@ This module creates a FastAPI application using the fast-core library
 with Search-specific configuration and dependencies.
 """
 
-from typing import List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -17,9 +17,29 @@ from search_api.dependencies.clients import cleanup_service_clients, get_all_ser
 from search_api.services.health_service import get_health_service, close_health_service
 from config.logging import get_logger
 
+***REMOVED*** Add Search meta configuration constants after imports
+SEARCH_FEATURES = [
+    "Advanced movie search with filters",
+    "Real-time search suggestions and autocomplete",
+    "Entity recognition and semantic search",
+    "Search analytics and performance tracking",
+    "Multi-language search support",
+    "Fuzzy matching and typo tolerance",
+    "Search result caching and optimization",
+    "API rate limiting and security",
+]
+
+SEARCH_ENDPOINTS = {
+    "/api/v1/search": "Primary search endpoint with filters",
+    "/api/v1/search/suggestions": "Search suggestions and autocomplete",
+    "/api/v1/search/suggestions/text": "Text-based search suggestions",
+    "/api/v1/search/all": "Global search across all entities",
+    "/api/v1/search/movies": "Movie-specific search endpoint",
+    "/api/v1/search/people": "People and cast search",
+    "/api/v1/search/analytics": "Search analytics and insights",
+}
+
 ***REMOVED*** Import Search routes
-from search_api.routes.health import router as health_router  ***REMOVED*** Will remove this
-from search_api.routes.meta import router as meta_router
 from search_api.routes.api_v1 import api_v1_router
 
 logger = get_logger(__name__)
@@ -311,7 +331,6 @@ def create_search_app(config: Optional[SearchAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** Define routers for the application
     routers = [
-        meta_router,
         ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         api_v1_router,
     ]
@@ -326,6 +345,9 @@ def create_search_app(config: Optional[SearchAPIConfig] = None) -> FastAPI:
             exception_handlers=True,
             health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
             docs=not config.is_production,  ***REMOVED*** Disable docs in production
+            meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+            meta_features=SEARCH_FEATURES,
+            meta_endpoints_map=SEARCH_ENDPOINTS,
         ),
         middleware=middleware_config,
         routers=routers,
@@ -335,6 +357,8 @@ def create_search_app(config: Optional[SearchAPIConfig] = None) -> FastAPI:
     ***REMOVED*** Store the original SearchAPIConfig in app state for access to search-specific settings
     app.state.search_config = config
 
+    ***REMOVED*** Meta endpoints are now automatically configured with Search-specific data
+    logger.info("Search API meta endpoints configured automatically with static config")
     logger.info("Search API application created successfully with fast-core")
     return app
 
