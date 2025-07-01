@@ -4,7 +4,7 @@ This module creates a FastAPI application using the fast-core library
 with ML-specific configuration and dependencies.
 """
 
-from typing import Optional, AsyncGenerator
+from typing import Dict, Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,6 +14,27 @@ from fast_core.middleware import MiddlewareConfig
 from ml_api.config.app import MLAPIConfig
 from ml_api.config.fast_core_config import create_fast_core_config
 from config.logging import get_logger
+
+***REMOVED*** Add ML meta configuration constants after imports
+ML_FEATURES = [
+    "Movie embedding generation and similarity",
+    "Vector similarity search and matching",
+    "Batch embedding processing for large datasets",
+    "Pre-trained ML model serving and inference",
+    "Real-time embedding computation",
+    "Model health monitoring and diagnostics",
+    "GPU-accelerated ML operations",
+    "API rate limiting and resource management",
+]
+
+ML_ENDPOINTS = {
+    "/embeddings": "Generate embeddings for movies or text",
+    "/embeddings/batch": "Batch embedding generation for datasets",
+    "/embeddings/similarity": "Calculate similarity between embeddings",
+    "/models/info": "Information about loaded ML models",
+    "/models/health": "ML model health and status check",
+    "/ping": "Simple health ping endpoint",
+}
 
 ***REMOVED*** Import ML routes
 from ml_api.routes.embeddings import router as embeddings_router
@@ -233,11 +254,14 @@ def create_ml_app(config: Optional[MLAPIConfig] = None) -> FastAPI:
         embeddings_router,
     ]
 
-    ***REMOVED*** Create app options
+    ***REMOVED*** Create app options with enhanced meta endpoint configuration
     app_options = AppOptions(
         exception_handlers=True,
         health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=True,
+        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_features=ML_FEATURES,
+        meta_endpoints_map=ML_ENDPOINTS,
     )
 
     ***REMOVED*** Create the FastAPI app using fast-core
@@ -256,6 +280,8 @@ def create_ml_app(config: Optional[MLAPIConfig] = None) -> FastAPI:
     app.state.settings = fast_core_config
     app.state.ml_config = config
 
+    ***REMOVED*** Meta endpoints are now automatically configured with ML-specific data
+    logger.info("ML API meta endpoints configured automatically with static config")
     logger.info("ML API application created successfully with fast-core")
     return app
 
