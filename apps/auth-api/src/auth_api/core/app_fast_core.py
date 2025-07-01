@@ -5,7 +5,7 @@ with Auth-specific configuration and dependencies.
 """
 
 import os
-from typing import List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -18,9 +18,31 @@ from auth_api.db.database import init_database
 from auth_api.dependencies import get_auth_service, get_current_user, get_db
 from auth_api.services.health_service import get_health_service, close_health_service
 
+***REMOVED*** Add Auth meta configuration constants after imports
+AUTH_FEATURES = [
+    "JWT token-based authentication",
+    "User registration and profile management",
+    "Secure password hashing and validation",
+    "Token verification and validation services",
+    "Role-based access control (RBAC)",
+    "Session management and lifecycle",
+    "Security audit logging and monitoring",
+    "API rate limiting and brute force protection",
+]
+
+AUTH_ENDPOINTS = {
+    "/auth/tokens": "User authentication and login",
+    "/auth/users": "User registration and management",
+    "/auth/tokens/verify": "Token verification for other services",
+    "/auth/tokens/refresh": "Token refresh and renewal",
+    "/auth/users/{user_id}": "User profile management",
+    "/auth/users/{user_id}/password": "Password change and reset",
+    "/auth/health": "Authentication service health check",
+}
+
 ***REMOVED*** Import Auth routes
 from auth_api.routes.health import router as health_router  ***REMOVED*** Will remove this
-from auth_api.routes.meta import router as meta_router
+
 from auth_api.routes.api_v1 import api_v1_router
 
 from config.logging import get_logger
@@ -245,16 +267,18 @@ def create_auth_app(config: Optional[AuthAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** Define routers for the application
     routers = [
-        meta_router,
         ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         api_v1_router,  ***REMOVED*** V1 API routes with built-in prefix
     ]
 
-    ***REMOVED*** Create app options
+    ***REMOVED*** Create app options with enhanced meta endpoint configuration
     app_options = AppOptions(
         exception_handlers=True,
         health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=config.debug,
+        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_features=AUTH_FEATURES,
+        meta_endpoints_map=AUTH_ENDPOINTS,
     )
 
     ***REMOVED*** Create FastAPI app using fast-core
@@ -271,6 +295,8 @@ def create_auth_app(config: Optional[AuthAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** All routers now have their prefixes built-in, no manual configuration needed
 
+    ***REMOVED*** Meta endpoints are now automatically configured with Auth-specific data
+    logger.info("Auth API meta endpoints configured automatically with static config")
     logger.info("Auth API application created with fast-core integration")
     return app
 
