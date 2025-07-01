@@ -33,7 +33,7 @@ echo -e "${YELLOW}Step 1/3: Checking AWS Environment${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
 ***REMOVED*** Step 1: Check Environment
-if ! ../setup/check-environment.sh; then
+if ! ./infra/aws/setup/check-environment.sh; then
     echo -e "${RED}❌ Environment check failed. Please resolve issues before continuing.${NC}"
     exit 1
 fi
@@ -44,20 +44,40 @@ echo -e "${YELLOW}Step 2/3: Configuring Security Groups${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
 ***REMOVED*** Step 2: Configure Security Groups
-if ! ../setup/open-monitoring-ports.sh; then
+export ONE_CLICK_MODE=true
+if ! ./infra/aws/setup/open-monitoring-ports.sh; then
     echo -e "${RED}❌ Security group configuration failed.${NC}"
     exit 1
 fi
 
 echo ""
 echo -e "${YELLOW}========================================${NC}"
-echo -e "${YELLOW}Step 3/3: Deploying Monitoring Stack${NC}"
+echo -e "${YELLOW}Step 3/4: Deploying Monitoring Stack${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
 ***REMOVED*** Step 3: Deploy Monitoring
-if ! ./deploy-monitoring-to-existing.sh; then
+export ONE_CLICK_MODE=true
+if ! ./infra/aws/deployment/deploy-monitoring-to-existing.sh; then
     echo -e "${RED}❌ Monitoring deployment failed.${NC}"
     exit 1
+fi
+
+echo ""
+echo -e "${YELLOW}========================================${NC}"
+echo -e "${YELLOW}Step 4/4: Configuring Log Sync${NC}"
+echo -e "${YELLOW}========================================${NC}"
+
+***REMOVED*** Step 4: Fix Docker socket permissions for log sync
+if [ -f /tmp/nextwatch-aws-env.sh ]; then
+    source /tmp/nextwatch-aws-env.sh
+    
+    echo "🔧 Configuring Docker socket permissions for Promtail..."
+    ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'sudo chmod 666 /var/run/docker.sock'
+    echo -e "${GREEN}✅ Docker socket permissions configured${NC}"
+    
+    echo "🔄 Restarting Promtail to apply changes..."
+    ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'cd /opt/nextwatch-monitoring && sudo docker-compose -f docker-compose.monitoring.yml restart promtail'
+    echo -e "${GREEN}✅ Promtail restarted${NC}"
 fi
 
 echo ""

@@ -1,197 +1,27 @@
 global:
   ***REMOVED*** SMTP configuration for email alerts
-  smtp_smarthost: "${SMTP_HOST}:${SMTP_PORT}"
-  smtp_from: "${SMTP_FROM_EMAIL}"
-  smtp_auth_username: "${SMTP_USER}"
-  smtp_auth_password: "${SMTP_PASSWORD}"
-  smtp_require_tls: true
+  smtp_smarthost: "localhost:587"
+  smtp_from: "alertmanager@nextwatch.local"
 
 ***REMOVED*** Alert routing configuration
 route:
-  group_by: ["alertname", "cluster", "service"]
+  group_by: ["alertname"]
   group_wait: 10s
   group_interval: 10s
-  repeat_interval: 12h
-  receiver: "default-notifications"
-  routes:
-    ***REMOVED*** Critical alerts - immediate notification
-    - match:
-        severity: critical
-      receiver: "critical-alerts"
-      group_wait: 0s
-      repeat_interval: 5m
-
-    ***REMOVED*** Warning alerts - standard notification
-    - match:
-        severity: warning
-      receiver: "warning-alerts"
-      group_wait: 30s
-      repeat_interval: 2h
-
-    ***REMOVED*** Info alerts - daily digest
-    - match:
-        severity: info
-      receiver: "info-alerts"
-      group_wait: 5m
-      repeat_interval: 24h
-
-    ***REMOVED*** Business alerts - special handling
-    - match_re:
-        alertname: "(LowMovieRequestVolume|HighSearchErrorRate|BFF.*)"
-      receiver: "business-alerts"
-      group_wait: 2m
-      repeat_interval: 4h
-
-    ***REMOVED*** Infrastructure alerts
-    - match_re:
-        alertname: "(HighMemoryUsage|HighCPUUsage|DiskSpaceLow|ContainerKilled)"
-      receiver: "infrastructure-alerts"
-      group_wait: 1m
-      repeat_interval: 30m
+  repeat_interval: 1h
+  receiver: "web.hook"
 
 ***REMOVED*** Notification receivers
 receivers:
   ***REMOVED*** Default receiver
-  - name: "default-notifications"
-    email_configs:
-      - to: "${ALERT_EMAIL_TO}"
-        subject: "[NextWatch] {{ .GroupLabels.alertname }} Alert"
-        body: |
-          {{ range .Alerts }}
-          Alert: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Severity: {{ .Labels.severity }}
-          Service: {{ .Labels.service }}
-          Instance: {{ .Labels.instance }}
-          {{ end }}
-        html: |
-          <h2>NextWatch Alert</h2>
-          <table border="1">
-          <tr><th>Alert</th><th>Description</th><th>Severity</th><th>Service</th></tr>
-          {{ range .Alerts }}
-          <tr>
-            <td>{{ .Annotations.summary }}</td>
-            <td>{{ .Annotations.description }}</td>
-            <td>{{ .Labels.severity }}</td>
-            <td>{{ .Labels.service }}</td>
-          </tr>
-          {{ end }}
-          </table>
-
-  ***REMOVED*** Critical alerts - immediate notification with phone/SMS
-  - name: "critical-alerts"
-    email_configs:
-      - to: "${CRITICAL_ALERT_EMAIL}"
-        subject: "🚨 [CRITICAL] NextWatch Production Alert"
-        body: |
-          🚨 CRITICAL ALERT 🚨
-
-          {{ range .Alerts }}
-          Alert: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Service: {{ .Labels.service }}
-          Instance: {{ .Labels.instance }}
-          Time: {{ .StartsAt }}
-          {{ end }}
-
-          Please investigate immediately!
-        html: |
-          <h1 style="color: red;">🚨 CRITICAL ALERT</h1>
-          <table border="1" style="border-collapse: collapse;">
-          <tr style="background-color: ***REMOVED***ffcccc;">
-            <th>Alert</th><th>Description</th><th>Service</th><th>Time</th>
-          </tr>
-          {{ range .Alerts }}
-          <tr>
-            <td><strong>{{ .Annotations.summary }}</strong></td>
-            <td>{{ .Annotations.description }}</td>
-            <td>{{ .Labels.service }}</td>
-            <td>{{ .StartsAt }}</td>
-          </tr>
-          {{ end }}
-          </table>
-    ***REMOVED*** webhook_configs:
-    ***REMOVED***   - url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
-    ***REMOVED***     send_resolved: true
-
-  ***REMOVED*** Warning alerts
-  - name: "warning-alerts"
-    email_configs:
-      - to: "${WARNING_ALERT_EMAIL}"
-        subject: "⚠️ [WARNING] NextWatch Alert"
-        body: |
-          ⚠️ Warning Alert
-
-          {{ range .Alerts }}
-          Alert: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Service: {{ .Labels.service }}
-          Instance: {{ .Labels.instance }}
-          {{ end }}
-
-  ***REMOVED*** Info alerts - daily digest
-  - name: "info-alerts"
-    email_configs:
-      - to: "${INFO_ALERT_EMAIL}"
-        subject: "ℹ️ NextWatch Daily Info Digest"
-        body: |
-          ℹ️ Daily Information Digest
-
-          {{ range .Alerts }}
-          Info: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Service: {{ .Labels.service }}
-          {{ end }}
-
-  ***REMOVED*** Business logic alerts
-  - name: "business-alerts"
-    email_configs:
-      - to: "${BUSINESS_ALERT_EMAIL}"
-        subject: "📊 [BUSINESS] NextWatch Business Metric Alert"
-        body: |
-          📊 Business Metric Alert
-
-          {{ range .Alerts }}
-          Metric: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Service: {{ .Labels.service }}
-          Impact: This may affect user experience or business metrics
-          {{ end }}
-
-  ***REMOVED*** Infrastructure alerts
-  - name: "infrastructure-alerts"
-    email_configs:
-      - to: "${INFRA_ALERT_EMAIL}"
-        subject: "🔧 [INFRASTRUCTURE] NextWatch Infrastructure Alert"
-        body: |
-          🔧 Infrastructure Alert
-
-          {{ range .Alerts }}
-          Issue: {{ .Annotations.summary }}
-          Description: {{ .Annotations.description }}
-          Instance: {{ .Labels.instance }}
-          Recommendation: Check system resources and container health
-          {{ end }}
+  - name: "web.hook"
+    webhook_configs:
+      - url: "http://127.0.0.1:5001/"
 
 ***REMOVED*** Inhibition rules - prevent alert spam
 inhibit_rules:
-  ***REMOVED*** If service is down, don't alert on high latency/error rate
   - source_match:
-      alertname: "ServiceDown"
-    target_match_re:
-      alertname: "(ServiceHighErrorRate|ServiceHighLatency)"
-    equal: ["service", "instance"]
-
-  ***REMOVED*** If container is killed, don't alert on service down
-  - source_match:
-      alertname: "ContainerKilled"
+      severity: "critical"
     target_match:
-      alertname: "ServiceDown"
-    equal: ["instance"]
-
-  ***REMOVED*** If high CPU, don't alert on high latency
-  - source_match:
-      alertname: "HighCPUUsage"
-    target_match:
-      alertname: "ServiceHighLatency"
-    equal: ["instance"]
+      severity: "warning"
+    equal: ["alertname", "instance"]

@@ -72,7 +72,14 @@ done
 ***REMOVED*** Option to open ports for your domain (if using reverse proxy)
 echo ""
 echo -e "${YELLOW}🌐 Domain Access Configuration${NC}"
-read -p "Do you want to open monitoring ports for domain access (alexsandbox.me)? [y/N]: " domain_access
+
+***REMOVED*** Check if we're in one-click mode (non-interactive)
+if [ "${ONE_CLICK_MODE:-}" = "true" ]; then
+    echo "One-click mode: Automatically configuring domain access for alexsandbox.me"
+    domain_access="y"
+else
+    read -p "Do you want to open monitoring ports for domain access (alexsandbox.me)? [y/N]: " domain_access
+fi
 
 if [[ $domain_access =~ ^[Yy]$ ]]; then
     ***REMOVED*** Get domain IP

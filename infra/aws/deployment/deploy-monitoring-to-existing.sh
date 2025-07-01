@@ -24,7 +24,7 @@ else
 fi
 
 ***REMOVED*** Configuration
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 INFRA_DIR="$PROJECT_ROOT/infra"
 MONITORING_ENV_FILE="$INFRA_DIR/.env.monitoring.prod"
 
@@ -50,11 +50,29 @@ for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
 done
 
 if [ -z "$SSH_KEY_PATH" ]; then
-    echo -e "${YELLOW}⚠️  SSH key not found. Please specify the path:${NC}"
-    read -p "SSH key path: " SSH_KEY_PATH
-    if [ ! -f "$SSH_KEY_PATH" ]; then
-        echo -e "${RED}❌ SSH key not found: $SSH_KEY_PATH${NC}"
-        exit 1
+    ***REMOVED*** Check if we're in one-click mode (non-interactive)
+    if [ "${ONE_CLICK_MODE:-}" = "true" ]; then
+        ***REMOVED*** In one-click mode, try common AWS key locations
+        for common_key in ~/.ssh/aws_next_watch_may_7.pem ~/.ssh/nextwatch*.pem ~/.ssh/*aws*.pem; do
+            if [ -f "$common_key" ]; then
+                SSH_KEY_PATH="$common_key"
+                echo "One-click mode: Using SSH key: $SSH_KEY_PATH"
+                break
+            fi
+        done
+        
+        if [ -z "$SSH_KEY_PATH" ]; then
+            echo -e "${RED}❌ SSH key not found automatically in one-click mode.${NC}"
+            echo "Looked for: ~/.ssh/aws_next_watch_may_7.pem, ~/.ssh/nextwatch*.pem, ~/.ssh/*aws*.pem"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}⚠️  SSH key not found. Please specify the path:${NC}"
+        read -p "SSH key path: " SSH_KEY_PATH
+        if [ ! -f "$SSH_KEY_PATH" ]; then
+            echo -e "${RED}❌ SSH key not found: $SSH_KEY_PATH${NC}"
+            exit 1
+        fi
     fi
 fi
 
@@ -94,13 +112,16 @@ mkdir -p "$TEMP_DIR"
 ***REMOVED*** Copy necessary files to temp directory
 echo -e "${YELLOW}📁 Preparing deployment files...${NC}"
 cp -r "$INFRA_DIR/monitoring" "$TEMP_DIR/"
-cp "$INFRA_DIR/docker-compose.monitoring.simple.yml" "$TEMP_DIR/docker-compose.monitoring.yml"
+cp "$INFRA_DIR/docker-compose.monitoring.yml" "$TEMP_DIR/docker-compose.monitoring.yml"
 
-***REMOVED*** Ensure we have an environment file
+***REMOVED*** Use the single monitoring environment file
 if [ -f "$MONITORING_ENV_FILE" ]; then
     cp "$MONITORING_ENV_FILE" "$TEMP_DIR/.env.monitoring.prod"
+    echo "✅ Using monitoring environment file: $MONITORING_ENV_FILE"
 else
-    cp "$INFRA_DIR/.env.monitoring.simple" "$TEMP_DIR/.env.monitoring.prod"
+    echo -e "${RED}❌ Monitoring environment file not found: $MONITORING_ENV_FILE${NC}"
+    echo "Please ensure the file exists before running deployment."
+    exit 1
 fi
 
 ***REMOVED*** Use the unified Prometheus configuration (no need to generate AWS-specific config)
@@ -153,11 +174,11 @@ fi
 
 ***REMOVED*** Pull latest images
 echo "📥 Pulling monitoring images..."
-(sudo docker-compose -f docker-compose.aws.yml pull || sudo docker compose -f docker-compose.aws.yml pull)
+(sudo docker-compose -f docker-compose.monitoring.yml pull || sudo docker compose -f docker-compose.monitoring.yml pull)
 
 ***REMOVED*** Start monitoring stack
 echo "🐳 Starting monitoring services..."
-(sudo docker-compose -f docker-compose.aws.yml --env-file .env.monitoring.prod up -d || sudo docker compose -f docker-compose.aws.yml --env-file .env.monitoring.prod up -d)
+(sudo docker-compose -f docker-compose.monitoring.yml up -d || sudo docker compose -f docker-compose.monitoring.yml up -d)
 
 ***REMOVED*** Wait for services to be healthy
 echo "⏳ Waiting for services to start..."
@@ -165,12 +186,12 @@ sleep 30
 
 ***REMOVED*** Check service status
 echo "🏥 Checking service health..."
-for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod loki-prod promtail-prod; do
+for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod loki-prod promtail-prod cadvisor-prod; do
     if sudo docker ps --filter "name=$service" --filter "status=running" | grep -q "$service"; then
         echo "✅ $service is running"
     else
         echo "❌ $service failed to start"
-        sudo docker logs "$service" --tail 20
+        sudo docker logs "$service" --tail 20 2>/dev/null || echo "  Container not found or no logs"
     fi
 done
 
@@ -185,7 +206,7 @@ echo "  AlertManager: http://\$(curl -s ifconfig.me):9093"
 echo "  Loki: http://\$(curl -s ifconfig.me):3100"
 echo ""
 echo "📊 Service Status:"
-(sudo docker-compose -f docker-compose.aws.yml ps || sudo docker compose -f docker-compose.aws.yml ps)
+(sudo docker-compose -f docker-compose.monitoring.yml ps || sudo docker compose -f docker-compose.monitoring.yml ps)
 EOF
 
 chmod +x "$TEMP_DIR/remote-deploy.sh"
@@ -200,9 +221,8 @@ ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" << 'RE
 ***REMOVED*** Move files to the correct location
 sudo mkdir -p /opt/nextwatch-monitoring
 sudo cp -r /tmp/monitoring /opt/nextwatch-monitoring/
-sudo cp /tmp/docker-compose.aws.yml /opt/nextwatch-monitoring/
 sudo cp /tmp/docker-compose.monitoring.yml /opt/nextwatch-monitoring/
-sudo cp /tmp/.env.monitoring.prod /opt/nextwatch-monitoring/
+sudo cp /tmp/.env.monitoring.prod /opt/nextwatch-monitoring/.env 2>/dev/null || echo "Note: Environment file not found, will use defaults"
 sudo cp /tmp/remote-deploy.sh /opt/nextwatch-monitoring/
 sudo chown -R ubuntu:ubuntu /opt/nextwatch-monitoring
 

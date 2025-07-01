@@ -16,13 +16,15 @@ scrape_configs:
         refresh_interval: 5s
     relabel_configs:
       - source_labels: [__meta_docker_container_name]
-        regex: '/(.+)'
+        regex: "/(.+)"
         target_label: container_name
       - source_labels: [__meta_docker_container_log_stream]
         target_label: stream
-      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+      - source_labels:
+          [__meta_docker_container_label_com_docker_compose_service]
         target_label: service
-      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
+      - source_labels:
+          [__meta_docker_container_label_com_docker_compose_project]
         target_label: project
     pipeline_stages:
       - json:
@@ -47,20 +49,14 @@ scrape_configs:
           service: backend-api
           __path__: /app/logs/backend/*.log
     pipeline_stages:
-      - json:
-          expressions:
-            level: level
-            timestamp: timestamp
-            message: message
-            service: service
-            trace_id: trace_id
+      - regex:
+          expression: '^(?P<timestamp>\S+)\s+\[(?P<level>\w+)\s*\]\s+(?P<event>.*?)\s+\[(?P<logger>.*?)\]\s*(?P<fields>.*)$'
       - timestamp:
           source: timestamp
           format: RFC3339
       - labels:
           level:
-          service:
-          trace_id:
+          service: backend-api
 
   - job_name: nextwatch-bff
     static_configs:
@@ -71,20 +67,32 @@ scrape_configs:
           service: bff-api
           __path__: /app/logs/bff/*.log
     pipeline_stages:
-      - json:
-          expressions:
-            level: level
-            timestamp: timestamp
-            message: message
-            service: service
-            trace_id: trace_id
+      - regex:
+          expression: '^(?P<timestamp>\S+)\s+\[(?P<level>\w+)\s*\]\s+(?P<event>.*?)\s+\[(?P<logger>.*?)\]\s*(?P<fields>.*)$'
+      - regex:
+          source: fields
+          expression: '.*status_code=(?P<status_code>\d+).*'
+      - regex:
+          source: fields
+          expression: '.*method=(?P<method>\w+).*'
+      - regex:
+          source: fields
+          expression: '.*path=(?P<path>[^\s]+).*'
+      - regex:
+          source: fields
+          expression: ".*process_time_ms=(?P<process_time_ms>[0-9.]+).*"
+      - regex:
+          source: fields
+          expression: '.*request_id=(?P<request_id>[^\s]+).*'
       - timestamp:
           source: timestamp
           format: RFC3339
       - labels:
           level:
-          service:
-          trace_id:
+          service: bff-api
+          status_code:
+          method:
+          event:
 
   - job_name: nextwatch-auth
     static_configs:
@@ -95,18 +103,14 @@ scrape_configs:
           service: auth-api
           __path__: /app/logs/auth/*.log
     pipeline_stages:
-      - json:
-          expressions:
-            level: level
-            timestamp: timestamp
-            message: message
-            service: service
+      - regex:
+          expression: '^(?P<timestamp>\S+)\s+\[(?P<level>\w+)\s*\]\s+(?P<event>.*?)\s+\[(?P<logger>.*?)\]\s*(?P<fields>.*)$'
       - timestamp:
           source: timestamp
           format: RFC3339
       - labels:
           level:
-          service:
+          service: auth-api
 
   - job_name: nextwatch-search
     static_configs:
@@ -117,18 +121,14 @@ scrape_configs:
           service: search-api
           __path__: /app/logs/search/*.log
     pipeline_stages:
-      - json:
-          expressions:
-            level: level
-            timestamp: timestamp
-            message: message
-            service: service
+      - regex:
+          expression: '^(?P<timestamp>\S+)\s+\[(?P<level>\w+)\s*\]\s+(?P<event>.*?)\s+\[(?P<logger>.*?)\]\s*(?P<fields>.*)$'
       - timestamp:
           source: timestamp
           format: RFC3339
       - labels:
           level:
-          service:
+          service: search-api
 
   - job_name: nextwatch-recommendation
     static_configs:
@@ -139,18 +139,14 @@ scrape_configs:
           service: recommendation-api
           __path__: /app/logs/recommendation/*.log
     pipeline_stages:
-      - json:
-          expressions:
-            level: level
-            timestamp: timestamp
-            message: message
-            service: service
+      - regex:
+          expression: '^(?P<timestamp>\S+)\s+\[(?P<level>\w+)\s*\]\s+(?P<event>.*?)\s+\[(?P<logger>.*?)\]\s*(?P<fields>.*)$'
       - timestamp:
           source: timestamp
           format: RFC3339
       - labels:
           level:
-          service:
+          service: recommendation-api
 
   - job_name: nextwatch-ml
     static_configs:
@@ -161,18 +157,14 @@ scrape_configs:
           service: ml-api
           __path__: /app/logs/ml/*.log
     pipeline_stages:
-      - json:
-          expressions:
-            level: level
-            timestamp: timestamp
-            message: message
-            service: service
+      - regex:
+          expression: '^(?P<timestamp>\S+)\s+\[(?P<level>\w+)\s*\]\s+(?P<event>.*?)\s+\[(?P<logger>.*?)\]\s*(?P<fields>.*)$'
       - timestamp:
           source: timestamp
           format: RFC3339
       - labels:
           level:
-          service:
+          service: ml-api
 
   ***REMOVED*** System logs
   - job_name: syslog
@@ -187,7 +179,7 @@ scrape_configs:
           expression: '^(?P<timestamp>\S+\s+\d+\s+\d+:\d+:\d+)\s+(?P<hostname>\S+)\s+(?P<process>\S+):\s+(?P<message>.*)$'
       - timestamp:
           source: timestamp
-          format: 'Jan _2 15:04:05'
+          format: "Jan _2 15:04:05"
       - labels:
           hostname:
           process:
@@ -212,754 +204,12 @@ scrape_configs:
       - labels:
           level:
           stream:
-          container_name: container_name
-          docker_image: docker_image
-          docker_container_id: docker_container_id
-          docker_container_name: docker_container_name
-          docker_container_image: docker_container_image
-          docker_container_labels: docker_container_labels
-          docker_container_command: docker_container_command
-          docker_container_created: docker_container_created
-          docker_container_status: docker_container_status
-          docker_container_ports: docker_container_ports
-          docker_container_labels_com_docker_compose_service: docker_container_labels_com_docker_compose_service
-          docker_container_labels_com_docker_compose_project: docker_container_labels_com_docker_compose_project
-          docker_container_labels_com_docker_compose_version: docker_container_labels_com_docker_compose_version
-          docker_container_labels_com_docker_compose_config: docker_container_labels_com_docker_compose_config
-          docker_container_labels_com_docker_compose_file: docker_container_labels_com_docker_compose_file
-          docker_container_labels_com_docker_compose_project_name: docker_container_labels_com_docker_compose_project_name
-          docker_container_labels_com_docker_compose_service_name: docker_container_labels_com_docker_compose_service_name
-          docker_container_labels_com_docker_compose_config_hash: docker_container_labels_com_docker_compose_config_hash
-          docker_container_labels_com_docker_compose_file_hash: docker_container_labels_com_docker_compose_file_hash
-          docker_container_labels_com_docker_compose_project_file: docker_container_labels_com_docker_compose_project_file
-          docker_container_labels_com_docker_compose_project_name_file: docker_container_labels_com_docker_compose_project_name_file
-          docker_container_labels_com_docker_compose_service_name_file: docker_container_labels_com_docker_compose_service_name_file
-          docker_container_labels_com_docker_compose_config_hash_file: docker_container_labels_com_docker_compose_config_hash_file
-          docker_container_labels_com_docker_compose_file_hash_file: docker_container_labels_com_docker_compose_file_hash_file
-          docker_container_labels_com_docker_compose_project_file_file: docker_container_labels_com_docker_compose_project_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file: docker_container_labels_com_docker_compose_project_name_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file: docker_container_labels_com_docker_compose_service_name_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file: docker_container_labels_com_docker_compose_config_hash_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file: docker_container_labels_com_docker_compose_file_hash_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_service_name_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_config_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_file_hash_file_file_file_file_file_file_file_file_file_file_file_file_file
-          docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file: docker_container_labels_com_docker_compose_project_file_file_file_file_file_file_file_file_file_file_file_file_file
- 
+          container_name:
+          docker_image:
+          docker_container_id:
+          docker_container_name:
+          docker_container_image:
+          docker_container_command:
+          docker_container_status:
+          docker_container_labels_com_docker_compose_service:
+          docker_container_labels_com_docker_compose_project:
