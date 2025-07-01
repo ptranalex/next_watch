@@ -40,7 +40,7 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize BFF-specific metrics (always enabled for observability)
+    ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
     try:
         from search_api.core.metrics import initialize_search_metrics
 
@@ -50,7 +50,7 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             app.state.metrics = metrics_instance
         else:
             logger.warning(
-                "BFF metrics initialization returned None - metrics registry not available"
+                "Search metrics initialization returned None - metrics registry not available"
             )
     except ImportError as e:
         logger.error(f"Metrics dependencies not installed: {e}")
@@ -248,6 +248,7 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
         include_endpoint=True,
         exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
         exclude_methods=["OPTIONS"],
+        custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0],
         track_request_size=True,
         track_response_size=True,
         enabled=True,  ***REMOVED*** Re-enabled since registry is now manually initialized

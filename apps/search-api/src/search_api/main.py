@@ -1,6 +1,7 @@
 """Main FastAPI application for Search service."""
 
 import os
+import threading
 from typing import Optional
 from pathlib import Path
 
@@ -11,12 +12,23 @@ from search_api.config.app import settings
 
 ***REMOVED*** Lazy app initialization - only create when needed
 _app: Optional[FastAPI] = None
+_app_lock = threading.Lock()  ***REMOVED*** Thread-safe initialization
+_initialized = False  ***REMOVED*** Additional flag to prevent re-initialization
 
 
 def get_app() -> FastAPI:
     """Get or create the FastAPI application instance with full logging."""
-    global _app
-    if _app is None:
+    global _app, _initialized
+
+    ***REMOVED*** Double-checked locking pattern for thread safety
+    if _app is not None and _initialized:
+        return _app
+
+    with _app_lock:
+        ***REMOVED*** Check again inside the lock
+        if _app is not None and _initialized:
+            return _app
+
         ***REMOVED*** Configure logging for web server mode
         from config.logging import configure_logging, get_logger
 
@@ -46,21 +58,41 @@ def get_app() -> FastAPI:
 
         logger = get_logger("search_api.main")
 
-        ***REMOVED*** Log main application startup
-        logger.info("Initializing Next Watch Search Service", service="search-api")
+        ***REMOVED*** Log main application startup with process ID for debugging
+        process_id = os.getpid()
+        logger.info(
+            "Initializing Next Watch Search Service", service="search-api", process_id=process_id
+        )
         logger.info("Environment configuration", environment=settings.environment)
 
         ***REMOVED*** Import and create app using fast-core integration
         from search_api.core.app_fast_core import create_search_app
 
         _app = create_search_app(settings)
-        logger.info("Search Service initialized successfully", service="search-api")
+        _initialized = True  ***REMOVED*** Mark as fully initialized
+        logger.info(
+            "Search Service initialized successfully", service="search-api", process_id=process_id
+        )
 
     return _app
 
 
-***REMOVED*** Create app instance for direct import (web server use)
-app = get_app()
+def create_app() -> FastAPI:
+    """Factory function for creating the FastAPI app.
+
+    This is the function that should be called by Uvicorn to avoid
+    double initialization issues with module-level app creation.
+    """
+    return get_app()
+
+
+***REMOVED*** DEFER app creation - only create when explicitly requested
+***REMOVED*** This prevents automatic initialization during module import
+def __getattr__(name: str) -> FastAPI:
+    """Module-level __getattr__ to handle lazy app creation."""
+    if name == "app":
+        return get_app()
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
 if __name__ == "__main__":

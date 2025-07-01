@@ -48,9 +48,9 @@ def main() -> None:
                 access_log=True,
             )
         else:
-            ***REMOVED*** Production: Multiple workers with optimizations
+            ***REMOVED*** Production: Use factory function to avoid double initialization
             uvicorn.run(
-                app="search_api.main:app",
+                app="search_api.main:create_app",
                 host=settings.host,
                 port=settings.port,
                 log_level=settings.log_level.lower(),
@@ -61,6 +61,7 @@ def main() -> None:
                 access_log=False,  ***REMOVED*** Disable access logs for performance
                 proxy_headers=True,
                 forwarded_allow_ips=forwarded_allow_ips,
+                factory=True,  ***REMOVED*** Tell uvicorn this is a factory function
             )
 
     except Exception as e:
