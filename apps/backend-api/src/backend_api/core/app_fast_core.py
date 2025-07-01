@@ -5,7 +5,7 @@ with Backend-specific configuration and dependencies.
 """
 
 import os
-from typing import List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -20,13 +20,35 @@ from backend_api.services.health_service import HealthService, close_health_serv
 from config.logging import get_logger
 
 ***REMOVED*** Import Backend routes
-from backend_api.routes.health import router as health_router  ***REMOVED*** Will remove this
-from backend_api.routes.meta import router as meta_router
 from backend_api.routes.api_v1 import api_v1_router
 
 logger = get_logger(__name__)
 
 ***REMOVED*** Backend API focuses on core movie data operations
+
+***REMOVED*** Simple meta configuration constants
+BACKEND_FEATURES: List[str] = [
+    "Movie search and browsing",
+    "User authentication and profiles",
+    "Personalized recommendations",
+    "Rating and review system",
+    "Watchlist management",
+    "Social features and interactions",
+    "Bulk data operations",
+    "Advanced movie filtering",
+]
+
+BACKEND_ENDPOINTS: Dict[str, str] = {
+    "/api/v1/movies": "Movie catalog browsing and search",
+    "/api/v1/movies/{id}": "Individual movie details",
+    "/api/v1/movies/{id}/cast": "Movie cast and crew information",
+    "/api/v1/movies/{id}/trailers": "Movie trailers and media",
+    "/api/v1/movies/search": "Advanced movie search with filters",
+    "/api/v1/movies/bulk": "Bulk movie data operations",
+    "/api/v1/user/movies": "User movie interactions and preferences",
+    "/api/v1/user/movies/{id}": "User-specific movie data",
+    "/db-health": "Legacy database health check",
+}
 
 
 @asynccontextmanager
@@ -263,19 +285,22 @@ def create_backend_app(config: Optional[BackendAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** Define routers for the application
     routers = [
-        meta_router,
         ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         api_v1_router,
     ]
 
-    ***REMOVED*** Create app options
+    ***REMOVED*** Create app options with simple configuration-based meta endpoints
     app_options = AppOptions(
         exception_handlers=True,
         health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=config.debug,
+        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_features=BACKEND_FEATURES,
+        meta_endpoints_map=BACKEND_ENDPOINTS,
+        ***REMOVED*** No complex debug provider needed - fast-core provides sensible defaults
     )
 
-    ***REMOVED*** Create FastAPI app using fast-core
+    ***REMOVED*** Create FastAPI app using fast-core with automatic meta endpoint setup
     app = create_app(
         settings=fast_core_config,
         title="Next Watch Backend API",
@@ -286,6 +311,9 @@ def create_backend_app(config: Optional[BackendAPIConfig] = None) -> FastAPI:
         routers=routers,
         lifespan=backend_lifespan,
     )
+
+    ***REMOVED*** Meta endpoints are now automatically configured with simple static configuration
+    logger.info("Backend API meta endpoints configured automatically with static config")
 
     logger.info("Backend API application created with fast-core integration")
     return app
