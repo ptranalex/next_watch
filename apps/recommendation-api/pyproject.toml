@@ -139,7 +139,7 @@ install-libs = [
 
 ***REMOVED*** Server management
 serve = "python -m recommendation_api.main"
-dev = "PYTHONPATH=src uvicorn recommendation_api.main:app --reload --port 8002"
+dev = "PYTHONPATH=src uvicorn recommendation_api.main:create_app --factory --reload --port 8002"
 
 ***REMOVED*** CLI access
 cli = "python -m recommendation_api.cli"

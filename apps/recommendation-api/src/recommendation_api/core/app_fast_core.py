@@ -176,7 +176,7 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
     ***REMOVED*** Request logging - exclude health checks but log performance metrics
     middleware.logging(
         level="INFO",
-        exclude_paths=["/health", "/docs", "/redoc", "/openapi.json"],
+        exclude_additional=["/docs", "/redoc", "/openapi.json"],  ***REMOVED*** Add to defaults
         include_request_body=False,  ***REMOVED*** Don't log request bodies for performance
         include_response_body=False,  ***REMOVED*** Don't log response bodies for performance
         max_body_size=1024,  ***REMOVED*** Small limit for debugging
@@ -198,7 +198,7 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_additional=["/favicon.ico"],  ***REMOVED*** Add to standard excludes
         exclude_methods=["OPTIONS"],
         custom_buckets=[0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0],
         track_request_size=True,

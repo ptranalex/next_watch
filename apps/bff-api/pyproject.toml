@@ -134,7 +134,7 @@ install-libs = [
 
 ***REMOVED*** Server management
 serve = "python -m bff_api.main"
-dev = "PYTHONPATH=src uvicorn bff_api.main:app --reload --port 8001"
+dev = "PYTHONPATH=src uvicorn bff_api.main:create_app --factory --reload --port 8001"
 
 ***REMOVED*** CLI access
 cli = "python -m bff_api.cli"

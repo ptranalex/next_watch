@@ -37,7 +37,8 @@ def main() -> None:
         if settings.debug:
             ***REMOVED*** Development: Single worker with reload
             uvicorn.run(
-                app="bff_api.main:app",
+                app="bff_api.main:create_app",
+                factory=True,
                 host=settings.host,
                 port=settings.port,
                 log_level=settings.log_level.lower(),
@@ -47,7 +48,8 @@ def main() -> None:
         else:
             ***REMOVED*** Production: Multiple workers with optimizations
             uvicorn.run(
-                app="bff_api.main:app",
+                app="bff_api.main:create_app",
+                factory=True,
                 host=settings.host,
                 port=settings.port,
                 log_level=settings.log_level.lower(),
