@@ -56,7 +56,7 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Metrics dependencies not installed: {e}")
         logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
     except Exception as e:
-        logger.error(f"Failed to initialize BFF metrics: {e}", exc_info=True)
+        logger.error(f"Failed to initialize Search metrics: {e}", exc_info=True)
         if search_config.is_production:
             ***REMOVED*** In production, we want to know about metrics failures
             raise
@@ -248,22 +248,6 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
         include_endpoint=True,
         exclude_paths=["/health", "/metrics", "/docs", "/openapi.json", "/favicon.ico"],
         exclude_methods=["OPTIONS"],
-        custom_buckets=[
-            0.005,
-            0.01,
-            0.025,
-            0.05,
-            0.075,
-            0.1,
-            0.25,
-            0.5,
-            0.75,
-            1.0,
-            2.5,
-            5.0,
-            7.5,
-            10.0,
-        ],
         track_request_size=True,
         track_response_size=True,
         enabled=True,  ***REMOVED*** Re-enabled since registry is now manually initialized
