@@ -14,7 +14,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config.logging import get_logger
 from recommendation_api.core.middleware import setup_middleware
-from recommendation_api.routes.meta import router as meta_router
 from recommendation_api.routes.health import router as health_router
 from recommendation_api.routes import api_v1_router
 from recommendation_api.services.health_service import get_health_service, close_health_service
@@ -391,7 +390,6 @@ def create_app(settings: Optional[Any] = None) -> FastAPI:
     setup_middleware(app)
 
     ***REMOVED*** Include routers
-    app.include_router(meta_router, tags=["meta"])
     app.include_router(health_router, tags=["health"])
     app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 

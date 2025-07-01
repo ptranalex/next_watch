@@ -4,7 +4,7 @@ This module creates a FastAPI application using the fast-core library
 with recommendation-specific configuration and dependencies.
 """
 
-from typing import List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,9 +15,31 @@ from recommendation_api.config.app import RecommendationAPIConfig
 from recommendation_api.config.fast_core_config import create_fast_core_config
 from config.logging import get_logger
 
+***REMOVED*** Add Recommendation meta configuration constants after imports
+RECOMMENDATION_FEATURES = [
+    "ML-powered personalized movie recommendations",
+    "Similar movies discovery and suggestions",
+    "Trending and popular content algorithms",
+    "User preference learning and adaptation",
+    "Real-time recommendation caching",
+    "Vector similarity and embedding search",
+    "Content-based and collaborative filtering",
+    "A/B testing and recommendation experiments",
+]
+
+RECOMMENDATION_ENDPOINTS = {
+    "/api/v1/recommendations/trending": "Trending movies and popular content",
+    "/api/v1/recommendations/popular": "Most popular movies across platform",
+    "/api/v1/recommendations/similar/{movie_id}": "Movies similar to given movie",
+    "/api/v1/recommendations/personalized/{user_id}": "Personalized recommendations for user",
+    "/api/v1/recommendations/categories": "Recommendations by genre/category",
+    "/api/v1/recommendations/analytics": "Recommendation performance analytics",
+    "/api/v1/recommendations/feedback": "User feedback collection endpoint",
+}
+
 ***REMOVED*** Import recommendation routes
 from recommendation_api.routes.health import router as health_router  ***REMOVED*** Will remove this
-from recommendation_api.routes.meta import router as meta_router
+
 from recommendation_api.routes import api_v1_router
 
 logger = get_logger(__name__)
@@ -243,11 +265,14 @@ def create_recommendation_app(config: Optional[RecommendationAPIConfig] = None) 
     ***REMOVED*** Create recommendation-specific middleware configuration
     middleware_config = create_recommendation_middleware_config(config)
 
-    ***REMOVED*** Create app options (disable middleware since we're using MiddlewareConfig)
+    ***REMOVED*** Create app options with enhanced meta endpoint configuration
     app_options = AppOptions(
         exception_handlers=True,
         health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=True,
+        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_features=RECOMMENDATION_FEATURES,
+        meta_endpoints_map=RECOMMENDATION_ENDPOINTS,
     )
 
     ***REMOVED*** Create the FastAPI app using fast-core with enhanced middleware
@@ -263,13 +288,14 @@ def create_recommendation_app(config: Optional[RecommendationAPIConfig] = None) 
     )
 
     ***REMOVED*** Add routers with their specific configuration
-    app.include_router(meta_router, tags=["meta"])
     ***REMOVED*** app.include_router(health_router, tags=["health"])  ***REMOVED*** Removed: Using new multi-endpoint health system
     app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 
     ***REMOVED*** Store the original recommendation config for backward compatibility
     app.state.reco_config = config
 
+    ***REMOVED*** Meta endpoints are now automatically configured with Recommendation-specific data
+    logger.info("Recommendation API meta endpoints configured automatically with static config")
     logger.info("Recommendation API application created successfully with enhanced middleware")
     return app
 
