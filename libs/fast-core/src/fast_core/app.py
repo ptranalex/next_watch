@@ -37,10 +37,18 @@ class AppOptions:
         exception_handlers: bool = True,
         health_checks: bool = True,
         docs: bool = True,
+        meta_endpoints: bool = True,
+        meta_features: Optional[List[str]] = None,
+        meta_endpoints_map: Optional[Dict[str, str]] = None,
+        meta_debug_provider: Optional[Callable] = None,
     ):
         self.exception_handlers = exception_handlers
         self.health_checks = health_checks
         self.docs = docs
+        self.meta_endpoints = meta_endpoints
+        self.meta_features = meta_features
+        self.meta_endpoints_map = meta_endpoints_map
+        self.meta_debug_provider = meta_debug_provider
 
 
 @asynccontextmanager
@@ -171,6 +179,26 @@ def create_app(
             "Built-in health_checks=True is no longer supported. "
             "Set health_checks=False and use setup_kubernetes_health_checks() directly in your service."
         )
+
+    ***REMOVED*** Setup standardized meta endpoints (optional)
+    meta_endpoints = getattr(options, "meta_endpoints", True)
+    if meta_endpoints:
+        try:
+            from fast_core.meta import setup_meta_endpoints
+
+            ***REMOVED*** Extract service description from title or use default
+            service_description = description or f"API service for {service_name}"
+
+            setup_meta_endpoints(
+                app=app,
+                settings=settings,
+                service_description=service_description,
+                features=options.meta_features,
+                endpoints=options.meta_endpoints_map,
+                debug_info_provider=options.meta_debug_provider,
+            )
+        except ImportError:
+            logger.warning("Meta endpoints module not available, skipping meta endpoint setup")
 
     ***REMOVED*** Include routers
     if routers:
