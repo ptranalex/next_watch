@@ -157,7 +157,7 @@ install-libs = [
 
 ***REMOVED*** Server management
 serve = "python -m backend_api.main"
-dev = "PYTHONPATH=src uvicorn backend_api.main:app --reload --port 8000"
+dev = "PYTHONPATH=src uvicorn backend_api.main:create_app --factory --reload --port 8000"
 
 ***REMOVED*** CLI access
 cli = "python -m backend_api.cli"

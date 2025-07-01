@@ -11,7 +11,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fast_core import create_app, AppOptions
-from fast_core.middleware import MiddlewareConfig, DEFAULT_METRICS_EXCLUDE_PATHS
+from fast_core.middleware import MiddlewareConfig
 
 from backend_api.config.app import BackendAPIConfig
 from backend_api.config.fast_core_config import create_fast_core_config
@@ -193,7 +193,7 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         include_request_body=not config.is_production,  ***REMOVED*** Only log bodies in development
         include_response_body=False,  ***REMOVED*** Never log response bodies (too verbose)
         max_body_size=2048,
-        exclude_paths=["/health", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],  ***REMOVED*** Add to defaults
         include_headers=True,
         exclude_headers=["authorization", "cookie", "x-api-key", "internal-api-key"],
         log_timing=True,
@@ -216,7 +216,7 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_paths=DEFAULT_METRICS_EXCLUDE_PATHS + ["/favicon.ico"],
+        exclude_additional=["/favicon.ico"],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
         exclude_methods=["OPTIONS"],
         track_request_size=True,
         track_response_size=True,
