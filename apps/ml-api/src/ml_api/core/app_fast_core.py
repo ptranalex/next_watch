@@ -17,7 +17,7 @@ from config.logging import get_logger
 
 ***REMOVED*** Import ML routes
 from ml_api.routes.embeddings import router as embeddings_router
-from ml_api.routes.health import router as health_router
+from ml_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 
 logger = get_logger(__name__)
 
@@ -36,6 +36,17 @@ async def ml_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Log configuration summary
     logger.info(f"ML API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
+
+    ***REMOVED*** Setup new multi-endpoint health checks
+    try:
+        from fast_core.monitoring import setup_kubernetes_health_checks
+        from ml_api.services.health_service import setup_ml_health_checks
+
+        registry = setup_kubernetes_health_checks(app, settings)
+        setup_ml_health_checks(registry)
+        logger.info("Multi-endpoint health check system initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
     ***REMOVED*** Initialize ML model if enabled
     if ml_config.enable_embeddings:
@@ -218,14 +229,14 @@ def create_ml_app(config: Optional[MLAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** Define routers for the application
     routers = [
-        health_router,
+        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         embeddings_router,
     ]
 
     ***REMOVED*** Create app options
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=True,
+        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=True,
     )
 
