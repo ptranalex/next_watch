@@ -86,15 +86,6 @@ def create_app() -> FastAPI:
     return get_app()
 
 
-***REMOVED*** DEFER app creation - only create when explicitly requested
-***REMOVED*** This prevents automatic initialization during module import
-def __getattr__(name: str) -> FastAPI:
-    """Module-level __getattr__ to handle lazy app creation."""
-    if name == "app":
-        return get_app()
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-
-
 if __name__ == "__main__":
     ***REMOVED*** Use the proper main function with full production/development configuration
     from search_api.__main__ import main

@@ -137,7 +137,7 @@ install-libs = [
 
 ***REMOVED*** Server management
 serve = "python -m search_api.main"
-dev = "PYTHONPATH=src uvicorn search_api.main:app --reload --port 8005"
+dev = "PYTHONPATH=src uvicorn search_api.main:create_app --factory --reload --port 8005"
 
 ***REMOVED*** CLI access
 cli = "python -m search_api.cli"

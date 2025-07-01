@@ -38,14 +38,15 @@ def main() -> None:
 
         ***REMOVED*** Run the server with appropriate configuration
         if settings.debug:
-            ***REMOVED*** Development: Single worker with reload
+            ***REMOVED*** Development: Single worker with reload using factory pattern
             uvicorn.run(
-                app="search_api.main:app",
+                app="search_api.main:create_app",
                 host=settings.host,
                 port=settings.port,
                 log_level=settings.log_level.lower(),
                 reload=True,
                 access_log=True,
+                factory=True,  ***REMOVED*** Use factory pattern in development too
             )
         else:
             ***REMOVED*** Production: Use factory function to avoid double initialization
