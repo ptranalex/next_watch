@@ -17,66 +17,46 @@ class MonitoringConfigMixin:
     and health check settings.
 
     Environment variables (with service prefix):
-    - {SERVICE}_ENABLE_METRICS: Enable Prometheus metrics
     - {SERVICE}_METRICS_PORT: Port for metrics endpoint
     - {SERVICE}_LOG_FORMAT: Log format (json, text)
     - {SERVICE}_LOG_STRUCTURED: Enable structured logging
     - {SERVICE}_ENABLE_TRACING: Enable distributed tracing
     - {SERVICE}_HEALTH_CHECK_INTERVAL: Health check interval
+
+    Note: Metrics are always enabled for production observability.
     """
 
-    ***REMOVED*** Metrics configuration
-    enable_metrics: bool = Field(
-        default=True, description="Enable Prometheus metrics collection"
-    )
+    ***REMOVED*** Metrics configuration - Note: Metrics are always enabled for production observability
     metrics_port: Optional[int] = Field(
         default=None,
         description="Port for metrics endpoint (if different from main port)",
     )
-    metrics_path: str = Field(
-        default="/metrics", description="URL path for metrics endpoint"
-    )
+    metrics_path: str = Field(default="/metrics", description="URL path for metrics endpoint")
     enable_performance_metrics: bool = Field(
         default=False,
         description="Enable detailed performance metrics (may impact performance)",
     )
 
     ***REMOVED*** Logging configuration
-    log_format: str = Field(
-        default="json", description="Log format: json, text, or structured"
-    )
-    log_structured: bool = Field(
-        default=True, description="Enable structured logging with fields"
-    )
-    log_request_details: bool = Field(
-        default=True, description="Log HTTP request details"
-    )
+    log_format: str = Field(default="json", description="Log format: json, text, or structured")
+    log_structured: bool = Field(default=True, description="Enable structured logging with fields")
+    log_request_details: bool = Field(default=True, description="Log HTTP request details")
     log_response_time: bool = Field(default=True, description="Log HTTP response times")
-    log_sql_queries: bool = Field(
-        default=False, description="Log SQL queries (debug only)"
-    )
+    log_sql_queries: bool = Field(default=False, description="Log SQL queries (debug only)")
     log_suppress_noise: bool = Field(
         default=True, description="Suppress noisy log entries (health checks, etc.)"
     )
 
     ***REMOVED*** Tracing configuration
-    enable_tracing: bool = Field(
-        default=False, description="Enable distributed tracing"
-    )
+    enable_tracing: bool = Field(default=False, description="Enable distributed tracing")
     tracing_endpoint: Optional[str] = Field(
         default=None, description="Tracing collector endpoint (Jaeger, etc.)"
     )
-    tracing_sample_rate: float = Field(
-        default=0.1, description="Tracing sample rate (0.0 to 1.0)"
-    )
+    tracing_sample_rate: float = Field(default=0.1, description="Tracing sample rate (0.0 to 1.0)")
 
     ***REMOVED*** Health check configuration
-    health_check_interval: int = Field(
-        default=30, description="Health check interval in seconds"
-    )
-    health_check_timeout: int = Field(
-        default=5, description="Health check timeout in seconds"
-    )
+    health_check_interval: int = Field(default=30, description="Health check interval in seconds")
+    health_check_timeout: int = Field(default=5, description="Health check timeout in seconds")
     enable_deep_health_checks: bool = Field(
         default=False, description="Enable deep health checks (database, cache, etc.)"
     )
@@ -95,8 +75,7 @@ class MonitoringConfigMixin:
         allowed_formats = ["json", "text", "structured"]
         if v not in allowed_formats:
             raise ValueError(
-                f"Unsupported log format: {v}. "
-                f"Allowed formats: {', '.join(allowed_formats)}"
+                f"Unsupported log format: {v}. " f"Allowed formats: {', '.join(allowed_formats)}"
             )
         return v
 
@@ -164,7 +143,7 @@ class MonitoringConfigMixin:
             Dictionary with metrics configuration
         """
         config = {
-            "enabled": self.enable_metrics,
+            "enabled": True,  ***REMOVED*** Always enabled for production observability
             "path": self.metrics_path,
             "performance_metrics": self.enable_performance_metrics,
         }
@@ -255,15 +234,11 @@ class MonitoringConfigMixin:
         issues = []
 
         if environment == "production":
-            ***REMOVED*** Metrics should be enabled in production
-            if not self.enable_metrics:
-                issues.append("Metrics should be enabled in production")
+            ***REMOVED*** Metrics are always enabled - no validation needed
 
             ***REMOVED*** Performance metrics may impact performance
             if self.enable_performance_metrics:
-                issues.append(
-                    "Consider disabling detailed performance metrics in production"
-                )
+                issues.append("Consider disabling detailed performance metrics in production")
 
             ***REMOVED*** SQL query logging should be disabled
             if self.log_sql_queries:
