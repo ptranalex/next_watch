@@ -11,7 +11,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 import httpx
 from config.logging import get_logger
@@ -19,6 +19,9 @@ from httpx import HTTPStatusError, RequestError
 
 from bff_api.config.app import settings
 from bff_api.services.cache_service import get_cache_service
+
+if TYPE_CHECKING:
+    from fast_core.monitoring import HealthCheckRegistry
 
 logger = get_logger(__name__)
 
@@ -413,3 +416,173 @@ async def close_health_service() -> None:
     if _health_service is not None:
         await _health_service.close()
         _health_service = None
+
+
+***REMOVED***
+***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
+***REMOVED***
+
+
+def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
+    """Setup BFF-specific health checks with the new registry system.
+
+    Args:
+        registry: Health check registry to register checks with
+    """
+    from fast_core.monitoring import (
+        HealthCheckDefinition,
+        HealthCheckType,
+        HealthCheckCategory,
+        HealthCheckResult,
+    )
+    import time
+
+    ***REMOVED*** Backend API - CRITICAL dependency
+    async def check_backend_api() -> HealthCheckResult:
+        """Check Backend API health."""
+        start_time = time.time()
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{settings.backend_api_url}/health")
+                response_time = (time.time() - start_time) * 1000
+
+                return HealthCheckResult(
+                    is_healthy=response.status_code == 200,
+                    status="healthy" if response.status_code == 200 else "unhealthy",
+                    response_time_ms=round(response_time, 2),
+                    details={
+                        "url": f"{settings.backend_api_url}/health",
+                        "status_code": response.status_code,
+                    },
+                )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Cache service - IMPORTANT but not critical
+    async def check_redis() -> HealthCheckResult:
+        """Check Redis cache health."""
+        start_time = time.time()
+        try:
+            cache_service = get_cache_service()
+            is_healthy = await cache_service.health_check()
+            response_time = (time.time() - start_time) * 1000
+
+            return HealthCheckResult(
+                is_healthy=is_healthy,
+                status="healthy" if is_healthy else "unhealthy",
+                response_time_ms=round(response_time, 2),
+                details={"provider": "redis"},
+            )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Recommendation API - IMPORTANT for features
+    async def check_recommendation_api() -> HealthCheckResult:
+        """Check Recommendation API health."""
+        start_time = time.time()
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{settings.reco_api_url}/health")
+                response_time = (time.time() - start_time) * 1000
+
+                return HealthCheckResult(
+                    is_healthy=response.status_code == 200,
+                    status="healthy" if response.status_code == 200 else "unhealthy",
+                    response_time_ms=round(response_time, 2),
+                    details={
+                        "url": f"{settings.reco_api_url}/health",
+                        "status_code": response.status_code,
+                    },
+                )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Auth API - IMPORTANT for auth features
+    async def check_auth_api() -> HealthCheckResult:
+        """Check Auth API health."""
+        start_time = time.time()
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{settings.auth_api_url}/health")
+                response_time = (time.time() - start_time) * 1000
+
+                return HealthCheckResult(
+                    is_healthy=response.status_code in [200, 503],  ***REMOVED*** 503 = degraded but reachable
+                    status="healthy" if response.status_code == 200 else "degraded",
+                    response_time_ms=round(response_time, 2),
+                    details={
+                        "url": f"{settings.auth_api_url}/health",
+                        "status_code": response.status_code,
+                    },
+                )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unavailable",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Register health checks
+    registry.add_check(
+        HealthCheckDefinition(
+            name="backend_api",
+            check_func=check_backend_api,
+            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            category=HealthCheckCategory.CRITICAL,
+            timeout_seconds=6.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="redis_cache",
+            check_func=check_redis,
+            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=3.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="recommendation_api",
+            check_func=check_recommendation_api,
+            types={HealthCheckType.DEEP},
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=6.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="auth_api",
+            check_func=check_auth_api,
+            types={HealthCheckType.DEEP},
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=6.0,
+        )
+    )
+
+    logger.info(
+        "BFF health checks registered - CRITICAL: backend_api | IMPORTANT: redis_cache, recommendation_api, auth_api"
+    )
