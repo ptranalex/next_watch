@@ -9,7 +9,7 @@ import asyncio
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, TYPE_CHECKING
 
 import redis
 from redis.exceptions import RedisError
@@ -18,6 +18,9 @@ from sqlmodel import Session, text
 from backend_api.config.app import settings
 from config.logging import get_logger
 from backend_api.db.database import get_db
+
+if TYPE_CHECKING:
+    from fast_core.monitoring import HealthCheckRegistry
 
 logger = get_logger(__name__)
 
@@ -258,3 +261,130 @@ def close_health_service() -> None:
     if _health_service is not None:
         _health_service.close()
         _health_service = None
+
+
+***REMOVED***
+***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
+***REMOVED***
+
+
+def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
+    """Setup Backend API-specific health checks with the new registry system.
+
+    Args:
+        registry: Health check registry to register checks with
+    """
+    from fast_core.monitoring import (
+        HealthCheckDefinition,
+        HealthCheckType,
+        HealthCheckCategory,
+        HealthCheckResult,
+    )
+    import time
+    import redis
+    from sqlmodel import text
+
+    ***REMOVED*** PostgreSQL Database - CRITICAL dependency
+    async def check_postgres() -> HealthCheckResult:
+        """Check PostgreSQL database health."""
+        start_time = time.time()
+        try:
+            with next(get_db()) as db:
+                ***REMOVED*** Simple connectivity test
+                result = db.execute(text("SELECT 1")).scalar()
+
+                ***REMOVED*** Get version for details
+                version_result = db.execute(text("SELECT version()")).scalar()
+                version = version_result if version_result else "Unknown"
+
+                response_time = (time.time() - start_time) * 1000
+
+                return HealthCheckResult(
+                    is_healthy=True,
+                    status="healthy",
+                    response_time_ms=round(response_time, 2),
+                    details={
+                        "version": (
+                            version.split()[1]
+                            if version and len(version.split()) > 1
+                            else "Unknown"
+                        ),
+                        "connection": "successful",
+                    },
+                )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Redis Cache - IMPORTANT but not critical
+    async def check_redis() -> HealthCheckResult:
+        """Check Redis cache health."""
+        start_time = time.time()
+        try:
+            redis_url = os.getenv("CACHE_REDIS_URL") or settings.redis_url
+            client = redis.Redis.from_url(redis_url, decode_responses=True, socket_timeout=3.0)
+
+            ***REMOVED*** Ping Redis
+            ping_result = client.ping()
+            response_time = (time.time() - start_time) * 1000
+
+            if ping_result:
+                try:
+                    info = client.info()
+                    return HealthCheckResult(
+                        is_healthy=True,
+                        status="healthy",
+                        response_time_ms=round(response_time, 2),
+                        details={
+                            "version": info.get("redis_version", "Unknown"),
+                            "connected_clients": info.get("connected_clients", 0),
+                            "used_memory_human": info.get("used_memory_human", "Unknown"),
+                        },
+                    )
+                finally:
+                    client.close()
+            else:
+                return HealthCheckResult(
+                    is_healthy=False,
+                    status="unhealthy",
+                    response_time_ms=round(response_time, 2),
+                    error="Redis ping failed",
+                )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Register health checks
+    registry.add_check(
+        HealthCheckDefinition(
+            name="postgres",
+            check_func=check_postgres,
+            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            category=HealthCheckCategory.CRITICAL,
+            timeout_seconds=5.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="redis_cache",
+            check_func=check_redis,
+            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=4.0,
+        )
+    )
+
+    logger.info(
+        "Backend API health checks registered - CRITICAL: postgres | IMPORTANT: redis_cache"
+    )

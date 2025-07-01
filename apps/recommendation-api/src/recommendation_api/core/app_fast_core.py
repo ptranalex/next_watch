@@ -16,7 +16,7 @@ from recommendation_api.config.fast_core_config import create_fast_core_config
 from config.logging import get_logger
 
 ***REMOVED*** Import recommendation routes
-from recommendation_api.routes.health import router as health_router
+from recommendation_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 from recommendation_api.routes.meta import router as meta_router
 from recommendation_api.routes import api_v1_router
 
@@ -38,6 +38,17 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Get settings from app state
     settings = getattr(app.state, "settings", None)
+
+    ***REMOVED*** Setup new multi-endpoint health checks
+    try:
+        from fast_core.monitoring import setup_kubernetes_health_checks
+        from recommendation_api.services.health_service import setup_recommendation_health_checks
+
+        registry = setup_kubernetes_health_checks(app, settings)
+        setup_recommendation_health_checks(registry)
+        logger.info("Multi-endpoint health check system initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
     ***REMOVED*** Initialize recommendation-specific services
     try:
@@ -235,7 +246,7 @@ def create_recommendation_app(config: Optional[RecommendationAPIConfig] = None) 
     ***REMOVED*** Create app options (disable middleware since we're using MiddlewareConfig)
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=True,
+        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=True,
     )
 
@@ -253,7 +264,7 @@ def create_recommendation_app(config: Optional[RecommendationAPIConfig] = None) 
 
     ***REMOVED*** Add routers with their specific configuration
     app.include_router(meta_router, tags=["meta"])
-    app.include_router(health_router, tags=["health"])
+    ***REMOVED*** app.include_router(health_router, tags=["health"])  ***REMOVED*** Removed: Using new multi-endpoint health system
     app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 
     ***REMOVED*** Store the original recommendation config for backward compatibility

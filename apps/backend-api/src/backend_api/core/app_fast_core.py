@@ -20,7 +20,7 @@ from backend_api.services.health_service import HealthService, close_health_serv
 from config.logging import get_logger
 
 ***REMOVED*** Import Backend routes
-from backend_api.routes.health import router as health_router
+from backend_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 from backend_api.routes.meta import router as meta_router
 from backend_api.routes.api_v1 import api_v1_router
 
@@ -64,6 +64,17 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize health service: {e}")
         app.state.health_service = None
+
+    ***REMOVED*** Setup new multi-endpoint health checks
+    try:
+        from fast_core.monitoring import setup_kubernetes_health_checks
+        from backend_api.services.health_service import setup_backend_health_checks
+
+        registry = setup_kubernetes_health_checks(app, settings)
+        setup_backend_health_checks(registry)
+        logger.info("Multi-endpoint health check system initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
     ***REMOVED*** Backend API focuses on core movie data - no suggestion engine needed
     logger.info("Backend API handles core movie data operations")
@@ -253,14 +264,14 @@ def create_backend_app(config: Optional[BackendAPIConfig] = None) -> FastAPI:
     ***REMOVED*** Define routers for the application
     routers = [
         meta_router,
-        health_router,
+        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         api_v1_router,
     ]
 
     ***REMOVED*** Create app options
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=fast_core_config.is_feature_enabled("health_checks"),
+        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=config.debug,
     )
 

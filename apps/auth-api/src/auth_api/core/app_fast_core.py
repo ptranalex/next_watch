@@ -19,7 +19,7 @@ from auth_api.dependencies import get_auth_service, get_current_user, get_db
 from auth_api.services.health_service import get_health_service, close_health_service
 
 ***REMOVED*** Import Auth routes
-from auth_api.routes.health import router as health_router
+from auth_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 from auth_api.routes.meta import router as meta_router
 from auth_api.routes.api_v1 import api_v1_router
 
@@ -85,6 +85,17 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to initialize health service: {e}")
         ***REMOVED*** Don't raise here - health service is not critical for startup
         app.state.health_service = None
+
+    ***REMOVED*** Setup new multi-endpoint health checks
+    try:
+        from fast_core.monitoring import setup_kubernetes_health_checks
+        from auth_api.services.health_service import setup_auth_health_checks
+
+        registry = setup_kubernetes_health_checks(app, settings)
+        setup_auth_health_checks(registry)
+        logger.info("Multi-endpoint health check system initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
     logger.info("Auth API handles authentication and authorization for Next Watch platform")
 
@@ -235,14 +246,14 @@ def create_auth_app(config: Optional[AuthAPIConfig] = None) -> FastAPI:
     ***REMOVED*** Define routers for the application
     routers = [
         meta_router,
-        health_router,
+        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         api_v1_router,  ***REMOVED*** V1 API routes with built-in prefix
     ]
 
     ***REMOVED*** Create app options
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=True,  ***REMOVED*** Always enable health checks for auth service
+        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
         docs=config.debug,
     )
 
