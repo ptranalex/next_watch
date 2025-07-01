@@ -39,7 +39,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
         default="http://localhost:8002",
         description="Recommendation API URL",
     )
-    search_api_url: str = Field(default="http://localhost:8004", description="Search API URL")
+    search_api_url: str = Field(default="http://localhost:8005", description="Search API URL")
     ml_api_url: Optional[str] = Field(default=None, description="ML API URL (optional)")
 
     ***REMOVED*** Service timeouts

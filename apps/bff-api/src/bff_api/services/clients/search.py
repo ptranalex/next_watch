@@ -311,7 +311,8 @@ class SearchAPIClient(BaseBackendClient):
                 component="search_client",
             )
 
-            return response
+            ***REMOVED*** Return response with URL included for consistency with fast-core health checks
+            return {"service": self.name, "status": "healthy", "url": self.base_url, **response}
 
         except Exception as e:
             logger.error(
@@ -320,8 +321,9 @@ class SearchAPIClient(BaseBackendClient):
                 service="bff",
                 component="search_client",
             )
-            raise ExternalServiceException(
-                detail="Search API health check failed",
-                service_name="search-api",
-                error_code="HEALTH_CHECK_FAILED",
-            )
+            return {
+                "service": self.name,
+                "status": "error",
+                "error": str(e),
+                "url": self.base_url,
+            }

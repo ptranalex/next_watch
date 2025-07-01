@@ -44,6 +44,7 @@ def create_fast_core_config(bff_config: BFFAPIConfig) -> FastAPIConfig:
                 "backend": bff_config.backend_api_url,
                 "auth": bff_config.auth_api_url,
                 "recommendation": bff_config.reco_api_url,
+                "search": bff_config.search_api_url,
                 "ml": bff_config.ml_api_url,
             }.items()
             if v is not None
@@ -53,6 +54,7 @@ def create_fast_core_config(bff_config: BFFAPIConfig) -> FastAPIConfig:
             "backend": bff_config.backend_api_timeout,
             "auth": bff_config.auth_api_timeout,
             "recommendation": bff_config.recommendation_api_timeout,
+            "search": bff_config.search_api_timeout,
             "ml": bff_config.ml_api_timeout,
         },
         ***REMOVED*** Feature flags
@@ -79,7 +81,7 @@ def get_service_url(config: FastAPIConfig, service_name: str) -> Optional[str]:
 
     Args:
         config: Fast-core configuration
-        service_name: Name of the service (backend, auth, recommendation, ml)
+        service_name: Name of the service (backend, auth, recommendation, search, ml)
 
     Returns:
         Service URL or None if not configured
