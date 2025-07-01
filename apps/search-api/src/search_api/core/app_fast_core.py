@@ -18,7 +18,7 @@ from search_api.services.health_service import get_health_service, close_health_
 from config.logging import get_logger
 
 ***REMOVED*** Import Search routes
-from search_api.routes.health import router as health_router
+from search_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 from search_api.routes.meta import router as meta_router
 from search_api.routes.api_v1 import api_v1_router
 
@@ -40,6 +40,17 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Log configuration summary
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
+
+    ***REMOVED*** Setup new multi-endpoint health checks
+    try:
+        from fast_core.monitoring import setup_kubernetes_health_checks
+        from search_api.services.health_service import setup_search_health_checks
+
+        registry = setup_kubernetes_health_checks(app, settings)
+        setup_search_health_checks(registry)
+        logger.info("Multi-endpoint health check system initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
     ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
     try:
@@ -301,7 +312,7 @@ def create_search_app(config: Optional[SearchAPIConfig] = None) -> FastAPI:
     ***REMOVED*** Define routers for the application
     routers = [
         meta_router,
-        health_router,
+        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
         api_v1_router,
     ]
 
@@ -313,7 +324,7 @@ def create_search_app(config: Optional[SearchAPIConfig] = None) -> FastAPI:
         version="0.1.0",
         options=AppOptions(
             exception_handlers=True,
-            health_checks=True,
+            health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
             docs=not config.is_production,  ***REMOVED*** Disable docs in production
         ),
         middleware=middleware_config,

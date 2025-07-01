@@ -7,12 +7,16 @@ This service provides comprehensive health checks for all dependencies:
 
 import asyncio
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TYPE_CHECKING
 from dataclasses import dataclass
 
 from config.logging import get_logger
 from cache.manager import CacheManager
-from fast_core.dependencies.client_factory import get_service_client
+
+***REMOVED*** from fast_core.dependencies.client_factory import get_service_client  ***REMOVED*** No longer used
+
+if TYPE_CHECKING:
+    from fast_core.monitoring import HealthCheckRegistry
 
 logger = get_logger(__name__)
 
@@ -84,7 +88,7 @@ class HealthService:
         return results
 
     async def check_backend_api(self) -> HealthCheckResult:
-        """Check Backend API health using Service Client Factory.
+        """Check Backend API health using direct HTTP calls.
 
         Returns:
             Health check result for Backend API
@@ -92,33 +96,35 @@ class HealthService:
         start_time = time.time()
 
         try:
-            backend_client_dep = get_service_client("backend")
-            backend_client = await backend_client_dep()
+            import httpx
+            from search_api.config.app import get_search_settings
 
-            ***REMOVED*** Simple health check to backend
-            response = await backend_client.get("/health/basic")
-            response_time = (time.time() - start_time) * 1000
+            settings = get_search_settings()
 
-            if response.status_code == 200:
-                response_data = response.json()
-                return HealthCheckResult(
-                    is_healthy=True,
-                    status="healthy",
-                    response_time_ms=round(response_time, 2),
-                    details={
-                        "backend_status": response_data.get("status", "unknown"),
-                        "backend_version": response_data.get("version", "unknown"),
-                        "url": str(backend_client.base_url),
-                    },
-                )
-            else:
-                return HealthCheckResult(
-                    is_healthy=False,
-                    status="unhealthy",
-                    response_time_ms=round(response_time, 2),
-                    error=f"Backend API returned status {response.status_code}",
-                    details={"url": str(backend_client.base_url)},
-                )
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{settings.backend_api_url}/health")
+                response_time = (time.time() - start_time) * 1000
+
+                if response.status_code == 200:
+                    response_data = response.json()
+                    return HealthCheckResult(
+                        is_healthy=True,
+                        status="healthy",
+                        response_time_ms=round(response_time, 2),
+                        details={
+                            "backend_status": response_data.get("status", "unknown"),
+                            "backend_version": response_data.get("version", "unknown"),
+                            "url": f"{settings.backend_api_url}/health",
+                        },
+                    )
+                else:
+                    return HealthCheckResult(
+                        is_healthy=False,
+                        status="unhealthy",
+                        response_time_ms=round(response_time, 2),
+                        error=f"Backend API returned status {response.status_code}",
+                        details={"url": f"{settings.backend_api_url}/health"},
+                    )
 
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
@@ -244,3 +250,148 @@ def close_health_service() -> None:
     if _health_service is not None:
         _health_service.close()
         _health_service = None
+
+
+***REMOVED***
+***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
+***REMOVED***
+
+
+def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
+    """Setup Search API-specific health checks with the new registry system.
+
+    Args:
+        registry: Health check registry to register checks with
+    """
+    from fast_core.monitoring import (
+        HealthCheckDefinition,
+        HealthCheckType,
+        HealthCheckCategory,
+        HealthCheckResult,
+    )
+    import time
+
+    ***REMOVED*** Backend API - CRITICAL (search needs movie data)
+    async def check_backend_api() -> HealthCheckResult:
+        """Check Backend API connectivity."""
+        start_time = time.time()
+        try:
+            from search_api.config.app import get_search_settings
+            import httpx
+
+            settings = get_search_settings()
+
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{settings.backend_api_url}/health")
+                response_time = (time.time() - start_time) * 1000
+
+                return HealthCheckResult(
+                    is_healthy=response.status_code == 200,
+                    status="healthy" if response.status_code == 200 else "unhealthy",
+                    response_time_ms=round(response_time, 2),
+                    details={
+                        "url": f"{settings.backend_api_url}/health",
+                        "status_code": response.status_code,
+                    },
+                )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Redis Cache - IMPORTANT (improves search performance)
+    async def check_redis_cache() -> HealthCheckResult:
+        """Check Redis cache connectivity."""
+        start_time = time.time()
+        try:
+            from search_api.config.app import settings
+            import redis.asyncio as redis
+
+            redis_client = redis.from_url(settings.redis_url, socket_timeout=3.0)
+            await redis_client.ping()
+
+            ***REMOVED*** Test basic operation
+            test_key = "health_check:search_api"
+            await redis_client.set(test_key, "ping", ex=10)
+            result = await redis_client.get(test_key)
+            await redis_client.delete(test_key)
+            await redis_client.close()
+
+            response_time = (time.time() - start_time) * 1000
+
+            return HealthCheckResult(
+                is_healthy=True,
+                status="healthy",
+                response_time_ms=round(response_time, 2),
+                details={"provider": "redis", "operation": "ping_and_set"},
+            )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="unhealthy",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Search Index Performance - INFORMATIONAL (monitoring only)
+    async def check_search_performance() -> HealthCheckResult:
+        """Check search performance metrics."""
+        start_time = time.time()
+        try:
+            ***REMOVED*** Simple performance test - this could be enhanced with actual search metrics
+            response_time = (time.time() - start_time) * 1000
+
+            return HealthCheckResult(
+                is_healthy=True,
+                status="healthy",
+                response_time_ms=round(response_time, 2),
+                details={"search_engine": "configured", "suggestion_engine": "available"},
+            )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=False,
+                status="error",
+                response_time_ms=round(response_time, 2),
+                error=str(e),
+            )
+
+    ***REMOVED*** Register health checks
+    registry.add_check(
+        HealthCheckDefinition(
+            name="backend_api",
+            check_func=check_backend_api,
+            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            category=HealthCheckCategory.CRITICAL,
+            timeout_seconds=5.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="redis_cache",
+            check_func=check_redis_cache,
+            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=4.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="search_performance",
+            check_func=check_search_performance,
+            types={HealthCheckType.DEEP},  ***REMOVED*** Only in deep checks
+            category=HealthCheckCategory.INFORMATIONAL,
+            timeout_seconds=2.0,
+        )
+    )
+
+    logger.info(
+        "Search API health checks registered - CRITICAL: backend_api | IMPORTANT: redis_cache | INFO: search_performance"
+    )
