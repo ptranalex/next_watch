@@ -13,8 +13,12 @@ from backend_api.config.app import settings
 _app: Optional[FastAPI] = None
 
 
-def get_app() -> FastAPI:
-    """Get or create the FastAPI application instance with full logging."""
+def create_app() -> FastAPI:
+    """Factory function for creating the FastAPI app.
+
+    This is the function that should be called by Uvicorn to avoid
+    double initialization issues with module-level app creation.
+    """
     global _app
     if _app is None:
         ***REMOVED*** Configure logging for web server mode
@@ -60,10 +64,6 @@ def get_app() -> FastAPI:
         )
 
     return _app
-
-
-***REMOVED*** Create app instance for direct import (web server use)
-app = get_app()
 
 
 if __name__ == "__main__":

@@ -35,19 +35,20 @@ def main() -> None:
 
         ***REMOVED*** Run the server with appropriate configuration
         if settings.debug:
-            ***REMOVED*** Development: Single worker with reload
+            ***REMOVED*** Development: Single worker with reload using factory pattern
             uvicorn.run(
-                app="backend_api.main:app",
+                app="backend_api.main:create_app",
                 host=settings.host,
                 port=settings.port,
                 log_level=settings.log_level.lower(),
                 reload=True,
                 access_log=True,
+                factory=True,  ***REMOVED*** Use factory pattern in development too
             )
         else:
-            ***REMOVED*** Production: Multiple workers with optimizations
+            ***REMOVED*** Production: Use factory function to avoid double initialization
             uvicorn.run(
-                app="backend_api.main:app",
+                app="backend_api.main:create_app",
                 host=settings.host,
                 port=settings.port,
                 log_level=settings.log_level.lower(),
@@ -58,6 +59,7 @@ def main() -> None:
                 access_log=False,  ***REMOVED*** Disable access logs for performance
                 proxy_headers=True,
                 forwarded_allow_ips=forwarded_allow_ips,
+                factory=True,  ***REMOVED*** Tell uvicorn this is a factory function
             )
 
     except Exception as e:

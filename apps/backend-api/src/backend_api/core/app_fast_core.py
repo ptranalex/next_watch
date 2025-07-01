@@ -11,7 +11,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fast_core import create_app, AppOptions
-from fast_core.middleware import MiddlewareConfig
+from fast_core.middleware import MiddlewareConfig, DEFAULT_METRICS_EXCLUDE_PATHS
 
 from backend_api.config.app import BackendAPIConfig
 from backend_api.config.fast_core_config import create_fast_core_config
@@ -216,7 +216,7 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_paths=["/health", "/docs", "/openapi.json", "/favicon.ico"],
+        exclude_paths=DEFAULT_METRICS_EXCLUDE_PATHS + ["/favicon.ico"],
         exclude_methods=["OPTIONS"],
         track_request_size=True,
         track_response_size=True,
