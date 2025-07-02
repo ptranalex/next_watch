@@ -42,45 +42,31 @@ async def _determine_service_status(
     try:
         ***REMOVED*** Primary: Use health registry from app state (respects CRITICAL flags)
         if hasattr(request.app.state, "health_registry") and request.app.state.health_registry:
-            import logging
-
-            logging.info("Meta endpoint: Using health registry for status determination")
             return await _get_status_from_registry(request.app.state.health_registry)
 
         ***REMOVED*** Fallback: Use custom health check provider
         if health_check_provider:
-            import logging
-
-            logging.info("Meta endpoint: Using custom health check provider")
             return await _get_status_from_provider(health_check_provider, request)
 
         ***REMOVED*** No health system available
-        import logging
-
-        logging.info("Meta endpoint: No health system available, returning unknown")
         return "unknown"
 
     except Exception as e:
         ***REMOVED*** Log error but don't fail the meta endpoint
         import logging
 
-        logging.error(f"Failed to determine service status: {e}", exc_info=True)
+        logging.warning(f"Failed to determine service status: {e}")
         return "unknown"
 
 
 async def _get_status_from_registry(registry: "HealthCheckRegistry") -> str:
     """Get status from health registry with CRITICAL flag support."""
     from fast_core.monitoring.health import HealthCheckType, HealthCheckCategory
-    import logging
-
-    logging.info("DEBUG: _get_status_from_registry called - checking registry status")
 
     ***REMOVED*** Get comprehensive health status (CRITICAL + IMPORTANT services)
     ***REMOVED*** This matches the logic used by the /health endpoint for consistent status
     comprehensive_results = await registry.run_checks_for_type(HealthCheckType.DEEP)
     checks = comprehensive_results.get("checks", {})
-
-    logging.info(f"DEBUG: Got {len(checks)} checks from registry: {list(checks.keys())}")
 
     ***REMOVED*** Count critical vs important health status (aligns with comprehensive health endpoint)
     critical_healthy = 0
@@ -175,7 +161,7 @@ def create_meta_router(
     """
     router = APIRouter()
 
-    @router.get("/")
+    @router.get("/", response_model=Dict[str, Any])
     async def service_info(request: Request) -> Dict[str, Any]:
         """Service discovery endpoint with basic service information.
 
@@ -232,7 +218,7 @@ def create_meta_router(
 
         return meta_info
 
-    @router.get("/info")
+    @router.get("/info", response_model=Dict[str, Any])
     async def service_metadata() -> Dict[str, Any]:
         """Detailed service metadata endpoint.
 
@@ -258,7 +244,7 @@ def create_meta_router(
             },
         }
 
-    @router.get("/version")
+    @router.get("/version", response_model=Dict[str, str])
     async def service_version() -> Dict[str, str]:
         """Simple version endpoint for quick checks."""
         return {
@@ -269,7 +255,7 @@ def create_meta_router(
 
     if not is_production:
 
-        @router.get("/debug")
+        @router.get("/debug", response_model=Dict[str, Any])
         async def debug_info(request: Request) -> Dict[str, Any]:
             """Development debugging information endpoint.
 
