@@ -262,14 +262,15 @@ def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks
+    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+
+    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
-            name="postgres",
+            name="database",
             check_func=check_postgres,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
             category=HealthCheckCategory.CRITICAL,
-            timeout_seconds=5.0,
+            timeout_seconds=3.0,
         )
     )
 
@@ -277,12 +278,11 @@ def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckDefinition(
             name="jwt_config",
             check_func=check_jwt_config,
-            types={HealthCheckType.DEEP},  ***REMOVED*** Only in deep checks
             category=HealthCheckCategory.INFORMATIONAL,
             timeout_seconds=1.0,
         )
     )
 
     logger.info(
-        "Auth API health checks registered - CRITICAL: postgres | INFORMATIONAL: jwt_config"
+        "Auth API health checks registered - CRITICAL: database | INFORMATIONAL: jwt_config"
     )

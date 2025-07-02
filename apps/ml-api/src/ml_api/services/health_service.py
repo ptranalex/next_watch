@@ -297,34 +297,34 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks
+    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+
+    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
             name="embedding_model",
             check_func=check_embedding_model,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
             category=HealthCheckCategory.CRITICAL,
-            timeout_seconds=10.0,  ***REMOVED*** Model loading can take time
-        )
-    )
-
-    registry.add_check(
-        HealthCheckDefinition(
-            name="vector_storage",
-            check_func=check_vector_storage,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
-            category=HealthCheckCategory.IMPORTANT,
-            timeout_seconds=5.0,
-        )
-    )
-
-    registry.add_check(
-        HealthCheckDefinition(
-            name="model_performance",
-            check_func=check_model_performance,
-            types={HealthCheckType.DEEP},  ***REMOVED*** Only in deep checks
-            category=HealthCheckCategory.INFORMATIONAL,
             timeout_seconds=3.0,
+        )
+    )
+
+    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    registry.add_check(
+        HealthCheckDefinition(
+            name="redis_cache",
+            check_func=check_redis,
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=2.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="vector_database",
+            check_func=check_vector_database,
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=4.0,
         )
     )
 

@@ -364,24 +364,25 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks
+    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+
+    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
-            name="postgres",
+            name="database",
             check_func=check_postgres,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
             category=HealthCheckCategory.CRITICAL,
-            timeout_seconds=5.0,
+            timeout_seconds=3.0,
         )
     )
 
+    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
             name="redis_cache",
             check_func=check_redis,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
             category=HealthCheckCategory.IMPORTANT,
-            timeout_seconds=4.0,
+            timeout_seconds=2.0,
         )
     )
 

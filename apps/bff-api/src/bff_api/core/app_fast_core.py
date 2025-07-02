@@ -66,14 +66,7 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"BFF API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize BFF health service for dependency monitoring
-    try:
-        health_service = get_health_service()
-        app.state.health_service = health_service
-        logger.info("BFF health service initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize BFF health service: {e}", exc_info=True)
-        app.state.health_service = None
+    ***REMOVED*** Legacy health service removed - now using Health Registry only
 
     ***REMOVED*** Setup new multi-endpoint health checks
     try:

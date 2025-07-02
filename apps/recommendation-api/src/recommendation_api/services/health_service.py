@@ -399,37 +399,37 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks
+    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+
+    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
-            name="backend_client",
-            check_func=check_backend_client,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            name="database",
+            check_func=check_database,
             category=HealthCheckCategory.CRITICAL,
-            timeout_seconds=5.0,
+            timeout_seconds=3.0,
+        )
+    )
+
+    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    registry.add_check(
+        HealthCheckDefinition(
+            name="redis_cache",
+            check_func=check_redis,
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=2.0,
         )
     )
 
     registry.add_check(
         HealthCheckDefinition(
-            name="redis_cache",
-            check_func=check_redis_cache,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            name="vector_database",
+            check_func=check_vector_database,
             category=HealthCheckCategory.IMPORTANT,
             timeout_seconds=4.0,
         )
     )
 
-    registry.add_check(
-        HealthCheckDefinition(
-            name="vector_service",
-            check_func=check_vector_service,
-            types={HealthCheckType.DEEP},  ***REMOVED*** Only in deep checks (expensive)
-            category=HealthCheckCategory.IMPORTANT,
-            timeout_seconds=6.0,
-        )
-    )
-
     logger.info(
-        "Recommendation API health checks registered - CRITICAL: backend_client | IMPORTANT: redis_cache, vector_service"
+        "Recommendation API health checks registered - CRITICAL: database | IMPORTANT: redis_cache, vector_database"
     )

@@ -66,6 +66,10 @@ dependencies = [
     ***REMOVED*** Form validation
     "email-validator>=2.2.0",   ***REMOVED*** Email validation
     "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
+    
+    ***REMOVED*** System monitoring
+    "psutil>=5.9.0",            ***REMOVED*** System and process monitoring
+    "types-psutil>=5.9.0",      ***REMOVED*** Type stubs for psutil
 ]
 
 [project.optional-dependencies]

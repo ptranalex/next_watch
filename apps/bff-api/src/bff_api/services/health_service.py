@@ -542,24 +542,28 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks
+    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+    ***REMOVED*** Categories automatically determine which endpoints include each check
+
+    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
+    ***REMOVED*** These are essential for basic BFF functionality
     registry.add_check(
         HealthCheckDefinition(
             name="backend_api",
             check_func=check_backend_api,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
-            category=HealthCheckCategory.CRITICAL,
-            timeout_seconds=6.0,
+            category=HealthCheckCategory.CRITICAL,  ***REMOVED*** Auto-included in readiness + deep
+            timeout_seconds=3.0,
         )
     )
 
+    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    ***REMOVED*** These enhance functionality but BFF can operate without them
     registry.add_check(
         HealthCheckDefinition(
             name="redis_cache",
             check_func=check_redis,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
-            category=HealthCheckCategory.IMPORTANT,
-            timeout_seconds=3.0,
+            category=HealthCheckCategory.IMPORTANT,  ***REMOVED*** Auto-included in deep only
+            timeout_seconds=2.0,
         )
     )
 
@@ -567,9 +571,8 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckDefinition(
             name="recommendation_api",
             check_func=check_recommendation_api,
-            types={HealthCheckType.DEEP},
-            category=HealthCheckCategory.IMPORTANT,
-            timeout_seconds=6.0,
+            category=HealthCheckCategory.IMPORTANT,  ***REMOVED*** Auto-included in deep only
+            timeout_seconds=4.0,
         )
     )
 
@@ -577,12 +580,111 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckDefinition(
             name="auth_api",
             check_func=check_auth_api,
-            types={HealthCheckType.DEEP},
-            category=HealthCheckCategory.IMPORTANT,
-            timeout_seconds=6.0,
+            category=HealthCheckCategory.IMPORTANT,  ***REMOVED*** Auto-included in deep only
+            timeout_seconds=4.0,
+        )
+    )
+
+    ***REMOVED*** DIAGNOSTIC FUNCTIONS for INFORMATIONAL health checks
+    async def check_system_info() -> HealthCheckResult:
+        """Check system information and metrics."""
+        import psutil
+        import os
+
+        start_time = time.time()
+
+        try:
+            ***REMOVED*** Gather system metrics
+            process = psutil.Process(os.getpid())
+            memory_info = process.memory_info()
+            cpu_percent = process.cpu_percent()
+
+            response_time = (time.time() - start_time) * 1000
+
+            return HealthCheckResult(
+                is_healthy=True,
+                status="healthy",
+                response_time_ms=round(response_time, 2),
+                details={
+                    "memory_usage_mb": round(memory_info.rss / 1024 / 1024, 2),
+                    "memory_usage_percent": round(process.memory_percent(), 2),
+                    "cpu_percent": cpu_percent,
+                    "open_files": len(process.open_files()),
+                    "connections": len(process.connections()),
+                    "uptime_seconds": round(time.time() - process.create_time(), 2),
+                    "environment": settings.environment,
+                    "version": "0.1.0",
+                },
+            )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=True,  ***REMOVED*** System info failure shouldn't affect health
+                status="partial",
+                response_time_ms=round(response_time, 2),
+                error=f"Could not gather all system info: {str(e)}",
+                details={"environment": settings.environment, "version": "0.1.0"},
+            )
+
+    async def check_service_metrics() -> HealthCheckResult:
+        """Check service-specific metrics and configuration."""
+        start_time = time.time()
+
+        try:
+            ***REMOVED*** Check cache service metrics if available
+            cache_service = get_cache_service()
+
+            response_time = (time.time() - start_time) * 1000
+
+            return HealthCheckResult(
+                is_healthy=True,
+                status="healthy",
+                response_time_ms=round(response_time, 2),
+                details={
+                    "service_name": "bff-api",
+                    "cache_enabled": True,
+                    "debug_mode": settings.debug,
+                    "cors_origins": len(settings.cors_origins),
+                    "external_services": {
+                        "backend_api": settings.backend_api_url,
+                        "recommendation_api": settings.reco_api_url,
+                        "auth_api": settings.auth_api_url,
+                    },
+                },
+            )
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheckResult(
+                is_healthy=True,  ***REMOVED*** Metrics failure shouldn't affect health
+                status="partial",
+                response_time_ms=round(response_time, 2),
+                error=f"Could not gather service metrics: {str(e)}",
+            )
+
+    ***REMOVED*** INFORMATIONAL services - automatically included in DEEP only
+    ***REMOVED*** These provide diagnostic insights for troubleshooting
+    registry.add_check(
+        HealthCheckDefinition(
+            name="system_info",
+            check_func=check_system_info,
+            category=HealthCheckCategory.INFORMATIONAL,  ***REMOVED*** Auto-included in deep only
+            timeout_seconds=2.0,
+        )
+    )
+
+    registry.add_check(
+        HealthCheckDefinition(
+            name="service_metrics",
+            check_func=check_service_metrics,
+            category=HealthCheckCategory.INFORMATIONAL,  ***REMOVED*** Auto-included in deep only
+            timeout_seconds=2.0,
         )
     )
 
     logger.info(
-        "BFF health checks registered - CRITICAL: backend_api | IMPORTANT: redis_cache, recommendation_api, auth_api"
+        "BFF health checks registered with category-driven endpoint mapping: "
+        "CRITICAL (auto-included in readiness+deep): backend_api | "
+        "IMPORTANT (auto-included in deep only): redis_cache, recommendation_api, auth_api | "
+        "INFORMATIONAL (auto-included in deep only): system_info, service_metrics | "
+        "Total: 6 checks"
     )

@@ -77,15 +77,7 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to connect to database: {e}")
         raise
 
-    ***REMOVED*** Initialize health service
-    logger.info("Initializing health service")
-    try:
-        health_service = HealthService()
-        app.state.health_service = health_service
-        logger.info("Health service initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize health service: {e}")
-        app.state.health_service = None
+    ***REMOVED*** Legacy health service removed - now using Health Registry only
 
     ***REMOVED*** Setup new multi-endpoint health checks
     try:

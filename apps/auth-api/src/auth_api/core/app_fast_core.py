@@ -98,15 +98,7 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to connect to database: {e}")
         raise
 
-    ***REMOVED*** Initialize health service
-    try:
-        health_service = get_health_service()
-        app.state.health_service = health_service
-        logger.info("Health service initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize health service: {e}")
-        ***REMOVED*** Don't raise here - health service is not critical for startup
-        app.state.health_service = None
+    ***REMOVED*** Legacy health service removed - now using Health Registry only
 
     ***REMOVED*** Setup new multi-endpoint health checks
     try:
@@ -126,17 +118,7 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Shutdown
     logger.info("Shutting down Next Watch Authentication Service")
 
-    ***REMOVED*** Close health service
-    if hasattr(app.state, "health_service") and app.state.health_service is not None:
-        try:
-            logger.info("Shutting down health service")
-            app.state.health_service.close()
-            logger.info("Health service shut down successfully")
-        except Exception as e:
-            logger.error(f"Error shutting down health service: {e}")
-
-        ***REMOVED*** Close global health service
-        close_health_service()
+    ***REMOVED*** Legacy health service cleanup removed - using Health Registry only
 
     logger.info("Auth API service shutdown complete")
 

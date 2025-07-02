@@ -361,37 +361,37 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks
+    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+
+    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
-            name="backend_api",
-            check_func=check_backend_api,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            name="redis_search",
+            check_func=check_redis_search,
             category=HealthCheckCategory.CRITICAL,
-            timeout_seconds=5.0,
+            timeout_seconds=3.0,
+        )
+    )
+
+    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    registry.add_check(
+        HealthCheckDefinition(
+            name="redis_cache",
+            check_func=check_redis_cache,
+            category=HealthCheckCategory.IMPORTANT,
+            timeout_seconds=2.0,
         )
     )
 
     registry.add_check(
         HealthCheckDefinition(
-            name="redis_cache",
-            check_func=check_redis_cache,
-            types={HealthCheckType.READINESS, HealthCheckType.DEEP},
+            name="backend_api",
+            check_func=check_backend_api,
             category=HealthCheckCategory.IMPORTANT,
             timeout_seconds=4.0,
         )
     )
 
-    registry.add_check(
-        HealthCheckDefinition(
-            name="search_performance",
-            check_func=check_search_performance,
-            types={HealthCheckType.DEEP},  ***REMOVED*** Only in deep checks
-            category=HealthCheckCategory.INFORMATIONAL,
-            timeout_seconds=2.0,
-        )
-    )
-
     logger.info(
-        "Search API health checks registered - CRITICAL: backend_api | IMPORTANT: redis_cache | INFO: search_performance"
+        "Search API health checks registered - CRITICAL: redis_search | IMPORTANT: redis_cache | IMPORTANT: backend_api"
     )
