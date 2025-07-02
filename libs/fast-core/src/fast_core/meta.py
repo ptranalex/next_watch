@@ -8,7 +8,7 @@ for service discovery, debugging, and operational monitoring.
 import datetime
 import os
 import platform
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, List, Optional, Callable, Union, Awaitable
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -19,6 +19,132 @@ try:
 except ImportError:
     VERSIONING_AVAILABLE = False
 
+try:
+    from fast_core.monitoring.health import HealthCheckRegistry, HealthCheckResult
+
+    HEALTH_MONITORING_AVAILABLE = True
+except ImportError:
+    HEALTH_MONITORING_AVAILABLE = False
+
+
+async def _determine_service_status(
+    request: Request, health_check_provider: Optional[Callable] = None
+) -> str:
+    """Determine dynamic service status based on health registry.
+
+    Args:
+        request: FastAPI request object
+        health_check_provider: Optional custom health check function
+
+    Returns:
+        Service status: "operational", "degraded", "unhealthy", or "unknown"
+    """
+    try:
+        ***REMOVED*** Primary: Use health registry from app state (respects CRITICAL flags)
+        if hasattr(request.app.state, "health_registry") and request.app.state.health_registry:
+            import logging
+
+            logging.info("Meta endpoint: Using health registry for status determination")
+            return await _get_status_from_registry(request.app.state.health_registry)
+
+        ***REMOVED*** Fallback: Use custom health check provider
+        if health_check_provider:
+            import logging
+
+            logging.info("Meta endpoint: Using custom health check provider")
+            return await _get_status_from_provider(health_check_provider, request)
+
+        ***REMOVED*** No health system available
+        import logging
+
+        logging.info("Meta endpoint: No health system available, returning unknown")
+        return "unknown"
+
+    except Exception as e:
+        ***REMOVED*** Log error but don't fail the meta endpoint
+        import logging
+
+        logging.error(f"Failed to determine service status: {e}", exc_info=True)
+        return "unknown"
+
+
+async def _get_status_from_registry(registry: "HealthCheckRegistry") -> str:
+    """Get status from health registry with CRITICAL flag support."""
+    from fast_core.monitoring.health import HealthCheckType, HealthCheckCategory
+    import logging
+
+    logging.info("DEBUG: _get_status_from_registry called - checking registry status")
+
+    ***REMOVED*** Get comprehensive health status (CRITICAL + IMPORTANT services)
+    ***REMOVED*** This matches the logic used by the /health endpoint for consistent status
+    comprehensive_results = await registry.run_checks_for_type(HealthCheckType.DEEP)
+    checks = comprehensive_results.get("checks", {})
+
+    logging.info(f"DEBUG: Got {len(checks)} checks from registry: {list(checks.keys())}")
+
+    ***REMOVED*** Count critical vs important health status (aligns with comprehensive health endpoint)
+    critical_healthy = 0
+    critical_total = 0
+    important_healthy = 0
+    important_total = 0
+
+    for check_name, check_result in checks.items():
+        is_healthy = check_result.get("healthy", False)
+        category = registry.get_check_category(check_name)
+
+        if category == HealthCheckCategory.CRITICAL:
+            critical_total += 1
+            if is_healthy:
+                critical_healthy += 1
+        elif category == HealthCheckCategory.IMPORTANT:
+            important_total += 1
+            if is_healthy:
+                important_healthy += 1
+        ***REMOVED*** Note: INFORMATIONAL checks don't affect meta endpoint status
+
+    ***REMOVED*** Status determination logic (matches /health endpoint behavior)
+    all_critical_healthy = critical_total == 0 or critical_healthy == critical_total
+    all_important_healthy = important_total == 0 or important_healthy == important_total
+
+    if all_critical_healthy and all_important_healthy:
+        return "operational"  ***REMOVED*** All critical and important services healthy
+    elif all_critical_healthy:
+        return "degraded"  ***REMOVED*** Critical services up, some important down
+    else:
+        return "unhealthy"  ***REMOVED*** Any critical service down
+
+
+async def _get_status_from_provider(health_check_provider: Callable, request: Request) -> str:
+    """Get status from custom health check provider."""
+    health_data = await health_check_provider(request)
+
+    if isinstance(health_data, str):
+        return health_data
+
+    if isinstance(health_data, dict):
+        if "status" in health_data:
+            status_value = health_data["status"]
+            return str(status_value) if status_value else "unknown"
+
+        ***REMOVED*** Fallback: simple count-based logic
+        checks = health_data.get("checks", {})
+        if checks:
+            healthy_count = sum(
+                1
+                for check in checks.values()
+                if check.get("healthy", False) or check.get("status") == "healthy"
+            )
+            total_count = len(checks)
+
+            if healthy_count == total_count:
+                return "operational"
+            elif healthy_count == 0:
+                return "unhealthy"
+            else:
+                return "degraded"
+
+    return "unknown"
+
 
 def create_meta_router(
     service_name: str,
@@ -27,6 +153,9 @@ def create_meta_router(
     features: Optional[List[str]] = None,
     endpoints: Optional[Dict[str, str]] = None,
     debug_info_provider: Optional[Callable[[Request], Dict[str, Any]]] = None,
+    health_check_provider: Optional[
+        Callable[[Request], Awaitable[Union[str, Dict[str, Any]]]]
+    ] = None,
     is_production: bool = False,
 ) -> APIRouter:
     """Create standardized meta endpoints router.
@@ -38,6 +167,7 @@ def create_meta_router(
         features: List of service features/capabilities
         endpoints: Dictionary of available endpoints with descriptions
         debug_info_provider: Function that returns debug information
+        health_check_provider: Function that returns health status or health data
         is_production: Whether running in production (limits debug info)
 
     Returns:
@@ -46,17 +176,20 @@ def create_meta_router(
     router = APIRouter()
 
     @router.get("/")
-    async def service_info() -> Dict[str, Any]:
+    async def service_info(request: Request) -> Dict[str, Any]:
         """Service discovery endpoint with basic service information.
 
         Returns essential information for service registries and discovery mechanisms.
         Following patterns from Kubernetes service discovery and Spring Boot.
         """
+        ***REMOVED*** Get dynamic status
+        status = await _determine_service_status(request, health_check_provider)
+
         meta_info = {
             "name": service_name,
             "description": service_description,
             "version": version,
-            "status": "operational",
+            "status": status,
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
             "health_endpoints": {
                 "liveness": "/health/live",
@@ -73,6 +206,15 @@ def create_meta_router(
             "features": features or [],
             "documentation": "/docs" if not is_production else None,
         }
+
+        ***REMOVED*** Add status details for non-operational states
+        if status != "operational":
+            meta_info["status_details"] = {
+                "operational": "All systems functioning normally",
+                "degraded": "Some non-critical systems experiencing issues",
+                "unhealthy": "Critical systems down",
+                "unknown": "Unable to determine health status",
+            }.get(status, "Status check unavailable")
 
         ***REMOVED*** Add versioning information if available
         if VERSIONING_AVAILABLE and endpoints:
@@ -167,7 +309,11 @@ def create_meta_router(
 
 
 def _get_uptime_seconds() -> Optional[int]:
-    """Get process uptime in seconds."""
+    """Get process uptime in seconds.
+
+    Returns None if psutil is not available.
+    Install with: pip install fast-core[monitoring]
+    """
     try:
         import psutil
 
@@ -178,7 +324,11 @@ def _get_uptime_seconds() -> Optional[int]:
 
 
 def _get_memory_info() -> Optional[Dict[str, Any]]:
-    """Get process memory information."""
+    """Get process memory information.
+
+    Returns None if psutil is not available.
+    Install with: pip install fast-core[monitoring]
+    """
     try:
         import psutil
 
@@ -200,6 +350,9 @@ def setup_meta_endpoints(
     features: Optional[List[str]] = None,
     endpoints: Optional[Dict[str, str]] = None,
     debug_info_provider: Optional[Callable[[Request], Dict[str, Any]]] = None,
+    health_check_provider: Optional[
+        Callable[[Request], Awaitable[Union[str, Dict[str, Any]]]]
+    ] = None,
 ) -> None:
     """Setup meta endpoints for a FastAPI application.
 
@@ -210,6 +363,7 @@ def setup_meta_endpoints(
         features: List of service features/capabilities
         endpoints: Dictionary of available endpoints with descriptions
         debug_info_provider: Function that returns custom debug information
+        health_check_provider: Function that returns health status or health data
     """
     service_name = getattr(settings, "service_name", "unknown-service")
     version = getattr(app, "version", "0.1.0")
@@ -222,6 +376,7 @@ def setup_meta_endpoints(
         features=features,
         endpoints=endpoints,
         debug_info_provider=debug_info_provider,
+        health_check_provider=health_check_provider,
         is_production=is_production,
     )
 
