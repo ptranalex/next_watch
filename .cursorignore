@@ -5,4 +5,5 @@ build/
 __pycache__/
 *.pyc
 .venv/
-.env 
+model_cache/
+.ruff_cache/
