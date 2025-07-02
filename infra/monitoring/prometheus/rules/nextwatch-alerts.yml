@@ -234,3 +234,55 @@ groups:
         annotations:
           summary: "Redis high connection count"
           description: "Redis has more than 100 connected clients on {{ $labels.instance }}."
+
+  ***REMOVED*** Service Health Monitoring Alerts
+  - name: nextwatch.health.alerts
+    rules:
+      - alert: ServiceHealthEndpointDown
+        expr: probe_success{job="nextwatch-health-endpoints"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "{{ $labels.service }} health endpoint is down"
+          description: "{{ $labels.service }} health endpoint ({{ $labels.instance }}) has been down for more than 1 minute."
+          runbook_url: "https://docs.nextwatch.com/runbooks/service-health"
+          dashboard_url: "https://grafana.nextwatch.com/d/service-health"
+
+      - alert: ServiceNotReady
+        expr: probe_success{job="nextwatch-readiness-endpoints"} == 0
+        for: 30s
+        labels:
+          severity: warning
+          team: platform
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "{{ $labels.service }} is not ready"
+          description: "{{ $labels.service }} readiness endpoint ({{ $labels.instance }}) is failing, service may not be ready to handle traffic."
+          runbook_url: "https://docs.nextwatch.com/runbooks/service-readiness"
+
+      - alert: ServiceUnreachable
+        expr: probe_success{job="nextwatch-service-connectivity"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "{{ $labels.service }} is unreachable"
+          description: "{{ $labels.service }} ({{ $labels.instance }}) is unreachable via TCP connection for more than 2 minutes."
+          runbook_url: "https://docs.nextwatch.com/runbooks/service-unreachable"
+
+      - alert: HealthCheckSlowResponse
+        expr: probe_duration_seconds{job="nextwatch-health-endpoints"} > 5
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "{{ $labels.service }} health check slow"
+          description: "{{ $labels.service }} health endpoint ({{ $labels.instance }}) is responding slowly ({{ $value }}s), may indicate performance issues."
+          runbook_url: "https://docs.nextwatch.com/runbooks/slow-health-checks"

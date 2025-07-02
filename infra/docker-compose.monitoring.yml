@@ -5,16 +5,16 @@ services:
     container_name: prometheus-prod
     restart: always
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--storage.tsdb.retention.size=50GB'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-      - '--web.enable-admin-api'
-      - '--web.external-url=https://${PRODUCTION_DOMAIN}/prometheus/'
-      - '--web.route-prefix=/'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--storage.tsdb.retention.size=50GB"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.enable-lifecycle"
+      - "--web.enable-admin-api"
+      - "--web.external-url=https://${PRODUCTION_DOMAIN}/prometheus/"
+      - "--web.route-prefix=/"
     ports:
       - "9090:9090"
     environment:
@@ -39,7 +39,15 @@ services:
         max-size: "100m"
         max-file: "5"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -101,11 +109,11 @@ services:
     container_name: alertmanager-prod
     restart: always
     command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-      - '--web.external-url=https://${PRODUCTION_DOMAIN}/alertmanager/'
-      - '--web.route-prefix=/'
-      - '--cluster.listen-address=0.0.0.0:9094'
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.external-url=https://${PRODUCTION_DOMAIN}/alertmanager/"
+      - "--web.route-prefix=/"
+      - "--cluster.listen-address=0.0.0.0:9094"
     ports:
       - "9093:9093"
     environment:
@@ -130,7 +138,15 @@ services:
         max-size: "100m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9093/-/healthy",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -141,12 +157,12 @@ services:
     container_name: node-exporter-prod
     restart: always
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-      - '--collector.systemd'
-      - '--collector.processes'
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--collector.systemd"
+      - "--collector.processes"
     ports:
       - "9100:9100"
     volumes:
@@ -192,9 +208,9 @@ services:
       - monitoring
       - next_watch_default
     command:
-      - '--housekeeping_interval=30s'
-      - '--docker_only=true'
-      - '--disable_metrics=advtcp,cpu_topology,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,resctrl,cpuset,memory_numa'
+      - "--housekeeping_interval=30s"
+      - "--docker_only=true"
+      - "--disable_metrics=advtcp,cpu_topology,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,resctrl,cpuset,memory_numa"
     deploy:
       resources:
         limits:
@@ -239,7 +255,15 @@ services:
         max-size: "100m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3100/ready",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -282,6 +306,51 @@ services:
         max-size: "50m"
         max-file: "3"
 
+  ***REMOVED*** Blackbox Exporter - Health endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.25.0
+    container_name: blackbox-exporter-prod
+    restart: always
+    ports:
+      - "9115:9115"
+    environment:
+      - TZ=UTC
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml
+    networks:
+      - monitoring
+      - next_watch_default
+    command:
+      - "--config.file=/etc/blackbox_exporter/config.yml"
+      - "--web.listen-address=:9115"
+      - "--log.level=info"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9115/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   prometheus-data:
     driver: local
@@ -309,4 +378,4 @@ networks:
   monitoring:
     driver: bridge
   next_watch_default:
-    external: true 
+    external: true

@@ -186,7 +186,7 @@ sleep 30
 
 ***REMOVED*** Check service status
 echo "🏥 Checking service health..."
-for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod loki-prod promtail-prod cadvisor-prod; do
+for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod loki-prod promtail-prod cadvisor-prod blackbox-exporter-prod; do
     if sudo docker ps --filter "name=$service" --filter "status=running" | grep -q "$service"; then
         echo "✅ $service is running"
     else

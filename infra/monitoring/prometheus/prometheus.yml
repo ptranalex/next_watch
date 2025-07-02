@@ -128,3 +128,96 @@ scrape_configs:
         replacement: "production"
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
+
+  ***REMOVED*** Blackbox Exporter Self-Monitoring
+  - job_name: "blackbox-exporter"
+    static_configs:
+      - targets: ["blackbox-exporter:9115"]
+    scrape_interval: 30s
+
+  ***REMOVED*** Health Endpoint Monitoring via Blackbox Exporter
+  - job_name: "nextwatch-health-endpoints"
+    metrics_path: /probe
+    params:
+      module: [http_health] ***REMOVED*** Use module that accepts 200 or 503
+    static_configs:
+      - targets:
+          - "http://backend-api:8000/health"
+          - "http://bff-api:8000/health"
+          - "http://auth-api:8000/health"
+          - "http://search-api:8000/health"
+          - "http://ml-api:8000/health"
+          - "http://recommendation-api:8000/health"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+      - source_labels: [__param_target]
+        regex: "http://([^:]+):.*"
+        target_label: service
+        replacement: "${1}"
+      - target_label: probe_type
+        replacement: "health"
+      - target_label: environment
+        replacement: "production"
+
+  ***REMOVED*** Readiness Endpoint Monitoring via Blackbox Exporter
+  - job_name: "nextwatch-readiness-endpoints"
+    metrics_path: /probe
+    params:
+      module: [http_readiness] ***REMOVED*** Must be 200 only
+    static_configs:
+      - targets:
+          - "http://backend-api:8000/health/ready"
+          - "http://bff-api:8000/health/ready"
+          - "http://auth-api:8000/health/ready"
+          - "http://search-api:8000/health/ready"
+          - "http://ml-api:8000/health/ready"
+          - "http://recommendation-api:8000/health/ready"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+      - source_labels: [__param_target]
+        regex: "http://([^:]+):.*"
+        target_label: service
+        replacement: "${1}"
+      - target_label: probe_type
+        replacement: "readiness"
+      - target_label: environment
+        replacement: "production"
+
+  ***REMOVED*** Service Connectivity Check (TCP)
+  - job_name: "nextwatch-service-connectivity"
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - "backend-api:8000"
+          - "bff-api:8000"
+          - "auth-api:8000"
+          - "search-api:8000"
+          - "ml-api:8000"
+          - "recommendation-api:8000"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+      - source_labels: [__param_target]
+        regex: "([^:]+):.*"
+        target_label: service
+        replacement: "${1}"
+      - target_label: probe_type
+        replacement: "tcp"
+      - target_label: environment
+        replacement: "production"
