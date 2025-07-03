@@ -25,6 +25,7 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
     apk add --no-cache \
     gcc \
     musl-dev \
+    python3-dev \
     libffi-dev \
     openssl-dev \
     curl \
@@ -53,7 +54,7 @@ COPY libs/cli ./libs/cli/
 ***REMOVED*** Install with dependencies to ensure all transitive dependencies are resolved
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --user ./libs/config/ ./libs/fast-core/ ./libs/cache/ ./libs/cli/
-    
+
 ***REMOVED*** Stage 4: App dependencies (changes frequently)
 FROM local-deps AS app-deps
 
