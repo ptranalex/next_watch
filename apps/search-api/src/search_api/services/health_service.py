@@ -366,23 +366,14 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
     ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
-            name="redis_search",
-            check_func=check_redis_search,
+            name="redis_cache_critical",
+            check_func=check_redis_cache,
             category=HealthCheckCategory.CRITICAL,
             timeout_seconds=3.0,
         )
     )
 
     ***REMOVED*** IMPORTANT services - automatically included in DEEP only
-    registry.add_check(
-        HealthCheckDefinition(
-            name="redis_cache",
-            check_func=check_redis_cache,
-            category=HealthCheckCategory.IMPORTANT,
-            timeout_seconds=2.0,
-        )
-    )
-
     registry.add_check(
         HealthCheckDefinition(
             name="backend_api",
@@ -392,6 +383,15 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
         )
     )
 
+    registry.add_check(
+        HealthCheckDefinition(
+            name="search_performance",
+            check_func=check_search_performance,
+            category=HealthCheckCategory.INFORMATIONAL,
+            timeout_seconds=2.0,
+        )
+    )
+
     logger.info(
-        "Search API health checks registered - CRITICAL: redis_search | IMPORTANT: redis_cache | IMPORTANT: backend_api"
+        "Search API health checks registered - CRITICAL: redis_cache_critical | IMPORTANT: backend_api | INFORMATIONAL: search_performance"
     )

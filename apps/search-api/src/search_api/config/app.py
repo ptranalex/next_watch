@@ -8,6 +8,7 @@ from typing import List, Optional, Dict, Any
 from pydantic import Field, validator
 from config.base.config import ServiceConfig
 from config.services.cache import CacheConfigMixin
+from config.services.monitoring import MonitoringConfigMixin
 from config.profiles.service_profiles import apply_profiles
 
 from config.logging import get_logger
@@ -16,10 +17,10 @@ from config.logging import get_logger
 logger = get_logger(__name__)
 
 
-class SearchAPIConfig(ServiceConfig, CacheConfigMixin):
+class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
     """Search API service configuration.
 
-    Provides configuration for the Search API service with cache support.
+    Provides configuration for the Search API service with cache and monitoring support.
     """
 
     ***REMOVED*** Service identification

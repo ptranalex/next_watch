@@ -61,6 +61,15 @@ def create_fast_core_config(auth_config: AuthAPIConfig) -> FastAPIConfig:
         openapi_url="/openapi.json" if auth_config.debug else None,
     )
 
+    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
+    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    fast_core_config.enable_tracing = auth_config.enable_tracing
+    fast_core_config.tracing_endpoint = auth_config.tracing_endpoint
+    fast_core_config.tracing_sample_rate = auth_config.tracing_sample_rate
+    fast_core_config.enable_performance_metrics = auth_config.enable_performance_metrics
+    fast_core_config.enable_deep_health_checks = auth_config.enable_deep_health_checks
+    fast_core_config.enable_error_tracking = auth_config.enable_error_tracking
+
     logger.info("Fast-core config created successfully")
     return fast_core_config
 
