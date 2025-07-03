@@ -6,7 +6,7 @@ features across NextWatch services.
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import Field, validator
+from pydantic import Field, validator, model_validator
 
 
 class MonitoringConfigMixin:
@@ -20,7 +20,9 @@ class MonitoringConfigMixin:
     - {SERVICE}_METRICS_PORT: Port for metrics endpoint
     - {SERVICE}_LOG_FORMAT: Log format (json, text)
     - {SERVICE}_LOG_STRUCTURED: Enable structured logging
-    - {SERVICE}_ENABLE_TRACING: Enable distributed tracing
+    - {SERVICE}_ENABLE_TRACING: Enable distributed tracing (default: false)
+    - {SERVICE}_TRACING_ENDPOINT: Tracing collector endpoint (required if tracing enabled)
+    - {SERVICE}_TRACING_SAMPLE_RATE: Tracing sample rate 0.0-1.0 (default: 0.1)
     - {SERVICE}_HEALTH_CHECK_INTERVAL: Health check interval
 
     Note: Metrics are always enabled for production observability.
@@ -50,7 +52,8 @@ class MonitoringConfigMixin:
     ***REMOVED*** Tracing configuration
     enable_tracing: bool = Field(default=False, description="Enable distributed tracing")
     tracing_endpoint: Optional[str] = Field(
-        default=None, description="Tracing collector endpoint (Jaeger, etc.)"
+        default=None,
+        description="Tracing collector endpoint (Tempo, Jaeger, etc.) - required if tracing enabled",
     )
     tracing_sample_rate: float = Field(default=0.1, description="Tracing sample rate (0.0 to 1.0)")
 
@@ -102,6 +105,16 @@ class MonitoringConfigMixin:
         if not (0.0 <= v <= 1.0):
             raise ValueError("Tracing sample rate must be between 0.0 and 1.0")
         return v
+
+    @model_validator(mode="after")
+    def validate_tracing_configuration(self) -> "MonitoringConfigMixin":
+        """Validate tracing configuration consistency."""
+        if self.enable_tracing and not self.tracing_endpoint:
+            raise ValueError(
+                "tracing_endpoint is required when enable_tracing=True. "
+                "Set TRACING_ENDPOINT environment variable or disable tracing."
+            )
+        return self
 
     @validator("health_check_interval")
     def validate_health_check_interval(cls, v: int) -> int:

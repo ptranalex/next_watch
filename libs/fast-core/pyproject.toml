@@ -27,6 +27,17 @@ dependencies = [
     "prometheus-client>=0.17.0",  ***REMOVED*** Prometheus metrics
     "psutil>=5.9.0",
     "config",  ***REMOVED*** Local dependency
+    ***REMOVED*** OpenTelemetry tracing (core observability feature)
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-instrumentation-fastapi>=0.41b0",
+    "opentelemetry-instrumentation-logging>=0.41b0",
+    "opentelemetry-instrumentation-httpx>=0.41b0",
+    "opentelemetry-instrumentation-sqlalchemy>=0.41b0",
+    "opentelemetry-instrumentation-redis>=0.41b0",
+    "opentelemetry-exporter-otlp>=1.20.0",
+    "opentelemetry-propagator-b3>=1.20.0",
+    "opentelemetry-propagator-jaeger>=1.20.0",
 ]
 
 [project.optional-dependencies]
@@ -40,10 +51,9 @@ dev = [
     "ruff>=0.0.285",
 ]
 monitoring = [
-    "prometheus-client>=0.17.0",
-    "opentelemetry-api>=1.20.0",
-    "opentelemetry-sdk>=1.20.0",
-    "opentelemetry-instrumentation-fastapi>=0.41b0",
+    ***REMOVED*** Additional monitoring tools (OpenTelemetry included by default)
+    "py-spy>=0.3.14",  ***REMOVED*** CPU profiler
+    "memory-profiler>=0.60.0",  ***REMOVED*** Memory profiler
 ]
 cache = [
     "redis>=5.0.0",

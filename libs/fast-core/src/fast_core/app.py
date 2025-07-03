@@ -155,6 +155,16 @@ def create_app(
     ***REMOVED*** Store settings in app state
     app.state.settings = settings
 
+    ***REMOVED*** Setup tracing (before other middleware)
+    try:
+        from fast_core.middleware.tracing import setup_tracing
+
+        setup_tracing(app, settings)
+    except ImportError:
+        logger.warning("Tracing module not available, skipping tracing setup")
+    except Exception as e:
+        logger.warning("Failed to setup tracing", error=str(e))
+
     ***REMOVED*** Setup middleware using the new system
     if middleware is not None:
         try:

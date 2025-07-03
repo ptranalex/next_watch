@@ -13,17 +13,17 @@ logger = get_logger(__name__)
 
 
 def create_fast_core_config(backend_config: BackendAPIConfig) -> FastAPIConfig:
-    """Convert Backend API configuration to fast-core configuration.
+    """Convert Backend API config to fast-core FastAPIConfig.
 
     Args:
-        backend_config: Backend API configuration instance
+        backend_config: Backend API configuration
 
     Returns:
-        FastAPIConfig instance with backend-specific settings
+        FastAPIConfig: Fast-core compatible configuration
     """
-    logger.info("Converting Backend config to fast-core config")
+    logger.info("Converting Backend API config to fast-core config")
 
-    ***REMOVED*** Create fast-core config using enhanced configuration
+    ***REMOVED*** Create fast-core config with backend-specific settings
     fast_core_config = FastAPIConfig(
         ***REMOVED*** Basic service configuration (inherited from ServiceConfig)
         service_name=getattr(backend_config, "service_name", "Next Watch Backend API"),
@@ -58,6 +58,15 @@ def create_fast_core_config(backend_config: BackendAPIConfig) -> FastAPIConfig:
         redoc_url="/redoc" if backend_config.debug else None,
         openapi_url="/openapi.json" if backend_config.debug else None,
     )
+
+    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
+    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    fast_core_config.enable_tracing = backend_config.enable_tracing
+    fast_core_config.tracing_endpoint = backend_config.tracing_endpoint
+    fast_core_config.tracing_sample_rate = backend_config.tracing_sample_rate
+    fast_core_config.enable_performance_metrics = backend_config.enable_performance_metrics
+    fast_core_config.enable_deep_health_checks = backend_config.enable_deep_health_checks
+    fast_core_config.enable_error_tracking = backend_config.enable_error_tracking
 
     logger.info("Fast-core config created successfully")
     return fast_core_config

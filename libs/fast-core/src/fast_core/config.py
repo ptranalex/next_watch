@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 from config.base.config import ServiceConfig
+from config.services.monitoring import MonitoringConfigMixin
 
 
 class FastAPIConfigMixin(BaseModel):
@@ -61,10 +62,11 @@ class FastAPIConfigMixin(BaseModel):
         return v
 
 
-class FastAPIConfig(ServiceConfig, FastAPIConfigMixin):
-    """Complete FastAPI service configuration.
+class BasicFastAPIConfig(ServiceConfig, FastAPIConfigMixin):
+    """Basic FastAPI service configuration without monitoring.
 
     This class combines the base ServiceConfig with FastAPI-specific options.
+    Use this for services that don't need built-in monitoring configuration.
     """
 
     def get_fastapi_kwargs(self) -> Dict[str, Any]:
@@ -144,3 +146,18 @@ class FastAPIConfig(ServiceConfig, FastAPIConfigMixin):
             True if feature is enabled, False otherwise
         """
         return self.feature_flags.get(feature_name, False)
+
+
+class FastAPIConfig(BasicFastAPIConfig, MonitoringConfigMixin):
+    """Complete FastAPI service configuration with monitoring.
+
+    This class adds monitoring capabilities to BasicFastAPIConfig.
+    Use this for services that need built-in tracing, metrics, and monitoring.
+    """
+
+    pass
+
+
+***REMOVED*** Backward compatibility - keep the old class name as an alias
+***REMOVED*** Services that inherit from MonitoringConfigMixin should use FastAPIConfig
+***REMOVED*** Services that don't need monitoring should use BasicFastAPIConfig

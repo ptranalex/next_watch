@@ -52,6 +52,11 @@ services:
       - BACKEND_PERFORMANCE_METRICS=true
       - DATABASE_MONITORING_ENABLED=true
       - SLOW_QUERY_THRESHOLD_MS=100
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -141,6 +146,11 @@ services:
 
       ***REMOVED*** Performance Settings
       - ENABLE_PERFORMANCE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -202,6 +212,11 @@ services:
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
       ***REMOVED*** Performance
       - ENABLE_PERFORMANCE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -297,6 +312,11 @@ services:
       ***REMOVED*** Performance & Monitoring
       - ENABLE_PERFORMANCE_METRICS=true
       - CACHE_ENABLE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -373,6 +393,11 @@ services:
       ***REMOVED*** Performance & Monitoring
       - AUTH_PERFORMANCE_METRICS=true
       - ENABLE_PERFORMANCE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -466,6 +491,11 @@ services:
       ***REMOVED*** Performance & Monitoring
       - ENABLE_PERFORMANCE_METRICS=true
       - CACHE_ENABLE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
