@@ -9,6 +9,7 @@ from pydantic import Field, validator
 from config.base.config import ServiceConfig
 from config.services.cache import CacheConfigMixin
 from config.services.auth import AuthConfigMixin
+from config.services.monitoring import MonitoringConfigMixin
 from config.profiles.service_profiles import apply_profiles, GatewayProfile
 
 from config.logging import get_logger
@@ -17,10 +18,10 @@ from config.logging import get_logger
 logger = get_logger(__name__)
 
 
-class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin):
+class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringConfigMixin):
     """BFF API service configuration.
 
-    Provides configuration for the BFF API service with cache and auth support.
+    Provides configuration for the BFF API service with cache, auth, and monitoring support.
     """
 
     ***REMOVED*** Service identification
