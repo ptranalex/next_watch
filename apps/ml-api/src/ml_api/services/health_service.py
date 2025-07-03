@@ -312,18 +312,19 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
     ***REMOVED*** IMPORTANT services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
-            name="redis_cache",
-            check_func=check_redis,
+            name="vector_storage",
+            check_func=check_vector_storage,
             category=HealthCheckCategory.IMPORTANT,
             timeout_seconds=2.0,
         )
     )
 
+    ***REMOVED*** INFORMATIONAL services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
-            name="vector_database",
-            check_func=check_vector_database,
-            category=HealthCheckCategory.IMPORTANT,
+            name="model_performance",
+            check_func=check_model_performance,
+            category=HealthCheckCategory.INFORMATIONAL,
             timeout_seconds=4.0,
         )
     )

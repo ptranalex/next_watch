@@ -37,6 +37,12 @@ def create_fast_core_config(ml_config: MLAPIConfig) -> FastAPIConfig:
         cors_allow_credentials=True,
         cors_allow_methods=["*"],
         cors_allow_headers=["*"],
+        ***REMOVED*** No external service URLs - ML API is independent
+        service_urls={},
+        ***REMOVED*** No external service timeouts needed
+        service_timeouts={
+            "default": 30,
+        },
         ***REMOVED*** Feature flags
         feature_flags={
             "embeddings": ml_config.enable_embeddings,
@@ -45,10 +51,19 @@ def create_fast_core_config(ml_config: MLAPIConfig) -> FastAPIConfig:
             "metrics": True,  ***REMOVED*** Always enabled for production observability
         },
         ***REMOVED*** FastAPI-specific configuration
-        docs_url="/docs",
-        redoc_url="/redoc",
-        openapi_url="/openapi.json",
+        docs_url="/docs" if ml_config.debug else None,
+        redoc_url="/redoc" if ml_config.debug else None,
+        openapi_url="/openapi.json" if ml_config.debug else None,
     )
+
+    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
+    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    fast_core_config.enable_tracing = ml_config.enable_tracing
+    fast_core_config.tracing_endpoint = ml_config.tracing_endpoint
+    fast_core_config.tracing_sample_rate = ml_config.tracing_sample_rate
+    fast_core_config.enable_performance_metrics = ml_config.enable_performance_metrics
+    fast_core_config.enable_deep_health_checks = ml_config.enable_deep_health_checks
+    fast_core_config.enable_error_tracking = ml_config.enable_error_tracking
 
     logger.info("Fast-core config created successfully")
     return fast_core_config

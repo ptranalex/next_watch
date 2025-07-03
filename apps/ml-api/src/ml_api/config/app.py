@@ -8,15 +8,16 @@ from pathlib import Path
 from pydantic import Field, validator
 from config.base.config import ServiceConfig
 from config.logging import get_logger
+from config.services.monitoring import MonitoringConfigMixin
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
 
 
-class MLAPIConfig(ServiceConfig):
+class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
     """ML API service configuration.
 
-    Provides configuration for the ML API service with ML-specific features.
+    Provides configuration for the ML API service with ML-specific features and monitoring support.
     """
 
     ***REMOVED*** Service identification
