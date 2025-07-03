@@ -71,5 +71,3 @@ if __name__ == "__main__":
     from backend_api.__main__ import main
 
     main()
-
-***REMOVED*** Test
