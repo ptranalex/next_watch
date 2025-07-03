@@ -5,10 +5,12 @@ with OpenTelemetry integration and Tempo backend support.
 """
 
 import os
-from typing import Any, Optional
+from typing import Any, Awaitable, Callable, Optional
 
 import structlog
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -27,6 +29,36 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
 logger = structlog.get_logger(__name__)
+
+
+class RequestIDTracingMiddleware(BaseHTTPMiddleware):
+    """Middleware to add request_id to OpenTelemetry spans."""
+
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        ***REMOVED*** Get or generate request_id (assuming it's already in request state)
+        request_id = getattr(request.state, "request_id", None)
+
+        if request_id:
+            ***REMOVED*** Get current span and add request_id as attribute
+            current_span = trace.get_current_span()
+            if current_span and current_span.is_recording():
+                current_span.set_attribute("request.id", request_id)
+                current_span.set_attribute("http.request_id", request_id)
+
+                ***REMOVED*** Also add to span events for better searchability
+                current_span.add_event(
+                    "request.started",
+                    {
+                        "request.id": request_id,
+                        "http.method": request.method,
+                        "http.url": str(request.url),
+                    },
+                )
+
+        response = await call_next(request)
+        return response
 
 
 def setup_tracing(app: FastAPI, settings: Any) -> None:
@@ -148,6 +180,10 @@ def setup_tracing(app: FastAPI, settings: Any) -> None:
             logger.debug("Redis instrumentation not available (redis not installed)")
         except Exception as e:
             logger.debug("Redis instrumentation not available", error=str(e))
+
+        ***REMOVED*** Add request ID tracing middleware
+        app.add_middleware(RequestIDTracingMiddleware)
+        logger.info("Request ID tracing middleware added")
 
         logger.info("OpenTelemetry tracing successfully configured")
 
