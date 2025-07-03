@@ -6,6 +6,7 @@ from pydantic import Field, validator, computed_field
 from config.base.config import ServiceConfig
 from config.services.cache import CacheConfigMixin
 from config.services.vector import VectorDBConfigMixin
+from config.services.monitoring import MonitoringConfigMixin
 from config.profiles.service_profiles import apply_profiles
 
 from config.logging import get_logger
@@ -14,10 +15,12 @@ from config.logging import get_logger
 logger = get_logger(__name__)
 
 
-class RecommendationAPIConfig(ServiceConfig, CacheConfigMixin, VectorDBConfigMixin):
+class RecommendationAPIConfig(
+    ServiceConfig, CacheConfigMixin, VectorDBConfigMixin, MonitoringConfigMixin
+):
     """Recommendation API service configuration.
 
-    Provides configuration for the Recommendation API service with cache and vector DB support.
+    Provides configuration for the Recommendation API service with cache, vector DB, and monitoring support.
     """
 
     ***REMOVED*** Service identification

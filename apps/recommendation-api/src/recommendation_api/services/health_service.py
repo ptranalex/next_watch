@@ -404,8 +404,8 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
     ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
-            name="database",
-            check_func=check_database,
+            name="backend_client",
+            check_func=check_backend_client,
             category=HealthCheckCategory.CRITICAL,
             timeout_seconds=3.0,
         )
@@ -415,7 +415,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
     registry.add_check(
         HealthCheckDefinition(
             name="redis_cache",
-            check_func=check_redis,
+            check_func=check_redis_cache,
             category=HealthCheckCategory.IMPORTANT,
             timeout_seconds=2.0,
         )
@@ -424,7 +424,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
     registry.add_check(
         HealthCheckDefinition(
             name="vector_database",
-            check_func=check_vector_database,
+            check_func=check_vector_service,
             category=HealthCheckCategory.IMPORTANT,
             timeout_seconds=4.0,
         )

@@ -68,12 +68,21 @@ def create_fast_core_config(reco_config: RecommendationAPIConfig) -> FastAPIConf
         cache_ttl=reco_config.cache_ttl_default,
         cache_prefix=reco_config.cache_key_prefix,
         ***REMOVED*** FastAPI-specific configuration
-        docs_url="/docs",
-        redoc_url="/redoc",
-        openapi_url="/openapi.json",
+        docs_url="/docs" if reco_config.debug else None,
+        redoc_url="/redoc" if reco_config.debug else None,
+        openapi_url="/openapi.json" if reco_config.debug else None,
         ***REMOVED*** Security settings
         trusted_hosts=["*"] if reco_config.environment == "development" else ["localhost"],
     )
+
+    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
+    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    fast_core_config.enable_tracing = reco_config.enable_tracing
+    fast_core_config.tracing_endpoint = reco_config.tracing_endpoint
+    fast_core_config.tracing_sample_rate = reco_config.tracing_sample_rate
+    fast_core_config.enable_performance_metrics = reco_config.enable_performance_metrics
+    fast_core_config.enable_deep_health_checks = reco_config.enable_deep_health_checks
+    fast_core_config.enable_error_tracking = reco_config.enable_error_tracking
 
     logger.info("Fast-core config created successfully")
     return fast_core_config
