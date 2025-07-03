@@ -32,32 +32,45 @@ logger = structlog.get_logger(__name__)
 
 
 class RequestIDTracingMiddleware(BaseHTTPMiddleware):
-    """Middleware to add request_id to OpenTelemetry spans."""
+    """Middleware to add request_id to OpenTelemetry spans.
+
+    This middleware runs first (outermost) and ensures request_id is available
+    for all subsequent middleware and handlers. It generates a UUID if none exists
+    and adds it to both the OpenTelemetry span and response headers.
+    """
 
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
-        ***REMOVED*** Get or generate request_id (assuming it's already in request state)
+        ***REMOVED*** Get existing request_id or generate one if not present
         request_id = getattr(request.state, "request_id", None)
+        if not request_id:
+            import uuid
 
-        if request_id:
-            ***REMOVED*** Get current span and add request_id as attribute
-            current_span = trace.get_current_span()
-            if current_span and current_span.is_recording():
-                current_span.set_attribute("request.id", request_id)
-                current_span.set_attribute("http.request_id", request_id)
+            request_id = str(uuid.uuid4())
+            request.state.request_id = request_id
 
-                ***REMOVED*** Also add to span events for better searchability
-                current_span.add_event(
-                    "request.started",
-                    {
-                        "request.id": request_id,
-                        "http.method": request.method,
-                        "http.url": str(request.url),
-                    },
-                )
+        ***REMOVED*** Get current span and add request_id as attribute
+        current_span = trace.get_current_span()
+        if current_span and current_span.is_recording():
+            current_span.set_attribute("request.id", request_id)
+            current_span.set_attribute("http.request_id", request_id)
+
+            ***REMOVED*** Also add to span events for better searchability
+            current_span.add_event(
+                "request.started",
+                {
+                    "request.id": request_id,
+                    "http.method": request.method,
+                    "http.url": str(request.url),
+                },
+            )
 
         response = await call_next(request)
+
+        ***REMOVED*** Ensure request_id is in response header
+        response.headers["X-Request-ID"] = request_id
+
         return response
 
 
