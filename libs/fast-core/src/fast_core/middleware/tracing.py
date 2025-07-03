@@ -65,6 +65,7 @@ class RequestIDTracingMiddleware(BaseHTTPMiddleware):
                     "http.url": str(request.url),
                 },
             )
+            logger.info("Request ID added to OpenTelemetry span", request_id=request_id)
 
         response = await call_next(request)
 
