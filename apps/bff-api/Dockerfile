@@ -50,8 +50,12 @@ COPY libs/cache ./libs/cache/
 COPY libs/cli ./libs/cli/
 
 ***REMOVED*** Install local dependencies with cache mount
+***REMOVED*** Install with dependencies to ensure all transitive dependencies are resolved
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --user ./libs/fast-core/ ./libs/config/ ./libs/cache/ ./libs/cli/
+    pip install --user -e ./libs/config/ && \
+    pip install --user -e ./libs/cache/ && \
+    pip install --user -e ./libs/cli/ && \
+    pip install --user -e ./libs/fast-core/
 
 ***REMOVED*** Stage 4: App dependencies (changes frequently)
 FROM local-deps AS app-deps
