@@ -14,8 +14,8 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
+
+***REMOVED*** SQLAlchemy and Redis instrumentors are imported conditionally when needed
 from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.b3 import B3MultiFormat
 from opentelemetry.propagators.composite import CompositePropagator
@@ -129,15 +129,23 @@ def setup_tracing(app: FastAPI, settings: Any) -> None:
 
         ***REMOVED*** Instrument database connections if available
         try:
+            from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+
             SQLAlchemyInstrumentor().instrument()
             logger.info("SQLAlchemy instrumentation enabled")
+        except ImportError:
+            logger.debug("SQLAlchemy instrumentation not available (sqlalchemy not installed)")
         except Exception as e:
             logger.debug("SQLAlchemy instrumentation not available", error=str(e))
 
         ***REMOVED*** Instrument Redis if available
         try:
+            from opentelemetry.instrumentation.redis import RedisInstrumentor
+
             RedisInstrumentor().instrument()
             logger.info("Redis instrumentation enabled")
+        except ImportError:
+            logger.debug("Redis instrumentation not available (redis not installed)")
         except Exception as e:
             logger.debug("Redis instrumentation not available", error=str(e))
 
