@@ -12,6 +12,10 @@ datasources:
       timeInterval: "15s"
       queryTimeout: "60s"
       httpMethod: GET
+      ***REMOVED*** Configure exemplars to link to Tempo traces
+      exemplarTraceIdDestinations:
+        - datasourceUid: tempo
+          name: TraceID
     editable: true
 
   ***REMOVED*** Loki - Logs
@@ -23,9 +27,67 @@ datasources:
     isDefault: false
     jsonData:
       maxLines: 1000
+      ***REMOVED*** Configure derived fields to extract trace IDs from logs
       derivedFields:
-        - datasourceUid: prometheus
-          matcherRegex: "trace_id=(\\w+)"
-          name: "TraceID"
+        - datasourceUid: tempo
+          matcherRegex: "trace_id=([a-f0-9]+)"
+          name: TraceID
           url: "$${__value.raw}"
+        - datasourceUid: tempo
+          matcherRegex: "traceID=([a-f0-9]+)"
+          name: TraceID
+          url: "$${__value.raw}"
+        - datasourceUid: tempo
+          matcherRegex: "[tT]race[_-]?[iI][dD][\":\\s=]+([a-f0-9]+)"
+          name: TraceID
+          url: "$${__value.raw}"
+    editable: true
+
+  ***REMOVED*** Tempo - Distributed Tracing
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    isDefault: false
+    jsonData:
+      ***REMOVED*** Configure node graph for service map visualization
+      nodeGraph:
+        enabled: true
+      ***REMOVED*** Configure trace to logs correlation
+      tracesToLogsV2:
+        datasourceUid: loki
+        filterBySpanID: false
+        filterByTraceID: true
+        customQuery: false
+        tags:
+          - key: service.name
+            value: service
+          - key: service_name
+            value: service
+      ***REMOVED*** Configure trace to metrics correlation
+      tracesToMetrics:
+        datasourceUid: prometheus
+        tags:
+          - key: service.name
+            value: service
+          - key: service_name
+            value: service
+        queries:
+          - name: Request Rate
+            query: sum(rate(http_requests_total{service="$${__tags.service}"}[5m]))
+          - name: Request Duration P99
+            query: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{service="$${__tags.service}"}[5m])) by (le))
+          - name: Error Rate
+            query: sum(rate(http_requests_total{service="$${__tags.service}", status_code=~"5.."}[5m])) / sum(rate(http_requests_total{service="$${__tags.service}"}[5m]))
+      ***REMOVED*** Configure service map
+      serviceMap:
+        datasourceUid: prometheus
+      ***REMOVED*** Configure search settings
+      search:
+        hide: false
+      ***REMOVED*** Configure span bar settings
+      spanBar:
+        type: Tag
+        tag: http.status_code
     editable: true

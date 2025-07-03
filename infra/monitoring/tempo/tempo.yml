@@ -1,0 +1,185 @@
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+  log_level: info
+
+***REMOVED*** Distributor config
+distributor:
+  receivers:
+    ***REMOVED*** OpenTelemetry receiver for gRPC and HTTP
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    ***REMOVED*** Jaeger receivers
+    jaeger:
+      protocols:
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+        grpc:
+          endpoint: 0.0.0.0:14250
+    ***REMOVED*** Zipkin receiver
+    zipkin:
+      endpoint: 0.0.0.0:9411
+
+***REMOVED*** Ingester config
+ingester:
+  max_block_duration: 5m ***REMOVED*** Cut traces after 5 minutes
+  max_block_bytes: 1_000_000 ***REMOVED*** Cut traces after 1MB
+  complete_block_timeout: 10m ***REMOVED*** Complete block after 10 minutes
+  lifecycler:
+    ring:
+      replication_factor: 1 ***REMOVED*** Single instance for development
+
+***REMOVED*** Compactor config
+compactor:
+  compaction:
+    ***REMOVED*** Blocks in this time window will be compacted together
+    compaction_window: 1h
+    ***REMOVED*** Maximum size of a compacted block in bytes
+    max_block_bytes: 100_000_000 ***REMOVED*** 100MB
+    ***REMOVED*** How often to run compaction
+    compaction_cycle: 30s
+    ***REMOVED*** Block retention - keep blocks for 24 hours in development
+    block_retention: 24h
+
+***REMOVED*** Query Frontend config - using correct schema
+query_frontend:
+  ***REMOVED*** Number of times to retry a request sent to a querier
+  max_retries: 2
+
+  ***REMOVED*** Maximum number of outstanding requests per tenant per frontend
+  max_outstanding_per_tenant: 2000
+
+  ***REMOVED*** The number of jobs to batch together in one http request to the querier
+  max_batch_size: 5
+
+  search:
+    ***REMOVED*** The number of concurrent jobs to execute when searching the backend
+    concurrent_jobs: 1000
+
+    ***REMOVED*** The target number of bytes for each job to handle when performing a backend search
+    target_bytes_per_job: 104857600 ***REMOVED*** 100MB
+
+    ***REMOVED*** Limit used for search requests if none is set by the caller
+    default_result_limit: 20
+
+    ***REMOVED*** The maximum allowed time range for a search
+    max_duration: 0s ***REMOVED*** 0 = unlimited
+
+    ***REMOVED*** Time ranges for searching ingesters vs backend
+    query_backend_after: 15m
+    query_ingesters_until: 30m
+
+  ***REMOVED*** Trace by ID lookup configuration
+  trace_by_id:
+    ***REMOVED*** The number of shards to split a trace by id query into
+    query_shards: 50
+
+***REMOVED*** Querier config
+querier:
+  ***REMOVED*** Max number of concurrent queries
+  max_concurrent_queries: 20
+
+  ***REMOVED*** Frontend worker disabled for monolithic mode
+  ***REMOVED*** frontend_worker:
+  ***REMOVED***   frontend_address: localhost:9095
+  ***REMOVED***   parallelism: 10
+
+***REMOVED*** Storage config
+storage:
+  trace:
+    backend: local ***REMOVED*** Use local storage for development
+    wal:
+      path: /tmp/tempo/wal
+    local:
+      path: /tmp/tempo/blocks
+    pool:
+      max_workers: 100 ***REMOVED*** Increase worker pool
+      queue_depth: 10000
+
+***REMOVED*** Memberlist config for ring
+memberlist:
+  abort_if_cluster_join_fails: false
+  bind_port: 7946
+  join_members:
+    - tempo:7946
+
+***REMOVED*** Enable metrics generator for TraceQL metrics
+metrics_generator:
+  ring:
+    kvstore:
+      store: memberlist
+
+  ***REMOVED*** Processor configuration
+  processor:
+    service_graphs:
+      histogram_buckets: [0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8]
+      max_items: 10000
+      workers: 10
+
+    span_metrics:
+      histogram_buckets:
+        [
+          0.002,
+          0.004,
+          0.008,
+          0.016,
+          0.032,
+          0.064,
+          0.128,
+          0.256,
+          0.512,
+          1.024,
+          2.048,
+          4.096,
+          8.192,
+          16.384,
+        ]
+      intrinsic_dimensions:
+        service: true
+        span_name: true
+        span_kind: true
+        status_code: true
+
+    ***REMOVED*** local_blocks disabled - causes issues without traces WAL
+    ***REMOVED*** local_blocks:
+    ***REMOVED***   flush_check_period: 10s
+    ***REMOVED***   trace_idle_period: 10s
+    ***REMOVED***   max_block_duration: 1m
+    ***REMOVED***   max_block_bytes: 500000000
+    ***REMOVED***   complete_block_timeout: 1h
+
+  ***REMOVED*** Registry configuration
+  registry:
+    external_labels:
+      source: tempo
+      cluster: "dev-cluster"
+    collection_interval: 15s
+    stale_duration: 15m
+
+  ***REMOVED*** Storage configuration
+  storage:
+    path: /tmp/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
+
+***REMOVED*** Overrides - using correct v2.6+ schema
+overrides:
+  defaults:
+    ***REMOVED*** Enable metrics generator processors (local-blocks disabled)
+    metrics_generator:
+      processors:
+        - service-graphs
+        - span-metrics
+      ***REMOVED*** Max active series per metrics-generator instance
+      max_active_series: 10000
+      ***REMOVED*** Collection interval
+      collection_interval: 15s
+
+***REMOVED*** Usage report (disable to avoid sending data to Grafana)
+usage_report:
+  reporting_enabled: false

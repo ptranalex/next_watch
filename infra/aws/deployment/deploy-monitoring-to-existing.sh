@@ -186,7 +186,7 @@ sleep 30
 
 ***REMOVED*** Check service status
 echo "🏥 Checking service health..."
-for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod loki-prod promtail-prod cadvisor-prod blackbox-exporter-prod; do
+for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod loki-prod promtail-prod cadvisor-prod blackbox-exporter-prod tempo-prod; do
     if sudo docker ps --filter "name=$service" --filter "status=running" | grep -q "$service"; then
         echo "✅ $service is running"
     else
@@ -194,6 +194,38 @@ for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod
         sudo docker logs "$service" --tail 20 2>/dev/null || echo "  Container not found or no logs"
     fi
 done
+
+***REMOVED*** Configure tracing for NextWatch services
+echo "🔍 Configuring OpenTelemetry tracing..."
+cat > /opt/nextwatch-monitoring/.env.tracing << 'TRACING_EOF'
+***REMOVED*** Enable OpenTelemetry tracing for all services
+ENABLE_TRACING=true
+TRACING_ENDPOINT=http://tempo:4317
+TRACING_SAMPLE_RATE=0.1
+
+***REMOVED*** Service-specific tracing configuration
+BACKEND_API_ENABLE_TRACING=true
+BFF_API_ENABLE_TRACING=true
+AUTH_API_ENABLE_TRACING=true
+SEARCH_API_ENABLE_TRACING=true
+RECOMMENDATION_API_ENABLE_TRACING=true
+ML_API_ENABLE_TRACING=true
+
+***REMOVED*** Logging configuration for trace correlation
+LOG_FORMAT=json
+LOG_STRUCTURED=true
+OTEL_PYTHON_LOG_CORRELATION=true
+TRACING_EOF
+echo "✅ Tracing configuration created"
+
+***REMOVED*** Test Tempo health
+echo "🔍 Testing Tempo endpoint..."
+sleep 10  ***REMOVED*** Give Tempo time to start
+if curl -sf "http://localhost:3200/ready" >/dev/null 2>&1; then
+    echo "✅ Tempo is ready and responding"
+else
+    echo "⚠️  Tempo health check failed - service may still be starting"
+fi
 
 ***REMOVED*** Display access information
 echo ""
