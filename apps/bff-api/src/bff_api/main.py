@@ -59,3 +59,5 @@ if __name__ == "__main__":
     from bff_api.__main__ import main
 
     main()
+
+***REMOVED*** TEST
