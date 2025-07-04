@@ -8,31 +8,45 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 from bff_api.config.app import BFFAPIConfig
 from config.logging import get_logger
-from fast_core.dependencies.client_factory import BaseServiceClient, ServiceClientConfig
+from fast_core.dependencies.client_factory import ServiceClientConfig
+from fast_core.errors import service_error_handler
+
+***REMOVED*** Import BaseBackendClient for inheritance instead of BaseServiceClient
+from bff_api.services.clients.base import (
+    BaseBackendClient,
+    BackendClientError,
+    BackendClientTransientError,
+    BackendClientPermanentError,
+)
 
 logger = get_logger(__name__)
 
 
-class AuthClientError(Exception):
-    """Base exception for auth client errors."""
+***REMOVED*** Use BackendClient error classes instead of duplicating
+class AuthClientError(BackendClientError):
+    """Base exception for auth client errors - inherits from BackendClientError."""
 
     pass
 
 
-class AuthClientTransientError(AuthClientError):
+class AuthClientTransientError(BackendClientTransientError):
     """Transient error that can be retried (network issues, 5xx errors)."""
 
     pass
 
 
-class AuthClientPermanentError(AuthClientError):
+class AuthClientPermanentError(BackendClientPermanentError):
     """Permanent error that should not be retried (4xx errors)."""
 
     pass
 
 
-class AuthClient(BaseServiceClient):
-    """HTTP client for communicating with authentication service."""
+class AuthClient(BaseBackendClient):
+    """HTTP client for communicating with authentication service.
+
+    Now inherits from BaseBackendClient for consistent error handling,
+    retry logic, and header propagation across all BFF clients.
+    """
 
     def __init__(self, config: ServiceClientConfig) -> None:
         """Initialize auth client.
@@ -41,31 +55,29 @@ class AuthClient(BaseServiceClient):
             config: Service client configuration
         """
         super().__init__(config)
+        ***REMOVED*** Override service name for proper error attribution
+        self.service_name = "auth-api"
 
-    async def health_check(self) -> Dict[str, Any]:
-        """Perform health check for the auth service."""
-        try:
-            client = await self._get_client()
-            response = await client.get("/health")
-            return {
-                "service": self.name,
-                "status": "healthy" if response.status_code == 200 else "unhealthy",
-                "status_code": response.status_code,
-                "url": str(client.base_url),
-            }
-        except Exception as e:
-            logger.warning(f"Health check failed for {self.name}: {e}")
-            return {
-                "service": self.name,
-                "status": "error",
-                "error": str(e),
-                "url": self.base_url,
-            }
+    def _build_api_path(self, path: str) -> str:
+        """Build API path for auth service endpoints.
 
+        Auth API uses /auth/v1/ prefix instead of /api/v1/ used by backend API.
+
+        Args:
+            path: Relative API path (e.g., "/tokens", "/users")
+
+        Returns:
+            Full API path with auth service prefix (e.g., "/auth/v1/tokens")
+        """
+        ***REMOVED*** Remove leading slash if present to avoid double slashes
+        clean_path = path.lstrip("/")
+        return f"/auth/v1/{clean_path}"
+
+    @service_error_handler("auth-api", logger)
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type(AuthClientTransientError),
+        retry=retry_if_exception_type(BackendClientTransientError),
     )
     async def _make_request(
         self,
@@ -76,74 +88,56 @@ class AuthClient(BaseServiceClient):
         headers: Optional[Dict[str, str]] = None,
         form_data: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
-        """Make HTTP request with retry logic.
+        """Make HTTP request with auth-specific handling.
 
-        Args:
-            method: HTTP method
-            path: API path
-            params: Query parameters
-            data: Request body data (JSON)
-            headers: Additional headers
-            form_data: Form data for OAuth2 requests
-
-        Returns:
-            Response data as dictionary
-
-        Raises:
-            AuthClientError: If request fails
+        This method is needed because:
+        1. @service_error_handler uses hardcoded "auth-api" service name
+        2. Supports form_data parameter for OAuth2 requests
+        3. Delegates to parent for all standard HTTP logic
         """
-        client = await self._get_client()
+        if form_data:
+            ***REMOVED*** Handle OAuth2 form data requests
+            client = await self._get_client()
+            request_headers = self._get_request_headers(headers)
 
-        try:
-            if form_data:
+            try:
                 response = await client.request(
                     method=method,
                     url=path,
                     params=params,
                     data=form_data,
-                    headers=headers or {},
+                    headers=request_headers,
                 )
-            else:
-                response = await client.request(
-                    method=method,
-                    url=path,
-                    params=params,
-                    json=data,
-                    headers=headers or {},
-                )
-            response.raise_for_status()
+                response.raise_for_status()
 
-            if response.headers.get("content-type", "").startswith("application/json"):
-                return cast(Dict[str, Any], response.json())
-            else:
-                return {"data": response.text}
-
-        except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-
-            ***REMOVED*** 4xx errors are permanent (don't retry)
-            if 400 <= status_code < 500:
-                ***REMOVED*** Log 4xx as debug/info - these are often expected (auth failures, bad requests)
-                if status_code == 401:
-                    logger.debug(f"Authentication failed for {method} {path}: {status_code}")
-                elif status_code == 404:
-                    logger.debug(f"Resource not found for {method} {path}: {status_code}")
+                if response.headers.get("content-type", "").startswith("application/json"):
+                    return cast(Dict[str, Any], response.json())
                 else:
-                    logger.info(f"Client error {status_code} for {method} {path}")
-                raise AuthClientPermanentError(f"Auth service error: {status_code}")
-            ***REMOVED*** 5xx errors are transient (can retry) - these are actual system errors
-            else:
-                logger.error(f"Server error {status_code} for {method} {path}: {e}")
-                raise AuthClientTransientError(f"Auth service error: {status_code}")
+                    return {"data": response.text}
 
-        except httpx.RequestError as e:
-            logger.error(f"Request error for {method} {path}: {e}")
-            ***REMOVED*** Network errors are transient (can retry)
-            raise AuthClientTransientError(f"Auth service request failed: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error for {method} {path}: {e}")
-            ***REMOVED*** Unexpected errors are treated as permanent
-            raise AuthClientPermanentError(f"Unexpected auth error: {e}")
+            except httpx.HTTPStatusError as e:
+                status_code = e.response.status_code
+                if 400 <= status_code < 500:
+                    if status_code == 401:
+                        logger.debug(f"Authentication failed for {method} {path}: {status_code}")
+                    elif status_code == 404:
+                        logger.debug(f"Resource not found for {method} {path}: {status_code}")
+                    else:
+                        logger.info(f"Client error {status_code} for {method} {path}")
+                    raise AuthClientPermanentError(f"Auth service error: {status_code}")
+                else:
+                    logger.error(f"Server error {status_code} for {method} {path}: {e}")
+                    raise AuthClientTransientError(f"Auth service error: {status_code}")
+
+            except httpx.RequestError as e:
+                logger.error(f"Request error for {method} {path}: {e}")
+                raise AuthClientTransientError(f"Auth service request failed: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error for {method} {path}: {e}")
+                raise AuthClientPermanentError(f"Unexpected auth error: {e}")
+        else:
+            ***REMOVED*** Delegate standard JSON requests to parent implementation
+            return await super()._make_request(method, path, params, data, headers)
 
     async def login(self, email: str, password: str) -> Dict[str, Any]:
         """Authenticate user with email and password.
@@ -160,7 +154,7 @@ class AuthClient(BaseServiceClient):
         """
         return await self._make_request(
             "POST",
-            "/auth/v1/tokens",
+            self._build_api_path("/tokens"),
             form_data={"username": email, "password": password},
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
@@ -189,7 +183,7 @@ class AuthClient(BaseServiceClient):
         if username:
             user_data["username"] = username
 
-        return await self._make_request("POST", "/auth/v1/users", data=user_data)
+        return await self._make_request("POST", self._build_api_path("/users"), data=user_data)
 
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
         """Refresh access token using refresh token.
@@ -204,7 +198,7 @@ class AuthClient(BaseServiceClient):
             AuthClientError: If token refresh fails
         """
         return await self._make_request(
-            "PUT", "/auth/v1/tokens", data={"refresh_token": refresh_token}
+            "PUT", self._build_api_path("/tokens"), data={"refresh_token": refresh_token}
         )
 
     async def verify_token(self, token: str) -> Dict[str, Any]:
@@ -219,7 +213,9 @@ class AuthClient(BaseServiceClient):
         Raises:
             AuthClientError: If token verification fails
         """
-        return await self._make_request("POST", "/auth/v1/tokens/verify", data={"token": token})
+        return await self._make_request(
+            "POST", self._build_api_path("/tokens/verify"), data={"token": token}
+        )
 
     async def get_current_user(self, token: str) -> Dict[str, Any]:
         """Get current user information.
@@ -234,5 +230,5 @@ class AuthClient(BaseServiceClient):
             AuthClientError: If user info retrieval fails
         """
         return await self._make_request(
-            "GET", "/auth/v1/users/me", headers={"Authorization": f"Bearer {token}"}
+            "GET", self._build_api_path("/users/me"), headers={"Authorization": f"Bearer {token}"}
         )
