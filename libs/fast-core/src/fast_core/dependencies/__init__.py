@@ -4,6 +4,14 @@ from .auth import get_current_user, get_optional_user, require_auth
 from .cache import get_cache_manager, get_cache_service, get_cache_provider, get_redis_client
 from .database import get_db_session, get_database_service, get_database_engine
 from .common import get_pagination, get_request_id, get_search_params, get_settings
+from .context import (
+    get_current_request_context,
+    get_current_request_id,
+    get_current_trace_headers,
+    require_request_context,
+    require_request_id,
+    get_trace_context_injector,
+)
 from .singleton import (
     get_singleton_client,
     register_singleton,
@@ -48,6 +56,13 @@ __all__ = [
     "get_request_id",
     "get_search_params",
     "get_settings",
+    ***REMOVED*** Context dependencies
+    "get_current_request_context",
+    "get_current_request_id",
+    "get_current_trace_headers",
+    "require_request_context",
+    "require_request_id",
+    "get_trace_context_injector",
     ***REMOVED*** Singleton dependencies
     "get_singleton_client",
     "register_singleton",

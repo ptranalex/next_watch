@@ -94,6 +94,20 @@ class RequestConfig:
 
 
 @dataclass
+class ContextConfig:
+    """Configuration for request context middleware."""
+
+    enabled: bool = True
+    service_name: Optional[str] = None
+    auto_generate_request_id: bool = True
+    extract_user_id: bool = True
+    trace_propagation: bool = True
+    include_w3c_trace_context: bool = True
+    include_b3_headers: bool = True
+    include_jaeger_headers: bool = True
+
+
+@dataclass
 class MetricsConfig:
     """Configuration for Prometheus metrics middleware."""
 
@@ -139,6 +153,7 @@ class MiddlewareConfig:
         self._rate_limit: Optional[RateLimitConfig] = None
         self._request: Optional[RequestConfig] = None
         self._metrics: Optional[MetricsConfig] = None
+        self._context: Optional[ContextConfig] = None
 
     def cors(
         self,
@@ -399,6 +414,44 @@ class MiddlewareConfig:
         )
         return self
 
+    def context(
+        self,
+        service_name: Optional[str] = None,
+        auto_generate_request_id: bool = True,
+        extract_user_id: bool = True,
+        trace_propagation: bool = True,
+        include_w3c_trace_context: bool = True,
+        include_b3_headers: bool = True,
+        include_jaeger_headers: bool = True,
+        enabled: bool = True,
+    ) -> "MiddlewareConfig":
+        """Configure request context middleware.
+
+        Args:
+            service_name: Name of the current service
+            auto_generate_request_id: Automatically generate request ID if not present
+            extract_user_id: Extract user ID from headers
+            trace_propagation: Enable trace context propagation
+            include_w3c_trace_context: Include W3C Trace Context headers
+            include_b3_headers: Include B3 (Zipkin) headers
+            include_jaeger_headers: Include Jaeger headers
+            enabled: Whether to enable context middleware
+
+        Returns:
+            Self for method chaining
+        """
+        self._context = ContextConfig(
+            enabled=enabled,
+            service_name=service_name,
+            auto_generate_request_id=auto_generate_request_id,
+            extract_user_id=extract_user_id,
+            trace_propagation=trace_propagation,
+            include_w3c_trace_context=include_w3c_trace_context,
+            include_b3_headers=include_b3_headers,
+            include_jaeger_headers=include_jaeger_headers,
+        )
+        return self
+
     ***REMOVED*** Property accessors for the setup module
     @property
     def cors_config(self) -> Optional[CORSConfig]:
@@ -430,6 +483,11 @@ class MiddlewareConfig:
         """Get metrics configuration."""
         return self._metrics
 
+    @property
+    def context_config(self) -> Optional[ContextConfig]:
+        """Get context configuration."""
+        return self._context
+
     def has_any_middleware(self) -> bool:
         """Check if any middleware is configured."""
         return any(
@@ -440,6 +498,7 @@ class MiddlewareConfig:
                 self._rate_limit,
                 self._request,
                 self._metrics,
+                self._context,
             ]
         )
 

@@ -15,6 +15,14 @@ from config.logging import get_logger
 
 from .singleton import get_singleton_client, register_singleton, get_singleton
 
+***REMOVED*** Import tracing functionality
+try:
+    from fast_core.middleware.context import get_request_context, inject_trace_context
+
+    TRACING_AVAILABLE = True
+except ImportError:
+    TRACING_AVAILABLE = False
+
 logger = get_logger(__name__)
 
 T = TypeVar("T")
@@ -32,6 +40,8 @@ class ServiceClientConfig:
         singleton: bool = False,
         client_class: Optional[Type] = None,
         client_kwargs: Optional[Dict[str, Any]] = None,
+        enable_tracing: bool = True,
+        trace_service_name: Optional[str] = None,
     ):
         """Initialize service client configuration.
 
@@ -43,6 +53,8 @@ class ServiceClientConfig:
             singleton: Whether to use singleton pattern
             client_class: Custom client class (defaults to httpx.AsyncClient)
             client_kwargs: Additional kwargs for client initialization
+            enable_tracing: Whether to enable automatic trace propagation
+            trace_service_name: Service name for tracing (defaults to name)
         """
         self.name = name
         self.base_url = base_url
@@ -51,6 +63,8 @@ class ServiceClientConfig:
         self.singleton = singleton
         self.client_class = client_class or httpx.AsyncClient
         self.client_kwargs = client_kwargs or {}
+        self.enable_tracing = enable_tracing
+        self.trace_service_name = trace_service_name or name
 
 
 class BaseServiceClient(ABC):
@@ -77,6 +91,47 @@ class BaseServiceClient(ABC):
                 **self.config.client_kwargs,
             )
         return self._client
+
+    def _get_request_headers(
+        self, additional_headers: Optional[Dict[str, str]] = None
+    ) -> Dict[str, str]:
+        """Get headers for current request with automatic trace injection.
+
+        Args:
+            additional_headers: Additional headers to include
+
+        Returns:
+            Headers dictionary with trace context injected
+        """
+        ***REMOVED*** Start with base headers from config
+        headers = dict(self.config.headers)
+
+        ***REMOVED*** Add any additional headers provided
+        if additional_headers:
+            headers.update(additional_headers)
+
+        ***REMOVED*** Add automatic trace headers if tracing is enabled
+        if self.config.enable_tracing and TRACING_AVAILABLE:
+            try:
+                context = get_request_context()
+                if context:
+                    ***REMOVED*** Inject trace propagation headers
+                    trace_headers = context.get_propagation_headers()
+                    headers.update(trace_headers)
+
+                    logger.debug(
+                        f"Injected trace headers for {self.name}",
+                        trace_headers=list(trace_headers.keys()),
+                        request_id=context.request_id,
+                        service=self.config.trace_service_name,
+                    )
+            except Exception as e:
+                logger.debug(
+                    f"No trace context available for {self.name}: {e}",
+                    service=self.config.trace_service_name,
+                )
+
+        return headers
 
     async def close(self) -> None:
         """Close the HTTP client."""
@@ -114,23 +169,35 @@ class GenericServiceClient(BaseServiceClient):
             }
 
     async def get(self, path: str, **kwargs: Any) -> httpx.Response:
-        """Make GET request."""
+        """Make GET request with automatic trace header injection."""
         client = await self._get_client()
+        ***REMOVED*** Inject trace headers into request headers
+        headers = self._get_request_headers(kwargs.get("headers"))
+        kwargs["headers"] = headers
         return await client.get(path, **kwargs)
 
     async def post(self, path: str, **kwargs: Any) -> httpx.Response:
-        """Make POST request."""
+        """Make POST request with automatic trace header injection."""
         client = await self._get_client()
+        ***REMOVED*** Inject trace headers into request headers
+        headers = self._get_request_headers(kwargs.get("headers"))
+        kwargs["headers"] = headers
         return await client.post(path, **kwargs)
 
     async def put(self, path: str, **kwargs: Any) -> httpx.Response:
-        """Make PUT request."""
+        """Make PUT request with automatic trace header injection."""
         client = await self._get_client()
+        ***REMOVED*** Inject trace headers into request headers
+        headers = self._get_request_headers(kwargs.get("headers"))
+        kwargs["headers"] = headers
         return await client.put(path, **kwargs)
 
     async def delete(self, path: str, **kwargs: Any) -> httpx.Response:
-        """Make DELETE request."""
+        """Make DELETE request with automatic trace header injection."""
         client = await self._get_client()
+        ***REMOVED*** Inject trace headers into request headers
+        headers = self._get_request_headers(kwargs.get("headers"))
+        kwargs["headers"] = headers
         return await client.delete(path, **kwargs)
 
 
@@ -152,6 +219,8 @@ class ServiceClientFactory:
         singleton: bool = False,
         client_class: Optional[Type] = None,
         client_kwargs: Optional[Dict[str, Any]] = None,
+        enable_tracing: bool = True,
+        trace_service_name: Optional[str] = None,
     ) -> None:
         """Register a service configuration.
 
@@ -163,6 +232,8 @@ class ServiceClientFactory:
             singleton: Whether to use singleton pattern
             client_class: Custom client class
             client_kwargs: Additional client kwargs
+            enable_tracing: Whether to enable automatic trace propagation
+            trace_service_name: Service name for tracing (defaults to name)
         """
         config = ServiceClientConfig(
             name=name,
@@ -172,10 +243,13 @@ class ServiceClientFactory:
             singleton=singleton,
             client_class=client_class,
             client_kwargs=client_kwargs,
+            enable_tracing=enable_tracing,
+            trace_service_name=trace_service_name,
         )
 
         self._configs[name] = config
-        logger.info(f"Registered service: {name} -> {base_url}")
+        tracing_status = "with tracing" if enable_tracing else "without tracing"
+        logger.info(f"Registered service: {name} -> {base_url} ({tracing_status})")
 
     def register_client_type(
         self,
@@ -356,6 +430,8 @@ def register_service(
     singleton: bool = False,
     client_class: Optional[Type] = None,
     client_kwargs: Optional[Dict[str, Any]] = None,
+    enable_tracing: bool = True,
+    trace_service_name: Optional[str] = None,
 ) -> None:
     """Register a service with the global factory.
 
@@ -367,6 +443,8 @@ def register_service(
         singleton: Whether to use singleton pattern
         client_class: Custom client class
         client_kwargs: Additional client kwargs
+        enable_tracing: Whether to enable automatic trace propagation
+        trace_service_name: Service name for tracing (defaults to name)
     """
     _service_factory.register_service(
         name=name,
@@ -376,6 +454,8 @@ def register_service(
         singleton=singleton,
         client_class=client_class,
         client_kwargs=client_kwargs,
+        enable_tracing=enable_tracing,
+        trace_service_name=trace_service_name,
     )
 
 

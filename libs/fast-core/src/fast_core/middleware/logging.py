@@ -28,6 +28,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         include_body: bool = False,
         max_body_size: int = 1024,
         exclude_paths: Optional[List[str]] = None,
+        level: str = "INFO",
     ):
         """Initialize logging middleware.
 
@@ -39,6 +40,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             include_body: Whether to include request/response bodies
             max_body_size: Maximum body size to log (bytes)
             exclude_paths: List of paths to exclude from logging
+            level: Logging level (DEBUG, INFO, WARNING, ERROR)
         """
         super().__init__(app)
         self.log_requests = log_requests
@@ -47,6 +49,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         self.include_body = include_body
         self.max_body_size = max_body_size
         self.exclude_paths = exclude_paths or ["/health", "/docs", "/openapi.json"]
+        self.level = level.upper()
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process the request and response.
@@ -116,7 +119,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             except Exception as e:
                 log_data["body_error"] = str(e)
 
-        logger.info("Incoming request", **log_data)
+        ***REMOVED*** Log with configured level
+        if self.level == "DEBUG":
+            logger.debug("Incoming request", **log_data)
+        elif self.level == "WARNING":
+            logger.warning("Incoming request", **log_data)
+        elif self.level == "ERROR":
+            logger.error("Incoming request", **log_data)
+        else:
+            logger.info("Incoming request", **log_data)
 
     async def _log_response(
         self, request: Request, response: Response, request_id: str, process_time: float

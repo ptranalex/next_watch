@@ -26,50 +26,99 @@ from .config import (
     RateLimitConfig,
     RequestConfig,
     MetricsConfig,
+    ContextConfig,
 )
 
 logger = structlog.get_logger(__name__)
 
 
 def setup_middleware(app: FastAPI, config: MiddlewareConfig) -> None:
-    """
-    Set up middleware for FastAPI application based on configuration.
+    """Set up middleware stack for FastAPI application.
+
+    Middleware is added in reverse order (last added = outermost).
+    Order: CORS -> Security -> Rate Limiting -> Logging -> Metrics -> Request -> Context
 
     Args:
         app: FastAPI application instance
         config: Middleware configuration
     """
-    if not config.has_any_middleware():
-        logger.info("No middleware configured, skipping setup")
-        return
+    logger.debug("Setting up middleware stack")
 
-    ***REMOVED*** Set up middleware in reverse order (last added = first executed)
+    ***REMOVED*** Auto-enable context middleware if tracing is enabled in the app settings
+    ***REMOVED*** This ensures all services get distributed tracing without manual configuration
+    if not config.context_config:
+        settings = getattr(app.state, "settings", None)
+        if settings and getattr(settings, "enable_tracing", False):
+            service_name = getattr(settings, "service_name", "unknown-service")
+            logger.info(f"Auto-enabling context middleware for tracing (service: {service_name})")
+
+            ***REMOVED*** Create default context config with optimal tracing settings
+            from .config import ContextConfig
+
+            config._context = ContextConfig(
+                enabled=True,
+                service_name=service_name,
+                auto_generate_request_id=True,
+                extract_user_id=True,
+                trace_propagation=True,
+                include_w3c_trace_context=True,
+                include_b3_headers=True,
+                include_jaeger_headers=True,
+            )
 
     ***REMOVED*** 1. Request processing middleware (innermost)
     if config.request_config and config.request_config.enabled:
         _setup_request_middleware(app, config.request_config)
 
-    ***REMOVED*** 2. Metrics middleware (needs to be early to track all requests)
+    ***REMOVED*** 2. Metrics middleware
     if config.metrics_config and config.metrics_config.enabled:
         _setup_metrics_middleware(app, config.metrics_config)
 
-    ***REMOVED*** 3. Rate limiting middleware
-    if config.rate_limit_config and config.rate_limit_config.enabled:
-        _setup_rate_limiting_middleware(app, config.rate_limit_config)
-
-    ***REMOVED*** 4. Logging middleware
+    ***REMOVED*** 3. Logging middleware
     if config.logging_config and config.logging_config.enabled:
         _setup_logging_middleware(app, config.logging_config)
+
+    ***REMOVED*** 4. Rate limiting middleware
+    if config.rate_limit_config and config.rate_limit_config.enabled:
+        _setup_rate_limiting_middleware(app, config.rate_limit_config)
 
     ***REMOVED*** 5. Security headers middleware
     if config.security_config and config.security_config.enabled:
         _setup_security_middleware(app, config.security_config)
 
-    ***REMOVED*** 6. CORS middleware (outermost)
+    ***REMOVED*** 6. Context middleware (for tracing and request correlation)
+    if config.context_config and config.context_config.enabled:
+        _setup_context_middleware(app, config.context_config)
+
+    ***REMOVED*** 7. CORS middleware (outermost)
     if config.cors_config and config.cors_config.enabled:
         _setup_cors_middleware(app, config.cors_config)
 
     logger.info("Middleware setup complete")
+
+
+def _setup_context_middleware(app: FastAPI, config: ContextConfig) -> None:
+    """Set up request context middleware."""
+    from .context import RequestContextMiddleware
+
+    app.add_middleware(
+        RequestContextMiddleware,
+        service_name=config.service_name,
+        auto_generate_request_id=config.auto_generate_request_id,
+        extract_user_id=config.extract_user_id,
+        trace_propagation=config.trace_propagation,
+        include_w3c_trace_context=config.include_w3c_trace_context,
+        include_b3_headers=config.include_b3_headers,
+        include_jaeger_headers=config.include_jaeger_headers,
+    )
+    logger.debug(
+        f"Request context middleware configured for service: {config.service_name} "
+        f"(trace_propagation={config.trace_propagation}, "
+        f"extract_user_id={config.extract_user_id}, "
+        f"w3c={config.include_w3c_trace_context}, "
+        f"b3={config.include_b3_headers}, "
+        f"jaeger={config.include_jaeger_headers})"
+    )
 
 
 def _setup_cors_middleware(app: FastAPI, config: CORSConfig) -> None:
@@ -131,126 +180,23 @@ def _setup_security_middleware(app: FastAPI, config: SecurityConfig) -> None:
 
 def _setup_logging_middleware(app: FastAPI, config: LoggingConfig) -> None:
     """Set up request/response logging middleware."""
+    from .logging import LoggingMiddleware
 
-    class LoggingMiddleware(BaseHTTPMiddleware):
-        async def dispatch(self, request: Request, call_next: Callable[..., Any]) -> Response:
-            ***REMOVED*** Skip excluded paths
-            if request.url.path in config.exclude_paths:
-                skip_response: Response = await call_next(request)
-                return skip_response
-
-            ***REMOVED*** Generate request ID for correlation
-            request_id = str(uuid.uuid4())
-            request.state.request_id = request_id
-
-            start_time = time.time()
-
-            ***REMOVED*** Log request
-            log_data: Dict[str, Any] = {
-                "request_id": request_id,
-                "method": request.method,
-                "path": request.url.path,
-                "client_ip": request.client.host if request.client else "unknown",
-            }
-
-            ***REMOVED*** Only include query params if they exist
-            if request.query_params:
-                log_data["query_params"] = dict(request.query_params)
-
-            ***REMOVED*** Add user agent as separate field (more useful than in headers)
-            if config.log_user_agent:
-                user_agent = request.headers.get("user-agent")
-                if user_agent:
-                    log_data["user_agent"] = user_agent
-
-            ***REMOVED*** Include only essential headers to reduce noise
-            if config.include_headers:
-                headers = dict(request.headers)
-
-                ***REMOVED*** Remove excluded headers
-                for header in config.exclude_headers:
-                    headers.pop(header, None)
-
-                ***REMOVED*** Remove noisy/redundant headers for cleaner logs
-                noisy_headers = [
-                    "user-agent",  ***REMOVED*** Already logged separately
-                    "accept-encoding",
-                    "accept-language",
-                    "sec-ch-ua",
-                    "sec-ch-ua-mobile",
-                    "sec-ch-ua-platform",
-                    "sec-fetch-site",
-                    "sec-fetch-mode",
-                    "sec-fetch-dest",
-                    "dnt",
-                    "connection",
-                    "postman-token",  ***REMOVED*** Test tool specific
-                    "cache-control",  ***REMOVED*** Usually not needed in logs
-                ]
-                for header in noisy_headers:
-                    headers.pop(header, None)
-
-                ***REMOVED*** Only include headers if there are any left after filtering
-                if headers:
-                    log_data["headers"] = headers
-
-            if config.include_request_body:
-                try:
-                    body = await request.body()
-                    if len(body) > 0:  ***REMOVED*** Only log if there's actually a body
-                        if len(body) <= config.max_body_size:
-                            log_data["request_body"] = body.decode("utf-8")
-                        else:
-                            log_data["request_body"] = f"<body too large: {len(body)} bytes>"
-                except Exception:
-                    log_data["request_body"] = "<unable to read body>"
-
-            ***REMOVED*** Log request with appropriate level
-            if config.level.upper() == "DEBUG":
-                logger.debug("Request started", **log_data)
-            elif config.level.upper() == "WARNING":
-                logger.warning("Request started", **log_data)
-            elif config.level.upper() == "ERROR":
-                logger.error("Request started", **log_data)
-            else:
-                logger.info("Request started", **log_data)
-
-            ***REMOVED*** Process request
-            response: Response = await call_next(request)
-
-            ***REMOVED*** Add request ID to response headers
-            response.headers["X-Request-ID"] = request_id
-
-            ***REMOVED*** Log response with timing
-            process_time = time.time() - start_time
-            response_data: Dict[str, Any] = {
-                "request_id": request_id,
-                "method": request.method,
-                "path": request.url.path,
-                "status_code": response.status_code,
-                "process_time_ms": round(process_time * 1000, 2),
-                "response_size": response.headers.get("content-length"),
-            }
-
-            if config.include_response_body:
-                ***REMOVED*** Note: This is complex for streaming responses
-                ***REMOVED*** For now, we'll just log that we would include it
-                response_data["response_body"] = "<response body logging not yet implemented>"
-
-            ***REMOVED*** Log response with appropriate level based on status code
-            if response.status_code >= 500:
-                logger.error("Request completed", **response_data)
-            elif response.status_code >= 400:
-                logger.warning("Request completed", **response_data)
-            elif config.level.upper() == "DEBUG":
-                logger.debug("Request completed", **response_data)
-            else:
-                logger.info("Request completed", **response_data)
-
-            return response
-
-    app.add_middleware(LoggingMiddleware)
-    logger.debug("Logging middleware configured")
+    app.add_middleware(
+        LoggingMiddleware,
+        log_requests=True,  ***REMOVED*** Always log requests
+        log_responses=True,  ***REMOVED*** Always log responses
+        include_headers=config.include_headers,
+        include_body=config.include_request_body,  ***REMOVED*** Map include_request_body to include_body
+        max_body_size=config.max_body_size,
+        exclude_paths=config.exclude_paths,
+        level=config.level,  ***REMOVED*** Pass through the logging level
+    )
+    logger.debug(
+        f"Logging middleware configured: level={config.level}, "
+        f"headers={config.include_headers}, body={config.include_request_body}, "
+        f"exclude_paths={config.exclude_paths}"
+    )
 
 
 def _setup_rate_limiting_middleware(app: FastAPI, config: RateLimitConfig) -> None:
@@ -343,10 +289,10 @@ def _setup_request_middleware(app: FastAPI, config: RequestConfig) -> None:
 
     class RequestProcessingMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request: Request, call_next: Callable[..., Any]) -> Response:
-            ***REMOVED*** Add request ID
-            request_id = str(uuid.uuid4())
-            if config.include_request_id:
-                ***REMOVED*** Store request ID for use in other middleware/handlers
+            ***REMOVED*** Get request ID from context if available, or generate new one
+            request_id = getattr(request.state, "request_id", None)
+            if not request_id and config.include_request_id:
+                request_id = str(uuid.uuid4())
                 request.state.request_id = request_id
 
             start_time = time.time()
@@ -354,8 +300,8 @@ def _setup_request_middleware(app: FastAPI, config: RequestConfig) -> None:
             ***REMOVED*** Process request
             response: Response = await call_next(request)
 
-            ***REMOVED*** Add headers
-            if config.include_request_id:
+            ***REMOVED*** Add headers (only if we have a request ID and it's configured)
+            if config.include_request_id and request_id:
                 response.headers[config.request_id_header] = request_id
 
             if config.include_process_time:

@@ -31,48 +31,10 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExport
 logger = structlog.get_logger(__name__)
 
 
-class RequestIDTracingMiddleware(BaseHTTPMiddleware):
-    """Middleware to add request_id to OpenTelemetry spans.
-
-    This middleware runs first (outermost) and ensures request_id is available
-    for all subsequent middleware and handlers. It generates a UUID if none exists
-    and adds it to both the OpenTelemetry span and response headers.
-    """
-
-    async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
-        ***REMOVED*** Get existing request_id or generate one if not present
-        request_id = getattr(request.state, "request_id", None)
-        if not request_id:
-            import uuid
-
-            request_id = str(uuid.uuid4())
-            request.state.request_id = request_id
-
-        ***REMOVED*** Get current span and add request_id as attribute
-        current_span = trace.get_current_span()
-        if current_span and current_span.is_recording():
-            current_span.set_attribute("request.id", request_id)
-            current_span.set_attribute("http.request_id", request_id)
-
-            ***REMOVED*** Also add to span events for better searchability
-            current_span.add_event(
-                "request.started",
-                {
-                    "request.id": request_id,
-                    "http.method": request.method,
-                    "http.url": str(request.url),
-                },
-            )
-            logger.info("Request ID added to OpenTelemetry span", request_id=request_id)
-
-        response = await call_next(request)
-
-        ***REMOVED*** Ensure request_id is in response header
-        response.headers["X-Request-ID"] = request_id
-
-        return response
+***REMOVED*** Note: RequestIDTracingMiddleware has been superseded by RequestContextMiddleware
+***REMOVED*** which provides more comprehensive request context management, trace propagation,
+***REMOVED*** user ID extraction, and automatic header injection for downstream services.
+***REMOVED*** See fast_core.middleware.context for the new implementation.
 
 
 def setup_tracing(app: FastAPI, settings: Any) -> None:
@@ -150,13 +112,23 @@ def setup_tracing(app: FastAPI, settings: Any) -> None:
             tracer_provider.add_span_processor(span_processor)
             logger.info("Console span exporter configured")
 
-        ***REMOVED*** Set up propagators for cross-service tracing
-        composite_propagator = CompositePropagator(
-            [
+        ***REMOVED*** Set up propagators for cross-service tracing with W3C Trace Context as primary
+        try:
+            from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
+            propagators = [
+                TraceContextTextMapPropagator(),  ***REMOVED*** W3C Trace Context (primary)
+                B3MultiFormat(),  ***REMOVED*** B3 for Zipkin compatibility
+                JaegerPropagator(),  ***REMOVED*** Jaeger compatibility
+            ]
+        except ImportError:
+            ***REMOVED*** Fallback if W3C propagator not available
+            propagators = [
                 B3MultiFormat(),
                 JaegerPropagator(),
             ]
-        )
+
+        composite_propagator = CompositePropagator(propagators)
         set_global_textmap(composite_propagator)
 
         ***REMOVED*** Instrument FastAPI application
@@ -195,9 +167,10 @@ def setup_tracing(app: FastAPI, settings: Any) -> None:
         except Exception as e:
             logger.debug("Redis instrumentation not available", error=str(e))
 
-        ***REMOVED*** Add request ID tracing middleware
-        app.add_middleware(RequestIDTracingMiddleware)
-        logger.info("Request ID tracing middleware added")
+        ***REMOVED*** Note: Request ID and context management is now handled by RequestContextMiddleware
+        ***REMOVED*** which provides more comprehensive tracing context, user ID extraction, and
+        ***REMOVED*** automatic trace header propagation. No need for separate RequestIDTracingMiddleware.
+        logger.info("Request context handled by RequestContextMiddleware")
 
         logger.info("OpenTelemetry tracing successfully configured")
 

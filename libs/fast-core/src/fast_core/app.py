@@ -155,7 +155,9 @@ def create_app(
     ***REMOVED*** Store settings in app state
     app.state.settings = settings
 
-    ***REMOVED*** Setup tracing (before other middleware)
+    ***REMOVED*** Setup observability infrastructure (before middleware)
+    ***REMOVED*** This configures the foundational OpenTelemetry instrumentation that
+    ***REMOVED*** enables distributed tracing across the entire application
     try:
         from fast_core.middleware.tracing import setup_tracing
 
@@ -165,7 +167,9 @@ def create_app(
     except Exception as e:
         logger.warning("Failed to setup tracing", error=str(e))
 
-    ***REMOVED*** Setup middleware using the new system
+    ***REMOVED*** Setup request processing middleware (after observability infrastructure)
+    ***REMOVED*** This includes request context middleware that propagates trace headers
+    ***REMOVED*** and correlates requests with the tracing infrastructure set up above
     if middleware is not None:
         try:
             from fast_core.middleware import setup_middleware
