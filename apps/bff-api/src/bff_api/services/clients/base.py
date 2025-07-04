@@ -55,20 +55,8 @@ class BaseBackendClient(BaseServiceClient):
         self.timeout = config.timeout
         self.service_name = "backend-api"  ***REMOVED*** For error handling
 
-    async def _get_client(self) -> httpx.AsyncClient:
-        """Get or create HTTP client with BFF-specific headers."""
-        if self._client is None:
-            self._client = httpx.AsyncClient(
-                base_url=self.base_url,
-                timeout=self.timeout,
-                headers={
-                    "User-Agent": "NextWatch-BFF/0.1.0",
-                    "Accept": "application/json",
-                    **self.config.headers,  ***REMOVED*** Include any additional headers from config
-                },
-                **self.config.client_kwargs,
-            )
-        return self._client
+    ***REMOVED*** Remove the _get_client override - use Fast Core's implementation
+    ***REMOVED*** Fast Core already handles headers from config properly
 
     def _build_api_path(self, path: str) -> str:
         """Build API path with version prefix.
@@ -114,13 +102,16 @@ class BaseBackendClient(BaseServiceClient):
         """
         client = await self._get_client()
 
+        ***REMOVED*** Use Fast Core's header management with trace propagation
+        request_headers = self._get_request_headers(headers)
+
         try:
             response = await client.request(
                 method=method,
                 url=path,
                 params=params,
                 json=data,
-                headers=headers or {},
+                headers=request_headers,
             )
             response.raise_for_status()
 
@@ -182,6 +173,7 @@ class BaseBackendClient(BaseServiceClient):
             masked_auth = (
                 f"{auth_header[:12]}...{auth_header[-4:]}" if len(auth_header) > 16 else "***"
             )
+            logger.debug(f"Using Authorization header: {masked_auth}")
         else:
             logger.warning(
                 f"No Authorization header in config! Config headers: {self.config.headers}"

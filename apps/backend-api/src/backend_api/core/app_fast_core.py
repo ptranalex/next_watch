@@ -248,7 +248,13 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         enabled=True,  ***REMOVED*** Always enable metrics for production observability
     )
 
-    logger.info(f"Backend middleware configured for {config.environment} environment")
+    ***REMOVED*** Note: Context middleware is automatically enabled when tracing is configured
+    ***REMOVED*** No need for manual middleware.context() call - fast-core handles this automatically
+    ***REMOVED*** based on the enable_tracing setting in the configuration
+
+    logger.info(
+        f"Backend middleware configured for {config.environment} environment with automatic tracing"
+    )
     return middleware
 
 
