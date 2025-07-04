@@ -177,9 +177,19 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
 
 
 ***REMOVED*** Create settings instance using environment variable discovery
+_cached_settings: Optional[MLAPIConfig] = None
+
+
 def get_ml_settings() -> MLAPIConfig:
-    """Get ML API settings instance."""
-    return MLAPIConfig()
+    """Get ML API settings instance (cached singleton).
+
+    Returns:
+        Cached MLAPIConfig instance to avoid re-initialization
+    """
+    global _cached_settings
+    if _cached_settings is None:
+        _cached_settings = MLAPIConfig()
+    return _cached_settings
 
 
 ***REMOVED*** Default settings instance

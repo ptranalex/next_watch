@@ -1,6 +1,6 @@
 """API routes for embedding generation."""
 
-import logging
+from config.logging import get_logger
 import os
 from typing import Any, Callable
 
@@ -18,7 +18,7 @@ from ml_api.services import embedding_service
 ***REMOVED*** This will be overridden by app.py if precomputed service is available
 get_active_embedding_service: Callable[[], Any] = lambda: embedding_service
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/v1/embeddings", tags=["embeddings"])
 

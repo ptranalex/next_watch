@@ -224,6 +224,19 @@ def create_ml_middleware_config(config: MLAPIConfig) -> MiddlewareConfig:
         enabled=True,  ***REMOVED*** Always enable metrics for production observability
     )
 
+    ***REMOVED*** CRITICAL: Always enable context middleware for request ID correlation
+    ***REMOVED*** This ensures logs and traces have consistent request IDs for debugging
+    middleware.context(
+        service_name=config.service_name,
+        auto_generate_request_id=True,
+        extract_user_id=False,  ***REMOVED*** ML API doesn't typically handle user auth
+        trace_propagation=config.enable_tracing,  ***REMOVED*** Enable trace propagation if tracing is on
+        include_w3c_trace_context=True,
+        include_b3_headers=True,
+        include_jaeger_headers=True,
+        enabled=True,  ***REMOVED*** Always enabled for request correlation
+    )
+
     return middleware
 
 

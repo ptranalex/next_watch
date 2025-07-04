@@ -1,12 +1,12 @@
 """Service for generating embeddings using sentence-transformers."""
 
-import logging
+from config.logging import get_logger
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from ml_api.config import settings
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** Type hint for SentenceTransformer
 ***REMOVED*** Define a type alias that works at runtime and for static type checking
