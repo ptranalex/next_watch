@@ -216,6 +216,25 @@ def _log_hook(span: Any, record: Any) -> None:
         record.service_name = span.resource.attributes.get("service.name", "unknown")
         record.service_version = span.resource.attributes.get("service.version", "unknown")
 
+        ***REMOVED*** Add request context to log record if available
+        try:
+            ***REMOVED*** Import here to avoid circular imports
+            from fast_core.middleware.context import get_request_context
+
+            context = get_request_context()
+            if context:
+                record.request_id = context.request_id
+                if context.user_id:
+                    record.user_id = context.user_id
+                if context.service_name:
+                    record.service_name = context.service_name  ***REMOVED*** Override with context service name
+        except ImportError:
+            ***REMOVED*** Context middleware not available
+            pass
+        except Exception:
+            ***REMOVED*** Don't fail logging if context extraction fails
+            pass
+
 
 def get_current_trace_id() -> Optional[str]:
     """Get the current trace ID as a hex string.
@@ -250,7 +269,7 @@ def get_current_span_id() -> Optional[str]:
 
 
 def add_span_attributes(**attributes: Any) -> None:
-    """Add attributes to the current span.
+    """Add attributes to the current span, including automatic request context.
 
     Args:
         **attributes: Key-value pairs to add as span attributes
@@ -258,14 +277,40 @@ def add_span_attributes(**attributes: Any) -> None:
     try:
         span = trace.get_current_span()
         if span.is_recording():
+            ***REMOVED*** Add custom attributes
             for key, value in attributes.items():
                 span.set_attribute(key, value)
+
+            ***REMOVED*** Auto-add request context if available
+            try:
+                ***REMOVED*** Import here to avoid circular imports
+                from fast_core.middleware.context import get_request_context
+
+                context = get_request_context()
+                if context:
+                    ***REMOVED*** Only add if not already set by user
+                    if "request.id" not in attributes:
+                        span.set_attribute("request.id", context.request_id)
+                    if "http.request_id" not in attributes:
+                        span.set_attribute(
+                            "http.request_id", context.request_id
+                        )  ***REMOVED*** Legacy compatibility
+                    if "user.id" not in attributes and context.user_id:
+                        span.set_attribute("user.id", context.user_id)
+                    if "service.name" not in attributes and context.service_name:
+                        span.set_attribute("service.name", context.service_name)
+            except ImportError:
+                ***REMOVED*** Context middleware not available
+                pass
+            except Exception as e:
+                logger.debug("Failed to add request context to span", error=str(e))
+
     except Exception as e:
         logger.debug("Failed to add span attributes", error=str(e))
 
 
 def create_child_span(name: str, **attributes: Any) -> Any:
-    """Create a child span context manager.
+    """Create a child span context manager with automatic request context.
 
     Args:
         name: Name of the span
@@ -278,8 +323,33 @@ def create_child_span(name: str, **attributes: Any) -> Any:
     span = tracer.start_span(name)
 
     ***REMOVED*** Add attributes if provided
-    if attributes and span.is_recording():
+    if span.is_recording():
+        ***REMOVED*** Add custom attributes
         for key, value in attributes.items():
             span.set_attribute(key, value)
+
+        ***REMOVED*** Auto-add request context if available
+        try:
+            ***REMOVED*** Import here to avoid circular imports
+            from fast_core.middleware.context import get_request_context
+
+            context = get_request_context()
+            if context:
+                ***REMOVED*** Only add if not already set by user
+                if "request.id" not in attributes:
+                    span.set_attribute("request.id", context.request_id)
+                if "http.request_id" not in attributes:
+                    span.set_attribute(
+                        "http.request_id", context.request_id
+                    )  ***REMOVED*** Legacy compatibility
+                if "user.id" not in attributes and context.user_id:
+                    span.set_attribute("user.id", context.user_id)
+                if "service.name" not in attributes and context.service_name:
+                    span.set_attribute("service.name", context.service_name)
+        except ImportError:
+            ***REMOVED*** Context middleware not available
+            pass
+        except Exception as e:
+            logger.debug("Failed to add request context to child span", error=str(e))
 
     return span

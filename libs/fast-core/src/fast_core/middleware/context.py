@@ -185,6 +185,11 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         request.state.request_id = request_id
         request.state.request_context = context
 
+        ***REMOVED*** Add request context attributes to current OpenTelemetry span
+        if self.trace_propagation:
+            self._add_span_attributes(context)
+            self._add_span_event(context, request)
+
         logger.debug(
             "Request context established",
             **context.to_dict(),
@@ -316,6 +321,61 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             logger.debug("Failed to extract trace info", error=str(e))
 
         return None, None, None
+
+    def _add_span_attributes(self, context: RequestContext) -> None:
+        """Add request context attributes to the current OpenTelemetry span."""
+        try:
+            span = trace.get_current_span()
+            if span and span.is_recording():
+                ***REMOVED*** Add request ID attributes (both formats for compatibility)
+                span.set_attribute("request.id", context.request_id)
+                span.set_attribute("http.request_id", context.request_id)  ***REMOVED*** Legacy compatibility
+
+                ***REMOVED*** Add user and service context
+                if context.user_id:
+                    span.set_attribute("user.id", context.user_id)
+                if context.service_name:
+                    span.set_attribute("service.name", context.service_name)
+
+                logger.debug(
+                    "Request ID added to OpenTelemetry span", request_id=context.request_id
+                )
+        except Exception as e:
+            logger.debug("Failed to add span attributes", error=str(e))
+
+    def _add_span_event(self, context: RequestContext, request: Request) -> None:
+        """Add an event to the current OpenTelemetry span with request context."""
+        try:
+            span = trace.get_current_span()
+            if span and span.is_recording():
+                ***REMOVED*** Build event attributes, only including non-None values
+                event_attributes = {
+                    "request.id": context.request_id,
+                    "http.method": request.method,
+                    "http.url": str(request.url),
+                }
+
+                ***REMOVED*** Add optional attributes if available
+                if context.trace_id:
+                    event_attributes["trace.id"] = context.trace_id
+                if context.span_id:
+                    event_attributes["span.id"] = context.span_id
+                if context.parent_span_id:
+                    event_attributes["parent_span.id"] = context.parent_span_id
+                if context.user_id:
+                    event_attributes["user.id"] = context.user_id
+                if context.service_name:
+                    event_attributes["service.name"] = context.service_name
+
+                ***REMOVED*** Add span event for better searchability
+                span.add_event("request.started", event_attributes)
+
+                logger.debug(
+                    "Request started event added to OpenTelemetry span",
+                    request_id=context.request_id,
+                )
+        except Exception as e:
+            logger.debug("Failed to add span event", error=str(e))
 
     def _get_response_headers(self, context: RequestContext) -> Dict[str, str]:
         """Get headers to add to response.
