@@ -61,8 +61,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         Returns:
             Response from the application
         """
-        ***REMOVED*** Generate request ID if not present
-        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        ***REMOVED*** Get request ID from context or fallback to header/generation
+        request_id = self._get_request_id(request)
 
         ***REMOVED*** Skip logging for excluded paths
         if any(request.url.path.startswith(path) for path in self.exclude_paths):
@@ -89,6 +89,41 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             await self._log_response(request, response, request_id, process_time)
 
         return cast(Response, response)
+
+    def _get_request_id(self, request: Request) -> str:
+        """Get request ID from context, request state, headers, or generate new one.
+
+        Args:
+            request: Incoming request
+
+        Returns:
+            Request ID string
+        """
+        ***REMOVED*** 1. Try to get from request context (set by RequestContextMiddleware)
+        try:
+            from fast_core.middleware.context import get_request_context
+
+            context = get_request_context()
+            if context and context.request_id:
+                return context.request_id
+        except ImportError:
+            ***REMOVED*** Context middleware not available
+            pass
+        except Exception:
+            ***REMOVED*** Context not available (middleware not configured or not yet run)
+            pass
+
+        ***REMOVED*** 2. Try to get from request state (FastAPI compatibility)
+        if hasattr(request.state, "request_id"):
+            return str(request.state.request_id)
+
+        ***REMOVED*** 3. Try to get from headers
+        header_request_id = request.headers.get("X-Request-ID")
+        if header_request_id:
+            return header_request_id
+
+        ***REMOVED*** 4. Generate new UUID as last resort
+        return str(uuid.uuid4())
 
     async def _log_request(self, request: Request, request_id: str) -> None:
         """Log incoming request.
@@ -199,14 +234,66 @@ def get_request_logger(request: Request) -> Any:
     Returns:
         Structlog logger bound with request context
     """
-    request_id = request.headers.get("X-Request-ID", "unknown")
+    ***REMOVED*** Get request ID using the same logic as LoggingMiddleware
+    request_id = _get_request_id_for_logger(request)
+
+    ***REMOVED*** Try to get additional context if available
+    user_id = None
+    service_name = None
+    try:
+        from fast_core.middleware.context import get_request_context
+
+        context = get_request_context()
+        if context:
+            user_id = context.user_id
+            service_name = context.service_name
+    except (ImportError, Exception):
+        pass
 
     ***REMOVED*** Create logger with context
-    context_logger = logger.bind(
-        request_id=request_id,
-        method=request.method,
-        path=request.url.path,
-        client=getattr(request.client, "host", "unknown") if request.client else "unknown",
-    )
+    log_context = {
+        "request_id": request_id,
+        "method": request.method,
+        "path": request.url.path,
+        "client": getattr(request.client, "host", "unknown") if request.client else "unknown",
+    }
 
-    return context_logger
+    ***REMOVED*** Add optional context
+    if user_id:
+        log_context["user_id"] = user_id
+    if service_name:
+        log_context["service"] = service_name
+
+    return logger.bind(**log_context)
+
+
+def _get_request_id_for_logger(request: Request) -> str:
+    """Get request ID for logging (helper function).
+
+    Args:
+        request: HTTP request
+
+    Returns:
+        Request ID string
+    """
+    ***REMOVED*** 1. Try to get from request context
+    try:
+        from fast_core.middleware.context import get_request_context
+
+        context = get_request_context()
+        if context and context.request_id:
+            return context.request_id
+    except (ImportError, Exception):
+        pass
+
+    ***REMOVED*** 2. Try request state
+    if hasattr(request.state, "request_id"):
+        return str(request.state.request_id)
+
+    ***REMOVED*** 3. Try headers
+    header_request_id = request.headers.get("X-Request-ID")
+    if header_request_id:
+        return header_request_id
+
+    ***REMOVED*** 4. Fallback
+    return "unknown"
