@@ -22,21 +22,16 @@ logger = get_logger(__name__)
 
 
 class SearchAPIClient(BaseBackendClient):
-    """Client for Search API operations.
+    """HTTP client for communicating with Search API service.
 
-    Handles suggestions, text suggestions, and multi-entity search
-    through the dedicated Search API service.
+    Extends BaseBackendClient with Search API-specific methods and configurations.
     """
 
     def __init__(self, config: ServiceClientConfig, bff_config: Optional[Any] = None) -> None:
-        """Initialize Search API client.
-
-        Args:
-            config: Service client configuration from Fast Core
-            bff_config: BFF-specific configuration (optional)
-        """
+        """Initialize Search API client."""
         super().__init__(config, bff_config)
-        self.service_name = "search-api"  ***REMOVED*** Override for error handling
+        ***REMOVED*** Override service name for proper error attribution
+        self.service_name = "search-api"
 
     @service_error_handler("search-api", logger)
     @retry(
@@ -52,68 +47,13 @@ class SearchAPIClient(BaseBackendClient):
         data: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Make HTTP request with retry logic and proper Search API error handling.
+        """Make HTTP request with Search API-specific error handling.
 
-        Args:
-            method: HTTP method
-            path: API path
-            params: Query parameters
-            data: Request body data
-            headers: Additional headers
-
-        Returns:
-            Response data as dictionary
-
-        Raises:
-            BackendClientError: For service errors
+        This method is needed because @service_error_handler uses hardcoded service names.
+        All other logic is identical to BaseBackendClient._make_request.
         """
-        client = await self._get_client()
-
-        try:
-            response = await client.request(
-                method=method,
-                url=path,
-                params=params,
-                json=data,
-                headers=headers or {},
-            )
-            response.raise_for_status()
-
-            if response.headers.get("content-type", "").startswith("application/json"):
-                json_response = response.json()
-                ***REMOVED*** If the response is a list, wrap it in a dict for consistency
-                if isinstance(json_response, list):
-                    return {"data": json_response}
-                return cast(Dict[str, Any], json_response)
-            else:
-                return {"data": response.text}
-
-        except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-
-            ***REMOVED*** 4xx errors are permanent (don't retry)
-            if 400 <= status_code < 500:
-                ***REMOVED*** Log 4xx as appropriate levels
-                if status_code == 401:
-                    logger.debug(f"Authentication failed for {method} {path}: {status_code}")
-                elif status_code == 404:
-                    logger.debug(f"Resource not found for {method} {path}: {status_code}")
-                else:
-                    logger.info(f"Client error {status_code} for {method} {path}")
-                raise BackendClientPermanentError(f"Search API service error: {status_code}")
-            ***REMOVED*** 5xx errors are transient (can retry)
-            else:
-                logger.error(f"Server error {status_code} for {method} {path}: {e}")
-                raise BackendClientTransientError(f"Search API service error: {status_code}")
-
-        except httpx.RequestError as e:
-            logger.error(f"Request error for {method} {path}: {e}")
-            ***REMOVED*** Network errors are transient (can retry)
-            raise BackendClientTransientError(f"Search API service request failed: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error for {method} {path}: {e}")
-            ***REMOVED*** Unexpected errors are treated as permanent
-            raise BackendClientPermanentError(f"Unexpected Search API error: {e}")
+        ***REMOVED*** Delegate to parent implementation, which handles all the HTTP logic
+        return await super()._make_request(method, path, params, data, headers)
 
     @service_error_handler("search-api", logger, "get_suggestions")
     async def get_suggestions(
