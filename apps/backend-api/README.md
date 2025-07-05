@@ -536,5 +536,3 @@ MIT License - see LICENSE file for details.
 ---
 
 **The Next Watch Backend API** provides a robust, production-ready foundation for the movie recommendation platform with comprehensive health monitoring, clean architectural patterns, and intuitive CLI operations. 🎬✨
-
----
