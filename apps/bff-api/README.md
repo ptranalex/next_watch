@@ -496,3 +496,5 @@ The BFF service provides several monitoring endpoints:
 ***REMOVED******REMOVED*** 📝 License
 
 This project is part of the Next Watch movie platform.
+
+---
