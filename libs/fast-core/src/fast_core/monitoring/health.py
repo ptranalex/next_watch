@@ -554,6 +554,9 @@ def setup_kubernetes_health_checks(
         else:
             registry_status = "unhealthy"  ***REMOVED*** Any critical service down
 
+        ***REMOVED*** Update overall health metrics
+        registry._update_overall_health_metrics(registry_status)
+
         ***REMOVED*** Set HTTP status code based on registry status
         if registry_status == "healthy":
             status_code = 200
