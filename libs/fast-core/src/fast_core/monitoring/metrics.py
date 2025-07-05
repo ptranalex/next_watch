@@ -49,6 +49,9 @@ class MetricsRegistry:
         ***REMOVED*** Service info metric
         self._setup_service_info()
 
+        ***REMOVED*** Health status metrics
+        self._setup_health_metrics()
+
         logger.info(f"Metrics registry initialized for service: {service_name}")
 
     def _setup_http_metrics(self) -> None:
@@ -105,6 +108,99 @@ class MetricsRegistry:
                 "version": "1.0.0",  ***REMOVED*** This should come from settings
             }
         )
+
+    def _setup_health_metrics(self) -> None:
+        """Set up health status metrics.
+
+        Creates standard health metrics following industry best practices
+        used by Spring Boot, Kubernetes, and other platforms.
+        """
+        ***REMOVED*** Overall service health status gauge
+        ***REMOVED*** Values: 3=healthy, 2=degraded, 1=unhealthy, 0=unknown
+        self.service_health_status = Gauge(
+            "service_health_status",
+            "Overall service health status (3=healthy, 2=degraded, 1=unhealthy, 0=unknown)",
+            ["service"],
+            registry=self.registry,
+        )
+
+        ***REMOVED*** Individual health check statuses
+        self.health_check_status = Gauge(
+            "health_check_status",
+            "Individual health check status (1=healthy, 0=unhealthy)",
+            ["service", "check_name", "check_category"],
+            registry=self.registry,
+        )
+
+        ***REMOVED*** Health check response times
+        self.health_check_duration = Histogram(
+            "health_check_duration_seconds",
+            "Health check execution duration",
+            ["service", "check_name", "check_category"],
+            registry=self.registry,
+            buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
+        )
+
+        ***REMOVED*** Health check execution counts
+        self.health_check_total = Counter(
+            "health_check_executions_total",
+            "Total health check executions",
+            ["service", "check_name", "check_category", "status"],
+            registry=self.registry,
+        )
+
+        ***REMOVED*** Initialize overall service health to unknown
+        self.service_health_status.labels(service=self.service_name).set(0)
+
+        logger.info("Health status metrics initialized")
+
+    def update_service_health_status(self, status: str) -> None:
+        """Update the overall service health status metric.
+
+        Args:
+            status: Health status ("healthy", "degraded", "unhealthy", "unknown")
+        """
+        status_values = {"healthy": 3, "degraded": 2, "unhealthy": 1, "unknown": 0}
+
+        value = status_values.get(status.lower(), 0)
+        self.service_health_status.labels(service=self.service_name).set(value)
+
+        logger.debug(f"Updated service health status: {status} (value={value})")
+
+    def update_health_check_status(
+        self,
+        check_name: str,
+        check_category: str,
+        is_healthy: bool,
+        duration_seconds: Optional[float] = None,
+    ) -> None:
+        """Update individual health check metrics.
+
+        Args:
+            check_name: Name of the health check
+            check_category: Category of the health check (critical, important, informational)
+            is_healthy: Whether the check passed
+            duration_seconds: Check execution duration in seconds
+        """
+        labels = {
+            "service": self.service_name,
+            "check_name": check_name,
+            "check_category": check_category.lower(),
+        }
+
+        ***REMOVED*** Update status gauge
+        self.health_check_status.labels(**labels).set(1 if is_healthy else 0)
+
+        ***REMOVED*** Update duration histogram if provided
+        if duration_seconds is not None:
+            self.health_check_duration.labels(**labels).observe(duration_seconds)
+
+        ***REMOVED*** Update execution counter
+        status = "healthy" if is_healthy else "unhealthy"
+        count_labels = {**labels, "status": status}
+        self.health_check_total.labels(**count_labels).inc()
+
+        logger.debug(f"Updated health check metrics: {check_name} = {status}")
 
     def create_counter(
         self,

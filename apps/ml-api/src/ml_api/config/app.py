@@ -71,10 +71,8 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         if not self.is_production:
             return
 
-        ***REMOVED*** Disable file logging in production to avoid volume permission issues
-        if self.logs_dir:
-            logger.warning("File logging disabled in production to avoid volume permission issues")
-            object.__setattr__(self, "logs_dir", None)
+        ***REMOVED*** Note: File logging works fine in production with Docker volume mounts
+        ***REMOVED*** Docker handles volume permissions properly, so no need to disable logging
 
     def _log_ml_specific_summary(self) -> None:
         """Log ML-specific configuration details."""

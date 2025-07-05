@@ -118,6 +118,61 @@ class HealthCheckRegistry:
         self._checks[definition.name] = definition
         logger.debug(f"Registered health check: {definition.name} ({definition.category.value})")
 
+    def _update_health_metrics(self, check_name: str, result: HealthCheckResult) -> None:
+        """Update health metrics for a completed health check.
+
+        Args:
+            check_name: Name of the health check
+            result: Health check result
+        """
+        try:
+            ***REMOVED*** Import here to avoid circular dependencies
+            from fast_core.monitoring.metrics import get_metrics_registry
+
+            metrics_registry = get_metrics_registry()
+            if not metrics_registry:
+                return
+
+            ***REMOVED*** Get check definition for category
+            check_def = self._checks.get(check_name)
+            if not check_def:
+                return
+
+            ***REMOVED*** Update individual health check metrics
+            metrics_registry.update_health_check_status(
+                check_name=check_name,
+                check_category=check_def.category.value,
+                is_healthy=result.is_healthy,
+                duration_seconds=(
+                    result.response_time_ms / 1000.0 if result.response_time_ms else None
+                ),
+            )
+
+        except Exception as e:
+            ***REMOVED*** Don't let metrics failures affect health checks
+            logger.warning(f"Failed to update health metrics for {check_name}: {e}")
+
+    def _update_overall_health_metrics(self, overall_status: str) -> None:
+        """Update overall service health status metrics.
+
+        Args:
+            overall_status: Overall health status (healthy, degraded, unhealthy)
+        """
+        try:
+            ***REMOVED*** Import here to avoid circular dependencies
+            from fast_core.monitoring.metrics import get_metrics_registry
+
+            metrics_registry = get_metrics_registry()
+            if not metrics_registry:
+                return
+
+            ***REMOVED*** Update overall service health status
+            metrics_registry.update_service_health_status(overall_status)
+
+        except Exception as e:
+            ***REMOVED*** Don't let metrics failures affect health checks
+            logger.warning(f"Failed to update overall health metrics: {e}")
+
     def get_checks_by_type(self, check_type: HealthCheckType) -> List[HealthCheckDefinition]:
         """Get all health checks that should run for a specific endpoint type.
 
@@ -242,6 +297,9 @@ class HealthCheckRegistry:
             else:
                 status = "unhealthy"  ***REMOVED*** Any critical service down
 
+            ***REMOVED*** Update overall health metrics
+            self._update_overall_health_metrics(status)
+
             return {
                 "status": status,
                 "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -270,6 +328,8 @@ class HealthCheckRegistry:
         if check.cache_ttl_seconds:
             cached = self._get_cached_result(check.name, check.cache_ttl_seconds)
             if cached:
+                ***REMOVED*** Update metrics even for cached results
+                self._update_health_metrics(check.name, cached)
                 return cached
 
         start_time = time.time()
@@ -282,24 +342,37 @@ class HealthCheckRegistry:
             if check.cache_ttl_seconds:
                 self._cache[check.name] = (result, time.time())
 
+            ***REMOVED*** Update health metrics
+            self._update_health_metrics(check.name, result)
+
             return result
 
         except asyncio.TimeoutError:
             response_time = (time.time() - start_time) * 1000
-            return HealthCheckResult(
+            result = HealthCheckResult(
                 is_healthy=False,
                 status="timeout",
                 response_time_ms=round(response_time, 2),
                 error=f"Health check timed out after {check.timeout_seconds}s",
             )
+
+            ***REMOVED*** Update health metrics
+            self._update_health_metrics(check.name, result)
+
+            return result
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            return HealthCheckResult(
+            result = HealthCheckResult(
                 is_healthy=False,
                 status="error",
                 response_time_ms=round(response_time, 2),
                 error=str(e),
             )
+
+            ***REMOVED*** Update health metrics
+            self._update_health_metrics(check.name, result)
+
+            return result
 
     def _get_cached_result(self, check_name: str, ttl_seconds: int) -> Optional[HealthCheckResult]:
         """Get cached result if still valid.
