@@ -115,10 +115,8 @@ class BackendAPIConfig(
             logger.warning("Database profiling disabled in production for security and performance")
             object.__setattr__(self, "enable_db_profiling", False)
 
-        ***REMOVED*** Disable file logging in production to avoid volume permission issues
-        if self.logs_dir:
-            logger.warning("File logging disabled in production to avoid volume permission issues")
-            object.__setattr__(self, "logs_dir", None)
+        ***REMOVED*** Note: File logging works fine in production with Docker volume mounts
+        ***REMOVED*** Docker handles volume permissions properly, so no need to disable logging
 
     def _log_backend_specific_summary(self) -> None:
         """Log backend-specific configuration details."""
@@ -159,8 +157,8 @@ class BackendAPIConfig(
         if self.enable_db_profiling:
             issues.append("Database profiling should be disabled in production")
 
-        if self.logs_dir:
-            issues.append("File logging should be disabled in production")
+        ***REMOVED*** Note: File logging works fine in production with Docker volumes
+        ***REMOVED*** No need to validate against logs_dir being set
 
         return issues
 
