@@ -211,7 +211,8 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
-  deploy:
+  ***REMOVED*** Preparation job for deployment
+  prepare-deployment:
     needs:
       [
         check_changes,
@@ -237,14 +238,239 @@ jobs:
        github.event.inputs.build_all == true)
     uses: ./.github/workflows/deploy.yml
     with:
-      deploy_backend: ${{ needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == 'true' }}
-      deploy_auth: ${{ needs.check_changes.outputs.auth_changed == 'true' || github.event.inputs.build_all == 'true' }}
-      deploy_bff: ${{ needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == 'true' }}
-      deploy_frontend: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == 'true' }}
-      deploy_importer: ${{ needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == 'true' }}
-      deploy_recommendation: ${{ needs.check_changes.outputs.recommendation_changed == 'true' || github.event.inputs.build_all == 'true' }}
-      deploy_search: ${{ needs.check_changes.outputs.search_changed == 'true' || github.event.inputs.build_all == 'true' }}
-      deploy_ml: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == 'true' }}
+      deploy_backend: false
+      deploy_auth: false
+      deploy_bff: false
+      deploy_frontend: false
+      deploy_importer: false
+      deploy_recommendation: false
+      deploy_search: false
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  ***REMOVED*** Individual service deployments
+  deploy-backend:
+    needs: [check_changes, build_backend, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: true
+      deploy_auth: false
+      deploy_bff: false
+      deploy_frontend: false
+      deploy_importer: false
+      deploy_recommendation: false
+      deploy_search: false
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  deploy-auth:
+    needs: [check_changes, build_auth, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.auth_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: false
+      deploy_auth: true
+      deploy_bff: false
+      deploy_frontend: false
+      deploy_importer: false
+      deploy_recommendation: false
+      deploy_search: false
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  deploy-bff:
+    needs: [check_changes, build_bff, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.bff_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: false
+      deploy_auth: false
+      deploy_bff: true
+      deploy_frontend: false
+      deploy_importer: false
+      deploy_recommendation: false
+      deploy_search: false
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  deploy-frontend:
+    needs: [check_changes, build_frontend, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: false
+      deploy_auth: false
+      deploy_bff: false
+      deploy_frontend: true
+      deploy_importer: false
+      deploy_recommendation: false
+      deploy_search: false
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  deploy-importer:
+    needs: [check_changes, build_importer, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.importer_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: false
+      deploy_auth: false
+      deploy_bff: false
+      deploy_frontend: false
+      deploy_importer: true
+      deploy_recommendation: false
+      deploy_search: false
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  deploy-recommendation:
+    needs: [check_changes, build_recommendation, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.recommendation_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: false
+      deploy_auth: false
+      deploy_bff: false
+      deploy_frontend: false
+      deploy_importer: false
+      deploy_recommendation: true
+      deploy_search: false
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  deploy-search:
+    needs: [check_changes, build_search, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.search_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: false
+      deploy_auth: false
+      deploy_bff: false
+      deploy_frontend: false
+      deploy_importer: false
+      deploy_recommendation: false
+      deploy_search: true
+      deploy_ml: false
+    secrets:
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      JWT_JWK: ${{ secrets.JWT_JWK }}
+      JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
+
+  deploy-ml:
+    needs: [check_changes, build_ml, prepare-deployment]
+    if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == 'true') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_backend: false
+      deploy_auth: false
+      deploy_bff: false
+      deploy_frontend: false
+      deploy_importer: false
+      deploy_recommendation: false
+      deploy_search: false
+      deploy_ml: true
     secrets:
       DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
