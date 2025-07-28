@@ -256,6 +256,33 @@ class BackendAPIClient:
 
         return await self._make_request("GET", "/api/v1/actors", params=params)
 
+    async def list_movies(
+        self,
+        page: int = 1,
+        limit: int = 20,
+        sort_by: str = "imdb_rating",
+        sort_desc: bool = True,
+    ) -> Dict[str, Any]:
+        """Get a list of movies from Backend API.
+
+        Args:
+            page: Page number for pagination
+            limit: Number of movies per page
+            sort_by: Field to sort by
+            sort_desc: Sort in descending order
+
+        Returns:
+            Movies list from Backend API
+        """
+        params = {
+            "page": page,
+            "limit": limit,
+            "sort_by": sort_by,
+            "sort_desc": sort_desc,
+        }
+
+        return await self._make_request("GET", "/api/v1/movies", params=params)
+
     async def health_check(self) -> Dict[str, Any]:
         """Check Backend API health.
 

@@ -1,4 +1,4 @@
-"""Commands for Redis operations in Search API."""
+"""Redis management commands for the Search API CLI."""
 
 import asyncio
 import json
@@ -7,9 +7,12 @@ import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+import redis.asyncio as redis
+import structlog
 import typer
 from rich.console import Console
 from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
+from rich.table import Table
 from typer import Typer
 
 from search_api.config.app import get_search_settings
@@ -45,6 +48,9 @@ def display_redis_config(redis_url: str, options: Dict[str, Any], console: Conso
 def populate_suggestions(
     limit: int = typer.Option(1000, "--limit", "-l", help="Maximum number of movies to load"),
     clear: bool = typer.Option(True, "--clear/--no-clear", help="Clear existing suggestions first"),
+    fetch_all: bool = typer.Option(
+        False, "--fetch-all", help="Fetch ALL available data from database (ignores limit)"
+    ),
     include_words: bool = typer.Option(
         True, "--words/--no-words", help="Include individual words from titles"
     ),
@@ -81,6 +87,7 @@ def populate_suggestions(
 
     Examples:
         search-api cli redis populate-suggestions --limit 5000
+        search-api cli redis populate-suggestions --fetch-all --verbose
         search-api cli redis populate-suggestions --no-actors --no-directors
         search-api cli redis populate-suggestions --no-clear --verbose
     """
@@ -90,16 +97,21 @@ def populate_suggestions(
     ***REMOVED*** Get Redis URL from parameter, config, or default
     actual_redis_url = redis_url or config.redis_url or "redis://localhost:6379/0"
 
+    ***REMOVED*** Determine actual limit based on fetch_all flag
+    actual_limit = None if fetch_all else limit
+    display_limit = "ALL" if fetch_all else str(limit)
+
     ***REMOVED*** Display configuration
     if verbose:
         display_redis_config(
             actual_redis_url,
             {
-                "Movie limit": limit,
+                "Movie limit": display_limit,
+                "Fetch all data": fetch_all,
                 "Include actors": include_actors,
                 "Include directors": include_directors,
-                "Actor limit": actor_limit,
-                "Director limit": director_limit,
+                "Actor limit": actor_limit if include_actors else "Disabled",
+                "Director limit": director_limit if include_directors else "Disabled",
                 "Clear existing": clear,
                 "Include words": include_words,
                 "Min word length": min_word_length,
@@ -114,7 +126,7 @@ def populate_suggestions(
             _populate_suggestions_async(
                 config=config,
                 redis_url=actual_redis_url,
-                limit=limit,
+                limit=actual_limit,
                 clear=clear,
                 include_words=include_words,
                 min_word_length=min_word_length,
@@ -139,7 +151,7 @@ def populate_suggestions(
 async def _populate_suggestions_async(
     config: Any,
     redis_url: str,
-    limit: int,
+    limit: Optional[int],
     clear: bool,
     include_words: bool,
     min_word_length: int,
@@ -237,7 +249,9 @@ async def _populate_suggestions_async(
             movie_count = 0
 
             ***REMOVED*** Fetch movie data from Backend API
-            console.print(f"Fetching up to {limit} movies from Backend API...")
+            console.print(
+                f"Fetching {'ALL available' if limit is None else f'up to {limit}'} movies from Backend API..."
+            )
             movies_task = progress.add_task("Fetching movies...", total=1)
             movies = await _fetch_movie_data_from_backend(backend_client, limit)
             progress.update(movies_task, completed=1)
@@ -284,6 +298,9 @@ async def _populate_suggestions_async(
                     }
 
                     pipeline.set(f"entity:movie:{title}", json.dumps(movie_data))
+
+                    ***REMOVED*** Add entity lookup by ID for efficient suggestion resolution
+                    pipeline.set(f"entity:id:{movie_id}", json.dumps(movie_data))
 
                     ***REMOVED*** Add searchable variations of the title
                     if "(" in title and ")" in title:
@@ -454,14 +471,14 @@ async def _populate_suggestions_async(
 
 
 async def _fetch_movie_data_from_backend(
-    backend_client: BackendAPIClient, limit: int
+    backend_client: BackendAPIClient, limit: Optional[int]
 ) -> List[Dict[str, Any]]:
     """
     Fetch movie data from the Backend API with pagination support.
 
     Args:
         backend_client: Backend API client instance
-        limit: Maximum number of movies to fetch
+        limit: Maximum number of movies to fetch, or None to fetch all available
 
     Returns:
         List of movie data with complete information
@@ -469,25 +486,37 @@ async def _fetch_movie_data_from_backend(
     try:
         movies: List[Dict[str, Any]] = []
         page = 1
-        page_size = min(limit, 100)  ***REMOVED*** Backend API limit is 100
+        page_size = 100  ***REMOVED*** Backend API limit is 100
 
-        while len(movies) < limit:
+        ***REMOVED*** If no limit specified, use a very high number to fetch all
+        effective_limit = limit if limit is not None else 999999
+
+        while len(movies) < effective_limit:
             ***REMOVED*** Calculate how many more movies we need
-            remaining = limit - len(movies)
+            remaining = effective_limit - len(movies)
             current_page_size = min(remaining, 100)
 
-            ***REMOVED*** Use the Backend API search endpoint to get movies
-            ***REMOVED*** We'll search for a common term that returns many results
-            ***REMOVED*** Use 'a' as it appears in most movie titles
-            response = await backend_client.search_movies(
-                query="a",  ***REMOVED*** Common letter to get many movies
-                page=page,
-                limit=current_page_size,
-                sort_by="imdb_rating",  ***REMOVED*** Use a valid sort field
-                sort_desc=True,
-            )
-
-            page_movies = response.get("results", [])
+            ***REMOVED*** Use the Backend API movies endpoint to get all movies
+            ***REMOVED*** This is more reliable than searching for specific letters
+            try:
+                response = await backend_client.list_movies(
+                    page=page,
+                    limit=current_page_size,
+                    sort_by="imdb_rating",
+                    sort_desc=True,
+                )
+                page_movies = response.get("results", [])
+            except Exception as e:
+                logger.warning(f"Movies endpoint failed, trying search fallback: {e}")
+                ***REMOVED*** Fallback to search if the main endpoint fails
+                response = await backend_client.search_movies(
+                    query="e",  ***REMOVED*** Most common letter
+                    page=page,
+                    limit=current_page_size,
+                    sort_by="imdb_rating",
+                    sort_desc=True,
+                )
+                page_movies = response.get("results", [])
 
             ***REMOVED*** If no movies returned, we've reached the end
             if not page_movies:
@@ -514,14 +543,19 @@ async def _fetch_movie_data_from_backend(
 
                 movies.append(movie_data)
 
-                ***REMOVED*** Stop if we've reached our limit
-                if len(movies) >= limit:
+                ***REMOVED*** Stop if we've reached our limit (only when limit is specified)
+                if limit is not None and len(movies) >= limit:
                     break
 
             page += 1
 
-            ***REMOVED*** Safety check to prevent infinite loops
-            if page > 50:  ***REMOVED*** Max 50 pages = 5000 movies
+            ***REMOVED*** Safety check to prevent infinite loops (only when fetching all)
+            if limit is None and page > 200:  ***REMOVED*** Max 200 pages = 20,000 movies for fetch-all
+                logger.warning(
+                    f"Reached maximum page limit (200) for fetch-all, stopping at {len(movies)} movies"
+                )
+                break
+            elif limit is not None and page > 50:  ***REMOVED*** Original limit for specified limits
                 logger.warning(f"Reached maximum page limit (50), stopping at {len(movies)} movies")
                 break
 

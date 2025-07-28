@@ -3,7 +3,6 @@
 This allows running the service with: python -m search_api
 """
 
-import logging
 import os
 import sys
 
