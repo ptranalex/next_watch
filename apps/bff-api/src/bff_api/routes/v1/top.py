@@ -1,16 +1,15 @@
 """Top movies routes for BFF API."""
 
-import logging
 from typing import Any, Dict, Optional, Union, cast
 
 import httpx
 from config.logging import get_logger
+from fast_core.responses import ResponseBuilder
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from bff_api.dependencies import get_backend_client
 from bff_api.services.clients import BackendClient
-from fast_core.responses import ResponseBuilder
 from bff_api.utils.auth import extract_user_id_from_token
 
 logger = get_logger(__name__)
@@ -261,7 +260,9 @@ async def get_top_movies(
                         }
         else:
             ***REMOVED*** For anonymous users, set all interaction fields to false
-            logger.debug("No user authenticated - setting default interaction values for top movies")
+            logger.debug(
+                "No user authenticated - setting default interaction values for top movies"
+            )
             for movie in movies:
                 movie["liked"] = False
                 movie["watched"] = False

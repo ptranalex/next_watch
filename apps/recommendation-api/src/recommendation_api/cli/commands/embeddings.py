@@ -1,7 +1,7 @@
 """Embedding generation and management commands."""
 
 import asyncio
-import logging
+from config.logging import get_logger
 from typing import Optional, List
 
 import typer
@@ -10,11 +10,12 @@ from rich.console import Console
 from rich.table import Table
 
 from recommendation_api.config import settings
-from recommendation_api.config.logging import configure_logging
+from config.logging import get_logger
 from recommendation_api.services.embedding_service import get_embedding_service
 
 app: Typer = typer.Typer()
 console = Console()
+logger = get_logger(__name__)
 
 
 @app.command()

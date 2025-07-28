@@ -1,22 +1,21 @@
 """Authentication client for communicating with auth service."""
 
-import logging
 from typing import Any, Dict, Optional, TypeVar, cast
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-
-from bff_api.config.app import BFFAPIConfig
 from config.logging import get_logger
 from fast_core.dependencies.client_factory import ServiceClientConfig
 from fast_core.errors import service_error_handler
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+
+from bff_api.config.app import BFFAPIConfig
 
 ***REMOVED*** Import BaseBackendClient for inheritance instead of BaseServiceClient
 from bff_api.services.clients.base import (
-    BaseBackendClient,
     BackendClientError,
-    BackendClientTransientError,
     BackendClientPermanentError,
+    BackendClientTransientError,
+    BaseBackendClient,
 )
 
 logger = get_logger(__name__)

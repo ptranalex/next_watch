@@ -1,15 +1,15 @@
 """User interaction operations for backend API."""
 
-import logging
 from typing import Any, Dict, List, Optional, cast
 
 from config.logging import get_logger
-
 from fast_core.errors import (
-    ResourceNotFoundException,
     ExternalServiceException,
-    service_error_handler,
+    ResourceNotFoundException,
+    critical_service_handler,
+    optional_service_handler,
 )
+
 from bff_api.services.clients.base import BaseBackendClient
 
 logger = get_logger(__name__)
@@ -18,10 +18,13 @@ logger = get_logger(__name__)
 class UserInteractionsClient(BaseBackendClient):
     """Client for user interaction operations."""
 
+    @critical_service_handler("backend-api", logger)
     async def get_user_movie_interaction(
         self, user_id: int, movie_id: int, jwt_token: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """Get a user's interaction with a movie.
+
+        This is a CRITICAL operation - user interaction data is essential for personalization.
 
         Args:
             user_id: User ID (already authenticated by BFF)
@@ -45,10 +48,13 @@ class UserInteractionsClient(BaseBackendClient):
             ***REMOVED*** Return None if interaction not found
             return None
 
+    @critical_service_handler("backend-api", logger)
     async def get_user_movie_interactions_batch(
         self, user_id: int, movie_ids: List[int], jwt_token: Optional[str] = None
     ) -> Dict[int, Optional[Dict[str, Any]]]:
         """Get a user's interactions with multiple movies in a single request.
+
+        This is a CRITICAL operation - batch user interactions are essential for performance.
 
         This method optimizes API calls by fetching multiple user-movie interactions
         in a single backend request instead of N individual requests.
@@ -68,7 +74,7 @@ class UserInteractionsClient(BaseBackendClient):
             return {}
 
         ***REMOVED*** Remove duplicates and limit to reasonable batch size
-        unique_movie_ids = list(set(movie_ids))[:100]  ***REMOVED*** Limit to 100 movies per batch
+        unique_movie_ids = list(set(movie_ids))[:100]
 
         try:
             headers = self._get_auth_headers(user_id)
@@ -115,9 +121,10 @@ class UserInteractionsClient(BaseBackendClient):
             return result
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** Watchlist Operations (Updated to use new collection endpoints)
+    ***REMOVED*** Watchlist Operations (CRITICAL - Core User Feature)
     ***REMOVED*** ============================================================================
 
+    @critical_service_handler("backend-api", logger)
     async def get_user_watchlist(
         self,
         user_id: int,
@@ -126,6 +133,8 @@ class UserInteractionsClient(BaseBackendClient):
         limit: int = 20,
     ) -> Dict[str, Any]:
         """Get user's watchlist using new collection endpoint.
+
+        This is a CRITICAL operation - watchlist is core user functionality.
 
         Args:
             user_id: User ID
@@ -149,10 +158,13 @@ class UserInteractionsClient(BaseBackendClient):
         ***REMOVED*** Return the fast-core response directly (contains results, pagination, metadata)
         return response
 
+    @critical_service_handler("backend-api", logger)
     async def set_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Add a movie to a user's watchlist using new collection endpoint.
+
+        This is a CRITICAL operation - watchlist modifications must work.
 
         Args:
             user_id: User ID
@@ -175,10 +187,13 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
+    @critical_service_handler("backend-api", logger)
     async def unset_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Remove movie from user's watchlist using new collection endpoint.
+
+        This is a CRITICAL operation - watchlist modifications must work.
 
         Args:
             user_id: User ID
@@ -195,10 +210,13 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
+    @critical_service_handler("backend-api", logger)
     async def toggle_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Toggle movie in user's watchlist. (DEPRECATED)
+
+        This is a CRITICAL operation - watchlist modifications must work.
 
         This method is deprecated but maintained for backward compatibility.
         It will check current status and add/remove accordingly.
@@ -225,9 +243,22 @@ class UserInteractionsClient(BaseBackendClient):
             return await self.set_user_movie_watchlist(user_id, movie_id, jwt_token)
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** Watched Operations (Updated to use new collection endpoints)
+    ***REMOVED*** Watched Operations (OPTIONAL - Nice-to-have tracking)
     ***REMOVED*** ============================================================================
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={
+            "results": [],
+            "total": 0,
+            "page": 1,
+            "per_page": 20,
+            "total_pages": 0,
+            "has_next": False,
+            "has_prev": False,
+        },
+    )
     async def get_user_watched_movies(
         self,
         user_id: int,
@@ -237,6 +268,9 @@ class UserInteractionsClient(BaseBackendClient):
     ) -> Dict[str, Any]:
         """Get user's watched movies using new collection endpoint.
 
+        This is an OPTIONAL operation - watched history is nice-to-have.
+        Uses graceful degradation to return empty results if service unavailable.
+
         Args:
             user_id: User ID
             jwt_token: JWT authentication token (not used - kept for compatibility)
@@ -244,7 +278,7 @@ class UserInteractionsClient(BaseBackendClient):
             limit: Maximum number of items per page (default: 20)
 
         Returns:
-            Fast-core formatted response with results, pagination, and metadata
+            Fast-core formatted response with results, pagination, and metadata (empty if service unavailable)
         """
         headers = self._get_auth_headers(user_id)
         params = {"page": page, "limit": limit}
@@ -259,10 +293,18 @@ class UserInteractionsClient(BaseBackendClient):
         ***REMOVED*** Return the fast-core response directly
         return response
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={"success": False, "message": "Service unavailable"},
+    )
     async def set_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Set a movie as watched by a user using new collection endpoint.
+
+        This is an OPTIONAL operation - watched tracking is nice-to-have.
+        Uses graceful degradation if service unavailable.
 
         Args:
             user_id: User ID
@@ -270,10 +312,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Fast-core ActionResponse with success status and operation data
-
-        Raises:
-            ExternalServiceException: If request fails
+            Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         headers = self._get_auth_headers(user_id)
         payload = {"movie_id": movie_id}
@@ -285,10 +324,18 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={"success": False, "message": "Service unavailable"},
+    )
     async def unset_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Unset a movie as watched by a user using new collection endpoint.
+
+        This is an OPTIONAL operation - watched tracking is nice-to-have.
+        Uses graceful degradation if service unavailable.
 
         Args:
             user_id: User ID
@@ -296,10 +343,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Fast-core ActionResponse with success status and operation data
-
-        Raises:
-            ExternalServiceException: If request fails
+            Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -308,10 +352,18 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={"success": False, "message": "Service unavailable"},
+    )
     async def toggle_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Toggle movie as watched for user. (DEPRECATED)
+
+        This is an OPTIONAL operation - watched tracking is nice-to-have.
+        Uses graceful degradation if service unavailable.
 
         This method is deprecated but maintained for backward compatibility.
         It will check current status and add/remove accordingly.
@@ -322,10 +374,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Fast-core ActionResponse with success status and operation data
-
-        Raises:
-            ExternalServiceException: If request fails
+            Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         ***REMOVED*** Check current interaction status
         interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
@@ -338,9 +387,22 @@ class UserInteractionsClient(BaseBackendClient):
             return await self.set_user_movie_watched(user_id, movie_id, jwt_token)
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** Liked Operations (Updated to use new collection endpoints)
+    ***REMOVED*** Liked Operations (OPTIONAL - Social features)
     ***REMOVED*** ============================================================================
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={
+            "results": [],
+            "total": 0,
+            "page": 1,
+            "per_page": 20,
+            "total_pages": 0,
+            "has_next": False,
+            "has_prev": False,
+        },
+    )
     async def get_user_liked_movies(
         self,
         user_id: int,
@@ -350,6 +412,9 @@ class UserInteractionsClient(BaseBackendClient):
     ) -> Dict[str, Any]:
         """Get user's liked movies using new collection endpoint.
 
+        This is an OPTIONAL operation - liked movies are social features.
+        Uses graceful degradation to return empty results if service unavailable.
+
         Args:
             user_id: User ID
             jwt_token: JWT authentication token (not used - kept for compatibility)
@@ -357,7 +422,7 @@ class UserInteractionsClient(BaseBackendClient):
             limit: Maximum number of items per page (default: 20)
 
         Returns:
-            Fast-core formatted response with results, pagination, and metadata
+            Fast-core formatted response with results, pagination, and metadata (empty if service unavailable)
         """
         headers = self._get_auth_headers(user_id)
         params = {"page": page, "limit": limit}
@@ -372,10 +437,18 @@ class UserInteractionsClient(BaseBackendClient):
         ***REMOVED*** Return the fast-core response directly
         return response
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={"success": False, "message": "Service unavailable"},
+    )
     async def set_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Set a movie as liked by a user using new collection endpoint.
+
+        This is an OPTIONAL operation - liked movies are social features.
+        Uses graceful degradation if service unavailable.
 
         Args:
             user_id: User ID
@@ -383,10 +456,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Fast-core ActionResponse with success status and operation data
-
-        Raises:
-            ExternalServiceException: If request fails
+            Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         headers = self._get_auth_headers(user_id)
         payload = {"movie_id": movie_id}
@@ -398,10 +468,18 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={"success": False, "message": "Service unavailable"},
+    )
     async def unset_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Unset a movie as liked by a user using new collection endpoint.
+
+        This is an OPTIONAL operation - liked movies are social features.
+        Uses graceful degradation if service unavailable.
 
         Args:
             user_id: User ID
@@ -409,10 +487,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Fast-core ActionResponse with success status and operation data
-
-        Raises:
-            ExternalServiceException: If request fails
+            Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         headers = self._get_auth_headers(user_id)
         return await self._make_request(
@@ -421,10 +496,18 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={"success": False, "message": "Service unavailable"},
+    )
     async def toggle_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
     ) -> Dict[str, Any]:
         """Toggle movie as liked for user. (DEPRECATED)
+
+        This is an OPTIONAL operation - liked movies are social features.
+        Uses graceful degradation if service unavailable.
 
         This method is deprecated but maintained for backward compatibility.
         It will check current status and add/remove accordingly.
@@ -435,10 +518,7 @@ class UserInteractionsClient(BaseBackendClient):
             jwt_token: JWT token for authentication (not used - kept for compatibility)
 
         Returns:
-            Fast-core ActionResponse with success status and operation data
-
-        Raises:
-            ExternalServiceException: If request fails
+            Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         ***REMOVED*** Check current interaction status
         interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
@@ -451,23 +531,40 @@ class UserInteractionsClient(BaseBackendClient):
             return await self.set_user_movie_liked(user_id, movie_id, jwt_token)
 
     ***REMOVED*** ============================================================================
-    ***REMOVED*** User Details & Category Operations (Updated for fast-core compatibility)
+    ***REMOVED*** User Details & Category Operations (OPTIONAL - Profile features)
     ***REMOVED*** ============================================================================
 
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_user_favorites(self, user_id: int) -> List[Dict[str, Any]]:
         """Get user's favorite movies.
+
+        This is an OPTIONAL operation - favorites are profile features.
+        Uses graceful degradation to return empty list if service unavailable.
 
         Args:
             user_id: User ID
 
         Returns:
-            User's favorite movies
+            User's favorite movies (empty if service unavailable)
         """
         response = await self._make_request(
             "GET", self._build_api_path(f"/users/{user_id}/favorites")
         )
         return cast(List[Dict[str, Any]], response.get("data", []))
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={
+            "results": [],
+            "total": 0,
+            "page": 1,
+            "per_page": 20,
+            "total_pages": 0,
+            "has_next": False,
+            "has_prev": False,
+        },
+    )
     async def get_user_movie_details_by_category(
         self,
         user_id: int,
@@ -479,6 +576,9 @@ class UserInteractionsClient(BaseBackendClient):
     ) -> Dict[str, Any]:
         """Get user's movie details by category using new collection endpoints.
 
+        This is an OPTIONAL operation - category browsing is a profile feature.
+        Uses graceful degradation to return empty results if service unavailable.
+
         Args:
             user_id: User ID
             jwt_token: JWT authentication token (not used - kept for compatibility)
@@ -488,7 +588,7 @@ class UserInteractionsClient(BaseBackendClient):
             **filters: Additional filter parameters (kept for compatibility but may not be supported)
 
         Returns:
-            Fast-core formatted response with results, pagination, and metadata
+            Fast-core formatted response with results, pagination, and metadata (empty if service unavailable)
         """
         headers = self._get_auth_headers(user_id)
         params = {"page": page, "limit": limit}

@@ -8,10 +8,9 @@ This service provides health checks for all external dependencies:
 """
 
 import asyncio
-import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import httpx
 from config.logging import get_logger
@@ -429,13 +428,14 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
     Args:
         registry: Health check registry to register checks with
     """
-    from fast_core.monitoring import (
-        HealthCheckDefinition,
-        HealthCheckType,
-        HealthCheckCategory,
-        HealthCheckResult,
-    )
     import time
+
+    from fast_core.monitoring import (
+        HealthCheckCategory,
+        HealthCheckDefinition,
+        HealthCheckResult,
+        HealthCheckType,
+    )
 
     ***REMOVED*** Backend API - CRITICAL dependency
     async def check_backend_api() -> HealthCheckResult:
@@ -588,8 +588,9 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
     ***REMOVED*** DIAGNOSTIC FUNCTIONS for INFORMATIONAL health checks
     async def check_system_info() -> HealthCheckResult:
         """Check system information and metrics."""
-        import psutil
         import os
+
+        import psutil
 
         start_time = time.time()
 

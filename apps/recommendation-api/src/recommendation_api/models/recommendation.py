@@ -4,13 +4,13 @@ This module contains Pydantic models for recommendation requests and responses,
 including validation rules and data structures.
 """
 
-import logging
+from config.logging import get_logger
 import json
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MovieRecommendation(BaseModel):

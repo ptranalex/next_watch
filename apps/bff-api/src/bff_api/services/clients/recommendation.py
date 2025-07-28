@@ -1,20 +1,18 @@
 """Recommendation-related operations for recommendation API."""
 
-import logging
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, cast
 
 import httpx
-
 from config.logging import get_logger
 from fast_core.errors import (
-    ValidationException,
+    ExternalServiceException,
     ResourceNotFoundException,
     ServiceUnavailableException,
-    ExternalServiceException,
-    service_error_handler,
+    ValidationException,
+    optional_service_handler,
 )
 
-from .base import BaseBackendClient
+from bff_api.services.clients.base import BackendClientPermanentError, BaseBackendClient
 
 logger = get_logger(__name__)
 
@@ -22,7 +20,43 @@ logger = get_logger(__name__)
 class RecommendationClient(BaseBackendClient):
     """Client for recommendation-related operations."""
 
-    @service_error_handler("recommendation-api", logger, "get_similar_movies")
+    async def _make_request(
+        self,
+        method: str,
+        path: str,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Override _make_request to handle 404s specifically for recommendations."""
+        try:
+            return await super()._make_request(method, path, params, data, headers)
+        except BackendClientPermanentError as e:
+            ***REMOVED*** Convert 404 errors to ResourceNotFoundException for better handling
+            if "404" in str(e):
+                ***REMOVED*** Extract movie ID from path if possible
+                movie_id = "unknown"
+                if "/movies/" in path:
+                    try:
+                        ***REMOVED*** Extract movie ID from path like "/reco/v1/movies/3577/similar"
+                        movie_id = path.split("/movies/")[1].split("/")[0]
+                    except (IndexError, ValueError):
+                        pass
+
+                raise ResourceNotFoundException(
+                    detail=f"Movie not found in recommendation service",
+                    resource_type="Movie",
+                    resource_id=movie_id,
+                )
+            ***REMOVED*** Re-raise other permanent errors
+            raise
+
+    @optional_service_handler(
+        service_name="recommendation-api",
+        logger=logger,
+        fallback_value=[],
+        operation_name="get_similar_movies",
+    )
     async def get_similar_movies(
         self,
         movie_id: int,
@@ -37,12 +71,16 @@ class RecommendationClient(BaseBackendClient):
             min_score: Minimum similarity score threshold
 
         Returns:
-            List of similar movies
+            List of similar movies (empty list if service unavailable)
 
         Raises:
             ValidationException: If parameters are invalid
-            ResourceNotFoundException: If movie not found (but returns empty list by design)
-            ServiceUnavailableException: If recommendation service is unavailable
+
+        Note:
+            This method uses graceful degradation - if the recommendation service
+            is unavailable or the movie is not found, it returns an empty list
+            instead of failing. This improves user experience by not breaking
+            the movie detail page when recommendations are unavailable.
         """
         ***REMOVED*** Validate parameters
         if movie_id <= 0:
@@ -52,33 +90,20 @@ class RecommendationClient(BaseBackendClient):
         if min_score < 0 or min_score > 1:
             raise ValidationException("Minimum score must be between 0 and 1")
 
-        try:
-            ***REMOVED*** Use inherited HTTP client methods from BaseBackendClient
-            response_data = await self._make_request(
-                "GET",
-                f"/reco/v1/movies/{movie_id}/similar",
-                params={
-                    "limit": limit,
-                    "min_score": min_score,
-                },
-            )
+        ***REMOVED*** Use inherited HTTP client methods from BaseBackendClient
+        ***REMOVED*** The @optional_service_handler decorator will automatically handle errors
+        ***REMOVED*** and return an empty list if the service is unavailable
+        response_data = await self._make_request(
+            "GET",
+            f"/reco/v1/movies/{movie_id}/similar",
+            params={
+                "limit": limit,
+                "min_score": min_score,
+            },
+        )
 
-            ***REMOVED*** Extract just the recommendation movie objects from the response
-            recommendations = response_data.get("recommendations", [])
+        ***REMOVED*** Extract just the recommendation movie objects from the response
+        recommendations = response_data.get("recommendations", [])
 
-            logger.info(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
-            return cast(List[Dict[str, Any]], recommendations)
-
-        except ResourceNotFoundException:
-            ***REMOVED*** If movie is not found, return empty list instead of raising error
-            ***REMOVED*** This is a design decision for better UX - missing movies shouldn't break recommendations
-            logger.info(
-                f"Movie {movie_id} not found in recommendation service, returning empty list"
-            )
-            return []
-        except (ServiceUnavailableException, ExternalServiceException):
-            ***REMOVED*** Re-raise service errors as-is
-            raise
-        except ValidationException:
-            ***REMOVED*** Re-raise validation errors as-is
-            raise
+        logger.info(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
+        return cast(List[Dict[str, Any]], recommendations)

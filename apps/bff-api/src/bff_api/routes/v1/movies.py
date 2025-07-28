@@ -509,6 +509,19 @@ async def get_movie_screen(
         )
         return cast(Dict[str, Any], response)
 
+    except ResourceNotFoundException as e:
+        logger.info(
+            "Movie not found",
+            movie_id=movie_id,
+            error=str(e),
+            service="bff",
+            endpoint="movie_detail",
+        )
+        raise ResourceNotFoundException(
+            detail=f"Movie with ID {movie_id} not found",
+            resource_id=str(movie_id),
+            resource_type="movie",
+        )
     except ExternalServiceException as e:
         logger.error(
             "Backend error for movie detail",

@@ -40,7 +40,7 @@ RECOMMENDATION_ENDPOINTS = {
 ***REMOVED*** Import recommendation routes
 from recommendation_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 
-from recommendation_api.routes import api_v1_router
+***REMOVED*** from recommendation_api.routes import api_v1_router  ***REMOVED*** Move this import to avoid circular dependency
 
 logger = get_logger(__name__)
 
@@ -289,6 +289,8 @@ def create_recommendation_app(config: Optional[RecommendationAPIConfig] = None) 
 
     ***REMOVED*** Add routers with their specific configuration
     ***REMOVED*** app.include_router(health_router, tags=["health"])  ***REMOVED*** Removed: Using new multi-endpoint health system
+    from recommendation_api.routes import api_v1_router
+
     app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 
     ***REMOVED*** Store the original recommendation config for backward compatibility

@@ -4,7 +4,6 @@ This module contains the FastAPI application factory, lifespan management,
 and global exception handling for the Next Watch Recommendation API service.
 """
 
-import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional, Any, Dict
 

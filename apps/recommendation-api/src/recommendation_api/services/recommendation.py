@@ -8,6 +8,13 @@ from config.logging import get_logger
 from typing import List, Optional, Dict, Any, Tuple, Union, TypeVar, cast
 import time
 
+from fast_core.errors import (
+    critical_service_handler,
+    optional_service_handler,
+    ValidationException,
+    ResourceNotFoundException,
+)
+
 ***REMOVED*** No longer importing database operations - using API-based approach via MovieDataAdapter
 from recommendation_api.services.vector_service import VectorService, get_vector_service
 
@@ -59,6 +66,12 @@ class RecommendationService:
         ***REMOVED*** ...
     """
 
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value=([], {"error": "Popular movies unavailable", "graceful_degradation": True}),
+        operation_name="get_popular_movies",
+    )
     async def get_popular_recommendations_direct(
         self,
         limit: int = 20,
@@ -70,14 +83,37 @@ class RecommendationService:
         This now uses the MovieDataAdapter to fetch data from backend-api
         instead of direct database queries.
 
+        Uses graceful degradation - returns empty list if backend is unavailable.
+
         Args:
             limit: Maximum number of recommendations
             min_rating: Minimum IMDb rating threshold
             min_vote_count: Minimum vote count threshold
 
         Returns:
-            Tuple of (recommendations list, filters dict)
+            Tuple of (recommendations list, filters dict) with graceful fallback
+
+        Raises:
+            ValidationException: If parameters are invalid
         """
+        ***REMOVED*** Validate parameters
+        if limit <= 0:
+            raise ValidationException("Limit must be positive")
+        if min_rating < 0 or min_rating > 10:
+            raise ValidationException("Minimum rating must be between 0 and 10")
+        if min_vote_count < 0:
+            raise ValidationException("Minimum vote count must be non-negative")
+
+        logger.info(
+            "Fetching popular movies from backend API",
+            limit=limit,
+            min_rating=min_rating,
+            min_vote_count=min_vote_count,
+            service="recommendation-api",
+            component="recommendation_service",
+            operation="get_popular_movies",
+        )
+
         ***REMOVED*** Get popular movies from backend API via adapter
         return await self.movie_adapter.get_popular_movies(
             limit=limit,
@@ -85,6 +121,9 @@ class RecommendationService:
             min_vote_count=min_vote_count,
         )
 
+    @critical_service_handler(
+        service_name="backend-api", logger=logger, operation_name="get_user_recommendations"
+    )
     async def get_user_recommendations_direct(
         self,
         user_id: int,
@@ -129,6 +168,12 @@ class RecommendationService:
         ***REMOVED*** ...
     """
 
+    @optional_service_handler(
+        service_name="vector-qdrant",
+        logger=logger,
+        fallback_value=([], {"error": "Similar movies unavailable", "graceful_degradation": True}),
+        operation_name="get_similar_movies",
+    )
     async def get_similar_movies(
         self,
         movie_id: int,
@@ -139,6 +184,8 @@ class RecommendationService:
     ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
         """Get similar movies based on vector similarity.
 
+        Uses graceful degradation - returns empty list if vector service is unavailable.
+
         Args:
             movie_id: Movie ID to find similar movies for
             limit: Maximum number of recommendations
@@ -147,8 +194,30 @@ class RecommendationService:
             min_score: Minimum similarity score
 
         Returns:
-            Tuple of (recommendations list, filters dict)
+            Tuple of (recommendations list, filters dict) with graceful fallback
+
+        Raises:
+            ValidationException: If movie_id or other parameters are invalid
+            ResourceNotFoundException: If movie is not found
         """
+        ***REMOVED*** Validate parameters
+        if movie_id <= 0:
+            raise ValidationException("Movie ID must be positive")
+        if limit <= 0:
+            raise ValidationException("Limit must be positive")
+        if min_score < 0 or min_score > 1:
+            raise ValidationException("Minimum score must be between 0 and 1")
+
+        logger.info(
+            "Getting similar movies",
+            movie_id=movie_id,
+            limit=limit,
+            min_score=min_score,
+            service="recommendation-api",
+            component="recommendation_service",
+            operation="get_similar_movies",
+        )
+
         ***REMOVED*** First try the optimized path: get similar movies with metadata from vector DB
         try:
             start_time = time.time()

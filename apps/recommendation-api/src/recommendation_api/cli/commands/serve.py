@@ -1,6 +1,5 @@
 """Server commands for the Recommendation API CLI."""
 
-import logging
 from typing import Union, Dict, Any
 import typer
 from typer import Typer

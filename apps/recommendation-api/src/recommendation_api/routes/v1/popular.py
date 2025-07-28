@@ -1,12 +1,17 @@
-"""Popular movie recommendations endpoints."""
+"""Popular movie recommendation endpoints."""
 
-import logging
-from typing import Dict, Any, Optional
+from config.logging import get_logger
+from typing import Optional, Dict, Any
 
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from sqlalchemy.exc import SQLAlchemyError
+
+from fast_core.errors import (
+    optional_service_handler,
+    ValidationException,
+)
 
 from recommendation_api.services.movie_adapter import MovieDataAdapter
 from recommendation_api.services.recommendation import RecommendationService
@@ -23,8 +28,7 @@ from recommendation_api.core.metrics import (
     track_popular_recommendation,
 )
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 router = APIRouter()
 
 
@@ -81,6 +85,25 @@ async def _get_popular_recommendations_data(
 
 @router.get("/popular", response_model=RecommendationsResponse)
 @track_popular_recommendation
+@optional_service_handler(
+    service_name="recommendation-backend",
+    logger=logger,
+    fallback_value={
+        "recommendations": [],
+        "total": 0,
+        "filters": {
+            "min_rating": 7.0,
+            "min_vote_count": 1000,
+            "limit": 20,
+            "graceful_degradation": True,
+        },
+        "metadata": {
+            "service": "recommendation-api",
+            "fallback_reason": "backend_service_unavailable",
+        },
+    },
+    operation_name="get_popular_recommendations",
+)
 async def get_popular_recommendations_endpoint(
     limit: int = Query(20, ge=1, le=100),
     min_rating: float = Query(7.0, ge=0, le=10),
@@ -89,15 +112,28 @@ async def get_popular_recommendations_endpoint(
 ) -> RecommendationsResponse:
     """Get popular movie recommendations.
 
+    Uses graceful degradation - returns empty list if backend is unavailable.
+
     Args:
-        limit: Maximum number of recommendations (1-100)
-        min_rating: Minimum IMDb rating filter
-        min_vote_count: Minimum vote count filter
+        limit: Maximum number of popular movies (1-100)
+        min_rating: Minimum movie rating threshold (0-10)
+        min_vote_count: Minimum vote count threshold
         recommendation_service: Recommendation service dependency
 
     Returns:
-        List of popular movie recommendations
+        Popular movie recommendations with graceful fallback
+
+    Raises:
+        ValidationException: If parameters are invalid
     """
+    ***REMOVED*** Validate parameters
+    if limit <= 0 or limit > 100:
+        raise ValidationException("Limit must be between 1 and 100")
+    if min_rating < 0 or min_rating > 10:
+        raise ValidationException("Minimum rating must be between 0 and 10")
+    if min_vote_count < 0:
+        raise ValidationException("Minimum vote count must be non-negative")
+
     ***REMOVED*** Record recommendation request metrics
     metrics = get_recommendation_metrics()
     if metrics:
@@ -108,43 +144,39 @@ async def get_popular_recommendations_endpoint(
         )
         metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
 
-    try:
-        ***REMOVED*** Use the cached function to get data as dictionary
-        data = await _get_popular_recommendations_data(
-            limit=limit,
-            min_rating=min_rating,
-            min_vote_count=min_vote_count,
-            recommendation_service=recommendation_service,
-        )
+    logger.info(
+        "Processing popular recommendations request",
+        limit=limit,
+        min_rating=min_rating,
+        min_vote_count=min_vote_count,
+        service="recommendation-api",
+        component="popular_recommendations",
+        endpoint="get_popular_recommendations",
+    )
 
-        ***REMOVED*** Record successful popular recommendations request
-        if metrics:
-            metrics.record_recommendation_request("popular", "success", 0.0, data.get("total", 0))
-            metrics.record_backend_api_request("get_popular_movies", "success", 0.0)
+    ***REMOVED*** Use the cached function to get data as dictionary
+    data = await _get_popular_recommendations_data(
+        limit=limit,
+        min_rating=min_rating,
+        min_vote_count=min_vote_count,
+        recommendation_service=recommendation_service,
+    )
 
-        ***REMOVED*** Convert dictionary back to Pydantic model for response
-        return RecommendationsResponse(**data)
+    ***REMOVED*** Record successful popular recommendations request
+    if metrics:
+        metrics.record_recommendation_request("popular", "success", 0.0, data.get("total", 0))
+        metrics.record_backend_api_request("get_popular_movies", "success", 0.0)
 
-    except SQLAlchemyError as e:
-        ***REMOVED*** Record database error
-        if metrics:
-            metrics.record_recommendation_request("popular", "failure", 0.0, 0)
-            metrics.record_backend_api_request("get_popular_movies", "failure", 0.0)
+    logger.info(
+        "Successfully processed popular recommendations request",
+        total_recommendations=data.get("total", 0),
+        service="recommendation-api",
+        component="popular_recommendations",
+        endpoint="get_popular_recommendations",
+    )
 
-        logger.error(f"Database error getting popular recommendations: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database service temporarily unavailable",
-        )
-    except Exception as e:
-        ***REMOVED*** Record general error
-        if metrics:
-            metrics.record_recommendation_request("popular", "failure", 0.0, 0)
-
-        logger.error(f"Error getting popular recommendations: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+    ***REMOVED*** Convert dictionary back to Pydantic model for response
+    return RecommendationsResponse(**data)
 
 
 def _categorize_rating(rating: float) -> str:

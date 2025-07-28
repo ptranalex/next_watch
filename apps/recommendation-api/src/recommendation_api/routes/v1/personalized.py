@@ -1,12 +1,18 @@
 """Personalized movie recommendations endpoints."""
 
-import logging
+from config.logging import get_logger
 from typing import Dict, Any, Optional
 
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from sqlalchemy.exc import SQLAlchemyError
+
+from fast_core.errors import (
+    critical_service_handler,
+    ValidationException,
+    ResourceNotFoundException,
+)
 
 from recommendation_api.services.movie_adapter import MovieDataAdapter
 from recommendation_api.services.recommendation import RecommendationService
@@ -23,7 +29,7 @@ from recommendation_api.core.metrics import (
     track_personalized_recommendation,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -88,6 +94,11 @@ async def _get_personalized_recommendations_data(
 
 @router.get("/users/{user_id}/recommendations", response_model=PersonalizedRecommendationsResponse)
 @track_personalized_recommendation
+@critical_service_handler(
+    service_name="recommendation-database",
+    logger=logger,
+    operation_name="get_personalized_recommendations",
+)
 async def get_personalized_recommendations_endpoint(
     user_id: int,
     limit: int = Query(20, ge=1, le=100),
@@ -97,79 +108,72 @@ async def get_personalized_recommendations_endpoint(
 ) -> PersonalizedRecommendationsResponse:
     """Get personalized movie recommendations for a user.
 
+    This is a CRITICAL operation - personalized recommendations are core user functionality.
+
     Args:
         user_id: User ID to get recommendations for
         limit: Maximum number of recommendations (1-100)
-        min_rating: Minimum IMDb rating filter
-        min_vote_count: Minimum vote count filter
+        min_rating: Minimum movie rating threshold (0-10)
+        min_vote_count: Minimum vote count threshold
         recommendation_service: Recommendation service dependency
 
     Returns:
-        Personalized movie recommendations for the user
+        Personalized movie recommendations
+
+    Raises:
+        ValidationException: If user_id is invalid
+        ResourceNotFoundException: If user is not found
     """
+    ***REMOVED*** Validate user_id
+    if user_id <= 0:
+        raise ValidationException("User ID must be a positive integer")
+
     ***REMOVED*** Record recommendation request metrics
     metrics = get_recommendation_metrics()
     if metrics:
-        ***REMOVED*** Record filter usage
+        ***REMOVED*** Record filter usage for personalized recommendations
         metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
         metrics.record_recommendation_filter_usage(
             "min_vote_count", _categorize_vote_count(min_vote_count)
         )
         metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
 
-    try:
-        ***REMOVED*** Use the cached function to get data as dictionary
-        data = await _get_personalized_recommendations_data(
-            user_id=user_id,
-            limit=limit,
-            min_rating=min_rating,
-            min_vote_count=min_vote_count,
-            recommendation_service=recommendation_service,
-        )
+    logger.info(
+        "Processing personalized recommendations request",
+        user_id=user_id,
+        limit=limit,
+        min_rating=min_rating,
+        min_vote_count=min_vote_count,
+        service="recommendation-api",
+        component="personalized_recommendations",
+        endpoint="get_personalized_recommendations",
+    )
 
-        ***REMOVED*** Record successful recommendation request
-        if metrics:
-            metrics.record_recommendation_request(
-                "personalized", "success", 0.0, data.get("total", 0)
-            )
-            metrics.record_backend_api_request("get_personalized_movies", "success", 0.0)
+    ***REMOVED*** Use the cached function to get data as dictionary
+    data = await _get_personalized_recommendations_data(
+        user_id=user_id,
+        limit=limit,
+        min_rating=min_rating,
+        min_vote_count=min_vote_count,
+        recommendation_service=recommendation_service,
+    )
 
-        ***REMOVED*** Convert dictionary back to Pydantic model for response
-        return PersonalizedRecommendationsResponse(**data)
+    ***REMOVED*** Record successful recommendation request
+    if metrics:
+        metrics.record_recommendation_request("personalized", "success", 0.0, data.get("total", 0))
+        metrics.record_backend_api_request("get_personalized_movies", "success", 0.0)
 
-    except ValueError as e:
-        ***REMOVED*** Record recommendation failure
-        if metrics:
-            failure_reason = "invalid_user_id" if "Invalid user ID" in str(e) else "not_found"
-            metrics.record_recommendation_request("personalized", "failure", 0.0, 0)
+    logger.info(
+        "Successfully processed personalized recommendations request",
+        user_id=user_id,
+        total_recommendations=data.get("total", 0),
+        service="recommendation-api",
+        component="personalized_recommendations",
+        endpoint="get_personalized_recommendations",
+    )
 
-        ***REMOVED*** Handle business logic errors (invalid user ID, etc.)
-        if "Invalid user ID" in str(e):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-        else:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except SQLAlchemyError as e:
-        ***REMOVED*** Record database error
-        if metrics:
-            metrics.record_recommendation_request("personalized", "failure", 0.0, 0)
-            metrics.record_backend_api_request("get_personalized_movies", "failure", 0.0)
-
-        logger.error(f"Database error getting personalized recommendations for user {user_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database service temporarily unavailable",
-        )
-    except Exception as e:
-        ***REMOVED*** Record general error
-        if metrics:
-            metrics.record_recommendation_request("personalized", "failure", 0.0, 0)
-
-        logger.error(
-            f"Error getting personalized recommendations for user {user_id}: {e}", exc_info=True
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+    ***REMOVED*** Convert dictionary back to Pydantic model for response
+    return PersonalizedRecommendationsResponse(**data)
 
 
 def _categorize_rating(rating: float) -> str:

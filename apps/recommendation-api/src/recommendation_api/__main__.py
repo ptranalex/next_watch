@@ -1,6 +1,5 @@
 """Main entry point for running the Recommendation API server."""
 
-import logging
 import os
 import sys
 

@@ -23,12 +23,35 @@ from auth_api.core.metrics import (
     track_token_operation,
 )
 
+***REMOVED*** Import enhanced error handling
+from fast_core.errors import (
+    service_error_handler,
+    critical_service_handler,
+    ValidationException,
+    AuthenticationException,
+    ExternalServiceException,
+)
+from config.logging import get_logger
+
+logger = get_logger(__name__)
+
 ***REMOVED*** Create router
 router = APIRouter()
 
 
 @router.post("/tokens", response_model=Token)
 @track_authentication
+@service_error_handler(
+    service_name="auth-database",
+    logger=logger,
+    preserve_semantics=True,
+    error_mapping={
+        "invalid_credentials": lambda e: AuthenticationException("Invalid email or password"),
+        "user_not_found": lambda e: AuthenticationException("User account not found"),
+        "account_locked": lambda e: AuthenticationException("Account temporarily locked"),
+        "account_disabled": lambda e: AuthenticationException("Account is disabled"),
+    },
+)
 async def create_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: Annotated[Session, Depends(get_db)],
@@ -48,7 +71,8 @@ async def create_token(
         Token response with access and refresh tokens
 
     Raises:
-        HTTPException: If authentication fails
+        AuthenticationException: If authentication fails (preserves semantic meaning)
+        ValidationException: If input validation fails
     """
     ***REMOVED*** Record authentication attempt metrics
     metrics = get_auth_metrics()
@@ -56,8 +80,14 @@ async def create_token(
         metrics.record_auth_request("login", "attempt", 0.0)  ***REMOVED*** Duration tracked by decorator
         metrics.record_api_client_request("bff", "/tokens", "attempt")
 
+    ***REMOVED*** Validate input
+    if not form_data.username or not form_data.username.strip():
+        raise ValidationException("Email is required")
+    if not form_data.password or not form_data.password.strip():
+        raise ValidationException("Password is required")
+
     ***REMOVED*** OAuth2PasswordRequestForm uses 'username' field, but we expect email
-    user = auth_service.authenticate(session, form_data.username, form_data.password)
+    user = auth_service.authenticate(session, form_data.username.strip(), form_data.password)
 
     if not user:
         ***REMOVED*** Record authentication failure
@@ -66,11 +96,8 @@ async def create_token(
             metrics.record_auth_request("login", "failure", 0.0)
             metrics.record_api_client_request("bff", "/tokens", "failure")
 
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        ***REMOVED*** Raise semantic exception instead of generic HTTPException
+        raise AuthenticationException("Invalid email or password")
 
     ***REMOVED*** We've already checked that user is not None, and we know it has an ID
     assert user.id is not None, "User ID is unexpectedly None"
@@ -91,6 +118,16 @@ async def create_token(
 
 @router.put("/tokens", response_model=Token)
 @track_token_operation
+@service_error_handler(
+    service_name="auth-database",
+    logger=logger,
+    preserve_semantics=True,
+    error_mapping={
+        "invalid_token": lambda e: AuthenticationException("Invalid refresh token"),
+        "expired_token": lambda e: AuthenticationException("Refresh token has expired"),
+        "token_revoked": lambda e: AuthenticationException("Refresh token has been revoked"),
+    },
+)
 async def refresh_token(
     refresh_data: RefreshToken,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
@@ -108,7 +145,8 @@ async def refresh_token(
         New token pair
 
     Raises:
-        HTTPException: If refresh token is invalid
+        AuthenticationException: If refresh token is invalid (preserves semantic meaning)
+        ValidationException: If input validation fails
     """
     ***REMOVED*** Record token refresh attempt
     metrics = get_auth_metrics()
@@ -116,7 +154,11 @@ async def refresh_token(
         metrics.record_auth_request("refresh", "attempt", 0.0)
         metrics.record_api_client_request("bff", "/tokens", "attempt")
 
-    new_tokens = auth_service.refresh_tokens(refresh_data.refresh_token)
+    ***REMOVED*** Validate input
+    if not refresh_data.refresh_token or not refresh_data.refresh_token.strip():
+        raise ValidationException("Refresh token is required")
+
+    new_tokens = auth_service.refresh_tokens(refresh_data.refresh_token.strip())
 
     if not new_tokens:
         ***REMOVED*** Record refresh failure
@@ -126,11 +168,8 @@ async def refresh_token(
             metrics.record_jwt_validation("invalid", "expired_or_invalid")
             metrics.record_api_client_request("bff", "/tokens", "failure")
 
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        ***REMOVED*** Raise semantic exception instead of generic HTTPException
+        raise AuthenticationException("Invalid refresh token")
 
     ***REMOVED*** Record successful token refresh
     if metrics:
@@ -145,6 +184,7 @@ async def refresh_token(
 
 @router.post("/tokens/verify", response_model=TokenVerificationResponse)
 @track_token_operation
+@critical_service_handler("auth-database", logger)
 async def verify_token(
     request: TokenVerificationRequest,
     session: Annotated[Session, Depends(get_db)],
@@ -156,6 +196,7 @@ async def verify_token(
     Used by BFF: POST /auth/v1/tokens/verify
 
     This endpoint is used by the BFF service to validate tokens from the frontend.
+    This is a CRITICAL operation that must always work for the platform to function.
 
     Args:
         request: Token verification request containing the JWT token
@@ -164,6 +205,10 @@ async def verify_token(
 
     Returns:
         Token verification response with user info or error details
+
+    Raises:
+        ValidationException: If input validation fails
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     ***REMOVED*** Record token verification attempt
     metrics = get_auth_metrics()
@@ -171,8 +216,12 @@ async def verify_token(
         metrics.record_auth_request("verify", "attempt", 0.0)
         metrics.record_api_client_request("bff", "/tokens/verify", "attempt")
 
-    ***REMOVED*** Verify the token
-    result = auth_service.verify_token(session, request.token)
+    ***REMOVED*** Validate input
+    if not request.token or not request.token.strip():
+        raise ValidationException("Token is required")
+
+    ***REMOVED*** Verify the token - this always returns a result, never raises
+    result = auth_service.verify_token(session, request.token.strip())
 
     ***REMOVED*** Record verification result metrics
     if metrics:

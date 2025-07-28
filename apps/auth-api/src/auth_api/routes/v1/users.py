@@ -5,15 +5,12 @@ Handles user registration and profile operations.
 """
 
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
-from auth_api.schemas.auth_schemas import (
-    UserCreate,
-    UserResponse,
-)
-from auth_api.dependencies import get_auth_service, get_current_user, get_db
+from auth_api.schemas.auth_schemas import UserCreate, UserResponse
 from auth_api.models.user import User
+from auth_api.dependencies import get_auth_service, get_db, get_current_user
 from auth_api.services.auth_service import AuthService
 from auth_api.core.metrics import (
     get_auth_metrics,
@@ -21,21 +18,54 @@ from auth_api.core.metrics import (
     track_user_management,
 )
 
+***REMOVED*** Import enhanced error handling
+from fast_core.errors import (
+    service_error_handler,
+    critical_service_handler,
+    ValidationException,
+    ConflictException,
+    ResourceNotFoundException,
+)
+from config.logging import get_logger
+
+logger = get_logger(__name__)
+
 ***REMOVED*** Create router
 router = APIRouter()
 
 
 @router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @track_user_registration
+@service_error_handler(
+    service_name="auth-database",
+    logger=logger,
+    preserve_semantics=True,
+    error_mapping={
+        "email already exists": lambda e: ConflictException(
+            detail="A user with this email address already exists",
+            conflicting_resource={
+                "type": "User",
+                "email": str(e).split()[-1] if str(e).split() else "unknown",
+            },
+        ),
+        "username already exists": lambda e: ConflictException(
+            detail="A user with this username already exists",
+            conflicting_resource={
+                "type": "User",
+                "username": str(e).split()[-1] if str(e).split() else "unknown",
+            },
+        ),
+    },
+)
 async def create_user(
     user_data: UserCreate,
     session: Annotated[Session, Depends(get_db)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> User:
     """
-    Register a new user.
+    Register a new user account.
 
-    Used by BFF: POST /auth/v1/users
+    Used by BFF: POST /bff/v1/users
 
     Args:
         user_data: User registration data
@@ -43,23 +73,34 @@ async def create_user(
         auth_service: Authentication service
 
     Returns:
-        Newly created user
+        Created user object
 
     Raises:
-        HTTPException: If registration fails
+        ConflictException: If email or username already exists (preserves semantic meaning)
+        ValidationException: If input validation fails
     """
-    ***REMOVED*** Record user registration attempt
+    ***REMOVED*** Record registration attempt
     metrics = get_auth_metrics()
     if metrics:
         metrics.record_user_operation("register", "attempt")
         metrics.record_api_client_request("bff", "/users", "attempt")
 
+    ***REMOVED*** Validate input data
+    if not user_data.email or not user_data.email.strip():
+        raise ValidationException("Email is required")
+    if not user_data.password or not user_data.password.strip():
+        raise ValidationException("Password is required")
+    if len(user_data.password) < 8:
+        raise ValidationException("Password must be at least 8 characters long")
+    if user_data.username and len(user_data.username.strip()) < 3:
+        raise ValidationException("Username must be at least 3 characters long")
+
     try:
         user = auth_service.register_user(
             session,
-            user_data.email,
+            user_data.email.strip().lower(),
             user_data.password,
-            user_data.username,
+            user_data.username.strip() if user_data.username else None,
         )
 
         ***REMOVED*** Record successful registration
@@ -67,7 +108,6 @@ async def create_user(
             metrics.record_user_operation("register", "success")
             metrics.record_user_registration("success", "none")
             metrics.record_api_client_request("bff", "/users", "success")
-            ***REMOVED*** Could add password strength analysis here if implemented
 
         return user
     except ValueError as e:
@@ -83,32 +123,43 @@ async def create_user(
             metrics.record_user_registration("failure", failure_reason)
             metrics.record_api_client_request("bff", "/users", "failure")
 
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+        ***REMOVED*** Convert ValueError to semantic exception - will be caught by error mapping
+        error_msg = str(e).lower()
+        if "email" in error_msg and "exists" in error_msg:
+            raise ValueError("email already exists")
+        elif "username" in error_msg and "exists" in error_msg:
+            raise ValueError("username already exists")
+        else:
+            raise ValidationException(f"Registration failed: {str(e)}")
 
 
 @router.get("/users/me", response_model=UserResponse)
 @track_user_management
+@critical_service_handler("auth-database", logger)
 async def get_current_user_profile(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     """
-    Get information about the currently authenticated user.
+    Get the current authenticated user's profile.
 
-    Used by BFF: GET /auth/v1/users/me
+    Used by BFF: GET /bff/v1/users/me
+
+    This is a CRITICAL operation - user profile access must always work.
 
     Args:
-        current_user: Current authenticated user
+        current_user: Current authenticated user from JWT token
 
     Returns:
-        Current user information
+        User profile data
+
+    Raises:
+        AuthenticationException: If user is not authenticated (handled by dependency)
+        ExternalServiceException: If database is unavailable (critical failure)
     """
-    ***REMOVED*** Record user profile access
+    ***REMOVED*** Record profile access
     metrics = get_auth_metrics()
     if metrics:
-        metrics.record_user_operation("read_profile", "success")
+        metrics.record_user_operation("profile_access", "success")
         metrics.record_api_client_request("bff", "/users/me", "success")
 
     return current_user

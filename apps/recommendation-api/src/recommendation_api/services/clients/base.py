@@ -1,29 +1,53 @@
-"""Base HTTP client for backend API communication."""
+"""Base HTTP client for backend services."""
 
-from typing import Any, Dict, List, Optional, Union, cast
+import asyncio
+import logging
+from typing import Any, Dict, List, Optional, cast
+from urllib.parse import urljoin
 
 import httpx
-from config.logging import get_logger
-from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
 
-from recommendation_api.config import settings
+from fast_core.errors import (
+    ResourceNotFoundException,
+    ValidationException,
+    ExternalServiceException,
+)
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class BackendClientError(Exception):
-    """Base exception for backend client errors."""
+    """Exception raised when backend API requests fail."""
 
-    pass
+    def __init__(self, message: str, status_code: Optional[int] = None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 class BaseBackendClient:
-    """Base HTTP client for communicating with backend API."""
+    """Base HTTP client for backend API interactions."""
 
-    def __init__(self):
-        """Initialize backend client."""
-        self.base_url = settings.backend_api_url
-        self.timeout = settings.backend_api_timeout
+    def __init__(self, base_url: Optional[str] = None, timeout: Optional[int] = None):
+        """Initialize base client.
+
+        Args:
+            base_url: Base URL for the backend service (uses settings if None)
+            timeout: Request timeout in seconds (uses settings if None)
+        """
+        ***REMOVED*** Backward compatibility: use settings if parameters not provided
+        if base_url is None or timeout is None:
+            from recommendation_api.config import settings
+
+            self.base_url = (base_url or settings.backend_api_url).rstrip("/")
+            self.timeout = timeout or settings.backend_api_timeout
+        else:
+            self.base_url = base_url.rstrip("/")
+            self.timeout = timeout
+
+        self.headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "RecommendationAPI/1.0",
+        }
         self._client: Optional[httpx.AsyncClient] = None
 
     def _build_api_path(self, path: str) -> str:
@@ -42,14 +66,7 @@ class BaseBackendClient:
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client."""
         if self._client is None:
-            self._client = httpx.AsyncClient(
-                base_url=self.base_url,
-                timeout=self.timeout,
-                headers={
-                    "User-Agent": "NextWatch-Recommendation/0.1.0",
-                    "Accept": "application/json",
-                },
-            )
+            self._client = httpx.AsyncClient(timeout=self.timeout)
         return self._client
 
     async def close(self) -> None:
@@ -66,7 +83,7 @@ class BaseBackendClient:
         data: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Make HTTP request without retry logic for HTTP status errors.
+        """Make HTTP request with enhanced error handling.
 
         Args:
             method: HTTP method
@@ -79,19 +96,54 @@ class BaseBackendClient:
             Response data as dictionary
 
         Raises:
-            BackendClientError: If request fails
+            ValidationException: For 400 Bad Request errors
+            ResourceNotFoundException: For 404 Not Found errors
+            ExternalServiceException: For other HTTP errors
+            BackendClientError: For connection/timeout errors
         """
         client = await self._get_client()
 
         try:
             response = await client.request(
                 method=method,
-                url=path,
+                url=urljoin(self.base_url, path),
                 params=params,
                 json=data,
                 headers=headers or {},
             )
-            response.raise_for_status()
+
+            ***REMOVED*** Handle HTTP status errors with semantic preservation
+            if response.status_code >= 400:
+                error_detail = "Unknown error"
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get("detail", str(error_data))
+                except Exception:
+                    error_detail = response.text
+
+                ***REMOVED*** Map HTTP status codes to semantic exceptions
+                if response.status_code == 400:
+                    raise ValidationException(f"Invalid request: {error_detail}")
+                elif response.status_code == 404:
+                    raise ResourceNotFoundException(
+                        detail=f"Resource not found: {error_detail}",
+                        resource_type="BackendResource",
+                        resource_id=path,
+                    )
+                elif response.status_code >= 500:
+                    logger.error(
+                        f"Backend server error {response.status_code} for {method} {path}: {error_detail}"
+                    )
+                    raise ExternalServiceException(
+                        f"Backend service error: {response.status_code} - {error_detail}"
+                    )
+                else:
+                    logger.error(
+                        f"Backend client error {response.status_code} for {method} {path}: {error_detail}"
+                    )
+                    raise ExternalServiceException(
+                        f"Backend service returned error: {response.status_code} - {error_detail}"
+                    )
 
             if response.headers.get("content-type", "").startswith("application/json"):
                 json_response = response.json()
@@ -102,27 +154,31 @@ class BaseBackendClient:
             else:
                 return {"data": response.text}
 
-        except httpx.HTTPStatusError as e:
-            ***REMOVED*** Use different log levels based on status code
-            if e.response.status_code == 404:
-                logger.debug(f"HTTP error {e.response.status_code} for {method} {path}: {e}")
-            else:
-                logger.error(f"HTTP error {e.response.status_code} for {method} {path}: {e}")
-            raise BackendClientError(f"Backend API error: {e.response.status_code}")
-        except httpx.RequestError as e:
-            logger.error(f"Request error for {method} {path}: {e}")
-            raise BackendClientError(f"Backend API request failed: {e}")
+        except httpx.TimeoutException:
+            error_msg = f"Backend API request timed out after {self.timeout}s"
+            logger.error(error_msg)
+            raise BackendClientError(error_msg)
+        except httpx.ConnectError:
+            error_msg = f"Could not connect to Backend API at {self.base_url}"
+            logger.error(error_msg)
+            raise ExternalServiceException(error_msg)
+        except (ValidationException, ResourceNotFoundException, ExternalServiceException):
+            ***REMOVED*** Re-raise semantic exceptions without wrapping
+            raise
         except Exception as e:
-            logger.error(f"Unexpected error for {method} {path}: {e}")
-            raise BackendClientError(f"Unexpected backend error: {e}")
+            error_msg = f"Unexpected error calling Backend API: {str(e)}"
+            logger.error(error_msg)
+            raise BackendClientError(error_msg)
 
     def _get_service_headers(self) -> Dict[str, str]:
-        """Get service-to-service authentication headers.
+        """Get headers for service-to-service authentication.
 
         Returns:
-            Authentication headers for backend API
+            Headers with authentication information
         """
+        from recommendation_api.config import settings
+
         return {
-            "Authorization": f"Bearer {settings.internal_api_key or 'reco-to-backend-secret-key'}",
-            "X-Service": "recommendation-api",
+            "X-API-Key": settings.internal_api_key,
+            "X-Service-Name": "recommendation-api",
         }

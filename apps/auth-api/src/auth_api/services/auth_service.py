@@ -18,6 +18,15 @@ from auth_api.db.operations.user import (
     create_user,
 )
 
+***REMOVED*** Import enhanced error handling
+from fast_core.errors import (
+    critical_service_handler,
+    service_error_handler,
+    ValidationException,
+    AuthenticationException,
+    ExternalServiceException,
+)
+
 logger = get_logger(__name__)
 
 
@@ -45,60 +54,51 @@ class AuthService:
         if not self.jwt_secret:
             raise ValueError("JWT_SECRET must be set in environment")
 
-    def create_access_token(self, user_id: int) -> str:
+    def create_access_token(self, user_id: int, expires_delta: Optional[timedelta] = None) -> str:
         """
-        Create a JWT access token for the given user ID.
+        Create a JWT access token.
 
         Args:
             user_id: User ID to encode in the token
+            expires_delta: Optional custom expiration delta
 
         Returns:
-            JWT access token as string
+            JWT access token
         """
-        ***REMOVED*** Set expiration time
-        expires_delta = timedelta(minutes=self.access_token_expire_minutes)
-        expire = datetime.utcnow() + expires_delta
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
 
-        ***REMOVED*** Create token payload
-        payload = {
-            "sub": str(user_id),  ***REMOVED*** subject (user identifier)
-            "exp": expire,  ***REMOVED*** expiration time
-            "iat": datetime.utcnow(),  ***REMOVED*** issued at
-            "type": "access",  ***REMOVED*** token type
-        }
-
-        ***REMOVED*** Encode token
-        token = jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
-
-        return token
+        to_encode = {"sub": str(user_id), "exp": expire, "type": "access"}
+        encoded_jwt = jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
+        return encoded_jwt
 
     def create_refresh_token(self, user_id: int) -> str:
         """
-        Create a JWT refresh token for the given user ID.
+        Create a JWT refresh token.
 
         Args:
             user_id: User ID to encode in the token
 
         Returns:
-            JWT refresh token as string
+            JWT refresh token
         """
-        ***REMOVED*** Set expiration time (longer than access token)
-        expires_delta = timedelta(days=self.refresh_token_expire_days)
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.utcnow() + timedelta(days=self.refresh_token_expire_days)
+        to_encode = {"sub": str(user_id), "exp": expire, "type": "refresh"}
+        encoded_jwt = jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
+        return encoded_jwt
 
-        ***REMOVED*** Create token payload
-        payload = {
-            "sub": str(user_id),  ***REMOVED*** subject (user identifier)
-            "exp": expire,  ***REMOVED*** expiration time
-            "iat": datetime.utcnow(),  ***REMOVED*** issued at
-            "type": "refresh",  ***REMOVED*** token type
-        }
-
-        ***REMOVED*** Encode token
-        token = jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
-
-        return token
-
+    @service_error_handler(
+        service_name="jwt-service",
+        logger=logger,
+        preserve_semantics=True,
+        error_mapping={
+            "expired": lambda e: AuthenticationException("Token has expired"),
+            "invalid": lambda e: AuthenticationException("Invalid token"),
+            "malformed": lambda e: AuthenticationException("Malformed token"),
+        },
+    )
     def decode_token(self, token: str) -> Dict[str, Any]:
         """
         Decode and validate a JWT token.
@@ -110,14 +110,20 @@ class AuthService:
             Decoded token payload
 
         Raises:
-            jwt.PyJWTError: If token is invalid or expired
+            AuthenticationException: If token is invalid or expired (preserves semantic meaning)
         """
         try:
             payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
             return cast(Dict[str, Any], payload)
-        except jwt.PyJWTError as e:
+        except jwt.ExpiredSignatureError as e:
+            logger.warning(f"Token has expired: {str(e)}")
+            raise ValueError("expired")
+        except jwt.InvalidTokenError as e:
+            logger.warning(f"Invalid token: {str(e)}")
+            raise ValueError("invalid")
+        except Exception as e:
             logger.warning(f"Failed to decode token: {str(e)}")
-            raise
+            raise ValueError("malformed")
 
     def get_user_id_from_token(self, token: str) -> Optional[int]:
         """
@@ -138,15 +144,17 @@ class AuthService:
 
             user_id = int(sub)
             return user_id
-        except (jwt.PyJWTError, ValueError) as e:
+        except (AuthenticationException, ValueError) as e:
             logger.warning(f"Failed to extract user ID from token: {str(e)}")
             return None
 
+    @critical_service_handler("auth-database", logger)
     def verify_token(self, session: Session, token: str) -> TokenVerificationResponse:
         """
         Verify token and return user information for BFF service.
 
         This is the key method used by BFF to validate tokens from frontend.
+        This is a CRITICAL operation that must always work for the platform to function.
 
         Args:
             session: Database session
@@ -154,6 +162,9 @@ class AuthService:
 
         Returns:
             TokenVerificationResponse with user info or error
+
+        Raises:
+            ExternalServiceException: If database is unavailable (critical failure)
         """
         try:
             ***REMOVED*** Decode and validate token
@@ -176,17 +187,25 @@ class AuthService:
                 valid=True, user_id=user.id, email=user.email, username=user.username
             )
 
-        except jwt.ExpiredSignatureError:
-            return TokenVerificationResponse(valid=False, error="Token has expired")
-        except jwt.InvalidTokenError:
-            return TokenVerificationResponse(valid=False, error="Invalid token")
+        except AuthenticationException as e:
+            ***REMOVED*** Token validation errors are expected and should not be treated as system failures
+            error_msg = str(e)
+            if "expired" in error_msg.lower():
+                return TokenVerificationResponse(valid=False, error="Token has expired")
+            elif "invalid" in error_msg.lower():
+                return TokenVerificationResponse(valid=False, error="Invalid token")
+            else:
+                return TokenVerificationResponse(valid=False, error="Token verification failed")
         except (ValueError, Exception) as e:
             logger.error(f"Token verification error: {str(e)}")
             return TokenVerificationResponse(valid=False, error="Token verification failed")
 
+    @critical_service_handler("auth-database", logger)
     def authenticate(self, session: Session, email: str, password: str) -> Optional[User]:
         """
         Authenticate a user with email and password.
+
+        This is a CRITICAL operation for user login functionality.
 
         Args:
             session: Database session
@@ -195,12 +214,18 @@ class AuthService:
 
         Returns:
             User object if authentication successful, None otherwise
+
+        Raises:
+            ExternalServiceException: If database is unavailable (critical failure)
         """
         return authenticate_user(session, email, password)
 
+    @critical_service_handler("auth-database", logger)
     def get_user_by_token(self, session: Session, token: str) -> Optional[User]:
         """
         Get user by JWT token.
+
+        This is a CRITICAL operation used for protected endpoints.
 
         Args:
             session: Database session
@@ -208,6 +233,9 @@ class AuthService:
 
         Returns:
             User object if token is valid, None otherwise
+
+        Raises:
+            ExternalServiceException: If database is unavailable (critical failure)
         """
         user_id = self.get_user_id_from_token(token)
         if not user_id:
@@ -215,6 +243,7 @@ class AuthService:
 
         return get_user_by_id(session, user_id)
 
+    @critical_service_handler("auth-database", logger)
     def register_user(
         self,
         session: Session,
@@ -224,6 +253,8 @@ class AuthService:
     ) -> User:
         """
         Register a new user.
+
+        This is a CRITICAL operation for user onboarding.
 
         Args:
             session: Database session
@@ -235,7 +266,8 @@ class AuthService:
             Newly created User object
 
         Raises:
-            ValueError: If registration fails
+            ValueError: If registration fails (will be mapped to semantic exceptions)
+            ExternalServiceException: If database is unavailable (critical failure)
         """
         return create_user(session, email, password, username)
 
@@ -266,22 +298,25 @@ class AuthService:
             New token pair if refresh token is valid, None otherwise
         """
         try:
+            ***REMOVED*** Decode the refresh token
             payload = self.decode_token(refresh_token)
 
-            ***REMOVED*** Verify this is a refresh token
+            ***REMOVED*** Verify it's a refresh token
             if payload.get("type") != "refresh":
-                logger.warning("Attempted to use non-refresh token for refresh")
+                logger.warning("Invalid token type for refresh operation")
                 return None
 
-            ***REMOVED*** Get user ID and generate new tokens
-            sub = payload.get("sub")
-            if sub is None:
-                logger.warning("Refresh token payload missing 'sub' claim")
+            ***REMOVED*** Extract user ID
+            user_id_str = payload.get("sub")
+            if not user_id_str:
+                logger.warning("Refresh token missing user ID")
                 return None
 
-            user_id = int(sub)
+            user_id = int(user_id_str)
+
+            ***REMOVED*** Generate new tokens
             return self.generate_tokens(user_id)
 
-        except (jwt.PyJWTError, ValueError) as e:
-            logger.warning(f"Token refresh failed: {str(e)}")
+        except (AuthenticationException, ValueError) as e:
+            logger.warning(f"Failed to refresh tokens: {str(e)}")
             return None

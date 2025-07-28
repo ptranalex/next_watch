@@ -1,13 +1,13 @@
 """Middleware configuration for the FastAPI application."""
 
-import logging
+from config.logging import get_logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from recommendation_api.config import settings
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def setup_middleware(app: FastAPI) -> None:

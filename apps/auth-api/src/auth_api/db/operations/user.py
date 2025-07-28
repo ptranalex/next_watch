@@ -9,7 +9,18 @@ from sqlmodel import Session, select
 
 from auth_api.models.user import User
 
+***REMOVED*** Import enhanced error handling
+from fast_core.errors import (
+    critical_service_handler,
+    ValidationException,
+    ResourceNotFoundException,
+)
+from config.logging import get_logger
 
+logger = get_logger(__name__)
+
+
+@critical_service_handler("auth-database", logger)
 def create_user(
     session: Session,
     email: str,
@@ -18,6 +29,8 @@ def create_user(
 ) -> User:
     """
     Create a new user with hashed password.
+
+    This is a CRITICAL operation for user registration.
 
     Args:
         session: Database session
@@ -29,7 +42,8 @@ def create_user(
         Created user instance
 
     Raises:
-        ValueError: If email already exists or validation fails
+        ValueError: If email already exists or validation fails (will be mapped to semantic exceptions)
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     ***REMOVED*** Check if user with email already exists
     existing_user = get_user_by_email(session, email)
@@ -61,9 +75,12 @@ def create_user(
     return user
 
 
+@critical_service_handler("auth-database", logger)
 def get_user_by_id(session: Session, user_id: int) -> Optional[User]:
     """
     Get a user by their ID.
+
+    This is a CRITICAL operation used throughout the authentication system.
 
     Args:
         session: Database session
@@ -71,13 +88,19 @@ def get_user_by_id(session: Session, user_id: int) -> Optional[User]:
 
     Returns:
         User instance if found, None otherwise
+
+    Raises:
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     return session.get(User, user_id)
 
 
+@critical_service_handler("auth-database", logger)
 def get_user_by_email(session: Session, email: str) -> Optional[User]:
     """
     Get a user by their email address.
+
+    This is a CRITICAL operation for authentication and registration.
 
     Args:
         session: Database session
@@ -85,14 +108,20 @@ def get_user_by_email(session: Session, email: str) -> Optional[User]:
 
     Returns:
         User instance if found, None otherwise
+
+    Raises:
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     statement = select(User).where(User.email == email)
     return session.exec(statement).first()
 
 
+@critical_service_handler("auth-database", logger)
 def get_user_by_username(session: Session, username: str) -> Optional[User]:
     """
     Get a user by their username.
+
+    This is a CRITICAL operation for username validation during registration.
 
     Args:
         session: Database session
@@ -100,31 +129,45 @@ def get_user_by_username(session: Session, username: str) -> Optional[User]:
 
     Returns:
         User instance if found, None otherwise
+
+    Raises:
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     statement = select(User).where(User.username == username)
     return session.exec(statement).first()
 
 
-def get_users(
-    session: Session,
-    skip: int = 0,
-    limit: int = 100,
-) -> List[User]:
+@critical_service_handler("auth-database", logger)
+def get_users(session: Session, skip: int = 0, limit: int = 100) -> List[User]:
     """
-    Get a list of users with pagination.
+    Get multiple users with pagination.
+
+    This is a CRITICAL operation for user management.
 
     Args:
         session: Database session
-        skip: Number of users to skip
-        limit: Maximum number of users to return
+        skip: Number of records to skip
+        limit: Maximum number of records to return
 
     Returns:
-        List of users
+        List of user instances
+
+    Raises:
+        ValidationException: If pagination parameters are invalid
+        ExternalServiceException: If database is unavailable (critical failure)
     """
+    ***REMOVED*** Validate pagination parameters
+    if skip < 0:
+        raise ValidationException("Skip parameter must be non-negative")
+    if limit <= 0 or limit > 1000:
+        raise ValidationException("Limit must be between 1 and 1000")
+
     statement = select(User).offset(skip).limit(limit)
-    return list(session.exec(statement).all())
+    users = session.exec(statement).all()
+    return list(users)
 
 
+@critical_service_handler("auth-database", logger)
 def update_user(
     session: Session,
     user_id: int,
@@ -134,6 +177,8 @@ def update_user(
 ) -> Optional[User]:
     """
     Update a user's information.
+
+    This is a CRITICAL operation for user profile management.
 
     Args:
         session: Database session
@@ -146,7 +191,8 @@ def update_user(
         Updated user instance if found, None otherwise
 
     Raises:
-        ValueError: If email or username already exists
+        ValueError: If email or username already exists (will be mapped to semantic exceptions)
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     user = session.get(User, user_id)
     if not user:
@@ -179,9 +225,12 @@ def update_user(
     return user
 
 
+@critical_service_handler("auth-database", logger)
 def delete_user(session: Session, user_id: int) -> bool:
     """
     Delete a user by their ID.
+
+    This is a CRITICAL operation for user account deletion.
 
     Args:
         session: Database session
@@ -189,6 +238,9 @@ def delete_user(session: Session, user_id: int) -> bool:
 
     Returns:
         True if user was deleted, False if user not found
+
+    Raises:
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     user = session.get(User, user_id)
     if not user:
@@ -199,9 +251,12 @@ def delete_user(session: Session, user_id: int) -> bool:
     return True
 
 
+@critical_service_handler("auth-database", logger)
 def authenticate_user(session: Session, email: str, password: str) -> Optional[User]:
     """
     Authenticate a user by email and password.
+
+    This is a CRITICAL operation for user login functionality.
 
     Args:
         session: Database session
@@ -210,6 +265,9 @@ def authenticate_user(session: Session, email: str, password: str) -> Optional[U
 
     Returns:
         User instance if authentication successful, None otherwise
+
+    Raises:
+        ExternalServiceException: If database is unavailable (critical failure)
     """
     user = get_user_by_email(session, email)
     if not user:

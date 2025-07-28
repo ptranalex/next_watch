@@ -1,6 +1,6 @@
 """Common dependencies for Recommendation API routes."""
 
-import logging
+from config.logging import get_logger
 from typing import cast
 
 from fastapi import Request, Depends
@@ -13,7 +13,7 @@ from recommendation_api.services.movie_adapter import (
 from recommendation_api.services.recommendation import RecommendationService
 from recommendation_api.services.vector_service import VectorService, get_vector_service
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_backend_client_dependency() -> BackendClient:

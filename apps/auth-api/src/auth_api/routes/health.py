@@ -1,6 +1,6 @@
 """Health check routes for the Auth API."""
 
-import logging
+from config.logging import get_logger
 from datetime import datetime
 from typing import Dict, Any
 
@@ -10,8 +10,6 @@ from sqlmodel import Session
 
 from auth_api.config.app import settings
 from auth_api.db.database import get_db
-
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter()

@@ -209,6 +209,11 @@ class QdrantClient:
         name = collection_name or self.collection_name
 
         try:
+            ***REMOVED*** Check if collection exists first to avoid noisy errors
+            if not self.collection_exists(name):
+                logger.debug(f"Collection '{name}' does not exist, cannot perform search")
+                return []
+
             results = self.client.search(
                 collection_name=name,
                 query_vector=query_vector,
@@ -221,7 +226,15 @@ class QdrantClient:
             return results
 
         except Exception as e:
-            logger.error(f"Error searching in collection '{name}': {e}")
+            ***REMOVED*** Handle specific known errors more gracefully
+            error_msg = str(e).lower()
+            if "collection" in error_msg and (
+                "doesn't exist" in error_msg or "not found" in error_msg
+            ):
+                logger.debug(f"Collection '{name}' not found when searching")
+            else:
+                ***REMOVED*** Unexpected errors get logged as warnings
+                logger.warning(f"Unexpected error searching in collection '{name}': {e}")
             return []
 
     def get_point(
@@ -243,6 +256,13 @@ class QdrantClient:
         name = collection_name or self.collection_name
 
         try:
+            ***REMOVED*** Check if collection exists first to avoid noisy errors
+            if not self.collection_exists(name):
+                logger.debug(
+                    f"Collection '{name}' does not exist, cannot retrieve point {point_id}"
+                )
+                return None
+
             ***REMOVED*** Explicitly request vectors to be included
             result = self.client.retrieve(
                 collection_name=name,
@@ -259,7 +279,17 @@ class QdrantClient:
             return None
 
         except Exception as e:
-            logger.error(f"Error retrieving point {point_id} from '{name}': {e}")
+            ***REMOVED*** Handle specific known errors more gracefully
+            error_msg = str(e).lower()
+            if "collection" in error_msg and (
+                "doesn't exist" in error_msg or "not found" in error_msg
+            ):
+                logger.debug(f"Collection '{name}' not found when retrieving point {point_id}")
+            elif "not found" in error_msg and str(point_id) in error_msg:
+                logger.debug(f"Point {point_id} not found in collection '{name}'")
+            else:
+                ***REMOVED*** Unexpected errors get logged as warnings with full details
+                logger.warning(f"Unexpected error retrieving point {point_id} from '{name}': {e}")
             return None
 
     def delete_points(

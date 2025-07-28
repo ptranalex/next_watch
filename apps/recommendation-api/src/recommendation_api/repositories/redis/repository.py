@@ -4,7 +4,7 @@ This module provides the RedisRepository class for caching and retrieving
 precomputed recommendation data, especially similar movie recommendations.
 """
 
-import logging
+from config.logging import get_logger
 import json
 from typing import List, Optional, Dict, Any, Tuple, Union, Set, cast
 import redis
@@ -12,7 +12,7 @@ from redis.exceptions import RedisError
 
 from recommendation_api.config import settings
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 ***REMOVED*** Default expiration time for cache entries (1 day in seconds)
 DEFAULT_CACHE_TTL = 86400

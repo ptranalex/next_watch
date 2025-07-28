@@ -43,7 +43,8 @@ AUTH_ENDPOINTS = {
 ***REMOVED*** Import Auth routes
 from auth_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 
-from auth_api.routes.api_v1 import api_v1_router
+***REMOVED*** Remove the router import from module level to avoid circular imports
+***REMOVED*** from auth_api.routes.api_v1 import api_v1_router
 
 from config.logging import get_logger
 
@@ -246,6 +247,9 @@ def create_auth_app(config: Optional[AuthAPIConfig] = None) -> FastAPI:
 
     ***REMOVED*** Create Auth-specific middleware configuration
     middleware_config = create_auth_middleware_config(config)
+
+    ***REMOVED*** Import routers locally to avoid circular imports
+    from auth_api.routes.api_v1 import api_v1_router
 
     ***REMOVED*** Define routers for the application
     routers = [

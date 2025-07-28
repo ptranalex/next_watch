@@ -1,18 +1,18 @@
 """Movie-related operations for backend API."""
 
-import logging
 from typing import Any, Dict, List, Optional, cast
 
 import httpx
-
 from config.logging import get_logger
 from fast_core.errors import (
-    ValidationException,
     ResourceNotFoundException,
+    ValidationException,
+    critical_service_handler,
+    optional_service_handler,
     service_error_handler,
 )
 
-from .base import BaseBackendClient
+from bff_api.services.clients.base import BaseBackendClient
 
 logger = get_logger(__name__)
 
@@ -20,9 +20,11 @@ logger = get_logger(__name__)
 class MoviesClient(BaseBackendClient):
     """Client for movie-related operations."""
 
-    @service_error_handler("backend-api", logger, "get_movie")
+    @critical_service_handler("backend-api", logger)
     async def get_movie(self, movie_id: int, user_id: Optional[int] = None) -> Dict[str, Any]:
         """Get movie details with user-specific data.
+
+        This is a CRITICAL operation - movie detail pages must work.
 
         Args:
             movie_id: Movie ID
@@ -33,7 +35,7 @@ class MoviesClient(BaseBackendClient):
 
         Raises:
             ValidationException: If movie_id is invalid
-            ResourceNotFoundException: If movie not found
+            ResourceNotFoundException: If movie not found (preserves semantic meaning)
         """
         if movie_id <= 0:
             raise ValidationException("Movie ID must be a positive integer")
@@ -56,7 +58,7 @@ class MoviesClient(BaseBackendClient):
                 resource_id=str(movie_id),
             )
 
-    @service_error_handler("backend-api", logger, "get_movies")
+    @critical_service_handler("backend-api", logger)
     async def get_movies(
         self,
         page: int = 1,
@@ -66,6 +68,8 @@ class MoviesClient(BaseBackendClient):
         **filters: Any,
     ) -> Dict[str, Any]:
         """Get movies list with filters and user data.
+
+        This is a CRITICAL operation - main movie listings must work.
 
         Args:
             page: Page number
@@ -99,7 +103,7 @@ class MoviesClient(BaseBackendClient):
 
         return await self._make_request("GET", self._build_api_path("/movies"), params=params)
 
-    @service_error_handler("backend-api", logger, "search_movies")
+    @critical_service_handler("backend-api", logger)
     async def search_movies(
         self,
         query: str,
@@ -108,6 +112,8 @@ class MoviesClient(BaseBackendClient):
         user_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Search movies.
+
+        This is a CRITICAL operation - search functionality must work.
 
         Args:
             query: Search query
@@ -144,19 +150,115 @@ class MoviesClient(BaseBackendClient):
             "GET", self._build_api_path("/movies/search"), params=params
         )
 
-    @service_error_handler("backend-api", logger, "get_movie_cast")
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={
+            "results": [],
+            "total": 0,
+            "page": 1,
+            "per_page": 20,
+            "total_pages": 0,
+            "has_next": False,
+            "has_prev": False,
+        },
+    )
+    async def get_trending_movies(
+        self,
+        page: int = 1,
+        limit: int = 20,
+        user_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Get trending movies.
+
+        This is an OPTIONAL operation - trending movies are nice-to-have.
+        Uses graceful degradation to return empty results if service unavailable.
+
+        Args:
+            page: Page number
+            limit: Items per page
+            user_id: Optional user ID for personalized data
+
+        Returns:
+            Trending movies list (empty if service unavailable)
+        """
+        ***REMOVED*** Validate pagination parameters
+        if page <= 0:
+            raise ValidationException("Page number must be a positive integer")
+        if limit <= 0 or limit > 100:
+            raise ValidationException("Limit must be between 1 and 100")
+
+        params = {"page": page, "limit": limit, "trending": True}
+
+        if user_id:
+            if user_id <= 0:
+                raise ValidationException("User ID must be a positive integer")
+            params["user_id"] = user_id
+
+        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
+
+    @optional_service_handler(
+        service_name="backend-api",
+        logger=logger,
+        fallback_value={
+            "results": [],
+            "total": 0,
+            "page": 1,
+            "per_page": 20,
+            "total_pages": 0,
+            "has_next": False,
+            "has_prev": False,
+        },
+    )
+    async def get_popular_movies(
+        self,
+        page: int = 1,
+        limit: int = 20,
+        user_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Get popular movies.
+
+        This is an OPTIONAL operation - popular movies are nice-to-have.
+        Uses graceful degradation to return empty results if service unavailable.
+
+        Args:
+            page: Page number
+            limit: Items per page
+            user_id: Optional user ID for personalized data
+
+        Returns:
+            Popular movies list (empty if service unavailable)
+        """
+        ***REMOVED*** Validate pagination parameters
+        if page <= 0:
+            raise ValidationException("Page number must be a positive integer")
+        if limit <= 0 or limit > 100:
+            raise ValidationException("Limit must be between 1 and 100")
+
+        params = {"page": page, "limit": limit, "sort": "popularity", "sort_desc": True}
+
+        if user_id:
+            if user_id <= 0:
+                raise ValidationException("User ID must be a positive integer")
+            params["user_id"] = user_id
+
+        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
+
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_movie_cast(self, movie_id: int) -> List[Dict[str, Any]]:
         """Get movie cast and crew information.
+
+        This is an OPTIONAL operation - cast data is enhancement information.
+        Uses graceful degradation to return empty list if service unavailable.
 
         Args:
             movie_id: Movie ID
 
         Returns:
-            List of cast members with character and actor details
+            List of cast members with character and actor details (empty if service unavailable)
 
         Raises:
             ValidationException: If movie_id is invalid
-            ResourceNotFoundException: If movie not found
         """
         if movie_id <= 0:
             raise ValidationException("Movie ID must be a positive integer")
@@ -167,26 +269,28 @@ class MoviesClient(BaseBackendClient):
             )
             return cast(List[Dict[str, Any]], response.get("cast", []))
         except ResourceNotFoundException:
-            ***REMOVED*** Re-raise with more specific message
+            ***REMOVED*** Re-raise with more specific message but let the decorator handle graceful degradation
             raise ResourceNotFoundException(
                 detail=f"Cast information for movie {movie_id} not found",
                 resource_type="Movie",
                 resource_id=str(movie_id),
             )
 
-    @service_error_handler("backend-api", logger, "get_movie_trailers")
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_movie_trailers(self, movie_id: int) -> List[Dict[str, Any]]:
         """Get movie trailers.
+
+        This is an OPTIONAL operation - trailers are enhancement information.
+        Uses graceful degradation to return empty list if service unavailable.
 
         Args:
             movie_id: Movie ID
 
         Returns:
-            List of movie trailers
+            List of movie trailers (empty if service unavailable)
 
         Raises:
             ValidationException: If movie_id is invalid
-            ResourceNotFoundException: If movie not found
         """
         if movie_id <= 0:
             raise ValidationException("Movie ID must be a positive integer")
@@ -200,14 +304,14 @@ class MoviesClient(BaseBackendClient):
                 return cast(List[Dict[str, Any]], response["trailers"])
             return cast(List[Dict[str, Any]], response.get("data", []))
         except ResourceNotFoundException:
-            ***REMOVED*** Re-raise with more specific message
+            ***REMOVED*** Re-raise with more specific message but let the decorator handle graceful degradation
             raise ResourceNotFoundException(
                 detail=f"Trailers for movie {movie_id} not found",
                 resource_type="Movie",
                 resource_id=str(movie_id),
             )
 
-    @service_error_handler("backend-api", logger, "get_movies_bulk")
+    @critical_service_handler("backend-api", logger)
     async def get_movies_bulk(
         self,
         movie_ids: List[int],
@@ -216,6 +320,8 @@ class MoviesClient(BaseBackendClient):
         limit: int = 100,
     ) -> Dict[str, Any]:
         """Get multiple movies by their IDs using bulk endpoint.
+
+        This is a CRITICAL operation - bulk movie fetching is essential for performance.
 
         Args:
             movie_ids: List of movie IDs to fetch

@@ -1,11 +1,17 @@
-"""Trending movie recommendations endpoints."""
+"""Trending movie recommendation endpoints."""
 
-import logging
-from typing import Dict, Any, Optional
+from config.logging import get_logger
+from typing import Optional, Dict, Any
+
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from sqlalchemy.exc import SQLAlchemyError
+
+from fast_core.errors import (
+    optional_service_handler,
+    ValidationException,
+)
 
 from recommendation_api.services.movie_adapter import MovieDataAdapter
 from recommendation_api.services.recommendation import RecommendationService
@@ -22,8 +28,7 @@ from recommendation_api.core.metrics import (
     track_trending_recommendation,
 )
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 router = APIRouter()
 
 
@@ -87,6 +92,25 @@ async def _get_trending_recommendations_data(
 
 @router.get("/trending", response_model=RecommendationsResponse)
 @track_trending_recommendation
+@optional_service_handler(
+    service_name="recommendation-backend",
+    logger=logger,
+    fallback_value={
+        "recommendations": [],
+        "total": 0,
+        "filters": {
+            "days": 7,
+            "min_rating": None,
+            "limit": 20,
+            "graceful_degradation": True,
+        },
+        "metadata": {
+            "service": "recommendation-api",
+            "fallback_reason": "backend_service_unavailable",
+        },
+    },
+    operation_name="get_trending_recommendations",
+)
 async def get_trending_recommendations_endpoint(
     limit: int = Query(20, ge=1, le=100),
     days: int = Query(7, ge=1, le=30),
@@ -95,61 +119,70 @@ async def get_trending_recommendations_endpoint(
 ) -> RecommendationsResponse:
     """Get trending movie recommendations.
 
+    Uses graceful degradation - returns empty list if backend is unavailable.
+
     Args:
-        limit: Maximum number of recommendations (1-100)
-        days: Number of days to look back for trending calculation (1-30)
-        min_rating: Minimum IMDb rating filter
+        limit: Maximum number of trending movies (1-100)
+        days: Number of days to look back for trending (1-30)
+        min_rating: Optional minimum rating filter (0-10)
         recommendation_service: Recommendation service dependency
 
     Returns:
-        List of trending movie recommendations
+        Trending movie recommendations with graceful fallback
+
+    Raises:
+        ValidationException: If parameters are invalid
     """
+    ***REMOVED*** Validate parameters
+    if limit <= 0 or limit > 100:
+        raise ValidationException("Limit must be between 1 and 100")
+    if days <= 0 or days > 30:
+        raise ValidationException("Days must be between 1 and 30")
+    if min_rating is not None and (min_rating < 0 or min_rating > 10):
+        raise ValidationException("Minimum rating must be between 0 and 10")
+
     ***REMOVED*** Record recommendation request metrics
     metrics = get_recommendation_metrics()
     if metrics:
         ***REMOVED*** Record filter usage for trending movies
         metrics.record_recommendation_filter_usage("days", _categorize_days(days))
-        if min_rating:
+        if min_rating is not None:
             metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
         metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
 
-    try:
-        ***REMOVED*** Use the cached function to get data as dictionary
-        data = await _get_trending_recommendations_data(
-            limit=limit,
-            days=days,
-            min_rating=min_rating,
-            recommendation_service=recommendation_service,
-        )
+    logger.info(
+        "Processing trending recommendations request",
+        limit=limit,
+        days=days,
+        min_rating=min_rating,
+        service="recommendation-api",
+        component="trending_recommendations",
+        endpoint="get_trending_recommendations",
+    )
 
-        ***REMOVED*** Record successful trending recommendations request
-        if metrics:
-            metrics.record_recommendation_request("trending", "success", 0.0, data.get("total", 0))
-            metrics.record_backend_api_request("get_trending_movies", "success", 0.0)
+    ***REMOVED*** Use the cached function to get data as dictionary
+    data = await _get_trending_recommendations_data(
+        limit=limit,
+        days=days,
+        min_rating=min_rating,
+        recommendation_service=recommendation_service,
+    )
 
-        ***REMOVED*** Convert dictionary back to Pydantic model for response
-        return RecommendationsResponse(**data)
+    ***REMOVED*** Record successful trending recommendations request
+    if metrics:
+        metrics.record_recommendation_request("trending", "success", 0.0, data.get("total", 0))
+        metrics.record_backend_api_request("get_trending_movies", "success", 0.0)
 
-    except SQLAlchemyError as e:
-        ***REMOVED*** Record database error
-        if metrics:
-            metrics.record_recommendation_request("trending", "failure", 0.0, 0)
-            metrics.record_backend_api_request("get_trending_movies", "failure", 0.0)
+    logger.info(
+        "Successfully processed trending recommendations request",
+        total_recommendations=data.get("total", 0),
+        service="recommendation-api",
+        component="trending_recommendations",
+        endpoint="get_trending_recommendations",
+    )
 
-        logger.error(f"Database error getting trending recommendations: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database service temporarily unavailable",
-        )
-    except Exception as e:
-        ***REMOVED*** Record general error
-        if metrics:
-            metrics.record_recommendation_request("trending", "failure", 0.0, 0)
-
-        logger.error(f"Error getting trending recommendations: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error"
-        )
+    ***REMOVED*** Convert dictionary back to Pydantic model for response
+    return RecommendationsResponse(**data)
 
 
 def _categorize_days(days: int) -> str:
