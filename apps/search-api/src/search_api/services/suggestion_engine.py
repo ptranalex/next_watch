@@ -11,6 +11,7 @@ to the dedicated search-api service. It supports advanced features like:
 
 import json
 import math
+import time
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
@@ -43,6 +44,7 @@ class SuggestionEngine:
         suggestion_key_prefix: str = "suggestions:",
         entity_key_prefix: str = "entity:",
         search_result_prefix: str = "search_results:",
+        entity_types: Optional[List[str]] = None,
     ):
         """
         Initialize the suggestion engine with Redis connection parameters.
@@ -53,6 +55,7 @@ class SuggestionEngine:
             suggestion_key_prefix: Redis key prefix for suggestions (default: "suggestions:")
             entity_key_prefix: Redis key prefix for entities (default: "entity:")
             search_result_prefix: Redis key prefix for search results (default: "search_results:")
+            entity_types: List of entity types to search (default: ["movie", "actor", "director"])
         """
         self._redis_url = redis_url
         self._pool: Optional[redis.asyncio.ConnectionPool] = None  ***REMOVED*** type: ignore
@@ -60,6 +63,7 @@ class SuggestionEngine:
         self._suggestion_key_prefix = suggestion_key_prefix
         self._entity_key_prefix = entity_key_prefix
         self._search_result_prefix = search_result_prefix
+        self._entity_types = entity_types or ["movie", "actor", "director"]
 
     @critical_service_handler("redis", logger)
     async def initialize(self) -> None:
@@ -271,41 +275,59 @@ class SuggestionEngine:
         if not query_prefix or limit <= 0:
             return []
 
-        matches = []
+        matches: List[str] = []
+        start_time = time.time()
+
         try:
             ***REMOVED*** Search through entity keys to find titles/names containing the query substring
             ***REMOVED*** Look for movies, actors, and directors containing the substring
             entity_patterns = [
-                f"{self._entity_key_prefix}movie:*{query_prefix}*",
-                f"{self._entity_key_prefix}actor:*{query_prefix}*",
-                f"{self._entity_key_prefix}director:*{query_prefix}*",
+                f"{self._entity_key_prefix}{e_type}:*{query_prefix}*"
+                for e_type in self._entity_types
             ]
 
             for pattern in entity_patterns:
-                ***REMOVED*** Use KEYS for now (simpler than scan_iter for debugging)
-                keys = await redis_client.keys(pattern)
+                ***REMOVED*** Use SCAN for better performance and scalability
+                cursor = 0
+                while len(matches) < limit:
+                    cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
+                    for key in keys:
+                        ***REMOVED*** Process key properly based on its type
+                        key_str = key if isinstance(key, str) else key.decode("utf-8")
 
-                for key in keys:
-                    if isinstance(key, bytes):
-                        key = key.decode("utf-8")
+                        ***REMOVED*** Extract the entity name from the key (everything after "entity:type:")
+                        if key_str.startswith(self._entity_key_prefix):
+                            ***REMOVED*** Split: entity:movie:napoleon -> ["entity", "movie", "napoleon"]
+                            parts = key_str.split(":", 2)
+                            if len(parts) >= 3:
+                                entity_name = parts[2]  ***REMOVED*** "napoleon"
+                                ***REMOVED*** Only add non-empty entity names that aren't duplicates
+                                if entity_name and entity_name not in matches:
+                                    matches.append(entity_name)
 
-                    ***REMOVED*** Extract the entity name from the key (everything after "entity:type:")
-                    if key.startswith(self._entity_key_prefix):
-                        ***REMOVED*** Split: entity:movie:napoleon -> ["entity", "movie", "napoleon"]
-                        parts = key.split(":", 2)
-                        if len(parts) >= 3:
-                            entity_name = parts[2]  ***REMOVED*** "napoleon"
-                            if entity_name not in matches:
-                                matches.append(entity_name)
+                                    if len(matches) >= limit:
+                                        break
 
-                                if len(matches) >= limit:
-                                    break
+                    ***REMOVED*** Break if we've scanned all keys
+                    if cursor == 0:
+                        break
 
                 if len(matches) >= limit:
                     break
 
         except Exception as e:
             logger.warning(f"Error in substring matching: {str(e)}")
+
+        finally:
+            duration = time.time() - start_time
+            if duration > 0.1:  ***REMOVED*** Log slow queries (>100ms)
+                logger.warning(
+                    f"Slow substring search: '{query_prefix}' took {duration:.3f}s, found {len(matches)} matches"
+                )
+            elif duration > 0.05:  ***REMOVED*** Debug log for moderately slow queries (>50ms)
+                logger.debug(
+                    f"Substring search: '{query_prefix}' took {duration:.3f}s, found {len(matches)} matches"
+                )
 
         return matches
 
@@ -354,23 +376,22 @@ class SuggestionEngine:
                                 if len(suggestions) >= limit:
                                     break
 
-                ***REMOVED*** If still not enough results, try substring/contains matching
-                if len(suggestions) < min(3, limit):
-                    substring_suggestions = await self._get_substring_matches(
-                        redis_client, query_prefix, limit - len(suggestions)
-                    )
-                    ***REMOVED*** Add substring matches that aren't already included
-                    for sugg in substring_suggestions:
-                        if sugg not in suggestions:
-                            suggestions.append(sugg)
-                            if len(suggestions) >= limit:
-                                break
+            ***REMOVED*** Smart substring matching: always try for 3+ char queries to enhance results
+            if len(query_prefix) >= 3 and len(suggestions) < limit:
+                ***REMOVED*** Calculate how many more results we need
+                remaining_slots = limit - len(suggestions)
 
-            ***REMOVED*** For all queries 3+ chars, try substring matching to enhance results
-            if len(query_prefix) >= 3:
+                ***REMOVED*** For insufficient results, be more aggressive with substring matching
+                if len(suggestions) < min(3, limit):
+                    substring_limit = min(8, max(3, remaining_slots + 3))
+                else:
+                    ***REMOVED*** For good results, just add a few substring matches for enhancement
+                    substring_limit = min(5, max(2, remaining_slots + 2))
+
                 substring_suggestions = await self._get_substring_matches(
-                    redis_client, query_prefix, min(5, max(2, limit - len(suggestions) + 2))
+                    redis_client, query_prefix, substring_limit
                 )
+
                 ***REMOVED*** Add substring matches that aren't already included
                 for sugg in substring_suggestions:
                     if sugg not in suggestions:

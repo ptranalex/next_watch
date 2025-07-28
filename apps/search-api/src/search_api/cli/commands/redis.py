@@ -63,9 +63,17 @@ def populate_suggestions(
     include_directors: bool = typer.Option(
         True, "--directors/--no-directors", help="Include directors in suggestions"
     ),
+    entity_types: str = typer.Option(
+        "movie,actor,director",
+        "--entity-types",
+        help="Comma-separated list of entity types to populate (e.g., 'movie,actor,director,series')",
+    ),
     actor_limit: int = typer.Option(500, "--actor-limit", help="Maximum number of actors to load"),
     director_limit: int = typer.Option(
         200, "--director-limit", help="Maximum number of directors to load"
+    ),
+    batch_size: int = typer.Option(
+        100, "--batch-size", help="Number of operations to batch in Redis pipeline"
     ),
     redis_url: str = typer.Option(
         None,
@@ -74,6 +82,9 @@ def populate_suggestions(
         help="Redis URL (defaults to config or localhost)",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
+    validate_data: bool = typer.Option(
+        True, "--validate/--no-validate", help="Validate data consistency after population"
+    ),
 ) -> None:
     """
     Populate Redis with movie, actor, and director suggestions for autocomplete.
@@ -90,9 +101,19 @@ def populate_suggestions(
         search-api cli redis populate-suggestions --fetch-all --verbose
         search-api cli redis populate-suggestions --no-actors --no-directors
         search-api cli redis populate-suggestions --no-clear --verbose
+        search-api cli redis populate-suggestions --entity-types "movie,actor" --batch-size 200
+        search-api cli redis populate-suggestions --fetch-all --no-validate
     """
     ***REMOVED*** Get configuration
     config = get_search_settings()
+
+    ***REMOVED*** Parse entity types
+    enabled_entity_types = [t.strip() for t in entity_types.split(",") if t.strip()]
+
+    ***REMOVED*** Override individual flags with entity_types parameter
+    include_movies = "movie" in enabled_entity_types
+    include_actors = include_actors and "actor" in enabled_entity_types
+    include_directors = include_directors and "director" in enabled_entity_types
 
     ***REMOVED*** Get Redis URL from parameter, config, or default
     actual_redis_url = redis_url or config.redis_url or "redis://localhost:6379/0"
@@ -121,20 +142,24 @@ def populate_suggestions(
         )
 
     try:
-        ***REMOVED*** Run the population async task
+        ***REMOVED*** Run the async population
         asyncio.run(
             _populate_suggestions_async(
-                config=config,
-                redis_url=actual_redis_url,
-                limit=actual_limit,
-                clear=clear,
-                include_words=include_words,
-                min_word_length=min_word_length,
-                include_actors=include_actors,
-                include_directors=include_directors,
-                actor_limit=actor_limit,
-                director_limit=director_limit,
-                verbose=verbose,
+                config,  ***REMOVED*** First parameter should be config
+                actual_redis_url,
+                actual_limit,
+                clear,
+                include_words,
+                min_word_length,
+                include_movies,
+                include_actors,
+                include_directors,
+                enabled_entity_types,
+                actor_limit,
+                director_limit,
+                batch_size,
+                verbose,
+                validate_data,
             )
         )
 
@@ -155,11 +180,15 @@ async def _populate_suggestions_async(
     clear: bool,
     include_words: bool,
     min_word_length: int,
+    include_movies: bool,
     include_actors: bool,
     include_directors: bool,
+    enabled_entity_types: List[str],
     actor_limit: int,
     director_limit: int,
+    batch_size: int,
     verbose: bool,
+    validate_data: bool,
 ) -> None:
     """
     Async implementation of the suggestion population.
@@ -171,11 +200,15 @@ async def _populate_suggestions_async(
         clear: Whether to clear existing suggestions
         include_words: Whether to index individual words
         min_word_length: Minimum length for individual words
+        include_movies: Whether to include movies
         include_actors: Whether to include actors
         include_directors: Whether to include directors
+        enabled_entity_types: List of enabled entity types
         actor_limit: Maximum number of actors to load
         director_limit: Maximum number of directors to load
+        batch_size: Number of operations to batch in Redis pipeline
         verbose: Enable verbose output
+        validate_data: Whether to validate data consistency
     """
     start_time = datetime.now()
 
@@ -248,102 +281,105 @@ async def _populate_suggestions_async(
             ***REMOVED*** Initialize counters
             movie_count = 0
 
-            ***REMOVED*** Fetch movie data from Backend API
-            console.print(
-                f"Fetching {'ALL available' if limit is None else f'up to {limit}'} movies from Backend API..."
-            )
-            movies_task = progress.add_task("Fetching movies...", total=1)
-            movies = await _fetch_movie_data_from_backend(backend_client, limit)
-            progress.update(movies_task, completed=1)
+            ***REMOVED*** Fetch and process movies if requested
+            movie_count = 0
+            if include_movies:
+                ***REMOVED*** Fetch movie data from Backend API
+                console.print(
+                    f"Fetching {'ALL available' if limit is None else f'up to {limit}'} movies from Backend API..."
+                )
+                movies_task = progress.add_task("Fetching movies...", total=1)
+                movies = await _fetch_movie_data_from_backend(backend_client, limit)
+                progress.update(movies_task, completed=1)
 
-            if not movies:
-                console.print("[yellow]No movies found in Backend API.[/yellow]")
-            else:
-                console.print(f"Found {len(movies)} movies to process")
+                if not movies:
+                    console.print("[yellow]No movies found in Backend API.[/yellow]")
+                else:
+                    console.print(f"Found {len(movies)} movies to process")
 
-                ***REMOVED*** Process movies
-                movie_task = progress.add_task("Processing movies...", total=len(movies))
-                pipeline = redis_client.pipeline()
-                batch_size = 100
+                    ***REMOVED*** Process movies
+                    movie_task = progress.add_task("Processing movies...", total=len(movies))
+                    pipeline = redis_client.pipeline()
+                    ***REMOVED*** Use configurable batch size for better performance tuning
 
-                for i, movie in enumerate(movies):
-                    title = movie["title"].lower()
-                    movie_id = movie["id"]
+                    for i, movie in enumerate(movies):
+                        title = movie["title"].lower()
+                        movie_id = movie["id"]
 
-                    ***REMOVED*** Add to sorted set for prefix matching
-                    pipeline.zadd("suggestions", {title: i})
+                        ***REMOVED*** Add to sorted set for prefix matching
+                        pipeline.zadd("suggestions", {title: i})
 
-                    ***REMOVED*** Add key for direct lookup
-                    pipeline.set(f"suggestions:{title}", movie_id)
+                        ***REMOVED*** Add key for direct lookup
+                        pipeline.set(f"suggestions:{title}", movie_id)
 
-                    ***REMOVED*** Store detailed movie data in JSON format
-                    movie_data = {
-                        "id": movie["id"],
-                        "title": movie["title"],
-                        "type": "movie",
-                        "image_path": movie.get("poster_path"),
-                        "year": movie.get("release_year"),
-                        "popularity": movie.get("popularity"),
-                        "vote_average": movie.get("vote_average"),
-                        "original_title_format": movie["title"],
-                        ***REMOVED*** Store additional movie fields for comprehensive search
-                        "overview": movie.get("overview"),
-                        "release_date": movie.get("release_date"),
-                        "backdrop_url": movie.get("backdrop_url"),
-                        "imdb_rating": movie.get("imdb_rating"),
-                        "runtime": movie.get("runtime"),
-                        "genres": movie.get("genres", []),
-                        "tmdb_id": movie.get("tmdb_id"),
-                        "imdb_id": movie.get("imdb_id"),
-                    }
+                        ***REMOVED*** Store detailed movie data in JSON format
+                        movie_data = {
+                            "id": movie["id"],
+                            "title": movie["title"],
+                            "type": "movie",
+                            "image_path": movie.get("poster_path"),
+                            "year": movie.get("release_year"),
+                            "popularity": movie.get("popularity"),
+                            "vote_average": movie.get("vote_average"),
+                            "original_title_format": movie["title"],
+                            ***REMOVED*** Store additional movie fields for comprehensive search
+                            "overview": movie.get("overview"),
+                            "release_date": movie.get("release_date"),
+                            "backdrop_url": movie.get("backdrop_url"),
+                            "imdb_rating": movie.get("imdb_rating"),
+                            "runtime": movie.get("runtime"),
+                            "genres": movie.get("genres", []),
+                            "tmdb_id": movie.get("tmdb_id"),
+                            "imdb_id": movie.get("imdb_id"),
+                        }
 
-                    pipeline.set(f"entity:movie:{title}", json.dumps(movie_data))
+                        pipeline.set(f"entity:movie:{title}", json.dumps(movie_data))
 
-                    ***REMOVED*** Add entity lookup by ID for efficient suggestion resolution
-                    pipeline.set(f"entity:id:{movie_id}", json.dumps(movie_data))
+                        ***REMOVED*** Add entity lookup by ID for efficient suggestion resolution
+                        pipeline.set(f"entity:id:{movie_id}", json.dumps(movie_data))
 
-                    ***REMOVED*** Add searchable variations of the title
-                    if "(" in title and ")" in title:
-                        ***REMOVED*** Get the main title before parentheses
-                        main_title = title.split("(")[0].strip()
-                        if main_title:
-                            pipeline.zadd("suggestions", {main_title: i})
-                            pipeline.set(f"suggestions:{main_title}", movie_id)
-                            pipeline.set(f"entity:movie:{main_title}", json.dumps(movie_data))
+                        ***REMOVED*** Add searchable variations of the title
+                        if "(" in title and ")" in title:
+                            ***REMOVED*** Get the main title before parentheses
+                            main_title = title.split("(")[0].strip()
+                            if main_title:
+                                pipeline.zadd("suggestions", {main_title: i})
+                                pipeline.set(f"suggestions:{main_title}", movie_id)
+                                pipeline.set(f"entity:movie:{main_title}", json.dumps(movie_data))
 
-                        ***REMOVED*** Also get what's inside the parentheses
-                        for paren_part in re.findall(r"\((.*?)\)", title):
-                            if paren_part and len(paren_part) > 3:
-                                paren_title = paren_part.strip().lower()
-                                pipeline.zadd("suggestions", {paren_title: i})
-                                pipeline.set(f"suggestions:{paren_title}", movie_id)
+                            ***REMOVED*** Also get what's inside the parentheses
+                            for paren_part in re.findall(r"\((.*?)\)", title):
+                                if paren_part and len(paren_part) > 3:
+                                    paren_title = paren_part.strip().lower()
+                                    pipeline.zadd("suggestions", {paren_title: i})
+                                    pipeline.set(f"suggestions:{paren_title}", movie_id)
 
-                    ***REMOVED*** Process words for improved partial matching
-                    if include_words:
-                        words = re.split(r"[\s\(\)\[\]\{\}\:\;\,\.\-\_\+\=]+", title)
+                        ***REMOVED*** Process words for improved partial matching
+                        if include_words:
+                            words = re.split(r"[\s\(\)\[\]\{\}\:\;\,\.\-\_\+\=]+", title)
 
-                        for word in [w for w in words if w and len(w) >= min_word_length]:
-                            ***REMOVED*** Add the full word
-                            pipeline.zadd("suggestions", {word: i})
-                            pipeline.set(f"suggestions:{word}", movie_id)
+                            for word in [w for w in words if w and len(w) >= min_word_length]:
+                                ***REMOVED*** Add the full word
+                                pipeline.zadd("suggestions", {word: i})
+                                pipeline.set(f"suggestions:{word}", movie_id)
 
-                            ***REMOVED*** For important words, also add specific prefixes
-                            if len(word) >= 5:
-                                for prefix_len in range(min_word_length, min(len(word), 6)):
-                                    prefix = word[:prefix_len]
-                                    ***REMOVED*** Store prefix with score offset to prioritize full words
-                                    pipeline.zadd("suggestions", {prefix: i + 100000})
-                                    if not await redis_client.exists(f"suggestions:{prefix}"):
-                                        pipeline.set(f"suggestions:{prefix}", movie_id)
+                                ***REMOVED*** For important words, also add specific prefixes
+                                if len(word) >= 5:
+                                    for prefix_len in range(min_word_length, min(len(word), 6)):
+                                        prefix = word[:prefix_len]
+                                        ***REMOVED*** Store prefix with score offset to prioritize full words
+                                        pipeline.zadd("suggestions", {prefix: i + 100000})
+                                        if not await redis_client.exists(f"suggestions:{prefix}"):
+                                            pipeline.set(f"suggestions:{prefix}", movie_id)
 
-                    movie_count += 1
+                        movie_count += 1
 
-                    ***REMOVED*** Execute pipeline in batches
-                    if (i + 1) % batch_size == 0 or i == len(movies) - 1:
-                        await pipeline.execute()
-                        pipeline = redis_client.pipeline()
+                        ***REMOVED*** Execute pipeline in batches
+                        if (i + 1) % batch_size == 0 or i == len(movies) - 1:
+                            await pipeline.execute()
+                            pipeline = redis_client.pipeline()
 
-                    progress.update(movie_task, completed=i + 1)
+                        progress.update(movie_task, completed=i + 1)
 
             ***REMOVED*** Fetch and process actors if requested
             actor_count = 0
@@ -449,6 +485,47 @@ async def _populate_suggestions_async(
 
             progress.update(verify_task, completed=1)
 
+        ***REMOVED*** Validate data consistency if requested
+        validation_results = {}
+        if validate_data:
+            validation_task = progress.add_task(
+                "Validating data consistency...", total=len(enabled_entity_types)
+            )
+
+            for entity_type in enabled_entity_types:
+                entity_keys = []
+                cursor = 0
+                while True:
+                    cursor, keys = await redis_client.scan(
+                        cursor=cursor, match=f"entity:{entity_type}:*", count=1000
+                    )
+                    entity_keys.extend(keys)
+                    if cursor == 0:
+                        break
+
+                ***REMOVED*** Check if entity keys have corresponding suggestion keys
+                valid_entities = 0
+                invalid_entities = []
+
+                for entity_key in entity_keys[: min(100, len(entity_keys))]:  ***REMOVED*** Sample validation
+                    entity_name = entity_key.split(":", 2)[2] if ":" in entity_key else None
+                    if entity_name:
+                        suggestion_key = f"suggestions:{entity_name}"
+                        if await redis_client.exists(suggestion_key):
+                            valid_entities += 1
+                        else:
+                            invalid_entities.append(entity_name)
+
+                validation_results[entity_type] = {
+                    "total_entities": len(entity_keys),
+                    "sampled": min(100, len(entity_keys)),
+                    "valid": valid_entities,
+                    "invalid": len(invalid_entities),
+                    "invalid_samples": invalid_entities[:5],  ***REMOVED*** Show first 5 invalid
+                }
+
+                progress.update(validation_task, advance=1)
+
         ***REMOVED*** Show summary
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
@@ -463,6 +540,22 @@ async def _populate_suggestions_async(
         console.print(f"  • Entries in sorted set: {zset_count:,}")
         console.print(f"  • Entity detail records: {entity_count:,}")
         console.print(f"  • Duration: {duration:.2f} seconds")
+
+        ***REMOVED*** Display validation results if requested
+        if validate_data:
+            console.print("\n[bold blue]Data Validation Results:[/bold blue]")
+            for entity_type, result in validation_results.items():
+                console.print(f"  {entity_type}:")
+                console.print(f"    Total entities: {result['total_entities']:,}")
+                console.print(f"    Sampled for validation: {result['sampled']:,}")
+                console.print(f"    Valid: {result['valid']:,}")
+                console.print(f"    Invalid: {result['invalid']:,}")
+                if result["invalid_samples"]:
+                    samples = result["invalid_samples"]
+                    if isinstance(samples, (list, tuple)):
+                        console.print(f"    Invalid samples: {', '.join(str(s) for s in samples)}")
+                    else:
+                        console.print(f"    Invalid samples: {samples}")
 
     finally:
         ***REMOVED*** Close connections
