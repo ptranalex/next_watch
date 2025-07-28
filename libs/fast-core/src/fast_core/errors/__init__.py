@@ -25,6 +25,8 @@ from .exceptions import (
 from .handlers import (
     handle_service_error,
     service_error_handler,
+    critical_service_handler,
+    optional_service_handler,
     ServiceErrorContext,
     create_error_response,
 )
@@ -45,6 +47,8 @@ __all__ = [
     ***REMOVED*** Handler functions and utilities
     "handle_service_error",
     "service_error_handler",
+    "critical_service_handler",
+    "optional_service_handler",
     "ServiceErrorContext",
     "create_error_response",
 ]
