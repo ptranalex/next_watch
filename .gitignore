@@ -1,72 +1,76 @@
-***REMOVED*** Virtual Environments
-.venv/
-env/
-venv/
-ENV/
-
-***REMOVED*** Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.build/
-dist/
-*.egg-info/
-.eggs/
-.python-version
-.pytest_cache/
-.coverage
-htmlcov/
-coverage.xml
-
-***REMOVED*** Logs
-*.log
-ebook_summarizer.log
-
-***REMOVED*** Environment Variables & Configuration Files
-.env
-.env.*
-.env.local
-.env.*.local
-.env.development
-.env.staging
-.env.production
-.env.test
-.env.docker
-*.env
-apps/*/.env
-apps/*/.env.*
-apps/*/.env.local
-apps/*/.env.*.local
-
-***REMOVED*** IDEs
-.idea/
-.vscode/
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** OS & Editor Junk
+***REMOVED*** ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
 *.swp
 *.swo
+*.bak
+*.tmp
 
-***REMOVED*** Project Specific
-.DS_Store
-reference/
-**/reference/
-references/
-**/references/
+***REMOVED*** VS Code / IDE configs
+.vscode/
+.idea/
+*.code-workspace
 
-***REMOVED*** Next.js
-.next/
-**/.next/
-**/out/
-.vercel/
-next-error.log
-apps/web-nextjs/.turbo
-.turbo/
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** Python - global patterns (apps should still have their own .gitignore)
+***REMOVED*** ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
 
-***REMOVED*** Node
+***REMOVED*** Byte-compiled and cache artifacts
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+*.log
+
+***REMOVED*** Hatch/Pipenv/Poetry caches (if used globally)
+.hatch/
+.venv/
+.env/        ***REMOVED*** in case a global .env exists at root
+.env.local
+.env.*.local
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** Node.js (for frontend apps or tools)
+***REMOVED*** ------------------------------------------------------------------------------
 node_modules/
-**/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+.pnpm-debug.log*
+dist/
+.next/
+out/
 
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** Coverage & Test Reports
+***REMOVED*** ------------------------------------------------------------------------------
+coverage/
+htmlcov/
+.tox/
+.nox/
+*.cover
+*.py,cover
+.cache
+pytest_cache/
+junit*.xml
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** Monorepo tooling
+***REMOVED*** ------------------------------------------------------------------------------
+*.lock           ***REMOVED*** e.g., if using pip-tools or pnpm
+.lock-wip
+turbo/
+
+model_cache
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** Local Development Storage
+***REMOVED*** ------------------------------------------------------------------------------
+data
