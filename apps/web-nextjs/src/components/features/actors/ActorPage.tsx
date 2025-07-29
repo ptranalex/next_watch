@@ -4,6 +4,7 @@ import { Heading } from "@chakra-ui/react";
 import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { memo, useEffect, useMemo, useCallback } from "react";
 import MovieBrowseLayout from "@/components/ui/layout/MovieBrowseLayout";
+import PageErrorBoundary from "@/components/ui/layout/PageErrorBoundary";
 import { useActorPage } from "@/services/hooks/pages/useActorPage";
 import { createLogger } from "@/utils/logging";
 
@@ -22,6 +23,8 @@ export interface ActorPageProps {
  * Uses the shared MovieBrowseLayout for consistent UI with other pages.
  * This is a feature-level component that contains all the business logic
  * for displaying an actor's movies with filtering and pagination.
+ *
+ * Now uses PageErrorBoundary for consistent error handling across the app.
  *
  * @param props - Component props
  * @param props.actorId - The ID of the actor to display movies for
@@ -46,6 +49,7 @@ const ActorPage = memo(({ actorId }: ActorPageProps) => {
     error,
     hasNextPage,
     loadMore,
+    refetch,
     // activeFilters, // TODO: Will be used when filter UI is added
     // hasActiveFilters, // TODO: Will be used when filter UI is added
   } = useActorPage(actorId);
@@ -56,14 +60,13 @@ const ActorPage = memo(({ actorId }: ActorPageProps) => {
     loadMore();
   }, [loadMore, actorName]);
 
-  // Log the extracted actor ID
+  // Log component lifecycle
   useEffect(() => {
     if (actorId) {
       logger.info(`Rendering actor page for actor ID: ${actorId}`);
     }
   }, [actorId]);
 
-  // Log when actor data changes
   useEffect(() => {
     if (actor) {
       logger.info(`Actor data loaded: ${actorName} (ID: ${actorId})`);
@@ -131,22 +134,44 @@ const ActorPage = memo(({ actorId }: ActorPageProps) => {
     );
   }
 
+  // Use PageErrorBoundary for consistent error handling
   return (
-    <MovieBrowseLayout title={actorTitle}>
-      <MovieGrid
-        movies={movies}
-        totalMovies={totalMovies}
-        fetchedMoviesCount={movies.length}
-        isLoading={isLoading}
-        isFetchingNextPage={isFetchingNextPage}
-        hasNextPage={hasNextPage}
-        onLoadMore={handleLoadMore}
-        error={error as Error | null}
-        columns={gridColumns}
-        source="by_actor"
-        emptyMessage={`No movies found for ${actorName}`}
-      />
-    </MovieBrowseLayout>
+    <PageErrorBoundary
+      error={error}
+      pageId="actor-page"
+      resourceId={actorId}
+      resourceName={actorName}
+      refetch={refetch}
+      title={actorTitle}
+      // Removed useGenericLayout=false - errors should use clean PageLayout (industry standard)
+      errorMessages={{
+        notFound: {
+          title: "Actor Not Found",
+          description:
+            "The actor you're looking for doesn't exist or has been removed.",
+        },
+        client: {
+          title: "Unable to Load Actor",
+          description: "There was a problem loading this actor page.",
+        },
+      }}
+    >
+      <MovieBrowseLayout title={actorTitle}>
+        <MovieGrid
+          movies={movies}
+          totalMovies={totalMovies}
+          fetchedMoviesCount={movies.length}
+          isLoading={isLoading}
+          isFetchingNextPage={isFetchingNextPage}
+          hasNextPage={hasNextPage}
+          onLoadMore={handleLoadMore}
+          error={error as Error | null}
+          columns={gridColumns}
+          source="by_actor"
+          emptyMessage={`No movies found for ${actorName}`}
+        />
+      </MovieBrowseLayout>
+    </PageErrorBoundary>
   );
 });
 

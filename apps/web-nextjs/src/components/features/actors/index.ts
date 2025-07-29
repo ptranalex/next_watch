@@ -20,6 +20,11 @@ export type {
 // ============================================================================
 
 export { default as ActorPage } from "./ActorPage";
+export { default as ActorPageSkeleton } from "./ActorPageSkeleton";
+export {
+  ActorPageCompactSkeleton,
+  MovieCardSkeleton,
+} from "./ActorPageSkeleton";
 
 // TODO: Export additional actor components when they are created
 // export { default as ActorCard } from "./ActorCard";

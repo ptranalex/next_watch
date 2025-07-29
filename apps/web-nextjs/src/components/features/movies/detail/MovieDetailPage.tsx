@@ -7,6 +7,7 @@ import DesktopMovieDetailView from "./DesktopMovieDetailView";
 import MobileMovieDetailView from "@/components/mobile/features/movies/detail/MobileMovieDetailView";
 import { createLogger } from "@/utils/logging";
 import { useResponsive } from "@/providers/ResponsiveContext";
+import MovieNotFoundState from "./MovieNotFoundState";
 
 // Create logger for this component
 const logger = createLogger("MovieDetailPage");
@@ -64,7 +65,13 @@ const MovieDetailPage = memo(({ movieId }: MovieDetailPageProps) => {
   useEffect(() => {
     if (isHydrated) {
       if (error) {
-        logger.error(`Error loading movie ${movieId}:`, error);
+        // Check if it's a 404 error (movie not found)
+        const apiError = error as { status?: number };
+        if (apiError.status === 404) {
+          logger.info(`Movie ${movieId} not found (404)`, { movieId });
+        } else {
+          logger.error(`Error loading movie ${movieId}:`, error);
+        }
       } else if (movie) {
         logger.info(`Movie data loaded: ${movie.title} (ID: ${movieId})`);
         logger.info(`Similar movies loaded: ${relatedMovies?.length || 0}`);
@@ -88,6 +95,29 @@ const MovieDetailPage = memo(({ movieId }: MovieDetailPageProps) => {
     return (
       <div className="text-center py-10">
         <p>Invalid movie ID. Please select a valid movie.</p>
+      </div>
+    );
+  }
+
+  // Handle error states
+  if (error) {
+    // Check if it's a 404 error (movie not found)
+    const apiError = error as { status?: number };
+    if (apiError.status === 404) {
+      return (
+        <MovieNotFoundState
+          message={`Movie with ID ${movieId} was not found.`}
+        />
+      );
+    }
+
+    // Handle other errors (500, network issues, etc.)
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-xl font-semibold mb-4">Something went wrong</h2>
+        <p>
+          We&apos;re having trouble loading this movie. Please try again later.
+        </p>
       </div>
     );
   }

@@ -34,6 +34,9 @@ export { default as ResponsiveShell } from "./ResponsiveShell";
 
 // Content templates
 export { default as MovieBrowseLayout } from "./MovieBrowseLayout";
+export { default as MovieBrowseLayoutSkeleton } from "./MovieBrowseLayoutSkeleton";
+export { default as PageLayout } from "./PageLayout";
+export { default as PageErrorBoundary } from "./PageErrorBoundary";
 
 // Additional templates (to be implemented as needed)
 // export { default as DetailLayout } from "./DetailLayout";

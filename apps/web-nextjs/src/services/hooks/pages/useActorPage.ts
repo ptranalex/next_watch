@@ -1,7 +1,11 @@
 "use client";
 
 import { fetchData, ActorScreenData } from "@/services/api";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQueryClient,
+  InfiniteData,
+} from "@tanstack/react-query";
 import { createLogger } from "@/utils/logging";
 import { useEffect, useMemo } from "react";
 import { Movie } from "@/domain/entities";
@@ -182,6 +186,43 @@ export function useActorPage(id: number) {
     enabled: !!id,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+    onSuccess: (data: InfiniteData<ActorScreenData>) => {
+      // Log successful data loading
+      const firstPage = data?.pages?.[0];
+      if (firstPage) {
+        logger.info("Loaded actor data successfully", {
+          actorId: id,
+          actorName: firstPage.data?.name,
+          totalMovies: firstPage.related.movies?.total || 0,
+          currentPage: firstPage.related.movies?.page || 1,
+          totalPages: firstPage.related.movies?.total_pages || 0,
+          moviesOnFirstPage: firstPage.related.movies?.results?.length || 0,
+          hasFilters: Object.keys(queryParams).length > 0,
+          filters: queryParams,
+        });
+
+        // Log a sample movie to verify data structure
+        const firstMovie = firstPage.related.movies?.results?.[0];
+        if (firstMovie) {
+          logger.debug("Sample actor movie with user interactions:", {
+            id: firstMovie.id,
+            title: firstMovie.title,
+            watched: firstMovie.watched,
+            liked: firstMovie.liked,
+            in_watchlist: firstMovie.in_watchlist,
+          });
+        }
+      }
+    },
+    onError: (error: unknown) => {
+      // Handle specific error types for better UX
+      const apiError = error as { status?: number };
+      if (apiError.status === 404) {
+        logger.info(`Actor ${id} not found (404)`, { actorId: id });
+      } else {
+        logger.error(`Error loading actor ${id} data:`, error);
+      }
+    },
   });
 
   // Extract actor info from first page - now from data property

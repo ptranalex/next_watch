@@ -6,6 +6,11 @@
 
 // Main top movies page component
 export { default as TopMoviesPage } from "./TopMoviesPage";
+export { default as TopMoviesPageSkeleton } from "./TopMoviesPageSkeleton";
+export {
+  TopMoviesPageCompactSkeleton,
+  TopMovieCardSkeleton,
+} from "./TopMoviesPageSkeleton";
 
 // Types
 export type { TopMoviesPageProps } from "./TopMoviesPage";

@@ -1,19 +1,22 @@
 "use client";
 
-import React, { memo, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import { Box, Grid, GridItem, Show } from "@chakra-ui/react";
+import { memo } from "react";
+import { useColorModeValueSafe } from "@/services/hooks";
+import { createLogger } from "@/utils/logging";
 import Header from "../organisms/navigation/Header";
 import SideBar from "../organisms/navigation/SideBar";
-import { Box, Grid, GridItem, Show, Spinner, Flex } from "@chakra-ui/react";
 import { useSyncFilterToUrl } from "@/services/hooks/filter/useSyncFilterToUrl";
 import { useFilterResetOnRouteChange } from "@/services/hooks/filter/useFilterResetOnRouteChange";
 import { useMovieFilterRehydration } from "@/services/hooks/filter/useMovieFilterRehydration";
-import { createLogger } from "@/utils/logging";
 import type { AppShellProps } from "./types";
+import LoadingSpinner from "@/components/ui/atoms/LoadingSpinner";
 
 // Create logger for this component
 const logger = createLogger("AppShell");
 
-// Memoize child components to prevent unnecessary re-renders
+// Memoize components for performance
 const MemoizedHeader = memo(Header);
 const MemoizedSideBar = memo(SideBar);
 
@@ -45,7 +48,7 @@ const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
     <Suspense
       fallback={
         <Box display="flex" justifyContent="center" py={10}>
-          <Spinner size="xl" color="colors.primary" />
+          <LoadingSpinner size={24} speed={1.2} />
         </Box>
       }
     >
@@ -60,6 +63,9 @@ const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
  * Provides the main application layout structure with flexible header,
  * sidebar, footer, and content areas.
  *
+ * Now uses hydration-safe color mode values to prevent light->dark flashing
+ * during skeleton loading in the outer layout containers.
+ *
  * @param children - Main content area
  * @param header - Header content (defaults to Header)
  * @param sidebar - Sidebar content (defaults to SideBar)
@@ -68,6 +74,10 @@ const ContentWithSuspense = ({ children }: { children: React.ReactNode }) => {
  * @param onSidebarToggle - Callback for sidebar toggle
  */
 function AppShell({ children, header, sidebar, footer }: AppShellProps) {
+  // Use hydration-safe color mode values to prevent SSR/client flash
+  const bgColor = useColorModeValueSafe("white", "gray.900");
+  const containerBgColor = useColorModeValueSafe("gray.50", "gray.800");
+
   // Log app shell rendering
   useEffect(() => {
     logger.info("AppShell mounted - rendering main application layout");
@@ -82,8 +92,7 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
   const defaultSidebar = sidebar || <MemoizedSideBar />;
 
   return (
-    <>
-      {/* <Flex direction="column" minHeight="100vh"> */}
+    <Box bg={bgColor} minH="100vh">
       {/* Header - Sticky at top */}
       {defaultHeader}
 
@@ -93,7 +102,13 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
       </Suspense>
 
       {/* Main layout container */}
-      <Box px={{ base: 0, xl: 32 }} maxW="1600px" mx="auto" paddingX={5}>
+      <Box
+        px={{ base: 0, xl: 32 }}
+        maxW="1600px"
+        mx="auto"
+        paddingX={5}
+        bg={containerBgColor}
+      >
         <Grid
           templateAreas={{
             base: `"main"`,
@@ -116,11 +131,13 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
       </Box>
 
       {/* Footer area */}
-      {footer && <Box mt={8}>{footer}</Box>}
-      {/* </Flex> */}
-    </>
+      {footer && (
+        <Box mt={8} bg={bgColor}>
+          {footer}
+        </Box>
+      )}
+    </Box>
   );
 }
 
-// Export the memoized component to prevent unnecessary re-renders
-export default memo(AppShell);
+export default AppShell;

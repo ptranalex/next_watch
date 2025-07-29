@@ -22,10 +22,10 @@ import {
   Spinner,
   Text,
   useBreakpointValue,
-  useColorModeValue,
   FormControl,
   FormErrorMessage,
   IconButton,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -89,11 +89,11 @@ const SearchInput: React.FC<SearchInputProps> = ({
   const responsiveShowHotkey = useBreakpointValue({ base: false, md: true });
   const showHotkey = propShowHotkey ?? responsiveShowHotkey;
 
-  // Theme-aware colors
-  const dropdownBg = useColorModeValue("bg.secondary", "bg.secondary");
+  // Theme-aware colors using hydration-safe values
+  const dropdownBg = useColorModeValue("gray.100", "gray.700");
   const overlayBg = useColorModeValue("blackAlpha.300", "blackAlpha.500");
-  const borderColor = useColorModeValue("border.subtle", "border.subtle");
-  const hoverBg = useColorModeValue("bg.tertiary", "bg.tertiary");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const hoverBg = useColorModeValue("gray.200", "gray.600");
 
   // Refs for DOM manipulation
   const inputRef = useRef<HTMLInputElement>(null);

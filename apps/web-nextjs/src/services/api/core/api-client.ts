@@ -199,7 +199,7 @@ apiClient.interceptors.response.use(
         case 403:
           throw new AuthError("Access denied");
         case 404:
-          throw new APIError("Resource not found");
+          throw new APIError("Resource not found", 404);
         case 409:
           // For collection endpoints, 409 often means the item is already in the desired state
           // Check if this is a collection operation (like/watchlist/watched)
@@ -228,9 +228,9 @@ apiClient.interceptors.response.use(
           // For other endpoints, treat 409 as a regular error
           throw new APIError(message);
         case 429:
-          throw new APIError("Too many requests");
+          throw new APIError("Too many requests", 429);
         default:
-          throw new APIError(message);
+          throw new APIError(message, status);
       }
     }
 

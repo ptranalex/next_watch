@@ -1,6 +1,9 @@
 import { Box, Heading, Text } from "@chakra-ui/react";
 import React from "react";
-import type { MovieNotFoundStateProps } from "./types";
+
+interface MovieNotFoundStateProps {
+  message?: string;
+}
 
 /**
  * Not found state for movie details

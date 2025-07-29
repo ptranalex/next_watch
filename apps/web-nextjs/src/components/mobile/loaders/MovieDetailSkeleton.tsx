@@ -8,6 +8,7 @@ import {
   GridItem,
   Stack,
   useBreakpointValue,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { createLogger } from "@/utils/logging";
 
@@ -23,6 +24,10 @@ const logger = createLogger("MovieDetailSkeleton");
 const MovieDetailSkeleton: React.FC = () => {
   // Use responsive state
   const isDesktop = useBreakpointValue({ base: false, md: true });
+
+  // Dark mode support
+  const startColor = useColorModeValue("gray.100", "gray.600");
+  const endColor = useColorModeValue("gray.300", "gray.800");
 
   logger.debug(`Rendering MovieDetailSkeleton - isDesktop: ${isDesktop}`);
 
@@ -42,8 +47,8 @@ const MovieDetailSkeleton: React.FC = () => {
                 height="400px"
                 width="280px"
                 borderRadius="md"
-                startColor="gray.500"
-                endColor="gray.700"
+                startColor={startColor}
+                endColor={endColor}
               />
 
               {/* Actors gallery skeleton */}

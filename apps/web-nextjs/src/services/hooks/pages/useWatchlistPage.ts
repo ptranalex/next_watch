@@ -1,7 +1,11 @@
 "use client";
 
 import { fetchData } from "@/services/api";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQueryClient,
+  InfiniteData,
+} from "@tanstack/react-query";
 import { createLogger } from "@/utils/logging";
 import { useEffect, useMemo } from "react";
 import { Movie } from "@/domain/entities";
@@ -193,6 +197,41 @@ export function useWatchlistPage() {
     enabled: true,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+    onSuccess: (data: InfiniteData<WatchlistMoviesResponse>) => {
+      // Log successful data loading
+      const firstPage = data?.pages?.[0];
+      if (firstPage) {
+        logger.info("Loaded watchlist movies successfully", {
+          totalMovies: firstPage.pagination?.total || 0,
+          currentPage: firstPage.pagination?.page || 1,
+          totalPages: firstPage.pagination?.total_pages || 0,
+          moviesOnFirstPage: firstPage.results?.length || 0,
+          hasFilters: Object.keys(queryParams).length > 0,
+          filters: queryParams,
+        });
+
+        // Log a sample movie to verify data structure
+        const firstMovie = firstPage.results?.[0];
+        if (firstMovie) {
+          logger.debug("Sample watchlist movie with user interactions:", {
+            id: firstMovie.id,
+            title: firstMovie.title,
+            watched: firstMovie.watched,
+            liked: firstMovie.liked,
+            in_watchlist: firstMovie.in_watchlist,
+          });
+        }
+      }
+    },
+    onError: (error: unknown) => {
+      // Handle specific error types for better UX
+      const apiError = error as { status?: number };
+      if (apiError.status === 404) {
+        logger.info("Watchlist movies not found (404)");
+      } else {
+        logger.error("Error loading watchlist movies:", error);
+      }
+    },
   });
 
   // Flatten all movies from all pages

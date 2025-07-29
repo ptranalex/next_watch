@@ -5,7 +5,11 @@ import { MoviesAPI } from "@/services/api";
 import { BFFMovieListResponseRB } from "@/services/api/bff/types";
 import { CacheKeys } from "@/services/cache";
 import useMovieFilterStore from "@/store/movieFilterStore";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQueryClient,
+  InfiniteData,
+} from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { createLogger } from "@/utils/logging";
 
@@ -191,6 +195,62 @@ export const useHomePage = (options: UseHomePageOptions) => {
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+    onSuccess: (data: InfiniteData<BFFMovieListResponseRB>) => {
+      // Log successful data loading
+      const firstPage = data?.pages?.[0];
+      if (firstPage) {
+        const totalMovies = firstPage.pagination?.total || 0;
+        const moviesOnFirstPage = firstPage.results?.length || 0;
+        const currentPage = firstPage.pagination?.page || 1;
+        const totalPages = firstPage.pagination?.total_pages || 0;
+
+        logger.info("Loaded home page movies successfully", {
+          totalMovies,
+          currentPage,
+          totalPages,
+          moviesOnFirstPage,
+          hasFilters: !!(
+            options.genre_id ||
+            options.actor_id ||
+            year ||
+            imdb_rating ||
+            rotten_tomatoes_rating ||
+            metacritic_rating
+          ),
+          filters: {
+            genre_id: options.genre_id,
+            actor_id: options.actor_id,
+            sort_by: sortOrder,
+            sort_desc: sortDesc,
+            year,
+            imdb_rating,
+            rotten_tomatoes_rating,
+            metacritic_rating,
+          },
+        });
+
+        // Log a sample movie to verify data structure
+        const firstMovie = firstPage.results?.[0];
+        if (firstMovie) {
+          logger.debug("Sample home page movie with user interactions:", {
+            id: firstMovie.id,
+            title: firstMovie.title,
+            watched: firstMovie.watched,
+            liked: firstMovie.liked,
+            in_watchlist: firstMovie.in_watchlist,
+          });
+        }
+      }
+    },
+    onError: (error: unknown) => {
+      // Handle specific error types for better UX
+      const apiError = error as { status?: number };
+      if (apiError.status === 404) {
+        logger.info("Home page movies not found (404)");
+      } else {
+        logger.error("Error loading home page movies:", error);
+      }
+    },
   });
 
   // Calculate total fetched movies count

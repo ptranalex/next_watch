@@ -6,6 +6,7 @@
  * - core: Authentication, routing, and application-wide concerns
  * - domain: Business domain operations and data handling
  * - ui: User interface and rendering concerns
+ * - components: Component-specific behavior and state management
  */
 
 // Core hooks
@@ -16,6 +17,9 @@ export * from "./domain";
 
 // UI utility hooks
 export * from "./ui";
+
+// Component-specific hooks
+export * from "./components";
 
 // Filter hooks
 export * from "./filter";

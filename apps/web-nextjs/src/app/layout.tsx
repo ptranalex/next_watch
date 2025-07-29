@@ -19,17 +19,16 @@ export const metadata: Metadata = {
   description: "Discover your next favorite movie with Next Watch",
 };
 
-// Sets browser toolbar color based on light/dark mode preference (mostly for mobile/pwa polish)
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "***REMOVED***171923" },
-  ],
-  // Add mobile viewport settings
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  // Also supported by new API:
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "***REMOVED***1a202c" },
+  ],
 };
 
 export default function RootLayout({

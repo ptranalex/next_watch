@@ -133,7 +133,13 @@ export function useMovieDetailPage(id: number) {
       }
     },
     onError: (error: unknown) => {
-      logger.error(`Error loading movie ${id} from BFF:`, error);
+      // Handle specific error types for better UX
+      const apiError = error as { status?: number };
+      if (apiError.status === 404) {
+        logger.info(`Movie ${id} not found (404)`, { movieId: id });
+      } else {
+        logger.error(`Error loading movie ${id} from BFF:`, error);
+      }
     },
   }) as {
     data: MovieDetailResponse | undefined;
@@ -144,7 +150,8 @@ export function useMovieDetailPage(id: number) {
 
   // Log errors
   if (error) {
-    logger.error(`Error in useMovieDetailPage hook for movie ${id}:`, error);
+    // Error logging is now handled in the component for better UX
+    // This avoids duplicate logging while still providing context if needed
   }
 
   // Process similar movies data to include similarity scores and reasons

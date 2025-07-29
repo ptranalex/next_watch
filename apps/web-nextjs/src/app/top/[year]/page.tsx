@@ -2,6 +2,7 @@
 
 import { memo, useState, useEffect, useMemo } from "react";
 import { TopMoviesPage } from "@/components/features/movies/top";
+import TopMoviesPageSkeleton from "@/components/features/movies/top/TopMoviesPageSkeleton";
 import { createLogger } from "@/utils/logging";
 
 // Create logger for this route
@@ -68,14 +69,11 @@ const TopMoviesPageRoute = memo(
       }
     }, [yearParam]);
 
-    // Show loading state during initial params resolution
+    // Show skeleton loading state during initial params resolution
+    // Industry standard: skeleton that matches actual content structure
     if (!paramsResolved) {
-      logger.debug("Waiting for params to resolve");
-      return (
-        <div className="text-center py-10">
-          <p>Loading...</p>
-        </div>
-      );
+      logger.debug("Waiting for params to resolve - showing skeleton");
+      return <TopMoviesPageSkeleton />;
     }
 
     // Delegate to the feature component

@@ -4,6 +4,7 @@ import { Heading } from "@chakra-ui/react";
 import MovieGrid from "@/components/features/movies/grid/MovieGrid";
 import { memo, useEffect, useMemo, useCallback } from "react";
 import MovieBrowseLayout from "@/components/ui/layout/MovieBrowseLayout";
+import PageErrorBoundary from "@/components/ui/layout/PageErrorBoundary";
 import { useGenrePage } from "@/services/hooks/pages/useGenrePage";
 import { createLogger } from "@/utils/logging";
 
@@ -22,6 +23,8 @@ export interface GenrePageProps {
  * Uses the shared MovieBrowseLayout for consistent UI with other pages.
  * This is a feature-level component that contains all the business logic
  * for displaying a genre's movies with filtering and pagination.
+ *
+ * Now uses PageErrorBoundary for consistent error handling across the app.
  *
  * @param props - Component props
  * @param props.genreId - The ID of the genre to display movies for
@@ -46,6 +49,7 @@ const GenrePage = memo(({ genreId }: GenrePageProps) => {
     error,
     hasNextPage,
     loadMore,
+    refetch,
     // activeFilters, // TODO: Will be used when filter UI is added
     // hasActiveFilters, // TODO: Will be used when filter UI is added
   } = useGenrePage(genreId);
@@ -56,14 +60,13 @@ const GenrePage = memo(({ genreId }: GenrePageProps) => {
     loadMore();
   }, [loadMore, genreName]);
 
-  // Log the extracted genre ID
+  // Log component lifecycle
   useEffect(() => {
     if (genreId) {
       logger.info(`Rendering genre page for genre ID: ${genreId}`);
     }
   }, [genreId]);
 
-  // Log when genre data changes
   useEffect(() => {
     if (genre) {
       logger.info(`Genre data loaded: ${genreName} (ID: ${genreId})`);
@@ -131,22 +134,45 @@ const GenrePage = memo(({ genreId }: GenrePageProps) => {
     );
   }
 
+  // Use PageErrorBoundary for consistent error handling
   return (
-    <MovieBrowseLayout title={genreTitle}>
-      <MovieGrid
-        movies={movies}
-        totalMovies={totalMovies}
-        fetchedMoviesCount={movies.length}
-        isLoading={isLoading}
-        isFetchingNextPage={isFetchingNextPage}
-        hasNextPage={hasNextPage}
-        onLoadMore={handleLoadMore}
-        error={error as Error | null}
-        columns={gridColumns}
-        source="by_genre"
-        emptyMessage={`No movies found in ${genreName}`}
-      />
-    </MovieBrowseLayout>
+    <PageErrorBoundary
+      error={error}
+      pageId="genre-page"
+      resourceId={genreId}
+      resourceName={genreName}
+      refetch={refetch}
+      title={genreTitle}
+      // Removed useGenericLayout=false - errors should use clean PageLayout (industry standard)
+      errorMessages={{
+        notFound: {
+          title: "Genre Not Found",
+          description:
+            "The genre you're looking for doesn't exist or has been removed.",
+        },
+        client: {
+          title: "Unable to Load Genre",
+          description: "There was a problem loading this genre page.",
+        },
+        // Removed network error - should be handled at app level
+      }}
+    >
+      <MovieBrowseLayout title={genreTitle}>
+        <MovieGrid
+          movies={movies}
+          totalMovies={totalMovies}
+          fetchedMoviesCount={movies.length}
+          isLoading={isLoading}
+          isFetchingNextPage={isFetchingNextPage}
+          hasNextPage={hasNextPage}
+          onLoadMore={handleLoadMore}
+          error={error as Error | null}
+          columns={gridColumns}
+          source="by_genre"
+          emptyMessage={`No movies found in ${genreName}`}
+        />
+      </MovieBrowseLayout>
+    </PageErrorBoundary>
   );
 });
 

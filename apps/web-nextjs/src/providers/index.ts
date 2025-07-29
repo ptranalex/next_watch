@@ -11,5 +11,8 @@ export { default as AuthProvider } from "./AuthProvider";
 // Responsive design provider and hook
 export { ResponsiveProvider, useResponsive } from "./ResponsiveContext";
 
+// Color mode provider for hydration-safe color mode detection
+export { default as ColorModeProvider } from "./ColorModeProvider";
+
 // Theme utilities
 export { default as ThemeScript } from "./ThemeScript";

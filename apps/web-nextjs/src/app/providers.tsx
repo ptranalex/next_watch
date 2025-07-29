@@ -1,35 +1,31 @@
 "use client";
 
-import { AuthProvider, ResponsiveProvider } from "@/providers";
-import theme from "@/theme";
-import { createLogger } from "@/utils/logging";
-import { ChakraProvider } from "@chakra-ui/react";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ChakraProvider } from "@chakra-ui/react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AuthProvider, ResponsiveProvider } from "@/providers";
 import {
   CacheConfig,
   createCacheManager,
   GlobalCacheUtils,
 } from "@/services/cache";
+import ColorModeProvider from "@/providers/ColorModeProvider";
+import theme from "@/theme";
 import React, { useEffect, useState } from "react";
+import { createLogger } from "@/utils/logging";
 
 // Create logger for this component
 const logger = createLogger("Providers");
 
 /**
- * Global providers component
- * Responsible only for setting up context providers, not UI elements
- * The order matters - providers higher in the tree can be accessed by providers lower down
+ * Main providers wrapper that configures all application-level providers
+ * Order matters for proper dependency injection and context availability
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   // Log provider initialization
   useEffect(() => {
-    logger.info("Application providers initializing");
-
-    return () => {
-      logger.debug("Application providers unmounting");
-    };
+    logger.debug("Providers component mounted - initializing app context");
   }, []);
 
   const [queryClient] = useState(() => {
@@ -81,22 +77,25 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <>
       {/* 1. Setup UI framework */}
       <ChakraProvider theme={theme} resetCSS={true}>
-        {/* 2. Setup responsive detection */}
-        <ResponsiveProvider>
-          {/* 3. Setup data fetching with enhanced cache system */}
-          <QueryClientProvider client={queryClient}>
-            {/* 4. Setup authentication */}
-            <GoogleOAuthProvider
-              clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
-            >
-              <AuthProvider>
-                {/* 5. Setup app-specific state */}
-                {children}
-                <ReactQueryDevtools initialIsOpen={false} />
-              </AuthProvider>
-            </GoogleOAuthProvider>
-          </QueryClientProvider>
-        </ResponsiveProvider>
+        {/* 2. Setup color mode detection and prevention of flashing */}
+        <ColorModeProvider>
+          {/* 3. Setup responsive detection */}
+          <ResponsiveProvider>
+            {/* 4. Setup data fetching with enhanced cache system */}
+            <QueryClientProvider client={queryClient}>
+              {/* 5. Setup authentication */}
+              <GoogleOAuthProvider
+                clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+              >
+                <AuthProvider>
+                  {/* 6. Setup app-specific state */}
+                  {children}
+                  <ReactQueryDevtools initialIsOpen={false} />
+                </AuthProvider>
+              </GoogleOAuthProvider>
+            </QueryClientProvider>
+          </ResponsiveProvider>
+        </ColorModeProvider>
       </ChakraProvider>
     </>
   );

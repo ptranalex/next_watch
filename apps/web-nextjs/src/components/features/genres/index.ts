@@ -20,6 +20,12 @@ export type {
 // ============================================================================
 
 export { default as GenrePage } from "./GenrePage";
+export { default as GenrePageSkeleton } from "./GenrePageSkeleton";
+export {
+  GenrePageCompactSkeleton,
+  MovieCardSkeleton,
+  ShimmerSkeleton,
+} from "./GenrePageSkeleton";
 
 // TODO: Export additional genre components when they are created
 // export { default as GenreCard } from "./GenreCard";

@@ -19,6 +19,12 @@ export { default as MovieQuickAction } from "./MovieQuickAction";
 
 // Loading and state components
 export { default as MovieSkeleton } from "./MovieSkeleton";
+export { default as MovieDetailPageSkeleton } from "./MovieDetailPageSkeleton";
+export {
+  MovieDetailCompactSkeleton,
+  MobileMovieDetailSkeleton,
+  DesktopMovieDetailSkeleton,
+} from "./MovieDetailPageSkeleton";
 export { default as MovieErrorState } from "./MovieErrorState";
 export { default as MovieNotFoundState } from "./MovieNotFoundState";
 

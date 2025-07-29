@@ -8,6 +8,7 @@ import SearchInput from "@/components/ui/molecules/SearchInput";
 import ProfileModal from "@/components/features/profile/ProfileModal";
 import { useAuth } from "@/services/hooks";
 import { useResponsive } from "@/providers/ResponsiveContext";
+import { useColorModeValueSafe } from "@/services/hooks";
 import {
   Avatar,
   Box,
@@ -31,6 +32,9 @@ const logger = createLogger("Header");
  *
  * Desktop/tablet navigation header with flexible customization options.
  * Mobile navigation is handled by a separate mobile component.
+ *
+ * Now uses hydration-safe color mode values to prevent SSR/client flash
+ * during skeleton loading in the header background.
  *
  * @param logo - Custom logo element (defaults to Next Watch logo)
  * @param title - Navigation title (defaults to "Next Watch")
@@ -57,9 +61,19 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { colorMode } = useColorMode();
   const { isHydrated } = useResponsive();
-  const defaultLogo = colorMode === "light" ? logoLight : logoDark;
+
+  // Use hydration-safe logo selection to prevent flash during SSR
+  const defaultLogo = isHydrated
+    ? colorMode === "light"
+      ? logoLight
+      : logoDark
+    : logoDark; // Default to dark logo during SSR to match dark theme preference
+
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+
+  // Use hydration-safe color mode values to prevent SSR/client flash
+  const headerBgColor = useColorModeValueSafe("gray.50", "gray.800");
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -155,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({
         top="0"
         zIndex="sticky"
         backdropFilter="blur(10px)"
-        backgroundColor="bg.primary"
+        backgroundColor={headerBgColor}
         boxShadow="xl"
         opacity={headerOpacity}
         width="100%"

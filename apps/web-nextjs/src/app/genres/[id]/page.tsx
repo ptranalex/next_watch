@@ -3,6 +3,7 @@
 import { memo, useState, useEffect } from "react";
 import { useParams } from "@/services/hooks";
 import { GenrePage } from "@/components/features/genres";
+import GenrePageSkeleton from "@/components/features/genres/GenrePageSkeleton";
 import { createLogger } from "@/utils/logging";
 
 // Create logger for this route
@@ -50,14 +51,11 @@ const GenrePageRoute = memo(
       }
     }, [genreId]);
 
-    // Show loading state during initial params resolution
+    // Show skeleton loading state during initial params resolution
+    // Industry standard: skeleton that matches actual content structure
     if (!paramsResolved) {
-      logger.debug("Waiting for params to resolve");
-      return (
-        <div className="text-center py-10">
-          <p>Loading...</p>
-        </div>
-      );
+      logger.debug("Waiting for params to resolve - showing skeleton");
+      return <GenrePageSkeleton />;
     }
 
     // Delegate to the feature component

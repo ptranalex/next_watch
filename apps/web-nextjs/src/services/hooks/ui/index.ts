@@ -1,8 +1,10 @@
 /**
- * UI hooks
- * These hooks handle UI-related concerns like animations, responsive design, etc.
+ * UI Hooks
+ *
+ * Reusable hooks for UI interactions and utilities
  */
 
-export * from "./useDebounce";
-export * from "./useIntersectionObserver";
-export * from "./useDevice";
+export { useDebounce } from "./useDebounce";
+export { useDevice } from "./useDevice";
+export { default as useIntersectionObserver } from "./useIntersectionObserver";
+export { useColorModeValueSafe } from "./useColorModeValueSafe";

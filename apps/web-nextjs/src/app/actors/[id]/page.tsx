@@ -3,6 +3,7 @@
 import { memo, useState, useEffect } from "react";
 import { useParams } from "@/services/hooks";
 import { ActorPage } from "@/components/features/actors";
+import ActorPageSkeleton from "@/components/features/actors/ActorPageSkeleton";
 import { createLogger } from "@/utils/logging";
 
 // Create logger for this route
@@ -50,14 +51,11 @@ const ActorPageRoute = memo(
       }
     }, [actorId]);
 
-    // Show loading state during initial params resolution
+    // Show skeleton loading state during initial params resolution
+    // Industry standard: skeleton that matches actual content structure
     if (!paramsResolved) {
-      logger.debug("Waiting for params to resolve");
-      return (
-        <div className="text-center py-10">
-          <p>Loading...</p>
-        </div>
-      );
+      logger.debug("Waiting for params to resolve - showing skeleton");
+      return <ActorPageSkeleton />;
     }
 
     // Delegate to the feature component
