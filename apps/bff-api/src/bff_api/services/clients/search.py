@@ -246,7 +246,8 @@ class SearchAPIClient(BaseBackendClient):
 
             logger.info(
                 "Search API health check successful",
-                status=response.get("search_service", "unknown"),
+                status=response.get("status", "unknown"),
+                search_service=response.get("service", "unknown"),
                 service="bff",
                 component="search_client",
             )
