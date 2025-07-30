@@ -1,5 +1,5 @@
 ***REMOVED*** Prometheus Configuration for NextWatch Platform
-***REMOVED*** Clean, production-ready configuration for containerized deployment
+***REMOVED*** Clean, local-ready configuration for containerized deployment
 
 global:
   scrape_interval: 15s
@@ -22,7 +22,7 @@ scrape_configs:
   ***REMOVED*** NextWatch Services (Working Services Only)
   - job_name: "nextwatch-backend-api"
     static_configs:
-      - targets: ["backend-api:8000"]
+      - targets: ["localhost:8000"]
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -30,13 +30,13 @@ scrape_configs:
       - target_label: service
         replacement: "backend-api"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
   - job_name: "nextwatch-bff-api"
     static_configs:
-      - targets: ["bff-api:8000"] ***REMOVED*** BFF API runs on internal port 8000
+      - targets: ["localhost:8001"] ***REMOVED*** BFF API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -44,13 +44,13 @@ scrape_configs:
       - target_label: service
         replacement: "bff-api"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
   - job_name: "nextwatch-auth-api"
     static_configs:
-      - targets: ["auth-api:8000"] ***REMOVED*** Auth API runs on internal port 8000
+      - targets: ["localhost:8002"] ***REMOVED*** Auth API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -58,13 +58,13 @@ scrape_configs:
       - target_label: service
         replacement: "auth-api"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
   - job_name: "nextwatch-search-api"
     static_configs:
-      - targets: ["search-api:8000"] ***REMOVED*** Search API runs on internal port 8000
+      - targets: ["localhost:8003"] ***REMOVED*** Search API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -72,7 +72,7 @@ scrape_configs:
       - target_label: service
         replacement: "search-api"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
@@ -90,7 +90,7 @@ scrape_configs:
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
       - target_label: instance
-        replacement: "production-server"
+        replacement: "local-server"
 
   - job_name: "alertmanager"
     static_configs:
@@ -103,7 +103,7 @@ scrape_configs:
     scrape_interval: 30s
   - job_name: "nextwatch-ml-api"
     static_configs:
-      - targets: ["ml-api:8000"] ***REMOVED*** ML API runs on internal port 8000
+      - targets: ["localhost:8004"] ***REMOVED*** ML API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -111,13 +111,13 @@ scrape_configs:
       - target_label: service
         replacement: "ml-api"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
   - job_name: "nextwatch-recommendation-api"
     static_configs:
-      - targets: ["recommendation-api:8000"] ***REMOVED*** Recommendation API runs on internal port 8000
+      - targets: ["localhost:8005"] ***REMOVED*** Recommendation API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -125,30 +125,30 @@ scrape_configs:
       - target_label: service
         replacement: "recommendation-api"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
-  ***REMOVED*** Health Check Trigger - Calls /health endpoints to update native metrics
+    ***REMOVED*** Health Check Trigger - Calls /health endpoints to update native metrics
   - job_name: "nextwatch-health-trigger"
     static_configs:
       - targets:
-          - "backend-api:8000"
-          - "bff-api:8000"
-          - "auth-api:8000"
-          - "search-api:8000"
-          - "ml-api:8000"
-          - "recommendation-api:8000"
+          - "localhost:8000"
+          - "localhost:8001"
+          - "localhost:8002"
+          - "localhost:8003"
+          - "localhost:8004"
+          - "localhost:8005"
     scrape_interval: 30s
     metrics_path: /health
     scrape_timeout: 10s
     relabel_configs:
       - source_labels: [__address__]
-        regex: "(.+):.*"
+        regex: "host.docker.internal:(.+)"
         target_label: service
-        replacement: "${1}"
+        replacement: "service-${1}"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
       - target_label: probe_type
         replacement: "health_trigger"
 
@@ -165,12 +165,12 @@ scrape_configs:
       module: [http_health] ***REMOVED*** Use module that accepts 200 or 503
     static_configs:
       - targets:
-          - "http://backend-api:8000/health"
-          - "http://bff-api:8000/health"
-          - "http://auth-api:8000/health"
-          - "http://search-api:8000/health"
-          - "http://ml-api:8000/health"
-          - "http://recommendation-api:8000/health"
+          - "http://localhost:8000/health"
+          - "http://localhost:8001/health"
+          - "http://localhost:8002/health"
+          - "http://localhost:8003/health"
+          - "http://localhost:8004/health"
+          - "http://localhost:8005/health"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -185,7 +185,7 @@ scrape_configs:
       - target_label: probe_type
         replacement: "health"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
 
   ***REMOVED*** Readiness Endpoint Monitoring via Blackbox Exporter
   - job_name: "nextwatch-readiness-endpoints"
@@ -194,12 +194,12 @@ scrape_configs:
       module: [http_readiness] ***REMOVED*** Must be 200 only
     static_configs:
       - targets:
-          - "http://backend-api:8000/health/ready"
-          - "http://bff-api:8000/health/ready"
-          - "http://auth-api:8000/health/ready"
-          - "http://search-api:8000/health/ready"
-          - "http://ml-api:8000/health/ready"
-          - "http://recommendation-api:8000/health/ready"
+          - "http://localhost:8000/health/ready"
+          - "http://localhost:8001/health/ready"
+          - "http://localhost:8002/health/ready"
+          - "http://localhost:8003/health/ready"
+          - "http://localhost:8004/health/ready"
+          - "http://localhost:8005/health/ready"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -214,7 +214,7 @@ scrape_configs:
       - target_label: probe_type
         replacement: "readiness"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"
 
   ***REMOVED*** Service Connectivity Check (TCP)
   - job_name: "nextwatch-service-connectivity"
@@ -223,12 +223,12 @@ scrape_configs:
       module: [tcp_connect]
     static_configs:
       - targets:
-          - "backend-api:8000"
-          - "bff-api:8000"
-          - "auth-api:8000"
-          - "search-api:8000"
-          - "ml-api:8000"
-          - "recommendation-api:8000"
+          - "localhost:8000"
+          - "localhost:8001"
+          - "localhost:8002"
+          - "localhost:8003"
+          - "localhost:8004"
+          - "localhost:8005"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -243,4 +243,4 @@ scrape_configs:
       - target_label: probe_type
         replacement: "tcp"
       - target_label: environment
-        replacement: "production"
+        replacement: "local"

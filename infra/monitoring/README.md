@@ -1,8 +1,81 @@
-***REMOVED*** NextWatch Monitoring Configuration
+***REMOVED*** NextWatch Monitoring Stack
 
 ***REMOVED******REMOVED*** Overview
 
-This directory contains the unified monitoring configuration for NextWatch using Prometheus, Grafana, and related tools.
+This directory contains the monitoring configuration for the NextWatch platform, including Prometheus, Grafana, and Alertmanager.
+
+***REMOVED******REMOVED*** Health Status Monitoring
+
+***REMOVED******REMOVED******REMOVED*** Health Status Types
+
+Our services support three health status types:
+
+1. **Healthy** (`"status": "healthy"`) - All systems operational
+2. **Degraded** (`"status": "degraded"`) - Critical services up, some non-critical services down
+3. **Unhealthy** (`"status": "unhealthy"`) - Critical services down
+
+***REMOVED******REMOVED******REMOVED*** Monitoring Configuration
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Blackbox Exporter Modules
+
+- `http_health` - Accepts both 200 and 503 status codes (basic up/down)
+- `http_health_healthy_only` - Only passes when JSON contains `"status": "healthy"`
+- `http_health_degraded_only` - Only passes when JSON contains `"status": "degraded"`
+- `http_readiness` - Readiness checks (must be 200)
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Prometheus Jobs
+
+1. **nextwatch-health-endpoints** - Basic health monitoring (up/down)
+2. **nextwatch-health-healthy-only** - Tracks services in healthy state
+3. **nextwatch-health-degraded-only** - Tracks services in degraded state
+4. **nextwatch-readiness-endpoints** - Readiness monitoring for traffic routing
+
+***REMOVED******REMOVED******REMOVED*** Querying Health Status
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Check if service is healthy:
+
+```promql
+probe_success{job="nextwatch-health-healthy-only", service="backend-api"}
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Check if service is degraded:
+
+```promql
+probe_success{job="nextwatch-health-degraded-only", service="backend-api"}
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Count services by status:
+
+```promql
+***REMOVED*** Healthy services
+sum(probe_success{job="nextwatch-health-healthy-only"})
+
+***REMOVED*** Degraded services
+sum(probe_success{job="nextwatch-health-degraded-only"})
+
+***REMOVED*** Total responsive services (healthy + degraded)
+sum(probe_success{job="nextwatch-health-endpoints"})
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Alert on degraded services:
+
+```promql
+***REMOVED*** Alert when any service is degraded
+probe_success{job="nextwatch-health-degraded-only"} == 1
+
+***REMOVED*** Alert when service is neither healthy nor degraded (unhealthy)
+probe_success{job="nextwatch-health-endpoints"} == 1
+  and probe_success{job="nextwatch-health-healthy-only"} == 0
+  and probe_success{job="nextwatch-health-degraded-only"} == 0
+```
+
+***REMOVED******REMOVED******REMOVED*** Service Health Behavior
+
+- **HTTP 200 + "healthy"**: Service fully operational
+- **HTTP 200 + "degraded"**: Service operational but some dependencies down
+- **HTTP 503 + "degraded"**: Service operational but significant dependencies down
+- **HTTP 503 + "unhealthy"**: Service critical dependencies down
+- **No response**: Service completely down
 
 ***REMOVED******REMOVED*** Configuration Files
 
