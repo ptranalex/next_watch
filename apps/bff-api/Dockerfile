@@ -66,7 +66,7 @@ COPY apps/bff-api/pyproject.toml ./pyproject.toml
 
 ***REMOVED*** Install app dependencies with cache mount (but not the app itself yet)
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --user -e .
+    pip install --user .
 
 ***REMOVED*** Stage 5: Application code (changes most frequently)  
 FROM app-deps AS app-build
@@ -81,7 +81,8 @@ FROM python:3.12-alpine AS final
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
-    PATH="/home/app/.local/bin:$PATH"
+    PATH="/home/app/.local/bin:$PATH" \
+    PYTHONUSERBASE=/home/app/.local
 
 WORKDIR /app
 
@@ -103,6 +104,9 @@ COPY --chown=app:app apps/bff-api/scripts/ ./scripts/
 
 ***REMOVED*** Create logs directory with proper permissions
 RUN mkdir -p /app/logs && chown -R app:app /app
+
+***REMOVED*** Fix cron permissions for non-root user
+RUN mkdir -p /var/run && touch /var/run/crond.pid && chown app:app /var/run/crond.pid
 
 ***REMOVED*** Note: Keep as root for cron daemon, but startup script switches to app user for the API
 
