@@ -422,11 +422,12 @@ services:
         max-size: "100m"
         max-file: "3"
 
-  ***REMOVED*** BFF API - Backend for Frontend
+  ***REMOVED*** BFF API - Backend for Frontend (with cache warming)
   bff-api:
     image: ${DOCKER_BFF_IMAGE}
     container_name: bff-api
     restart: always
+    command: ["/app/scripts/start-with-cron.sh"]
     ports:
       - "127.0.0.1:8001:8000" ***REMOVED*** Map external 8001 to internal 8000 (Docker best practice)
     environment:
@@ -487,6 +488,10 @@ services:
       - ENABLE_RECOMMENDATIONS=true
       - ENABLE_ML_FEATURES=true
       - ENABLE_AUTH_SERVICE=true
+
+      ***REMOVED*** Cache Warming Configuration
+      - ENABLE_CACHE_WARMING=true
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-your-secure-admin-key}
 
       ***REMOVED*** Performance & Monitoring
       - ENABLE_PERFORMANCE_METRICS=true
@@ -565,6 +570,10 @@ services:
       options:
         max-size: "100m"
         max-file: "3"
+
+  ***REMOVED*** Cache Warmer - OPTION 2: Run cron inside BFF container instead
+  ***REMOVED*** Uncomment and modify BFF container to include cron setup
+  ***REMOVED*** See: infra/CACHE_WARMING_INSIDE_BFF.md for implementation
 
   ***REMOVED*** Data Importer - Utility service for data synchronization
   data-importer:
