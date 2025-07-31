@@ -29,8 +29,10 @@ class BFFDataProviders:
             Dictionary containing popular movies, actors, and genres
         """
         try:
-            ***REMOVED*** Get backend client from the service factory
-            backend_client = get_service_client("backend")()
+            ***REMOVED*** Get proper BFF backend client with specialized methods
+            from bff_api.dependencies import get_backend_client
+
+            backend_client = get_backend_client()
 
             logger.debug(
                 "Backend client retrieved for popularity data",

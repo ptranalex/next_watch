@@ -127,8 +127,31 @@ class BaseBackendClient(BaseServiceClient):
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
 
-            ***REMOVED*** 4xx errors are permanent (don't retry)
-            if 400 <= status_code < 500:
+            ***REMOVED*** 429 Too Many Requests should be retried with backoff
+            if status_code == 429:
+                retry_after = e.response.headers.get("Retry-After")
+                if retry_after:
+                    try:
+                        wait_seconds = int(retry_after)
+                        logger.warning(
+                            f"Rate limited by {method} {path}, will retry after {wait_seconds}s",
+                            status_code=status_code,
+                            retry_after=wait_seconds,
+                            service=self.service_name,
+                        )
+                    except ValueError:
+                        logger.warning(f"Invalid Retry-After header: {retry_after}")
+                else:
+                    logger.warning(
+                        f"Rate limited by {method} {path}, no Retry-After header provided",
+                        status_code=status_code,
+                        service=self.service_name,
+                    )
+                ***REMOVED*** Treat 429 as transient error for retry
+                raise BackendClientTransientError(f"Rate limited by service: {status_code}")
+
+            ***REMOVED*** Other 4xx errors are permanent (don't retry)
+            elif 400 <= status_code < 500:
                 ***REMOVED*** Log 4xx as appropriate levels
                 if status_code == 401:
                     logger.debug(f"Authentication failed for {method} {path}: {status_code}")

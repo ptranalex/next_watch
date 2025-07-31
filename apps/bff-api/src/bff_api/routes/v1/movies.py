@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key, build_filtered_key
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, Path, Query, HTTPException
+from fastapi import APIRouter, Depends, Path, Query, HTTPException, BackgroundTasks
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fast_core.errors.exceptions import (
     ExternalServiceException,
@@ -22,6 +22,7 @@ from fast_core.errors import ExternalServiceException
 from bff_api.services.clients import BackendClient
 from bff_api.services.clients.recommendation import RecommendationClient
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.services.smart_warming import get_smart_warming_dependency, BFFSmartWarming
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["movies"])
@@ -431,9 +432,11 @@ async def _get_movie_screen_data(
 )  ***REMOVED*** 200 requests per minute (higher for individual movie requests)
 @router.get("/movies/{movie_id}")
 async def get_movie_screen(
+    background_tasks: BackgroundTasks,
     movie_id: int = Path(..., description="Movie ID"),
     backend: BackendClient = Depends(get_backend_client),
     recommendation_client: RecommendationClient = Depends(get_recommendation_client),
+    smart_warming: BFFSmartWarming = Depends(get_smart_warming_dependency),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Dict[str, Any]:
     """Get aggregated data for movie detail screen.
@@ -507,6 +510,17 @@ async def get_movie_screen(
                 "response_pattern": "detail",
             },
         )
+
+        ***REMOVED*** 🔥 SMART WARMING: Trigger intelligent warming based on movie viewing
+        await smart_warming.warm_movie_interaction(
+            background_tasks=background_tasks,
+            movie_id=movie_id,
+            user_id=user_id,
+            interaction_type="viewed",
+            genre_id=screen_data_dict.get("movie", {}).get("genre_id"),
+            has_similar_movies=len(screen_data_dict.get("similar_movies", [])) > 0,
+        )
+
         return cast(Dict[str, Any], response)
 
     except ResourceNotFoundException as e:

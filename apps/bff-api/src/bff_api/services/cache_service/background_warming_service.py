@@ -27,32 +27,32 @@ class BackgroundWarmingService:
         self._running_tasks: Set[asyncio.Task[Any]] = set()
         self._should_stop = False
 
-        ***REMOVED*** Warming schedule configuration
+        ***REMOVED*** Warming schedule configuration - DISABLED for cron-based warming
         self._schedule_config = {
             "morning_warmup": {
                 "time": time(7, 0),  ***REMOVED*** 7 AM
                 "strategy": "popular_content",
-                "limit": 100,
-                "enabled": True,
+                "limit": 1000,  ***REMOVED*** Increased from 100 to 1000 - warm top 1000 movies
+                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
             },
             "evening_warmup": {
                 "time": time(17, 0),  ***REMOVED*** 5 PM
                 "strategy": "metrics_driven",
-                "limit": 50,
-                "enabled": True,
+                "limit": 500,  ***REMOVED*** Increased from 50 to 500 - warm based on metrics
+                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
             },
             "night_optimization": {
                 "time": time(1, 0),  ***REMOVED*** 1 AM
                 "strategy": "scheduled",
-                "limit": 30,
-                "enabled": True,
+                "limit": 300,  ***REMOVED*** Increased from 30 to 300 - comprehensive overnight warming
+                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
             },
             ***REMOVED*** Continuous metrics-driven warming every 10 minutes
             "continuous_metrics": {
                 "interval_minutes": 10,
                 "strategy": "metrics_driven",
-                "limit": 10,
-                "enabled": True,
+                "limit": 50,  ***REMOVED*** Increased from 10 to 50 - more frequent warming
+                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
             },
         }
 

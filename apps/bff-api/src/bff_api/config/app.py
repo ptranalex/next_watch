@@ -58,6 +58,12 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
         description="API key for service-to-service authentication",
     )
 
+    ***REMOVED*** Admin/operations authentication
+    admin_api_key: Optional[str] = Field(
+        default=None,
+        description="API key for admin endpoints (set in production for security)",
+    )
+
     ***REMOVED*** Feature flags
     enable_recommendations: bool = Field(default=True, description="Enable recommendation features")
     enable_ml_features: bool = Field(default=False, description="Enable machine learning features")

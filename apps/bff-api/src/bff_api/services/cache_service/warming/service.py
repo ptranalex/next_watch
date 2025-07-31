@@ -20,7 +20,8 @@ from config.logging import get_logger
 from bff_api.services.cache_service.cache_service import get_cache
 from bff_api.services.cache_service.warming.config import get_bff_warming_config
 from bff_api.services.cache_service.warming.factories import BFFTargetFactories
-from bff_api.services.cache_service.warming.functions import BFFWarmingFunctions
+from bff_api.services.cache_service.warming.functions import WarmingFunctions
+from bff_api.config.app import settings
 from bff_api.services.cache_service.warming.providers import BFFDataProviders
 
 logger = get_logger(__name__)
@@ -37,7 +38,7 @@ class BFFWarmingService:
 
         ***REMOVED*** Initialize component classes
         self.data_providers = BFFDataProviders()
-        self.warming_functions = BFFWarmingFunctions()
+        self.warming_functions = WarmingFunctions(settings)
         self.target_factories = BFFTargetFactories()
 
         ***REMOVED*** Create warming engine
@@ -74,10 +75,6 @@ class BFFWarmingService:
         self.engine.register_warming_function(
             "genre_screen", self.warming_functions.warm_genre_screen
         )
-        self.engine.register_warming_function(
-            "user_dashboard", self.warming_functions.warm_user_dashboard
-        )
-        self.engine.register_warming_function("homepage", self.warming_functions.warm_homepage)
 
         logger.info("Registered BFF warming functions for cache warming")
 

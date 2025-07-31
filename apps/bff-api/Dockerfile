@@ -87,7 +87,7 @@ WORKDIR /app
 
 ***REMOVED*** Install only runtime dependencies with cache mount
 RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
-    apk add --no-cache curl tini
+    apk add --no-cache curl tini cronie
 
 ***REMOVED*** Create app user
 RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
@@ -98,10 +98,13 @@ COPY --from=app-build --chown=app:app /root/.local /home/app/.local
 ***REMOVED*** Copy application code
 COPY --from=app-build --chown=app:app /app/src ./src/
 
+***REMOVED*** Copy startup scripts
+COPY --chown=app:app apps/bff-api/scripts/ ./scripts/
+
 ***REMOVED*** Create logs directory with proper permissions
 RUN mkdir -p /app/logs && chown -R app:app /app
 
-USER app
+***REMOVED*** Note: Keep as root for cron daemon, but startup script switches to app user for the API
 
 ***REMOVED*** Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \

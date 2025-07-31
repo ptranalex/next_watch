@@ -1,372 +1,344 @@
-"""BFF Cache Warming Functions.
+"""BFF-specific cache warming functions.
 
-This module implements the actual warming functions that call cached BFF endpoints
-to populate the cache with real data.
+This module implements the actual warming functions that call the cached BFF endpoints.
 """
 
-from datetime import datetime
-from typing import Any, Dict, Optional
+import asyncio
+import random
+from typing import Dict, Any, List, Optional, Callable, Awaitable
+from datetime import datetime, time
 
 from config.logging import get_logger
+from fast_core.dependencies.client_factory import ServiceClientConfig
 
-from bff_api.config.app import settings
+from bff_api.services.clients.facade import BackendClient
+from bff_api.services.clients.recommendation import RecommendationClient
+from bff_api.services.cache_service.warming.config import WarmingRateLimiter, WARMING_RATE_LIMITS
+from bff_api.config.app import settings, BFFAPIConfig
 
 logger = get_logger(__name__)
 
+***REMOVED*** Global rate limiter for warming operations
+_global_warming_rate_limiter: Optional[WarmingRateLimiter] = None
 
-class BFFWarmingFunctions:
-    """BFF-specific warming function implementations."""
 
-    def __init__(self) -> None:
-        """Initialize the warming functions."""
+def get_warming_rate_limiter() -> WarmingRateLimiter:
+    """Get or create the global warming rate limiter."""
+    global _global_warming_rate_limiter
+    if _global_warming_rate_limiter is None:
+        _global_warming_rate_limiter = WarmingRateLimiter(
+            requests_per_second=float(WARMING_RATE_LIMITS["requests_per_second"]),
+            burst_size=int(WARMING_RATE_LIMITS["burst_size"]),
+        )
+    return _global_warming_rate_limiter
+
+
+async def _rate_limited_operation(
+    operation_name: str, operation_func: Callable[[], Awaitable[Dict[str, Any]]]
+) -> Dict[str, Any]:
+    """Execute an operation with rate limiting and backoff.
+
+    Args:
+        operation_name: Name of the operation for logging
+        operation_func: Async function to execute
+
+    Returns:
+        Result of the operation
+
+    Raises:
+        Exception: If operation fails after retries
+    """
+    rate_limiter = get_warming_rate_limiter()
+    max_retries = 3
+    base_delay = WARMING_RATE_LIMITS["backoff_base"]
+    max_delay = WARMING_RATE_LIMITS["backoff_max"]
+    use_jitter = WARMING_RATE_LIMITS["jitter"]
+
+    for attempt in range(max_retries + 1):
+        try:
+            ***REMOVED*** Apply rate limiting before each attempt
+            await rate_limiter.acquire()
+
+            logger.debug(
+                f"Executing rate-limited warming operation",
+                operation=operation_name,
+                attempt=attempt + 1,
+                max_retries=max_retries + 1,
+            )
+
+            ***REMOVED*** Execute the operation
+            result = await operation_func()
+
+            if attempt > 0:
+                logger.info(
+                    f"Rate-limited operation succeeded after retries",
+                    operation=operation_name,
+                    attempts=attempt + 1,
+                )
+
+            return result
+
+        except Exception as e:
+            is_rate_limit_error = "429" in str(e) or "Too Many Requests" in str(e)
+            is_last_attempt = attempt == max_retries
+
+            if is_rate_limit_error and not is_last_attempt:
+                ***REMOVED*** Calculate exponential backoff with jitter
+                delay = min(base_delay**attempt, max_delay)
+                if use_jitter:
+                    delay *= 0.5 + random.random() * 0.5  ***REMOVED*** Add 0-50% jitter
+
+                logger.warning(
+                    f"Rate limited during warming operation, retrying",
+                    operation=operation_name,
+                    attempt=attempt + 1,
+                    max_retries=max_retries + 1,
+                    delay_seconds=delay,
+                    error=str(e),
+                )
+
+                await asyncio.sleep(delay)
+                continue
+            else:
+                ***REMOVED*** Non-rate-limit error or final attempt
+                if is_last_attempt:
+                    logger.error(
+                        f"Warming operation failed after all retries",
+                        operation=operation_name,
+                        attempts=attempt + 1,
+                        error=str(e),
+                    )
+                else:
+                    logger.error(
+                        f"Warming operation failed with non-retryable error",
+                        operation=operation_name,
+                        attempt=attempt + 1,
+                        error=str(e),
+                    )
+                raise
+
+    ***REMOVED*** This should never be reached, but add for type safety
+    raise Exception(f"Rate-limited operation {operation_name} failed after all attempts")
+
+
+class WarmingFunctions:
+    """Collection of warming functions for BFF cache."""
+
+    def __init__(self, settings: BFFAPIConfig) -> None:
+        """Initialize warming functions with settings."""
         self.settings = settings
 
     async def warm_movie_screen(
         self, movie_id: int, user_id: Optional[int] = None, **kwargs: Any
     ) -> Dict[str, Any]:
-        """Warm BFF movie screen data.
-
-        This function demonstrates the complete warming integration pattern by:
-        1. Importing and calling the actual cached function
-        2. Handling dependencies (backend client, credentials)
-        3. Supporting both anonymous and authenticated warming
-        4. Providing proper error handling and logging
+        """Warm the movie screen data cache.
 
         Args:
-            movie_id: Movie ID to warm
-            user_id: Optional user ID for user-specific warming
-            **kwargs: Additional parameters from warming strategies
+            movie_id: ID of the movie to warm
+            user_id: Optional user ID for user-specific data
+            **kwargs: Additional warming parameters
 
         Returns:
-            Dictionary containing the warmed data
-
-        Raises:
-            Exception: If warming operation fails
+            Dictionary containing warming results
         """
-        try:
-            from bff_api.routes.v1.movies import _get_movie_screen_data
-            from bff_api.services.backend_client import BackendClient
 
-            logger.info(
-                "Starting movie screen warming",
-                movie_id=movie_id,
-                user_id=user_id,
-                service="bff",
-                component="warming_functions",
+        async def _warm_operation() -> Dict[str, Any]:
+            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            from bff_api.routes.v1.movies import _get_movie_screen_data
+
+            ***REMOVED*** Create client configurations
+            backend_config = ServiceClientConfig(
+                name="backend", base_url=self.settings.backend_api_url, timeout=30
+            )
+            recommendation_config = ServiceClientConfig(
+                name="recommendation", base_url=self.settings.reco_api_url, timeout=30
             )
 
-            ***REMOVED*** Create backend client instance for warming
-            backend_client = BackendClient(config=self.settings)
+            ***REMOVED*** Create client instances
+            backend_client = BackendClient(backend_config, self.settings)
+            recommendation_client = RecommendationClient(recommendation_config, self.settings)
 
-            ***REMOVED*** For warming, we don't have actual HTTP credentials
-            ***REMOVED*** This warming call will populate cache for the specific user_id (or anonymous if None)
-            credentials = None  ***REMOVED*** Warming operates without active user sessions
-
-            ***REMOVED*** Call the actual cached function - this will populate the cache
-            ***REMOVED*** The @redis_cache decorator will handle cache storage
+            ***REMOVED*** Warm the movie screen data (this will populate the cache)
             warmed_data = await _get_movie_screen_data(
                 movie_id=movie_id,
                 user_id=user_id,
                 backend=backend_client,
-                credentials=credentials,
+                recommendation_client=recommendation_client,
+                credentials=None,
             )
 
-            ***REMOVED*** Log successful warming with metrics
-            logger.info(
-                "Successfully warmed movie screen data",
-                movie_id=movie_id,
-                user_id=user_id,
-                has_movie_data=bool(warmed_data.get("movie")),
-                cast_count=len(warmed_data.get("cast", [])),
-                trailer_count=len(warmed_data.get("trailers", [])),
-                similar_movies_count=len(warmed_data.get("similar_movies", [])),
-                service="bff",
-                component="warming_functions",
-            )
-
-            ***REMOVED*** Return summary data for warming statistics
             return {
                 "movie_id": movie_id,
                 "user_id": user_id,
-                "warmed_data_keys": list(warmed_data.keys()),
                 "cache_populated": True,
-                "warming_type": "movie_screen",
-                "timestamp": datetime.now().isoformat(),
+                "data_size": len(str(warmed_data)) if warmed_data else 0,
             }
 
-        except ImportError as e:
-            logger.error(
-                "Failed to import required modules for movie screen warming",
-                movie_id=movie_id,
-                user_id=user_id,
-                error=str(e),
-                service="bff",
-                component="warming_functions",
-            )
-            raise Exception(f"Import error during movie screen warming: {e}")
-
-        except Exception as e:
-            logger.error(
-                "Failed to warm movie screen data",
-                movie_id=movie_id,
-                user_id=user_id,
-                error=str(e),
-                service="bff",
-                component="warming_functions",
-            )
-            raise Exception(f"Movie screen warming failed: {e}")
+        result = await _rate_limited_operation(f"warm_movie_screen_{movie_id}", _warm_operation)
+        return result
 
     async def warm_movies_list(
-        self, page: int = 1, limit: int = 20, **kwargs: Any
+        self,
+        genre_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        limit: int = 20,
+        **kwargs: Any,
     ) -> Dict[str, Any]:
-        """Warm BFF movies list data.
+        """Warm the movies list cache.
 
-        Example implementation following the movie screen pattern.
-        This could be enhanced to warm different filter combinations.
+        Args:
+            genre_id: Optional genre filter
+            user_id: Optional user ID for personalization
+            limit: Number of movies to fetch
+            **kwargs: Additional warming parameters
+
+        Returns:
+            Dictionary containing warming results
         """
-        try:
-            from bff_api.routes.v1.movies import _get_movies_list_data
-            from bff_api.services.backend_client import BackendClient
 
-            logger.info(
-                "Starting movies list warming",
-                page=page,
-                limit=limit,
-                service="bff",
-                component="warming_functions",
+        async def _warm_operation() -> Dict[str, Any]:
+            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            from bff_api.routes.v1.movies import _get_movies_list_data
+
+            ***REMOVED*** Create client configurations
+            backend_config = ServiceClientConfig(
+                name="backend", base_url=self.settings.backend_api_url, timeout=30
             )
 
-            backend_client = BackendClient(config=self.settings)
+            ***REMOVED*** Create client instance
+            backend_client = BackendClient(backend_config, self.settings)
 
-            ***REMOVED*** Extract warming parameters from kwargs
-            genre_id = kwargs.get("genre_id")
-            actor_id = kwargs.get("actor_id")
-            sort_by = kwargs.get("sort_by")
-            sort_desc = kwargs.get("sort_desc", True)
-            user_id = kwargs.get("user_id")
-
-            ***REMOVED*** Warm the movies list cache
+            ***REMOVED*** Warm the movies list data with correct signature
             warmed_data = await _get_movies_list_data(
-                page=page,
+                page=1,  ***REMOVED*** Start with page 1
                 limit=limit,
                 genre_id=genre_id,
-                actor_id=actor_id,
-                sort_by=sort_by,
-                sort_desc=sort_desc,
-                imdb_rating=kwargs.get("imdb_rating"),
-                rotten_tomatoes_rating=kwargs.get("rotten_tomatoes_rating"),
-                metacritic_rating=kwargs.get("metacritic_rating"),
-                year=kwargs.get("year"),
-                start_year=kwargs.get("start_year"),
-                end_year=kwargs.get("end_year"),
+                actor_id=None,
+                sort_by="imdb_rating",
+                sort_desc=True,
+                imdb_rating=None,
+                rotten_tomatoes_rating=None,
+                metacritic_rating=None,
+                year=None,
+                start_year=None,
+                end_year=None,
                 user_id=user_id,
                 backend=backend_client,
                 credentials=None,
-            )
-
-            logger.info(
-                "Successfully warmed movies list data",
-                page=page,
-                limit=limit,
-                total_movies=len(warmed_data.get("results", [])),
-                service="bff",
-                component="warming_functions",
-            )
-
-            return {
-                "page": page,
-                "limit": limit,
-                "filters": {k: v for k, v in kwargs.items() if v is not None},
-                "movies_count": len(warmed_data.get("results", [])),
-                "cache_populated": True,
-                "warming_type": "movies_list",
-                "timestamp": datetime.now().isoformat(),
-            }
-
-        except Exception as e:
-            logger.error(
-                "Failed to warm movies list data",
-                page=page,
-                limit=limit,
-                error=str(e),
-                service="bff",
-                component="warming_functions",
-            )
-            raise Exception(f"Movies list warming failed: {e}")
-
-    async def warm_actor_screen(
-        self, actor_id: int, page: int = 1, limit: int = 20, **kwargs: Any
-    ) -> Dict[str, Any]:
-        """Warm BFF actor screen data.
-
-        This function calls the actual cached actor screen function to populate the cache.
-
-        Args:
-            actor_id: Actor ID to warm
-            page: Page number for pagination
-            limit: Items per page
-            **kwargs: Additional parameters from warming strategies
-
-        Returns:
-            Dictionary containing the warmed data summary
-
-        Raises:
-            Exception: If warming operation fails
-        """
-        try:
-            from bff_api.routes.v1.actors import _get_actor_screen_data
-            from bff_api.services.backend_client import BackendClient
-
-            logger.info(
-                "Starting actor screen warming",
-                actor_id=actor_id,
-                page=page,
-                limit=limit,
-                service="bff",
-                component="warming_functions",
-            )
-
-            backend_client = BackendClient(config=self.settings)
-
-            ***REMOVED*** Call the actual cached function to populate the cache
-            warmed_data = await _get_actor_screen_data(
-                actor_id=actor_id,
-                page=page,
-                limit=limit,
-                backend=backend_client,
-                credentials=None,
-            )
-
-            logger.info(
-                "Successfully warmed actor screen data",
-                actor_id=actor_id,
-                page=page,
-                limit=limit,
-                actor_name=warmed_data.get("actor", {}).get("name", "Unknown"),
-                movies_count=len(warmed_data.get("movies", {}).get("results", [])),
-                service="bff",
-                component="warming_functions",
-            )
-
-            return {
-                "actor_id": actor_id,
-                "page": page,
-                "limit": limit,
-                "actor_name": warmed_data.get("actor", {}).get("name", "Unknown"),
-                "movies_count": len(warmed_data.get("movies", {}).get("results", [])),
-                "cache_populated": True,
-                "warming_type": "actor_screen",
-                "timestamp": datetime.now().isoformat(),
-            }
-
-        except Exception as e:
-            logger.error(
-                "Failed to warm actor screen data",
-                actor_id=actor_id,
-                page=page,
-                limit=limit,
-                error=str(e),
-                service="bff",
-                component="warming_functions",
-            )
-            raise Exception(f"Actor screen warming failed: {e}")
-
-    async def warm_genre_screen(
-        self, genre_id: int, sort_by: str = "imdb_rating", page: int = 1, **kwargs: Any
-    ) -> Dict[str, Any]:
-        """Warm BFF genre screen data.
-
-        This function calls the actual cached genre screen function to populate the cache.
-
-        Args:
-            genre_id: Genre ID to warm
-            sort_by: Sort criteria for movies in genre
-            page: Page number for pagination
-            **kwargs: Additional parameters from warming strategies
-
-        Returns:
-            Dictionary containing the warmed data summary
-
-        Raises:
-            Exception: If warming operation fails
-        """
-        try:
-            from bff_api.routes.v1.genres import _get_genre_screen_data
-            from bff_api.services.backend_client import BackendClient
-
-            logger.info(
-                "Starting genre screen warming",
-                genre_id=genre_id,
-                sort_by=sort_by,
-                page=page,
-                service="bff",
-                component="warming_functions",
-            )
-
-            backend_client = BackendClient(config=self.settings)
-
-            ***REMOVED*** Extract additional parameters
-            limit = kwargs.get("limit", 20)
-
-            ***REMOVED*** Call the actual cached function to populate the cache
-            warmed_data = await _get_genre_screen_data(
-                genre_id=genre_id,
-                page=page,
-                limit=limit,
-                actor_id=kwargs.get("actor_id"),
-                sort_by=sort_by,
-                sort_desc=kwargs.get("sort_desc", True),
-                imdb_rating=kwargs.get("imdb_rating"),
-                rotten_tomatoes_rating=kwargs.get("rotten_tomatoes_rating"),
-                metacritic_rating=kwargs.get("metacritic_rating"),
-                year=kwargs.get("year"),
-                start_year=kwargs.get("start_year"),
-                end_year=kwargs.get("end_year"),
-                user_id=kwargs.get("user_id"),
-                backend=backend_client,
-                credentials=None,
-            )
-
-            logger.info(
-                "Successfully warmed genre screen data",
-                genre_id=genre_id,
-                sort_by=sort_by,
-                page=page,
-                genre_name=warmed_data.get("genre", {}).get("name", "Unknown"),
-                movies_count=len(warmed_data.get("movies", {}).get("results", [])),
-                service="bff",
-                component="warming_functions",
             )
 
             return {
                 "genre_id": genre_id,
-                "sort_by": sort_by,
-                "page": page,
-                "genre_name": warmed_data.get("genre", {}).get("name", "Unknown"),
-                "movies_count": len(warmed_data.get("movies", {}).get("results", [])),
+                "user_id": user_id,
+                "limit": limit,
                 "cache_populated": True,
-                "warming_type": "genre_screen",
-                "timestamp": datetime.now().isoformat(),
+                "movies_count": len(warmed_data.get("results", [])) if warmed_data else 0,
             }
 
-        except Exception as e:
-            logger.error(
-                "Failed to warm genre screen data",
-                genre_id=genre_id,
-                sort_by=sort_by,
-                page=page,
-                error=str(e),
-                service="bff",
-                component="warming_functions",
+        return await _rate_limited_operation(
+            f"warm_movies_list_{genre_id}_{limit}", _warm_operation
+        )
+
+    async def warm_actor_screen(
+        self, actor_id: int, user_id: Optional[int] = None, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Warm the actor screen data cache.
+
+        Args:
+            actor_id: ID of the actor to warm
+            user_id: Optional user ID for user-specific data (not used by underlying API)
+            **kwargs: Additional warming parameters
+
+        Returns:
+            Dictionary containing warming results
+        """
+
+        async def _warm_operation() -> Dict[str, Any]:
+            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            from bff_api.routes.v1.actors import _get_actor_screen_data
+
+            ***REMOVED*** Create client configurations
+            backend_config = ServiceClientConfig(
+                name="backend", base_url=self.settings.backend_api_url, timeout=30
             )
-            raise Exception(f"Genre screen warming failed: {e}")
 
-    async def warm_user_dashboard(self, user_id: int, **kwargs: Any) -> Dict[str, Any]:
-        """Warm BFF user dashboard data."""
-        logger.debug(f"Warming user dashboard for user {user_id}")
-        return {"user_id": user_id, "dashboard": "warmed"}
+            ***REMOVED*** Create client instance
+            backend_client = BackendClient(backend_config, self.settings)
 
-    async def warm_homepage(self, **kwargs: Any) -> Dict[str, Any]:
-        """Warm BFF homepage data."""
-        logger.debug("Warming homepage data")
-        return {"homepage": "warmed"}
+            ***REMOVED*** Warm the actor screen data with correct signature
+            warmed_data = await _get_actor_screen_data(
+                actor_id=actor_id,
+                page=1,
+                limit=20,
+                backend=backend_client,
+                credentials=None,
+            )
+
+            return {
+                "actor_id": actor_id,
+                "user_id": user_id,
+                "cache_populated": True,
+                "data_size": len(str(warmed_data)) if warmed_data else 0,
+            }
+
+        return await _rate_limited_operation(f"warm_actor_screen_{actor_id}", _warm_operation)
+
+    async def warm_genre_screen(
+        self, genre_id: int, user_id: Optional[int] = None, limit: int = 20, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Warm the genre screen data cache.
+
+        Args:
+            genre_id: ID of the genre to warm
+            user_id: Optional user ID for personalization
+            limit: Number of movies to fetch
+            **kwargs: Additional warming parameters
+
+        Returns:
+            Dictionary containing warming results
+        """
+
+        async def _warm_operation() -> Dict[str, Any]:
+            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            from bff_api.routes.v1.genres import _get_genre_screen_data
+
+            ***REMOVED*** Create client configurations
+            backend_config = ServiceClientConfig(
+                name="backend", base_url=self.settings.backend_api_url, timeout=30
+            )
+
+            ***REMOVED*** Create client instance
+            backend_client = BackendClient(backend_config, self.settings)
+
+            ***REMOVED*** Warm the genre screen data with correct signature
+            warmed_data = await _get_genre_screen_data(
+                genre_id=genre_id,
+                page=1,
+                limit=limit,
+                actor_id=None,
+                sort_by="imdb_rating",
+                sort_desc=True,
+                imdb_rating=None,
+                rotten_tomatoes_rating=None,
+                metacritic_rating=None,
+                year=None,
+                start_year=None,
+                end_year=None,
+                user_id=user_id,
+                backend=backend_client,
+                credentials=None,
+            )
+
+            return {
+                "genre_id": genre_id,
+                "user_id": user_id,
+                "limit": limit,
+                "cache_populated": True,
+                "movies_count": (
+                    len(warmed_data.get("movies", {}).get("results", [])) if warmed_data else 0
+                ),
+            }
+
+        return await _rate_limited_operation(
+            f"warm_genre_screen_{genre_id}_{limit}", _warm_operation
+        )

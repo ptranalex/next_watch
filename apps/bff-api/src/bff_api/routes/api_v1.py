@@ -20,6 +20,9 @@ from bff_api.routes.v1 import (
     watchlist,
 )
 
+***REMOVED*** Import admin routes (secured, internal-only)
+from bff_api.routes.admin import admin_router
+
 ***REMOVED*** Create the v1 API router
 api_v1_router = APIRouter(prefix="/bff/v1")
 
@@ -36,3 +39,8 @@ api_v1_router.include_router(top.router, tags=["top"])
 api_v1_router.include_router(watched.router, tags=["watched"])
 api_v1_router.include_router(watchlist.router, tags=["watchlist"])
 api_v1_router.include_router(liked.router, tags=["liked"])
+
+***REMOVED*** Include admin routes (secured, internal-only)
+***REMOVED*** WARNING: These endpoints should NOT be exposed to public traffic
+***REMOVED*** Configure network policies/authentication to restrict access
+api_v1_router.include_router(admin_router, tags=["admin"])

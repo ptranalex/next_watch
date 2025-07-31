@@ -11,12 +11,15 @@ from bff_api.services.cache_service.cache_service import (
     close_cache,
     check_cache_health,
 )
-from bff_api.services.cache_service.background_warming_service import (
-    BackgroundWarmingService,
-    get_background_warming_service,
-    start_background_warming,
-    stop_background_warming,
-)
+
+***REMOVED*** Background warming service removed - using cron jobs for scheduled warming
+***REMOVED*** from bff_api.services.cache_service.background_warming_service import (
+***REMOVED***     BackgroundWarmingService,
+***REMOVED***     get_background_warming_service,
+***REMOVED***     start_background_warming,
+***REMOVED***     stop_background_warming,
+***REMOVED*** )
+
 from bff_api.services.cache_service.warming import (
     BFFWarmingService,
     get_bff_warming_service,
@@ -31,6 +34,16 @@ from cache import CacheManager, get_cache_manager as _get_cache_manager
 from cache.config import CacheSettings
 
 from bff_api.config.app import get_cache_settings
+
+
+***REMOVED*** Dummy function for backward compatibility
+def get_background_warming_service() -> None:
+    """Dummy function - background warming service removed.
+
+    Background warming has been disabled in favor of cron-based warming.
+    This function exists for backward compatibility only.
+    """
+    return None
 
 
 def get_cache_manager(settings: Optional[CacheSettings] = None) -> CacheManager:

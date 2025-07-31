@@ -10,6 +10,9 @@ from rich.traceback import install
 from cache.cli.metrics import metrics_app as cache_metrics_cli
 from cache.cli.warming import warming_app as cache_warming_cli
 
+***REMOVED*** BFF-specific cache warming commands
+from bff_api.cli.commands.cache_warming import cache_app as bff_cache_warming_cli
+
 ***REMOVED*** CLI framework utilities and command generators
 from cli import (
     create_cache_commands,
@@ -69,9 +72,9 @@ async def _get_redis_client() -> Any:
 
 def _get_app_instance() -> Any:
     """Get the FastAPI app instance for production mode."""
-    from bff_api.main import get_app
+    from bff_api.main import create_app
 
-    return get_app()
+    return create_app()
 
 
 def _print_config(config: Any, title: str, console: Any) -> None:
@@ -197,6 +200,14 @@ def _setup_cli_app() -> typer.Typer:
         name="warming",
         help="Cache warming and preloading (NextWatch Cache Library)",
     )
+
+    ***REMOVED*** Add BFF-specific cache warming commands
+    app.add_typer(
+        bff_cache_warming_cli,
+        name="warm",
+        help="🔥 Production-safe cache warming for BFF API",
+    )
+
     app.add_typer(redis_cache_app, name="redis-cache")
     app.add_typer(serve_app, name="serve")
 
