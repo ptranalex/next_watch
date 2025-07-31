@@ -112,6 +112,8 @@ on:
         required: false
       JWT_JWK_ROTATION_INTERVAL:
         required: false
+      ADMIN_API_KEY:
+        required: false
 
 jobs:
   deploy:
@@ -209,6 +211,11 @@ jobs:
             fi
             if [ -n "${{ secrets.OMDB_API_KEY }}" ]; then
               echo "OMDB_API_KEY=${{ secrets.OMDB_API_KEY }}" >> .env.prod
+            fi
+            
+            ***REMOVED*** Handle optional admin API key for cache warming
+            if [ -n "${{ secrets.ADMIN_API_KEY }}" ]; then
+              echo "ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}" >> .env.prod
             fi
 
             ***REMOVED*** Download docker-compose.prod.yml from the correct path
