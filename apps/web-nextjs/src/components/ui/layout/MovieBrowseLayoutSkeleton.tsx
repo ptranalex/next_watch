@@ -32,7 +32,7 @@ const MovieBrowseLayoutSkeleton = memo(
     const { isMobile, isHydrated } = useResponsive();
     const startColor = useColorModeValue("gray.100", "gray.600");
     const endColor = useColorModeValue("gray.300", "gray.800");
-    const bgColor = useColorModeValue("white", "gray.900");
+    const bgColor = useColorModeValue("gray.50", "gray.800");
 
     if (!isHydrated || !isMobile) {
       return (
