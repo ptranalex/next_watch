@@ -79,9 +79,78 @@ def _build_movies_list_cache_key(
     return build_filtered_key("screen:movies", "list", filters, user_id=user_id, prefix="")
 
 
-def _build_static_movie_cache_key(movie_id: int) -> str:
-    """Build cache key for static movie data."""
-    return build_cache_key("screen:movie:static", [movie_id], prefix="")
+def _build_static_movie_cache_key(movie_id: int, version: Optional[str] = None) -> str:
+    """Build cache key for static movie data with optional versioning.
+
+    Args:
+        movie_id: Movie ID
+        version: Optional version string (timestamp, hash, or version number)
+
+    Returns:
+        Versioned cache key for static movie data
+    """
+    if version:
+        return f"static:movie:{movie_id}:v{version}"
+    else:
+        ***REMOVED*** Fallback to non-versioned key for backward compatibility
+        return build_cache_key("screen:movie:static", [movie_id], prefix="")
+
+
+def _extract_movie_version(movie_data: Dict[str, Any]) -> Optional[str]:
+    """Extract version information from movie data for cache versioning.
+
+    Tries multiple version strategies in order of preference:
+    1. updated_at timestamp
+    2. content hash of core fields
+    3. fallback to current timestamp
+
+    Args:
+        movie_data: Movie data dictionary from backend
+
+    Returns:
+        Version string for cache key, or None if no version available
+    """
+    import hashlib
+    import time
+
+    ***REMOVED*** Strategy 1: Use updated_at timestamp if available
+    if "updated_at" in movie_data and movie_data["updated_at"]:
+        try:
+            ***REMOVED*** Convert to timestamp if it's a datetime string
+            updated_at = movie_data["updated_at"]
+            if isinstance(updated_at, str):
+                from datetime import datetime
+
+                dt = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+                return str(int(dt.timestamp()))
+            return str(updated_at)
+        except Exception:
+            pass
+
+    ***REMOVED*** Strategy 2: Use version field if available
+    if "version" in movie_data and movie_data["version"]:
+        return str(movie_data["version"])
+
+    ***REMOVED*** Strategy 3: Create content hash from core movie fields
+    try:
+        ***REMOVED*** Hash core static fields that rarely change
+        core_fields = {
+            "id": movie_data.get("id"),
+            "title": movie_data.get("title"),
+            "release_date": movie_data.get("release_date"),
+            "runtime": movie_data.get("runtime"),
+            "imdb_rating": movie_data.get("imdb_rating"),
+            "overview": movie_data.get("overview"),
+        }
+        content = str(sorted(core_fields.items()))
+        hash_obj = hashlib.md5(content.encode())
+        return hash_obj.hexdigest()[:12]  ***REMOVED*** Short hash
+    except Exception:
+        pass
+
+    ***REMOVED*** Strategy 4: Fallback to current timestamp (least preferred)
+    ***REMOVED*** This essentially disables forever caching but maintains functionality
+    return str(int(time.time()))
 
 
 def _build_user_movie_interactions_cache_key(movie_id: int, user_id: Optional[int]) -> str:
@@ -103,23 +172,48 @@ def _build_static_movies_list_cache_key(
     year: Optional[int],
     start_year: Optional[int],
     end_year: Optional[int],
+    version: Optional[str] = None,
 ) -> str:
-    """Build cache key for static movies list data."""
-    filters = {
-        "page": page,
-        "limit": limit,
-        "genre_id": genre_id,
-        "actor_id": actor_id,
-        "sort_by": sort_by,
-        "sort_desc": sort_desc,
-        "imdb_rating": imdb_rating,
-        "rotten_tomatoes_rating": rotten_tomatoes_rating,
-        "metacritic_rating": metacritic_rating,
-        "year": year,
-        "start_year": start_year,
-        "end_year": end_year,
-    }
-    return build_filtered_key("screen:movies:static", "list", filters, prefix="")
+    """Build cache key for static movies list data with optional versioning."""
+    if version:
+        ***REMOVED*** Create a hash of all filter parameters for versioned key
+        import hashlib
+
+        filters = {
+            "page": page,
+            "limit": limit,
+            "genre_id": genre_id,
+            "actor_id": actor_id,
+            "sort_by": sort_by,
+            "sort_desc": sort_desc,
+            "imdb_rating": imdb_rating,
+            "rotten_tomatoes_rating": rotten_tomatoes_rating,
+            "metacritic_rating": metacritic_rating,
+            "year": year,
+            "start_year": start_year,
+            "end_year": end_year,
+        }
+        ***REMOVED*** Create a short hash of the filter parameters
+        filter_content = str(sorted(filters.items()))
+        filter_hash = hashlib.md5(filter_content.encode()).hexdigest()[:8]
+        return f"static:movies_list:{filter_hash}:v{version}"
+    else:
+        ***REMOVED*** Fallback to non-versioned key
+        filters = {
+            "page": page,
+            "limit": limit,
+            "genre_id": genre_id,
+            "actor_id": actor_id,
+            "sort_by": sort_by,
+            "sort_desc": sort_desc,
+            "imdb_rating": imdb_rating,
+            "rotten_tomatoes_rating": rotten_tomatoes_rating,
+            "metacritic_rating": metacritic_rating,
+            "year": year,
+            "start_year": start_year,
+            "end_year": end_year,
+        }
+        return build_filtered_key("screen:movies:static", "list", filters, prefix="")
 
 
 def _build_user_movies_batch_cache_key(movie_ids: List[int], user_id: Optional[int]) -> str:
@@ -131,15 +225,16 @@ def _build_user_movies_batch_cache_key(movie_ids: List[int], user_id: Optional[i
 
 
 @redis_cache(
-    ttl=3600,  ***REMOVED*** 1 hour for static content
-    key_builder=lambda movie_id, backend, recommendation_client: _build_static_movie_cache_key(
-        movie_id
+    ttl=30 * 24 * 3600,  ***REMOVED*** 30 days for static content - "cache forever" approach
+    key_builder=lambda movie_id, backend, recommendation_client, version=None: _build_static_movie_cache_key(
+        movie_id, version
     ),
 )
 async def _get_static_movie_data(
     movie_id: int,
     backend: BackendClient,
     recommendation_client: RecommendationClient,
+    version: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Internal cached function for static movie data."""
     logger.debug(
@@ -212,12 +307,70 @@ async def _get_static_movie_data(
     return static_data
 
 
-***REMOVED*** @redis_cache(
-***REMOVED***     ttl=30,  ***REMOVED*** 30 seconds for user-specific data - shorter TTL for faster consistency
-***REMOVED***     key_builder=lambda movie_id, user_id, backend, credentials: _build_user_movie_interactions_cache_key(
-***REMOVED***         movie_id, user_id
-***REMOVED***     ),
-***REMOVED*** )
+async def _get_versioned_static_movie_data(
+    movie_id: int,
+    backend: BackendClient,
+    recommendation_client: RecommendationClient,
+) -> Dict[str, Any]:
+    """Get static movie data with automatic version detection.
+
+    This function implements the "cache forever" strategy by:
+    1. Fetching movie data to determine version
+    2. Using versioned cache key for the actual static data
+    3. Falling back to non-versioned cache if version detection fails
+
+    Args:
+        movie_id: Movie ID
+        backend: Backend client
+        recommendation_client: Recommendation client
+
+    Returns:
+        Static movie data with versioned caching
+    """
+    logger.debug(
+        "Getting versioned static movie data",
+        movie_id=movie_id,
+        service="bff",
+        component="versioned_static_data",
+    )
+
+    try:
+        ***REMOVED*** First, get basic movie data to determine version
+        movie = await backend.get_movie(movie_id)
+        version = _extract_movie_version(movie)
+
+        logger.debug(
+            "Extracted movie version",
+            movie_id=movie_id,
+            version=version,
+            service="bff",
+            component="versioned_static_data",
+        )
+
+        ***REMOVED*** Use versioned cache key for the full static data
+        return await _get_static_movie_data(
+            movie_id, backend, recommendation_client, version=version
+        )
+
+    except Exception as e:
+        logger.warning(
+            "Failed to get versioned movie data, falling back to non-versioned",
+            movie_id=movie_id,
+            error=str(e),
+            service="bff",
+            component="versioned_static_data",
+        )
+
+        ***REMOVED*** Fallback to non-versioned caching
+        return await _get_static_movie_data(movie_id, backend, recommendation_client, version=None)
+
+
+@redis_cache(
+    ttl=300,  ***REMOVED*** 5 minutes for user interactions (watchlist/favorites) - balance freshness vs performance
+    key_builder=lambda movie_id, user_id, backend, credentials: _build_user_movie_interactions_cache_key(
+        movie_id, user_id
+    ),
+)
 async def _get_user_movie_interactions(
     movie_id: int,
     user_id: Optional[int],
@@ -396,8 +549,8 @@ async def _get_movie_screen_data(
         component="screen_data",
     )
 
-    ***REMOVED*** Get static data (cached separately with longer TTL)
-    static_data = await _get_static_movie_data(movie_id, backend, recommendation_client)
+    ***REMOVED*** Get static data with versioned caching (30-day TTL - "cache forever" approach)
+    static_data = await _get_versioned_static_movie_data(movie_id, backend, recommendation_client)
 
     ***REMOVED*** Get user interactions (cached separately with shorter TTL)
     user_interactions = await _get_user_movie_interactions(movie_id, user_id, backend, credentials)
@@ -566,23 +719,26 @@ async def get_movie_screen(
         )
 
 
-***REMOVED*** @redis_cache(
-***REMOVED***     ttl=1800,  ***REMOVED*** 30 minutes for static content
-***REMOVED***     key_builder=lambda page, limit, genre_id, actor_id, sort_by, sort_desc, imdb_rating, rotten_tomatoes_rating, metacritic_rating, year, start_year, end_year, backend: _build_static_movies_list_cache_key(
-***REMOVED***         page,
-***REMOVED***         limit,
-***REMOVED***         genre_id,
-***REMOVED***         actor_id,
-***REMOVED***         sort_by,
-***REMOVED***         sort_desc,
-***REMOVED***         imdb_rating,
-***REMOVED***         rotten_tomatoes_rating,
-***REMOVED***         metacritic_rating,
-***REMOVED***         year,
-***REMOVED***         start_year,
-***REMOVED***         end_year,
-***REMOVED***     ),
-***REMOVED*** )
+@redis_cache(
+    ttl=7
+    * 24
+    * 3600,  ***REMOVED*** 7 days for static movies list - shorter than individual movies due to list dynamics
+    key_builder=lambda page, limit, genre_id, actor_id, sort_by, sort_desc, imdb_rating, rotten_tomatoes_rating, metacritic_rating, year, start_year, end_year, backend, version=None: _build_static_movies_list_cache_key(
+        page,
+        limit,
+        genre_id,
+        actor_id,
+        sort_by,
+        sort_desc,
+        imdb_rating,
+        rotten_tomatoes_rating,
+        metacritic_rating,
+        year,
+        start_year,
+        end_year,
+        version,
+    ),
+)
 async def _get_static_movies_list_data(
     page: int,
     limit: int,
@@ -597,12 +753,14 @@ async def _get_static_movies_list_data(
     start_year: Optional[int],
     end_year: Optional[int],
     backend: BackendClient,
+    version: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Internal cached function for static movies list data."""
     logger.debug(
         "Building static movies list data",
         page=page,
         limit=limit,
+        version=version,
         service="bff",
         component="static_list_data",
     )
@@ -667,12 +825,12 @@ async def _get_static_movies_list_data(
     return list_data
 
 
-***REMOVED*** @redis_cache(
-***REMOVED***     ttl=30,  ***REMOVED*** 30 seconds for user-specific data - shorter TTL for faster consistency
-***REMOVED***     key_builder=lambda movie_ids, user_id, backend, credentials: _build_user_movies_batch_cache_key(
-***REMOVED***         movie_ids, user_id
-***REMOVED***     ),
-***REMOVED*** )
+@redis_cache(
+    ttl=180,  ***REMOVED*** 3 minutes for batch user interactions - slightly shorter for list consistency
+    key_builder=lambda movie_ids, user_id, backend, credentials: _build_user_movies_batch_cache_key(
+        movie_ids, user_id
+    ),
+)
 async def _get_user_movies_batch_interactions(
     movie_ids: List[int],
     user_id: Optional[int],

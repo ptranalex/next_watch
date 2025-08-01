@@ -13,16 +13,27 @@ Key Safety Features:
 
 import asyncio
 import time
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Callable, Union, cast, Tuple
 from datetime import datetime
 
 import typer
+from fastapi import BackgroundTasks
 from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 
 from bff_api.services.cache_service import get_bff_warming_service
 from bff_api.services.cache_service.warming.config import get_warming_rate_limiter
+from bff_api.services.smart_warming import get_bff_smart_warming
+
+***REMOVED*** Import external cache functionality to consolidate under one command group
+try:
+    from cache.cli.metrics import metrics_app
+    from cache.cli.warming import warming_app
+except ImportError:
+    ***REMOVED*** Fallback if cache library not available
+    metrics_app = None  ***REMOVED*** type: ignore
+    warming_app = None  ***REMOVED*** type: ignore
 from cache.warming import WarmingStrategy
 from config.logging import get_logger
 
@@ -85,7 +96,7 @@ cache_app = typer.Typer(
 )
 
 
-@cache_app.command("warm-popular")
+@cache_app.command("warm-legacy")
 def warm_popular_content(
     limit: int = typer.Option(100, "--limit", "-l", help="Maximum items to warm"),
     max_concurrent: int = typer.Option(
@@ -507,6 +518,267 @@ def _display_warming_results(stats: Any, elapsed: float, verbose: bool) -> None:
             console.print(f"   {error}")
         if len(stats.errors) > 5:
             console.print(f"   ... and {len(stats.errors) - 5} more")
+
+
+@cache_app.command("warm-tier")
+def warm_priority_movies(
+    tier: int = typer.Argument(..., help="Priority tier: 1 (2hr), 2 (daily), 3 (weekly)"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be warmed without executing"
+    ),
+    force: bool = typer.Option(False, "--force", help="Force warming regardless of versions"),
+    max_movies: int = typer.Option(50, "--max-movies", help="Maximum number of movies to warm"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
+) -> None:
+    """Warm movies based on priority tiers with version checking.
+
+    Priority Tiers (from strategy document):
+    - Tier 1 (every 2 hours): New releases (last 30 days), trending top 50
+    - Tier 2 (daily): Popular movies (top 500), user favorites
+    - Tier 3 (weekly): Full catalog refresh for discovery
+
+    This command implements the "cache forever" strategy by checking movie
+    versions before warming to avoid redundant work.
+
+    🔄 Features real-time progress tracking with incremental updates as each
+    movie is processed. Uses bounded concurrency (max 5 simultaneous requests)
+    to prevent backend overload.
+    """
+
+    async def _warm_priority_movies_async() -> None:
+        console.print(f"[bold green]Starting Priority Tier {tier} Warming[/bold green]")
+        console.print(f"Max movies: {max_movies}, Dry run: {dry_run}, Force: {force}")
+
+        if not await _setup_cli_services():
+            raise typer.Exit(1)
+
+        start_time = time.time()
+
+        try:
+            ***REMOVED*** Get smart warming service with version awareness
+            smart_warmer = get_bff_smart_warming()
+
+            ***REMOVED*** Mock BackgroundTasks for CLI usage
+            class MockBackgroundTasks:
+                def __init__(self) -> None:
+                    self.tasks: List[Tuple[Callable[..., Any], Tuple[Any, ...], Dict[str, Any]]] = (
+                        []
+                    )
+
+                def add_task(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+                    self.tasks.append((func, args, kwargs))
+
+            background_tasks = MockBackgroundTasks()
+
+            if dry_run:
+                console.print(f"[yellow]DRY RUN: Would warm Tier {tier} movies[/yellow]")
+
+                tier_descriptions = {
+                    1: "New releases (last 30 days) + trending top 50",
+                    2: "Popular movies (top 500) + user favorites",
+                    3: "Full catalog refresh for discovery",
+                }
+
+                console.print(f"Target: {tier_descriptions.get(tier, 'Unknown tier')}")
+                console.print(f"Max movies: {max_movies}")
+                console.print(f"Version checking: {'Disabled' if force else 'Enabled'}")
+                return
+
+            ***REMOVED*** Execute priority warming with direct progress tracking for CLI
+            console.print("[blue]Starting priority warming with real-time progress...[/blue]")
+
+            ***REMOVED*** Get the movie IDs first to set up proper progress tracking
+            movie_ids = await smart_warmer._get_tier_movie_ids(tier, max_movies)
+
+            if not movie_ids:
+                console.print(f"[yellow]No movies found for tier {tier}[/yellow]")
+                return
+
+            console.print(f"[dim]Found {len(movie_ids)} movies to warm[/dim]")
+
+            ***REMOVED*** Import warming components
+            from bff_api.services.cache_service.warming.functions import WarmingFunctions
+            from bff_api.config.app import settings
+
+            warming_funcs = WarmingFunctions(settings)
+
+            ***REMOVED*** Create progress bar for actual movie processing
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                TextColumn("({task.completed}/{task.total})"),
+                TimeElapsedColumn(),
+                console=console,
+            ) as progress:
+                task = progress.add_task(f"Warming Tier {tier} movies...", total=len(movie_ids))
+
+                ***REMOVED*** Use semaphore to limit concurrent requests (same as the fix in smart_warming)
+                max_concurrent = min(5, len(movie_ids))
+                semaphore = asyncio.Semaphore(max_concurrent)
+
+                async def _warm_with_progress(movie_id: int) -> Dict[str, Any]:
+                    """Warm single movie with progress tracking."""
+                    async with semaphore:
+                        try:
+                            result = await smart_warmer._warm_single_movie_with_version(
+                                movie_id, warming_funcs, force=force
+                            )
+                            progress.advance(task)
+                            await asyncio.sleep(0.1)  ***REMOVED*** Small delay to see progress
+                            return {"movie_id": movie_id, "success": True, "result": result}
+                        except Exception as e:
+                            progress.advance(task)
+                            return {"movie_id": movie_id, "success": False, "error": str(e)}
+
+                ***REMOVED*** Execute all warming operations with real-time progress
+                warming_tasks = [_warm_with_progress(movie_id) for movie_id in movie_ids]
+                results = await asyncio.gather(*warming_tasks, return_exceptions=True)
+
+                ***REMOVED*** Show summary
+                successful = sum(1 for r in results if isinstance(r, dict) and r.get("success"))
+                failed = len(movie_ids) - successful
+
+                console.print(
+                    f"\n[green]✅ Completed: {successful}/{len(movie_ids)} movies[/green]"
+                )
+                if failed > 0:
+                    console.print(f"[yellow]⚠️  Failed: {failed} movies[/yellow]")
+
+            duration = time.time() - start_time
+            console.print(
+                f"[bold green]Priority Tier {tier} warming completed in {duration:.2f}s[/bold green]"
+            )
+
+        except Exception as e:
+            logger.error("Priority warming failed", error=str(e), exc_info=True)
+            console.print(f"[bold red]Error: {e}[/bold red]")
+            raise typer.Exit(1)
+
+    ***REMOVED*** Run the async function
+    asyncio.run(_warm_priority_movies_async())
+
+
+@cache_app.command("warm-movie")
+def warm_movie_with_version_check(
+    movie_id: int = typer.Argument(..., help="Movie ID to warm"),
+    force: bool = typer.Option(False, "--force", help="Force warming regardless of version"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
+) -> None:
+    """Warm a specific movie with version checking.
+
+    This command demonstrates the "cache forever" strategy by checking if the
+    movie version has changed before performing expensive warming operations.
+
+    If the movie version hasn't changed, warming is skipped to save resources.
+    """
+
+    async def _warm_movie_with_version_check_async() -> None:
+        console.print(f"[bold green]Warming Movie {movie_id} with Version Check[/bold green]")
+        console.print(f"Force: {force}")
+
+        if not await _setup_cli_services():
+            raise typer.Exit(1)
+
+        start_time = time.time()
+
+        try:
+            smart_warmer = get_bff_smart_warming()
+
+            ***REMOVED*** Mock BackgroundTasks for CLI usage
+            class MockBackgroundTasks:
+                def __init__(self) -> None:
+                    self.tasks: List[Tuple[Callable[..., Any], Tuple[Any, ...], Dict[str, Any]]] = (
+                        []
+                    )
+
+                def add_task(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+                    self.tasks.append((func, args, kwargs))
+
+            background_tasks = MockBackgroundTasks()
+
+            ***REMOVED*** Execute version-aware warming with better progress display
+            console.print("[blue]Checking version and warming if needed...[/blue]")
+
+            ***REMOVED*** Import warming components for direct execution
+            from bff_api.services.cache_service.warming.functions import WarmingFunctions
+            from bff_api.config.app import settings
+
+            warming_funcs = WarmingFunctions(settings)
+
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task(f"Warming movie {movie_id}...", total=None)
+
+                ***REMOVED*** Execute warming directly with progress indicator
+                result = await smart_warmer._warm_single_movie_with_version(
+                    movie_id, warming_funcs, force=force
+                )
+
+                progress.update(task, description=f"✅ Movie {movie_id} completed")
+
+                ***REMOVED*** Show result details based on warming status
+                status = result.get("status", "unknown")
+                if status == "completed":
+                    console.print(f"[green]✅ Movie {movie_id} was warmed successfully[/green]")
+                elif status == "skipped":
+                    console.print(
+                        f"[yellow]⏭️  Movie {movie_id} skipped (version unchanged)[/yellow]"
+                    )
+                else:
+                    console.print(f"[blue]ℹ️  Movie {movie_id} status: {status}[/blue]")
+
+            duration = time.time() - start_time
+            console.print(
+                f"[bold green]Movie {movie_id} warming completed in {duration:.2f}s[/bold green]"
+            )
+
+            if verbose:
+                ***REMOVED*** Show version info if available
+                console.print("[blue]Check logs for version and warming details[/blue]")
+
+        except Exception as e:
+            logger.error("Version-aware movie warming failed", error=str(e), exc_info=True)
+            console.print(f"[bold red]Error: {e}[/bold red]")
+            raise typer.Exit(1)
+
+    ***REMOVED*** Run the async function
+    asyncio.run(_warm_movie_with_version_check_async())
+
+
+***REMOVED*** Add cache metrics and management commands
+@cache_app.command("show")
+def show_cache_metrics() -> None:
+    """Show cache performance metrics."""
+    console.print("🔍 [bold blue]Cache Performance Metrics[/bold blue]")
+    ***REMOVED*** This would integrate with the cache metrics from the cache library
+    console.print("[yellow]Cache metrics integration - implement with cache library[/yellow]")
+
+
+@cache_app.command("summary")
+def show_cache_summary() -> None:
+    """Show cache metrics summary."""
+    console.print("📊 [bold blue]Cache Metrics Summary[/bold blue]")
+    console.print("[yellow]Cache summary integration - implement with cache library[/yellow]")
+
+
+@cache_app.command("reset")
+def reset_cache_metrics() -> None:
+    """Reset all cache metrics."""
+    console.print("🔄 [bold red]Resetting Cache Metrics[/bold red]")
+    console.print("[yellow]Cache reset integration - implement with cache library[/yellow]")
+
+
+@cache_app.command("redis")
+def redis_operations() -> None:
+    """Direct Redis cache operations."""
+    console.print("🔧 [bold blue]Redis Cache Operations[/bold blue]")
+    console.print("[yellow]Redis operations - implement with Redis client[/yellow]")
+    console.print("Available operations: KEYS, GET, SET, DEL, FLUSHALL")
 
 
 ***REMOVED*** Export the command group

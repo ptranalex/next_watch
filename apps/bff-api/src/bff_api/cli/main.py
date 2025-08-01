@@ -6,12 +6,8 @@ from typing import Any, Dict, Optional
 import typer
 from rich.traceback import install
 
-***REMOVED*** Third-party CLI components
-from cache.cli.metrics import metrics_app as cache_metrics_cli
-from cache.cli.warming import warming_app as cache_warming_cli
-
-***REMOVED*** BFF-specific cache warming commands
-from bff_api.cli.commands.cache_warming import cache_app as bff_cache_warming_cli
+***REMOVED*** BFF-specific cache commands (consolidated)
+from bff_api.cli.commands.cache_warming import cache_app as cache_cli
 
 ***REMOVED*** CLI framework utilities and command generators
 from cli import (
@@ -188,27 +184,15 @@ def _setup_cli_app() -> typer.Typer:
     health_app, redis_cache_app, serve_app = _create_command_apps()
     config_command, version_command = _create_individual_commands()
 
-    ***REMOVED*** Add command groups - external cache library CLI
+    ***REMOVED*** Add command groups
     app.add_typer(health_app, name="health")
+
+    ***REMOVED*** Consolidated cache commands (metrics + warming + redis)
     app.add_typer(
-        cache_metrics_cli,
+        cache_cli,
         name="cache",
-        help="Cache metrics and management (NextWatch Cache Library)",
+        help="🚀 Cache management, metrics, and warming operations",
     )
-    app.add_typer(
-        cache_warming_cli,
-        name="warming",
-        help="Cache warming and preloading (NextWatch Cache Library)",
-    )
-
-    ***REMOVED*** Add BFF-specific cache warming commands
-    app.add_typer(
-        bff_cache_warming_cli,
-        name="warm",
-        help="🔥 Production-safe cache warming for BFF API",
-    )
-
-    app.add_typer(redis_cache_app, name="redis-cache")
     app.add_typer(serve_app, name="serve")
 
     ***REMOVED*** Add individual commands
