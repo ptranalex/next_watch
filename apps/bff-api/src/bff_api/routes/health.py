@@ -1,7 +1,7 @@
 """Health check routes for BFF service."""
 
 import datetime
-from typing import Dict
+from typing import Dict, List, Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -13,6 +13,7 @@ from config.logging import get_logger
 from bff_api.services.cache_service.background_warming_service import (
     get_background_warming_service,
 )
+from bff_api.services.smart_warming import get_bff_smart_warming
 
 logger = get_logger(__name__)
 
@@ -385,3 +386,152 @@ async def warming_status() -> JSONResponse:
                 "error": f"Failed to get warming status: {str(e)}",
             },
         )
+
+
+@router.get("/health/smart-warming")
+async def smart_warming_health() -> JSONResponse:
+    """Smart warming health check with backend connection monitoring.
+
+    Provides detailed statistics about:
+    - Backend connection pool status
+    - Circuit breaker state
+    - Warming throttling metrics
+    - Version-aware warming performance
+
+    Returns:
+        Smart warming health status and performance metrics
+    """
+    try:
+        smart_warming = get_bff_smart_warming()
+        stats = smart_warming.get_warming_stats()
+
+        ***REMOVED*** Determine health status based on metrics
+        backend_connections = stats.get("backend_connections", {})
+        circuit_breaker_open = backend_connections.get("circuit_breaker_open", False)
+        success_rate = backend_connections.get("success_rate", 100)
+        active_connections = backend_connections.get("active_connections", 0)
+        max_connections = backend_connections.get("max_connections", 0)
+
+        ***REMOVED*** Health status determination
+        if circuit_breaker_open:
+            status = "degraded"
+            health_level = "warning"
+        elif success_rate < 95:
+            status = "degraded"
+            health_level = "warning"
+        elif active_connections >= max_connections:
+            status = "degraded"
+            health_level = "warning"
+        else:
+            status = "healthy"
+            health_level = "ok"
+
+        return JSONResponse(
+            status_code=200 if status == "healthy" else 503,
+            content={
+                "status": status,
+                "health_level": health_level,
+                "service": "smart_warming",
+                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                "metrics": {
+                    "backend_connections": {
+                        "active": active_connections,
+                        "max": max_connections,
+                        "utilization_percent": (active_connections / max(1, max_connections)) * 100,
+                        "circuit_breaker_open": circuit_breaker_open,
+                        "success_rate_percent": success_rate,
+                        "avg_response_time_ms": backend_connections.get("avg_response_time_ms", 0),
+                        "total_requests": backend_connections.get("total_requests", 0),
+                        "failed_requests": backend_connections.get("failed_requests", 0),
+                    },
+                    "warming_throttling": {
+                        "active_throttles": stats.get("warming_throttle_entries", 0),
+                        "throttle_window_seconds": stats.get("throttle_window_seconds", 30),
+                    },
+                    "smart_warming": {
+                        key: value
+                        for key, value in stats.items()
+                        if key
+                        not in [
+                            "backend_connections",
+                            "warming_throttle_entries",
+                            "throttle_window_seconds",
+                        ]
+                    },
+                },
+                "recommendations": _get_warming_recommendations(stats),
+            },
+        )
+
+    except Exception as e:
+        logger.error("Failed to get smart warming health status", error=str(e), exc_info=True)
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "service": "smart_warming",
+                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                "error": f"Failed to get smart warming status: {str(e)}",
+            },
+        )
+
+
+def _get_warming_recommendations(stats: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Get performance recommendations based on warming statistics."""
+    recommendations = []
+
+    backend_stats = stats.get("backend_connections", {})
+
+    ***REMOVED*** Circuit breaker recommendations
+    if backend_stats.get("circuit_breaker_open", False):
+        recommendations.append(
+            {
+                "type": "critical",
+                "message": "Backend circuit breaker is open - check backend service health",
+                "action": "Investigate backend API responsiveness and consider scaling",
+            }
+        )
+
+    ***REMOVED*** Success rate recommendations
+    success_rate = backend_stats.get("success_rate", 100)
+    if success_rate < 95:
+        recommendations.append(
+            {
+                "type": "warning",
+                "message": f"Backend success rate is {success_rate:.1f}% (below 95%)",
+                "action": "Monitor backend errors and consider reducing warming concurrency",
+            }
+        )
+
+    ***REMOVED*** Response time recommendations
+    avg_response_time = backend_stats.get("avg_response_time_ms", 0)
+    if avg_response_time > 1000:
+        recommendations.append(
+            {
+                "type": "warning",
+                "message": f"Average backend response time is {avg_response_time:.0f}ms",
+                "action": "Consider optimizing backend queries or reducing warming frequency",
+            }
+        )
+
+    ***REMOVED*** Throttling recommendations
+    active_throttles = stats.get("warming_throttle_entries", 0)
+    if active_throttles > 100:
+        recommendations.append(
+            {
+                "type": "info",
+                "message": f"High number of active throttles: {active_throttles}",
+                "action": "Consider adjusting throttle window or warming triggers",
+            }
+        )
+
+    if not recommendations:
+        recommendations.append(
+            {
+                "type": "success",
+                "message": "Smart warming is operating within normal parameters",
+                "action": "No action required",
+            }
+        )
+
+    return recommendations

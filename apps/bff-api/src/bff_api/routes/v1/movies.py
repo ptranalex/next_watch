@@ -1,5 +1,6 @@
 """Movie-related routes for BFF API."""
 
+import asyncio
 import json
 from typing import Any, Dict, List, Optional, Union, cast
 
@@ -244,16 +245,48 @@ async def _get_static_movie_data(
         component="static_data",
     )
 
-    ***REMOVED*** Fetch all static data from backend
-    movie = await backend.get_movie(movie_id)
-    movie_cast = await backend.get_movie_cast(movie_id)
-    trailers = await backend.get_movie_trailers(movie_id)
+    ***REMOVED*** 🚀 PERFORMANCE: Fetch all static data in parallel instead of sequentially
+    logger.debug(
+        "Starting parallel API calls for movie data",
+        movie_id=movie_id,
+        service="bff",
+        component="static_data_parallel",
+    )
 
-    ***REMOVED*** Get similar movies (static content)
-    similar_movies = await recommendation_client.get_similar_movies(
+    ***REMOVED*** Execute all API calls in parallel for maximum performance
+    movie_task = backend.get_movie(movie_id)
+    movie_cast_task = backend.get_movie_cast(movie_id)
+    trailers_task = backend.get_movie_trailers(movie_id)
+    similar_movies_task = recommendation_client.get_similar_movies(
         movie_id,
         limit=20,
         min_score=0.01,
+    )
+
+    ***REMOVED*** Wait for all calls to complete
+    movie, movie_cast, trailers, similar_movies = await asyncio.gather(
+        movie_task, movie_cast_task, trailers_task, similar_movies_task, return_exceptions=True
+    )
+
+    ***REMOVED*** Handle any exceptions from parallel calls
+    if isinstance(movie, Exception):
+        logger.error("Failed to get movie data", movie_id=movie_id, error=str(movie))
+        raise movie
+    if isinstance(movie_cast, Exception):
+        logger.warning("Failed to get movie cast", movie_id=movie_id, error=str(movie_cast))
+        movie_cast = []  ***REMOVED*** Fallback to empty cast
+    if isinstance(trailers, Exception):
+        logger.warning("Failed to get movie trailers", movie_id=movie_id, error=str(trailers))
+        trailers = []  ***REMOVED*** Fallback to empty trailers
+    if isinstance(similar_movies, Exception):
+        logger.warning("Failed to get similar movies", movie_id=movie_id, error=str(similar_movies))
+        similar_movies = []  ***REMOVED*** Fallback to empty similar movies
+
+    logger.debug(
+        "Completed parallel API calls for movie data",
+        movie_id=movie_id,
+        service="bff",
+        component="static_data_parallel",
     )
 
     ***REMOVED*** Enrich similar movies with basic details (no user data)
