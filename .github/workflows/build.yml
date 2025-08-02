@@ -1,4 +1,4 @@
-name: Build Application (All Services)
+name: Build Application (All Services - Hybrid Runners)
 
 permissions:
   contents: read
@@ -94,6 +94,7 @@ jobs:
               - 'libs/movie-storage/**'
               - 'infra/**'
 
+  ***REMOVED*** 🚀 GitHub-Hosted Builds (Default - Fast, Cost-Effective)
   build_backend:
     needs: check_changes
     if: ${{ needs.check_changes.outputs.backend_changed == 'true' || needs.check_changes.outputs.shared_changed == 'true' || github.event.inputs.build_all == 'true' }}
@@ -129,7 +130,7 @@ jobs:
     if: ${{ needs.check_changes.outputs.frontend_changed == 'true' || github.event.inputs.build_all == 'true' }}
     uses: ./.github/workflows/build-app.yml
     with:
-      app_name: frontend
+      app_name: web-nextjs
       dockerfile_path: ./apps/web-nextjs/Dockerfile
       build_args: |
         NEXT_PUBLIC_API_URL=https://alexsandbox.me
@@ -167,10 +168,11 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
+  ***REMOVED*** 🏗️ Self-Hosted Build (ML-Specific, Resource-Intensive)
   build_ml:
     needs: check_changes
     if: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == 'true' }}
-    uses: ./.github/workflows/build-app.yml
+    uses: ./.github/workflows/build-app-self-hosted.yml  ***REMOVED*** ML needs self-hosted for model downloads
     with:
       app_name: ml-api
       dockerfile_path: ./apps/ml-api/Dockerfile
