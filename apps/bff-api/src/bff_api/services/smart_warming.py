@@ -661,7 +661,7 @@ class BFFSmartWarming:
         try:
             ***REMOVED*** Determine if we should use debugging limit or get all movies
             use_debug_limit = (
-                max_movies and max_movies < 10000
+                max_movies is not None and max_movies < 10000
             )  ***REMOVED*** Assume limits < 10k are for debugging
 
             if priority_tier == 1:
@@ -963,6 +963,15 @@ class BFFSmartWarming:
                         movies_response = await backend_client.get_movies(
                             page=page, limit=page_size
                         )
+
+                        ***REMOVED*** Debug the actual response
+                        if movies_response:
+                            results_count = len(movies_response.get("results", []))
+                            total_reported = movies_response.get("total", "unknown")
+                            per_page_reported = movies_response.get("per_page", "unknown")
+                            logger.debug(
+                                f"API Response: got {results_count} results, total={total_reported}, per_page={per_page_reported}, requested_limit={page_size}"
+                            )
 
                         ***REMOVED*** Log total pages on first response
                         if page == 1 and movies_response and isinstance(movies_response, dict):

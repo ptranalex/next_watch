@@ -7,6 +7,8 @@ from cache.keys import build_filtered_key
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fast_core.dependencies import get_pagination
+from fast_core.dependencies.common import PaginationParams
 from fast_core.errors import ExternalServiceException
 
 from bff_api.dependencies import get_backend_client
@@ -188,8 +190,7 @@ async def _get_genre_screen_data(
 @router.get("/genres/{genre_id}", response_model=GenreScreenData)
 async def get_genre_screen(
     genre_id: int = Path(..., description="Genre ID"),
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = get_pagination(max_page_size=100),
     actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
     sort_by: Optional[str] = Query(
         None,
@@ -220,8 +221,7 @@ async def get_genre_screen(
 
     Args:
         genre_id: Genre ID to filter movies by
-        page: Page number for pagination
-        limit: Number of items per page
+        pagination: Pagination parameters (page, limit) from fast-core dependency
         actor_id: Optional actor TMDB ID for filtering
         sort_by: Sort field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)
         sort_desc: Sort in descending order
@@ -275,8 +275,8 @@ async def get_genre_screen(
         ***REMOVED*** Use the cached function - decorator handles all cache logic
         genre_screen_dict = await _get_genre_screen_data(
             genre_id=genre_id,
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             actor_id=actor_id,
             sort_by=sort_by,
             sort_desc=sort_desc,

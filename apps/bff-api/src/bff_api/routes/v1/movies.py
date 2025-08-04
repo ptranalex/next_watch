@@ -14,6 +14,8 @@ from fast_core.errors.exceptions import (
     ResourceNotFoundException,
     APIException,
 )
+from fast_core.dependencies import get_pagination
+from fast_core.dependencies.common import PaginationParams
 from fast_core.responses import ResponseBuilder
 from fast_core.security.rate_limit import rate_limit
 
@@ -1045,8 +1047,7 @@ async def _get_movies_list_data(
 @rate_limit(requests=100, window=60)
 @router.get("/movies")
 async def get_movies_list(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    pagination: PaginationParams = get_pagination(max_page_size=100),
     genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
     actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
     sort_by: Optional[str] = Query(
@@ -1076,8 +1077,7 @@ async def get_movies_list(
     user personalization.
 
     Args:
-        page: Page number for pagination
-        limit: Number of items per page
+        pagination: Pagination parameters (page, limit) from fast-core dependency
         genre_id: Optional genre filter
         actor_id: Optional actor TMDB ID filter
         sort_by: Sort field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)
@@ -1101,8 +1101,8 @@ async def get_movies_list(
     user_id = None
     logger.info(
         "Processing movies list request",
-        page=page,
-        limit=limit,
+        page=pagination.page,
+        limit=pagination.limit,
         has_credentials=bool(credentials),
         service="bff",
         endpoint="movies_list",
@@ -1122,8 +1122,8 @@ async def get_movies_list(
     try:
         ***REMOVED*** Compose movies list data from separate cached components
         list_data_dict = await _get_movies_list_data(
-            page=page,
-            limit=limit,
+            page=pagination.page,
+            limit=pagination.limit,
             genre_id=genre_id,
             actor_id=actor_id,
             sort_by=sort_by,
