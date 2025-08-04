@@ -527,7 +527,11 @@ def warm_priority_movies(
         False, "--dry-run", help="Show what would be warmed without executing"
     ),
     force: bool = typer.Option(False, "--force", help="Force warming regardless of versions"),
-    max_movies: int = typer.Option(50, "--max-movies", help="Maximum number of movies to warm"),
+    max_movies: Optional[int] = typer.Option(
+        None,
+        "--max-movies",
+        help="Optional: Limit number of movies for debugging (default: warm ALL movies)",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """Warm movies based on priority tiers with version checking.
@@ -536,6 +540,8 @@ def warm_priority_movies(
     - Tier 1 (every 2 hours): New releases (last 30 days), trending top 50
     - Tier 2 (daily): Popular movies (top 500), user favorites
     - Tier 3 (weekly): Full catalog refresh for discovery
+
+    By default, ALL tiers warm ALL available movies. Use --max-movies for debugging.
 
     This command implements the "cache forever" strategy by checking movie
     versions before warming to avoid redundant work.

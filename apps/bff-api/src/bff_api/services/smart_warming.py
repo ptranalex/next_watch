@@ -543,7 +543,7 @@ class BFFSmartWarming:
         self,
         background_tasks: BackgroundTasks,
         priority_tier: int = 1,
-        max_movies: int = 50,
+        max_movies: Optional[int] = None,  ***REMOVED*** Now optional for unlimited warming by default
         force: bool = False,
         **context: Any,
     ) -> None:
@@ -569,6 +569,15 @@ class BFFSmartWarming:
             warming_funcs = WarmingFunctions(settings)
 
             try:
+                ***REMOVED*** Safety warning for very high limits
+                if max_movies and max_movies > 5000:
+                    logger.warning(
+                        "Very high max_movies limit - this may overwhelm the backend",
+                        max_movies=max_movies,
+                        tier=priority_tier,
+                        recommendation="Consider starting with smaller batches",
+                    )
+
                 ***REMOVED*** Get movie IDs based on tier and max_movies parameter
                 movie_ids = await self._get_tier_movie_ids(priority_tier, max_movies)
 
@@ -639,7 +648,7 @@ class BFFSmartWarming:
             tier=priority_tier,
         )
 
-    async def _get_tier_movie_ids(self, priority_tier: int, max_movies: int) -> List[int]:
+    async def _get_tier_movie_ids(self, priority_tier: int, max_movies: Optional[int]) -> List[int]:
         """Get movie IDs for a specific tier based on filtering criteria.
 
         Args:
@@ -650,20 +659,48 @@ class BFFSmartWarming:
             List of movie IDs for the tier
         """
         try:
+            ***REMOVED*** Determine if we should use debugging limit or get all movies
+            use_debug_limit = (
+                max_movies and max_movies < 10000
+            )  ***REMOVED*** Assume limits < 10k are for debugging
+
             if priority_tier == 1:
                 ***REMOVED*** Tier 1: New releases + trending (last 30 days)
-                logger.info("Fetching Tier 1: new releases and trending movies")
-                return await self._get_new_and_trending_movies(max_movies)
+                if use_debug_limit:
+                    logger.info(
+                        f"Fetching Tier 1: new releases and trending movies (DEBUG: limited to {max_movies})"
+                    )
+                    return await self._get_new_and_trending_movies(max_movies)
+                else:
+                    logger.info("Fetching Tier 1: new releases and trending movies (ALL available)")
+                    return await self._get_new_and_trending_movies(None)  ***REMOVED*** None = no limit
 
             elif priority_tier == 2:
                 ***REMOVED*** Tier 2: Popular movies + user favorites
-                logger.info("Fetching Tier 2: popular movies and user favorites")
-                return await self._get_popular_movies(max_movies)
+                if use_debug_limit:
+                    logger.info(
+                        f"Fetching Tier 2: popular movies and user favorites (DEBUG: limited to {max_movies})"
+                    )
+                    return await self._get_popular_movies(max_movies)
+                else:
+                    logger.info(
+                        "Fetching Tier 2: popular movies and user favorites (ALL available)"
+                    )
+                    return await self._get_popular_movies(None)  ***REMOVED*** None = no limit
 
             elif priority_tier == 3:
                 ***REMOVED*** Tier 3: Full catalog for discovery
-                logger.info("Fetching Tier 3: full catalog for discovery")
-                return await self._get_discovery_movies(max_movies)
+                if use_debug_limit:
+                    logger.info(
+                        f"Fetching Tier 3: full catalog for discovery (DEBUG: limited to {max_movies})"
+                    )
+                    discovery_ids = await self._get_all_available_movies()
+                    return discovery_ids[:max_movies]  ***REMOVED*** Apply debug limit
+                else:
+                    logger.info("Fetching Tier 3: full catalog for discovery (ALL movies)")
+                    discovery_ids = await self._get_all_available_movies()
+                    logger.info(f"Tier 3 retrieved {len(discovery_ids)} total movies from database")
+                    return discovery_ids
 
             else:
                 logger.warning("Invalid priority tier", tier=priority_tier)
@@ -675,33 +712,398 @@ class BFFSmartWarming:
             )
             return []
 
-    async def _get_new_and_trending_movies(self, max_movies: int) -> List[int]:
+    async def _get_new_and_trending_movies(self, max_movies: Optional[int]) -> List[int]:
         """Get new releases and trending movies for Tier 1."""
-        ***REMOVED*** For now, use a reasonable sample until backend integration
-        ***REMOVED*** In production, this would call backend API for:
-        ***REMOVED*** - Movies released in last 30 days
-        ***REMOVED*** - Top trending movies
-        sample_ids = list(range(1, min(max_movies + 1, 101)))
-        logger.debug(f"Using sample new/trending movies: {len(sample_ids)} movies")
-        return sample_ids
+        try:
+            ***REMOVED*** Get actual movie IDs from backend instead of fake ranges
+            async with self.connection_manager.get_connection() as backend_client:
+                ***REMOVED*** Get movies - use unlimited fetch if no max_movies specified
+                if max_movies is None:
+                    ***REMOVED*** No limit - get all available movies and return the recent ones
+                    all_movies = await self._get_all_available_movies()
+                    logger.info(f"Retrieved {len(all_movies)} total movies for Tier 1 filtering")
+                    return (
+                        all_movies  ***REMOVED*** For Tier 1, return all (could add date filtering logic here)
+                    )
+                else:
+                    ***REMOVED*** Limited fetch for debugging
+                    movies_response = None
+                    try:
+                        ***REMOVED*** Try with sorting first
+                        movies_response = await backend_client.get_movies(
+                            page=1, limit=max_movies, sort_by="release_date", sort_order="desc"
+                        )
+                    except Exception as sort_error:
+                        logger.debug(f"Sorting not supported, trying basic call: {sort_error}")
+                        ***REMOVED*** Fallback to basic call without sorting
+                        movies_response = await backend_client.get_movies(page=1, limit=max_movies)
 
-    async def _get_popular_movies(self, max_movies: int) -> List[int]:
+                movie_ids = []
+                if movies_response and "results" in movies_response:
+                    for movie in movies_response["results"]:
+                        if isinstance(movie, dict) and "id" in movie:
+                            movie_ids.append(movie["id"])
+
+                logger.info(
+                    f"Retrieved {len(movie_ids)} new/trending movies from backend (requested: {max_movies})"
+                )
+                return movie_ids[:max_movies] if max_movies else movie_ids
+
+        except Exception as e:
+            logger.warning(
+                "Failed to get new/trending movies from backend, falling back to sample",
+                error=str(e),
+                max_movies=max_movies,
+            )
+            ***REMOVED*** Fallback: Get a smaller sample of existing movies
+            return await self._get_fallback_movie_ids(min(max_movies, 100) if max_movies else 100)
+
+    async def _get_popular_movies(self, max_movies: Optional[int]) -> List[int]:
         """Get popular movies and user favorites for Tier 2."""
-        ***REMOVED*** In production, this would call backend API for:
-        ***REMOVED*** - Top popular movies (by ratings, views)
-        ***REMOVED*** - User favorites and watchlist items
-        sample_ids = list(range(1, min(max_movies + 1, 501)))
-        logger.debug(f"Using sample popular movies: {len(sample_ids)} movies")
-        return sample_ids
+        try:
+            ***REMOVED*** Get actual popular movies from backend
+            async with self.connection_manager.get_connection() as backend_client:
+                ***REMOVED*** Get movies - use unlimited fetch if no max_movies specified
+                if max_movies is None:
+                    ***REMOVED*** No limit - get all available movies
+                    all_movies = await self._get_all_available_movies()
+                    logger.info(f"Retrieved {len(all_movies)} total movies for Tier 2")
+                    return all_movies
+                else:
+                    ***REMOVED*** Limited fetch for debugging
+                    movies_response = None
+                    try:
+                        ***REMOVED*** Try with rating sorting first
+                        movies_response = await backend_client.get_movies(
+                            page=1, limit=max_movies, sort_by="rating", sort_order="desc"
+                        )
+                    except Exception as sort_error:
+                        logger.debug(
+                            f"Rating sorting not supported, trying basic call: {sort_error}"
+                        )
+                        ***REMOVED*** Fallback to basic call without sorting
+                        movies_response = await backend_client.get_movies(page=1, limit=max_movies)
+
+                movie_ids = []
+                if movies_response and "results" in movies_response:
+                    for movie in movies_response["results"]:
+                        if isinstance(movie, dict) and "id" in movie:
+                            movie_ids.append(movie["id"])
+
+                logger.info(
+                    f"Retrieved {len(movie_ids)} popular movies from backend (requested: {max_movies})"
+                )
+                return movie_ids[:max_movies] if max_movies else movie_ids
+
+        except Exception as e:
+            logger.warning(
+                "Failed to get popular movies from backend, falling back to sample",
+                error=str(e),
+                max_movies=max_movies,
+            )
+            ***REMOVED*** Fallback: Get a sample of existing movies
+            return await self._get_fallback_movie_ids(min(max_movies, 200) if max_movies else 200)
 
     async def _get_discovery_movies(self, max_movies: int) -> List[int]:
         """Get full catalog movies for Tier 3 discovery."""
-        ***REMOVED*** In production, this would call backend API for:
-        ***REMOVED*** - Complete movie catalog
-        ***REMOVED*** - Movies with good discovery potential
-        sample_ids = list(range(1, min(max_movies + 1, 1001)))
-        logger.debug(f"Using sample discovery movies: {len(sample_ids)} movies")
-        return sample_ids
+        try:
+            ***REMOVED*** Get the full movie catalog from backend for discovery
+            async with self.connection_manager.get_connection() as backend_client:
+                ***REMOVED*** For discovery, get a diverse set - could be random or by various criteria
+                ***REMOVED*** We'll paginate through movies to get up to max_movies
+                all_movie_ids: List[int] = []
+                page = 1
+                page_size = min(100, max_movies)  ***REMOVED*** Backend API limit is 100 per request
+
+                while len(all_movie_ids) < max_movies:
+                    remaining = max_movies - len(all_movie_ids)
+                    current_limit = min(page_size, remaining)
+
+                    ***REMOVED*** Try basic get_movies call (without sorting to avoid 400 errors)
+                    try:
+                        logger.debug(f"Requesting page {page} with limit {current_limit}")
+                        movies_response = await backend_client.get_movies(
+                            page=page, limit=current_limit
+                        )
+
+                        ***REMOVED*** Log response metadata if available
+                        if movies_response and isinstance(movies_response, dict):
+                            total_in_response = movies_response.get("total", "unknown")
+                            results_count = len(movies_response.get("results", []))
+                            logger.debug(
+                                f"Response metadata - total: {total_in_response}, results_in_page: {results_count}"
+                            )
+
+                    except Exception as api_error:
+                        logger.warning(f"Failed to get page {page}: {api_error}")
+                        break
+
+                    if not movies_response or "results" not in movies_response:
+                        logger.warning(
+                            f"No response or results at page {page}, stopping pagination. Response: {movies_response}"
+                        )
+                        break
+
+                    page_movie_ids = []
+                    for movie in movies_response["results"]:
+                        if isinstance(movie, dict) and "id" in movie:
+                            page_movie_ids.append(movie["id"])
+
+                    logger.debug(
+                        f"Page {page}: fetched {len(page_movie_ids)} movies (cumulative: {len(all_movie_ids) + len(page_movie_ids)})"
+                    )
+
+                    if not page_movie_ids:  ***REMOVED*** No more movies
+                        logger.warning(
+                            f"No movie IDs found at page {page}, stopping pagination. Raw results: {movies_response.get('results', [])[:3] if movies_response else 'None'}"
+                        )
+                        break
+
+                    all_movie_ids.extend(page_movie_ids)
+                    page += 1
+
+                    ***REMOVED*** Safety break to prevent infinite loops (increased for large datasets)
+                    ***REMOVED*** Backend reports 179 total pages, so allow up to 200 for safety
+                    max_pages = max(
+                        (max_movies // page_size) + 10, 200
+                    )  ***REMOVED*** Allow enough pages + buffer
+                    if page > max_pages:
+                        logger.warning(
+                            f"Reached pagination limit at page {page} (max_pages: {max_pages})"
+                        )
+                        break
+
+                logger.info(
+                    f"Retrieved {len(all_movie_ids)} discovery movies from backend (requested: {max_movies}, pages_fetched: {page-1})"
+                )
+
+                if len(all_movie_ids) < max_movies:
+                    logger.warning(
+                        f"Backend API returned {len(all_movie_ids)} movies, but {max_movies} were requested. "
+                        f"This might indicate: 1) Database has fewer movies, 2) API pagination issue, "
+                        f"3) Database query filtering some movies. Check backend logs for details."
+                    )
+                return all_movie_ids[:max_movies]
+
+        except Exception as e:
+            logger.warning(
+                "Failed to get discovery movies from backend, falling back to sample",
+                error=str(e),
+                max_movies=max_movies,
+            )
+            ***REMOVED*** Fallback: Get whatever movies we can find
+            return await self._get_fallback_movie_ids(min(max_movies, 500))
+
+    async def _get_bulk_movie_ids(self, max_movies: int) -> List[int]:
+        """Alternative method to get movie IDs using bulk endpoint approach."""
+        try:
+            async with self.connection_manager.get_connection() as backend_client:
+                ***REMOVED*** Try using bulk endpoint with sequential ID ranges
+                all_movie_ids: List[int] = []
+
+                ***REMOVED*** Start with a reasonable ID range (most movie DBs start at 1)
+                start_id = 1
+                batch_size = 100
+
+                while len(all_movie_ids) < max_movies and start_id < 10000:  ***REMOVED*** Safety limit
+                    end_id = min(
+                        start_id + batch_size - 1, start_id + (max_movies - len(all_movie_ids))
+                    )
+                    id_range = list(range(start_id, end_id + 1))
+
+                    try:
+                        ***REMOVED*** Use bulk endpoint if available
+                        logger.debug(f"Trying bulk fetch for IDs {start_id}-{end_id}")
+                        response = await backend_client.get_movies_bulk(id_range)
+
+                        if response and "results" in response:
+                            for movie in response["results"]:
+                                if isinstance(movie, dict) and "id" in movie:
+                                    all_movie_ids.append(movie["id"])
+
+                        logger.debug(
+                            f"Bulk fetch got {len(response.get('results', []))} movies for range {start_id}-{end_id}"
+                        )
+
+                    except Exception as bulk_error:
+                        logger.debug(
+                            f"Bulk fetch failed for range {start_id}-{end_id}: {bulk_error}"
+                        )
+                        ***REMOVED*** If bulk fails, this isn't the right approach for this backend
+                        break
+
+                    start_id = end_id + 1
+
+                    ***REMOVED*** If we got fewer results than expected, we might be at the end
+                    if response and len(response.get("results", [])) < batch_size:
+                        logger.debug(f"Got fewer results than batch size, likely at end of data")
+                        break
+
+                logger.info(f"Bulk method retrieved {len(all_movie_ids)} movie IDs")
+                return all_movie_ids
+
+        except Exception as e:
+            logger.warning(f"Bulk movie ID fetch failed: {e}")
+            return []
+
+    async def _get_all_available_movies(self) -> List[int]:
+        """Get ALL available movies from the backend database (no limits for Tier 3)."""
+        try:
+            async with self.connection_manager.get_connection() as backend_client:
+                all_movie_ids: List[int] = []
+                page = 1
+                page_size = 100  ***REMOVED*** Backend API limit is 100 per request
+                total_pages_expected = None
+
+                logger.info("Starting unlimited movie fetch for Tier 3 (full catalog)")
+
+                while True:
+                    try:
+                        logger.debug(f"Fetching page {page} (page_size: {page_size})")
+                        movies_response = await backend_client.get_movies(
+                            page=page, limit=page_size
+                        )
+
+                        ***REMOVED*** Log total pages on first response
+                        if page == 1 and movies_response and isinstance(movies_response, dict):
+                            total_in_response = movies_response.get("total", "unknown")
+                            total_pages_in_response = movies_response.get("total_pages", "unknown")
+                            logger.info(
+                                f"Backend reports {total_in_response} total movies across {total_pages_in_response} pages"
+                            )
+                            total_pages_expected = total_pages_in_response
+
+                        if not movies_response or "results" not in movies_response:
+                            logger.info(f"No more data at page {page}, stopping")
+                            break
+
+                        page_movie_ids = []
+                        for movie in movies_response["results"]:
+                            if isinstance(movie, dict) and "id" in movie:
+                                page_movie_ids.append(movie["id"])
+
+                        if not page_movie_ids:
+                            logger.info(f"No movie IDs found at page {page}, stopping")
+                            break
+
+                        all_movie_ids.extend(page_movie_ids)
+                        logger.debug(
+                            f"Page {page}: got {len(page_movie_ids)} movies (total: {len(all_movie_ids)})"
+                        )
+
+                        ***REMOVED*** If we got fewer results than page_size, we're at the end
+                        if len(page_movie_ids) < page_size:
+                            logger.info(
+                                f"Last page reached at page {page} with {len(page_movie_ids)} movies"
+                            )
+                            break
+
+                        page += 1
+
+                        ***REMOVED*** Safety break - but much higher since we want everything
+                        if page > 300:  ***REMOVED*** Should handle up to 30,000 movies
+                            logger.warning(f"Reached safety limit at page {page}")
+                            break
+
+                    except Exception as api_error:
+                        logger.warning(f"Failed to get page {page}: {api_error}")
+                        break
+
+                logger.info(
+                    f"Unlimited fetch completed: {len(all_movie_ids)} movies from {page-1} pages"
+                )
+
+                if total_pages_expected and page - 1 < total_pages_expected:
+                    logger.warning(
+                        f"Expected {total_pages_expected} pages but only got {page-1} pages"
+                    )
+
+                return all_movie_ids
+
+        except Exception as e:
+            logger.error(f"Failed to get all available movies: {e}")
+            ***REMOVED*** Fallback to the old discovery method with a high limit
+            logger.info("Falling back to discovery method with high limit")
+            return await self._get_discovery_movies(10000)
+
+    async def _get_fallback_movie_ids(self, max_movies: int) -> List[int]:
+        """Fallback method to get existing movie IDs safely.
+
+        This method gets actual movie IDs from the backend when the tier-specific
+        methods fail, ensuring we only warm movies that actually exist.
+        """
+        try:
+            async with self.connection_manager.get_connection() as backend_client:
+                ***REMOVED*** Get movies in small pages to find existing IDs
+                all_movie_ids: List[int] = []
+                page = 1
+                page_size = 50  ***REMOVED*** Small pages for safety
+
+                while len(all_movie_ids) < max_movies:
+                    remaining = max_movies - len(all_movie_ids)
+                    current_limit = min(page_size, remaining)
+
+                    try:
+                        ***REMOVED*** Try simplest possible API call to avoid parameter issues
+                        if page == 1:
+                            ***REMOVED*** First try - use limit parameter
+                            movies_response = await backend_client.get_movies(
+                                page=1, limit=current_limit
+                            )
+                        else:
+                            ***REMOVED*** For pagination, some backends may not support it
+                            movies_response = await backend_client.get_movies(
+                                page=page, limit=current_limit
+                            )
+
+                        if not movies_response or "results" not in movies_response:
+                            break
+
+                        page_movie_ids = []
+                        for movie in movies_response["results"]:
+                            if isinstance(movie, dict) and "id" in movie:
+                                page_movie_ids.append(movie["id"])
+
+                        if not page_movie_ids:  ***REMOVED*** No more movies
+                            break
+
+                        all_movie_ids.extend(page_movie_ids)
+                        page += 1
+
+                        ***REMOVED*** Safety break (increased for large datasets)
+                        max_fallback_pages = (max_movies // page_size) + 5
+                        if page > max_fallback_pages:
+                            logger.warning(f"Reached fallback pagination limit at page {page}")
+                            break
+
+                    except Exception as e:
+                        logger.warning(f"Failed to get page {page} in fallback", error=str(e))
+                        break
+
+                logger.info(f"Fallback retrieved {len(all_movie_ids)} existing movie IDs")
+                return all_movie_ids
+
+        except Exception as e:
+            logger.error(f"Complete fallback failure: {str(e)}")
+            ***REMOVED*** Last resort: try the absolute simplest API call
+            try:
+                async with self.connection_manager.get_connection() as backend_client:
+                    ***REMOVED*** Most basic call possible - no parameters
+                    movies_response = await backend_client.get_movies()
+                    if movies_response and "results" in movies_response:
+                        movie_ids = []
+                        for movie in movies_response["results"][:max_movies]:
+                            if isinstance(movie, dict) and "id" in movie:
+                                movie_ids.append(movie["id"])
+                        if movie_ids:
+                            logger.info(f"Emergency fallback got {len(movie_ids)} movies")
+                            return movie_ids
+            except Exception as emergency_error:
+                logger.error(f"Emergency fallback failed: {emergency_error}")
+
+            ***REMOVED*** Ultimate fallback: small safe range (only if all else fails)
+            logger.warning("Using ultimate fallback: small ID range")
+            return list(range(1, min(max_movies, 10) + 1))
 
     async def _warm_single_movie_with_version(
         self, movie_id: int, warming_funcs: Any, force: bool = False

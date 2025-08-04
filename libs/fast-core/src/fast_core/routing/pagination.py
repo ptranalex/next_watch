@@ -18,17 +18,17 @@ class PaginationParams(BaseModel):
     """Pagination parameters model."""
 
     page: int = Field(1, ge=1, description="Page number (1-based)")
-    page_size: int = Field(20, ge=1, le=100, description="Number of items per page")
+    limit: int = Field(20, ge=1, le=100, description="Number of items per page")
 
     @property
     def offset(self) -> int:
         """Calculate offset for database queries."""
-        return (self.page - 1) * self.page_size
+        return (self.page - 1) * self.limit
 
     @property
-    def limit(self) -> int:
-        """Get limit for database queries."""
-        return self.page_size
+    def page_size(self) -> int:
+        """Get page size (alias for limit - backward compatibility)."""
+        return self.limit
 
     @property
     def skip(self) -> int:
@@ -56,18 +56,18 @@ class PaginatedResult(BaseModel):
 
 def get_pagination_params(
     page: int = Query(1, ge=1, description="Page number (1-based)"),
-    page_size: int = Query(20, ge=1, le=100, description="Number of items per page"),
+    limit: int = Query(20, ge=1, le=100, description="Number of items per page"),
 ) -> PaginationParams:
     """Get pagination parameters from query parameters.
 
     Args:
         page: Page number (1-based)
-        page_size: Number of items per page
+        limit: Number of items per page
 
     Returns:
         PaginationParams instance
     """
-    return PaginationParams(page=page, page_size=page_size)
+    return PaginationParams(page=page, limit=limit)
 
 
 def paginate_results(
@@ -138,21 +138,21 @@ class Paginator:
     def get_params(
         self,
         page: Optional[int] = None,
-        page_size: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> PaginationParams:
         """Get pagination parameters with validation.
 
         Args:
             page: Page number (1-based)
-            page_size: Number of items per page
+            limit: Number of items per page
 
         Returns:
             PaginationParams instance
         """
         page = max(1, page or 1)
-        page_size = min(self.max_page_size, max(1, page_size or self.default_page_size))
+        limit = min(self.max_page_size, max(1, limit or self.default_page_size))
 
-        return PaginationParams(page=page, page_size=page_size)
+        return PaginationParams(page=page, limit=limit)
 
     def paginate(
         self,

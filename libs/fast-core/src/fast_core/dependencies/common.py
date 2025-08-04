@@ -59,20 +59,20 @@ class PaginationParams:
     def __init__(
         self,
         page: int = 1,
-        page_size: int = 20,
+        limit: int = 20,
         max_page_size: int = 100,
     ):
         """Initialize pagination parameters.
 
         Args:
             page: Page number (1-based)
-            page_size: Number of items per page
+            limit: Number of items per page
             max_page_size: Maximum allowed page size
         """
         self.page = max(1, page)
-        self.page_size = min(max(1, page_size), max_page_size)
-        self.offset = (self.page - 1) * self.page_size
-        self.limit = self.page_size
+        self.limit = min(max(1, limit), max_page_size)
+        self.offset = (self.page - 1) * self.limit
+        self.page_size = self.limit  ***REMOVED*** Alias for backward compatibility
 
     @property
     def skip(self) -> int:
@@ -94,11 +94,11 @@ def get_pagination(
 
     def _get_pagination(
         page: int = Query(1, ge=1, description="Page number (1-based)"),
-        page_size: int = Query(20, ge=1, le=max_page_size, description="Number of items per page"),
+        limit: int = Query(20, ge=1, le=max_page_size, description="Number of items per page"),
     ) -> PaginationParams:
         return PaginationParams(
             page=page,
-            page_size=page_size,
+            limit=limit,
             max_page_size=max_page_size,
         )
 

@@ -21,7 +21,7 @@ def get_bff_warming_config() -> WarmingConfig:
         max_concurrent_operations=getattr(
             settings, "warming_max_concurrent", 3  ***REMOVED*** Reduced from 10 to 3 for rate limiting
         ),
-        max_items_per_strategy=getattr(settings, "warming_max_items_per_strategy", 2000),
+        max_items_per_strategy=getattr(settings, "warming_max_items_per_strategy", 10000),
         ***REMOVED*** Increased timeout for rate-limited operations
         operation_timeout_seconds=getattr(
             settings, "warming_operation_timeout", 120  ***REMOVED*** Increased from 60 to 120
@@ -119,7 +119,7 @@ def get_bff_warming_settings() -> Dict[str, Any]:
         "max_concurrent_operations": getattr(
             settings, "warming_max_concurrent", 3  ***REMOVED*** Reduced for rate limiting
         ),
-        "max_items_per_strategy": getattr(settings, "warming_max_items_per_strategy", 2000),
+        "max_items_per_strategy": getattr(settings, "warming_max_items_per_strategy", 10000),
         "operation_timeout_seconds": getattr(
             settings, "warming_operation_timeout", 120  ***REMOVED*** Increased timeout
         ),
