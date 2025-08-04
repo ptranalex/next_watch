@@ -422,7 +422,8 @@ services:
         max-size: "100m"
         max-file: "3"
 
-  ***REMOVED*** BFF API - Backend for Frontend (with cache warming)
+  ***REMOVED*** BFF API - Backend for Frontend (with unlimited cache warming)
+  ***REMOVED*** Configured for PRODUCTION: Warms ALL 4000+ movies without limits
   bff-api:
     image: ${DOCKER_BFF_IMAGE}
     container_name: bff-api
@@ -489,9 +490,19 @@ services:
       - ENABLE_ML_FEATURES=true
       - ENABLE_AUTH_SERVICE=true
 
-      ***REMOVED*** Cache Warming Configuration
+      ***REMOVED*** Cache Warming Configuration - PRODUCTION UNLIMITED WARMING
       - ENABLE_CACHE_WARMING=true
       - ADMIN_API_KEY=${ADMIN_API_KEY:-your-secure-admin-key}
+
+      ***REMOVED*** Warming Strategy Settings (for unlimited warming in production)
+      ***REMOVED*** These settings enable processing ALL 4000+ movies without CLI limits
+      - WARMING_MAX_ITEMS_PER_STRATEGY=10000 ***REMOVED*** Strategy limit (fallback, CLI overrides)
+      - WARMING_MAX_CONCURRENT=4 ***REMOVED*** Concurrent movie processing
+      - WARMING_OPERATION_TIMEOUT=120 ***REMOVED*** Operation timeout (seconds)
+      - WARMING_REQUESTS_PER_SECOND=3 ***REMOVED*** Rate limiting (3 RPS)
+      - WARMING_BURST_SIZE=5 ***REMOVED*** Burst allowance
+      - WARMING_MAX_CONNECTIONS=4 ***REMOVED*** Backend connections
+      - WARMING_REQUEST_TIMEOUT=5 ***REMOVED*** Request timeout (seconds)
 
       ***REMOVED*** Performance & Monitoring
       - ENABLE_PERFORMANCE_METRICS=true
@@ -523,11 +534,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.15"
-          memory: 512M
+          cpus: "0.25" ***REMOVED*** Increased for unlimited warming processing
+          memory: 1G ***REMOVED*** Increased for 4000+ movie warming cache
         reservations:
-          cpus: "0.05"
-          memory: 256M
+          cpus: "0.1" ***REMOVED*** Increased baseline
+          memory: 512M ***REMOVED*** Increased baseline
     logging:
       driver: "json-file"
       options:
