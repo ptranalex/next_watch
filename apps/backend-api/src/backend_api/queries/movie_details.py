@@ -199,18 +199,15 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: List[int]) -> List[
     if not movie_ids:
         return []
 
-    ***REMOVED*** Step 1: Get basic movie information without subqueries
-    placeholders = ",".join([":id" + str(i) for i in range(len(movie_ids))])
-    params = {f"id{i}": movie_id for i, movie_id in enumerate(movie_ids)}
-
-    movie_query = f"""
+    ***REMOVED*** Step 1: Get basic movie information using PostgreSQL ANY() for better performance
+    movie_query = """
     SELECT m.*
     FROM movie m
-    WHERE m.id IN ({placeholders})
+    WHERE m.id = ANY(:movie_ids)
     ORDER BY m.id
     """
 
-    movie_result = db_session.execute(text(movie_query), params)
+    movie_result = db_session.execute(text(movie_query), {"movie_ids": movie_ids})
     movies = [dict(row._mapping) for row in movie_result.all()]
 
     if not movies:

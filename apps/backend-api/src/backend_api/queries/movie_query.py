@@ -18,6 +18,11 @@ from backend_api.queries.movie_details import (
     get_movie_genres_bulk,
     get_movies_by_ids_bulk,
 )
+from backend_api.queries.precomputed_metadata import (
+    get_movies_precomputed_bulk,
+    get_movie_precomputed_single,
+    check_metadata_freshness,
+)
 from backend_api.queries.movie_listings import get_movies_with_filters, search_movies_by_title
 
 ***REMOVED*** Import query functions directly to avoid circular imports
@@ -242,16 +247,24 @@ class MovieQuery:
         ***REMOVED*** Get genres in bulk
         return get_movie_genres_bulk(db, movie_ids)
 
-    def get_movies_by_ids(self, db: Session, movie_ids: List[int]) -> List[Dict[str, Any]]:
+    def get_movies_by_ids(
+        self, db: Session, movie_ids: List[int], use_precomputed: bool = True
+    ) -> List[Dict[str, Any]]:
         """
-        Get multiple movies by their IDs.
+        Get multiple movies by their IDs with optional precomputed metadata.
+
+        This method implements the Netflix-style architecture pattern:
+        1. Try precomputed metadata first (cache forever pattern)
+        2. Fallback to real-time aggregation if needed
+        3. Use bulk operations to avoid N+1 query problems
 
         Args:
             db: Database session
             movie_ids: List of movie IDs to fetch
+            use_precomputed: Whether to use precomputed metadata (default: True)
 
         Returns:
-            List of movie details for the provided IDs
+            List of movie details with complete metadata
 
         Raises:
             ValidationError: If movie_ids list is invalid
@@ -272,7 +285,53 @@ class MovieQuery:
                 field_errors={"movie_ids": ["Maximum 1000 movie IDs allowed"]},
             )
 
-        ***REMOVED*** Use the existing movie_details module to get movies by IDs
+        if use_precomputed:
+            try:
+                ***REMOVED*** Try precomputed metadata first (Netflix pattern)
+                logger.debug(
+                    f"Attempting precomputed metadata retrieval for {len(movie_ids)} movies"
+                )
+                precomputed_movies = get_movies_precomputed_bulk(db, movie_ids)
+
+                if precomputed_movies:
+                    ***REMOVED*** Check if we got all requested movies
+                    retrieved_ids = {movie["id"] for movie in precomputed_movies}
+                    missing_ids = [mid for mid in movie_ids if mid not in retrieved_ids]
+
+                    if missing_ids:
+                        logger.info(
+                            f"Missing {len(missing_ids)} movies from precomputed data, falling back"
+                        )
+                        ***REMOVED*** Fallback for missing movies
+                        missing_movies = get_movies_by_ids_bulk(db, missing_ids)
+
+                        ***REMOVED*** Add genre information for missing movies (they won't have it precomputed)
+                        if missing_movies:
+                            missing_ids_for_genres = [
+                                movie.get("id") for movie in missing_movies if movie.get("id")
+                            ]
+                            genres_by_movie = self.get_movie_genres_bulk(db, missing_ids_for_genres)
+
+                            for movie in missing_movies:
+                                movie_id = movie.get("id")
+                                if movie_id:
+                                    movie["genres"] = genres_by_movie.get(movie_id, [])
+
+                        ***REMOVED*** Combine results
+                        precomputed_movies.extend(missing_movies)
+
+                    logger.debug(
+                        f"Successfully retrieved {len(precomputed_movies)} movies using precomputed data"
+                    )
+                    return precomputed_movies
+
+            except Exception as e:
+                logger.warning(
+                    f"Precomputed metadata retrieval failed: {e}, falling back to real-time"
+                )
+
+        ***REMOVED*** Fallback to real-time aggregation (original implementation)
+        logger.debug(f"Using real-time aggregation for {len(movie_ids)} movies")
         return get_movies_by_ids_bulk(db, movie_ids)
 
     def get_movie_trailers(self, db: Session, movie_id: int) -> List[Any]:

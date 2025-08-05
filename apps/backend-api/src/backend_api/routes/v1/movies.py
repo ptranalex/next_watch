@@ -13,6 +13,8 @@ from fast_core.dependencies import get_pagination, get_request_id, get_service_c
 from fast_core.dependencies.common import PaginationParams
 from fast_core.responses import ResponseBuilder, PaginatedResponse
 
+***REMOVED*** Redis cache removed for bulk endpoints - too dynamic for effective caching
+
 from backend_api.db.database import get_db
 from backend_api.errors import (
     ResourceNotFoundError,
@@ -166,6 +168,56 @@ def get_movie_id(movie: Any) -> int:
         return 0
 
 
+***REMOVED*** Bulk endpoint caching removed - too dynamic for effective cache hit rates
+***REMOVED*** The materialized view provides the performance optimization instead
+
+
+async def _get_bulk_movies_internal(
+    ids: str, page: int, limit: int, db: Session, movie_query: MovieQuery
+) -> MoviesListResponse:
+    """Internal function for bulk movies logic (used by both cached and non-cached paths)."""
+    ***REMOVED*** Parse movie IDs from comma-separated string
+    try:
+        movie_ids = [int(id_str.strip()) for id_str in ids.split(",") if id_str.strip()]
+    except ValueError:
+        raise ValidationError("Invalid movie IDs provided. Must be comma-separated integers.")
+
+    if not movie_ids:
+        return create_pagination_response([], 0, page, limit)
+
+    if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit to prevent abuse
+        raise ValidationError("Too many movie IDs provided. Maximum 1000 IDs per request.")
+
+    ***REMOVED*** Record bulk operation metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_movie_operation("bulk", "success")
+        metrics.record_bulk_operation(
+            "bulk_get", len(movie_ids), 0.0
+        )  ***REMOVED*** Duration will be tracked by decorator
+
+    ***REMOVED*** Calculate pagination for the movie IDs list
+    skip = (page - 1) * limit
+    paginated_ids = movie_ids[skip : skip + limit]
+
+    ***REMOVED*** Get movies from database using precomputed metadata (Netflix pattern)
+    movies = movie_query.get_movies_by_ids(db, paginated_ids, use_precomputed=True)
+
+    if not movies:
+        return create_pagination_response([], 0, page, limit)
+
+    ***REMOVED*** Convert to response format (movies already have genres from precomputed data)
+    movie_responses = []
+    for movie in movies:
+        ***REMOVED*** Movies from precomputed data already have genres included
+        movie_response = MovieResponse.model_validate(movie)
+        movie_responses.append(movie_response)
+
+    ***REMOVED*** Calculate pagination metadata based on original movie_ids list
+    total_count = len(movie_ids)
+    return create_pagination_response(movie_responses, total_count, page, limit)
+
+
 @router.get("/bulk", response_model=MoviesListResponse)
 @track_bulk_operation
 async def get_movies_bulk(
@@ -176,10 +228,12 @@ async def get_movies_bulk(
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
     """
-    Get multiple movies by their IDs with pagination support.
+    Get multiple movies by their IDs with high-performance precomputed metadata.
 
-    This endpoint is optimized for bulk fetching of movies when you have
-    a list of specific movie IDs. Supports pagination for large lists.
+    This endpoint implements Netflix-style architecture patterns:
+    - Precomputed metadata via materialized views for instant response
+    - Bulk operations to avoid N+1 queries
+    - Fallback to real-time aggregation when needed
 
     Args:
         ids: Comma-separated list of movie IDs (e.g., "1,2,3,4,5")
@@ -189,58 +243,14 @@ async def get_movies_bulk(
         movie_query: Movie query service
 
     Returns:
-        Paginated list of movies matching the provided IDs
+        Paginated list of movies with complete metadata
 
     Example:
         GET /movies/bulk?ids=1,2,3,4,5&page=1&limit=50
     """
     try:
-        ***REMOVED*** Parse movie IDs from comma-separated string
-        try:
-            movie_ids = [int(id_str.strip()) for id_str in ids.split(",") if id_str.strip()]
-        except ValueError:
-            raise ValidationError("Invalid movie IDs provided. Must be comma-separated integers.")
-
-        if not movie_ids:
-            return create_pagination_response([], 0, page, limit)
-
-        if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit to prevent abuse
-            raise ValidationError("Too many movie IDs provided. Maximum 1000 IDs per request.")
-
-        ***REMOVED*** Record bulk operation metrics
-        metrics = get_backend_metrics()
-        if metrics:
-            metrics.record_movie_operation("bulk", "success")
-            metrics.record_bulk_operation(
-                "bulk_get", len(movie_ids), 0.0
-            )  ***REMOVED*** Duration will be tracked by decorator
-
-        ***REMOVED*** Calculate pagination for the movie IDs list
-        skip = (page - 1) * limit
-        paginated_ids = movie_ids[skip : skip + limit]
-
-        ***REMOVED*** Get movies from database
-        movies = movie_query.get_movies_by_ids(db, paginated_ids)
-
-        if not movies:
-            return create_pagination_response([], 0, page, limit)
-
-        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
-        movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
-        genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
-
-        ***REMOVED*** Convert to response format
-        movie_responses = []
-        for movie in movies:
-            ***REMOVED*** Get movie ID safely
-            movie_id = get_movie_id(movie)
-            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
-            movie_response = format_movie_for_response(movie, genres)
-            movie_responses.append(movie_response)
-
-        ***REMOVED*** Calculate pagination metadata based on original movie_ids list
-        total_count = len(movie_ids)
-        return create_pagination_response(movie_responses, total_count, page, limit)
+        ***REMOVED*** Use materialized view for high performance (Netflix-style precomputed metadata)
+        return await _get_bulk_movies_internal(ids, page, limit, db, movie_query)
 
     except (ResourceNotFoundError, ValidationError) as e:
         raise service_error_to_http_exception(e)

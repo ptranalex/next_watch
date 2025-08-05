@@ -17,7 +17,7 @@ To add a new migration:
 """
 
 import importlib
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import Engine, inspect, text
 from sqlmodel import Session, SQLModel, create_engine
@@ -38,6 +38,7 @@ MIGRATIONS = [
     "backend_api.db.migrations.007_add_users_table",
     "backend_api.db.migrations.008_add_user_movie_interactions_table",
     "backend_api.db.migrations.009_add_performance_optimization_indexes",
+    "backend_api.db.migrations.010_create_movie_metadata_materialized_view",
 ]
 
 
@@ -111,11 +112,13 @@ def run_migration(db_url: Optional[str] = None) -> List[str]:
     Returns:
         List of applied migration IDs
     """
+    import time
+
     ***REMOVED*** Use provided URL or settings URL
     db_url = db_url or settings.database_url
 
-    ***REMOVED*** Create engine
-    engine = create_engine(db_url)
+    ***REMOVED*** Create engine with shorter timeout for better interruption
+    engine = create_engine(db_url, pool_timeout=30, pool_recycle=3600)
 
     ***REMOVED*** Get applied migrations
     applied_migrations = get_applied_migrations(engine)
@@ -134,13 +137,31 @@ def run_migration(db_url: Optional[str] = None) -> List[str]:
                 logger.info(f"Migration {migration_id} already applied, skipping")
                 continue
 
-            ***REMOVED*** Run migration
-            logger.info(f"Applying migration: {migration_id}")
+            ***REMOVED*** Run migration with timing and progress updates
+            migration_start = time.time()
+            logger.info(f"⏱️ Starting migration: {migration_id}")
+
+            ***REMOVED*** Run migration (progress is shown at CLI level)
             module.upgrade(engine)
+
+            migration_elapsed = time.time() - migration_start
+            if migration_elapsed >= 60:
+                minutes = int(migration_elapsed // 60)
+                seconds = migration_elapsed % 60
+                time_str = f"{minutes}m {seconds:.1f}s"
+            else:
+                time_str = f"{migration_elapsed:.1f}s"
+
             applied_ids.append(migration_id)
-            logger.info(f"Migration {migration_id} applied successfully")
+            logger.info(f"✅ Migration {migration_id} completed successfully in {time_str}")
+
         except Exception as e:
-            logger.error(f"Error applying migration {migration_module}: {str(e)}")
+            migration_elapsed = (
+                time.time() - migration_start if "migration_start" in locals() else 0
+            )
+            logger.error(
+                f"❌ Error applying migration {migration_module} after {migration_elapsed:.1f}s: {str(e)}"
+            )
             raise
 
     logger.info(f"Applied {len(applied_ids)} migrations")

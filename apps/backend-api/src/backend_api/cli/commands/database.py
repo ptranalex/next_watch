@@ -2,7 +2,7 @@
 
 import importlib
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import typer
 from rich.console import Console
@@ -72,6 +72,8 @@ def migrate_database(
     database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
 ) -> int:
     """Run database migrations to update schema."""
+    import time
+
     ***REMOVED*** Configure logging
     configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
 
@@ -86,22 +88,92 @@ def migrate_database(
             masked_url = settings.get_database_url_masked()
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Run migrations
-    with console.status("[bold green]Running database migrations...[/]"):
-        applied_migrations = run_migration(db_url=database_url)
+    ***REMOVED*** Start timing
+    start_time = time.time()
+    console.print(f"[bold yellow]⏱️ Migration started at {time.strftime('%H:%M:%S')}[/]")
+    console.print(
+        "[dim]💡 Note: Large migrations cannot be interrupted during database operations[/]"
+    )
 
-    ***REMOVED*** Show results
+    ***REMOVED*** Run migrations with real-time status updates using rich
+    import threading
+
+    ***REMOVED*** Shared variables for timing display
+    stop_timer = threading.Event()
+    status_obj = None
+
+    def update_status_message() -> None:
+        """Update status message with elapsed time every second"""
+        while not stop_timer.is_set():
+            current_elapsed = time.time() - start_time
+            if current_elapsed >= 60:
+                minutes = int(current_elapsed // 60)
+                seconds = current_elapsed % 60
+                time_display = f"{minutes}m {seconds:.0f}s"
+            else:
+                time_display = f"{current_elapsed:.0f}s"
+
+            ***REMOVED*** Update the rich status message safely
+            _update_status_safely(status_obj, time_display)
+
+            ***REMOVED*** Use wait() instead of sleep() for better interrupt handling
+            if stop_timer.wait(1):
+                break
+
+    def _update_status_safely(status_ref: Optional[Any], time_display: str) -> None:
+        """Safely update status object"""
+        if status_ref is not None:
+            try:
+                status_ref.update(
+                    f"[bold green]Running database migrations... Elapsed: {time_display}[/]"
+                )
+            except Exception:
+                pass
+
+    ***REMOVED*** Start the timer thread
+    timer_thread = threading.Thread(target=update_status_message, daemon=True)
+    timer_thread.start()
+
+    ***REMOVED*** Use rich status with dynamic updates
+    with console.status("[bold green]Running database migrations... Elapsed: 0s[/]") as status:
+        status_obj = status  ***REMOVED*** Make status available to the timer thread
+        try:
+            applied_migrations = run_migration(db_url=database_url)
+        except KeyboardInterrupt:
+            console.print("\n[bold yellow]⚠️ Migration interrupted by user[/]")
+            raise
+        finally:
+            ***REMOVED*** Stop the timer
+            stop_timer.set()
+            timer_thread.join(timeout=1)
+            status_obj = None
+
+    ***REMOVED*** Calculate elapsed time
+    elapsed_time = time.time() - start_time
+    minutes = int(elapsed_time // 60)
+    seconds = elapsed_time % 60
+
+    ***REMOVED*** Show results with timing
     if not quiet:
+        ***REMOVED*** Show elapsed time
+        if minutes > 0:
+            time_str = f"{minutes}m {seconds:.1f}s"
+        else:
+            time_str = f"{seconds:.1f}s"
+
+        console.print(f"[bold yellow]⏱️ Migration completed in {time_str}[/]")
+
         if applied_migrations:
             table = Table(title="Applied Migrations")
             table.add_column("ID", style="cyan")
+            table.add_column("Duration", style="yellow")
 
             for migration_id in applied_migrations:
-                table.add_row(migration_id)
+                table.add_row(migration_id, time_str if len(applied_migrations) == 1 else "N/A")
 
             console.print(table)
             console.print(
-                f"[bold green]✓[/] Applied {len(applied_migrations)} migrations successfully!"
+                f"[bold green]✓[/] Applied {len(applied_migrations)} migrations successfully in {time_str}!"
             )
         else:
             console.print("[bold blue]ℹ[/] Database schema is already up to date!")
