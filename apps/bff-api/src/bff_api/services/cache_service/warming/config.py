@@ -6,26 +6,32 @@ This module handles all configuration settings and setup for the BFF cache warmi
 import asyncio
 from typing import Dict, Any, Optional
 from cache.warming import WarmingConfig
-from bff_api.config.app import settings
+from bff_api.config.app import get_bff_settings
 
 
 def get_bff_warming_config() -> WarmingConfig:
     """Get BFF-specific warming configuration.
 
+    Uses the centralized settings object which automatically loads .env and .env.local
+    following the same pattern as the Search API.
+
     Returns:
         Configured WarmingConfig instance with BFF-specific settings
     """
+    ***REMOVED*** Get settings (automatically loads .env and .env.local)
+    settings = get_bff_settings()
+
+    ***REMOVED*** Use settings object with appropriate defaults
+    max_concurrent = getattr(settings, "warming_max_concurrent", 3)
+    max_items = getattr(settings, "warming_max_items_per_strategy", 10000)
+    operation_timeout = getattr(settings, "warming_operation_timeout", 120)
 
     return WarmingConfig(
-        ***REMOVED*** Rate limiting for downstream services - reduced concurrency to prevent 429s
-        max_concurrent_operations=getattr(
-            settings, "warming_max_concurrent", 3  ***REMOVED*** Reduced from 10 to 3 for rate limiting
-        ),
-        max_items_per_strategy=getattr(settings, "warming_max_items_per_strategy", 10000),
+        ***REMOVED*** Rate limiting for downstream services - check env vars first
+        max_concurrent_operations=max_concurrent,
+        max_items_per_strategy=max_items,
         ***REMOVED*** Increased timeout for rate-limited operations
-        operation_timeout_seconds=getattr(
-            settings, "warming_operation_timeout", 120  ***REMOVED*** Increased from 60 to 120
-        ),
+        operation_timeout_seconds=operation_timeout,
         min_miss_rate_threshold=getattr(settings, "warming_min_miss_rate", 0.3),
         min_avg_miss_time_ms=getattr(settings, "warming_min_avg_miss_time", 100.0),
         min_total_calls=getattr(settings, "warming_min_total_calls", 10),
@@ -42,14 +48,16 @@ def get_bff_warming_config() -> WarmingConfig:
     )
 
 
-***REMOVED*** Rate limiting configuration for warming operations
-WARMING_RATE_LIMITS = {
-    "requests_per_second": getattr(settings, "warming_requests_per_second", 2),  ***REMOVED*** 2 RPS max
-    "burst_size": getattr(settings, "warming_burst_size", 5),  ***REMOVED*** Allow 5 request burst
-    "backoff_base": getattr(settings, "warming_backoff_base", 2.0),  ***REMOVED*** Exponential backoff base
-    "backoff_max": getattr(settings, "warming_backoff_max", 30.0),  ***REMOVED*** Max backoff 30s
-    "jitter": getattr(settings, "warming_jitter", True),  ***REMOVED*** Add jitter to backoff
-}
+def get_warming_rate_limits() -> Dict[str, Any]:
+    """Get rate limiting configuration for warming operations."""
+    settings = get_bff_settings()
+    return {
+        "requests_per_second": getattr(settings, "warming_requests_per_second", 2),  ***REMOVED*** 2 RPS max
+        "burst_size": getattr(settings, "warming_burst_size", 5),  ***REMOVED*** Allow 5 request burst
+        "backoff_base": getattr(settings, "warming_backoff_base", 2.0),  ***REMOVED*** Exponential backoff base
+        "backoff_max": getattr(settings, "warming_backoff_max", 30.0),  ***REMOVED*** Max backoff 30s
+        "jitter": getattr(settings, "warming_jitter", True),  ***REMOVED*** Add jitter to backoff
+    }
 
 
 class WarmingRateLimiter:
@@ -101,9 +109,10 @@ def get_warming_rate_limiter() -> WarmingRateLimiter:
     """
     global _global_warming_rate_limiter
     if _global_warming_rate_limiter is None:
+        rate_limits = get_warming_rate_limits()
         _global_warming_rate_limiter = WarmingRateLimiter(
-            requests_per_second=float(WARMING_RATE_LIMITS["requests_per_second"]),
-            burst_size=int(WARMING_RATE_LIMITS["burst_size"]),
+            requests_per_second=float(rate_limits["requests_per_second"]),
+            burst_size=int(rate_limits["burst_size"]),
         )
     return _global_warming_rate_limiter
 
@@ -114,6 +123,7 @@ def get_bff_warming_settings() -> Dict[str, Any]:
     Returns:
         Dictionary with warming configuration settings
     """
+    settings = get_bff_settings()
 
     return {
         "max_concurrent_operations": getattr(
@@ -127,5 +137,5 @@ def get_bff_warming_settings() -> Dict[str, Any]:
         "enable_user_specific": True,
         "enable_scheduled": True,
         "enable_metrics_driven": True,
-        "rate_limits": WARMING_RATE_LIMITS,
+        "rate_limits": get_warming_rate_limits(),
     }

@@ -176,11 +176,12 @@ def get_backend_connection_manager() -> BackendConnectionManager:
     """Get the global backend connection manager."""
     global _backend_connection_manager
     if _backend_connection_manager is None:
-        import os
+        from bff_api.config.app import get_bff_settings
 
-        ***REMOVED*** Allow configuration via environment variables
-        max_connections = int(os.getenv("WARMING_MAX_CONNECTIONS", "4"))
-        request_timeout = int(os.getenv("WARMING_REQUEST_TIMEOUT", "3"))
+        ***REMOVED*** Get settings (automatically loads .env and .env.local)
+        settings = get_bff_settings()
+        max_connections = getattr(settings, "warming_max_connections", 4)
+        request_timeout = getattr(settings, "warming_request_timeout", 3)
 
         _backend_connection_manager = BackendConnectionManager(
             max_connections=max_connections,  ***REMOVED*** Configurable via WARMING_MAX_CONNECTIONS
@@ -378,11 +379,53 @@ class BFFSmartWarming:
 
     def __init__(self) -> None:
         """Initialize BFF smart warming integration."""
+        from bff_api.services.cache_service.warming.config import get_bff_warming_config
+        from bff_api.config.app import get_bff_settings
+
         self.smart_warmer = get_smart_warming_service()
         self.version_warmer = VersionAwareWarming()
         self.connection_manager = get_backend_connection_manager()
         self._warming_throttle: Dict[str, datetime] = {}  ***REMOVED*** Throttle warming requests
         self._throttle_window = timedelta(seconds=30)  ***REMOVED*** Minimum time between warmings
+
+        ***REMOVED*** Log warming configuration for debugging
+        settings = get_bff_settings()  ***REMOVED*** Automatically loads .env and .env.local
+        warming_config = get_bff_warming_config()
+
+        env_config = {
+            "WARMING_MAX_CONNECTIONS": getattr(settings, "warming_max_connections", 4),
+            "WARMING_REQUEST_TIMEOUT": getattr(settings, "warming_request_timeout", 3),
+            "WARMING_MAX_CONCURRENT": getattr(settings, "warming_max_concurrent", 3),
+            "WARMING_OPERATION_TIMEOUT": getattr(settings, "warming_operation_timeout", 120),
+            "WARMING_REQUESTS_PER_SECOND": getattr(settings, "warming_requests_per_second", 2),
+            "WARMING_BURST_SIZE": getattr(settings, "warming_burst_size", 5),
+            "WARMING_MAX_ITEMS_PER_STRATEGY": getattr(
+                settings, "warming_max_items_per_strategy", 10000
+            ),
+        }
+
+        logger.info(
+            "🚀 BFF Smart Warming Configuration",
+            warming_config={
+                "max_concurrent_operations": warming_config.max_concurrent_operations,
+                "operation_timeout_seconds": warming_config.operation_timeout_seconds,
+                "max_items_per_strategy": warming_config.max_items_per_strategy,
+                "min_miss_rate_threshold": warming_config.min_miss_rate_threshold,
+                "strategies_enabled": {
+                    "metrics_driven": warming_config.enable_metrics_driven,
+                    "popular_content": warming_config.enable_popular_content,
+                    "user_specific": warming_config.enable_user_specific,
+                    "scheduled": warming_config.enable_scheduled,
+                },
+            },
+            environment_config=env_config,
+            connection_pool={
+                "max_connections": self.connection_manager.max_connections,
+                "request_timeout": self.connection_manager.request_timeout,
+            },
+            throttle_window_seconds=self._throttle_window.total_seconds(),
+        )
+
         logger.info(
             "BFF smart warming integration initialized with version awareness and connection management"
         )

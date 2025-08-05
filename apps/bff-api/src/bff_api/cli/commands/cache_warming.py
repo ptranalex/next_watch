@@ -273,29 +273,52 @@ async def _warm_popular_content_async(
             def update_progress(completed: int) -> None:
                 progress.update(task, completed=completed)
 
-            ***REMOVED*** Warm targets individually with progress tracking
+            ***REMOVED*** Warm targets concurrently with progress tracking
             successful = 0
             failed = 0
+            completed = 0
 
-            for i, target in enumerate(targets):
+            ***REMOVED*** Create semaphore to limit concurrent operations
+            from bff_api.config.app import get_bff_settings
+
+            settings = get_bff_settings()
+            max_concurrent = getattr(settings, "warming_max_concurrent", 12)
+            semaphore = asyncio.Semaphore(max_concurrent)
+
+            async def warm_single_target(target: Any) -> Tuple[bool, Optional[str]]:
+                """Warm a single target with error handling."""
+                async with semaphore:  ***REMOVED*** Limit concurrency
+                    try:
+                        ***REMOVED*** Get the warming function for this target
+                        warming_func = warming_engine._warming_functions.get(target.function_name)
+                        if warming_func:
+                            await warming_func(**target.parameters)
+                            return True, None
+                        else:
+                            logger.warning(f"No warming function found for {target.function_name}")
+                            return False, f"No warming function found for {target.function_name}"
+                    except Exception as e:
+                        logger.error(f"Failed to warm target {target.function_name}: {e}")
+                        return False, str(e)
+
+            ***REMOVED*** Create tasks for all targets
+            tasks = [warm_single_target(target) for target in targets]
+
+            ***REMOVED*** Process with progress updates
+            for future in asyncio.as_completed(tasks):
                 try:
-                    ***REMOVED*** Get the warming function for this target
-                    warming_func = warming_engine._warming_functions.get(target.function_name)
-                    if warming_func:
-                        await warming_func(**target.parameters)
+                    success, error = await future
+                    if success:
                         successful += 1
                     else:
                         failed += 1
-                        logger.warning(f"No warming function found for {target.function_name}")
+                    completed += 1
+                    progress.update(task, completed=completed)
                 except Exception as e:
                     failed += 1
-                    logger.error(f"Failed to warm target {target.function_name}: {e}")
-
-                ***REMOVED*** Update progress
-                progress.update(task, completed=i + 1)
-
-                ***REMOVED*** Small delay to prevent overwhelming downstream services
-                await asyncio.sleep(0.1)
+                    completed += 1
+                    progress.update(task, completed=completed)
+                    logger.error(f"Unexpected error in warming task: {e}")
 
             ***REMOVED*** Create stats object
             class WarmingStats:
@@ -558,6 +581,65 @@ def warm_priority_movies(
         if not await _setup_cli_services():
             raise typer.Exit(1)
 
+        ***REMOVED*** Print current warming configuration
+        from bff_api.services.cache_service.warming.config import get_bff_warming_config
+        from bff_api.config.app import get_bff_settings
+
+        ***REMOVED*** Get settings (automatically loads .env and .env.local)
+        settings = get_bff_settings()
+        warming_config = get_bff_warming_config()
+
+        console.print("\n[bold cyan]📋 Current Warming Configuration:[/bold cyan]")
+        config_table = Table(show_header=True, header_style="bold magenta")
+        config_table.add_column("Setting", style="white", width=30)
+        config_table.add_column("Value", style="green", width=20)
+        config_table.add_column("Source", style="dim", width=15)
+
+        ***REMOVED*** Core config settings (these come from the warming config, with automatic env detection)
+        config_table.add_row(
+            "Max Concurrent Operations",
+            str(warming_config.max_concurrent_operations),
+            "Config" if warming_config.max_concurrent_operations != 3 else "Default",
+        )
+        config_table.add_row(
+            "Operation Timeout",
+            f"{warming_config.operation_timeout_seconds}s",
+            "Config" if warming_config.operation_timeout_seconds != 120 else "Default",
+        )
+        config_table.add_row(
+            "Max Items Per Strategy",
+            str(warming_config.max_items_per_strategy),
+            "Config" if warming_config.max_items_per_strategy != 10000 else "Default",
+        )
+        config_table.add_row(
+            "Min Miss Rate Threshold", f"{warming_config.min_miss_rate_threshold:.1%}", "Default"
+        )
+
+        ***REMOVED*** Environment settings (automatically loaded from .env/.env.local)
+        config_table.add_row(
+            "Max Connections",
+            str(getattr(settings, "warming_max_connections", 4)),
+            "Config" if hasattr(settings, "warming_max_connections") else "Default",
+        )
+        config_table.add_row(
+            "Request Timeout",
+            f"{getattr(settings, 'warming_request_timeout', 3)}s",
+            "Config" if hasattr(settings, "warming_request_timeout") else "Default",
+        )
+        config_table.add_row(
+            "Requests Per Second",
+            str(getattr(settings, "warming_requests_per_second", 2)),
+            "Config" if hasattr(settings, "warming_requests_per_second") else "Default",
+        )
+        config_table.add_row(
+            "Burst Size",
+            str(getattr(settings, "warming_burst_size", 5)),
+            "Config" if hasattr(settings, "warming_burst_size") else "Default",
+        )
+
+        console.print(config_table)
+        console.print()
+
         start_time = time.time()
 
         try:
@@ -620,8 +702,8 @@ def warm_priority_movies(
             ) as progress:
                 task = progress.add_task(f"Warming Tier {tier} movies...", total=len(movie_ids))
 
-                ***REMOVED*** Use semaphore to limit concurrent requests (same as the fix in smart_warming)
-                max_concurrent = min(5, len(movie_ids))
+                ***REMOVED*** Use semaphore to limit concurrent requests (use optimized concurrency)
+                max_concurrent = min(warming_config.max_concurrent_operations, len(movie_ids))
                 semaphore = asyncio.Semaphore(max_concurrent)
 
                 async def _warm_with_progress(movie_id: int) -> Dict[str, Any]:
@@ -632,7 +714,7 @@ def warm_priority_movies(
                                 movie_id, warming_funcs, force=force
                             )
                             progress.advance(task)
-                            await asyncio.sleep(0.1)  ***REMOVED*** Small delay to see progress
+                            await asyncio.sleep(0.01)  ***REMOVED*** Reduced delay for better performance
                             return {"movie_id": movie_id, "success": True, "result": result}
                         except Exception as e:
                             progress.advance(task)

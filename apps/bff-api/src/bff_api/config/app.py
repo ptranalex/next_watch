@@ -78,6 +78,41 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
 
     cache_enable_metrics: bool = Field(default=True, description="Enable cache metrics collection")
 
+    ***REMOVED*** Cache warming configuration
+    warming_max_concurrent: int = Field(
+        default=3, description="Maximum concurrent warming operations"
+    )
+    warming_requests_per_second: int = Field(
+        default=2, description="Maximum warming requests per second"
+    )
+    warming_max_connections: int = Field(
+        default=4, description="Maximum connections for warming operations"
+    )
+    warming_operation_timeout: int = Field(
+        default=120, description="Warming operation timeout in seconds"
+    )
+    warming_request_timeout: int = Field(
+        default=3, description="Individual warming request timeout in seconds"
+    )
+    warming_burst_size: int = Field(default=5, description="Maximum burst size for rate limiting")
+    warming_max_items_per_strategy: int = Field(
+        default=10000, description="Maximum items per warming strategy"
+    )
+    warming_min_miss_rate: float = Field(
+        default=0.3, description="Minimum miss rate threshold for warming"
+    )
+    warming_min_avg_miss_time: float = Field(
+        default=100.0, description="Minimum average miss time in milliseconds"
+    )
+    warming_min_total_calls: int = Field(
+        default=10, description="Minimum total calls before warming"
+    )
+    warming_backoff_base: float = Field(
+        default=2.0, description="Exponential backoff base for warming retries"
+    )
+    warming_backoff_max: float = Field(default=30.0, description="Maximum backoff time in seconds")
+    warming_jitter: bool = Field(default=True, description="Enable jitter for warming backoff")
+
     class Config:
         """Pydantic configuration for environment handling."""
 
@@ -237,6 +272,15 @@ apply_profiles(settings, GatewayProfile)
 ***REMOVED*** Override log level for development
 if settings.is_development:
     object.__setattr__(settings, "log_level", "DEBUG")
+
+
+def get_bff_settings() -> BFFAPIConfig:
+    """Get BFF API settings instance.
+
+    Returns:
+        BFFAPIConfig: The BFF API configuration instance with .env/.env.local loaded
+    """
+    return settings
 
 
 ***REMOVED*** Backward compatibility function for cache settings

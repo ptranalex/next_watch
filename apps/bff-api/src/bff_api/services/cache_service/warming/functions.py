@@ -13,7 +13,10 @@ from fast_core.dependencies.client_factory import ServiceClientConfig
 
 from bff_api.services.clients.facade import BackendClient
 from bff_api.services.clients.recommendation import RecommendationClient
-from bff_api.services.cache_service.warming.config import WarmingRateLimiter, WARMING_RATE_LIMITS
+from bff_api.services.cache_service.warming.config import (
+    WarmingRateLimiter,
+    get_warming_rate_limits,
+)
 from bff_api.config.app import settings, BFFAPIConfig
 
 logger = get_logger(__name__)
@@ -26,9 +29,10 @@ def get_warming_rate_limiter() -> WarmingRateLimiter:
     """Get or create the global warming rate limiter."""
     global _global_warming_rate_limiter
     if _global_warming_rate_limiter is None:
+        rate_limits = get_warming_rate_limits()
         _global_warming_rate_limiter = WarmingRateLimiter(
-            requests_per_second=float(WARMING_RATE_LIMITS["requests_per_second"]),
-            burst_size=int(WARMING_RATE_LIMITS["burst_size"]),
+            requests_per_second=float(rate_limits["requests_per_second"]),
+            burst_size=int(rate_limits["burst_size"]),
         )
     return _global_warming_rate_limiter
 
@@ -49,10 +53,11 @@ async def _rate_limited_operation(
         Exception: If operation fails after retries
     """
     rate_limiter = get_warming_rate_limiter()
+    rate_limits = get_warming_rate_limits()
     max_retries = 3
-    base_delay = WARMING_RATE_LIMITS["backoff_base"]
-    max_delay = WARMING_RATE_LIMITS["backoff_max"]
-    use_jitter = WARMING_RATE_LIMITS["jitter"]
+    base_delay = rate_limits["backoff_base"]
+    max_delay = rate_limits["backoff_max"]
+    use_jitter = rate_limits["jitter"]
 
     for attempt in range(max_retries + 1):
         try:
