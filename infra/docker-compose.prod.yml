@@ -70,11 +70,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: 1.2G
+          cpus: "0.25"         ***REMOVED*** Reduced for AWS t3.medium
+          memory: 512M         ***REMOVED*** Reduced for 4GB total limit
         reservations:
-          cpus: "0.15"
-          memory: 640M
+          cpus: "0.1"
+          memory: 256M
     logging:
       driver: "json-file"
       options:
@@ -98,13 +98,13 @@ services:
       - LOG_LEVEL=info
       - LOGS_DIR=/app/logs
 
-      ***REMOVED*** Uvicorn Configuration
-      - WORKERS=1
-      - TIMEOUT=120
+      ***REMOVED*** Uvicorn Configuration (optimized for cache warming load)
+      - WORKERS=2
+      - TIMEOUT=60
       - MAX_KEEPALIVE=60
       - FORWARDED_ALLOW_IPS=*
-      - LIMIT_MAX_REQUESTS=10000
-      - BACKLOG=1024
+      - LIMIT_MAX_REQUESTS=20000
+      - BACKLOG=2048
 
       ***REMOVED*** Service URLs
       - BACKEND_API_URL=http://backend-api:8000
@@ -112,13 +112,13 @@ services:
       - BACKEND_API_TIMEOUT=30
       - ML_API_TIMEOUT=30
 
-      ***REMOVED*** Redis Configuration (matching config field names)
+      ***REMOVED*** Redis Configuration (optimized for cache warming)
       - REDIS_URL=redis://host.docker.internal:6379/0
-      - REDIS_MAX_CONNECTIONS=20
-      - REDIS_SOCKET_TIMEOUT=5
-      - REDIS_SOCKET_CONNECT_TIMEOUT=5
+      - REDIS_MAX_CONNECTIONS=40        ***REMOVED*** 2x connections for 2 workers
+      - REDIS_SOCKET_TIMEOUT=3          ***REMOVED*** Faster timeout for cache warming
+      - REDIS_SOCKET_CONNECT_TIMEOUT=3  ***REMOVED*** Faster connect timeout
       - REDIS_RETRY_ON_TIMEOUT=true
-      - CACHE_TTL_DEFAULT=1800
+      - CACHE_TTL_DEFAULT=3600          ***REMOVED*** Longer cache (1 hour vs 30 min)
       - CACHE_KEY_PREFIX=reco
 
       ***REMOVED*** Vector Database Configuration (matching config field names)
@@ -166,11 +166,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: 1.2G
+          cpus: "0.4"          ***REMOVED*** AWS t3.medium optimized
+          memory: 700M         ***REMOVED*** Further reduced for 4GB limit
         reservations:
-          cpus: "0.15"
-          memory: 640M
+          cpus: "0.2"
+          memory: 400M
     logging:
       driver: "json-file"
       options:
@@ -230,11 +230,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: 2G
+          cpus: "0.25"         ***REMOVED*** AWS t3.medium optimized
+          memory: 600M         ***REMOVED*** Further reduced for 4GB limit
         reservations:
-          cpus: "0.15"
-          memory: 1G
+          cpus: "0.1"
+          memory: 400M
     logging:
       driver: "json-file"
       options:
@@ -333,11 +333,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: 1G
+          cpus: "0.2"          ***REMOVED*** AWS t3.medium optimized
+          memory: 400M         ***REMOVED*** Reduced for 4GB limit
         reservations:
-          cpus: "0.12"
-          memory: 512M
+          cpus: "0.1"
+          memory: 200M
     logging:
       driver: "json-file"
       options:
@@ -496,13 +496,14 @@ services:
 
       ***REMOVED*** Warming Strategy Settings (for unlimited warming in production)
       ***REMOVED*** These settings enable processing ALL 4000+ movies without CLI limits
+      ***REMOVED*** OPTIMIZED: Recommendation API now has 2x CPU and 2x workers
       - WARMING_MAX_ITEMS_PER_STRATEGY=10000 ***REMOVED*** Strategy limit (fallback, CLI overrides)
-      - WARMING_MAX_CONCURRENT=4 ***REMOVED*** Concurrent movie processing (tested locally)
-      - WARMING_OPERATION_TIMEOUT=60 ***REMOVED*** Operation timeout (optimized from local testing)
-      - WARMING_REQUESTS_PER_SECOND=6 ***REMOVED*** Rate limiting (balanced between local 8 and old 3)
-      - WARMING_BURST_SIZE=5 ***REMOVED*** Burst allowance
-      - WARMING_MAX_CONNECTIONS=5 ***REMOVED*** Backend connections (balanced between local 6 and old 4)
-      - WARMING_REQUEST_TIMEOUT=5 ***REMOVED*** Request timeout (seconds)
+      - WARMING_MAX_CONCURRENT=3 ***REMOVED*** Increased: Recommendation API can handle more load
+      - WARMING_OPERATION_TIMEOUT=120 ***REMOVED*** Reduced: Faster with optimized recommendation API
+      - WARMING_REQUESTS_PER_SECOND=4 ***REMOVED*** Increased: 2x faster warming
+      - WARMING_BURST_SIZE=5 ***REMOVED*** Increased: Better burst handling
+      - WARMING_MAX_CONNECTIONS=4 ***REMOVED*** Increased: More connections to recommendation API
+      - WARMING_REQUEST_TIMEOUT=8 ***REMOVED*** Reduced: Faster with optimized API
 
       ***REMOVED*** Performance & Monitoring
       - ENABLE_PERFORMANCE_METRICS=true
@@ -534,11 +535,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25" ***REMOVED*** Increased for unlimited warming processing
-          memory: 1G ***REMOVED*** Increased for 4000+ movie warming cache
+          cpus: "0.2"          ***REMOVED*** AWS t3.medium optimized
+          memory: 600M         ***REMOVED*** Reduced for 4GB limit  
         reservations:
-          cpus: "0.1" ***REMOVED*** Increased baseline
-          memory: 512M ***REMOVED*** Increased baseline
+          cpus: "0.1"
+          memory: 300M
     logging:
       driver: "json-file"
       options:
@@ -651,11 +652,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: 1.2G
+          cpus: "0.25"         ***REMOVED*** AWS t3.medium optimized
+          memory: 600M         ***REMOVED*** Reduced for 4GB limit
         reservations:
-          cpus: "0.15"
-          memory: 640M
+          cpus: "0.1"
+          memory: 300M
     logging:
       driver: "json-file"
       options:
