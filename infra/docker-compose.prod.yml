@@ -497,11 +497,11 @@ services:
       ***REMOVED*** Warming Strategy Settings (for unlimited warming in production)
       ***REMOVED*** These settings enable processing ALL 4000+ movies without CLI limits
       - WARMING_MAX_ITEMS_PER_STRATEGY=10000 ***REMOVED*** Strategy limit (fallback, CLI overrides)
-      - WARMING_MAX_CONCURRENT=4 ***REMOVED*** Concurrent movie processing
-      - WARMING_OPERATION_TIMEOUT=120 ***REMOVED*** Operation timeout (seconds)
-      - WARMING_REQUESTS_PER_SECOND=3 ***REMOVED*** Rate limiting (3 RPS)
+      - WARMING_MAX_CONCURRENT=4 ***REMOVED*** Concurrent movie processing (tested locally)
+      - WARMING_OPERATION_TIMEOUT=60 ***REMOVED*** Operation timeout (optimized from local testing)
+      - WARMING_REQUESTS_PER_SECOND=6 ***REMOVED*** Rate limiting (balanced between local 8 and old 3)
       - WARMING_BURST_SIZE=5 ***REMOVED*** Burst allowance
-      - WARMING_MAX_CONNECTIONS=4 ***REMOVED*** Backend connections
+      - WARMING_MAX_CONNECTIONS=5 ***REMOVED*** Backend connections (balanced between local 6 and old 4)
       - WARMING_REQUEST_TIMEOUT=5 ***REMOVED*** Request timeout (seconds)
 
       ***REMOVED*** Performance & Monitoring
