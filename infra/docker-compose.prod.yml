@@ -55,7 +55,7 @@ services:
 
       ***REMOVED*** Tracing Configuration
       - ENABLE_TRACING=true
-      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
       - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -70,8 +70,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"         ***REMOVED*** Reduced for AWS t3.medium
-          memory: 512M         ***REMOVED*** Reduced for 4GB total limit
+          cpus: "0.25" ***REMOVED*** Reduced for AWS t3.medium
+          memory: 512M ***REMOVED*** Reduced for 4GB total limit
         reservations:
           cpus: "0.1"
           memory: 256M
@@ -114,11 +114,11 @@ services:
 
       ***REMOVED*** Redis Configuration (optimized for cache warming)
       - REDIS_URL=redis://host.docker.internal:6379/0
-      - REDIS_MAX_CONNECTIONS=40        ***REMOVED*** 2x connections for 2 workers
-      - REDIS_SOCKET_TIMEOUT=3          ***REMOVED*** Faster timeout for cache warming
-      - REDIS_SOCKET_CONNECT_TIMEOUT=3  ***REMOVED*** Faster connect timeout
+      - REDIS_MAX_CONNECTIONS=40 ***REMOVED*** 2x connections for 2 workers
+      - REDIS_SOCKET_TIMEOUT=3 ***REMOVED*** Faster timeout for cache warming
+      - REDIS_SOCKET_CONNECT_TIMEOUT=3 ***REMOVED*** Faster connect timeout
       - REDIS_RETRY_ON_TIMEOUT=true
-      - CACHE_TTL_DEFAULT=3600          ***REMOVED*** Longer cache (1 hour vs 30 min)
+      - CACHE_TTL_DEFAULT=3600 ***REMOVED*** Longer cache (1 hour vs 30 min)
       - CACHE_KEY_PREFIX=reco
 
       ***REMOVED*** Vector Database Configuration (matching config field names)
@@ -149,7 +149,7 @@ services:
 
       ***REMOVED*** Tracing Configuration
       - ENABLE_TRACING=true
-      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
       - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -166,8 +166,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.4"          ***REMOVED*** AWS t3.medium optimized
-          memory: 700M         ***REMOVED*** Further reduced for 4GB limit
+          cpus: "0.4" ***REMOVED*** AWS t3.medium optimized
+          memory: 700M ***REMOVED*** Further reduced for 4GB limit
         reservations:
           cpus: "0.2"
           memory: 400M
@@ -215,7 +215,7 @@ services:
 
       ***REMOVED*** Tracing Configuration
       - ENABLE_TRACING=true
-      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
       - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -230,8 +230,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"         ***REMOVED*** AWS t3.medium optimized
-          memory: 600M         ***REMOVED*** Further reduced for 4GB limit
+          cpus: "0.25" ***REMOVED*** AWS t3.medium optimized
+          memory: 600M ***REMOVED*** Further reduced for 4GB limit
         reservations:
           cpus: "0.1"
           memory: 400M
@@ -315,7 +315,7 @@ services:
 
       ***REMOVED*** Tracing Configuration
       - ENABLE_TRACING=true
-      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
       - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -333,8 +333,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.2"          ***REMOVED*** AWS t3.medium optimized
-          memory: 400M         ***REMOVED*** Reduced for 4GB limit
+          cpus: "0.2" ***REMOVED*** AWS t3.medium optimized
+          memory: 400M ***REMOVED*** Reduced for 4GB limit
         reservations:
           cpus: "0.1"
           memory: 200M
@@ -396,7 +396,7 @@ services:
 
       ***REMOVED*** Tracing Configuration
       - ENABLE_TRACING=true
-      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
       - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -511,7 +511,7 @@ services:
 
       ***REMOVED*** Tracing Configuration
       - ENABLE_TRACING=true
-      - TRACING_ENDPOINT=http://tempo:4317
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
       - TRACING_SAMPLE_RATE=0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -535,8 +535,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.2"          ***REMOVED*** AWS t3.medium optimized
-          memory: 600M         ***REMOVED*** Reduced for 4GB limit  
+          cpus: "0.2" ***REMOVED*** AWS t3.medium optimized
+          memory: 600M ***REMOVED*** Reduced for 4GB limit
         reservations:
           cpus: "0.1"
           memory: 300M
@@ -652,8 +652,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"         ***REMOVED*** AWS t3.medium optimized
-          memory: 600M         ***REMOVED*** Reduced for 4GB limit
+          cpus: "0.25" ***REMOVED*** AWS t3.medium optimized
+          memory: 600M ***REMOVED*** Reduced for 4GB limit
         reservations:
           cpus: "0.1"
           memory: 300M
@@ -661,6 +661,72 @@ services:
       driver: "json-file"
       options:
         max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED***
+  ***REMOVED*** 🔍 OBSERVABILITY - Grafana Alloy (Metrics + Logs + Traces)
+  ***REMOVED***
+  grafana-alloy:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy-prod
+    restart: always
+    ports:
+      - "127.0.0.1:12345:12345" ***REMOVED*** Alloy UI (localhost only)
+      - "4317:4317" ***REMOVED*** OTLP gRPC receiver
+      - "4318:4318" ***REMOVED*** OTLP HTTP receiver
+    environment:
+      - ALLOY_MODE=flow
+      - ALLOY_CONFIG_FILE=/etc/alloy/config.alloy
+      - ALLOY_STORAGE_PATH=/var/lib/alloy/data
+      - ALLOY_LOG_LEVEL=info
+      ***REMOVED*** Grafana Cloud credentials from environment
+      - GRAFANA_CLOUD_METRICS_URL=${GRAFANA_CLOUD_METRICS_URL}
+      - GRAFANA_CLOUD_METRICS_USERNAME=${GRAFANA_CLOUD_METRICS_USERNAME}
+      - GRAFANA_CLOUD_METRICS_PASSWORD=${GRAFANA_CLOUD_METRICS_PASSWORD}
+      - GRAFANA_CLOUD_LOGS_URL=${GRAFANA_CLOUD_LOGS_URL}
+      - GRAFANA_CLOUD_LOGS_USERNAME=${GRAFANA_CLOUD_LOGS_USERNAME}
+      - GRAFANA_CLOUD_LOGS_PASSWORD=${GRAFANA_CLOUD_LOGS_PASSWORD}
+      - GRAFANA_CLOUD_TRACES_URL=${GRAFANA_CLOUD_TRACES_URL}
+      - GRAFANA_CLOUD_TRACES_USERNAME=${GRAFANA_CLOUD_TRACES_USERNAME}
+      - GRAFANA_CLOUD_TRACES_PASSWORD=${GRAFANA_CLOUD_TRACES_PASSWORD}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend-api
+      - auth-api
+      - bff-api
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:12345/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
         max-file: "3"
 
 ***REMOVED*** Named volumes for persistent logs
@@ -680,6 +746,8 @@ volumes:
   importer-logs:
     driver: local
   qdrant-data:
+    driver: local
+  alloy-data:
     driver: local
 
 ***REMOVED*** Networks - Explicitly named to match Docker Compose auto-generation pattern

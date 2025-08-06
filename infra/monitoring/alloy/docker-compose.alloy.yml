@@ -1,0 +1,90 @@
+version: "3.8"
+
+services:
+  grafana-alloy:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy
+    restart: always
+    user: root
+    command:
+      - "run"
+      - "/etc/alloy/config.alloy"
+      - "--storage.path=/var/lib/alloy/data"
+      - "--server.http.listen-addr=0.0.0.0:12345"
+      - "--server.http.ui-path-prefix=/alloy"
+      - "--stability.level=generally-available"
+    ports:
+      - "12345:12345" ***REMOVED*** Alloy UI
+    environment:
+      - TZ=UTC
+      - GRAFANA_CLOUD_METRICS_URL=${GRAFANA_CLOUD_METRICS_URL}
+      - GRAFANA_CLOUD_METRICS_USERNAME=${GRAFANA_CLOUD_METRICS_USERNAME}
+      - GRAFANA_CLOUD_METRICS_PASSWORD=${GRAFANA_CLOUD_METRICS_PASSWORD}
+      - GRAFANA_CLOUD_LOGS_URL=${GRAFANA_CLOUD_LOGS_URL}
+      - GRAFANA_CLOUD_LOGS_USERNAME=${GRAFANA_CLOUD_LOGS_USERNAME}
+      - GRAFANA_CLOUD_LOGS_PASSWORD=${GRAFANA_CLOUD_LOGS_PASSWORD}
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      ***REMOVED*** Mount NextWatch service log volumes (same as current Promtail)
+      - next_watch_backend-logs:/app/logs/backend:ro
+      - next_watch_bff-logs:/app/logs/bff:ro
+      - next_watch_auth-logs:/app/logs/auth:ro
+      - next_watch_search-logs:/app/logs/search:ro
+      - next_watch_recommendation-logs:/app/logs/recommendation:ro
+      - next_watch_ml-logs:/app/logs/ml:ro
+    networks:
+      - monitoring
+      - next_watch_default
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:12345/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  alloy-data:
+    driver: local
+  ***REMOVED*** Use existing NextWatch log volumes (external)
+  next_watch_backend-logs:
+    external: true
+  next_watch_bff-logs:
+    external: true
+  next_watch_auth-logs:
+    external: true
+  next_watch_search-logs:
+    external: true
+  next_watch_recommendation-logs:
+    external: true
+  next_watch_ml-logs:
+    external: true
+
+networks:
+  monitoring:
+    external: true
+  next_watch_default:
+    external: true

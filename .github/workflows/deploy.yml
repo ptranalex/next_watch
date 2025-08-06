@@ -43,6 +43,11 @@ on:
         required: false
         type: boolean
         default: false
+      deploy_observability:
+        description: "Deploy Grafana Alloy (Observability)"
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       deploy_backend:
@@ -85,6 +90,11 @@ on:
         required: false
         type: boolean
         default: false
+      deploy_observability:
+        description: "Deploy Grafana Alloy (Observability)"
+        required: false
+        type: boolean
+        default: false
     secrets:
       DEPLOY_KEY:
         required: true
@@ -113,6 +123,25 @@ on:
       JWT_JWK_ROTATION_INTERVAL:
         required: false
       ADMIN_API_KEY:
+        required: false
+      ***REMOVED*** Grafana Cloud Observability Secrets
+      GRAFANA_CLOUD_METRICS_URL:
+        required: false
+      GRAFANA_CLOUD_METRICS_USERNAME:
+        required: false
+      GRAFANA_CLOUD_METRICS_PASSWORD:
+        required: false
+      GRAFANA_CLOUD_LOGS_URL:
+        required: false
+      GRAFANA_CLOUD_LOGS_USERNAME:
+        required: false
+      GRAFANA_CLOUD_LOGS_PASSWORD:
+        required: false
+      GRAFANA_CLOUD_TRACES_URL:
+        required: false
+      GRAFANA_CLOUD_TRACES_USERNAME:
+        required: false
+      GRAFANA_CLOUD_TRACES_PASSWORD:
         required: false
 
 jobs:
@@ -212,10 +241,26 @@ jobs:
             if [ -n "${{ secrets.OMDB_API_KEY }}" ]; then
               echo "OMDB_API_KEY=${{ secrets.OMDB_API_KEY }}" >> .env.prod
             fi
-            
+
             ***REMOVED*** Handle optional admin API key for cache warming
             if [ -n "${{ secrets.ADMIN_API_KEY }}" ]; then
               echo "ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}" >> .env.prod
+            fi
+
+            ***REMOVED*** Handle optional Grafana Cloud observability credentials
+            if [ -n "${{ secrets.GRAFANA_CLOUD_METRICS_URL }}" ]; then
+              echo "" >> .env.prod
+              echo "***REMOVED*** Grafana Cloud Observability" >> .env.prod
+              echo "GRAFANA_CLOUD_METRICS_URL=${{ secrets.GRAFANA_CLOUD_METRICS_URL }}" >> .env.prod
+              echo "GRAFANA_CLOUD_METRICS_USERNAME=${{ secrets.GRAFANA_CLOUD_METRICS_USERNAME }}" >> .env.prod
+              echo "GRAFANA_CLOUD_METRICS_PASSWORD=${{ secrets.GRAFANA_CLOUD_METRICS_PASSWORD }}" >> .env.prod
+              echo "GRAFANA_CLOUD_LOGS_URL=${{ secrets.GRAFANA_CLOUD_LOGS_URL }}" >> .env.prod
+              echo "GRAFANA_CLOUD_LOGS_USERNAME=${{ secrets.GRAFANA_CLOUD_LOGS_USERNAME }}" >> .env.prod
+              echo "GRAFANA_CLOUD_LOGS_PASSWORD=${{ secrets.GRAFANA_CLOUD_LOGS_PASSWORD }}" >> .env.prod
+              echo "GRAFANA_CLOUD_TRACES_URL=${{ secrets.GRAFANA_CLOUD_TRACES_URL }}" >> .env.prod
+              echo "GRAFANA_CLOUD_TRACES_USERNAME=${{ secrets.GRAFANA_CLOUD_TRACES_USERNAME }}" >> .env.prod
+              echo "GRAFANA_CLOUD_TRACES_PASSWORD=${{ secrets.GRAFANA_CLOUD_TRACES_PASSWORD }}" >> .env.prod
+              echo "ENVIRONMENT=production" >> .env.prod
             fi
 
             ***REMOVED*** Download docker-compose.prod.yml from the correct path
@@ -228,6 +273,21 @@ jobs:
             echo "Verifying docker-compose.prod.yml content:"
             ls -la docker-compose.prod.yml
             head -10 docker-compose.prod.yml
+
+            ***REMOVED*** Download Grafana Alloy configuration if observability deployment is requested
+            if [ "${{ github.event.inputs.deploy_observability || inputs.deploy_observability }}" = "true" ]; then
+              echo "📊 Downloading Grafana Alloy configuration..."
+              mkdir -p monitoring/alloy
+              
+              ***REMOVED*** Download Alloy config file
+              curl -H "Authorization: token ${{ secrets.GH_PAT }}" \
+                   -H "Accept: application/vnd.github.v3.raw" \
+                   -o monitoring/alloy/config.alloy \
+                   https://api.github.com/repos/${{ github.repository }}/contents/infra/monitoring/alloy/config.alloy
+                   
+              echo "✅ Grafana Alloy configuration downloaded"
+              ls -la monitoring/alloy/
+            fi
 
             ***REMOVED*** Build the list of services to deploy
             SERVICES=""
@@ -254,6 +314,9 @@ jobs:
             fi
             if [ "${{ github.event.inputs.deploy_ml || inputs.deploy_ml }}" = "true" ]; then
               SERVICES="$SERVICES ml-api"
+            fi
+            if [ "${{ github.event.inputs.deploy_observability || inputs.deploy_observability }}" = "true" ]; then
+              SERVICES="$SERVICES grafana-alloy"
             fi
 
             if [ -n "$SERVICES" ]; then
