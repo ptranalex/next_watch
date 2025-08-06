@@ -17,10 +17,10 @@ prometheus.remote_write "grafana_cloud_metrics" {
   
   // Add global labels
   external_labels = {
-    cluster = "nextwatch-aws"
-    region = "ap-southeast-1"
-    instance_id = "i-0c78dddbab78124cb"
-    environment = "production"
+    cluster = "nextwatch-aws",
+    region = "ap-southeast-1",
+    instance_id = "i-0c78dddbab78124cb",
+    environment = "production",
   }
 }
 
@@ -35,32 +35,35 @@ prometheus.scrape "backend_api" {
   scrape_timeout = "10s"
   metrics_path = "/metrics"
   
-  // AGGRESSIVE FILTERING for free tier
-  metric_relabel_configs = [
-    // Keep only essential metrics
-    {
-      source_labels = ["__name__"]
-      regex = "(up|http_requests_total|http_request_duration_seconds_bucket|http_request_duration_seconds_sum|http_request_duration_seconds_count|health_status|process_cpu_seconds_total|process_resident_memory_bytes)"
-      action = "keep"
-    },
-    // Filter HTTP methods to essential ones
-    {
-      source_labels = ["method"]
-      regex = "(GET|POST|PUT|DELETE)"
-      action = "keep"
-    },
-    // Keep only meaningful status codes
-    {
-      source_labels = ["status"]
-      regex = "([2-5][0-9][0-9])"
-      action = "keep"
-    },
-    // Remove high-cardinality labels
-    {
-      regex = "(request_id|trace_id|span_id|user_id|session_id)"
-      action = "labeldrop"
-    }
-  ]
+  forward_to = [prometheus.relabel.filter_metrics.receiver]
+}
+
+// Universal metric filtering for all services
+prometheus.relabel "filter_metrics" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    source_labels = ["__name__"]
+    regex = "(up|http_requests_total|http_request_duration_seconds_bucket|http_request_duration_seconds_sum|http_request_duration_seconds_count|health_status|process_cpu_seconds_total|process_resident_memory_bytes)"
+    action = "keep"
+  }
+  
+  rule {
+    source_labels = ["method"]
+    regex = "(GET|POST|PUT|DELETE)"
+    action = "keep"
+  }
+  
+  rule {
+    source_labels = ["status"]
+    regex = "([2-5][0-9][0-9])"
+    action = "keep"
+  }
+  
+  rule {
+    regex = "(request_id|trace_id|span_id|user_id|session_id)"
+    action = "labeldrop"
+  }
 }
 
 // BFF API - Critical for user interface
@@ -70,28 +73,7 @@ prometheus.scrape "bff_api" {
   scrape_timeout = "10s" 
   metrics_path = "/metrics"
   
-  // Same aggressive filtering as backend
-  metric_relabel_configs = [
-    {
-      source_labels = ["__name__"]
-      regex = "(up|http_requests_total|http_request_duration_seconds_bucket|http_request_duration_seconds_sum|http_request_duration_seconds_count|health_status|process_cpu_seconds_total|process_resident_memory_bytes)"
-      action = "keep"
-    },
-    {
-      source_labels = ["method"]
-      regex = "(GET|POST|PUT|DELETE)"
-      action = "keep"
-    },
-    {
-      source_labels = ["status"]
-      regex = "([2-5][0-9][0-9])"
-      action = "keep"
-    },
-    {
-      regex = "(request_id|trace_id|span_id|user_id|session_id)"
-      action = "labeldrop"
-    }
-  ]
+  forward_to = [prometheus.relabel.filter_metrics.receiver]
 }
 
 // Auth API - Critical for authentication
@@ -101,28 +83,7 @@ prometheus.scrape "auth_api" {
   scrape_timeout = "10s"
   metrics_path = "/metrics"
   
-  // Same filtering pattern
-  metric_relabel_configs = [
-    {
-      source_labels = ["__name__"]
-      regex = "(up|http_requests_total|http_request_duration_seconds_bucket|http_request_duration_seconds_sum|http_request_duration_seconds_count|health_status|process_cpu_seconds_total|process_resident_memory_bytes)"
-      action = "keep"
-    },
-    {
-      source_labels = ["method"]
-      regex = "(GET|POST|PUT|DELETE)"
-      action = "keep"
-    },
-    {
-      source_labels = ["status"]
-      regex = "([2-5][0-9][0-9])"
-      action = "keep"
-    },
-    {
-      regex = "(request_id|trace_id|span_id|user_id|session_id)"
-      action = "labeldrop"
-    }
-  ]
+  forward_to = [prometheus.relabel.filter_metrics.receiver]
 }
 
 //
@@ -155,14 +116,18 @@ prometheus.scrape "health_check" {
   metrics_path = "/health"
   scrape_timeout = "5s"
   
-  // Only keep health-related metrics
-  metric_relabel_configs = [
-    {
-      source_labels = ["__name__"]
-      regex = "(up|health_.*|probe_.*)"
-      action = "keep"
-    }
-  ]
+  forward_to = [prometheus.relabel.filter_health.receiver]
+}
+
+// Health-specific metric filtering
+prometheus.relabel "filter_health" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    source_labels = ["__name__"]
+    regex = "(up|health_.*|probe_.*)"
+    action = "keep"
+  }
 }
 
 //
@@ -179,10 +144,10 @@ prometheus.scrape "search_api" {
   // Even more aggressive filtering for secondary services
   metric_relabel_configs = [
     {
-      source_labels = ["__name__"]
-      regex = "(up|http_requests_total|health_status)"
-      action = "keep"
-    }
+      source_labels = ["__name__"],
+      regex = "(up|http_requests_total|health_status)",
+      action = "keep",
+    },
   ]
 }
 
@@ -193,10 +158,10 @@ prometheus.scrape "ml_api" {
   
   metric_relabel_configs = [
     {
-      source_labels = ["__name__"]
-      regex = "(up|http_requests_total|health_status)"
-      action = "keep"
-    }
+      source_labels = ["__name__"],
+      regex = "(up|http_requests_total|health_status)",
+      action = "keep",
+    },
   ]
 }
 
@@ -207,10 +172,10 @@ prometheus.scrape "recommendation_api" {
   
   metric_relabel_configs = [
     {
-      source_labels = ["__name__"]
-      regex = "(up|http_requests_total|health_status)"
-      action = "keep"
-    }
+      source_labels = ["__name__"],
+      regex = "(up|http_requests_total|health_status)",
+      action = "keep",
+    },
   ]
 }
 */
@@ -225,13 +190,18 @@ prometheus.scrape "alloy_self" {
   scrape_interval = "60s"
   metrics_path = "/metrics"
   
-  metric_relabel_configs = [
-    {
-      source_labels = ["__name__"]
-      regex = "(alloy_.*|prometheus_.*active_series|prometheus_.*samples_ingested)"
-      action = "keep"
-    }
-  ]
+  forward_to = [prometheus.relabel.filter_self.receiver]
+}
+
+// Self-monitoring metric filtering
+prometheus.relabel "filter_self" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    source_labels = ["__name__"]
+    regex = "(alloy_.*|prometheus_.*active_series|prometheus_.*samples_ingested)"
+    action = "keep"
+  }
 }
 
 //
@@ -250,27 +220,36 @@ loki.write "grafana_cloud_logs" {
   
   // Add global labels
   external_labels = {
-    cluster = "nextwatch-aws"
-    environment = "production"
+    cluster = "nextwatch-aws",
+    environment = "production",
+  }
+}
+
+// Docker container discovery for logs
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Docker log target relabeling
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    target_label = "service"
+  }
+  
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "(backend-api|bff-api|auth-api)"
+    action = "keep"
   }
 }
 
 // Docker container logs - ERROR/WARN only
 loki.source.docker "nextwatch_containers" {
   host = "unix:///var/run/docker.sock"
-  targets = [
-    {"__address__" = "localhost", "__meta_docker_container_name" = "backend-api"},
-    {"__address__" = "localhost", "__meta_docker_container_name" = "bff-api"},
-    {"__address__" = "localhost", "__meta_docker_container_name" = "auth-api"},
-  ]
-  
-  // Heavy log filtering for free tier
-  relabel_configs = [
-    {
-      source_labels = ["__meta_docker_container_name"]
-      target_label = "service"
-    }
-  ]
+  targets = discovery.relabel.docker_logs.output
   
   forward_to = [loki.process.filter_logs.receiver]
 }
