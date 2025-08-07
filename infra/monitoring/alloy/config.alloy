@@ -96,6 +96,10 @@ discovery.relabel "health_targets" {
     {"__address__" = "backend-api:8000", "__meta_service" = "backend-api"},
     {"__address__" = "bff-api:8000", "__meta_service" = "bff-api"},
     {"__address__" = "auth-api:8000", "__meta_service" = "auth-api"},
+    {"__address__" = "search-api:8000", "__meta_service" = "search-api"},
+    {"__address__" = "ml-api:8000", "__meta_service" = "ml-api"},
+    {"__address__" = "recommendation-api:8000", "__meta_service" = "recommendation-api"},
+    {"__address__" = "qdrant:6333", "__meta_service" = "qdrant"},
   ]
   
   rule {
@@ -131,54 +135,64 @@ prometheus.relabel "filter_health" {
 }
 
 //
-// TIER 2: SECONDARY SERVICES (Add only after Tier 1 is stable)
-// UNCOMMENT THESE BLOCKS ONLY AFTER VALIDATING TIER 1 USAGE
+// TIER 2: SECONDARY SERVICES (All services from docker-compose.prod.yml)
 //
 
-/*
+// Search API - Dedicated search service
 prometheus.scrape "search_api" {
   targets = [{"__address__" = "search-api:8000"}]
   scrape_interval = "60s"  // Less frequent for secondary services
+  scrape_timeout = "10s"
   metrics_path = "/metrics"
   
-  // Even more aggressive filtering for secondary services
-  metric_relabel_configs = [
-    {
-      source_labels = ["__name__"],
-      regex = "(up|http_requests_total|health_status)",
-      action = "keep",
-    },
-  ]
+  forward_to = [prometheus.relabel.filter_metrics.receiver]
 }
 
+// ML API - Machine learning service
 prometheus.scrape "ml_api" {
   targets = [{"__address__" = "ml-api:8000"}]
   scrape_interval = "60s"
+  scrape_timeout = "10s"
   metrics_path = "/metrics"
   
-  metric_relabel_configs = [
-    {
-      source_labels = ["__name__"],
-      regex = "(up|http_requests_total|health_status)",
-      action = "keep",
-    },
-  ]
+  forward_to = [prometheus.relabel.filter_metrics.receiver]
 }
 
+// Recommendation API - Movie recommendation service
 prometheus.scrape "recommendation_api" {
   targets = [{"__address__" = "recommendation-api:8000"}]
   scrape_interval = "60s"
+  scrape_timeout = "10s"
   metrics_path = "/metrics"
   
-  metric_relabel_configs = [
-    {
-      source_labels = ["__name__"],
-      regex = "(up|http_requests_total|health_status)",
-      action = "keep",
-    },
-  ]
+  forward_to = [prometheus.relabel.filter_metrics.receiver]
 }
-*/
+
+// Qdrant - Vector Database (exposes comprehensive metrics)
+prometheus.scrape "qdrant" {
+  targets = [{"__address__" = "qdrant:6333"}]
+  scrape_interval = "60s"
+  scrape_timeout = "10s"
+  metrics_path = "/metrics"
+  
+  forward_to = [prometheus.relabel.filter_qdrant.receiver]
+}
+
+// Qdrant-specific metric filtering (different from API services)
+prometheus.relabel "filter_qdrant" {
+  forward_to = [prometheus.remote_write.grafana_cloud_metrics.receiver]
+
+  rule {
+    source_labels = ["__name__"]
+    regex = "(app_info|collections_total|collections_vector_total|rest_responses_total|rest_responses_avg_duration_seconds|memory_.*_bytes|collection_hardware_metric_.*)"
+    action = "keep"
+  }
+  
+  rule {
+    regex = "(request_id|trace_id|span_id|user_id|session_id)"
+    action = "labeldrop"
+  }
+}
 
 //
 // USAGE MONITORING (Critical for free tier management)
@@ -241,7 +255,7 @@ discovery.relabel "docker_logs" {
   
   rule {
     source_labels = ["__meta_docker_container_name"]
-    regex = "(backend-api|bff-api|auth-api)"
+    regex = "(backend-api|bff-api|auth-api|search-api|ml-api|recommendation-api|qdrant)"
     action = "keep"
   }
 }
@@ -304,6 +318,32 @@ loki.source.file "auth_logs" {
   forward_to = [loki.process.filter_logs.receiver]
 }
 
+// Search API logs
+loki.source.file "search_logs" {
+  targets = [
+    {"__path__" = "/app/logs/search/*.log", "service" = "search-api"},
+  ]
+  forward_to = [loki.process.filter_logs.receiver]
+}
+
+// ML API logs
+loki.source.file "ml_logs" {
+  targets = [
+    {"__path__" = "/app/logs/ml/*.log", "service" = "ml-api"},
+  ]
+  forward_to = [loki.process.filter_logs.receiver]
+}
+
+// Recommendation API logs
+loki.source.file "recommendation_logs" {
+  targets = [
+    {"__path__" = "/app/logs/recommendation/*.log", "service" = "recommendation-api"},
+  ]
+  forward_to = [loki.process.filter_logs.receiver]
+}
+
+
+
 //
 // TRACING COLLECTION (OpenTelemetry)
 //
@@ -361,12 +401,18 @@ otelcol.auth.basic "grafana_cloud_traces" {
 //
 // CONFIGURATION NOTES
 //
-// 1. Start with only Tier 1 services (backend, bff, auth)
+// 1. All API services and Qdrant from docker-compose.prod.yml are monitored
 // 2. Monitor usage at http://localhost:12345 (Alloy UI)
-// 3. Uncomment Tier 2 services only after validating usage
-// 4. Expected metrics count: ~3,000-4,000 series for Tier 1
-// 5. Log volume should be <10GB/month with ERROR/WARN filtering
-// 6. OTLP traces available on ports 4317 (gRPC) and 4318 (HTTP)
-// 7. Trace processing: batching + memory limiting for free tier optimization
-// 8. Current sampling rate: 0.1 (10%) set in service TRACING_SAMPLE_RATE
+// 3. Tier 1 (30s scrape): backend-api, bff-api, auth-api
+// 4. Tier 2 (60s scrape): search-api, ml-api, recommendation-api, qdrant
+// 5. Frontend (Next.js) excluded - doesn't expose Prometheus metrics
+// 6. Expected metrics count: ~5,000-7,000 series for API services + Qdrant
+// 7. Log volume should be <12GB/month with ERROR/WARN filtering
+// 8. OTLP traces available on ports 4317 (gRPC) and 4318 (HTTP)
+// 9. Trace processing: batching + memory limiting for free tier optimization
+// 10. Current sampling rate: 0.1 (10%) set in service TRACING_SAMPLE_RATE
+// 11. Health checks: All API services monitored at /health endpoints
+// 12. Docker logs: All container logs collected (ERROR/WARN only)
+// 13. File logs: Service-specific log files collected (ERROR/WARN only)
+// 14. Qdrant metrics: Vector operations, memory usage, collection stats
 //
