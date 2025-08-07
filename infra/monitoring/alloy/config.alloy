@@ -115,11 +115,21 @@ discovery.relabel "health_targets" {
   }
 }
 
-// Health endpoint probing
-prometheus.scrape "health_check" {
+// Health endpoint probing (live health)
+prometheus.scrape "health_check_live" {
   targets = discovery.relabel.health_targets.output
   scrape_interval = "30s"
-  metrics_path = "/health"
+  metrics_path = "/health/live"
+  scrape_timeout = "5s"
+  
+  forward_to = [prometheus.relabel.filter_health.receiver]
+}
+
+// Health endpoint probing (readiness health)
+prometheus.scrape "health_check_ready" {
+  targets = discovery.relabel.health_targets.output
+  scrape_interval = "30s"
+  metrics_path = "/health/ready"
   scrape_timeout = "5s"
   
   forward_to = [prometheus.relabel.filter_health.receiver]
@@ -413,7 +423,7 @@ otelcol.auth.basic "grafana_cloud_traces" {
 // 8. OTLP traces available on ports 4317 (gRPC) and 4318 (HTTP)
 // 9. Trace processing: batching + memory limiting for free tier optimization
 // 10. Current sampling rate: 0.1 (10%) set in service TRACING_SAMPLE_RATE
-// 11. Health checks: All API services monitored at /health endpoints
+// 11. Health checks: All API services monitored at /health/live and /health/ready endpoints
 // 12. Docker logs: All container logs collected (ERROR/WARN only)
 // 13. File logs: Service-specific log files collected (ERROR/WARN only)
 // 14. Qdrant metrics: Vector operations, memory usage, collection stats
