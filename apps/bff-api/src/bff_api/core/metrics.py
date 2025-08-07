@@ -4,7 +4,9 @@ This module provides custom metrics for the BFF API service,
 including business logic metrics and service health tracking.
 """
 
+import re
 from typing import Dict, Optional, Any, Callable, TypeVar
+
 from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
 from config.logging import get_logger
 
@@ -12,6 +14,41 @@ from config.logging import get_logger
 F = TypeVar("F", bound=Callable[..., Any])
 
 logger = get_logger(__name__)
+
+
+def normalize_endpoint_for_metrics(endpoint: str) -> str:
+    """Simple endpoint normalization for client-side service calls.
+
+    This is the industry-standard approach: replace numeric IDs with generic placeholders
+    to prevent cardinality explosion while keeping the solution maintainable.
+
+    Only used when we don't have access to FastAPI's route patterns.
+
+    Args:
+        endpoint: Raw endpoint path (e.g., "/api/v1/movies/123", "/api/v1/genres/12")
+
+    Returns:
+        Normalized endpoint path (e.g., "/api/v1/movies/{id}", "/api/v1/genres/{id}")
+    """
+    if not endpoint:
+        return endpoint
+
+    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    endpoint = endpoint.split("?")[0]
+
+    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    parts = endpoint.split("/")
+    normalized_parts = []
+
+    for part in parts:
+        if part.isdigit():
+            ***REMOVED*** Replace numeric IDs with generic placeholder
+            normalized_parts.append("{id}")
+        else:
+            ***REMOVED*** Keep non-numeric parts as-is
+            normalized_parts.append(part)
+
+    return "/".join(normalized_parts)
 
 
 class BFFMetrics:
@@ -107,9 +144,12 @@ class BFFMetrics:
         if not self.registry:
             return
 
+        ***REMOVED*** Normalize endpoint to prevent cardinality explosion
+        normalized_endpoint = normalize_endpoint_for_metrics(endpoint)
+
         service_labels = {
             "service_name": service_name,
-            "endpoint": endpoint,
+            "endpoint": normalized_endpoint,
             "status": status,
             "service": self.registry.service_name,
         }
@@ -118,7 +158,7 @@ class BFFMetrics:
 
         time_labels = {
             "service_name": service_name,
-            "endpoint": endpoint,
+            "endpoint": normalized_endpoint,
             "service": self.registry.service_name,
         }
         self.service_response_time.labels(**time_labels).observe(response_time)
