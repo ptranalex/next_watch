@@ -10,6 +10,7 @@ from fast_core.errors.exceptions import ExternalServiceException
 from bff_api.dependencies import get_backend_client
 from bff_api.schemas.screen_schemas import HomeScreenData
 from bff_api.services.clients.facade import BackendClient
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["home"])
@@ -89,6 +90,11 @@ async def get_home_screen(
     Raises:
         ExternalServiceException: If backend service is unavailable
     """
+    ***REMOVED*** Record movie request metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_movie_request("home", "started")
+
     try:
         ***REMOVED*** Fetch data concurrently (in real implementation, use asyncio.gather)
         featured_movies_response = await _get_movies(
@@ -118,6 +124,10 @@ async def get_home_screen(
                     endpoint="home_screen",
                 )
 
+        ***REMOVED*** Record successful movie request metrics
+        if metrics:
+            metrics.record_movie_request("home", "success")
+
         return HomeScreenData(
             featured_movies=featured_movies_response.get("results", []),
             popular_movies=popular_movies_response.get("results", []),
@@ -127,6 +137,10 @@ async def get_home_screen(
         )
 
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("home", "error")
+
         logger.error(
             "Backend error for home_screen",
             error=str(e),

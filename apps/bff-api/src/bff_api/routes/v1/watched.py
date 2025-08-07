@@ -11,6 +11,7 @@ from bff_api.dependencies import get_backend_client
 from bff_api.services.clients import BackendClient
 from fast_core.responses import ResponseBuilder
 from fast_core.errors import ExternalServiceException
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["watched"])
@@ -113,6 +114,11 @@ async def get_watched_movies(
             - 500 if internal server error occurs
             - 502 if backend service is unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("watched_view")
+
     user_id, jwt_token = user_data
 
     logger.debug(f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})")

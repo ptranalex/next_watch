@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import time
 from typing import Any, Dict, List, Optional, Union, cast
 
 from cache.decorators import redis_cache
@@ -26,6 +27,7 @@ from bff_api.services.clients import BackendClient
 from bff_api.services.clients.recommendation import RecommendationClient
 from bff_api.utils.auth import extract_user_id_from_token
 from bff_api.services.smart_warming import get_smart_warming_dependency, BFFSmartWarming
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["movies"])
@@ -644,6 +646,11 @@ async def get_movie_screen(
         ResourceNotFoundException: If movie not found
         ExternalServiceException: If backend service unavailable
     """
+    ***REMOVED*** Record movie request metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_movie_request("detail", "started")
+
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
     logger.info(
@@ -672,10 +679,22 @@ async def get_movie_screen(
         )
 
     try:
+        ***REMOVED*** Record aggregation operation start
+        aggregation_start = time.time()
+
         ***REMOVED*** Use the cached function - decorator handles all cache logic
         screen_data_dict = await _get_movie_screen_data(
             movie_id, user_id, backend, recommendation_client, credentials
         )
+
+        ***REMOVED*** Record aggregation operation completion
+        aggregation_duration = time.time() - aggregation_start
+        if metrics:
+            metrics.record_aggregation_operation(
+                operation="movie_detail_aggregation",
+                service_count=2,  ***REMOVED*** backend-api + recommendation-api
+                duration=aggregation_duration,
+            )
 
         ***REMOVED*** Use ResponseBuilder detail pattern for consistent response structure
         response = responses.detail(
@@ -699,6 +718,10 @@ async def get_movie_screen(
             },
         )
 
+        ***REMOVED*** Record successful movie request metrics
+        if metrics:
+            metrics.record_movie_request("detail", "success")
+
         ***REMOVED*** 🔥 SMART WARMING: Trigger intelligent warming based on movie viewing
         await smart_warming.warm_movie_interaction(
             background_tasks=background_tasks,
@@ -712,6 +735,10 @@ async def get_movie_screen(
         return cast(Dict[str, Any], response)
 
     except ResourceNotFoundException as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("detail", "not_found")
+
         logger.info(
             "Movie not found",
             movie_id=movie_id,
@@ -725,6 +752,10 @@ async def get_movie_screen(
             resource_type="movie",
         )
     except ExternalServiceException as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("detail", "service_error")
+
         logger.error(
             "Backend error for movie detail",
             movie_id=movie_id,
@@ -742,6 +773,10 @@ async def get_movie_screen(
             error_code="SERVICE_UNAVAILABLE",
         )
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("detail", "error")
+
         logger.error(
             "Unexpected error in movie detail endpoint",
             movie_id=movie_id,
@@ -1097,6 +1132,11 @@ async def get_movies_list(
     Raises:
         ExternalServiceException: If backend service is unavailable
     """
+    ***REMOVED*** Record movie request metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_movie_request("list", "started")
+
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
     logger.info(
@@ -1167,9 +1207,18 @@ async def get_movies_list(
                 "response_pattern": "paginated",
             },
         )
+
+        ***REMOVED*** Record successful movie request metrics
+        if metrics:
+            metrics.record_movie_request("list", "success")
+
         return cast(Dict[str, Any], response)
 
     except ExternalServiceException as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("list", "service_error")
+
         logger.error(
             "Backend error for movies list",
             error=str(e),
@@ -1183,6 +1232,10 @@ async def get_movies_list(
             error_code="SERVICE_UNAVAILABLE",
         )
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("list", "error")
+
         logger.error(
             "Unexpected error in movies list endpoint",
             error=str(e),

@@ -1,5 +1,6 @@
 """Top movies routes for BFF API."""
 
+import logging
 from typing import Any, Dict, Optional, Union, cast
 
 import httpx
@@ -11,6 +12,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from bff_api.dependencies import get_backend_client
 from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["top"])
@@ -143,6 +145,11 @@ async def get_top_movies(
     Raises:
         HTTPException: If backend service is unavailable (502)
     """
+    ***REMOVED*** Record movie request metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_movie_request("top", "started")
+
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
     logger.debug(f"🔍 Debugging token extraction for top movies")
@@ -277,6 +284,10 @@ async def get_top_movies(
 
         logger.debug(f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})")
 
+        ***REMOVED*** Record successful movie request metrics
+        if metrics:
+            metrics.record_movie_request("top", "success")
+
         ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=movies,
@@ -298,6 +309,10 @@ async def get_top_movies(
         return cast(Dict[str, Any], response)
 
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("top", "error")
+
         logger.error(
             "Backend error for top_movies", error=str(e), service="bff", endpoint="top_movies"
         )

@@ -81,8 +81,15 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Initialize BFF-specific metrics (always enabled for observability)
     try:
+        ***REMOVED*** First initialize the global metrics registry
+        from fast_core.monitoring.metrics import initialize_metrics
         from bff_api.core.metrics import initialize_bff_metrics
 
+        ***REMOVED*** Initialize global metrics registry with service name
+        global_registry = initialize_metrics("bff-api")
+        logger.info(f"Global metrics registry initialized for service: bff-api")
+
+        ***REMOVED*** Now initialize BFF-specific metrics
         metrics_instance = initialize_bff_metrics()
         if metrics_instance:
             logger.info("BFF metrics initialized successfully")

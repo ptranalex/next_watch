@@ -18,6 +18,7 @@ from bff_api.schemas.screen_schemas import (
     SidebarLinkData,
     SidebarMetadata,
 )
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["sidebar"])
@@ -225,6 +226,11 @@ async def get_sidebar_content(
     Raises:
         ExternalServiceException: If backend unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("sidebar_view")
+
     logger.info(
         "Processing sidebar content request",
         user_id=user_id,

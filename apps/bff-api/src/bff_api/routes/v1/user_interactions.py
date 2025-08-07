@@ -16,6 +16,7 @@ from bff_api.schemas.user_interaction_schemas import (
     UserMovieInteractionResponse,
 )
 from bff_api.services.clients import BackendClient
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 
@@ -46,6 +47,11 @@ async def get_watchlist(
             - 401 if not authenticated
             - 502 if backend service unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("watchlist_view")
+
     user_id, jwt_token = user_data
     logger.debug(f"Getting watchlist for user {user_id}")
 
@@ -110,6 +116,10 @@ async def add_to_watchlist(
             - 409 if movie already in watchlist
             - 502 if backend service unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("add_to_watchlist")
     user_id, jwt_token = user_data
     movie_id = request.movie_id
     logger.debug(f"Adding movie {movie_id} to watchlist for user {user_id}")

@@ -20,6 +20,7 @@ from bff_api.services.auth_client import (
     AuthClientPermanentError,
     AuthClientTransientError,
 )
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["authentication"])
@@ -50,6 +51,11 @@ async def create_user(
     Raises:
         HTTPException: 400 if user already exists, 502 if auth service unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("register")
+
     try:
         response = await auth_client.register(
             email=user_data.email,
@@ -154,6 +160,11 @@ async def create_token(
     Raises:
         HTTPException: 401 if credentials are invalid, 502 if auth service unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("login")
+
     try:
         response = await auth_client.login(username, password)
 
@@ -210,6 +221,11 @@ async def update_token(
     Raises:
         HTTPException: 401 if refresh token invalid, 502 if auth service unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("token_refresh")
+
     try:
         response = await auth_client.refresh_token(token_data.refresh_token)
 

@@ -14,6 +14,7 @@ from fast_core.responses import ResponseBuilder
 from fast_core.errors import ExternalServiceException
 from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["actors"])
@@ -282,6 +283,11 @@ async def get_actor_screen(
     Raises:
         HTTPException: 404 if actor not found, 502 if backend unavailable
     """
+    ***REMOVED*** Record movie request metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_movie_request("actor", "started")
+
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
     logger.info(
@@ -379,6 +385,10 @@ async def get_actor_screen(
                             "is_watched": False,
                         }
 
+        ***REMOVED*** Record successful movie request metrics
+        if metrics:
+            metrics.record_movie_request("actor", "success")
+
         ***REMOVED*** Use ResponseBuilder detail pattern for consistent response structure
         response = responses.detail(
             item=actor_screen_dict["actor"],
@@ -408,6 +418,10 @@ async def get_actor_screen(
         return cast(Dict[str, Any], response)
 
     except ExternalServiceException as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("actor", "service_error")
+
         logger.error(f"Backend error for actor {actor_id}: {e}")
         if "404" in str(e):
             raise HTTPException(status_code=404, detail="Actor not found")

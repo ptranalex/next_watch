@@ -15,6 +15,7 @@ from bff_api.dependencies import get_backend_client
 from bff_api.schemas.screen_schemas import GenreScreenData
 from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["genres"])
@@ -241,6 +242,11 @@ async def get_genre_screen(
     Raises:
         HTTPException: 404 if genre not found, 502 if backend unavailable
     """
+    ***REMOVED*** Record movie request metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_movie_request("genre", "started")
+
     ***REMOVED*** Extract user ID from JWT token if provided (overrides query parameter)
     extracted_user_id = None
     logger.info(
@@ -355,10 +361,18 @@ async def get_genre_screen(
                             "is_watched": False,
                         }
 
+        ***REMOVED*** Record successful movie request metrics
+        if metrics:
+            metrics.record_movie_request("genre", "success")
+
         ***REMOVED*** Convert dictionary back to Pydantic model
         return GenreScreenData(**genre_screen_dict)
 
     except ExternalServiceException as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_request("genre", "service_error")
+
         logger.error(
             "Backend error for genre screen",
             genre_id=genre_id,

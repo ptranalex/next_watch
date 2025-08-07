@@ -247,15 +247,36 @@ def get_bff_metrics() -> Optional[BFFMetrics]:
 def initialize_bff_metrics() -> Optional[BFFMetrics]:
     """Initialize global BFF metrics instance.
 
+    This function implements a singleton pattern to ensure only one
+    BFF metrics instance exists per process. If called multiple times,
+    it returns the existing instance.
+
     Returns:
         BFFMetrics instance if successful, None if metrics registry unavailable
     """
     global _bff_metrics
-    _bff_metrics = BFFMetrics()
-    ***REMOVED*** Return None if the metrics instance couldn't initialize properly
-    if _bff_metrics and not _bff_metrics.registry:
+
+    ***REMOVED*** If BFF metrics already exists, return it
+    if _bff_metrics is not None:
+        logger.debug("BFF metrics already initialized")
+        return _bff_metrics
+
+    ***REMOVED*** Create new BFF metrics instance
+    try:
+        _bff_metrics = BFFMetrics()
+
+        ***REMOVED*** Return None if the metrics instance couldn't initialize properly
+        if _bff_metrics and not _bff_metrics.registry:
+            _bff_metrics = None
+            logger.warning("Failed to initialize BFF metrics - no metrics registry available")
+        else:
+            logger.info("BFF metrics initialized successfully")
+
+        return _bff_metrics
+    except Exception as e:
+        logger.error(f"Failed to initialize BFF metrics: {e}")
         _bff_metrics = None
-    return _bff_metrics
+        return None
 
 
 ***REMOVED*** Decorator for tracking BFF operations

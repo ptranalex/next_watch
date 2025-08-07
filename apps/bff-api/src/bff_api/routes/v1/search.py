@@ -12,6 +12,7 @@ from fast_core.security.rate_limit import rate_limit
 from bff_api.dependencies import get_backend_client, get_search_client
 from bff_api.services.clients.facade import BackendClient
 from bff_api.services.clients.search import SearchAPIClient
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["search"])
@@ -90,6 +91,11 @@ async def search_screen(
     Raises:
         HTTPException: If backend service is unavailable (502)
     """
+    ***REMOVED*** Record search request metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_search_request("movie", "started")
+
     try:
         results = await backend.search_movies(
             query=q,
@@ -97,6 +103,10 @@ async def search_screen(
             limit=limit,
             user_id=user_id,
         )
+
+        ***REMOVED*** Record successful search metrics
+        if metrics:
+            metrics.record_search_request("movie", "success")
 
         ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
@@ -123,6 +133,9 @@ async def search_screen(
         return cast(Dict[str, Any], response)
 
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_search_request("movie", "error")
         await _handle_backend_error(e, "search", query=q)
         ***REMOVED*** This line is unreachable but satisfies type checker
         return {}

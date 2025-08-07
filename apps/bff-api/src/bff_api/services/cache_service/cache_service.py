@@ -11,6 +11,7 @@ from cache import CacheManager, get_global_collector, set_metrics_enabled
 from config.logging import get_logger
 
 from bff_api.config.app import settings, get_cache_settings
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 
@@ -69,3 +70,28 @@ async def check_cache_health() -> bool:
     """
     cache = get_cache()
     return await cache.health_check()
+
+
+def record_cache_operation(operation: str, cache_name: str, status: str) -> None:
+    """Record cache operation metrics.
+
+    Args:
+        operation: Cache operation (get, set, delete, clear)
+        cache_name: Name of the cache
+        status: Operation status (hit, miss, error)
+    """
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_cache_operation(operation, cache_name, status)
+
+
+def update_cache_hit_rate(cache_name: str, hit_rate: float) -> None:
+    """Update cache hit rate metrics.
+
+    Args:
+        cache_name: Name of the cache
+        hit_rate: Hit rate as percentage (0-100)
+    """
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.update_cache_hit_rate(cache_name, hit_rate)

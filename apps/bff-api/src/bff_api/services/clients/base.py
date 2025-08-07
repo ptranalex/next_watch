@@ -1,5 +1,6 @@
 """Base HTTP client for backend API communication."""
 
+import time
 from typing import Any, Dict, List, Optional, Union, cast
 
 import httpx
@@ -12,6 +13,7 @@ from fast_core.errors import (
 )
 
 from bff_api.config.app import BFFAPIConfig, settings
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 
@@ -100,6 +102,9 @@ class BaseBackendClient(BaseServiceClient):
         Raises:
             BackendClientError: For service errors
         """
+        start_time = time.time()
+        metrics = get_bff_metrics()
+
         client = await self._get_client()
 
         ***REMOVED*** Use Fast Core's header management with trace propagation
@@ -115,6 +120,16 @@ class BaseBackendClient(BaseServiceClient):
             )
             response.raise_for_status()
 
+            ***REMOVED*** Record successful service call metrics
+            response_time = time.time() - start_time
+            if metrics:
+                metrics.record_service_call(
+                    service_name=self.service_name,
+                    endpoint=path,
+                    status="success",
+                    response_time=response_time,
+                )
+
             if response.headers.get("content-type", "").startswith("application/json"):
                 json_response = response.json()
                 ***REMOVED*** If the response is a list, wrap it in a dict for consistency
@@ -126,6 +141,20 @@ class BaseBackendClient(BaseServiceClient):
 
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
+            response_time = time.time() - start_time
+
+            ***REMOVED*** Record error metrics
+            if metrics:
+                error_status = "rate_limit" if status_code == 429 else "http_error"
+                metrics.record_service_call(
+                    service_name=self.service_name,
+                    endpoint=path,
+                    status=error_status,
+                    response_time=response_time,
+                )
+                metrics.record_service_error(
+                    service_name=self.service_name, error_type=f"http_{status_code}"
+                )
 
             ***REMOVED*** 429 Too Many Requests should be retried with backoff
             if status_code == 429:
@@ -166,10 +195,37 @@ class BaseBackendClient(BaseServiceClient):
                 raise BackendClientTransientError(f"Backend service error: {status_code}")
 
         except httpx.RequestError as e:
+            response_time = time.time() - start_time
+
+            ***REMOVED*** Record network error metrics
+            if metrics:
+                error_type = "timeout" if "timeout" in str(e).lower() else "connection"
+                metrics.record_service_call(
+                    service_name=self.service_name,
+                    endpoint=path,
+                    status=error_type,
+                    response_time=response_time,
+                )
+                metrics.record_service_error(service_name=self.service_name, error_type=error_type)
+
             logger.error(f"Request error for {method} {path}: {e}")
             ***REMOVED*** Network errors are transient (can retry)
             raise BackendClientTransientError(f"Backend service request failed: {e}")
         except Exception as e:
+            response_time = time.time() - start_time
+
+            ***REMOVED*** Record unexpected error metrics
+            if metrics:
+                metrics.record_service_call(
+                    service_name=self.service_name,
+                    endpoint=path,
+                    status="error",
+                    response_time=response_time,
+                )
+                metrics.record_service_error(
+                    service_name=self.service_name, error_type="unexpected"
+                )
+
             logger.error(f"Unexpected error for {method} {path}: {e}")
             ***REMOVED*** Unexpected errors are treated as permanent
             raise BackendClientPermanentError(f"Unexpected backend error: {e}")

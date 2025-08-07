@@ -10,6 +10,7 @@ from fast_core.responses import ResponseBuilder
 from bff_api.dependencies.auth import get_current_user_id_and_token
 from bff_api.dependencies import get_backend_client
 from bff_api.services.clients import BackendClient
+from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["liked"])
@@ -134,6 +135,11 @@ async def get_user_liked_movies(
             - 500 if internal server error occurs
             - 502 if backend service is unavailable
     """
+    ***REMOVED*** Record user action metrics
+    metrics = get_bff_metrics()
+    if metrics:
+        metrics.record_user_action("liked_view")
+
     user_id, jwt_token = user_data
 
     logger.debug(
