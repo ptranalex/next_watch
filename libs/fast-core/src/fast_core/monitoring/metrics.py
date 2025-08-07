@@ -603,12 +603,37 @@ def get_metrics_registry() -> Optional[MetricsRegistry]:
 def initialize_metrics(service_name: str) -> MetricsRegistry:
     """Initialize global metrics registry.
 
+    This function implements a singleton pattern to ensure only one
+    metrics registry exists per process. If called multiple times,
+    it returns the existing registry.
+
     Args:
         service_name: Name of the service
 
     Returns:
         Metrics registry instance
+
+    Raises:
+        ValueError: If service_name is empty or invalid
     """
     global _metrics_registry
-    _metrics_registry = MetricsRegistry(service_name)
-    return _metrics_registry
+
+    ***REMOVED*** Validate input
+    if not service_name or not isinstance(service_name, str):
+        raise ValueError("service_name must be a non-empty string")
+
+    ***REMOVED*** If registry already exists, return it
+    if _metrics_registry is not None:
+        logger.debug(
+            f"Metrics registry already initialized for service: {_metrics_registry.service_name}"
+        )
+        return _metrics_registry
+
+    ***REMOVED*** Create new registry only if one doesn't exist
+    try:
+        _metrics_registry = MetricsRegistry(service_name)
+        logger.info(f"Initialized new metrics registry for service: {service_name}")
+        return _metrics_registry
+    except Exception as e:
+        logger.error(f"Failed to initialize metrics registry for service {service_name}: {e}")
+        raise
