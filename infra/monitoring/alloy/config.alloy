@@ -44,7 +44,7 @@ prometheus.relabel "filter_metrics" {
 
   rule {
     source_labels = ["__name__"]
-    regex = "(up|http_requests_total|http_request_duration_seconds_bucket|http_request_duration_seconds_sum|http_request_duration_seconds_count|health_status|process_cpu_seconds_total|process_resident_memory_bytes)"
+    regex = "(up|http_requests_total|http_request_duration_seconds_bucket|http_request_duration_seconds_sum|http_request_duration_seconds_count|health_status|process_cpu_seconds_total|process_resident_memory_bytes|bff_.*|backend_.*|search_.*|ml_.*|auth_.*|recommendation_.*)"
     action = "keep"
   }
   
@@ -406,7 +406,7 @@ otelcol.auth.basic "grafana_cloud_traces" {
 // 3. Tier 1 (30s scrape): backend-api, bff-api, auth-api
 // 4. Tier 2 (60s scrape): search-api, ml-api, recommendation-api, qdrant
 // 5. Frontend (Next.js) excluded - doesn't expose Prometheus metrics
-// 6. Expected metrics count: ~5,000-7,000 series for API services + Qdrant
+// 6. Expected metrics count: ~6,000-8,000 series for API services + Qdrant (includes business metrics)
 // 7. Log volume should be <12GB/month with ERROR/WARN filtering
 // 8. OTLP traces available on ports 4317 (gRPC) and 4318 (HTTP)
 // 9. Trace processing: batching + memory limiting for free tier optimization
