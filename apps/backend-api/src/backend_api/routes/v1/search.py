@@ -19,6 +19,7 @@ from backend_api.queries.movie_query import MovieQuery
 
 from backend_api.schemas.movie_schema import MovieResponse
 from backend_api.schemas.search import SearchResponse, SearchResult
+from backend_api.core.metrics import get_backend_metrics
 
 ***REMOVED*** Note: Backend API focuses on core data - no suggestion engine
 
@@ -78,6 +79,11 @@ async def get_search_suggestions(
 
     This returns a small set of search suggestions to power typeahead features.
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_movie_search("suggestions", 0, 0.0)  ***REMOVED*** No filters, placeholder duration
+
     try:
         logger.info(f"Getting search suggestions for '{query}'")
 
@@ -88,6 +94,9 @@ async def get_search_suggestions(
         ***REMOVED*** Return an empty response for now
         return SuggestionsResponse(suggestions=[], total=0)
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_search("suggestions_error", 0, 0.0)
         logger.error(f"Error fetching search suggestions: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

@@ -93,12 +93,18 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Backend API focuses on core movie data - no suggestion engine needed
     logger.info("Backend API handles core movie data operations")
 
-    ***REMOVED*** Initialize Backend-specific metrics (if enabled)
-    backend_config = app.state.settings
     ***REMOVED*** Initialize Backend-specific metrics (always enabled for observability)
+    backend_config = app.state.settings
     try:
+        ***REMOVED*** First initialize the global metrics registry
+        from fast_core.monitoring.metrics import initialize_metrics
         from backend_api.core.metrics import initialize_backend_metrics
 
+        ***REMOVED*** Initialize global metrics registry with service name
+        global_registry = initialize_metrics("backend-api")
+        logger.info(f"Global metrics registry initialized for service: backend-api")
+
+        ***REMOVED*** Now initialize Backend-specific metrics
         metrics_instance = initialize_backend_metrics()
         if metrics_instance:
             logger.info("Backend metrics initialized successfully")

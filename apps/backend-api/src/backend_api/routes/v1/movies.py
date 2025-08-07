@@ -286,6 +286,11 @@ async def list_movies(
     """
     Get a list of movies with pagination and optional filtering (Fast Core enhanced).
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_movie_operation("list", "started")
+
     try:
         logger.info(
             f"[{request_id}] Fetching movies - page: {pagination.page}, limit: {pagination.limit}, "
@@ -339,6 +344,10 @@ async def list_movies(
             extra={"request_id": request_id, "count": len(movie_responses), "total": total_count},
         )
 
+        ***REMOVED*** Record successful movie list request
+        if metrics:
+            metrics.record_movie_operation("list", "success")
+
         ***REMOVED*** Use fast-core response builder for consistent pagination
         paginated_response = response_builder.paginated(
             items=movie_responses,
@@ -357,6 +366,9 @@ async def list_movies(
         )
         return convert_paginated_response_to_movies_list(paginated_response, request_id)
     except (ResourceNotFoundError, ValidationError) as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_operation("list", "validation_error")
         logger.error(
             f"[{request_id}] Error fetching movies: {str(e)}", extra={"request_id": request_id}
         )
@@ -517,11 +529,27 @@ async def get_movie_details(
     """
     Get detailed information for a specific movie by its database ID.
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_movie_operation("detail", "started")
+
     try:
         movie = movie_query.get_movie_details(db, movie_id)
         genres = movie_query.get_movie_genres(db, movie["id"])
+
+        ***REMOVED*** Record successful movie detail request
+        if metrics:
+            metrics.record_movie_operation("detail", "success")
+
         return format_movie_for_response(movie, genres)
     except (ResourceNotFoundError, ValidationError) as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_movie_operation(
+                "detail",
+                "not_found" if isinstance(e, ResourceNotFoundError) else "validation_error",
+            )
         raise service_error_to_http_exception(e)
 
 

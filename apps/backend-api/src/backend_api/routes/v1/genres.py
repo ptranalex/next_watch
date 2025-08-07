@@ -18,6 +18,7 @@ from backend_api.db.operations import get_genre_by_id, get_genre_by_name, get_ge
 
 ***REMOVED*** Import response schemas
 from backend_api.schemas.genre_schema import GenreResponse, GenresListResponse
+from backend_api.core.metrics import get_backend_metrics
 
 
 ***REMOVED*** Define a GenreDetailResponse type for consistency
@@ -39,6 +40,11 @@ async def list_genres(db: Session = Depends(get_db)) -> GenresListResponse:
 
     Returns all available genres with their IDs and names.
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_genre_operation("list", "started")
+
     try:
         logger.info("Getting all genres")
         genres = get_genres(db)
@@ -46,8 +52,15 @@ async def list_genres(db: Session = Depends(get_db)) -> GenresListResponse:
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
         genre_responses = [GenreResponse.model_validate(genre) for genre in genres]
 
+        ***REMOVED*** Record successful genre list operation
+        if metrics:
+            metrics.record_genre_operation("list", "success")
+
         return GenresListResponse(genres=genre_responses, total=len(genre_responses))
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_genre_operation("list", "error")
         logger.error(f"Error fetching genres: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
@@ -58,16 +71,31 @@ async def get_genre_details(genre_id: int, db: Session = Depends(get_db)) -> Gen
     """
     Get detailed information for a specific genre by its ID.
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_genre_operation("detail", "started")
+
     try:
         genre = get_genre_by_id(db, genre_id)
 
         if not genre:
+            ***REMOVED*** Record not found error
+            if metrics:
+                metrics.record_genre_operation("detail", "not_found")
             raise HTTPException(status_code=404, detail="Genre not found")
+
+        ***REMOVED*** Record successful genre detail operation
+        if metrics:
+            metrics.record_genre_operation("detail", "success")
 
         return GenreResponse.model_validate(genre)
     except HTTPException:
         raise
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_genre_operation("detail", "error")
         logger.error(f"Error fetching genre {genre_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
@@ -77,15 +105,30 @@ async def get_genre_by_name_route(name: str, db: Session = Depends(get_db)) -> G
     """
     Get genre information by its name.
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_genre_operation("search_by_name", "started")
+
     try:
         genre = get_genre_by_name(db, name)
 
         if not genre:
+            ***REMOVED*** Record not found error
+            if metrics:
+                metrics.record_genre_operation("search_by_name", "not_found")
             raise HTTPException(status_code=404, detail="Genre not found")
+
+        ***REMOVED*** Record successful genre search operation
+        if metrics:
+            metrics.record_genre_operation("search_by_name", "success")
 
         return GenreResponse.model_validate(genre)
     except HTTPException:
         raise
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_genre_operation("search_by_name", "error")
         logger.error(f"Error fetching genre by name '{name}': {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

@@ -29,6 +29,7 @@ from backend_api.models import Credit
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
 
 from config.logging import get_logger
+from backend_api.core.metrics import get_backend_metrics
 
 
 ***REMOVED*** Actor schemas
@@ -81,6 +82,11 @@ async def list_actors(
     Returns actors extracted from the credits table, with deduplication by TMDB person ID
     and sorted by popularity in descending order.
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_actor_operation("list", "started")
+
     try:
         from sqlmodel import select, text
 
@@ -128,9 +134,16 @@ async def list_actors(
         ***REMOVED*** Total count is the number of unique actors
         total = len(all_actors)
 
+        ***REMOVED*** Record successful actor list operation
+        if metrics:
+            metrics.record_actor_operation("list", "success")
+
         return ActorsListResponse(actors=actors, total=total)
 
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_actor_operation("list", "error")
         logger.error(f"Error fetching actors: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
@@ -141,12 +154,20 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> Act
     """
     Get detailed information for a specific actor.
     """
+    ***REMOVED*** Record metrics
+    metrics = get_backend_metrics()
+    if metrics:
+        metrics.record_actor_operation("detail", "started")
+
     try:
         ***REMOVED*** Get credits for this actor
         credits = get_credits_by_person_id(db, actor_id)
 
         ***REMOVED*** Check if any credits found
         if not credits:
+            ***REMOVED*** Record not found error
+            if metrics:
+                metrics.record_actor_operation("detail", "not_found")
             raise HTTPException(status_code=404, detail=f"Actor with ID {actor_id} not found")
 
         ***REMOVED*** Use the first credit to get actor information
@@ -155,6 +176,10 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> Act
 
         ***REMOVED*** Find the credit with highest popularity for this actor
         best_credit = max(credits, key=lambda c: c.popularity or 0)
+
+        ***REMOVED*** Record successful actor detail operation
+        if metrics:
+            metrics.record_actor_operation("detail", "success")
 
         ***REMOVED*** Return actor details
         return ActorResponse(
@@ -168,6 +193,9 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> Act
     except HTTPException:
         raise
     except Exception as e:
+        ***REMOVED*** Record error metrics
+        if metrics:
+            metrics.record_actor_operation("detail", "error")
         logger.error(f"Error fetching actor {actor_id}: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
