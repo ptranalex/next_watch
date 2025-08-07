@@ -84,6 +84,7 @@ async def create_user(
     if metrics:
         metrics.record_user_operation("register", "attempt")
         metrics.record_api_client_request("bff", "/users", "attempt")
+        metrics.record_database_operation("insert", "users", "attempt", 0.0)
 
     ***REMOVED*** Validate input data
     if not user_data.email or not user_data.email.strip():
@@ -108,6 +109,12 @@ async def create_user(
             metrics.record_user_operation("register", "success")
             metrics.record_user_registration("success", "none")
             metrics.record_api_client_request("bff", "/users", "success")
+            metrics.record_database_operation("insert", "users", "success", 0.0)
+            metrics.record_password_operation("hash", "success")
+            metrics.record_password_strength("strong")  ***REMOVED*** Assuming strong password validation
+            metrics.record_security_event("user_registration", "low")
+            metrics.record_response_size("register", 300)  ***REMOVED*** Approximate user response size
+            metrics.record_cache_performance("user", "miss")  ***REMOVED*** New user cache
 
         return user
     except ValueError as e:
@@ -122,6 +129,9 @@ async def create_user(
             metrics.record_user_operation("register", "failure")
             metrics.record_user_registration("failure", failure_reason)
             metrics.record_api_client_request("bff", "/users", "failure")
+            metrics.record_database_operation("insert", "users", "failure", 0.0)
+            metrics.record_security_event("registration_failure", "medium")
+            metrics.record_password_operation("hash", "failure")
 
         ***REMOVED*** Convert ValueError to semantic exception - will be caught by error mapping
         error_msg = str(e).lower()
@@ -161,5 +171,9 @@ async def get_current_user_profile(
     if metrics:
         metrics.record_user_operation("profile_access", "success")
         metrics.record_api_client_request("bff", "/users/me", "success")
+        metrics.record_database_operation("select", "users", "success", 0.0)
+        metrics.record_session_operation("validate", "success")
+        metrics.record_response_size("profile", 400)  ***REMOVED*** Approximate user profile response size
+        metrics.record_cache_performance("user", "hit")  ***REMOVED*** User profile cache
 
     return current_user

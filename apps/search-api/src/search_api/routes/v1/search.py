@@ -224,6 +224,15 @@ async def search_all_entities(
     Returns paginated search results that can be filtered by entity type.
     This provides a unified search interface across all searchable entities.
     """
+    ***REMOVED*** Record search analytics
+    metrics = get_search_metrics()
+    if metrics:
+        metrics.record_query_pattern("all_entities_search", len(query))
+        metrics.record_pagination_usage(page, limit)
+        if types:
+            for entity_type in types:
+                metrics.record_filter_usage("entity_type", entity_type)
+
     try:
         logger.info(f"All entities search request", query=query, types=types)
 
@@ -241,6 +250,11 @@ async def search_all_entities(
             page=page,
             types=types,
         )
+
+        ***REMOVED*** Record successful search metrics
+        if metrics:
+            metrics.record_search_request("all_entities", "success", 0.0, result.total)
+            metrics.record_entity_search("all_entities", "moderate", 0.0)
 
         ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
@@ -270,9 +284,19 @@ async def search_all_entities(
         return cast(Dict[str, Any], response)
 
     except SearchServiceException as e:
+        ***REMOVED*** Record search service errors
+        if metrics:
+            metrics.record_search_error("service_error", "all_entities")
+            metrics.record_search_request("all_entities", "error", 0.0, 0)
+
         logger.error(f"Search service error: {str(e)}", query=query)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        ***REMOVED*** Record unexpected errors
+        if metrics:
+            metrics.record_search_error("internal_error", "all_entities")
+            metrics.record_search_request("all_entities", "error", 0.0, 0)
+
         logger.error(
             f"Unexpected error in multi-entity search: {str(e)}", query=query, exc_info=True
         )

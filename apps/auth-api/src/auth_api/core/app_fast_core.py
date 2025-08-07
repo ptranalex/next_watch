@@ -74,8 +74,15 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Initialize Auth-specific metrics (always enabled for observability)
     try:
+        ***REMOVED*** First initialize the global metrics registry
+        from fast_core.monitoring.metrics import initialize_metrics
         from auth_api.core.metrics import initialize_auth_metrics
 
+        ***REMOVED*** Initialize global metrics registry with service name
+        global_registry = initialize_metrics("auth-api")
+        logger.info(f"Global metrics registry initialized for service: auth-api")
+
+        ***REMOVED*** Now initialize Auth-specific metrics
         metrics_instance = initialize_auth_metrics()
         if metrics_instance:
             logger.info("Auth metrics initialized successfully")
@@ -85,9 +92,13 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 "Auth metrics initialization returned None - metrics registry not available"
             )
     except ImportError as e:
-        logger.error(f"Failed to import Auth metrics module: {e}")
+        logger.error(f"Metrics dependencies not installed: {e}")
+        logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
     except Exception as e:
-        logger.error(f"Error initializing Auth metrics: {e}")
+        logger.error(f"Failed to initialize Auth metrics: {e}", exc_info=True)
+        if settings.is_production:
+            ***REMOVED*** In production, we want to know about metrics failures
+            raise
 
     ***REMOVED*** Initialize database
     try:

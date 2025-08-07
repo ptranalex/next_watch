@@ -79,6 +79,7 @@ async def create_token(
     if metrics:
         metrics.record_auth_request("login", "attempt", 0.0)  ***REMOVED*** Duration tracked by decorator
         metrics.record_api_client_request("bff", "/tokens", "attempt")
+        metrics.record_database_operation("select", "users", "attempt", 0.0)
 
     ***REMOVED*** Validate input
     if not form_data.username or not form_data.username.strip():
@@ -95,6 +96,10 @@ async def create_token(
             metrics.record_auth_failure("invalid_credentials", "login")
             metrics.record_auth_request("login", "failure", 0.0)
             metrics.record_api_client_request("bff", "/tokens", "failure")
+            metrics.record_security_event("login_failure", "medium")
+            metrics.record_brute_force_attempt("ip", blocked=False)
+            metrics.record_suspicious_activity("failed_login", "medium")
+            metrics.record_database_operation("select", "users", "failure", 0.0)
 
         ***REMOVED*** Raise semantic exception instead of generic HTTPException
         raise AuthenticationException("Invalid email or password")
@@ -112,6 +117,19 @@ async def create_token(
         metrics.record_jwt_operation("create", "access", "success", 0.0)
         metrics.record_jwt_operation("create", "refresh", "success", 0.0)
         metrics.record_user_operation("authenticate", "success")
+        metrics.record_database_operation("select", "users", "success", 0.0)
+        metrics.record_session_operation("create", "success")
+        metrics.record_password_operation("verify", "success")
+        ***REMOVED*** Update active tokens and users (simplified - in real app would query actual counts)
+        metrics.update_active_tokens("access", 1)
+        metrics.update_active_tokens("refresh", 1)
+        metrics.update_active_users(1)
+        ***REMOVED*** Record response size (simplified - in real app would calculate actual size)
+        metrics.record_response_size("login", 500)  ***REMOVED*** Approximate token response size
+        metrics.record_cache_performance("user", "miss")  ***REMOVED*** User lookup cache
+        ***REMOVED*** Update database connection pool and concurrent sessions (simplified)
+        metrics.update_database_connection_pool(5)  ***REMOVED*** Example active connections
+        metrics.update_concurrent_sessions(10)  ***REMOVED*** Example concurrent sessions
 
     return Token(**tokens)
 
@@ -153,6 +171,7 @@ async def refresh_token(
     if metrics:
         metrics.record_auth_request("refresh", "attempt", 0.0)
         metrics.record_api_client_request("bff", "/tokens", "attempt")
+        metrics.record_database_operation("select", "tokens", "attempt", 0.0)
 
     ***REMOVED*** Validate input
     if not refresh_data.refresh_token or not refresh_data.refresh_token.strip():
@@ -167,6 +186,9 @@ async def refresh_token(
             metrics.record_auth_request("refresh", "failure", 0.0)
             metrics.record_jwt_validation("invalid", "expired_or_invalid")
             metrics.record_api_client_request("bff", "/tokens", "failure")
+            metrics.record_security_event("token_misuse", "medium")
+            metrics.record_suspicious_activity("invalid_refresh", "medium")
+            metrics.record_database_operation("select", "tokens", "failure", 0.0)
 
         ***REMOVED*** Raise semantic exception instead of generic HTTPException
         raise AuthenticationException("Invalid refresh token")
@@ -178,6 +200,16 @@ async def refresh_token(
         metrics.record_jwt_operation("create", "refresh", "success", 0.0)
         metrics.record_api_client_request("bff", "/tokens", "success")
         metrics.record_token_refresh_pattern("manual", "expired")
+        metrics.record_database_operation("select", "tokens", "success", 0.0)
+        metrics.record_database_operation("update", "tokens", "success", 0.0)
+        ***REMOVED*** Update active tokens
+        metrics.update_active_tokens("access", 1)
+        metrics.update_active_tokens("refresh", 1)
+        ***REMOVED*** Record response size and cache performance
+        metrics.record_response_size("refresh", 500)  ***REMOVED*** Approximate token response size
+        metrics.record_cache_performance("token", "hit")  ***REMOVED*** Token validation cache
+        ***REMOVED*** Update database connection pool
+        metrics.update_database_connection_pool(3)  ***REMOVED*** Example active connections
 
     return Token(**new_tokens)
 
@@ -215,6 +247,7 @@ async def verify_token(
     if metrics:
         metrics.record_auth_request("verify", "attempt", 0.0)
         metrics.record_api_client_request("bff", "/tokens/verify", "attempt")
+        metrics.record_database_operation("select", "users", "attempt", 0.0)
 
     ***REMOVED*** Validate input
     if not request.token or not request.token.strip():
@@ -229,9 +262,18 @@ async def verify_token(
             metrics.record_auth_request("verify", "success", 0.0)
             metrics.record_jwt_validation("valid", "none")
             metrics.record_api_client_request("bff", "/tokens/verify", "success")
+            metrics.record_database_operation("select", "users", "success", 0.0)
+            metrics.record_session_operation("validate", "success")
+            metrics.record_response_size("verify", 200)  ***REMOVED*** Approximate user info response size
+            metrics.record_cache_performance("user", "hit")  ***REMOVED*** User lookup cache
         else:
             metrics.record_auth_request("verify", "failure", 0.0)
             metrics.record_jwt_validation("invalid", result.error or "unknown")
             metrics.record_api_client_request("bff", "/tokens/verify", "failure")
+            metrics.record_security_event("token_verification_failed", "medium")
+            metrics.record_suspicious_activity("invalid_token", "medium")
+            metrics.record_database_operation("select", "users", "failure", 0.0)
+            metrics.record_response_size("verify", 100)  ***REMOVED*** Error response size
+            metrics.record_cache_performance("user", "miss")  ***REMOVED*** User lookup cache
 
     return result

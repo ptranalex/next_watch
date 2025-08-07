@@ -128,6 +128,11 @@ async def get_text_suggestions(
     Returns deduplicated and ranked suggestions from the Redis-powered
     suggestion engine with enhanced metadata and scoring.
     """
+    ***REMOVED*** Record suggestion analytics
+    metrics = get_search_metrics()
+    if metrics:
+        metrics.record_query_pattern("text_suggestion", len(query))
+
     try:
         logger.info(f"Text suggestions request", query=query, limit=limit)
 
@@ -138,6 +143,11 @@ async def get_text_suggestions(
         )
 
         logger.info(f"Text suggestions completed successfully", total=result.total, query=query)
+
+        ***REMOVED*** Record successful suggestion metrics
+        if metrics:
+            metrics.record_suggestion_request("text", "success", 0.0, len(query))
+            metrics.record_search_request("suggestion", "success", 0.0, result.total)
 
         ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
         response = responses.search(
@@ -160,9 +170,19 @@ async def get_text_suggestions(
         return cast(Dict[str, Any], response)
 
     except SearchServiceException as e:
+        ***REMOVED*** Record search service errors
+        if metrics:
+            metrics.record_search_error("service_error", "text_suggestion")
+            metrics.record_suggestion_request("text", "error", 0.0, len(query))
+
         logger.error(f"Search service error: {str(e)}", query=query)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        ***REMOVED*** Record unexpected errors
+        if metrics:
+            metrics.record_search_error("internal_error", "text_suggestion")
+            metrics.record_suggestion_request("text", "error", 0.0, len(query))
+
         logger.error(
             f"Unexpected error getting text suggestions: {str(e)}", query=query, exc_info=True
         )
