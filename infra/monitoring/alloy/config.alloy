@@ -337,7 +337,7 @@ otelcol.processor.batch "default" {
 // Memory limiter to prevent OOM issues
 otelcol.processor.memory_limiter "default" {
   check_interval = "1s"
-  limit_mib = 128
+  limit = "128MiB"
   
   output {
     traces = [otelcol.exporter.otlp.grafana_cloud_traces.input]
