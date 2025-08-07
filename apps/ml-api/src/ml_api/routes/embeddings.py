@@ -14,6 +14,7 @@ from ml_api.models import (
     UserEmbeddingResponse,
 )
 from ml_api.services import embedding_service
+from ml_api.core.metrics import get_ml_metrics
 
 ***REMOVED*** This will be overridden by app.py if precomputed service is available
 get_active_embedding_service: Callable[[], Any] = lambda: embedding_service
@@ -26,6 +27,11 @@ router = APIRouter(prefix="/api/v1/embeddings", tags=["embeddings"])
 @router.post("/movie", response_model=MovieEmbeddingResponse)
 async def generate_movie_embedding(request: MovieEmbeddingRequest) -> MovieEmbeddingResponse:
     """Generate an embedding for a movie."""
+    ***REMOVED*** Record metrics
+    metrics = get_ml_metrics()
+    if metrics:
+        metrics.record_embedding_request("movie", 1)  ***REMOVED*** Single movie embedding
+
     try:
         logger.info(f"Generating embedding for movie {request.movie_id}")
 
@@ -40,6 +46,12 @@ async def generate_movie_embedding(request: MovieEmbeddingRequest) -> MovieEmbed
             additional_metadata=request.additional_metadata,
         )
 
+        ***REMOVED*** Record successful embedding generation
+        if metrics:
+            metrics.record_embedding_duration(
+                "movie", 0.0
+            )  ***REMOVED*** Duration would be tracked by decorator
+
         return MovieEmbeddingResponse(
             movie_id=result["movie_id"],
             embedding=result["embedding"],
@@ -49,12 +61,21 @@ async def generate_movie_embedding(request: MovieEmbeddingRequest) -> MovieEmbed
 
     except Exception as e:
         logger.error(f"Error generating movie embedding: {e}")
+        ***REMOVED*** Record embedding error
+        if metrics:
+            metrics.record_embedding_error("movie", "generation_failed")
         raise HTTPException(status_code=500, detail=f"Failed to generate embedding: {str(e)}")
 
 
 @router.post("/user", response_model=UserEmbeddingResponse)
 async def generate_user_embedding(request: UserEmbeddingRequest) -> UserEmbeddingResponse:
     """Generate a preference vector for a user."""
+    ***REMOVED*** Record metrics
+    metrics = get_ml_metrics()
+    if metrics:
+        batch_size = len(request.liked_movies)
+        metrics.record_embedding_request("user", batch_size)
+
     try:
         logger.info(f"Generating preference vector for user {request.user_id}")
 
@@ -72,6 +93,11 @@ async def generate_user_embedding(request: UserEmbeddingRequest) -> UserEmbeddin
             watched_genres=request.watched_genres,
         )
 
+        ***REMOVED*** Record successful embedding generation
+        if metrics:
+            metrics.record_embedding_duration("user", 0.0)  ***REMOVED*** Duration would be tracked by decorator
+            metrics.record_embedding_batch_size("user", batch_size)
+
         return UserEmbeddingResponse(
             user_id=result["user_id"],
             preference_vector=result["preference_vector"],
@@ -81,6 +107,9 @@ async def generate_user_embedding(request: UserEmbeddingRequest) -> UserEmbeddin
 
     except Exception as e:
         logger.error(f"Error generating user preference vector: {e}")
+        ***REMOVED*** Record embedding error
+        if metrics:
+            metrics.record_embedding_error("user", "generation_failed")
         raise HTTPException(
             status_code=500, detail=f"Failed to generate preference vector: {str(e)}"
         )
@@ -89,12 +118,25 @@ async def generate_user_embedding(request: UserEmbeddingRequest) -> UserEmbeddin
 @router.get("/info", response_model=ModelInfo)
 async def get_model_info() -> ModelInfo:
     """Get information about the embedding model."""
+    ***REMOVED*** Record metrics
+    metrics = get_ml_metrics()
+    if metrics:
+        metrics.record_embedding_request("info", 1)
+
     try:
         ***REMOVED*** Get the active service
         active_service = get_active_embedding_service()
         model_info = active_service.get_model_info()
+
+        ***REMOVED*** Record successful model info retrieval
+        if metrics:
+            metrics.record_embedding_duration("info", 0.0)  ***REMOVED*** Duration would be tracked by decorator
+
         return ModelInfo(**model_info)
 
     except Exception as e:
         logger.error(f"Error getting model info: {e}")
+        ***REMOVED*** Record embedding error
+        if metrics:
+            metrics.record_embedding_error("info", "info_retrieval_failed")
         raise HTTPException(status_code=500, detail=f"Failed to get model info: {str(e)}")

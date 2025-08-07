@@ -90,8 +90,15 @@ async def ml_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Initialize ML-specific metrics (always enabled for observability)
     try:
+        ***REMOVED*** First initialize the global metrics registry
+        from fast_core.monitoring.metrics import initialize_metrics
         from ml_api.core.metrics import initialize_ml_metrics
 
+        ***REMOVED*** Initialize global metrics registry with service name
+        global_registry = initialize_metrics("ml-api")
+        logger.info(f"Global metrics registry initialized for service: ml-api")
+
+        ***REMOVED*** Now initialize ML-specific metrics
         metrics_instance = initialize_ml_metrics()
         if metrics_instance:
             logger.info("ML metrics initialized successfully")

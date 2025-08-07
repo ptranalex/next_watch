@@ -17,6 +17,41 @@ from config.logging import get_logger
 logger = get_logger(__name__)
 
 
+def normalize_endpoint_for_metrics(endpoint: str) -> str:
+    """Simple endpoint normalization for client-side service calls.
+
+    This is the industry-standard approach: replace numeric IDs with generic placeholders
+    to prevent cardinality explosion while keeping the solution maintainable.
+
+    Only used when we don't have access to FastAPI's route patterns.
+
+    Args:
+        endpoint: Raw endpoint path (e.g., "/embeddings/123", "/models/456")
+
+    Returns:
+        Normalized endpoint path (e.g., "/embeddings/{id}", "/models/{id}")
+    """
+    if not endpoint:
+        return endpoint
+
+    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    endpoint = endpoint.split("?")[0]
+
+    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    parts = endpoint.split("/")
+    normalized_parts = []
+
+    for part in parts:
+        if part.isdigit():
+            ***REMOVED*** Replace numeric IDs with generic placeholder
+            normalized_parts.append("{id}")
+        else:
+            ***REMOVED*** Keep non-numeric parts as-is
+            normalized_parts.append(part)
+
+    return "/".join(normalized_parts)
+
+
 class MLMetrics:
     """ML API metrics collector."""
 
