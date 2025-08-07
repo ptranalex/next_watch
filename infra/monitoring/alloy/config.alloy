@@ -48,17 +48,19 @@ prometheus.relabel "filter_metrics" {
     action = "keep"
   }
   
-  rule {
-    source_labels = ["method"]
-    regex = "(GET|POST|PUT|DELETE)"
-    action = "keep"
-  }
+  ***REMOVED*** Keep all HTTP methods (don't filter by method to avoid dropping metrics)
+  ***REMOVED*** rule {
+  ***REMOVED***   source_labels = ["method"]
+  ***REMOVED***   regex = "(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)"
+  ***REMOVED***   action = "keep"
+  ***REMOVED*** }
   
-  rule {
-    source_labels = ["status_code"]
-    regex = "([2-5][0-9][0-9])"
-    action = "keep"
-  }
+  ***REMOVED*** Keep all status codes (don't filter by status to avoid dropping metrics)
+  ***REMOVED*** rule {
+  ***REMOVED***   source_labels = ["status_code"]
+  ***REMOVED***   regex = "([2-5][0-9][0-9])"
+  ***REMOVED***   action = "keep"
+  ***REMOVED*** }
   
   rule {
     regex = "(request_id|trace_id|span_id|user_id|session_id)"
