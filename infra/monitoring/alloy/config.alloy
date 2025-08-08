@@ -260,6 +260,13 @@ discovery.docker "containers" {
 discovery.relabel "docker_logs" {
   targets = discovery.docker.containers.targets
 
+  // Keep only running containers to avoid inspecting stopped/removed ones
+  rule {
+    source_labels = ["__meta_docker_container_status"]
+    regex = "running"
+    action = "keep"
+  }
+
   rule {
     source_labels = ["__meta_docker_container_name"]
     regex = "^/?(.*)$"
