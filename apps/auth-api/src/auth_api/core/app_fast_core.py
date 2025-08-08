@@ -198,16 +198,16 @@ def create_auth_middleware_config(config: AuthAPIConfig) -> MiddlewareConfig:
         key_func="ip",  ***REMOVED*** Rate limit by IP address
     )
 
-    ***REMOVED*** Configure logging for Auth API
+    ***REMOVED*** Configure logging for Auth API - never log bodies due to sensitivity
     log_level = "INFO" if config.is_production else "DEBUG"
     middleware.logging(
         level=log_level,
-        include_request_body=not config.is_production,  ***REMOVED*** Only log bodies in development
-        include_response_body=False,  ***REMOVED*** Don't log sensitive auth responses
-        max_body_size=1024,  ***REMOVED*** Smaller for auth requests
-        exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],  ***REMOVED*** Add to defaults
+        include_request_body=False,  ***REMOVED*** Never log request bodies
+        include_response_body=False,  ***REMOVED*** Never log sensitive auth responses
+        max_body_size=1024,
+        exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],
         include_headers=True,
-        exclude_headers=["authorization", "cookie", "x-api-key"],  ***REMOVED*** Don't log sensitive headers
+        exclude_headers=["authorization", "cookie", "x-api-key"],
         log_timing=True,
         log_user_agent=not config.is_production,
     )

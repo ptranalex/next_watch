@@ -2,7 +2,6 @@
 Genre-related API routes (v1).
 """
 
-import traceback
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -46,7 +45,7 @@ async def list_genres(db: Session = Depends(get_db)) -> GenresListResponse:
         metrics.record_genre_operation("list", "started")
 
     try:
-        logger.info("Getting all genres")
+        logger.debug("Getting all genres")
         genres = get_genres(db)
 
         ***REMOVED*** Convert SQLModel objects to Pydantic response models
@@ -61,8 +60,7 @@ async def list_genres(db: Session = Depends(get_db)) -> GenresListResponse:
         ***REMOVED*** Record error metrics
         if metrics:
             metrics.record_genre_operation("list", "error")
-        logger.error(f"Error fetching genres: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Error fetching genres: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 

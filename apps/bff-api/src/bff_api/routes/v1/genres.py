@@ -249,7 +249,7 @@ async def get_genre_screen(
 
     ***REMOVED*** Extract user ID from JWT token if provided (overrides query parameter)
     extracted_user_id = None
-    logger.info(
+    logger.debug(
         "Processing genre screen request",
         genre_id=genre_id,
         has_credentials=bool(credentials),

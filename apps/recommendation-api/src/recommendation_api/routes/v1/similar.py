@@ -157,8 +157,9 @@ async def get_similar_movies_endpoint(
             )
             metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
 
-        logger.info(
-            f"Processing similar movies request - movie_id={movie_id}, limit={limit}, min_score={min_score}",
+        ***REMOVED*** Routine start log at DEBUG
+        logger.debug(
+            f"Processing similar movies request - movie_id=={movie_id}, limit={limit}, min_score={min_score}",
             extra={
                 "movie_id": movie_id,
                 "limit": limit,
@@ -182,7 +183,8 @@ async def get_similar_movies_endpoint(
             metrics.record_recommendation_request("similar", "success", 0.0, data.get("total", 0))
             metrics.record_vector_operation("search_similar", "success", 0.0)
 
-        logger.info(
+        ***REMOVED*** Routine success log at DEBUG
+        logger.debug(
             f"Successfully processed similar movies request - movie_id={movie_id}, total_recommendations={data.get('total', 0)}",
             extra={
                 "movie_id": movie_id,

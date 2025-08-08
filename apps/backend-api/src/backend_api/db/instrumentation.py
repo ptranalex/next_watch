@@ -47,9 +47,25 @@ def setup_database_instrumentation(engine: Engine, slow_query_threshold_ms: floa
         if duration_ms >= slow_query_threshold_ms:
             logger.warning("Slow database query detected", slow_query=True, **log_kwargs)
         else:
-            logger.info("Database query executed", **log_kwargs)
+            logger.debug("Database query executed", **log_kwargs)
 
     logger.info("Database instrumentation enabled", slow_query_threshold_ms=slow_query_threshold_ms)
+
+    @event.listens_for(engine, "handle_error")
+    def handle_error(exception_context: Any) -> None:
+        """Log database execution errors at error level with context."""
+        try:
+            statement = exception_context.statement or ""
+        except Exception:
+            statement = ""
+
+        error_kwargs = {
+            "statement": _clean_statement(statement) if statement else "",
+            "is_disconnect": getattr(exception_context, "is_disconnect", False),
+            "error": str(getattr(exception_context, "original_exception", "")),
+        }
+
+        logger.error("Database query failed", **error_kwargs)
 
 
 def _clean_statement(statement: str, max_length: int = 200) -> str:

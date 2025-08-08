@@ -150,7 +150,7 @@ async def get_trending_recommendations_endpoint(
             metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
         metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
 
-    logger.info(
+    logger.debug(
         "Processing trending recommendations request",
         limit=limit,
         days=days,
@@ -173,7 +173,7 @@ async def get_trending_recommendations_endpoint(
         metrics.record_recommendation_request("trending", "success", 0.0, data.get("total", 0))
         metrics.record_backend_api_request("get_trending_movies", "success", 0.0)
 
-    logger.info(
+    logger.debug(
         "Successfully processed trending recommendations request",
         total_recommendations=data.get("total", 0),
         service="recommendation-api",

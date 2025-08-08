@@ -2,7 +2,6 @@
 Actor-related API routes (v1).
 """
 
-import traceback
 from typing import Any, Dict, List, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -144,8 +143,7 @@ async def list_actors(
         ***REMOVED*** Record error metrics
         if metrics:
             metrics.record_actor_operation("list", "error")
-        logger.error(f"Error fetching actors: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Error fetching actors: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -196,8 +194,7 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> Act
         ***REMOVED*** Record error metrics
         if metrics:
             metrics.record_actor_operation("detail", "error")
-        logger.error(f"Error fetching actor {actor_id}: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Error fetching actor {actor_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -273,6 +270,5 @@ async def get_actor_movies(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching movies for actor {actor_id}: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Error fetching movies for actor {actor_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

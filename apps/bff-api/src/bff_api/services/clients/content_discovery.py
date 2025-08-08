@@ -37,7 +37,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         if genre_id <= 0:
             raise ValidationException("Genre ID must be a positive integer")
 
-        logger.info(
+        logger.debug(
             "Fetching genre details from backend",
             genre_id=genre_id,
             service="bff",
@@ -47,7 +47,7 @@ class ContentDiscoveryClient(BaseBackendClient):
 
         try:
             response = await self._make_request("GET", self._build_api_path(f"/genres/{genre_id}"))
-            logger.info(
+            logger.debug(
                 "Successfully fetched genre details",
                 genre_id=genre_id,
                 genre_name=response.get("name", "unknown"),
@@ -76,7 +76,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         Raises:
             ExternalServiceException: If request fails
         """
-        logger.info(
+        logger.debug(
             "Fetching genres from backend",
             service="bff",
             component="content_discovery",
@@ -90,7 +90,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         else:
             genres = cast(List[Dict[str, Any]], response.get("data", []))
 
-        logger.info(
+        logger.debug(
             "Successfully fetched genres",
             genre_count=len(genres),
             service="bff",
@@ -109,7 +109,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         Returns:
             List of trending genres (empty if service unavailable)
         """
-        logger.info(
+        logger.debug(
             "Fetching trending genres from backend",
             service="bff",
             component="content_discovery",
@@ -125,7 +125,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         else:
             genres = cast(List[Dict[str, Any]], response.get("data", []))
 
-        logger.info(
+        logger.debug(
             "Successfully fetched trending genres",
             genre_count=len(genres),
             service="bff",
@@ -153,7 +153,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         if actor_id <= 0:
             raise ValidationException("Actor ID must be a positive integer")
 
-        logger.info(
+        logger.debug(
             "Fetching actor details from backend",
             actor_id=actor_id,
             service="bff",
@@ -163,7 +163,7 @@ class ContentDiscoveryClient(BaseBackendClient):
 
         try:
             response = await self._make_request("GET", self._build_api_path(f"/actors/{actor_id}"))
-            logger.info(
+            logger.debug(
                 "Successfully fetched actor details",
                 actor_id=actor_id,
                 service="bff",
@@ -199,7 +199,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         if limit <= 0 or limit > 100:
             raise ValidationException("Limit must be between 1 and 100")
 
-        logger.info(
+        logger.debug(
             "Fetching popular actors from backend",
             page=page,
             limit=limit,
@@ -220,7 +220,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         else:
             actors = cast(List[Dict[str, Any]], response.get("data", []))
 
-        logger.info(
+        logger.debug(
             "Successfully fetched popular actors",
             actor_count=len(actors),
             page=page,
@@ -255,7 +255,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         if limit <= 0 or limit > 100:
             raise ValidationException("Limit must be between 1 and 100")
 
-        logger.info(
+        logger.debug(
             "Searching actors from backend",
             query=query,
             page=page,
@@ -271,7 +271,7 @@ class ContentDiscoveryClient(BaseBackendClient):
             params={"q": query.strip(), "page": page, "limit": limit},
         )
 
-        logger.info(
+        logger.debug(
             "Successfully searched actors",
             query=query,
             total=response.get("total", 0),

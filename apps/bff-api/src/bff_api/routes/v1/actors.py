@@ -290,7 +290,7 @@ async def get_actor_screen(
 
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.info(
+    logger.debug(
         "Processing actor screen request",
         actor_id=actor_id,
         has_credentials=bool(credentials),
@@ -483,7 +483,7 @@ async def get_actor_movies(
     """
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.info(
+    logger.debug(
         "Processing actor movies request",
         actor_id=actor_id,
         has_credentials=bool(credentials),

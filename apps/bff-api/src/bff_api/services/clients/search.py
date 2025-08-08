@@ -80,7 +80,7 @@ class SearchAPIClient(BaseBackendClient):
         if limit <= 0 or limit > 50:
             raise ValidationException("Limit must be between 1 and 50")
 
-        logger.info(
+        logger.debug(
             "Fetching basic suggestions from Search API",
             query=query,
             limit=limit,
@@ -97,7 +97,7 @@ class SearchAPIClient(BaseBackendClient):
             },
         )
 
-        logger.info(
+        logger.debug(
             "Successfully fetched basic suggestions",
             total=response.get("total", 0),
             query=query,
@@ -132,7 +132,7 @@ class SearchAPIClient(BaseBackendClient):
         if limit <= 0 or limit > 50:
             raise ValidationException("Limit must be between 1 and 50")
 
-        logger.info(
+        logger.debug(
             "Fetching text suggestions from Search API",
             query=query,
             limit=limit,
@@ -149,7 +149,7 @@ class SearchAPIClient(BaseBackendClient):
             },
         )
 
-        logger.info(
+        logger.debug(
             "Successfully fetched text suggestions",
             total=response.get("total", 0),
             query=query,
@@ -190,7 +190,7 @@ class SearchAPIClient(BaseBackendClient):
         if limit <= 0 or limit > 100:
             raise ValidationException("Limit must be between 1 and 100")
 
-        logger.info(
+        logger.debug(
             "Searching all entities through Search API",
             query=query,
             page=page,
@@ -215,7 +215,7 @@ class SearchAPIClient(BaseBackendClient):
             params=params,
         )
 
-        logger.info(
+        logger.debug(
             "Successfully searched all entities",
             total=response.get("total", 0),
             page=page,
@@ -244,7 +244,7 @@ class SearchAPIClient(BaseBackendClient):
 
             response = await self._make_request("GET", "/health")
 
-            logger.info(
+            logger.debug(
                 "Search API health check successful",
                 status=response.get("status", "unknown"),
                 search_service=response.get("service", "unknown"),
@@ -261,6 +261,7 @@ class SearchAPIClient(BaseBackendClient):
                 error=str(e),
                 service="bff",
                 component="search_client",
+                exc_info=True,
             )
             return {
                 "service": self.name,

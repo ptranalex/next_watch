@@ -138,7 +138,7 @@ async def get_personalized_recommendations_endpoint(
         )
         metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
 
-    logger.info(
+    logger.debug(
         "Processing personalized recommendations request",
         user_id=user_id,
         limit=limit,
@@ -163,7 +163,7 @@ async def get_personalized_recommendations_endpoint(
         metrics.record_recommendation_request("personalized", "success", 0.0, data.get("total", 0))
         metrics.record_backend_api_request("get_personalized_movies", "success", 0.0)
 
-    logger.info(
+    logger.debug(
         "Successfully processed personalized recommendations request",
         user_id=user_id,
         total_recommendations=data.get("total", 0),

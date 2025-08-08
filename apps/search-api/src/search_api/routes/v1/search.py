@@ -86,7 +86,7 @@ async def search_movies(
     to provide dedicated search functionality.
     """
     try:
-        logger.info(f"Movie search request", query=q, page=page, limit=limit)
+        logger.debug("Movie search request", query=q, page=page, limit=limit)
 
         ***REMOVED*** Record search analytics
         metrics = get_search_metrics()
@@ -138,7 +138,7 @@ async def search_movies(
             end_year=end_year,
         )
 
-        logger.info(f"Movie search completed successfully", total=result.get("total", 0), page=page)
+        logger.debug("Movie search completed successfully", total=result.get("total", 0), page=page)
 
         ***REMOVED*** Record successful search metrics
         if metrics:
@@ -234,7 +234,7 @@ async def search_all_entities(
                 metrics.record_filter_usage("entity_type", entity_type)
 
     try:
-        logger.info(f"All entities search request", query=query, types=types)
+        logger.debug("All entities search request", query=query, types=types)
 
         ***REMOVED*** Use the search service to perform multi-entity search
         result = await search_service.search_all_entities(
@@ -244,8 +244,8 @@ async def search_all_entities(
             types=types,
         )
 
-        logger.info(
-            f"Multi-entity search completed successfully",
+        logger.debug(
+            "Multi-entity search completed successfully",
             total=result.total,
             page=page,
             types=types,

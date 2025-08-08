@@ -105,5 +105,5 @@ class RecommendationClient(BaseBackendClient):
         ***REMOVED*** Extract just the recommendation movie objects from the response
         recommendations = response_data.get("recommendations", [])
 
-        logger.info(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
+        logger.debug(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
         return cast(List[Dict[str, Any]], recommendations)

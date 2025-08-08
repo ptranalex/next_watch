@@ -52,13 +52,22 @@ async def service_clients_health() -> JSONResponse:
         overall_status = "healthy" if all_healthy else "degraded"
         status_code = 200 if all_healthy else 503
 
-        logger.info(
-            "Service clients health check",
-            status=overall_status,
-            service="bff",
-            endpoint="service_clients_health",
-            services_count=len(health_status),
-        )
+        if all_healthy:
+            logger.debug(
+                "Service clients health check",
+                status=overall_status,
+                service="bff",
+                endpoint="service_clients_health",
+                services_count=len(health_status),
+            )
+        else:
+            logger.warning(
+                "Service clients health is degraded",
+                status=overall_status,
+                service="bff",
+                endpoint="service_clients_health",
+                services_count=len(health_status),
+            )
 
         return JSONResponse(
             status_code=status_code,
@@ -141,12 +150,20 @@ async def health_check(request: Request) -> JSONResponse:
                 if result.error:
                     checks[service_name]["error"] = result.error
 
-            logger.info(
-                "Health check response",
-                status=overall_status,
-                service="bff",
-                endpoint="health_check",
-            )
+            if overall_status == "healthy":
+                logger.debug(
+                    "Health check response",
+                    status=overall_status,
+                    service="bff",
+                    endpoint="health_check",
+                )
+            else:
+                logger.warning(
+                    "Health check is unhealthy",
+                    status=overall_status,
+                    service="bff",
+                    endpoint="health_check",
+                )
 
             return JSONResponse(
                 status_code=status_code,
@@ -184,7 +201,7 @@ async def health_check(request: Request) -> JSONResponse:
             )
     else:
         ***REMOVED*** Fallback: basic health check without external service monitoring
-        logger.info(
+        logger.debug(
             "Health check response",
             status="healthy",
             service="bff",
@@ -230,12 +247,20 @@ async def readiness_check(request: Request) -> JSONResponse:
             is_ready = backend_result.is_healthy
             status_code = 200 if is_ready else 503
 
-            logger.info(
-                "Readiness check response",
-                status=is_ready,
-                service="bff",
-                endpoint="readiness_check",
-            )
+            if is_ready:
+                logger.debug(
+                    "Readiness check response",
+                    status=is_ready,
+                    service="bff",
+                    endpoint="readiness_check",
+                )
+            else:
+                logger.warning(
+                    "Readiness check not ready",
+                    status=is_ready,
+                    service="bff",
+                    endpoint="readiness_check",
+                )
             return JSONResponse(
                 status_code=status_code,
                 content={
@@ -285,7 +310,7 @@ async def liveness_check() -> Dict[str, str]:
     Returns:
         Basic liveness confirmation
     """
-    logger.info(
+    logger.debug(
         "Liveness check response",
         status="alive",
         service="bff",
@@ -310,7 +335,7 @@ async def basic_health_check() -> HealthResponse:
     Returns:
         Basic health status information
     """
-    logger.info(
+    logger.debug(
         "Basic health check response",
         status="healthy",
         service="bff",

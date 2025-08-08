@@ -187,11 +187,11 @@ class BaseBackendClient(BaseServiceClient):
                 elif status_code == 404:
                     logger.debug(f"Resource not found for {method} {path}: {status_code}")
                 else:
-                    logger.info(f"Client error {status_code} for {method} {path}")
+                    logger.warning(f"Client error {status_code} for {method} {path}")
                 raise BackendClientPermanentError(f"Backend service error: {status_code}")
             ***REMOVED*** 5xx errors are transient (can retry)
             else:
-                logger.error(f"Server error {status_code} for {method} {path}: {e}")
+                logger.error(f"Server error {status_code} for {method} {path}: {e}", exc_info=True)
                 raise BackendClientTransientError(f"Backend service error: {status_code}")
 
         except httpx.RequestError as e:
@@ -208,7 +208,7 @@ class BaseBackendClient(BaseServiceClient):
                 )
                 metrics.record_service_error(service_name=self.service_name, error_type=error_type)
 
-            logger.error(f"Request error for {method} {path}: {e}")
+            logger.error(f"Request error for {method} {path}: {e}", exc_info=True)
             ***REMOVED*** Network errors are transient (can retry)
             raise BackendClientTransientError(f"Backend service request failed: {e}")
         except Exception as e:
@@ -226,7 +226,7 @@ class BaseBackendClient(BaseServiceClient):
                     service_name=self.service_name, error_type="unexpected"
                 )
 
-            logger.error(f"Unexpected error for {method} {path}: {e}")
+            logger.error(f"Unexpected error for {method} {path}: {e}", exc_info=True)
             ***REMOVED*** Unexpected errors are treated as permanent
             raise BackendClientPermanentError(f"Unexpected backend error: {e}")
 
@@ -254,9 +254,8 @@ class BaseBackendClient(BaseServiceClient):
             )
             logger.debug(f"Using Authorization header: {masked_auth}")
         else:
-            logger.warning(
-                f"No Authorization header in config! Config headers: {self.config.headers}"
-            )
+            ***REMOVED*** Warn without echoing full headers structure to avoid secrets in logs
+            logger.warning("No Authorization header in config for backend client")
 
         return headers
 

@@ -219,13 +219,14 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
         storage_url=config.redis_url if config.enable_caching else None,
     )
 
-    ***REMOVED*** Request logging - exclude health checks but log performance metrics
+    ***REMOVED*** Request logging - env-aware level; never log bodies
+    log_level = "INFO" if config.is_production else "DEBUG"
     middleware.logging(
-        level="INFO",
+        level=log_level,
         exclude_additional=["/docs", "/redoc", "/openapi.json"],  ***REMOVED*** Add to defaults
-        include_request_body=False,  ***REMOVED*** Don't log request bodies for performance
-        include_response_body=False,  ***REMOVED*** Don't log response bodies for performance
-        max_body_size=1024,  ***REMOVED*** Small limit for debugging
+        include_request_body=False,  ***REMOVED*** Never log request bodies
+        include_response_body=False,  ***REMOVED*** Never log response bodies
+        max_body_size=1024,
     )
 
     ***REMOVED*** Request processing - important for recommendation APIs

@@ -653,7 +653,7 @@ async def get_movie_screen(
 
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.info(
+    logger.debug(
         "Processing movie detail request",
         movie_id=movie_id,
         has_credentials=bool(credentials),
@@ -739,7 +739,7 @@ async def get_movie_screen(
         if metrics:
             metrics.record_movie_request("detail", "not_found")
 
-        logger.info(
+        logger.debug(
             "Movie not found",
             movie_id=movie_id,
             error=str(e),

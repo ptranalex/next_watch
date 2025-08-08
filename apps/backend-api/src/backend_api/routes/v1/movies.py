@@ -292,7 +292,7 @@ async def list_movies(
         metrics.record_movie_operation("list", "started")
 
     try:
-        logger.info(
+        logger.debug(
             f"[{request_id}] Fetching movies - page: {pagination.page}, limit: {pagination.limit}, "
             f"genre_id: {genre_id}, actor_id: {actor_id}, sort_by: {sort_by}, sort_desc: {sort_desc}",
             extra={"request_id": request_id, "endpoint": "list_movies"},
@@ -316,7 +316,7 @@ async def list_movies(
         )
 
         if not movies:
-            logger.info(f"[{request_id}] No movies found with given filters")
+            logger.debug(f"[{request_id}] No movies found with given filters")
             paginated_response = response_builder.paginated(
                 items=[],
                 page=pagination.page,
@@ -339,7 +339,7 @@ async def list_movies(
             movie_response = format_movie_for_response(movie, genres, request_id)
             movie_responses.append(movie_response)
 
-        logger.info(
+        logger.debug(
             f"[{request_id}] Successfully fetched {len(movie_responses)} movies",
             extra={"request_id": request_id, "count": len(movie_responses), "total": total_count},
         )

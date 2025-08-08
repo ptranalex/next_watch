@@ -59,7 +59,7 @@ async def get_search_suggestions(
     This endpoint provides fast, basic suggestions for autocomplete functionality.
     """
     try:
-        logger.info(f"Basic suggestions request", query=query, limit=limit)
+        logger.debug("Basic suggestions request", query=query, limit=limit)
 
         ***REMOVED*** Record suggestion analytics
         metrics = get_search_metrics()
@@ -72,7 +72,7 @@ async def get_search_suggestions(
             limit=limit,
         )
 
-        logger.info(f"Basic suggestions completed successfully", total=result.total, query=query)
+        logger.debug("Basic suggestions completed successfully", total=result.total, query=query)
 
         ***REMOVED*** Record successful suggestion metrics
         if metrics:
@@ -134,7 +134,7 @@ async def get_text_suggestions(
         metrics.record_query_pattern("text_suggestion", len(query))
 
     try:
-        logger.info(f"Text suggestions request", query=query, limit=limit)
+        logger.debug("Text suggestions request", query=query, limit=limit)
 
         ***REMOVED*** Use the search service to get text suggestions
         result = await search_service.get_text_suggestions(
@@ -142,7 +142,7 @@ async def get_text_suggestions(
             limit=limit,
         )
 
-        logger.info(f"Text suggestions completed successfully", total=result.total, query=query)
+        logger.debug("Text suggestions completed successfully", total=result.total, query=query)
 
         ***REMOVED*** Record successful suggestion metrics
         if metrics:

@@ -2,8 +2,6 @@
 Search-related API routes (v1).
 """
 
-import os
-import traceback
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -85,7 +83,7 @@ async def get_search_suggestions(
         metrics.record_movie_search("suggestions", 0, 0.0)  ***REMOVED*** No filters, placeholder duration
 
     try:
-        logger.info(f"Getting search suggestions for '{query}'")
+        logger.debug(f"Getting search suggestions for '{query}'")
 
         ***REMOVED*** This is a placeholder implementation
         ***REMOVED*** In a real implementation, you would query multiple entity types
@@ -97,8 +95,7 @@ async def get_search_suggestions(
         ***REMOVED*** Record error metrics
         if metrics:
             metrics.record_movie_search("suggestions_error", 0, 0.0)
-        logger.error(f"Error fetching search suggestions: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Error fetching search suggestions: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -115,7 +112,7 @@ async def get_text_suggestions(
     For advanced suggestions with Redis caching, use the recommendation service.
     """
     try:
-        logger.info(f"Getting basic text suggestions for '{query}' from database")
+        logger.debug(f"Getting basic text suggestions for '{query}' from database")
 
         ***REMOVED*** Use MovieQuery to search for movies that match the query
         movie_query = MovieQuery()
@@ -147,8 +144,7 @@ async def get_text_suggestions(
         )
 
     except Exception as e:
-        logger.error(f"Error fetching text suggestions: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Error fetching text suggestions: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -166,7 +162,7 @@ async def search_all(
     Returns paginated search results that can be filtered by entity type.
     """
     try:
-        logger.info(f"Searching for '{query}' with types={types}")
+        logger.debug(f"Searching for '{query}' with types={types}")
 
         ***REMOVED*** This is a placeholder implementation
         ***REMOVED*** In a real implementation, you would query multiple entity types
@@ -183,6 +179,5 @@ async def search_all(
             has_prev=False,
         )
     except Exception as e:
-        logger.error(f"Error searching with query '{query}': {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Error searching with query '{query}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
