@@ -231,7 +231,7 @@ prometheus.relabel "filter_self" {
 }
 
 //
-// LOGS COLLECTION (ERROR/WARN only for free tier)
+// LOGS COLLECTION (Docker logs only - services output to Docker logs)
 //
 
 // Grafana Cloud Logs endpoint
@@ -262,99 +262,61 @@ discovery.relabel "docker_logs" {
 
   rule {
     source_labels = ["__meta_docker_container_name"]
+    regex = "^/?(.*)$"
     target_label = "service"
+    replacement = "$1"
   }
   
   rule {
     source_labels = ["__meta_docker_container_name"]
-    regex = "(backend-api|bff-api|auth-api|search-api|ml-api|recommendation-api|qdrant)"
+    regex = ".*(backend-api|bff-api|auth-api|search-api|ml-api|recommendation-api|qdrant|grafana-alloy-prod).*"
     action = "keep"
+  }
+  
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "^/?(.*)$"
+    target_label = "container_name"
+    replacement = "$1"
+  }
+  
+  rule {
+    target_label = "environment"
+    replacement = "production"
   }
 }
 
-// Docker container logs - ERROR/WARN only
+// Docker container logs - ALL logs from all services
 loki.source.docker "nextwatch_containers" {
   host = "unix:///var/run/docker.sock"
   targets = discovery.relabel.docker_logs.output
   
-  forward_to = [loki.process.filter_logs.receiver]
+  forward_to = [loki.process.add_labels.receiver]
 }
 
-// Log processing and filtering
-loki.process "filter_logs" {
-  // Only keep ERROR and WARN logs
+// Add labels to all logs
+loki.process "add_labels" {
+  // Add level label if present - matches level=info format (optional)
   stage.regex {
-    expression = "(?i).*(error|warn|fatal|critical).*"
+    expression = "level=(?P<level>error|warn|info|debug|fatal|critical)"
   }
   
-  // Extract log level
-  stage.regex {
-    expression = "(?i)(?P<level>error|warn|fatal|critical)"
-  }
-  
-  // Add level label
+  // Add level label (only if regex matched)
   stage.labels {
     values = {
       level = "",
     }
   }
   
+  // Add environment label to all logs
+  stage.labels {
+    values = {
+      environment = "production",
+    }
+  }
+  
   forward_to = [loki.write.grafana_cloud_logs.receiver]
 }
-
-//
-// FILE-BASED LOGS (NextWatch service logs)
-//
-
-// Backend API logs
-loki.source.file "backend_logs" {
-  targets = [
-    {"__path__" = "/app/logs/backend/*.log", "service" = "backend-api"},
-  ]
-  forward_to = [loki.process.filter_logs.receiver]
-}
-
-// BFF API logs  
-loki.source.file "bff_logs" {
-  targets = [
-    {"__path__" = "/app/logs/bff/*.log", "service" = "bff-api"},
-  ]
-  forward_to = [loki.process.filter_logs.receiver]
-}
-
-// Auth API logs
-loki.source.file "auth_logs" {
-  targets = [
-    {"__path__" = "/app/logs/auth/*.log", "service" = "auth-api"},
-  ]
-  forward_to = [loki.process.filter_logs.receiver]
-}
-
-// Search API logs
-loki.source.file "search_logs" {
-  targets = [
-    {"__path__" = "/app/logs/search/*.log", "service" = "search-api"},
-  ]
-  forward_to = [loki.process.filter_logs.receiver]
-}
-
-// ML API logs
-loki.source.file "ml_logs" {
-  targets = [
-    {"__path__" = "/app/logs/ml/*.log", "service" = "ml-api"},
-  ]
-  forward_to = [loki.process.filter_logs.receiver]
-}
-
-// Recommendation API logs
-loki.source.file "recommendation_logs" {
-  targets = [
-    {"__path__" = "/app/logs/recommendation/*.log", "service" = "recommendation-api"},
-  ]
-  forward_to = [loki.process.filter_logs.receiver]
-}
-
-
 
 //
 // TRACING COLLECTION (OpenTelemetry)
