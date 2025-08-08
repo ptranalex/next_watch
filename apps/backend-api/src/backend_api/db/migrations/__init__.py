@@ -39,6 +39,7 @@ MIGRATIONS = [
     "backend_api.db.migrations.008_add_user_movie_interactions_table",
     "backend_api.db.migrations.009_add_performance_optimization_indexes",
     "backend_api.db.migrations.010_create_movie_metadata_materialized_view",
+    "backend_api.db.migrations.011_add_credit_director_index",
 ]
 
 

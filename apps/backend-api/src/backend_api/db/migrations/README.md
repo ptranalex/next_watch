@@ -17,18 +17,19 @@ Migrations are numbered sequentially and follow the naming pattern: `XXX_descrip
 
 ***REMOVED******REMOVED******REMOVED*** Current Migrations
 
-| Migration                                      | Description                                        | Purpose                                                              |
-| ---------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------- |
-| `001_create_initial_tables.py`                 | Create initial movie and genre tables              | Sets up the core movie and genre tables with basic movie information |
-| `002_add_credits_and_extended_movie_fields.py` | Add Credits table and extend Movie fields          | Adds cast/crew information and additional TMDB movie fields          |
-| `003_update_budget_revenue_to_bigint.py`       | Update budget and revenue fields to BIGINT         | Handles larger financial values for blockbuster movies               |
-| `004_rename_moviegenrelink_table.py`           | Rename moviegenrelink table to movie_genre_link    | Ensures consistent naming conventions                                |
-| `005_add_ratings_and_awards.py`                | Add Rotten Tomatoes, Metacritic ratings and awards | Extends movie rating information                                     |
-| `006_add_trailer_table.py`                     | Add trailer table for storing movie trailers       | Stores YouTube trailer keys and metadata                             |
-| `007_add_users_table.py`                       | Add users table for authentication                 | User management and authentication support                           |
-| `008_add_user_movie_interactions_table.py`     | Add user movie interactions                        | Watchlist, watched status, and user preferences                      |
-| `009_add_performance_optimization_indexes.py`  | Add performance optimization indexes               | Database performance improvements for common queries                 |
-| `010_add_credit_department_job_index.py`       | Add composite index for credit queries             | Optimizes director/writer lookup queries                             |
+| Migration                                        | Description                                        | Purpose                                                              |
+| ------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------------- |
+| `001_create_initial_tables.py`                   | Create initial movie and genre tables              | Sets up the core movie and genre tables with basic movie information |
+| `002_add_credits_and_extended_movie_fields.py`   | Add Credits table and extend Movie fields          | Adds cast/crew information and additional TMDB movie fields          |
+| `003_update_budget_revenue_to_bigint.py`         | Update budget and revenue fields to BIGINT         | Handles larger financial values for blockbuster movies               |
+| `004_rename_moviegenrelink_table.py`             | Rename moviegenrelink table to movie_genre_link    | Ensures consistent naming conventions                                |
+| `005_add_ratings_and_awards.py`                  | Add Rotten Tomatoes, Metacritic ratings and awards | Extends movie rating information                                     |
+| `006_add_trailer_table.py`                       | Add trailer table for storing movie trailers       | Stores YouTube trailer keys and metadata                             |
+| `007_add_users_table.py`                         | Add users table for authentication                 | User management and authentication support                           |
+| `008_add_user_movie_interactions_table.py`       | Add user movie interactions                        | Watchlist, watched status, and user preferences                      |
+| `009_add_performance_optimization_indexes.py`    | Add performance optimization indexes               | Database performance improvements for common queries                 |
+| `010_create_movie_metadata_materialized_view.py` | Create materialized view for movie metadata        | Precomputes and optimizes bulk metadata access                       |
+| `011_add_credit_director_index.py`               | Add partial covering index for director lookups    | Speeds up `Directing/Director` by `movie_id` queries                 |
 
 ***REMOVED******REMOVED*** Migration Structure
 
