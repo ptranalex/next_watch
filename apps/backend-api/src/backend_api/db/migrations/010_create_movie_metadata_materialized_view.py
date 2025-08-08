@@ -13,7 +13,7 @@ Performance Benefits:
 - Supports cache invalidation with versioning
 """
 
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import MetaData, text
 from sqlalchemy.engine import Engine
@@ -402,6 +402,17 @@ def upgrade(engine: Engine) -> None:
             logger.info("✅ Movie metadata materialized view created successfully")
             logger.info("🚀 Netflix-style optimization ready for production use")
 
+            ***REMOVED*** Step 10: Record the migration as applied
+            logger.info("Recording migration in the database")
+            try:
+                conn.execute(
+                    text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                    {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
+                )
+                logger.info("Migration recorded in the database")
+            except (OperationalError, ProgrammingError) as e:
+                logger.warning(f"Could not record migration - {str(e)}")
+
         except Exception as e:
             logger.error(f"Failed to create movie metadata materialized view: {e}")
             raise
@@ -440,3 +451,36 @@ def downgrade(engine: Engine) -> None:
         except Exception as e:
             logger.error(f"Failed to remove movie metadata materialized view: {e}")
             raise
+
+
+def get_revision_info() -> Dict[str, Any]:
+    """
+    Get revision metadata.
+
+    Returns:
+        Dictionary with revision metadata
+    """
+    return {
+        "revision": 10,
+        "parent": 9,
+        "description": MIGRATION_DESCRIPTION,
+        "requires": [],
+        "date_created": "2023-10-16T10:00:00Z",
+    }
+
+
+def get_affected_tables() -> List[str]:
+    """
+    Get list of affected tables/objects.
+
+    Returns:
+        List of table or materialized view names affected by this migration
+    """
+    return [
+        "movie",
+        "genre",
+        "movie_genre_link",
+        "credit",
+        "trailer",
+        "movie_metadata_complete",  ***REMOVED*** materialized view
+    ]

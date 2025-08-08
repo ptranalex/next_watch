@@ -118,7 +118,8 @@ python -m backend_api.cli database downgrade --all
 - **Test migrations thoroughly** before applying to production
 - **Use `IF EXISTS` and `IF NOT EXISTS` clauses** for idempotent operations
 - **Add proper indexes** for performance-critical queries
-- **Record migration in the migrations table**
+- **Recording applied migrations is automatic**: The migration runner will insert a record into the `migrations` table after a successful `upgrade()` using an idempotent upsert. You may still insert manually within a migration for clarity; duplicates are ignored.
+- **Removing migration records on downgrade is automatic**: The CLI downgrade flow deletes the corresponding `migrations` record after a successful `downgrade()`. You don't need to delete it inside the migration; doing so is harmless (a second delete is a no-op).
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** ❌ Don'ts
 

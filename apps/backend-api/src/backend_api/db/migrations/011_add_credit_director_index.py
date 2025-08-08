@@ -59,13 +59,30 @@ def downgrade(engine: Engine) -> None:
     with engine.begin() as conn:
         conn.execute(text("DROP INDEX IF EXISTS idx_credit_director_by_movie"))
 
-    ***REMOVED*** Remove the migration record
-    with engine.begin() as conn:
-        try:
-            conn.execute(
-                text("DELETE FROM migrations WHERE id = :id"),
-                {"id": MIGRATION_ID},
-            )
-            logger.info("Migration record removed from the database")
-        except (OperationalError, ProgrammingError) as e:
-            logger.warning(f"Could not remove migration record - {str(e)}")
+    ***REMOVED*** Note: migration record removal is handled automatically by the CLI after successful downgrade
+
+
+def get_revision_info() -> Dict[str, Any]:
+    """
+    Get revision metadata.
+
+    Returns:
+        Dictionary with revision metadata
+    """
+    return {
+        "revision": 11,
+        "parent": 10,
+        "description": MIGRATION_DESCRIPTION,
+        "requires": [],
+        "date_created": "2023-10-17T10:00:00Z",
+    }
+
+
+def get_affected_tables() -> List[str]:
+    """
+    Get list of affected tables.
+
+    Returns:
+        List of table names affected by this migration
+    """
+    return ["credit"]

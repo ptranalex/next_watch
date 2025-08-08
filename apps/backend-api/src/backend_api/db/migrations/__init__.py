@@ -153,6 +153,29 @@ def run_migration(db_url: Optional[str] = None) -> List[str]:
             else:
                 time_str = f"{migration_elapsed:.1f}s"
 
+            ***REMOVED*** Auto-record migration completion to avoid human error
+            try:
+                migration_description = getattr(module, "MIGRATION_DESCRIPTION", migration_id)
+                with engine.begin() as conn:
+                    conn.execute(
+                        text(
+                            """
+                            INSERT INTO migrations (id, description)
+                            VALUES (:id, :description)
+                            ON CONFLICT (id) DO NOTHING
+                            """
+                        ),
+                        {
+                            "id": migration_id,
+                            "description": migration_description,
+                        },
+                    )
+                logger.info(
+                    f"📘 Recorded migration {migration_id} in migrations table (idempotent)"
+                )
+            except Exception as record_err:
+                logger.warning(f"Could not auto-record migration {migration_id}: {record_err}")
+
             applied_ids.append(migration_id)
             logger.info(f"✅ Migration {migration_id} completed successfully in {time_str}")
 
