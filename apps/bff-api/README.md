@@ -1,18 +1,20 @@
 ***REMOVED*** BFF API Service
 
-Backend for Frontend (BFF) service for the Next Watch movie platform. This service acts as an aggregation layer between the Next.js frontend and various backend services, providing optimized data structures and caching for the UI.
+Backend for Frontend (BFF) service for the Next Watch movie platform. This service acts as an aggregation layer between the Next.js frontend and various backend services, providing optimized data structures, intelligent caching, and smart warming for the UI.
 
 ***REMOVED******REMOVED*** 🎯 Purpose
 
-The BFF aggregates data from multiple backend services and provides optimized endpoints for specific UI screens, reducing the complexity and number of API calls required by the frontend.
+The BFF aggregates data from multiple backend services and provides optimized endpoints for specific UI screens, reducing the complexity and number of API calls required by the frontend. It includes intelligent cache warming, performance monitoring, and comprehensive CLI tools for operations.
 
 ***REMOVED******REMOVED*** 🧱 Core Responsibilities
 
-- ✅ **Data Aggregation**: Combine data from backend-api, databases, and other services
-- ✅ **Screen-Oriented Endpoints**: Provide UI-specific endpoints like `/bff/home`, `/bff/movies/:id`
-- ✅ **User-Aware Logic**: Embed user-specific data (watchlist status, favorites, ratings)
+- ✅ **Data Aggregation**: Combine data from backend-api, auth-api, recommendation-api, search-api, and other services
+- ✅ **Screen-Oriented Endpoints**: Provide UI-specific endpoints like `/bff/v1/home`, `/bff/v1/movies/{id}`, `/bff/v1/search`
+- ✅ **User-Aware Logic**: Embed user-specific data (watchlist status, favorites, ratings, interactions)
 - ✅ **Service Abstraction**: Hide backend service boundaries from the frontend
-- ✅ **Caching & Performance**: Optimize data delivery with intelligent caching
+- ✅ **Intelligent Caching**: Optimize data delivery with domain-specific TTLs and smart warming
+- ✅ **Performance Monitoring**: Comprehensive metrics and health checks
+- ✅ **Smart Warming**: Event-driven cache warming based on user behavior
 
 ***REMOVED******REMOVED*** 🚀 Quick Start
 
@@ -45,10 +47,6 @@ hatch run cli --help
 
 ***REMOVED*** Start the development server
 hatch run dev
-
-***REMOVED*** Run database migrations
-hatch run migrate
-hatch run upgrade
 
 ***REMOVED*** Run tests
 hatch run dev:test
@@ -172,6 +170,38 @@ hatch run cache keys --pattern "user:*" --limit 50  ***REMOVED*** List user-rela
 hatch run cache clear --pattern "temp:*" --no-confirm  ***REMOVED*** Clear temp keys without confirmation
 ```
 
+***REMOVED******REMOVED******REMOVED*** Cache Warming
+
+Intelligent cache warming based on user behavior and content popularity:
+
+```bash
+***REMOVED*** Warm popular content
+hatch run cache warm popular [OPTIONS]
+
+Options:
+  --max-items INTEGER   Maximum items to warm [default: 100]
+  --force               Force warming even if already cached
+  --verbose, -v         Show detailed warming progress
+
+***REMOVED*** Warm specific movie
+hatch run cache warm movie MOVIE_ID [OPTIONS]
+
+Options:
+  --force               Force warming even if already cached
+  --include-similar     Also warm similar movies
+
+***REMOVED*** Warm user-specific content
+hatch run cache warm user USER_ID [OPTIONS]
+
+Options:
+  --max-items INTEGER   Maximum items to warm [default: 50]
+  --force               Force warming even if already cached
+
+***REMOVED*** Examples
+hatch run cache warm popular --max-items 200 --verbose  ***REMOVED*** Warm popular content with details
+hatch run cache warm movie 123 --include-similar        ***REMOVED*** Warm movie and similar content
+```
+
 ***REMOVED******REMOVED******REMOVED*** Version Information
 
 ```bash
@@ -233,10 +263,36 @@ hatch run cache clear --pattern "dev:*"
 ***REMOVED******REMOVED******REMOVED*** Core Endpoints
 
 ```http
-GET /api/v1/movies/trending     ***REMOVED*** Trending movies with caching
-GET /api/v1/movies/{id}         ***REMOVED*** Movie details with cast/crew
-GET /api/v1/search              ***REMOVED*** Search with suggestions
-GET /api/v1/user/watchlist      ***REMOVED*** User's watchlist (aggregated)
+***REMOVED*** Movie Management
+GET /bff/v1/movies                    ***REMOVED*** Movie catalog with filtering and pagination
+GET /bff/v1/movies/{id}              ***REMOVED*** Movie details with cast/crew and recommendations
+GET /bff/v1/movies/{id}/similar      ***REMOVED*** Similar movies suggestions
+
+***REMOVED*** Search and Discovery
+GET /bff/v1/search                   ***REMOVED*** Unified search across all services
+GET /bff/v1/search/suggestions       ***REMOVED*** Search suggestions for typeahead
+GET /bff/v1/search/suggestions/text  ***REMOVED*** Text-based search suggestions
+
+***REMOVED*** User Interactions
+GET /bff/v1/watchlist                ***REMOVED*** User's watchlist (aggregated)
+GET /bff/v1/watched                  ***REMOVED*** User's watched movies
+GET /bff/v1/liked                    ***REMOVED*** User's liked movies
+POST /bff/v1/user-interactions       ***REMOVED*** Toggle user interactions (watchlist, like, etc.)
+
+***REMOVED*** Content Discovery
+GET /bff/v1/home                     ***REMOVED*** Home screen data aggregation
+GET /bff/v1/sidebar                  ***REMOVED*** Sidebar widget data
+GET /bff/v1/top                      ***REMOVED*** Top-rated content
+GET /bff/v1/genres                   ***REMOVED*** Genre listings and content
+
+***REMOVED*** Authentication
+POST /bff/v1/auth/login              ***REMOVED*** User authentication
+POST /bff/v1/auth/register           ***REMOVED*** User registration
+GET /bff/v1/auth/profile             ***REMOVED*** User profile management
+
+***REMOVED*** Actors and Cast
+GET /bff/v1/actors                   ***REMOVED*** Actor listings
+GET /bff/v1/actors/{id}              ***REMOVED*** Actor details with filmography
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Health Endpoints
@@ -251,22 +307,69 @@ GET /health/live      ***REMOVED*** Liveness check (K8s)
 
 ***REMOVED******REMOVED******REMOVED*** Backend Services
 
-- **backend-api**: Primary source for movie metadata, genres, cast
+- **backend-api**: Primary source for movie metadata, genres, cast, user data
 - **auth-api**: Authentication and user management
 - **recommendation-api**: Movie recommendations and similar content
+- **search-api**: Search functionality and suggestions
+- **ml-api**: Machine learning features (optional)
 - **Redis**: Caching layer for performance optimization
+
+***REMOVED******REMOVED******REMOVED*** Fast-Core Integration
+
+The BFF API is built on **fast-core** for standardized FastAPI patterns:
+
+- **Service Client Factory**: Pre-configured HTTP clients for all backend services
+- **Middleware Stack**: Automatic logging, CORS, security, and error handling
+- **Health Checks**: Comprehensive monitoring of external dependencies
+- **Configuration Management**: Environment-aware configuration with validation
+- **Error Handling**: Consistent error responses across all endpoints
 
 ***REMOVED******REMOVED******REMOVED*** Cache Integration
 
 The BFF API uses the **NextWatch Cache Library** for intelligent caching:
 
-- **Domain-specific TTLs**: Different cache durations for movies (10min), users (30min), popular content (15min)
+- **Domain-specific TTLs**: Different cache durations for movies (30 days static, 5 min user data), users (30min), popular content (15min)
 - **Structured keys**: Organized cache keys like `bff:movie:details:123`, `bff:user:watchlist:456`
+- **Smart Warming**: Event-driven cache warming based on user behavior and content popularity
 - **Health monitoring**: Cache health checks integrated into service monitoring
 - **CLI management**: Rich CLI commands for cache inspection and management
 - **Graceful fallback**: Cache failures don't break the API, just reduce performance
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+***REMOVED******REMOVED******REMOVED*** Smart Warming System
+
+The BFF includes an intelligent cache warming system:
+
+- **Event-driven warming**: Automatically warms content based on user interactions
+- **Priority-based warming**: Different warming strategies for popular, new, and trending content
+- **Version-aware warming**: Respects content versions to avoid stale data
+- **Throttled operations**: Prevents backend overload during warming operations
+- **Background processing**: Non-blocking warming operations
+
+***REMOVED******REMOVED*** 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Next.js UI   │────│   BFF Service   │────│  Backend API    │
+│                 │    │                 │    │                 │
+│ - Home Screen   │    │ - Data Agg.     │    │ - Movie Data    │
+│ - Movie Detail  │    │ - User Context  │    │ - User Data     │
+│ - Search        │    │ - Smart Warming │    │ - Business Logic│
+│ - User Profile  │    │ - Caching       │    │ - Auth          │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                       │
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │     Redis       │    │   Auth API      │
+                       │   (Caching)     │    │ (Authentication)│
+                       │ + Smart Warming │    └─────────────────┘
+                       └─────────────────┘
+                                │
+                       ┌─────────────────┐
+                       │ Recommendation  │
+                       │     API         │
+                       └─────────────────┘
+```
+
+***REMOVED******REMOVED*** 🔧 Configuration
 
 Environment variables:
 
@@ -282,12 +385,18 @@ LOGS_DIR=logs
 ***REMOVED*** Backend Integration
 BACKEND_API_URL=http://localhost:8000
 BACKEND_API_TIMEOUT=30
-
-***REMOVED*** Auth Service Integration
 AUTH_API_URL=http://localhost:8003
+AUTH_API_TIMEOUT=10
+RECO_API_URL=http://localhost:8002
+RECO_API_TIMEOUT=30
+SEARCH_API_URL=http://localhost:8005
+SEARCH_API_TIMEOUT=15
+ML_API_URL=http://localhost:8006
+ML_API_TIMEOUT=60
 
 ***REMOVED*** Service-to-Service Authentication
 INTERNAL_API_KEY=bff-to-backend-secret-key-change-in-production
+ADMIN_API_KEY=admin-secret-key-change-in-production
 
 ***REMOVED*** Caching
 REDIS_URL=redis://localhost:6379/0
@@ -305,6 +414,15 @@ CACHE_USER_TTL=1800        ***REMOVED*** 30 minutes for user sessions
 CACHE_POPULAR_TTL=900      ***REMOVED*** 15 minutes for popular content
 CACHE_DEFAULT_TTL=300      ***REMOVED*** 5 minutes default
 
+***REMOVED*** Smart Warming Configuration
+WARMING_MAX_CONCURRENT=3
+WARMING_REQUESTS_PER_SECOND=2
+WARMING_MAX_CONNECTIONS=4
+WARMING_OPERATION_TIMEOUT=120
+WARMING_REQUEST_TIMEOUT=3
+WARMING_BURST_SIZE=5
+WARMING_MAX_ITEMS_PER_STRATEGY=10000
+
 ***REMOVED*** Security
 JWT_SECRET=your-jwt-secret-here-change-in-production
 
@@ -312,24 +430,7 @@ JWT_SECRET=your-jwt-secret-here-change-in-production
 CORS_ORIGINS=http://localhost:3000,http://localhost:8001
 
 ***REMOVED*** Performance Monitoring
-ENABLE_PERFORMANCE_METRICS=false
-```
-
-***REMOVED******REMOVED*** 🏗️ Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Next.js UI   │────│   BFF Service   │────│  Backend API    │
-│                 │    │                 │    │                 │
-│ - Home Screen   │    │ - Data Agg.     │    │ - Movie Data    │
-│ - Movie Detail  │    │ - User Context  │    │ - User Data     │
-│ - Search        │    │ - Caching       │    │ - Business Logic│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                       │
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │     Redis       │    │   Auth API      │
-                       │   (Caching)     │    │ (Authentication)│
-                       └─────────────────┘    └─────────────────┘
+ENABLE_PERFORMANCE_METRICS=true
 ```
 
 ***REMOVED******REMOVED*** 🧪 Testing
@@ -368,47 +469,49 @@ hatch run dev:lint
 hatch run dev:mypy
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding New CLI Commands
-
-1. **Create command module** in `src/bff_api/cli/commands/`
-2. **Import in commands/**init**.py**
-3. **Add to main CLI app** in `src/bff_api/cli/main.py`
-4. **Write tests** for the new commands
-5. **Update documentation**
-
-Example command structure:
-
-```python
-***REMOVED*** src/bff_api/cli/commands/example.py
-import typer
-from rich.console import Console
-
-app = typer.Typer(name="example", help="Example commands.")
-console = Console()
-
-@app.command()
-def hello(name: str = typer.Option(..., help="Name to greet")):
-    """Say hello to someone."""
-    console.print(f"[green]Hello {name}![/green]")
-```
-
 ***REMOVED******REMOVED******REMOVED*** Project Structure
 
 ```
 apps/bff-api/
 ├── src/bff_api/
-│   ├── config/          ***REMOVED*** Configuration management
-│   ├── routes/          ***REMOVED*** FastAPI route handlers
-│   ├── services/        ***REMOVED*** External service clients
-│   ├── middlewares/     ***REMOVED*** Custom middleware
-│   ├── cli/            ***REMOVED*** Command-line interface
-│   │   ├── commands/   ***REMOVED*** Modular CLI commands
-│   │   ├── utils.py    ***REMOVED*** CLI utilities
-│   │   └── main.py     ***REMOVED*** Main CLI app
-│   └── main.py         ***REMOVED*** FastAPI application
-├── tests/              ***REMOVED*** Test suite
-├── pyproject.toml      ***REMOVED*** Dependencies and config
-└── README.md          ***REMOVED*** This file
+│   ├── config/              ***REMOVED*** Configuration management
+│   │   ├── app.py          ***REMOVED*** BFF-specific configuration
+│   │   └── fast_core_config.py  ***REMOVED*** Fast-core integration
+│   ├── core/               ***REMOVED*** Core application components
+│   │   ├── app_fast_core.py  ***REMOVED*** Fast-core application factory
+│   │   └── metrics.py      ***REMOVED*** Performance metrics
+│   ├── routes/             ***REMOVED*** FastAPI route handlers
+│   │   ├── api_v1.py       ***REMOVED*** v1 API router
+│   │   ├── health.py       ***REMOVED*** Health check endpoints
+│   │   ├── v1/             ***REMOVED*** v1 API endpoints
+│   │   │   ├── movies.py   ***REMOVED*** Movie-related endpoints
+│   │   │   ├── search.py   ***REMOVED*** Search endpoints
+│   │   │   ├── auth.py     ***REMOVED*** Authentication endpoints
+│   │   │   ├── home.py     ***REMOVED*** Home screen endpoints
+│   │   │   └── ...         ***REMOVED*** Other endpoint modules
+│   │   └── admin/          ***REMOVED*** Admin endpoints (secured)
+│   ├── services/           ***REMOVED*** External service clients
+│   │   ├── clients/        ***REMOVED*** Service clients
+│   │   │   ├── base.py     ***REMOVED*** Base client class
+│   │   │   ├── movies.py   ***REMOVED*** Movie service client
+│   │   │   ├── search.py   ***REMOVED*** Search service client
+│   │   │   └── ...         ***REMOVED*** Other service clients
+│   │   ├── smart_warming.py  ***REMOVED*** Intelligent cache warming
+│   │   └── health_service.py ***REMOVED*** Health check service
+│   ├── schemas/            ***REMOVED*** Pydantic schemas
+│   │   ├── screen_schemas.py    ***REMOVED*** Screen data schemas
+│   │   ├── auth_schemas.py      ***REMOVED*** Authentication schemas
+│   │   └── user_interaction_schemas.py  ***REMOVED*** User interaction schemas
+│   ├── dependencies/       ***REMOVED*** FastAPI dependencies
+│   ├── utils/              ***REMOVED*** Utility functions
+│   ├── cli/                ***REMOVED*** Command-line interface
+│   │   ├── commands/       ***REMOVED*** Modular CLI commands
+│   │   ├── utils.py        ***REMOVED*** CLI utilities
+│   │   └── main.py         ***REMOVED*** Main CLI app
+│   └── main.py             ***REMOVED*** FastAPI application
+├── tests/                  ***REMOVED*** Test suite
+├── pyproject.toml          ***REMOVED*** Dependencies and config
+└── README.md              ***REMOVED*** This file
 ```
 
 ***REMOVED******REMOVED*** 🚀 Deployment
@@ -473,6 +576,7 @@ Ensure these are set in production:
 - `AUTH_API_URL` (production auth service URL)
 - `REDIS_URL` (production Redis instance)
 - `INTERNAL_API_KEY` (secure service-to-service key)
+- `ADMIN_API_KEY` (secure admin endpoint key)
 
 ***REMOVED******REMOVED*** 📊 Monitoring
 
@@ -483,6 +587,8 @@ The BFF service provides several monitoring endpoints:
 - Request/response timing middleware
 - Error tracking and reporting
 - CLI tools for operational monitoring
+- Performance metrics collection
+- Cache warming statistics
 
 ***REMOVED******REMOVED*** 🤝 Contributing
 
@@ -492,6 +598,8 @@ The BFF service provides several monitoring endpoints:
 4. Update README for any API changes
 5. Ensure all tests pass before submitting
 6. Test CLI commands thoroughly
+7. Follow fast-core patterns for new endpoints
+8. Implement proper error handling with fast-core exceptions
 
 ***REMOVED******REMOVED*** 📝 License
 
