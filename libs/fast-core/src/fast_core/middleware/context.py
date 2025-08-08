@@ -318,7 +318,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
                 return trace_id, span_id, parent_span_id
         except Exception as e:
-            logger.debug("Failed to extract trace info", error=str(e))
+            logger.debug("Failed to extract trace info", error=str(e), exc_info=True)
 
         return None, None, None
 
@@ -341,7 +341,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                     "Request ID added to OpenTelemetry span", request_id=context.request_id
                 )
         except Exception as e:
-            logger.debug("Failed to add span attributes", error=str(e))
+            logger.debug("Failed to add span attributes", error=str(e), exc_info=True)
 
     def _add_span_event(self, context: RequestContext, request: Request) -> None:
         """Add an event to the current OpenTelemetry span with request context."""
@@ -375,7 +375,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                     request_id=context.request_id,
                 )
         except Exception as e:
-            logger.debug("Failed to add span event", error=str(e))
+            logger.debug("Failed to add span event", error=str(e), exc_info=True)
 
     def _get_response_headers(self, context: RequestContext) -> Dict[str, str]:
         """Get headers to add to response.
