@@ -13,7 +13,11 @@ from sqlalchemy import Engine, text
 from backend_api.config import settings
 from config.logging import configure_logging, get_logger
 from backend_api.db.database import get_engine, init_db
-from backend_api.db.migrations import get_applied_migrations, run_migration
+from backend_api.db.migrations import (
+    get_applied_migrations,
+    run_migration,
+    downgrade_single_migration,
+)
 
 ***REMOVED*** Create app for database commands
 app = typer.Typer(help="Database management commands")
@@ -275,9 +279,7 @@ def downgrade_database(
             if not quiet:
                 console.print(f"[bold blue]Downgrading migration: {migration_id}[/]")
 
-            success = _downgrade_single_migration(
-                engine, migration_id, applied_migrations[migration_id], verbose, quiet
-            )
+            success = downgrade_single_migration(engine, migration_id)
             if success:
                 downgraded_count += 1
             else:
@@ -300,66 +302,6 @@ def downgrade_database(
         console.print(f"[bold red]❌ {error_msg}[/]")
         logger.error(error_msg)
         return 1
-
-
-def _downgrade_single_migration(
-    engine: Engine,
-    migration_id: str,
-    migration_desc: str,
-    verbose: bool,
-    quiet: bool,
-) -> bool:
-    """Downgrade a single migration.
-
-    Args:
-        engine: SQLAlchemy engine
-        migration_id: Migration ID to downgrade
-        migration_desc: Migration description
-        verbose: Enable verbose output
-        quiet: Suppress output
-
-    Returns:
-        True if successful, False otherwise
-    """
-    logger = get_logger(__name__)
-
-    ***REMOVED*** Show progress if not quiet
-    if not quiet:
-        console.print(f"[bold yellow]⟳[/] Downgrading: {migration_id}")
-
-    ***REMOVED*** Import the migration module
-    try:
-        module = importlib.import_module(f"backend_api.db.migrations.{migration_id}")
-    except ImportError as e:
-        console.print(f"[bold red]Error:[/] Could not import migration module: {migration_id}")
-        if verbose:
-            console.print(f"[red]{str(e)}[/]")
-        return False
-
-    ***REMOVED*** Call the downgrade function
-    try:
-        with console.status("Running downgrade..."):
-            module.downgrade(engine)
-    except Exception as e:
-        console.print(f"[bold red]Error:[/] Failed to downgrade migration {migration_id}")
-        if verbose:
-            console.print(f"[red]{str(e)}[/]")
-        return False
-
-    ***REMOVED*** Remove the migration record
-    try:
-        with engine.begin() as conn:
-            conn.execute(
-                text("DELETE FROM migrations WHERE id = :id"),
-                {"id": migration_id},
-            )
-    except Exception as e:
-        console.print(f"[bold red]Error:[/] Failed to remove migration record for {migration_id}")
-        if verbose:
-            console.print(f"[red]{str(e)}[/]")
-        return False
-
-    return True
 
 
 ***REMOVED*** ============================================================================

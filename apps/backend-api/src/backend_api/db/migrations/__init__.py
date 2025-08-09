@@ -193,3 +193,44 @@ def run_migration(db_url: Optional[str] = None) -> List[str]:
 
 
 __all__ = ["run_migration", "get_applied_migrations"]
+
+
+def downgrade_single_migration(engine: Engine, migration_id: str) -> bool:
+    """Downgrade a single migration and remove its record.
+
+    Args:
+        engine: SQLAlchemy engine
+        migration_id: Migration ID to downgrade (must match module filename)
+
+    Returns:
+        True if successful, False otherwise
+    """
+    import importlib
+
+    logger = get_logger(__name__)
+
+    ***REMOVED*** Import the migration module
+    try:
+        module = importlib.import_module(f"backend_api.db.migrations.{migration_id}")
+    except ImportError as e:
+        logger.error(f"Could not import migration module: {migration_id} - {str(e)}")
+        return False
+
+    ***REMOVED*** Call the downgrade function
+    try:
+        module.downgrade(engine)
+    except Exception as e:
+        logger.error(f"Failed to downgrade migration {migration_id}: {str(e)}")
+        return False
+
+    ***REMOVED*** Remove the migration record
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("DELETE FROM migrations WHERE id = :id"), {"id": migration_id})
+    except Exception as e:
+        logger.error(
+            f"Failed to remove migration record for {migration_id} after downgrade: {str(e)}"
+        )
+        return False
+
+    return True
