@@ -19,7 +19,7 @@ Frontend → BFF → Auth-API (verify token) → Backend-API (X-User-ID header)
 ```
 
 - **Frontend** sends tokens to BFF
-- **BFF** validates tokens via Auth-API `/auth/verify-token`
+- **BFF** validates tokens via Auth-API `/auth/v1/tokens/verify`
 - **Auth-API** returns user info if token is valid
 - **BFF** injects `X-User-ID` header for Backend-API calls
 
@@ -46,7 +46,7 @@ cd apps/auth-api
 hatch env create
 
 ***REMOVED*** Copy environment configuration
-cp env.example .env
+cp .env.example .env
 
 ***REMOVED*** Start the service
 hatch run serve
@@ -256,23 +256,22 @@ GET /               ***REMOVED*** Service information
 GET /health         ***REMOVED*** Comprehensive health check with database status
 GET /health/live    ***REMOVED*** Liveness check for load balancers
 GET /health/ready   ***REMOVED*** Readiness check for orchestrators
-GET /db-health      ***REMOVED*** Legacy database health check (backward compatibility)
+GET /health/deep    ***REMOVED*** Deep diagnostics (optional)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Authentication
+***REMOVED******REMOVED******REMOVED*** Authentication (v1)
 
 ```http
-POST /auth/register     ***REMOVED*** Register new user
-POST /auth/login        ***REMOVED*** Login with form data
-POST /auth/login/json   ***REMOVED*** Login with JSON
-POST /auth/refresh      ***REMOVED*** Refresh access token
-GET /auth/me           ***REMOVED*** Get current user info
+POST /auth/v1/users           ***REMOVED*** Register new user
+POST /auth/v1/tokens          ***REMOVED*** Login (OAuth2 form: username=email, password)
+PUT  /auth/v1/tokens          ***REMOVED*** Refresh access token
+GET  /auth/v1/users/me        ***REMOVED*** Get current user info
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Token Verification (for BFF)
 
 ```http
-POST /auth/verify-token ***REMOVED*** Verify JWT token and return user info
+POST /auth/v1/tokens/verify   ***REMOVED*** Verify JWT token and return user info
 ```
 
 ***REMOVED******REMOVED*** 🧩 Integration Points
@@ -299,10 +298,11 @@ Environment variables:
 ```bash
 ***REMOVED*** Server Configuration
 AUTH_API_PORT=8003
+HOST=0.0.0.0
 ENVIRONMENT=development
 DEBUG=false
 LOG_LEVEL=INFO
-LOG_DIR=logs
+LOGS_DIR=logs
 
 ***REMOVED*** Database Configuration
 DATABASE_URL=postgresql://user:pass@localhost:5432/next_watch
@@ -344,7 +344,7 @@ RATE_LIMIT_BURST=10
 ***REMOVED******REMOVED******REMOVED*** Register a User
 
 ```bash
-curl -X POST http://localhost:8003/auth/register \
+curl -X POST http://localhost:8003/auth/v1/users \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -354,21 +354,28 @@ curl -X POST http://localhost:8003/auth/register \
   }'
 ```
 
-***REMOVED******REMOVED******REMOVED*** Login
+***REMOVED******REMOVED******REMOVED*** Login (OAuth2 form)
 
 ```bash
-curl -X POST http://localhost:8003/auth/login/json \
+curl -X POST http://localhost:8003/auth/v1/tokens \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d 'username=user@example.com&password=securepassword123'
+```
+
+***REMOVED******REMOVED******REMOVED*** Refresh Token
+
+```bash
+curl -X PUT http://localhost:8003/auth/v1/tokens \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "user@example.com",
-    "password": "securepassword123"
+    "refresh_token": "<your-refresh-token>"
   }'
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Verify Token (BFF Usage)
 
 ```bash
-curl -X POST http://localhost:8003/auth/verify-token \
+curl -X POST http://localhost:8003/auth/v1/tokens/verify \
   -H "Content-Type: application/json" \
   -d '{
     "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."

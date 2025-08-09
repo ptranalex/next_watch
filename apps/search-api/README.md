@@ -36,8 +36,7 @@ The Search API is built using:
 - `GET /health` - Comprehensive health check
 - `GET /health/ready` - Readiness probe
 - `GET /health/live` - Liveness probe
-- `GET /` - Service information
-- `GET /debug` - Debug information (development only)
+- `GET /health/services` - Service client factory status
 
 ***REMOVED******REMOVED*** 🔧 Configuration
 
@@ -45,20 +44,20 @@ The Search API is built using:
 
 ```bash
 ***REMOVED*** Service Configuration
-SEARCH_API_PORT=8004
+PORT=8004                         ***REMOVED*** Default service port
+HOST=0.0.0.0                      ***REMOVED*** Bind host
 ENVIRONMENT=development
-DEBUG=true
 LOG_LEVEL=INFO
 
 ***REMOVED*** External Services
 BACKEND_API_URL=http://localhost:8000
 BACKEND_API_TIMEOUT=30
-ML_API_URL=http://localhost:8005  ***REMOVED*** Optional
+ML_API_URL=http://localhost:8005   ***REMOVED*** Optional
 ML_API_TIMEOUT=60
 
 ***REMOVED*** Redis Configuration
 REDIS_URL=redis://localhost:6379/2
-REDIS_POOL_SIZE=20
+REDIS_MAX_CONNECTIONS=20
 
 ***REMOVED*** Search Settings
 MAX_SUGGESTIONS=50
@@ -96,7 +95,7 @@ cd apps/search-api
 hatch shell
 hatch run install-libs
 
-***REMOVED*** Run development server
+***REMOVED*** Run development server (auto-reload on port 8005)
 hatch run dev
 ```
 
@@ -104,33 +103,27 @@ hatch run dev
 
 ```bash
 ***REMOVED*** Development server
-hatch run dev                    ***REMOVED*** Start with auto-reload on port 8004
+hatch run dev                     ***REMOVED*** Auto-reload on port 8005 (dev)
 
-***REMOVED*** CLI access
-hatch run cli                    ***REMOVED*** Access search-api CLI
+***REMOVED*** CLI access (Typer app)
+hatch run cli -- --help           ***REMOVED*** Show CLI help
+hatch run cli -- redis info       ***REMOVED*** Redis info summary
+hatch run cli -- redis test-suggestions "star" -l 5
+hatch run cli -- redis populate-suggestions --limit 5000 --verbose
 
-***REMOVED*** Health checks
-hatch run health-check           ***REMOVED*** Comprehensive health check
-hatch run health-redis           ***REMOVED*** Redis health check
-hatch run health-backend         ***REMOVED*** Backend API health check
-
-***REMOVED*** Cache management
-hatch run cache-info             ***REMOVED*** Redis cache information
-hatch run cache-keys             ***REMOVED*** List cache keys
-hatch run cache-clear            ***REMOVED*** Clear cache (with confirmation)
-
-***REMOVED*** Search operations
-hatch run index-suggestions      ***REMOVED*** Index search suggestions
-hatch run search-test           ***REMOVED*** Test search functionality
+***REMOVED*** Health checks (via hatch scripts)
+hatch run health-check            ***REMOVED*** Comprehensive health check
+hatch run health-redis            ***REMOVED*** Redis health check
+hatch run health-backend          ***REMOVED*** Backend API health check
 
 ***REMOVED*** Development tools
-hatch run lint                   ***REMOVED*** Code linting
-hatch run format                 ***REMOVED*** Code formatting
-hatch run test                   ***REMOVED*** Run tests
-hatch run test-cov              ***REMOVED*** Run tests with coverage
+hatch run lint                    ***REMOVED*** Code linting
+hatch run format                  ***REMOVED*** Code formatting
+hatch run test                    ***REMOVED*** Run tests
+hatch run test-cov                ***REMOVED*** Run tests with coverage
 
 ***REMOVED*** Docker testing
-./scripts/test-docker-build.sh   ***REMOVED*** Test Docker build and basic functionality
+./scripts/test-docker-build.sh    ***REMOVED*** Test Docker build and basic functionality
 ```
 
 ***REMOVED******REMOVED*** 🧪 Testing

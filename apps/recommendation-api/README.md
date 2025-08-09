@@ -11,22 +11,27 @@ This API provides endpoints for various types of movie recommendations:
 - Personalized recommendations based on user preferences
 - Similar movie recommendations based on content similarity
 
+Base URL: `/reco/v1`
+
 ***REMOVED******REMOVED*** Architecture
 
 The application follows a clean architecture approach with these main components:
 
-```
+```text
 recommendation_api/
 ├── models/           ***REMOVED*** Data models for API requests/responses
 ├── routes/           ***REMOVED*** API endpoints and request handling
-├── services/         ***REMOVED*** Business logic and service layer
+│   └── v1/           ***REMOVED*** Versioned recommendation endpoints
+├── services/         ***REMOVED*** Business logic and integrations
+│   └── cache_service ***REMOVED*** Cache helpers and background warming
+│   └── clients/      ***REMOVED*** Backend/Movies HTTP clients
 ├── repositories/     ***REMOVED*** Data access layer
-│   └── vector/       ***REMOVED*** Vector database access
+│   └── vector/       ***REMOVED*** Qdrant vector DB access
 │   └── redis/        ***REMOVED*** Redis cache access
-├── db/               ***REMOVED*** Database connections and models
-├── ml/               ***REMOVED*** Machine learning components
-├── config/           ***REMOVED*** Application configuration
-└── cli/              ***REMOVED*** Command-line interface
+├── db/               ***REMOVED*** Database utilities and operations
+├── core/             ***REMOVED*** App factory, middleware, metrics (fast-core)
+├── config/           ***REMOVED*** Application configuration (via shared config lib)
+└── cli/              ***REMOVED*** Typer-based command-line interface
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Key Components
@@ -69,6 +74,7 @@ The project now uses [Hatch](https://hatch.pypa.io/) for project management, whi
    ```
 
 3. Run the API in development mode:
+
    ```bash
    ***REMOVED*** Start the API with hot reloading
    hatch run dev
@@ -87,16 +93,16 @@ hatch run dev
 hatch run cli -- embeddings status
 
 ***REMOVED*** Run tests
-hatch run dev:test
+hatch run test
 
 ***REMOVED*** Run tests with coverage
-hatch run dev:test-cov
+hatch run test-cov
 
 ***REMOVED*** Run linters and formatters
-hatch run dev:lint
+hatch run lint
 
 ***REMOVED*** Format code
-hatch run dev:format
+hatch run format
 ```
 
 ***REMOVED******REMOVED*** Docker
@@ -123,16 +129,25 @@ docker run -p 8002:8002 recommendation-api
 
 ***REMOVED******REMOVED******REMOVED*** Environment Variables
 
-- `ENVIRONMENT`: Set to `production` by default
-- `ML_API_URL`: URL of the ML API service
-- `REDIS_URL`: URL for Redis cache (default: redis://localhost:6379/0)
-- `PYTHONPATH`: Configured to include necessary modules
+- `ENVIRONMENT`: Environment name (`development`, `staging`, `production`)
+- `HOST`: Server host (default: `0.0.0.0`)
+- `PORT`: Server port (default: `8002`)
+- `LOG_LEVEL`: Logging level (default: `INFO`; `DEBUG` in development)
+- `BACKEND_API_URL`: Backend API base URL (default: `http://localhost:8000`)
+- `ML_API_URL`: ML API base URL (default: `http://localhost:8004`)
+- `QDRANT_URL`: Qdrant vector DB URL
+- `REDIS_URL`: Redis URL for caching
+- `INTERNAL_API_KEY`: Internal key for backend communication
+- Uvicorn tuning (used in production mode via `__main__.py`):
+  - `WORKERS` (default `1`), `TIMEOUT` (keep-alive, default `120`),
+    `LIMIT_MAX_REQUESTS` (default `1000`), `BACKLOG` (default `1024`),
+    `FORWARDED_ALLOW_IPS` (default `*`)
 
 ***REMOVED******REMOVED******REMOVED*** Microservices Architecture
 
 The recommendation system now follows a microservices architecture:
 
-```
+```text
 ┌───────────────────┐         ┌───────────────────┐         ┌───────────────────┐
 │                   │         │                   │         │                   │
 │  Recommendation   │ ◄─────► │   Vector Service  │ ◄─────► │      Qdrant       │
@@ -167,11 +182,14 @@ This architecture provides:
 
 1. Clone the repository
 2. Install using Hatch:
+
    ```bash
    pip install hatch
    hatch env create
    ```
+
 3. Configure environment:
+
    ```bash
    cp .env.example .env
    ***REMOVED*** Edit .env with your configuration
@@ -213,17 +231,18 @@ rec-api config env
 
 ***REMOVED*** Health Checks
 rec-api health check
-rec-api health ping SERVICE  ***REMOVED*** SERVICE can be: api, db, qdrant, ml-api
+rec-api health ping SERVICE  ***REMOVED*** SERVICE can be: api, db, qdrant
 
 ***REMOVED*** Embeddings Management
-rec-api embeddings generate [--batch-size SIZE] [--force] [--limit LIMIT] [--verbose]
+rec-api embeddings generate [--batch-size SIZE] [--force] [--limit LIMIT] [--movie-id ID] [--verbose]
 rec-api embeddings status [--verbose]
 rec-api embeddings cleanup [--dry-run/--execute] [--verbose]
 rec-api embeddings info [--verbose]
+rec-api embeddings repair_embeddings [--batch-size SIZE] [--movie-id ID] [--dry-run] [--verbose]
 
 ***REMOVED*** ML API Commands
 rec-api ml test-connection
-rec-api ml info
+rec-api ml generate-embedding "Title" "Overview..." --genres "Drama,Thriller" --id 123
 
 ***REMOVED*** Version Information
 rec-api version
@@ -236,58 +255,59 @@ rec-api cache precompute [--limit N] [--min-score SCORE] [--batch-size SIZE] [--
 
 ***REMOVED******REMOVED*** Configuration
 
-The service is configured through environment variables:
-
-- `HOST`: Server host (default: 0.0.0.0)
-- `PORT`: Server port (default: 8002)
-- `DATABASE_URL`: SQLAlchemy database URL
-- `QDRANT_URL`: Qdrant vector database URL
-- `ML_API_URL`: URL for the ML API service
-- `LOG_LEVEL`: Logging level (default: INFO)
+The service is configured via environment variables and the shared `config` library. See Environment Variables above for the most important keys.
 
 ***REMOVED******REMOVED*** Development
 
 ***REMOVED******REMOVED******REMOVED*** Running Tests
 
 ```bash
-hatch run dev:test
+hatch run test
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Code Style
 
 ```bash
 ***REMOVED*** Run all linters
-hatch run dev:lint
+hatch run lint
 
 ***REMOVED*** Format code
-hatch run dev:format
+hatch run format
 ```
 
 ***REMOVED******REMOVED*** API Examples
 
+Base URL: `http://localhost:8002/reco/v1`
+
 ***REMOVED******REMOVED******REMOVED*** Get trending recommendations
 
 ```bash
-curl "http://localhost:8002/api/v1/recommendations/trending?limit=10&days=7"
+curl "http://localhost:8002/reco/v1/trending?limit=10&days=7"
+```
+
+***REMOVED******REMOVED******REMOVED*** Get popular recommendations
+
+```bash
+curl "http://localhost:8002/reco/v1/popular?limit=10&min_rating=7.0&min_vote_count=1000"
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Get personalized recommendations
 
 ```bash
-curl "http://localhost:8002/api/v1/recommendations/user/123?limit=10"
+curl "http://localhost:8002/reco/v1/users/123/recommendations?limit=10"
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Get similar movies
 
 ```bash
-curl "http://localhost:8002/api/v1/recommendations/similar/456?limit=10"
+curl "http://localhost:8002/reco/v1/movies/456/similar?limit=10"
 ```
 
 ***REMOVED******REMOVED*** System Integration
 
 The Recommendation API integrates with several backend services:
 
-```
+```text
 ┌───────────────────┐         ┌───────────────────┐         ┌───────────────────┐
 │                   │         │                   │         │                   │
 │    Backend API    │ ◄─────► │  Recommendation   │ ◄─────► │      Qdrant       │
@@ -302,7 +322,3 @@ The Recommendation API integrates with several backend services:
                               │                   │
                               └───────────────────┘
 ```
-
-***REMOVED*** TEST
-
----
