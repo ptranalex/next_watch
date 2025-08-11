@@ -114,6 +114,10 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             suggestion_key_prefix=search_config.redis_suggestion_key_prefix,
             entity_key_prefix=search_config.redis_entity_key_prefix,
             search_result_prefix=search_config.redis_search_result_prefix,
+            suggestion_cache_ttl=search_config.suggestion_cache_ttl,
+            substring_min_length=search_config.suggestion_substring_min_len,
+            substring_time_budget_ms=search_config.suggestion_substring_budget_ms,
+            substring_scan_page_limit=search_config.suggestion_substring_scan_pages,
         )
         await suggestion_engine.initialize()
 

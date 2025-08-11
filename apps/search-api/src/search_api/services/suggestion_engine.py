@@ -45,6 +45,11 @@ class SuggestionEngine:
         entity_key_prefix: str = "entity:",
         search_result_prefix: str = "search_results:",
         entity_types: Optional[List[str]] = None,
+        ***REMOVED*** Performance/caching knobs
+        suggestion_cache_ttl: int = 900,
+        substring_min_length: int = 3,
+        substring_time_budget_ms: int = 80,
+        substring_scan_page_limit: int = 5,
     ):
         """
         Initialize the suggestion engine with Redis connection parameters.
@@ -64,6 +69,11 @@ class SuggestionEngine:
         self._entity_key_prefix = entity_key_prefix
         self._search_result_prefix = search_result_prefix
         self._entity_types = entity_types or ["movie", "actor", "director"]
+        ***REMOVED*** Cache and performance settings
+        self._suggestion_cache_ttl = max(0, suggestion_cache_ttl)
+        self._substring_min_length = max(1, substring_min_length)
+        self._substring_time_budget_ms = max(10, substring_time_budget_ms)
+        self._substring_scan_page_limit = max(1, substring_scan_page_limit)
 
     @critical_service_handler("redis", logger)
     async def initialize(self) -> None:
@@ -148,27 +158,23 @@ class SuggestionEngine:
         Returns:
             List of matching suggestion strings
         """
-        ***REMOVED*** Method 1: Use sorted set with lexicographical range
+        ***REMOVED*** Method 1: Attempt lexicographical range on zset (primary index)
         try:
-            ***REMOVED*** Get suggestions using lexicographical range query (Redis 6.2+)
-            ***REMOVED*** Implementation depends on Redis version:
             try:
-                ***REMOVED*** Redis 6.2+ method - Using simplified approach for type safety
-                suggestions = await redis_client.zrange(
+                zlex_suggestions = await redis_client.zrange(
                     "suggestions",
-                    0,  ***REMOVED*** Start index (simplified)
-                    -1,  ***REMOVED*** End index (simplified)
+                    f"[{query_prefix}",
+                    f"[{query_prefix}\xff",
+                    bylex=True,
+                    offset=0,
+                    num=limit,
                 )
-                ***REMOVED*** Filter the results manually since we can't use the params directly
-                filtered_suggestions = [
-                    s for s in suggestions if isinstance(s, str) and s.startswith(query_prefix)
-                ]
-                if filtered_suggestions:
-                    return filtered_suggestions[:limit]
+                if zlex_suggestions:
+                    return list(zlex_suggestions[:limit])
             except Exception:
-                ***REMOVED*** Older Redis versions fallback
-                logger.warning("Falling back to older Redis zrangebylex method")
-                suggestions = await redis_client.execute_command(
+                ***REMOVED*** Fallback to explicit command for older servers/clients
+                logger.warning("Falling back to older Redis ZRANGEBYLEX command")
+                zlex_suggestions = await redis_client.execute_command(
                     "ZRANGEBYLEX",
                     "suggestions",
                     f"[{query_prefix}",
@@ -177,82 +183,42 @@ class SuggestionEngine:
                     "0",
                     str(limit),
                 )
-                ***REMOVED*** Convert bytes to strings if needed
-                if suggestions and isinstance(suggestions[0], bytes):
-                    suggestions = [s.decode("utf-8") for s in suggestions]
-                if suggestions:
-                    return cast(List[str], suggestions[:limit])
+                if zlex_suggestions and isinstance(zlex_suggestions[0], bytes):
+                    zlex_suggestions = [s.decode("utf-8") for s in zlex_suggestions]
+                if zlex_suggestions:
+                    return list(zlex_suggestions[:limit])
         except Exception as e:
-            logger.warning(f"Error using sorted set method: {str(e)}")
+            logger.warning(f"Error using lexicographical range for prefix matches: {str(e)}")
 
-        ***REMOVED*** Method 2: Use keys with pattern matching as fallback
-        ***REMOVED*** This is less efficient but more compatible
-        pattern = f"{self._suggestion_key_prefix}{query_prefix}*"
-
-        ***REMOVED*** Try KEYS command for small datasets
+        ***REMOVED*** Method 2: Use SCAN on suggestion keys with a small time budget (fallback)
         try:
-            keys = await redis_client.keys(pattern)
-            ***REMOVED*** Extract suggestions from keys (format: suggestions:<suggestion>)
-            suggestions = []
-            for key in keys:
-                if ":" in key:
-                    parts = key.split(":", 1)
-                    if len(parts) > 1:
-                        suggestions.append(parts[1])
-                        if len(suggestions) >= limit:
-                            break
-            return cast(List[str], suggestions)
-        except Exception as e:
-            logger.warning(f"Error using KEYS: {str(e)}")
-
-        ***REMOVED*** Method 3: Use SCAN as final fallback (most compatible but slowest)
-        try:
+            deadline = time.monotonic() + (self._substring_time_budget_ms / 1000.0)
+            pattern = f"{self._suggestion_key_prefix}{query_prefix}*"
             cursor = 0
-            suggestions = []
+            scan_suggestions: List[str] = []
+            pages_scanned = 0
 
-            scan_complete = False
-            while len(suggestions) < limit and not scan_complete:
-                cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
-                ***REMOVED*** Extract suggestions from keys
+            while len(scan_suggestions) < limit and pages_scanned < self._substring_scan_page_limit:
+                if time.monotonic() > deadline:
+                    break
+                cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=200)
+                pages_scanned += 1
                 for key in keys:
-                    if ":" in key:
-                        parts = key.split(":", 1)
+                    key_str = key if isinstance(key, str) else key.decode("utf-8")
+                    if ":" in key_str:
+                        parts = key_str.split(":", 1)
                         if len(parts) > 1:
-                            suggestions.append(parts[1])
-                            if len(suggestions) >= limit:
-                                break
-
-                ***REMOVED*** Check if we've scanned all keys
-                if cursor == 0:
-                    scan_complete = True
-
-            ***REMOVED*** If we still don't have any matches, try a more flexible approach
-            if not suggestions and len(query_prefix) > 2:
-                ***REMOVED*** Try with * wildcard for more flexible matching
-                pattern = f"{self._suggestion_key_prefix}*{query_prefix}*"
-                cursor = 0
-
-                while len(suggestions) < limit:
-                    cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
-                    ***REMOVED*** Extract suggestions from keys
-                    for key in keys:
-                        ***REMOVED*** Process key properly based on its type
-                        key_str = key if isinstance(key, str) else key.decode("utf-8")
-
-                        if ":" in key_str:
-                            parts = key_str.split(":", 1)
-                            if len(parts) > 1 and parts[1] not in suggestions:
-                                suggestions.append(parts[1])
-                                if len(suggestions) >= limit:
+                            value = parts[1]
+                            if value not in scan_suggestions:
+                                scan_suggestions.append(value)
+                                if len(scan_suggestions) >= limit:
                                     break
+                if cursor == 0:
+                    break
 
-                    ***REMOVED*** Break if we've scanned all keys
-                    if cursor == 0:
-                        break
-
-            return cast(List[str], suggestions[:limit])
+            return list(scan_suggestions[:limit])
         except Exception as e:
-            logger.error(f"All Redis suggestion methods failed: {str(e)}")
+            logger.error(f"Prefix SCAN fallback failed: {str(e)}")
             return []
 
     async def _get_substring_matches(
@@ -277,41 +243,57 @@ class SuggestionEngine:
 
         matches: List[str] = []
         start_time = time.time()
+        deadline = time.monotonic() + (self._substring_time_budget_ms / 1000.0)
 
         try:
-            ***REMOVED*** Search through entity keys to find titles/names containing the query substring
-            ***REMOVED*** Look for movies, actors, and directors containing the substring
-            entity_patterns = [
+            ***REMOVED*** If query is too short for substring matching, return early
+            if len(query_prefix) < self._substring_min_length:
+                return []
+
+            async def _scan_entity(pattern: str) -> List[str]:
+                results: List[str] = []
+                cursor_local = 0
+                pages_scanned_local = 0
+                while (
+                    len(results) < limit and pages_scanned_local < self._substring_scan_page_limit
+                ):
+                    if time.monotonic() > deadline:
+                        break
+                    cursor_local, keys_local = await redis_client.scan(
+                        cursor=cursor_local, match=pattern, count=200
+                    )
+                    pages_scanned_local += 1
+                    for key_local in keys_local:
+                        key_str_local = (
+                            key_local if isinstance(key_local, str) else key_local.decode("utf-8")
+                        )
+                        if key_str_local.startswith(self._entity_key_prefix):
+                            parts_local = key_str_local.split(":", 2)
+                            if len(parts_local) >= 3:
+                                entity_name_local = parts_local[2]
+                                if entity_name_local and entity_name_local not in results:
+                                    results.append(entity_name_local)
+                                    if len(results) >= limit:
+                                        break
+                    if cursor_local == 0:
+                        break
+                return results
+
+            patterns = [
                 f"{self._entity_key_prefix}{e_type}:*{query_prefix}*"
                 for e_type in self._entity_types
             ]
-
-            for pattern in entity_patterns:
-                ***REMOVED*** Use SCAN for better performance and scalability
-                cursor = 0
-                while len(matches) < limit:
-                    cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
-                    for key in keys:
-                        ***REMOVED*** Process key properly based on its type
-                        key_str = key if isinstance(key, str) else key.decode("utf-8")
-
-                        ***REMOVED*** Extract the entity name from the key (everything after "entity:type:")
-                        if key_str.startswith(self._entity_key_prefix):
-                            ***REMOVED*** Split: entity:movie:napoleon -> ["entity", "movie", "napoleon"]
-                            parts = key_str.split(":", 2)
-                            if len(parts) >= 3:
-                                entity_name = parts[2]  ***REMOVED*** "napoleon"
-                                ***REMOVED*** Only add non-empty entity names that aren't duplicates
-                                if entity_name and entity_name not in matches:
-                                    matches.append(entity_name)
-
-                                    if len(matches) >= limit:
-                                        break
-
-                    ***REMOVED*** Break if we've scanned all keys
-                    if cursor == 0:
-                        break
-
+            ***REMOVED*** Run scans concurrently per entity type
+            results_per_type = await asyncio.gather(*[_scan_entity(p) for p in patterns])
+            ***REMOVED*** Merge results preserving order and uniqueness
+            seen: set[str] = set()
+            for result_list in results_per_type:
+                for name in result_list:
+                    if name not in seen:
+                        seen.add(name)
+                        matches.append(name)
+                        if len(matches) >= limit:
+                            break
                 if len(matches) >= limit:
                     break
 
@@ -357,6 +339,21 @@ class SuggestionEngine:
         query_prefix = query.lower().strip()
 
         async with redis.asyncio.Redis(connection_pool=self._pool) as redis_client:
+            ***REMOVED*** Check cache first
+            cache_key = f"cache:suggestions:{query_prefix}:{limit}"
+            try:
+                cached = await redis_client.get(cache_key)
+                if cached:
+                    try:
+                        cached_list = json.loads(cached)
+                        if isinstance(cached_list, list):
+                            return cached_list[:limit]
+                    except json.JSONDecodeError:
+                        pass
+            except Exception:
+                ***REMOVED*** Cache read failures should not break suggestions
+                pass
+
             ***REMOVED*** First try with the query as is
             suggestions = await self.get_suggestions(query_prefix, limit)
 
@@ -401,6 +398,7 @@ class SuggestionEngine:
 
             ***REMOVED*** Convert suggestions to detailed entity objects
             detailed_suggestions = []
+            suggestion_texts_seen: set[str] = set(suggestions)
             seen_ids: set[int] = set()  ***REMOVED*** Track seen entity IDs to prevent duplicates
 
             for suggestion in suggestions:
@@ -536,7 +534,110 @@ class SuggestionEngine:
 
             detailed_suggestions.sort(key=sort_key, reverse=True)
 
-            return detailed_suggestions[:limit]
+            ***REMOVED*** If hydration produced fewer than requested, try to top-up using substring matches
+            if (
+                len(detailed_suggestions) < limit
+                and len(query_prefix) >= self._substring_min_length
+            ):
+                needed = limit - len(detailed_suggestions)
+                try:
+                    extra_candidates = await self._get_substring_matches(
+                        redis_client, query_prefix, min(needed + 3, max(needed, 5))
+                    )
+                except Exception:
+                    extra_candidates = []
+
+                for sugg in extra_candidates:
+                    if sugg in suggestion_texts_seen:
+                        continue
+                    suggestion_texts_seen.add(sugg)
+
+                    ***REMOVED*** Hydrate the extra suggestion into detailed entity object
+                    suggestion_key = f"{self._suggestion_key_prefix}{sugg}"
+                    movie_id = await redis_client.get(suggestion_key)
+
+                    entity_data = None
+                    entity_type = None
+
+                    if movie_id:
+                        try:
+                            movie_id_int = int(
+                                movie_id.decode() if isinstance(movie_id, bytes) else movie_id
+                            )
+                            entity_by_id_key = f"entity:id:{movie_id_int}"
+                            id_data_json = await redis_client.get(entity_by_id_key)
+                            if id_data_json:
+                                try:
+                                    entity_data = json.loads(id_data_json)
+                                    entity_type = entity_data.get("type", "movie")
+                                except json.JSONDecodeError:
+                                    pass
+                        except (ValueError, TypeError):
+                            pass
+
+                    if entity_data is None:
+                        for e_type in ["movie", "actor", "director"]:
+                            entity_key = f"{self._entity_key_prefix}{e_type}:{sugg}"
+                            data_json = await redis_client.get(entity_key)
+                            if data_json:
+                                try:
+                                    entity_data = json.loads(data_json)
+                                    entity_type = e_type
+                                    break
+                                except json.JSONDecodeError:
+                                    pass
+
+                    if entity_data is None:
+                        continue
+
+                    suggestion_obj = {
+                        "text": entity_data.get("title", entity_data.get("name", sugg)),
+                        "type": entity_type or entity_data.get("type", "movie"),
+                        "id": entity_data.get("id", 0),
+                        "image_path": entity_data.get("poster_url")
+                        or entity_data.get("image_path")
+                        or entity_data.get("profile_path"),
+                        "year": entity_data.get("release_year")
+                        or entity_data.get("year")
+                        or entity_data.get("birth_year"),
+                        "popularity": entity_data.get("popularity", 0.0),
+                        "additional_info": {
+                            key: value
+                            for key, value in entity_data.items()
+                            if key not in ["text", "type", "id", "image_path", "year", "popularity"]
+                        },
+                    }
+
+                    if suggestion_obj["image_path"] and not str(
+                        suggestion_obj["image_path"]
+                    ).startswith("http"):
+                        suggestion_obj["image_path"] = (
+                            f"{TMDB_IMAGE_BASE_URL}{suggestion_obj['image_path']}"
+                        )
+
+                    entity_id = suggestion_obj.get("id")
+                    if entity_id is not None and entity_id in seen_ids:
+                        continue
+                    if entity_id is not None:
+                        seen_ids.add(entity_id)
+
+                    detailed_suggestions.append(suggestion_obj)
+                    if len(detailed_suggestions) >= limit:
+                        break
+
+            final_results = detailed_suggestions[:limit]
+
+            ***REMOVED*** Write-through cache
+            if self._suggestion_cache_ttl > 0:
+                try:
+                    await redis_client.set(
+                        cache_key, json.dumps(final_results), ex=self._suggestion_cache_ttl
+                    )
+                except Exception:
+                    ***REMOVED*** Do not fail request if cache write fails
+                    pass
+
+            return final_results
 
     @optional_service_handler(service_name="redis", logger=logger, fallback_value=[])
     async def get_ranked_suggestions(

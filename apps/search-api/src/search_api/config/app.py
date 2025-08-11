@@ -64,6 +64,17 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         default="search_results:", description="Redis key prefix for search results"
     )
 
+    ***REMOVED*** Substring scan tuning
+    suggestion_substring_min_len: int = Field(
+        default=3, description="Minimum length to trigger substring scan"
+    )
+    suggestion_substring_budget_ms: int = Field(
+        default=150, description="Time budget in ms for substring scan"
+    )
+    suggestion_substring_scan_pages: int = Field(
+        default=10, description="Max SCAN pages per entity type during substring scan"
+    )
+
     ***REMOVED*** Feature flags
     enable_semantic_search: bool = Field(default=False, description="Enable semantic search")
     enable_search_analytics: bool = Field(default=True, description="Enable search analytics")

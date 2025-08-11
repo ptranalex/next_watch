@@ -243,27 +243,27 @@ async def _populate_suggestions_async(
                 ***REMOVED*** Delete the sorted set
                 await redis_client.delete("suggestions")
 
-                ***REMOVED*** Delete all suggestion keys
-                cursor = 0
+                ***REMOVED*** Delete all suggestion and entity keys with independent cursors
+                cursor_sugg = 0
+                cursor_entity = 0
                 total_deleted = 0
 
                 while True:
-                    cursor, keys = await redis_client.scan(
-                        cursor=cursor, match="suggestions:*", count=1000
+                    cursor_sugg, keys = await redis_client.scan(
+                        cursor=cursor_sugg, match="suggestions:*", count=1000
                     )
                     if keys:
                         total_deleted += len(keys)
                         await redis_client.delete(*keys)
 
-                    ***REMOVED*** Also delete entity keys
-                    cursor2, entity_keys = await redis_client.scan(
-                        cursor=cursor, match="entity:*", count=1000
+                    cursor_entity, entity_keys = await redis_client.scan(
+                        cursor=cursor_entity, match="entity:*", count=1000
                     )
                     if entity_keys:
                         total_deleted += len(entity_keys)
                         await redis_client.delete(*entity_keys)
 
-                    if cursor == 0:
+                    if cursor_sugg == 0 and cursor_entity == 0:
                         break
 
                 if verbose:
@@ -306,8 +306,8 @@ async def _populate_suggestions_async(
                         title = movie["title"].lower()
                         movie_id = movie["id"]
 
-                        ***REMOVED*** Add to sorted set for prefix matching
-                        pipeline.zadd("suggestions", {title: i})
+                        ***REMOVED*** Add to sorted set for prefix matching (constant score for BYLEX)
+                        pipeline.zadd("suggestions", {title: 0})
 
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{title}", movie_id)
@@ -343,7 +343,7 @@ async def _populate_suggestions_async(
                             ***REMOVED*** Get the main title before parentheses
                             main_title = title.split("(")[0].strip()
                             if main_title:
-                                pipeline.zadd("suggestions", {main_title: i})
+                                pipeline.zadd("suggestions", {main_title: 0})
                                 pipeline.set(f"suggestions:{main_title}", movie_id)
                                 pipeline.set(f"entity:movie:{main_title}", json.dumps(movie_data))
 
@@ -351,7 +351,7 @@ async def _populate_suggestions_async(
                             for paren_part in re.findall(r"\((.*?)\)", title):
                                 if paren_part and len(paren_part) > 3:
                                     paren_title = paren_part.strip().lower()
-                                    pipeline.zadd("suggestions", {paren_title: i})
+                                    pipeline.zadd("suggestions", {paren_title: 0})
                                     pipeline.set(f"suggestions:{paren_title}", movie_id)
 
                         ***REMOVED*** Process words for improved partial matching
@@ -359,16 +359,16 @@ async def _populate_suggestions_async(
                             words = re.split(r"[\s\(\)\[\]\{\}\:\;\,\.\-\_\+\=]+", title)
 
                             for word in [w for w in words if w and len(w) >= min_word_length]:
-                                ***REMOVED*** Add the full word
-                                pipeline.zadd("suggestions", {word: i})
+                                ***REMOVED*** Add the full word (constant score for BYLEX)
+                                pipeline.zadd("suggestions", {word: 0})
                                 pipeline.set(f"suggestions:{word}", movie_id)
 
                                 ***REMOVED*** For important words, also add specific prefixes
                                 if len(word) >= 5:
                                     for prefix_len in range(min_word_length, min(len(word), 6)):
                                         prefix = word[:prefix_len]
-                                        ***REMOVED*** Store prefix with score offset to prioritize full words
-                                        pipeline.zadd("suggestions", {prefix: i + 100000})
+                                        ***REMOVED*** Store prefix with constant score to support BYLEX
+                                        pipeline.zadd("suggestions", {prefix: 0})
                                         if not await redis_client.exists(f"suggestions:{prefix}"):
                                             pipeline.set(f"suggestions:{prefix}", movie_id)
 
@@ -398,8 +398,8 @@ async def _populate_suggestions_async(
                         name = actor["name"].lower()
                         actor_id = actor["id"]
 
-                        ***REMOVED*** Add to sorted set
-                        pipeline.zadd("suggestions", {name: i + 10000})  ***REMOVED*** Offset for sorting
+                        ***REMOVED*** Add to sorted set (constant score for BYLEX)
+                        pipeline.zadd("suggestions", {name: 0})
 
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", actor_id)
@@ -443,8 +443,8 @@ async def _populate_suggestions_async(
                         name = director["name"].lower()
                         director_id = director["id"]
 
-                        ***REMOVED*** Add to sorted set
-                        pipeline.zadd("suggestions", {name: i + 20000})  ***REMOVED*** Offset for sorting
+                        ***REMOVED*** Add to sorted set (constant score for BYLEX)
+                        pipeline.zadd("suggestions", {name: 0})
 
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", director_id)

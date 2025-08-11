@@ -39,6 +39,10 @@ class SearchService:
             suggestion_key_prefix=config.redis_suggestion_key_prefix,
             entity_key_prefix=config.redis_entity_key_prefix,
             search_result_prefix=config.redis_search_result_prefix,
+            suggestion_cache_ttl=config.suggestion_cache_ttl,
+            substring_min_length=config.suggestion_substring_min_len,
+            substring_time_budget_ms=config.suggestion_substring_budget_ms,
+            substring_scan_page_limit=config.suggestion_substring_scan_pages,
         )
 
     @optional_service_handler(
