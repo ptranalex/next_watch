@@ -49,6 +49,36 @@ Slow substring search: '<query>' took >100ms, found <n> matches
 - Increase minimum query length for substring fallback in production (e.g., 4) and only trigger if prefix results < 3
 - Cap SCAN iterations per request (e.g., ≤5 pages per entity type)
 
+***REMOVED******REMOVED******REMOVED*** Phase 1.5 — Runtime hydration optimization (low-risk, high impact)
+
+- Batch hydration using Redis pipelining/MGET to reduce round-trips:
+
+  - MGET all `suggestions:<text>` keys for the candidate list in a single call
+  - MGET all `entity:id:<id>` for resolved IDs in a single call
+  - For unresolved IDs, MGET `entity:{movie|actor|director}:<text>` keys in one batch
+  - Expected improvement: avoid N×GET per suggestion; typical latency drop 100–300ms → 20–80ms
+
+- Write compact type+id metadata during indexing for O(1) hydration:
+
+  - Add `suggestions_meta:<text>` value: `"movie:123"` (or tiny JSON)
+  - At runtime: one GET of meta for each text + one MGET of all `entity:id:<id>`
+  - Keep current `suggestions:<text>` for backward compatibility
+
+- Add in-process L1 cache for hot queries (small, bounded):
+
+  - LRU of ~256 entries with TTL 120s for hydrated results `(query, limit)`
+  - Bypass Redis entirely for hot keys; hot-path latency ~1–5ms
+
+- Tighten substring work to reduce tail:
+
+  - Increase `substring_min_length` (prod) to 4
+  - Cap `substring_time_budget_ms` to 60–80ms, `substring_scan_page_limit` ≤ 5
+  - Only run substring top-up if prefix results < 3
+
+- Redis client tuning:
+  - Reuse pooled client per request; set short socket/connect timeouts (e.g., 50–100ms)
+  - Prefer UNLINK for key deletions in CLI to avoid blocking (dev only)
+
 ***REMOVED******REMOVED******REMOVED*** Phase 2 — Better indexing to avoid SCAN at runtime
 
 - Build n-gram index during CLI population to support infix/substring efficiently:
@@ -81,6 +111,24 @@ Slow substring search: '<query>' took >100ms, found <n> matches
 - Store IDs or normalized names; cap by popularity to bound list sizes
 - Keep existing zset and `entity:*` for current prefix + hydration path
 
+***REMOVED******REMOVED******REMOVED*** Code changes (Phase 1.5)
+
+- SuggestionEngine hydration path:
+
+  - Replace per-suggestion GETs with batch `pipeline`/`MGET` (IDs and entities)
+  - Introduce optional L1 cache for hydrated `(query, limit)` results
+  - Use new `suggestions_meta:<text>` (type:id) when present; fall back to existing keys
+
+- CLI populate (`redis populate-suggestions`):
+
+  - While indexing, also set `suggestions_meta:<text>` to `type:id`
+  - Keep legacy keys to avoid migration risk
+
+- Config additions:
+  - `suggestion_substring_min_len`, `suggestion_substring_budget_ms`, `suggestion_substring_scan_pages`
+  - `suggestion_cache_ttl` (read-through cache TTL)
+  - `l1_cache_size`, `l1_cache_ttl` (optional)
+
 ***REMOVED******REMOVED*** Testing and rollout
 
 ***REMOVED******REMOVED******REMOVED*** TDD/Test plan
@@ -101,6 +149,7 @@ Slow substring search: '<query>' took >100ms, found <n> matches
 - Rate of "Slow substring search" warnings (should drop to near-zero)
 - Redis CPU/network usage; ops per request
 - Cache hit rate for `cache:suggestions:*`
+- Hydration round-trips per request (should be ≤ 2 for typical cases)
 
 ***REMOVED******REMOVED******REMOVED*** Rollout plan
 
@@ -126,3 +175,8 @@ Slow substring search: '<query>' took >100ms, found <n> matches
 - [ ] Observability: dashboard panels for latency, warnings, cache hit-rate
 - [ ] Evaluate Phase 2 n-gram index; size/latency trade-offs
 - [ ] Decide on RediSearch adoption and infra timeline (if needed)
+- [ ] Batch hydration via pipeline/MGET for ids and entities
+- [ ] Index-time `suggestions_meta:<text>` to speed hydration
+- [ ] Optional L1 cache for hydrated results
+- [ ] Tighten substring thresholds and budgets for prod
+- [ ] Add UNLINK-based fast clear path in CLI (dev only)

@@ -55,6 +55,7 @@ class RedisStore:
             movie_id = movie.get("id")
             pipeline.zadd("suggestions", {title: 0})
             pipeline.set(f"suggestions:{title}", str(movie_id))
+            pipeline.set(f"suggestions_meta:{title}", f"movie:{movie_id}")
 
             movie_data = {
                 "id": movie.get("id"),
@@ -82,24 +83,28 @@ class RedisStore:
                 if main_title:
                     pipeline.zadd("suggestions", {main_title: 0})
                     pipeline.set(f"suggestions:{main_title}", str(movie_id))
+                    pipeline.set(f"suggestions_meta:{main_title}", f"movie:{movie_id}")
                     pipeline.set(f"entity:movie:{main_title}", json.dumps(movie_data))
                 for paren_part in re.findall(r"\((.*?)\)", title):
                     if paren_part and len(paren_part) > 3:
                         paren_title = paren_part.strip().lower()
                         pipeline.zadd("suggestions", {paren_title: 0})
                         pipeline.set(f"suggestions:{paren_title}", str(movie_id))
+                        pipeline.set(f"suggestions_meta:{paren_title}", f"movie:{movie_id}")
 
             if include_words:
                 words = re.split(r"[\s\(\)\[\]\{\}\:\;\,\.\-\_\+\=]+", title)
                 for word in [w for w in words if w and len(w) >= min_word_length]:
                     pipeline.zadd("suggestions", {word: 0})
                     pipeline.set(f"suggestions:{word}", str(movie_id))
+                    pipeline.set(f"suggestions_meta:{word}", f"movie:{movie_id}")
                     if len(word) >= 5:
                         for prefix_len in range(min_word_length, min(len(word), 6)):
                             prefix = word[:prefix_len]
                             pipeline.zadd("suggestions", {prefix: 0})
                             ***REMOVED*** only set mapping once if not exists
                             pipeline.setnx(f"suggestions:{prefix}", str(movie_id))
+                            pipeline.setnx(f"suggestions_meta:{prefix}", f"movie:{movie_id}")
 
             count += 1
             if (i + 1) % batch_size == 0 or i == len(movies) - 1:
@@ -115,6 +120,7 @@ class RedisStore:
             actor_id = actor.get("id")
             pipeline.zadd("suggestions", {name: 0})
             pipeline.set(f"suggestions:{name}", str(actor_id))
+            pipeline.set(f"suggestions_meta:{name}", f"actor:{actor_id}")
             actor_data = {
                 "id": actor.get("id"),
                 "name": actor.get("name"),
@@ -140,5 +146,3 @@ class RedisStore:
             if cursor == 0:
                 break
         return {"zset": int(zset_count), "entities": entity_count}
-
-

@@ -396,86 +396,116 @@ class SuggestionEngine:
                         if len(suggestions) >= limit:
                             break
 
-            ***REMOVED*** Convert suggestions to detailed entity objects
+            ***REMOVED*** Convert suggestions to detailed entity objects using batch hydrations
             detailed_suggestions = []
             suggestion_texts_seen: set[str] = set(suggestions)
-            seen_ids: set[int] = set()  ***REMOVED*** Track seen entity IDs to prevent duplicates
+            seen_ids: set[int] = set()
 
-            for suggestion in suggestions:
-                ***REMOVED*** Look for a detailed entity record in Redis
-                ***REMOVED*** First try to get the movie ID from the suggestion key
-                suggestion_key = f"{self._suggestion_key_prefix}{suggestion}"
-                movie_id = await redis_client.get(suggestion_key)
+            ***REMOVED*** Step 1: fetch meta (type:id) in batch, fallback to id-only
+            meta_keys = [f"suggestions_meta:{s}" for s in suggestions]
+            id_keys = [f"{self._suggestion_key_prefix}{s}" for s in suggestions]
+            pipeline = redis_client.pipeline()
+            for k in meta_keys:
+                pipeline.get(k)
+            for k in id_keys:
+                pipeline.get(k)
+            meta_results, id_results = [], []
+            try:
+                res = await pipeline.execute()
+                meta_results = res[: len(meta_keys)]
+                id_results = res[len(meta_keys) :]
+            except Exception:
+                ***REMOVED*** If pipeline fails, fall back to sequential gets (rare)
+                meta_results = [await redis_client.get(k) for k in meta_keys]
+                id_results = [await redis_client.get(k) for k in id_keys]
 
-                entity_data = None
-                entity_type = None
-
-                if movie_id:
-                    ***REMOVED*** Try to find the entity by movie ID using a more efficient approach
+            ***REMOVED*** Resolve type and id per suggestion
+            types: list[str | None] = []
+            ids: list[int | None] = []
+            for meta_val, id_val in zip(meta_results, id_results):
+                t, vid = None, None
+                if meta_val and isinstance(meta_val, str) and ":" in meta_val:
                     try:
-                        movie_id_int = int(
-                            movie_id.decode() if isinstance(movie_id, bytes) else movie_id
-                        )
+                        t, id_str = meta_val.split(":", 1)
+                        vid = int(id_str)
+                    except Exception:
+                        t, vid = None, None
+                if vid is None and id_val:
+                    try:
+                        vid = int(id_val.decode() if isinstance(id_val, bytes) else id_val)
+                        if t is None:
+                            t = "movie"  ***REMOVED*** default
+                    except Exception:
+                        vid = None
+                types.append(t)
+                ids.append(vid)
 
-                        ***REMOVED*** Check if we have a direct entity lookup by ID (future enhancement)
-                        entity_by_id_key = f"entity:id:{movie_id_int}"
-                        id_data_json = await redis_client.get(entity_by_id_key)
-                        if id_data_json:
-                            try:
-                                entity_data = json.loads(id_data_json)
-                                entity_type = entity_data.get("type", "movie")
-                            except json.JSONDecodeError:
-                                logger.warning(f"Invalid JSON in Redis for key {entity_by_id_key}")
-                    except (ValueError, TypeError):
-                        movie_id_str = (
-                            movie_id.decode() if isinstance(movie_id, bytes) else str(movie_id)
-                        )
-                        logger.warning(
-                            f"Invalid movie ID in Redis for suggestion {suggestion}: {movie_id_str}"
-                        )
+            ***REMOVED*** Step 2: batch fetch entities by id
+            id_to_entity: dict[int, dict] = {}
+            to_fetch_ids = [vid for vid in ids if isinstance(vid, int)]
+            if to_fetch_ids:
+                pipeline = redis_client.pipeline()
+                for vid in to_fetch_ids:
+                    pipeline.get(f"entity:id:{vid}")
+                id_entities = await pipeline.execute()
+                for vid, raw in zip(to_fetch_ids, id_entities):
+                    if raw:
+                        try:
+                            id_to_entity[vid] = json.loads(raw)
+                        except Exception:
+                            continue
 
-                ***REMOVED*** If no entity data found by ID, try direct entity lookup
-                if entity_data is None:
-                    entity_types = ["movie", "actor", "director"]
-                    for e_type in entity_types:
-                        entity_key = f"{self._entity_key_prefix}{e_type}:{suggestion}"
-                        data_json = await redis_client.get(entity_key)
-                        if data_json:
-                            try:
-                                entity_data = json.loads(data_json)
-                                entity_type = e_type
-                                break
-                            except json.JSONDecodeError:
-                                logger.warning(f"Invalid JSON in Redis for key {entity_key}")
+            ***REMOVED*** Step 3: for unresolved, try entity by name in batch
+            unresolved_names = [
+                s
+                for s, vid in zip(suggestions, ids)
+                if not (isinstance(vid, int) and vid in id_to_entity)
+            ]
+            if unresolved_names:
+                pipeline = redis_client.pipeline()
+                name_keys = []
+                for s in unresolved_names:
+                    for e_type in ["movie", "actor", "director"]:
+                        k = f"{self._entity_key_prefix}{e_type}:{s}"
+                        name_keys.append((s, e_type, k))
+                        pipeline.get(k)
+                name_entities = await pipeline.execute()
+                name_cursor = 0
+                name_map: dict[str, dict] = {}
+                for (s, e_type, _), raw in zip(name_keys, name_entities):
+                    if s in name_map:
+                        continue
+                    if raw:
+                        try:
+                            data = json.loads(raw)
+                            data["type"] = e_type
+                            name_map[s] = data
+                        except Exception:
+                            pass
 
-                ***REMOVED*** If no entity data found, create basic suggestion
-                if entity_data is None:
-                    movie_id_str = (
-                        movie_id.decode()
-                        if isinstance(movie_id, bytes)
-                        else str(movie_id) if movie_id else "None"
-                    )
-                    logger.debug(
-                        f"No entity data found for suggestion '{suggestion}' (movie_id: {movie_id_str}), using defaults"
-                    )
+            ***REMOVED*** Build final hydrated objects
+            for s, t, vid in zip(suggestions, types, ids):
+                entity_data = None
+                entity_type = t
+                if isinstance(vid, int) and vid in id_to_entity:
+                    entity_data = id_to_entity[vid]
+                    entity_type = entity_type or entity_data.get("type", "movie")
+                elif s in locals().get("name_map", {}):
+                    entity_data = name_map[s]
+                    entity_type = entity_type or entity_data.get("type", "movie")
+                else:
+                    ***REMOVED*** fallback minimal
                     entity_data = {
-                        "text": suggestion,
-                        "type": "movie",  ***REMOVED*** Default to movie
-                        "id": (
-                            int(movie_id.decode() if isinstance(movie_id, bytes) else movie_id)
-                            if movie_id
-                            else hash(suggestion) % 100000
-                        ),
-                        ***REMOVED*** Add some basic fields to avoid null values
+                        "title": s,
+                        "type": entity_type or "movie",
+                        "id": vid or (hash(s) % 100000),
                         "image_path": None,
                         "year": None,
                         "popularity": 0.0,
                     }
-                    entity_type = "movie"
 
-                ***REMOVED*** Enhance entity data with additional fields
                 suggestion_obj = {
-                    "text": entity_data.get("title", entity_data.get("name", suggestion)),
+                    "text": entity_data.get("title", entity_data.get("name", s)),
                     "type": entity_type or entity_data.get("type", "movie"),
                     "id": entity_data.get("id", 0),
                     "image_path": entity_data.get("poster_url")
@@ -492,28 +522,19 @@ class SuggestionEngine:
                     },
                 }
 
-                ***REMOVED*** Add image URL processing
-                if suggestion_obj["image_path"] and not suggestion_obj["image_path"].startswith(
-                    "http"
-                ):
+                if suggestion_obj["image_path"] and not str(
+                    suggestion_obj["image_path"]
+                ).startswith("http"):
                     suggestion_obj["image_path"] = (
                         f"{TMDB_IMAGE_BASE_URL}{suggestion_obj['image_path']}"
                     )
 
-                ***REMOVED*** Check for duplicate IDs before adding
                 entity_id = suggestion_obj.get("id")
                 if entity_id is not None and entity_id in seen_ids:
-                    logger.debug(
-                        f"Skipping duplicate entity ID {entity_id} for suggestion '{suggestion}'"
-                    )
                     continue
-
-                ***REMOVED*** Track this ID to prevent future duplicates
                 if entity_id is not None:
                     seen_ids.add(entity_id)
-
                 detailed_suggestions.append(suggestion_obj)
-
                 if len(detailed_suggestions) >= limit:
                     break
 
