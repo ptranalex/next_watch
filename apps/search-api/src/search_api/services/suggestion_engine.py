@@ -441,7 +441,7 @@ class SuggestionEngine:
                 ids.append(vid)
 
             ***REMOVED*** Step 2: batch fetch entities by id
-            id_to_entity: dict[int, dict] = {}
+            id_to_entity: dict[int, dict[str, Any]] = {}
             to_fetch_ids = [vid for vid in ids if isinstance(vid, int)]
             if to_fetch_ids:
                 pipeline = redis_client.pipeline()
@@ -471,7 +471,7 @@ class SuggestionEngine:
                         pipeline.get(k)
                 name_entities = await pipeline.execute()
                 name_cursor = 0
-                name_map: dict[str, dict] = {}
+                name_map: dict[str, dict[str, Any]] = {}
                 for (s, e_type, _), raw in zip(name_keys, name_entities):
                     if s in name_map:
                         continue
