@@ -8,7 +8,7 @@ import MovieGridSkeleton from "@/components/features/movies/grid/MovieGridSkelet
 // Column breakpoints type (matches MovieGrid)
 type ColumnBreakpoints =
   | {
-      [key in "base" | "sm" | "md" | "lg" | "xl"]?: number;
+      [key in "base" | "xs" | "sm" | "md" | "lg" | "xl"]?: number;
     }
   | number
   | number[];

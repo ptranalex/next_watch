@@ -103,10 +103,9 @@ function AppShell({ children, header, sidebar, footer }: AppShellProps) {
 
       {/* Main layout container */}
       <Box
-        px={{ base: 0, xl: 32 }}
+        px={{ base: 2, xs: 3, md: 4, xl: 32 }}
         maxW="1600px"
         mx="auto"
-        paddingX={5}
         bg={containerBgColor}
       >
         <Grid

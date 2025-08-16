@@ -98,7 +98,7 @@ const HomePage: React.FC = () => {
         error={error as Error | null}
         columns={{
           base: 2, // 2 columns on small phones (iPhone SE, iPhone 13 mini)
-          sm: 3, // 3 columns on larger phones (iPhone 14+, iPhone 14 Pro Max)
+          xs: 3, // 3 columns on larger phones (iPhone 14+, iPhone 14 Pro Max)
           md: isTablet ? 4 : 5, // 4 columns on tablet, 5 on small desktop
           lg: 6, // 6 columns on large screens
           xl: 8, // 8 columns on extra large screens

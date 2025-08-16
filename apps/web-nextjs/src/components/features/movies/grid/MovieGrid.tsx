@@ -26,7 +26,7 @@ const logger = createLogger("MovieGrid");
 // Column breakpoints type
 type ColumnBreakpoints =
   | {
-      [key in "base" | "sm" | "md" | "lg" | "xl"]?: number;
+      [key in "base" | "xs" | "sm" | "md" | "lg" | "xl"]?: number;
     }
   | number
   | number[];

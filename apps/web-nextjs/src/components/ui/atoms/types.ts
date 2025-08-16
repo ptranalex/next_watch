@@ -1,4 +1,4 @@
-import { BoxProps, ButtonProps, InputProps } from "@chakra-ui/react";
+import { ButtonProps } from "@chakra-ui/react";
 
 /**
  * Atomic Component Types
@@ -19,7 +19,7 @@ export type ExtendedComponentSize = "xs" | "sm" | "md" | "lg" | "xl" | "full";
 
 /** Responsive breakpoint system */
 export type ResponsiveBreakpoints = {
-  [key in "base" | "sm" | "md" | "lg" | "xl"]?: number;
+  [key in "base" | "xs" | "sm" | "md" | "lg" | "xl"]?: number;
 };
 
 // ============================================================================
