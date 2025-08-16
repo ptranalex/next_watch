@@ -12,7 +12,7 @@ const config: ThemeConfig = {
 // These follow a mobile-first approach
 const breakpoints = {
   base: "0em", // 0px (mobile)
-  sm: "30em", // 480px (mobile landscape)
+  sm: "26em", // 416px (larger mobile phones - includes iPhone 14 Pro Max at 430px)
   md: "48em", // 768px (tablet)
   lg: "62em", // 992px (desktop)
   xl: "80em", // 1280px (large desktop)
