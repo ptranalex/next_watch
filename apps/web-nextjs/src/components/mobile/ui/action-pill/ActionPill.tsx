@@ -145,6 +145,7 @@ const ActionPill: React.FC<ActionPillProps> = ({
     backgroundColor: bgColor,
     color: textColor,
     overflow: "hidden",
+    py: 2,
     ...containerStyle,
   };
 
