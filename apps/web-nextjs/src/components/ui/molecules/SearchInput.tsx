@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import {
   Box,
-  Link as ChakraLink,
   HStack,
   Icon,
   Input,
@@ -20,18 +19,17 @@ import {
   List,
   ListItem,
   Spinner,
-  Text,
   useBreakpointValue,
   FormControl,
   FormErrorMessage,
   IconButton,
   useColorModeValue,
 } from "@chakra-ui/react";
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useHotkeys } from "react-hotkeys-hook";
 import { HiMiniMagnifyingGlass, HiXMark } from "react-icons/hi2";
 import SuggestionItem from "@/components/ui/molecules/SuggestionItem";
+import SearchItem from "@/components/ui/molecules/SearchItem";
 import { useSearchSuggestions } from "@/services/hooks";
 import { TextSuggestion } from "@/services/api/search/types";
 import { useDebounce } from "@/services/hooks/ui/useDebounce";
@@ -439,35 +437,14 @@ const SearchInput: React.FC<SearchInputProps> = ({
                   _hover={{ bg: hoverBg }}
                   bg={focusedSuggestionIndex === -1 ? hoverBg : "transparent"}
                 >
-                  <ChakraLink
-                    as={Link}
+                  <SearchItem
+                    text={`Search for "${value}"`}
+                    icon={HiMiniMagnifyingGlass}
                     href={`/search?q=${encodeURIComponent(value)}`}
-                    textDecoration="none"
-                    _hover={{ textDecoration: "none" }}
                     onClick={handleDirectSearchClick}
                     role="option"
                     aria-selected={focusedSuggestionIndex === -1}
-                  >
-                    <HStack spacing={3} height="45px" px={2}>
-                      <Box
-                        w="30px"
-                        h="30px"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Icon
-                          as={SearchIcon}
-                          w="20px"
-                          h="20px"
-                          color="text.secondary"
-                        />
-                      </Box>
-                      <Text color="text.primary" fontSize="md">
-                        Search for &quot;{value}&quot;
-                      </Text>
-                    </HStack>
-                  </ChakraLink>
+                  />
                 </ListItem>
 
                 {/* Suggestion items */}
