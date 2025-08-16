@@ -79,7 +79,7 @@ const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
   threshold = 300,
   bottom = 6,
   right = 6,
-  size = "md",
+  size = "lg",
   iconType = "chakra",
   smoothScroll = true,
   showOnMobile = true,
@@ -197,7 +197,7 @@ const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
   return (
     <Box
       position="fixed"
-      bottom={{ base: 20, md: bottom }} // Offset on mobile to avoid ActionPill
+      bottom={{ base: 24, md: bottom }} // Increased offset on mobile to avoid ActionPill
       right={right}
       zIndex={zIndex}
       opacity={isVisible ? 1 : 0}
