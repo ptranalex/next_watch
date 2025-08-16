@@ -197,7 +197,7 @@ const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
   return (
     <Box
       position="fixed"
-      bottom={bottom}
+      bottom={{ base: 20, md: bottom }} // Offset on mobile to avoid ActionPill
       right={right}
       zIndex={zIndex}
       opacity={isVisible ? 1 : 0}
