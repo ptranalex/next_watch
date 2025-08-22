@@ -312,6 +312,9 @@ async def _populate_suggestions_async(
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{title}", movie_id)
 
+                        ***REMOVED*** Add metadata key for type resolution
+                        pipeline.set(f"suggestions_meta:{title}", f"movie:{movie_id}")
+
                         ***REMOVED*** Store detailed movie data in JSON format
                         movie_data = {
                             "id": movie["id"],
@@ -345,6 +348,7 @@ async def _populate_suggestions_async(
                             if main_title:
                                 pipeline.zadd("suggestions", {main_title: 0})
                                 pipeline.set(f"suggestions:{main_title}", movie_id)
+                                pipeline.set(f"suggestions_meta:{main_title}", f"movie:{movie_id}")
                                 pipeline.set(f"entity:movie:{main_title}", json.dumps(movie_data))
 
                             ***REMOVED*** Also get what's inside the parentheses
@@ -353,6 +357,9 @@ async def _populate_suggestions_async(
                                     paren_title = paren_part.strip().lower()
                                     pipeline.zadd("suggestions", {paren_title: 0})
                                     pipeline.set(f"suggestions:{paren_title}", movie_id)
+                                    pipeline.set(
+                                        f"suggestions_meta:{paren_title}", f"movie:{movie_id}"
+                                    )
 
                         ***REMOVED*** Process words for improved partial matching
                         if include_words:
@@ -362,6 +369,7 @@ async def _populate_suggestions_async(
                                 ***REMOVED*** Add the full word (constant score for BYLEX)
                                 pipeline.zadd("suggestions", {word: 0})
                                 pipeline.set(f"suggestions:{word}", movie_id)
+                                pipeline.set(f"suggestions_meta:{word}", f"movie:{movie_id}")
 
                                 ***REMOVED*** For important words, also add specific prefixes
                                 if len(word) >= 5:
@@ -371,6 +379,9 @@ async def _populate_suggestions_async(
                                         pipeline.zadd("suggestions", {prefix: 0})
                                         if not await redis_client.exists(f"suggestions:{prefix}"):
                                             pipeline.set(f"suggestions:{prefix}", movie_id)
+                                            pipeline.set(
+                                                f"suggestions_meta:{prefix}", f"movie:{movie_id}"
+                                            )
 
                         movie_count += 1
 
@@ -393,6 +404,7 @@ async def _populate_suggestions_async(
                 else:
                     console.print(f"Found {len(actors)} actors to process")
                     actor_task = progress.add_task("Processing actors...", total=len(actors))
+                    pipeline = redis_client.pipeline()
 
                     for i, actor in enumerate(actors):
                         name = actor["name"].lower()
@@ -403,6 +415,9 @@ async def _populate_suggestions_async(
 
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", actor_id)
+
+                        ***REMOVED*** Add metadata key for type resolution
+                        pipeline.set(f"suggestions_meta:{name}", f"actor:{actor_id}")
 
                         ***REMOVED*** Store detailed actor data
                         actor_data = {
@@ -438,6 +453,7 @@ async def _populate_suggestions_async(
                     director_task = progress.add_task(
                         "Processing directors...", total=len(directors)
                     )
+                    pipeline = redis_client.pipeline()
 
                     for i, director in enumerate(directors):
                         name = director["name"].lower()
@@ -448,6 +464,9 @@ async def _populate_suggestions_async(
 
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", director_id)
+
+                        ***REMOVED*** Add metadata key for type resolution
+                        pipeline.set(f"suggestions_meta:{name}", f"director:{director_id}")
 
                         ***REMOVED*** Store detailed director data
                         director_data = {
