@@ -19,7 +19,7 @@ The ML API is built with FastAPI and uses the sentence-transformers library to g
 ***REMOVED******REMOVED******REMOVED*** Installation
 
 ```bash
-cd ml-api
+cd apps/ml-api
 
 ***REMOVED*** Install local dependencies
 hatch run install-libs
@@ -30,20 +30,22 @@ hatch run dev
 
 ***REMOVED******REMOVED******REMOVED*** Basic Usage
 
-The ML API will be available at `http://localhost:8000` with the following endpoints:
+When running in development (`hatch run dev`), the ML API will be available at `http://localhost:8004` with the following endpoints:
 
-- `POST /embeddings/movie` - Generate movie embeddings
-- `POST /embeddings/user` - Generate user preference vectors
-- `GET /embeddings/info` - Get model information
-- `GET /health` - API health check
-- `GET /health/model` - Model health check
+- `POST /api/v1/embeddings/movie` - Generate movie embeddings
+- `POST /api/v1/embeddings/user` - Generate user preference vectors
+- `GET /api/v1/embeddings/info` - Get model information
+- `GET /health` - Comprehensive health check (aggregated)
+- `GET /health/live` - Liveness probe
+- `GET /health/ready` - Readiness probe (critical dependencies)
+- `GET /health/deep` - Deep diagnostics
 
 ***REMOVED******REMOVED******REMOVED*** API Documentation
 
-Interactive API documentation is available at:
+Interactive API documentation is available (in debug mode) at:
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:8004/docs`
+- ReDoc: `http://localhost:8004/redoc`
 
 ***REMOVED******REMOVED*** Configuration
 
@@ -103,17 +105,15 @@ hatch run test-cov
 
 ***REMOVED*** Health checks
 hatch run health-check
-hatch run health-model
 
 ***REMOVED*** Model management
 hatch run model-info
 hatch run model-load
-hatch run model-test
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Package Structure
 
-```
+```text
 src/ml_api/
 ├── main.py              ***REMOVED*** Main application entry point
 ├── __main__.py          ***REMOVED*** Module execution support
@@ -146,7 +146,7 @@ src/ml_api/
 
 ```bash
 ***REMOVED*** Generate movie embedding
-curl -X POST "http://localhost:8000/embeddings/movie" \
+curl -X POST "http://localhost:8004/api/v1/embeddings/movie" \
   -H "Content-Type: application/json" \
   -d '{
     "movie_id": "123",
@@ -160,7 +160,7 @@ curl -X POST "http://localhost:8000/embeddings/movie" \
 
 ```bash
 ***REMOVED*** Generate user preference vector
-curl -X POST "http://localhost:8000/embeddings/user" \
+curl -X POST "http://localhost:8004/api/v1/embeddings/user" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "456",
@@ -168,21 +168,27 @@ curl -X POST "http://localhost:8000/embeddings/user" \
       {"movie_id": "123", "rating": 5.0},
       {"movie_id": "124", "rating": 4.5}
     ],
-    "watched_genres": ["Action", "Sci-Fi"]
+    "watched_genres": {"Action": 1.0, "Sci-Fi": 0.8}
   }'
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Health Checks
 
 ```bash
-***REMOVED*** Basic health check
-curl http://localhost:8000/health
+***REMOVED*** Comprehensive health check (all categories)
+curl http://localhost:8004/health
 
-***REMOVED*** Model health check
-curl http://localhost:8000/health/model
+***REMOVED*** Liveness probe
+curl http://localhost:8004/health/live
+
+***REMOVED*** Readiness probe (critical dependencies)
+curl http://localhost:8004/health/ready
+
+***REMOVED*** Deep diagnostics
+curl http://localhost:8004/health/deep
 
 ***REMOVED*** Model information
-curl http://localhost:8000/embeddings/info
+curl http://localhost:8004/api/v1/embeddings/info
 ```
 
 ***REMOVED******REMOVED*** Monitoring
@@ -200,8 +206,7 @@ The ML API exposes Prometheus metrics at `/metrics` including:
 
 ***REMOVED******REMOVED******REMOVED*** Rate Limiting
 
-- `/embeddings/*`: 100 requests/minute
-- `/embeddings/batch`: 20 requests/minute
+- `/api/v1/embeddings/*`: 100 requests/minute
 - `/health/*`: 1000 requests/minute
 
 ***REMOVED******REMOVED*** Production Deployment
