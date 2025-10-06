@@ -17,6 +17,12 @@ export const metadata: Metadata = {
     default: "Next Watch - Find Your Next Movie",
   },
   description: "Discover your next favorite movie with Next Watch",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
+  },
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
