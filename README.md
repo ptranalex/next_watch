@@ -4,33 +4,119 @@ A comprehensive movie discovery and tracking platform built with modern microser
 
 ***REMOVED******REMOVED*** 🏗️ Architecture
 
-Next Watch consists of 5 main services:
+Next Watch is a microservices-based platform with 8 main services:
 
+```text
+┌──────────────┐
+│   Frontend   │ (Next.js - Port 3000)
+│  (Next.js)   │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   BFF API    │────▶│  Auth API    │     │ Backend API  │     │  Search API  │
+│  (Port 8001) │     │ (Port 8003)  │     │ (Port 8000)  │     │ (Port 8005)  │
+└──────┬───────┘     └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
+       │                    │                     │                     │
+       │                    │                     │                     │
+       ▼                    ▼                     ▼                     ▼
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│Recommendation│────▶│    ML API    │     │  PostgreSQL  │     │    Redis     │
+│     API      │     │ (Port 8004)  │     │ (Port 5432)  │     │ (Port 6379)  │
+│ (Port 8002)  │     └──────────────┘     └──────────────┘     └──────────────┘
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐     ┌──────────────┐
+│   Qdrant     │     │Data Importer │
+│ (Port 6333)  │     │ (On-demand)  │
+└──────────────┘     └──────────────┘
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Frontend  │───▶│   BFF API   │───▶│  Auth API   │    │ Backend API │
-│  (Next.js)  │    │ (Port 8001) │    │ (Port 8003) │    │ (Port 8000) │
-│ (Port 3000) │    └─────────────┘    └─────────────┘    └─────────────┘
-└─────────────┘           │                   │                   │
-                          │                   │                   │
-                          ▼                   ▼                   ▼
-                    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-                    │    Redis    │    │ PostgreSQL  │    │Data Importer│
-                    │(Host:6379)  │    │(Host:5432)  │    │ (On-demand) │
-                    └─────────────┘    └─────────────┘    └─────────────┘
-```
 
-***REMOVED******REMOVED******REMOVED*** Services
+***REMOVED******REMOVED******REMOVED*** Core Services
 
-- **Frontend** (`apps/web-nextjs`): Next.js 15 web application
-- **BFF API** (`apps/bff-api`): Backend for Frontend aggregation layer
-- **Auth API** (`apps/auth-api`): Dedicated authentication service
-- **Backend API** (`apps/backend-api`): Core business logic and data access
-- **Data Importer** (`apps/data-importer`): Movie data synchronization service
+- **Frontend** (`apps/web-nextjs`): Next.js 15 web application with modern UI/UX
+- **BFF API** (`apps/bff-api`): Backend for Frontend - aggregation and orchestration layer
+- **Auth API** (`apps/auth-api`): Dedicated JWT-based authentication and authorization service
+- **Backend API** (`apps/backend-api`): Core business logic, movie data access, and database operations
+- **Recommendation API** (`apps/recommendation-api`): Movie recommendations using vector similarity and collaborative filtering
+- **ML API** (`apps/ml-api`): Machine learning service for generating movie and user embeddings
+- **Search API** (`apps/search-api`): Dedicated search service with Redis-powered autocomplete and suggestions
+- **Data Importer** (`apps/data-importer`): Movie data synchronization from TMDB and OMDB
+
+***REMOVED******REMOVED******REMOVED*** Infrastructure & Storage
+
+- **PostgreSQL**: Primary database for movie metadata, users, and relational data
+- **Redis**: Caching layer and search suggestion storage
+- **Qdrant**: Vector database for similarity-based movie recommendations
 
 ***REMOVED******REMOVED******REMOVED*** Shared Libraries
 
-- **Movie Storage** (`libs/movie-storage`): Shared data models and database utilities
+- **Fast-Core** (`libs/fast-core`): Standardized FastAPI middleware, configuration, and monitoring framework
+  - Consistent middleware stack (CORS, security headers, rate limiting, logging, metrics)
+  - OpenTelemetry integration for distributed tracing
+  - Health check framework with liveness/readiness/deep probes
+  - JWT utilities and authentication helpers
+  - Error handling and service error contexts
+- **Cache** (`libs/cache`): Redis caching utilities with warming and invalidation patterns
+  - Cache warming strategies
+  - TTL management
+  - Key versioning and invalidation
+  - Metrics and monitoring
+- **Config** (`libs/config`): Centralized configuration management with environment profiles
+  - Environment-based configuration
+  - Logging setup with themes
+  - Security configuration
+  - Service discovery settings
+- **CLI** (`libs/cli`): Shared command-line interface utilities for service management
+  - Service registry pattern
+  - Output handling and formatting
+  - Common command patterns
+
+***REMOVED******REMOVED*** 🛠️ Technology Stack
+
+***REMOVED******REMOVED******REMOVED*** Backend Services (Python)
+
+- **Framework**: FastAPI with fast-core standardization
+- **Language**: Python 3.12+
+- **Package Management**: Hatch
+- **ORM**: SQLAlchemy with asyncpg
+- **Validation**: Pydantic v2
+- **Testing**: pytest
+- **Code Quality**: mypy, ruff, black, isort
+
+***REMOVED******REMOVED******REMOVED*** Frontend (TypeScript)
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Package Management**: pnpm
+- **UI Library**: Material-UI (MUI)
+- **State Management**: React Context + Zustand
+- **Styling**: Emotion CSS-in-JS
+
+***REMOVED******REMOVED******REMOVED*** Machine Learning
+
+- **Embeddings**: sentence-transformers (all-MiniLM-L6-v2)
+- **Vector Search**: Qdrant vector database
+- **Dimensions**: 384-dimensional embeddings
+- **Distance Metric**: Cosine similarity
+
+***REMOVED******REMOVED******REMOVED*** Infrastructure
+
+- **Database**: PostgreSQL 14+
+- **Cache**: Redis 7+
+- **Vector DB**: Qdrant
+- **Reverse Proxy**: Nginx
+- **Containerization**: Docker & Docker Compose
+- **Orchestration**: Docker Compose (production), Hatch (development)
+
+***REMOVED******REMOVED******REMOVED*** Observability
+
+- **Metrics**: Prometheus
+- **Visualization**: Grafana
+- **Tracing**: OpenTelemetry + Grafana Alloy
+- **Logging**: Structured JSON logs with coloredlogs (development)
+- **Alerts**: AlertManager
 
 ***REMOVED******REMOVED*** 🚀 Quick Start
 
@@ -57,6 +143,9 @@ nano .env.prod
 docker build -f apps/backend-api/Dockerfile -t next-watch-backend:latest .
 docker build -f apps/auth-api/Dockerfile -t next-watch-auth:latest .
 docker build -f apps/bff-api/Dockerfile -t next-watch-bff:latest .
+docker build -f apps/recommendation-api/Dockerfile -t next-watch-recommendation:latest .
+docker build -f apps/ml-api/Dockerfile -t next-watch-ml:latest .
+docker build -f apps/search-api/Dockerfile -t next-watch-search:latest .
 docker build -f apps/web-nextjs/Dockerfile -t next-watch-frontend:latest .
 docker build -f apps/data-importer/Dockerfile -t next-watch-importer:latest .
 
@@ -92,6 +181,9 @@ chmod +x scripts/deploy-prod.sh
 DOCKER_BACKEND_IMAGE=next-watch-backend:latest
 DOCKER_AUTH_IMAGE=next-watch-auth:latest
 DOCKER_BFF_IMAGE=next-watch-bff:latest
+DOCKER_RECOMMENDATION_IMAGE=next-watch-recommendation:latest
+DOCKER_ML_IMAGE=next-watch-ml:latest
+DOCKER_SEARCH_IMAGE=next-watch-search:latest
 DOCKER_FRONTEND_IMAGE=next-watch-frontend:latest
 DOCKER_IMPORTER_IMAGE=next-watch-importer:latest
 
@@ -107,6 +199,12 @@ INTERNAL_API_KEY=your-internal-api-key
 ***REMOVED*** External APIs
 TMDB_ACCESS_TOKEN=your-tmdb-token
 OMDB_API_KEY=your-omdb-key
+
+***REMOVED*** Service URLs (for inter-service communication)
+BACKEND_API_URL=http://backend-api:8000
+ML_API_URL=http://ml-api:8000
+RECOMMENDATION_API_URL=http://recommendation-api:8000
+SEARCH_API_URL=http://search-api:8000
 ```
 
 See `infra/env.prod.example` for complete configuration options.
@@ -119,8 +217,8 @@ The project includes comprehensive GitHub Actions workflows:
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** **Build Workflow** (`.github/workflows/build.yml`)
 
-- Builds all 5 services when their code changes
-- Supports building shared libraries (`libs/movie-storage`)
+- Builds all 8 services when their code changes
+- Supports building shared libraries (`libs/fast-core`, `libs/cache`, `libs/config`, `libs/cli`)
 - Pushes images to GitHub Container Registry
 - Supports manual builds with `build_all` option
 
@@ -193,38 +291,68 @@ This deploys:
 
 - **Prometheus**: Metrics collection from all NextWatch services
 - **Grafana**: Dashboards and visualization
+- **Grafana Alloy**: OpenTelemetry collector for distributed tracing
 - **AlertManager**: Alert routing and notifications
 - **Node Exporter**: System resource monitoring
+
+***REMOVED******REMOVED******REMOVED*** 📊 Observability Features
+
+All services include built-in observability:
+
+- **Metrics**: Prometheus metrics at `/metrics` endpoint
+  - Request rates, latencies, error rates
+  - Resource utilization (CPU, memory)
+  - Service-specific metrics (cache hit rates, embedding generation times, etc.)
+- **Distributed Tracing**: OpenTelemetry integration
+  - Request tracing across microservices
+  - Configurable sampling rates
+  - Integration with Grafana Alloy
+- **Structured Logging**: JSON-formatted logs with correlation IDs
+  - Request/response logging
+  - Error tracking with stack traces
+  - Performance monitoring
+- **Health Checks**: Multi-level health endpoints
+  - `/health` - Aggregated health status
+  - `/health/live` - Liveness probe
+  - `/health/ready` - Readiness probe (dependencies)
+  - `/health/deep` - Detailed diagnostics
 
 ***REMOVED******REMOVED******REMOVED*** 🔒 Security Features
 
 - **Localhost Binding**: All services bind to `127.0.0.1` only
 - **Nginx Reverse Proxy**: Controlled external access
-- **BFF-Only API Access**: Direct service access blocked
+- **BFF-Only API Access**: Direct service access blocked from internet
 - **SSL/TLS**: HTTPS with strong cipher suites
+- **Rate Limiting**: Per-endpoint rate limits via fast-core
+- **Security Headers**: HSTS, CSP, frame protection, XSS protection
+- **Internal API Keys**: Service-to-service authentication
 
 Access your monitoring:
 
-- **Grafana**: https://your-domain.com/grafana/ (admin/NextWatch2024Admin)
-- **Prometheus**: https://your-domain.com/prometheus/
-- **AlertManager**: https://your-domain.com/alertmanager/
+- **Grafana**: <https://your-domain.com/grafana/> (admin/NextWatch2024Admin)
+- **Prometheus**: <https://your-domain.com/prometheus/>
+- **AlertManager**: <https://your-domain.com/alertmanager/>
 
 ***REMOVED******REMOVED******REMOVED*** Service Health Checks
 
 All services include comprehensive health checks:
 
-- **Backend API**: `GET /health`
-- **Auth API**: `GET /health`
-- **BFF API**: `GET /health`
+- **Backend API**: `GET /health` - Database, Redis, and service status
+- **Auth API**: `GET /health` - Database, cache, and JWT service status
+- **BFF API**: `GET /health` - Aggregates downstream service health
+- **Recommendation API**: `GET /health` - Qdrant, Redis, ML API, and Backend API status
+- **ML API**: `GET /health` - Model loading status and embedding service health
+- **Search API**: `GET /health` - Redis connection and suggestion engine status
 - **Frontend**: Process-based health check
 - **Data Importer**: On-demand service
 
 Health checks include:
 
-- Service availability
-- Database connectivity
-- Dependency verification
-- Resource monitoring
+- Service availability (liveness probes)
+- Database connectivity (readiness probes)
+- Dependency verification (upstream services)
+- Resource monitoring (memory, CPU)
+- Deep diagnostics (detailed component status)
 
 ***REMOVED******REMOVED*** 🛠️ Development
 
@@ -235,18 +363,33 @@ Each service can be developed independently using Hatch (Python services) or pnp
 ```bash
 ***REMOVED*** Backend API
 cd apps/backend-api
-hatch env create dev  ***REMOVED*** Creates environment with local dependencies
-hatch run dev:serve   ***REMOVED*** Runs development server
+hatch env create
+hatch run dev
 
 ***REMOVED*** Auth API
 cd apps/auth-api
-hatch env create dev
-hatch run dev:serve
+hatch env create
+hatch run dev
 
 ***REMOVED*** BFF API
 cd apps/bff-api
-hatch env create dev
-hatch run dev:serve
+hatch env create
+hatch run dev
+
+***REMOVED*** Recommendation API
+cd apps/recommendation-api
+hatch env create
+hatch run dev
+
+***REMOVED*** ML API
+cd apps/ml-api
+hatch env create
+hatch run dev
+
+***REMOVED*** Search API
+cd apps/search-api
+hatch env create
+hatch run dev
 
 ***REMOVED*** Frontend
 cd apps/web-nextjs
@@ -255,8 +398,8 @@ pnpm dev
 
 ***REMOVED*** Data Importer
 cd apps/data-importer
-hatch env create dev
-hatch run dev:sync
+hatch env create
+hatch run cli sync --verbose
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Python Project Configuration
@@ -276,25 +419,43 @@ Each Python service includes comprehensive CLI tools accessible via Hatch:
 ***REMOVED*** Backend API
 cd apps/backend-api
 hatch run cli --help
-hatch run serve-cli --reload --verbose
-hatch run health-check
+hatch run cli serve start --reload
+hatch run cli health check
 
 ***REMOVED*** Auth API
 cd apps/auth-api
 hatch run cli --help
-hatch run serve-cli --reload --verbose
-hatch run health-check
+hatch run cli serve start --reload
+hatch run cli health check
 
 ***REMOVED*** BFF API
 cd apps/bff-api
 hatch run cli --help
-hatch run serve-cli --reload --verbose
-hatch run cache-info
+hatch run cli serve start --reload
+hatch run cli cache info
+
+***REMOVED*** Recommendation API
+cd apps/recommendation-api
+hatch run cli --help
+hatch run cli embeddings generate --batch-size 100
+hatch run cli cache precompute --limit 1000
+
+***REMOVED*** ML API
+cd apps/ml-api
+hatch run cli --help
+hatch run cli model info
+hatch run cli health check
+
+***REMOVED*** Search API
+cd apps/search-api
+hatch run cli --help
+hatch run cli redis populate --force
+hatch run cli health check
 
 ***REMOVED*** Data Importer
 cd apps/data-importer
 hatch run cli --help
-hatch run sync --verbose
+hatch run cli sync --verbose
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Available Hatch Scripts
@@ -312,10 +473,53 @@ Each service provides these common scripts:
 
 ***REMOVED******REMOVED*** 📚 Documentation
 
-- **Deployment Guide**: `DEPLOYMENT.md`
-- **API Documentation**: Available at `/docs` on each service
-- **Architecture Decisions**: `docs/` directory
-- **Service READMEs**: Each service has detailed documentation
+***REMOVED******REMOVED******REMOVED*** Service Documentation
+
+Each service has comprehensive documentation:
+
+- **Backend API**: `apps/backend-api/README.md`
+  - Fast-core integration guide
+  - Bulk operations optimization
+  - Materialized view architecture
+  - Metrics integration
+- **Recommendation API**: `apps/recommendation-api/README.md`
+  - Vector search setup
+  - Embedding generation CLI
+  - Cache warming strategies
+- **ML API**: `apps/ml-api/README.md`
+  - Model configuration
+  - Embedding endpoints
+  - Docker deployment
+- **Search API**: `apps/search-api/README.md`
+  - Redis index management
+  - Performance optimization
+- **Auth API**: `apps/auth-api/README.md`
+  - JWT configuration
+  - API refinement guide
+- **BFF API**: `apps/bff-api/README.md`
+  - Cache patterns
+  - Service orchestration
+- **Data Importer**: `apps/data-importer/README.md`
+  - TMDB/OMDB sync
+  - CLI commands
+
+***REMOVED******REMOVED******REMOVED*** API Documentation
+
+Interactive API documentation available at `/docs` on each service:
+
+- **Backend API**: <http://localhost:8000/docs>
+- **Auth API**: <http://localhost:8003/docs>
+- **BFF API**: <http://localhost:8001/docs>
+- **Recommendation API**: <http://localhost:8002/docs>
+- **ML API**: <http://localhost:8004/docs>
+- **Search API**: <http://localhost:8005/docs>
+
+***REMOVED******REMOVED******REMOVED*** Infrastructure Documentation
+
+- **Deployment Guide**: `infra/DEPLOYMENT.md`
+- **Production Deployment**: `infra/production-deployment-guide.md`
+- **Monitoring Setup**: `infra/docker-compose.monitoring.yml`
+- **AWS Infrastructure**: `infra/aws/`
 
 ***REMOVED******REMOVED*** 🤝 Contributing
 
@@ -408,20 +612,73 @@ def my_function(param: str) -> None:
     ...
 ```
 
-***REMOVED*** Next Watch Development Progress
+***REMOVED******REMOVED*** Next Watch Development Progress
 
-***REMOVED******REMOVED*** Current Status 🚀
+***REMOVED******REMOVED******REMOVED*** 🎯 Service Features
 
-Active development focuses on integrating fast-core across all services to standardize FastAPI patterns and improve consistency.
+***REMOVED******REMOVED******REMOVED******REMOVED*** Backend API
 
-***REMOVED******REMOVED******REMOVED*** **✅ Completed Integrations**
+- Movie metadata retrieval with precomputed materialized views
+- Bulk movie operations with Redis caching
+- User watchlist and favorites management
+- PostgreSQL with optimized queries using `ANY()` operator
+- Netflix-style "cache forever" pattern for static content
 
-1. **BFF API** - 95% fast-core adoption with complete middleware builder integration
-2. **Backend API** - Complete fast-core integration with independent service architecture
-3. **Recommendation API** - Fast-core integrated with ML service communication
-4. **Auth API** - Security-first fast-core integration with authentication-specific middleware
+***REMOVED******REMOVED******REMOVED******REMOVED*** Recommendation API
 
-***REMOVED******REMOVED******REMOVED*** **✅ Completed: Auth API Fast-Core Integration**
+- Vector similarity search using Qdrant
+- Collaborative filtering recommendations
+- Trending and popular movie endpoints
+- ML API integration for embedding generation
+- Redis caching with background cache warming
+- CLI tools for embedding generation and cache management
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** ML API
+
+- Movie embedding generation using sentence-transformers
+- User preference vector calculation
+- Model: all-MiniLM-L6-v2 (384 dimensions)
+- Batch processing support
+- Model caching and health monitoring
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Search API
+
+- Redis-powered autocomplete suggestions
+- Prefix and substring search
+- Entity-based search (movies, actors, directors)
+- Optimized lexicographical range queries
+- CLI for populating and managing search indices
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Auth API
+
+- JWT-based authentication
+- Access and refresh token management
+- User registration and login
+- Password reset functionality
+- Rate limiting for security
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** BFF API
+
+- Frontend aggregation layer
+- Response caching with TTL management
+- Downstream service orchestration
+- User-specific data enrichment
+- Cache warming with cron jobs
+
+***REMOVED******REMOVED******REMOVED*** Current Status 🚀
+
+All core services are integrated with fast-core framework for standardized patterns.
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **✅ Fast-Core Integration Status**
+
+1. **BFF API** - ✅ Complete - Middleware builder integration with cache warming
+2. **Backend API** - ✅ Complete - Independent service architecture with materialized views
+3. **Recommendation API** - ✅ Complete - ML service communication with vector search
+4. **Auth API** - ✅ Complete - Security-first integration with JWT middleware
+5. **ML API** - ✅ Complete - Embedding service with model management
+6. **Search API** - ✅ Complete - Redis-powered search with suggestion engine
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **✅ Completed: Auth API Fast-Core Integration**
 
 Successfully integrated auth-api with fast-core following established patterns with authentication-specific security enhancements.
 
@@ -437,7 +694,7 @@ The Auth API integration delivers a security-first approach with:
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** **📁 Planned Integration Structure**
 
-```
+```text
 auth-api/
 ├── src/auth_api/
 │   ├── config/
