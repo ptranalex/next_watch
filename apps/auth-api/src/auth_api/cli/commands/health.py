@@ -3,30 +3,28 @@
 import asyncio
 import logging
 import time
-from typing import Dict, Any, Optional
+from typing import Any
 
 import typer
 from rich.console import Console
 
-from auth_api.config.app import settings
 from auth_api.cli.utils import check_service_health, display_service_status
+from auth_api.config.app import settings
 
-app = typer.Typer(
-    name="health", help="Health check commands for Auth API and dependent services."
-)
+app = typer.Typer(name="health", help="Health check commands for Auth API and dependent services.")
 console = Console()
 logger = logging.getLogger(__name__)
 
 
 @app.command(name="check")
 def health_check(
-    auth_api_url: Optional[str] = typer.Option(
+    auth_api_url: str | None = typer.Option(
         None,
         "--auth-api-url",
         help="Auth API URL to check (overrides config)",
         envvar="AUTH_API_URL",
     ),
-    backend_api_url: Optional[str] = typer.Option(
+    backend_api_url: str | None = typer.Option(
         None,
         "--backend-api-url",
         help="Backend API URL to check",
@@ -63,7 +61,7 @@ def health_check(
         console.print()
 
     ***REMOVED*** Use provided URLs or construct from config
-    auth_url = auth_api_url or f"http://localhost:{settings.api_port}"
+    auth_url = auth_api_url or f"http://localhost:{settings.port}"
 
     ***REMOVED*** Run async health checks
     asyncio.run(
@@ -78,7 +76,7 @@ def health_check(
 
 @app.command(name="self")
 def check_self(
-    url: Optional[str] = typer.Option(
+    url: str | None = typer.Option(
         None,
         "--url",
         help="Auth API URL (overrides config)",
@@ -104,7 +102,7 @@ def check_self(
         timeout: Request timeout in seconds
         verbose: Show detailed output
     """
-    auth_url = url or f"http://localhost:{settings.api_port}"
+    auth_url = url or f"http://localhost:{settings.port}"
 
     if verbose:
         console.print(f"[blue]Checking Auth API at: {auth_url}[/blue]")
@@ -134,7 +132,7 @@ def check_database(
 
 async def _run_health_checks(
     auth_url: str,
-    backend_url: Optional[str],
+    backend_url: str | None,
     timeout: int,
     verbose: bool,
 ) -> None:
@@ -146,7 +144,7 @@ async def _run_health_checks(
         timeout: Request timeout in seconds
         verbose: Show detailed output
     """
-    services: Dict[str, Dict[str, Any]] = {}
+    services: dict[str, dict[str, Any]] = {}
 
     ***REMOVED*** Check Auth API (self)
     start_time = time.time()
@@ -162,9 +160,7 @@ async def _run_health_checks(
     ***REMOVED*** Check Backend API if URL provided
     if backend_url:
         start_time = time.time()
-        backend_healthy = await check_service_health(
-            backend_url, "Backend API", timeout, console
-        )
+        backend_healthy = await check_service_health(backend_url, "Backend API", timeout, console)
         backend_time = round((time.time() - start_time) * 1000, 2)
 
         services["Backend API"] = {
@@ -198,9 +194,7 @@ async def _run_health_checks(
         exit_code = 1
 
     if verbose:
-        console.print(
-            f"\n[dim]Health check completed with exit code: {exit_code}[/dim]"
-        )
+        console.print(f"\n[dim]Health check completed with exit code: {exit_code}[/dim]")
 
     raise typer.Exit(code=exit_code)
 

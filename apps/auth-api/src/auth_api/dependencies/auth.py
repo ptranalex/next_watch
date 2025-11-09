@@ -2,6 +2,12 @@
 
 from typing import Annotated
 
+from config.logging import get_logger
+
+***REMOVED*** Import enhanced error handling
+from fast_core.errors import (
+    critical_service_handler,
+)
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session
@@ -9,14 +15,6 @@ from sqlmodel import Session
 from auth_api.db.database import get_db
 from auth_api.models.user import User
 from auth_api.services.auth_service import AuthService
-
-***REMOVED*** Import enhanced error handling
-from fast_core.errors import (
-    critical_service_handler,
-    AuthenticationException,
-    ExternalServiceException,
-)
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 

@@ -223,7 +223,20 @@ show_error_context = true
 ***REMOVED*** Importing
 ignore_missing_imports = false
 follow_imports = "normal"
+mypy_path = "src:../../libs/config/src:../../libs/fast-core/src:../../libs/kafka/src:../../libs/cache/src:../../libs/movie-storage/src"
 
+***REMOVED*** Internal libraries - silence their internal errors
+[[tool.mypy.overrides]]
+module = [
+    "config.*",
+    "fast_core.*",
+    "kafka.*",
+    "cache.*",
+    "movie_storage.*"
+]
+follow_imports = "silent"
+
+***REMOVED*** External libraries
 [[tool.mypy.overrides]]
 module = [
     "fastapi.*",

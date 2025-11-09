@@ -1,6 +1,6 @@
 """CLI package for Auth API application."""
 
-from .main import main, app
 from . import utils
+from .main import app, main
 
 __all__ = ["main", "app", "utils"]

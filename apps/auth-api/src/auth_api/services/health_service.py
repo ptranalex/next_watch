@@ -5,14 +5,12 @@ This service provides comprehensive health checks for all dependencies:
 """
 
 import asyncio
-from config.logging import get_logger
 import time
-from typing import Dict, Any, Optional, TYPE_CHECKING
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 from config.logging import get_logger
-
-from sqlmodel import Session, text
+from sqlmodel import text
 
 from auth_api.config.app import settings
 from auth_api.db.database import get_db
@@ -29,9 +27,9 @@ class HealthCheckResult:
 
     is_healthy: bool
     status: str
-    response_time_ms: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    response_time_ms: float | None = None
+    details: dict[str, Any] | None = None
+    error: str | None = None
 
 
 class HealthService:
@@ -41,7 +39,7 @@ class HealthService:
         """Initialize the health service."""
         pass
 
-    async def check_all(self) -> Dict[str, HealthCheckResult]:
+    async def check_all(self) -> dict[str, HealthCheckResult]:
         """Check health of all services.
 
         Returns:
@@ -54,7 +52,7 @@ class HealthService:
         gather_results = await asyncio.gather(postgres_task, return_exceptions=True)
 
         ***REMOVED*** Handle any exceptions and build results
-        results: Dict[str, HealthCheckResult] = {}
+        results: dict[str, HealthCheckResult] = {}
 
         postgres_result = gather_results[0]  ***REMOVED*** Extract from list
         if isinstance(postgres_result, Exception):
@@ -135,7 +133,7 @@ class HealthService:
 
 
 ***REMOVED*** Global health service instance
-_health_service: Optional[HealthService] = None
+_health_service: HealthService | None = None
 
 
 def get_health_service() -> HealthService:
@@ -172,13 +170,13 @@ def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
     Args:
         registry: Health check registry to register checks with
     """
+    import time
+
     from fast_core.monitoring import (
-        HealthCheckDefinition,
-        HealthCheckType,
         HealthCheckCategory,
+        HealthCheckDefinition,
         HealthCheckResult,
     )
-    import time
     from sqlmodel import text
 
     ***REMOVED*** PostgreSQL Database - CRITICAL dependency (auth service requires database for user data)
@@ -188,7 +186,7 @@ def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
         try:
             with next(get_db()) as db:
                 ***REMOVED*** Simple connectivity test
-                result = db.execute(text("SELECT 1")).scalar()
+                _ = db.execute(text("SELECT 1")).scalar()
 
                 ***REMOVED*** Get version for details
                 version_result = db.execute(text("SELECT version()")).scalar()

@@ -1,8 +1,6 @@
 """Main FastAPI application for BFF service."""
 
-import os
 from pathlib import Path
-from typing import Optional
 
 from fastapi import FastAPI
 

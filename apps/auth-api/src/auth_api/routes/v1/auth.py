@@ -5,33 +5,33 @@ Handles token operations: login, refresh, and verification.
 """
 
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+
+from config.logging import get_logger
+
+***REMOVED*** Import enhanced error handling
+from fast_core.errors import (
+    AuthenticationException,
+    ValidationException,
+    critical_service_handler,
+    service_error_handler,
+)
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session
 
-from auth_api.schemas.auth_schemas import (
-    Token,
-    RefreshToken,
-    TokenVerificationRequest,
-    TokenVerificationResponse,
-)
-from auth_api.dependencies import get_auth_service, get_db
-from auth_api.services.auth_service import AuthService
 from auth_api.core.metrics import (
     get_auth_metrics,
     track_authentication,
     track_token_operation,
 )
-
-***REMOVED*** Import enhanced error handling
-from fast_core.errors import (
-    service_error_handler,
-    critical_service_handler,
-    ValidationException,
-    AuthenticationException,
-    ExternalServiceException,
+from auth_api.dependencies import get_auth_service, get_db
+from auth_api.schemas.auth_schemas import (
+    RefreshToken,
+    Token,
+    TokenVerificationRequest,
+    TokenVerificationResponse,
 )
-from config.logging import get_logger
+from auth_api.services.auth_service import AuthService
 
 logger = get_logger(__name__)
 

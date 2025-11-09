@@ -10,15 +10,14 @@ for production security overrides and configuration logging.
 """
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from config.base.config import ServiceConfig
+from config.logging import get_logger
 from config.services.auth import AuthConfigMixin
 from config.services.database import DatabaseConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
 from pydantic import Field, validator
-
-from config.logging import get_logger
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
@@ -49,12 +48,12 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
     auth_performance_metrics: bool = Field(
         default=False, description="Enable auth-specific performance metrics collection"
     )
-    logs_dir: Optional[str] = Field(
+    logs_dir: str | None = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
 
     ***REMOVED*** JWT Web Key settings
-    jwt_jwk: Optional[Dict[str, Any]] = Field(
+    jwt_jwk: dict[str, Any] | None = Field(
         default=None, description="JSON Web Key for advanced JWT validation"
     )
     jwt_jwk_rotation_interval: int = Field(
@@ -124,7 +123,7 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         logger.info(f"Performance Metrics: {self.auth_performance_metrics}")
 
     @validator("jwt_secret")
-    def validate_jwt_secret_production(cls, v: str, values: Dict[str, Any]) -> str:
+    def validate_jwt_secret_production(cls, v: str, values: dict[str, Any]) -> str:
         """Ensure JWT secret is secure in production."""
         environment = values.get("environment", "development")
         if environment == "production" and v == "change_this_in_production_very_important":
@@ -135,7 +134,7 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         return v
 
     @validator("jwt_jwk", pre=True)
-    def validate_jwt_jwk(cls, v: Any) -> Optional[Dict[str, Any]]:
+    def validate_jwt_jwk(cls, v: Any) -> dict[str, Any] | None:
         """Parse JWT JWK from string or return None for empty values."""
         if not v or v == "":
             return None
@@ -148,13 +147,13 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
                     raise ValueError("JWK must be a JSON object")
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse JWK configuration: {e}")
-                raise ValueError(f"Invalid JWK JSON format: {e}")
+                raise ValueError(f"Invalid JWK JSON format: {e}") from e
         if isinstance(v, dict):
             return v
         raise ValueError(f"JWK must be a string, dict, or None, got {type(v)}")
 
     @validator("cors_origins")
-    def validate_cors_origins_auth(cls, v: List[str], values: Dict[str, Any]) -> List[str]:
+    def validate_cors_origins_auth(cls, v: list[str], values: dict[str, Any]) -> list[str]:
         """Validate CORS origins for auth service security."""
         environment = values.get("environment", "development")
         if environment == "production" and "*" in v:
@@ -164,7 +163,7 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
             )
         return v
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment.
 
         Combines validation from all mixins plus auth-specific checks.
@@ -198,13 +197,14 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         return f"""Authentication API Configuration:
   Environment: {self.environment}
   Service: {self.service_name} v{self.version}
-  
+
+
   HTTP Service:
     Host: {self.host}
     Port: {self.port}
     Debug: {self.debug}
-    CORS Origins: {', '.join(self.cors_origins)}
-    Allowed Hosts: {', '.join(self.allowed_hosts)}
+    CORS Origins: {", ".join(self.cors_origins)}
+    Allowed Hosts: {", ".join(self.allowed_hosts)}
 
   Database:
     URL: {self.get_database_url_masked()}
@@ -224,7 +224,7 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
   Monitoring:
     Log Level: {self.log_level}
     Performance Metrics: {self.auth_performance_metrics}
-    Logs Directory: {self.logs_dir or 'disabled'}"""
+    Logs Directory: {self.logs_dir or "disabled"}"""
 
 
 ***REMOVED*** ------------------------------------------------------------------------------

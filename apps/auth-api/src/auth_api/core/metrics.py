@@ -4,9 +4,11 @@ This module provides custom metrics for the Auth API service,
 including authentication operations, JWT token management, user management, and security monitoring.
 """
 
-from typing import Dict, Optional, Any, Callable, TypeVar
-from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
+from collections.abc import Callable
+from typing import Any, TypeVar
+
 from config.logging import get_logger
+from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
 
 ***REMOVED*** Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
@@ -16,28 +18,28 @@ logger = get_logger(__name__)
 
 def normalize_endpoint_for_metrics(endpoint: str) -> str:
     """Simple endpoint normalization for client-side service calls.
-    
+
     This is the industry-standard approach: replace numeric IDs with generic placeholders
     to prevent cardinality explosion while keeping the solution maintainable.
-    
+
     Only used when we don't have access to FastAPI's route patterns.
-    
+
     Args:
         endpoint: Raw endpoint path (e.g., "/api/v1/users/123", "/api/v1/tokens/456")
-        
+
     Returns:
         Normalized endpoint path (e.g., "/api/v1/users/{id}", "/api/v1/tokens/{id}")
     """
     if not endpoint:
         return endpoint
-    
+
     ***REMOVED*** Remove query parameters (they cause cardinality explosion)
     endpoint = endpoint.split("?")[0]
-    
+
     ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
     normalized_parts = []
-    
+
     for part in parts:
         if part.isdigit():
             ***REMOVED*** Replace numeric IDs with generic placeholder
@@ -45,14 +47,14 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
         else:
             ***REMOVED*** Keep non-numeric parts as-is
             normalized_parts.append(part)
-    
+
     return "/".join(normalized_parts)
 
 
 class AuthMetrics:
     """Auth-specific metrics collection."""
 
-    def __init__(self, metrics_registry: Optional[MetricsRegistry] = None):
+    def __init__(self, metrics_registry: MetricsRegistry | None = None):
         """Initialize Auth metrics.
 
         Args:
@@ -645,15 +647,15 @@ class AuthMetrics:
 
 
 ***REMOVED*** Global Auth metrics instance
-_auth_metrics: Optional[AuthMetrics] = None
+_auth_metrics: AuthMetrics | None = None
 
 
-def get_auth_metrics() -> Optional[AuthMetrics]:
+def get_auth_metrics() -> AuthMetrics | None:
     """Get the global Auth metrics instance."""
     return _auth_metrics
 
 
-def initialize_auth_metrics() -> Optional[AuthMetrics]:
+def initialize_auth_metrics() -> AuthMetrics | None:
     """Initialize global Auth metrics instance.
 
     Returns:
@@ -669,7 +671,7 @@ def initialize_auth_metrics() -> Optional[AuthMetrics]:
 
 ***REMOVED*** Decorator for tracking Auth operations
 def track_auth_operation(
-    operation_name: str, labels: Optional[Dict[str, str]] = None
+    operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:
     """Decorator to track Auth-specific operations.
 

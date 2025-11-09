@@ -1,18 +1,19 @@
 """Database connection and utilities for the auth API."""
 
-from typing import Any, Dict, Generator, Iterator, Optional
+from collections.abc import Generator, Iterator
+from contextlib import suppress
+from typing import Any
 
+from config.logging import get_logger
 from sqlalchemy import Engine, inspect
 from sqlmodel import Session, SQLModel, create_engine
 
 from auth_api.config.app import settings
-from config.logging import get_logger
-from auth_api.models import User
 
 logger = get_logger(__name__)
 
 ***REMOVED*** Global engine instance
-_engine: Optional[Engine] = None
+_engine: Engine | None = None
 
 
 def get_engine(enable_monitoring: bool = True) -> Engine:
@@ -90,13 +91,11 @@ def get_db() -> Iterator[Session]:
         db = next(session_generator)
         yield db
     finally:
-        try:
+        with suppress(StopIteration):
             next(session_generator)
-        except StopIteration:
-            pass
 
 
-def check_database_schema() -> Dict[str, Any]:
+def check_database_schema() -> dict[str, Any]:
     """Check if database schema is properly set up.
 
     Returns:

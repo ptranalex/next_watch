@@ -2,14 +2,14 @@
 
 import asyncio
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 import typer
 from rich.console import Console
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Confirm, Prompt
 
-from auth_api.config.app import settings
 from auth_api.cli.utils import display_user_table
+from auth_api.config.app import settings
 
 app = typer.Typer(name="users", help="User management commands.")
 console = Console()
@@ -29,7 +29,7 @@ def list_users(
         "--active-only",
         help="Show only active users",
     ),
-    search: Optional[str] = typer.Option(
+    search: str | None = typer.Option(
         None,
         "--search",
         "-s",
@@ -59,10 +59,8 @@ def list_users(
 @app.command(name="create")
 def create_user(
     email: str = typer.Option(..., "--email", "-e", help="User email address"),
-    username: Optional[str] = typer.Option(
-        None, "--username", "-u", help="Username (optional)"
-    ),
-    password: Optional[str] = typer.Option(
+    username: str | None = typer.Option(None, "--username", "-u", help="Username (optional)"),
+    password: str | None = typer.Option(
         None, "--password", "-p", help="User password (will prompt if not provided)"
     ),
     active: bool = typer.Option(True, "--active/--inactive", help="User active status"),
@@ -127,9 +125,7 @@ def deactivate_user(
         verbose: Show detailed output
     """
     if confirm:
-        confirmed = Confirm.ask(
-            f"Are you sure you want to deactivate user '{identifier}'?"
-        )
+        confirmed = Confirm.ask(f"Are you sure you want to deactivate user '{identifier}'?")
         if not confirmed:
             console.print("[yellow]User deactivation cancelled.[/yellow]")
             return
@@ -143,9 +139,7 @@ def deactivate_user(
 @app.command(name="delete")
 def delete_user(
     identifier: str = typer.Argument(..., help="User email or ID"),
-    confirm: bool = typer.Option(
-        True, "--confirm/--no-confirm", help="Confirm before deleting"
-    ),
+    confirm: bool = typer.Option(True, "--confirm/--no-confirm", help="Confirm before deleting"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
 ) -> None:
     """Delete a user account permanently.
@@ -170,9 +164,7 @@ def delete_user(
 
 @app.command(name="stats")
 def user_stats(
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Show detailed statistics"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed statistics"),
 ) -> None:
     """Display user statistics.
 
@@ -186,7 +178,7 @@ def user_stats(
 
 
 async def _list_users_async(
-    limit: int, active_only: bool, search: Optional[str], verbose: bool
+    limit: int, active_only: bool, search: str | None, verbose: bool
 ) -> None:
     """Async implementation of user listing.
 
@@ -205,7 +197,7 @@ async def _list_users_async(
         ***REMOVED*** Build query
         query = "SELECT id, email, username, is_active, created_at, last_login_at FROM users"
         conditions = []
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
 
         if active_only:
             conditions.append("is_active = :active")
@@ -228,23 +220,21 @@ async def _list_users_async(
         if verbose:
             console.print(f"[green]Found {len(users)} users[/green]")
 
-        display_user_table(
-            users, f"Users (showing {len(users)} of max {limit})", console
-        )
+        display_user_table(users, f"Users (showing {len(users)} of max {limit})", console)
 
     except SQLAlchemyError as e:
         console.print(f"[red]❌ Database error: {e}[/red]")
         logger.error(f"Database error in list_users: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except Exception as e:
         console.print(f"[red]❌ Unexpected error: {e}[/red]")
         logger.error(f"Unexpected error in list_users: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 async def _create_user_async(
     email: str,
-    username: Optional[str],
+    username: str | None,
     password: str,
     active: bool,
     admin: bool,
@@ -261,18 +251,21 @@ async def _create_user_async(
         verbose: Show detailed output
     """
     try:
+        from datetime import datetime
+
         from sqlalchemy import create_engine, text
         from sqlalchemy.exc import SQLAlchemyError
-        from datetime import datetime
 
         ***REMOVED*** Try to import passlib, but provide fallback
         try:
             from passlib.context import CryptContext
+
             pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
             hashed_password = pwd_context.hash(password)
         except ImportError:
             ***REMOVED*** Fallback to basic hashing if passlib not available
             import hashlib
+
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
             console.print("[yellow]⚠️  Using basic hashing (install passlib for bcrypt)[/yellow]")
 
@@ -285,9 +278,7 @@ async def _create_user_async(
             ).fetchone()
 
             if existing:
-                console.print(
-                    f"[red]❌ User with email '{email}' already exists![/red]"
-                )
+                console.print(f"[red]❌ User with email '{email}' already exists![/red]")
                 raise typer.Exit(1)
 
             ***REMOVED*** Insert new user
@@ -312,11 +303,11 @@ async def _create_user_async(
             user_row = result.fetchone()
             if user_row is None:
                 raise Exception("Failed to create user - no ID returned")
-            
+
             user_id = user_row[0]
             connection.commit()
 
-        console.print(f"[green]✅ User created successfully![/green]")
+        console.print("[green]✅ User created successfully![/green]")
         console.print(f"   • ID: {user_id}")
         console.print(f"   • Email: {email}")
         console.print(f"   • Username: {username or 'Not set'}")
@@ -326,16 +317,14 @@ async def _create_user_async(
     except SQLAlchemyError as e:
         console.print(f"[red]❌ Database error: {e}[/red]")
         logger.error(f"Database error in create_user: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except Exception as e:
         console.print(f"[red]❌ Unexpected error: {e}[/red]")
         logger.error(f"Unexpected error in create_user: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
-async def _update_user_status_async(
-    identifier: str, active: bool, verbose: bool
-) -> None:
+async def _update_user_status_async(identifier: str, active: bool, verbose: bool) -> None:
     """Async implementation of user status update.
 
     Args:
@@ -352,17 +341,11 @@ async def _update_user_status_async(
         with engine.connect() as connection:
             ***REMOVED*** Find user by email or ID
             if identifier.isdigit():
-                user_query = (
-                    "SELECT id, email, is_active FROM users WHERE id = :identifier"
-                )
+                user_query = "SELECT id, email, is_active FROM users WHERE id = :identifier"
             else:
-                user_query = (
-                    "SELECT id, email, is_active FROM users WHERE email = :identifier"
-                )
+                user_query = "SELECT id, email, is_active FROM users WHERE email = :identifier"
 
-            user = connection.execute(
-                text(user_query), {"identifier": identifier}
-            ).fetchone()
+            user = connection.execute(text(user_query), {"identifier": identifier}).fetchone()
 
             if not user:
                 console.print(f"[red]❌ User '{identifier}' not found![/red]")
@@ -370,9 +353,7 @@ async def _update_user_status_async(
 
             ***REMOVED*** Update status
             update_query = "UPDATE users SET is_active = :active WHERE id = :user_id"
-            connection.execute(
-                text(update_query), {"active": active, "user_id": user.id}
-            )
+            connection.execute(text(update_query), {"active": active, "user_id": user.id})
             connection.commit()
 
         action = "activated" if active else "deactivated"
@@ -381,11 +362,11 @@ async def _update_user_status_async(
     except SQLAlchemyError as e:
         console.print(f"[red]❌ Database error: {e}[/red]")
         logger.error(f"Database error in update_user_status: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except Exception as e:
         console.print(f"[red]❌ Unexpected error: {e}[/red]")
         logger.error(f"Unexpected error in update_user_status: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 async def _delete_user_async(identifier: str, verbose: bool) -> None:
@@ -408,9 +389,7 @@ async def _delete_user_async(identifier: str, verbose: bool) -> None:
             else:
                 user_query = "SELECT id, email FROM users WHERE email = :identifier"
 
-            user = connection.execute(
-                text(user_query), {"identifier": identifier}
-            ).fetchone()
+            user = connection.execute(text(user_query), {"identifier": identifier}).fetchone()
 
             if not user:
                 console.print(f"[red]❌ User '{identifier}' not found![/red]")
@@ -426,11 +405,11 @@ async def _delete_user_async(identifier: str, verbose: bool) -> None:
     except SQLAlchemyError as e:
         console.print(f"[red]❌ Database error: {e}[/red]")
         logger.error(f"Database error in delete_user: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except Exception as e:
         console.print(f"[red]❌ Unexpected error: {e}[/red]")
         logger.error(f"Unexpected error in delete_user: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 async def _display_user_stats_async(verbose: bool) -> None:
@@ -440,16 +419,16 @@ async def _display_user_stats_async(verbose: bool) -> None:
         verbose: Show detailed statistics
     """
     try:
+        from rich.table import Table
         from sqlalchemy import create_engine, text
         from sqlalchemy.exc import SQLAlchemyError
-        from rich.table import Table
 
         engine = create_engine(settings.database_url)
 
         with engine.connect() as connection:
             ***REMOVED*** Get basic stats
             stats_query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_users,
                     COUNT(*) FILTER (WHERE is_active = true) as active_users,
                     COUNT(*) FILTER (WHERE is_active = false) as inactive_users,
@@ -466,9 +445,7 @@ async def _display_user_stats_async(verbose: bool) -> None:
             raise typer.Exit(1)
 
         ***REMOVED*** Create stats table
-        table = Table(
-            title="User Statistics", show_header=True, header_style="bold blue"
-        )
+        table = Table(title="User Statistics", show_header=True, header_style="bold blue")
         table.add_column("Metric", style="cyan", no_wrap=True)
         table.add_column("Count", style="green", justify="right")
         table.add_column("Percentage", style="yellow", justify="right")
@@ -525,11 +502,11 @@ async def _display_user_stats_async(verbose: bool) -> None:
     except SQLAlchemyError as e:
         console.print(f"[red]❌ Database error: {e}[/red]")
         logger.error(f"Database error in display_user_stats: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except Exception as e:
         console.print(f"[red]❌ Unexpected error: {e}[/red]")
         logger.error(f"Unexpected error in display_user_stats: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 def _mask_db_url(database_url: str) -> str:

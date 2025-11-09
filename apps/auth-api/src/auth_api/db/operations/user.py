@@ -3,19 +3,17 @@ User database operations for the auth API.
 """
 
 from datetime import datetime
-from typing import List, Optional
 
-from sqlmodel import Session, select
-
-from auth_api.models.user import User
+from config.logging import get_logger
 
 ***REMOVED*** Import enhanced error handling
 from fast_core.errors import (
-    critical_service_handler,
     ValidationException,
-    ResourceNotFoundException,
+    critical_service_handler,
 )
-from config.logging import get_logger
+from sqlmodel import Session, select
+
+from auth_api.models.user import User
 
 logger = get_logger(__name__)
 
@@ -25,7 +23,7 @@ def create_user(
     session: Session,
     email: str,
     password: str,
-    username: Optional[str] = None,
+    username: str | None = None,
 ) -> User:
     """
     Create a new user with hashed password.
@@ -76,7 +74,7 @@ def create_user(
 
 
 @critical_service_handler("auth-database", logger)
-def get_user_by_id(session: Session, user_id: int) -> Optional[User]:
+def get_user_by_id(session: Session, user_id: int) -> User | None:
     """
     Get a user by their ID.
 
@@ -96,7 +94,7 @@ def get_user_by_id(session: Session, user_id: int) -> Optional[User]:
 
 
 @critical_service_handler("auth-database", logger)
-def get_user_by_email(session: Session, email: str) -> Optional[User]:
+def get_user_by_email(session: Session, email: str) -> User | None:
     """
     Get a user by their email address.
 
@@ -117,7 +115,7 @@ def get_user_by_email(session: Session, email: str) -> Optional[User]:
 
 
 @critical_service_handler("auth-database", logger)
-def get_user_by_username(session: Session, username: str) -> Optional[User]:
+def get_user_by_username(session: Session, username: str) -> User | None:
     """
     Get a user by their username.
 
@@ -138,7 +136,7 @@ def get_user_by_username(session: Session, username: str) -> Optional[User]:
 
 
 @critical_service_handler("auth-database", logger)
-def get_users(session: Session, skip: int = 0, limit: int = 100) -> List[User]:
+def get_users(session: Session, skip: int = 0, limit: int = 100) -> list[User]:
     """
     Get multiple users with pagination.
 
@@ -171,10 +169,10 @@ def get_users(session: Session, skip: int = 0, limit: int = 100) -> List[User]:
 def update_user(
     session: Session,
     user_id: int,
-    email: Optional[str] = None,
-    password: Optional[str] = None,
-    username: Optional[str] = None,
-) -> Optional[User]:
+    email: str | None = None,
+    password: str | None = None,
+    username: str | None = None,
+) -> User | None:
     """
     Update a user's information.
 
@@ -252,7 +250,7 @@ def delete_user(session: Session, user_id: int) -> bool:
 
 
 @critical_service_handler("auth-database", logger)
-def authenticate_user(session: Session, email: str, password: str) -> Optional[User]:
+def authenticate_user(session: Session, email: str, password: str) -> User | None:
     """
     Authenticate a user by email and password.
 

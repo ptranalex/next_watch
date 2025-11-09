@@ -5,28 +5,28 @@ Handles user registration and profile operations.
 """
 
 from typing import Annotated
-from fastapi import APIRouter, Depends, status
-from sqlmodel import Session
 
-from auth_api.schemas.auth_schemas import UserCreate, UserResponse
-from auth_api.models.user import User
-from auth_api.dependencies import get_auth_service, get_db, get_current_user
-from auth_api.services.auth_service import AuthService
-from auth_api.core.metrics import (
-    get_auth_metrics,
-    track_user_registration,
-    track_user_management,
-)
+from config.logging import get_logger
 
 ***REMOVED*** Import enhanced error handling
 from fast_core.errors import (
-    service_error_handler,
-    critical_service_handler,
-    ValidationException,
     ConflictException,
-    ResourceNotFoundException,
+    ValidationException,
+    critical_service_handler,
+    service_error_handler,
 )
-from config.logging import get_logger
+from fastapi import APIRouter, Depends, status
+from sqlmodel import Session
+
+from auth_api.core.metrics import (
+    get_auth_metrics,
+    track_user_management,
+    track_user_registration,
+)
+from auth_api.dependencies import get_auth_service, get_current_user, get_db
+from auth_api.models.user import User
+from auth_api.schemas.auth_schemas import UserCreate, UserResponse
+from auth_api.services.auth_service import AuthService
 
 logger = get_logger(__name__)
 
@@ -136,11 +136,11 @@ async def create_user(
         ***REMOVED*** Convert ValueError to semantic exception - will be caught by error mapping
         error_msg = str(e).lower()
         if "email" in error_msg and "exists" in error_msg:
-            raise ValueError("email already exists")
+            raise ValueError("email already exists") from e
         elif "username" in error_msg and "exists" in error_msg:
-            raise ValueError("username already exists")
+            raise ValueError("username already exists") from e
         else:
-            raise ValidationException(f"Registration failed: {str(e)}")
+            raise ValidationException(f"Registration failed: {str(e)}") from e
 
 
 @router.get("/users/me", response_model=UserResponse)

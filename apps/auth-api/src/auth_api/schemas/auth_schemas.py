@@ -2,16 +2,16 @@
 Authentication schema definitions for dedicated auth service.
 """
 
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from pydantic.fields import FieldInfo
 
 
 class UserBase(BaseModel):
     """Base user schema."""
 
     email: EmailStr
-    username: Optional[str] = None
+    username: str | None = None
 
 
 class UserCreate(UserBase):
@@ -80,7 +80,7 @@ class TokenVerificationResponse(BaseModel):
     """Token verification response schema containing user info."""
 
     valid: bool
-    user_id: Optional[int] = None
-    email: Optional[str] = None
-    username: Optional[str] = None
-    error: Optional[str] = None
+    user_id: int | None = None
+    email: str | None = None
+    username: str | None = None
+    error: str | None = None

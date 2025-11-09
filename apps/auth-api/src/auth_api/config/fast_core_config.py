@@ -4,10 +4,10 @@ This module provides utilities to convert Auth API configuration to fast-core
 compatible configuration using the enhanced FastAPIConfig.
 """
 
-from typing import Optional
-from fast_core import FastAPIConfig
-from auth_api.config.app import AuthAPIConfig
 from config.logging import get_logger
+from fast_core import FastAPIConfig
+
+from auth_api.config.app import AuthAPIConfig
 
 logger = get_logger(__name__)
 
@@ -74,7 +74,7 @@ def create_fast_core_config(auth_config: AuthAPIConfig) -> FastAPIConfig:
     return fast_core_config
 
 
-def get_service_url(config: FastAPIConfig, service_name: str) -> Optional[str]:
+def get_service_url(config: FastAPIConfig, service_name: str) -> str | None:
     """Get service URL from fast-core config.
 
     Args:

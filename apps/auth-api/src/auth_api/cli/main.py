@@ -3,8 +3,6 @@
 import logging
 import os
 import sys
-from pathlib import Path
-from typing import Optional, Dict, Any
 
 import typer
 import uvicorn
@@ -13,11 +11,10 @@ from rich.traceback import install
 
 ***REMOVED*** Import command modules
 from auth_api.cli.commands import health, users
+from auth_api.cli.utils import print_config
 
 ***REMOVED*** Import configuration and utilities
-from auth_api.config.app import settings, Config
-from auth_api.cli.utils import print_config
-from auth_api.main import app as fastapi_app
+from auth_api.config.app import settings
 
 ***REMOVED*** Install rich traceback handler
 install()
@@ -93,7 +90,7 @@ def serve(
 
         ***REMOVED*** Override individual values for CLI usage
         actual_host = host or "0.0.0.0"
-        actual_port = port or config.api_port
+        actual_port = port or config.port
         actual_log_level = log_level or config.log_level
 
         ***REMOVED*** Get environment from environment variable
@@ -123,31 +120,24 @@ def serve(
             logger.debug(f"Configuration: host={actual_host}, port={actual_port}, reload={reload}")
 
         ***REMOVED*** Start server
-        if reload:
-            ***REMOVED*** Use import string for reload mode
-            uvicorn.run(
-                "auth_api.main:app",
-                host=actual_host,
-                port=actual_port,
-                reload=reload,
-                log_level=actual_log_level.lower(),
-                access_log=not config.is_production,
-            )
-        else:
-            ***REMOVED*** Use app instance for production mode (more efficient)
-            uvicorn.run(
-                fastapi_app,
-                host=actual_host,
-                port=actual_port,
-                reload=reload,
-                log_level=actual_log_level.lower(),
-                access_log=not config.is_production,
-            )
+        ***REMOVED*** Use factory pattern to create app - works for both dev and production
+        from auth_api.main import create_app
+
+        app_instance = create_app()
+
+        uvicorn.run(
+            app_instance,
+            host=actual_host,
+            port=actual_port,
+            reload=reload,
+            log_level=actual_log_level.lower(),
+            access_log=not config.is_production,
+        )
 
     except Exception as e:
         console.print(f"[bold red]Error starting server: {e}[/bold red]")
         logger.error(f"Failed to start server: {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -188,7 +178,7 @@ def config(
     except Exception as e:
         console.print(f"[bold red]Error displaying configuration: {e}[/bold red]")
         logger.error(f"Failed to display configuration: {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command(name="version")
@@ -214,7 +204,7 @@ def show_version() -> None:
 
     except Exception as e:
         console.print(f"[bold red]Error getting version: {e}[/bold red]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command(name="init-db")
@@ -261,18 +251,18 @@ def init_database(
             )
             ***REMOVED*** Create a basic user table if movie_storage is not available
             from sqlalchemy import (
-                MetaData,
-                Table,
-                Column,
-                Integer,
-                String,
                 Boolean,
+                Column,
                 DateTime,
+                Integer,
+                MetaData,
+                String,
+                Table,
             )
             from sqlalchemy.sql import func
 
             metadata = MetaData()
-            users_table = Table(
+            _ = Table(
                 "users",
                 metadata,
                 Column("id", Integer, primary_key=True),
@@ -308,7 +298,7 @@ def init_database(
     except Exception as e:
         console.print(f"[bold red]Error initializing database: {e}[/bold red]")
         logger.error(f"Failed to initialize database: {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 def main() -> None:

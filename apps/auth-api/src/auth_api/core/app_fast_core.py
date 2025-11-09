@@ -4,19 +4,18 @@ This module creates a FastAPI application using the fast-core library
 with Auth-specific configuration and dependencies.
 """
 
-import os
-from typing import Dict, List, Optional, AsyncGenerator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from pathlib import Path
 
-from fastapi import FastAPI
-from fast_core import create_app, AppOptions
+from config.logging import get_logger
+from fast_core import AppOptions, create_app
 from fast_core.middleware import MiddlewareConfig
+from fastapi import FastAPI
 
 from auth_api.config.app import AuthAPIConfig
 from auth_api.db.database import init_database
-from auth_api.dependencies import get_auth_service, get_current_user, get_db
-from auth_api.services.health_service import get_health_service, close_health_service
+
+logger = get_logger(__name__)
 
 ***REMOVED*** Add Auth meta configuration constants after imports
 AUTH_FEATURES = [
@@ -41,14 +40,9 @@ AUTH_ENDPOINTS = {
 }
 
 ***REMOVED*** Import Auth routes
-from auth_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 
 ***REMOVED*** Remove the router import from module level to avoid circular imports
 ***REMOVED*** from auth_api.routes.api_v1 import api_v1_router
-
-from config.logging import get_logger
-
-logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -76,11 +70,12 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         ***REMOVED*** First initialize the global metrics registry
         from fast_core.monitoring.metrics import initialize_metrics
+
         from auth_api.core.metrics import initialize_auth_metrics
 
         ***REMOVED*** Initialize global metrics registry with service name
-        global_registry = initialize_metrics("auth-api")
-        logger.info(f"Global metrics registry initialized for service: auth-api")
+        _ = initialize_metrics("auth-api")
+        logger.info("Global metrics registry initialized for service: auth-api")
 
         ***REMOVED*** Now initialize Auth-specific metrics
         metrics_instance = initialize_auth_metrics()
@@ -115,6 +110,7 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
+
         from auth_api.services.health_service import setup_auth_health_checks
 
         registry = setup_kubernetes_health_checks(app, settings)
@@ -239,7 +235,7 @@ def create_auth_middleware_config(config: AuthAPIConfig) -> MiddlewareConfig:
     return middleware
 
 
-def create_auth_app(config: Optional[AuthAPIConfig] = None) -> FastAPI:
+def create_auth_app(config: AuthAPIConfig | None = None) -> FastAPI:
     """Create Auth API application using fast-core with enhanced middleware.
 
     Args:

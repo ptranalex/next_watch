@@ -2,30 +2,28 @@
 Authentication service for JWT-based user authentication in dedicated auth service.
 """
 
-from config.logging import get_logger
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, cast
+from typing import Any, cast
 
 import jwt
-from sqlmodel import Session
-
-from auth_api.config.app import settings
-from auth_api.schemas.auth_schemas import TokenVerificationResponse
-from auth_api.models.user import User
-from auth_api.db.operations.user import (
-    authenticate_user,
-    get_user_by_id,
-    create_user,
-)
+from config.logging import get_logger
 
 ***REMOVED*** Import enhanced error handling
 from fast_core.errors import (
+    AuthenticationException,
     critical_service_handler,
     service_error_handler,
-    ValidationException,
-    AuthenticationException,
-    ExternalServiceException,
 )
+from sqlmodel import Session
+
+from auth_api.config.app import settings
+from auth_api.db.operations.user import (
+    authenticate_user,
+    create_user,
+    get_user_by_id,
+)
+from auth_api.models.user import User
+from auth_api.schemas.auth_schemas import TokenVerificationResponse
 
 logger = get_logger(__name__)
 
@@ -37,7 +35,7 @@ class AuthService:
     Dedicated service for centralized authentication in microservices architecture.
     """
 
-    def __init__(self, config: Optional[Any] = None):
+    def __init__(self, config: Any | None = None):
         """
         Initialize the authentication service.
 
@@ -54,7 +52,7 @@ class AuthService:
         if not self.jwt_secret:
             raise ValueError("JWT_SECRET must be set in environment")
 
-    def create_access_token(self, user_id: int, expires_delta: Optional[timedelta] = None) -> str:
+    def create_access_token(self, user_id: int, expires_delta: timedelta | None = None) -> str:
         """
         Create a JWT access token.
 
@@ -99,7 +97,7 @@ class AuthService:
             "malformed": lambda e: AuthenticationException("Malformed token"),
         },
     )
-    def decode_token(self, token: str) -> Dict[str, Any]:
+    def decode_token(self, token: str) -> dict[str, Any]:
         """
         Decode and validate a JWT token.
 
@@ -114,18 +112,18 @@ class AuthService:
         """
         try:
             payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
-            return cast(Dict[str, Any], payload)
+            return cast(dict[str, Any], payload)
         except jwt.ExpiredSignatureError as e:
             logger.warning(f"Token has expired: {str(e)}")
-            raise ValueError("expired")
+            raise ValueError("expired") from e
         except jwt.InvalidTokenError as e:
             logger.warning(f"Invalid token: {str(e)}")
-            raise ValueError("invalid")
+            raise ValueError("invalid") from e
         except Exception as e:
             logger.warning(f"Failed to decode token: {str(e)}")
-            raise ValueError("malformed")
+            raise ValueError("malformed") from e
 
-    def get_user_id_from_token(self, token: str) -> Optional[int]:
+    def get_user_id_from_token(self, token: str) -> int | None:
         """
         Extract user ID from token.
 
@@ -201,7 +199,7 @@ class AuthService:
             return TokenVerificationResponse(valid=False, error="Token verification failed")
 
     @critical_service_handler("auth-database", logger)
-    def authenticate(self, session: Session, email: str, password: str) -> Optional[User]:
+    def authenticate(self, session: Session, email: str, password: str) -> User | None:
         """
         Authenticate a user with email and password.
 
@@ -221,7 +219,7 @@ class AuthService:
         return authenticate_user(session, email, password)
 
     @critical_service_handler("auth-database", logger)
-    def get_user_by_token(self, session: Session, token: str) -> Optional[User]:
+    def get_user_by_token(self, session: Session, token: str) -> User | None:
         """
         Get user by JWT token.
 
@@ -249,7 +247,7 @@ class AuthService:
         session: Session,
         email: str,
         password: str,
-        username: Optional[str] = None,
+        username: str | None = None,
     ) -> User:
         """
         Register a new user.
@@ -271,7 +269,7 @@ class AuthService:
         """
         return create_user(session, email, password, username)
 
-    def generate_tokens(self, user_id: int) -> Dict[str, str]:
+    def generate_tokens(self, user_id: int) -> dict[str, str]:
         """
         Generate both access and refresh tokens for a user.
 
@@ -287,7 +285,7 @@ class AuthService:
             "token_type": "bearer",
         }
 
-    def refresh_tokens(self, refresh_token: str) -> Optional[Dict[str, str]]:
+    def refresh_tokens(self, refresh_token: str) -> dict[str, str] | None:
         """
         Generate new tokens using a refresh token.
 

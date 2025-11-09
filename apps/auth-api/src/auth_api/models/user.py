@@ -3,7 +3,6 @@ User model for authentication and user management.
 """
 
 from datetime import datetime
-from typing import Optional
 
 import passlib.hash
 from sqlmodel import Field, SQLModel
@@ -22,10 +21,10 @@ class User(SQLModel, table=True):
         updated_at: Timestamp when the user was last updated
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-    username: Optional[str] = Field(default=None, index=True)
+    username: str | None = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

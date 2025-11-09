@@ -1,13 +1,12 @@
 """Utility functions for the Auth API CLI interface."""
 
 import logging
-import os
-from typing import Any, Dict, Optional
-import httpx
+from typing import Any
 
+import httpx
 from rich.console import Console
-from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 from auth_api.config import Config
 
@@ -97,7 +96,7 @@ def format_config_table(config: Config, title: str = "Auth API Configuration") -
 def print_config(
     config: Config,
     title: str = "Auth API Configuration",
-    console: Optional[Console] = None,
+    console: Console | None = None,
     show_secrets: bool = False,
 ) -> None:
     """Print configuration settings in a readable format.
@@ -147,7 +146,7 @@ def print_config(
 
 
 async def check_service_health(
-    url: str, service_name: str, timeout: int = 5, console: Optional[Console] = None
+    url: str, service_name: str, timeout: int = 5, console: Console | None = None
 ) -> bool:
     """Check the health of a service endpoint.
 
@@ -172,7 +171,7 @@ async def check_service_health(
             console=console,
             transient=True,
         ) as progress:
-            task = progress.add_task(f"Checking {service_name}...", total=None)
+            _ = progress.add_task(f"Checking {service_name}...", total=None)
 
             async with httpx.AsyncClient() as client:
                 response = await client.get(health_url, timeout=timeout)
@@ -202,7 +201,7 @@ async def check_service_health(
 
 
 def display_service_status(
-    services: Dict[str, Dict[str, Any]], console: Optional[Console] = None
+    services: dict[str, dict[str, Any]], console: Console | None = None
 ) -> None:
     """Display status of multiple services in a table.
 
@@ -239,7 +238,7 @@ def display_service_status(
 
 
 def display_user_table(
-    users: list[dict[str, Any]], title: str = "Users", console: Optional[Console] = None
+    users: list[dict[str, Any]], title: str = "Users", console: Console | None = None
 ) -> None:
     """Display users in a formatted table.
 
@@ -252,7 +251,7 @@ def display_user_table(
         console = Console()
 
     if not users:
-        console.print(f"[yellow]No users found.[/yellow]")
+        console.print("[yellow]No users found.[/yellow]")
         return
 
     table = Table(title=title, show_header=True, header_style="bold green")
@@ -277,7 +276,7 @@ def display_user_table(
                 if isinstance(created_at, str):
                     created_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                     created_at = created_dt.strftime("%Y-%m-%d")
-            except:
+            except (ValueError, AttributeError):
                 pass
 
         last_login = user.get("last_login_at", "Never")
@@ -288,7 +287,7 @@ def display_user_table(
                 if isinstance(last_login, str):
                     login_dt = datetime.fromisoformat(last_login.replace("Z", "+00:00"))
                     last_login = login_dt.strftime("%Y-%m-%d %H:%M")
-            except:
+            except (ValueError, AttributeError):
                 pass
 
         table.add_row(
@@ -309,7 +308,7 @@ def _format_boolean(value: bool) -> str:
     return "[green]Enabled[/green]" if value else "[grey]Disabled[/grey]"
 
 
-def _mask_sensitive_value(value: Optional[str]) -> str:
+def _mask_sensitive_value(value: str | None) -> str:
     """Mask sensitive configuration values."""
     if not value:
         return "[red]Not Set[/red]"

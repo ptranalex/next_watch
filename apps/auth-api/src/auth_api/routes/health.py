@@ -1,10 +1,10 @@
 """Health check routes for the Auth API."""
 
-from config.logging import get_logger
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any
 
-from fastapi import APIRouter, Request, Depends
+from config.logging import get_logger
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
@@ -38,7 +38,7 @@ async def health_check(request: Request) -> JSONResponse:
         overall_status = "healthy" if all_healthy else "unhealthy"
 
         ***REMOVED*** Build response
-        response: Dict[str, Any] = {
+        response: dict[str, Any] = {
             "status": overall_status,
             "service": "auth-api",
             "version": "0.1.0",
@@ -49,7 +49,7 @@ async def health_check(request: Request) -> JSONResponse:
 
         ***REMOVED*** Add individual service checks
         for service_name, result in health_results.items():
-            check_data: Dict[str, Any] = {
+            check_data: dict[str, Any] = {
                 "status": result.status,
                 "healthy": result.is_healthy,
             }
@@ -89,7 +89,7 @@ async def health_check(request: Request) -> JSONResponse:
 
 
 @router.get("/health/live")
-async def liveness_check() -> Dict[str, Any]:
+async def liveness_check() -> dict[str, Any]:
     """Simple liveness check endpoint.
 
     Returns basic service status without dependency checks.
@@ -175,8 +175,9 @@ async def db_health_check(db: Session = Depends(get_db)) -> JSONResponse:
         Database health status and connection information
     """
     try:
-        from sqlmodel import text
         import traceback
+
+        from sqlmodel import text
 
         ***REMOVED*** Try a simple query
         result = db.execute(text("SELECT 1")).scalar()
