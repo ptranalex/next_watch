@@ -33,8 +33,29 @@ pip-wheel-metadata/
 .hatch/
 .venv/
 .env/        ***REMOVED*** in case a global .env exists at root
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** SECURITY: Environment Files - ALL variants
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** Exclude ALL .env files except example templates
+.env
+.env.*
+!.env.example
+!.env.*.example
 .env.local
 .env.*.local
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+***REMOVED*** Production and sensitive configurations
+**/production.yml
+**/prod.yml
+**/.env.prod
+**/.env.production
+**/.env.observability.*
+**/.env.monitoring.*
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** Node.js (for frontend apps or tools)
@@ -74,3 +95,31 @@ model_cache
 ***REMOVED*** Local Development Storage
 ***REMOVED*** ------------------------------------------------------------------------------
 data
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** SECURITY: Database Files
+***REMOVED*** ------------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** SECURITY: Keys and Certificates
+***REMOVED*** ------------------------------------------------------------------------------
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+*.pub
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** SECURITY: AWS and Cloud Credentials
+***REMOVED*** ------------------------------------------------------------------------------
+.aws/
+**/credentials
+**/config
+**/.boto
+**/.s3cfg

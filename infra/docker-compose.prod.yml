@@ -44,8 +44,8 @@ services:
       - REFRESH_TOKEN_EXPIRE_DAYS=7
 
       ***REMOVED*** Security Configuration
-      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
-      - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "backend-api", "0.0.0.0"]
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "backend-api", "0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
 
       ***REMOVED*** Performance & Monitoring
@@ -128,8 +128,8 @@ services:
       - VECTOR_DISTANCE_METRIC=cosine
 
       ***REMOVED*** Security Configuration
-      - CORS_ORIGINS=["https://alexsandbox.me","http://localhost:3000"]
-      - ALLOWED_HOSTS=["alexsandbox.me","www.alexsandbox.me","localhost","127.0.0.1","recommendation-api","0.0.0.0"]
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}","http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}","www.${PRODUCTION_DOMAIN}","localhost","127.0.0.1","recommendation-api","0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
 
       ***REMOVED*** Recommendation Settings
@@ -207,8 +207,8 @@ services:
       - ENABLE_BATCH_PROCESSING=true
       - ENABLE_MODEL_CACHING=true
       ***REMOVED*** Security Configuration
-      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
-      - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "ml-api", "0.0.0.0"]
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "ml-api", "0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
       ***REMOVED*** Performance
       - ENABLE_PERFORMANCE_METRICS=true
@@ -305,8 +305,8 @@ services:
       - SUGGESTION_BATCH_SIZE=1000
 
       ***REMOVED*** Security Configuration
-      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
-      - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "search-api", "0.0.0.0"]
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "search-api", "0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
 
       ***REMOVED*** Performance & Monitoring
@@ -386,8 +386,8 @@ services:
       - MAX_LOGIN_ATTEMPTS=5
       - LOGIN_LOCKOUT_DURATION_MINUTES=15
       - SESSION_TIMEOUT_MINUTES=60
-      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000", "http://localhost:8001"]
-      - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "auth-api", "0.0.0.0"]
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000", "http://localhost:8001"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "auth-api", "0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
 
       ***REMOVED*** Performance & Monitoring
@@ -481,8 +481,8 @@ services:
       - JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
 
       ***REMOVED*** Security Configuration
-      - CORS_ORIGINS=["https://alexsandbox.me", "http://localhost:3000"]
-      - ALLOWED_HOSTS=["alexsandbox.me", "www.alexsandbox.me", "localhost", "127.0.0.1", "bff-api", "0.0.0.0"]
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "bff-api", "0.0.0.0"]
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
 
       ***REMOVED*** Feature Flags
@@ -558,8 +558,8 @@ services:
       - NODE_ENV=production
 
       ***REMOVED*** API Configuration
-      ***REMOVED*** - NEXT_PUBLIC_API_URL=https://alexsandbox.me/api
-      - NEXT_PUBLIC_BFF_API_URL=https://alexsandbox.me/
+      ***REMOVED*** - NEXT_PUBLIC_API_URL=https://${PRODUCTION_DOMAIN}/api
+      - NEXT_PUBLIC_BFF_API_URL=https://${PRODUCTION_DOMAIN}/
     depends_on:
       bff-api:
         condition: service_healthy

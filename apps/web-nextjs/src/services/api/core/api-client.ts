@@ -24,10 +24,7 @@ try {
   config = {
     api: {
       timeout: 10000, // 10 seconds
-      bffUrl:
-        process.env.NODE_ENV === "production"
-          ? "https://alexsandbox.me"
-          : process.env.NEXT_PUBLIC_BFF_API_URL || "http://localhost:8001",
+      bffUrl: process.env.NEXT_PUBLIC_BFF_API_URL || "http://localhost:8001",
     },
     auth: {
       tokenKey: "auth_token",
@@ -35,15 +32,23 @@ try {
   } as typeof defaultConfig;
 }
 
-// API configuration
+// Production validation
+if (
+  typeof window !== "undefined" &&
+  process.env.NODE_ENV === "production" &&
+  !process.env.NEXT_PUBLIC_BFF_API_URL
+) {
+  logger.error(
+    "NEXT_PUBLIC_BFF_API_URL must be set in production environment"
+  );
+}
+
+// API configuration - always use environment variables or config
 export const API_CONFIG = {
   baseUrl:
-    // In production, use nginx proxy for /bff/ routes
-    process.env.NODE_ENV === "production"
-      ? "https://alexsandbox.me"
-      : config.api.bffUrl ||
-        process.env.NEXT_PUBLIC_BFF_API_URL ||
-        "http://localhost:8001",
+    config.api.bffUrl ||
+    process.env.NEXT_PUBLIC_BFF_API_URL ||
+    "http://localhost:8001",
   timeout: config.api.timeout || 10000,
 };
 
