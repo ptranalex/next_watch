@@ -200,9 +200,9 @@ jobs:
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
             echo "🔐 Attempting Docker login to GHCR..."
-            if ! echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
+            if ! echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin; then
               echo "⚠️ Docker login failed — retrying with sudo..."
-              echo "${{ github.token }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
+              echo "${{ github.token }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin || {
                 echo "❌ Docker login failed even with sudo. Aborting."
                 exit 1
               }
