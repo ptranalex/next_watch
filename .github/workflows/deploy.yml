@@ -1,5 +1,9 @@
 name: Deploy Application (All Services)
 
+permissions:
+  contents: read
+  packages: read
+
 on:
   workflow_dispatch:
     inputs:
@@ -103,7 +107,7 @@ on:
       DEPLOY_USER:
         required: true
       GH_PAT:
-        required: true
+        required: false
       POSTGRES_USER:
         required: true
       POSTGRES_PASSWORD:
@@ -196,9 +200,9 @@ jobs:
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
             echo "🔐 Attempting Docker login to GHCR..."
-            if ! echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
+            if ! echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
               echo "⚠️ Docker login failed — retrying with sudo..."
-              echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
+              echo "${{ github.token }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
                 echo "❌ Docker login failed even with sudo. Aborting."
                 exit 1
               }
@@ -264,7 +268,7 @@ jobs:
             fi
 
             ***REMOVED*** Download docker-compose.prod.yml from the correct path
-            curl -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            curl -H "Authorization: token ${{ github.token }}" \
                  -H "Accept: application/vnd.github.v3.raw" \
                  -o docker-compose.prod.yml \
                  https://api.github.com/repos/${{ github.repository }}/contents/infra/docker-compose.prod.yml
@@ -280,7 +284,7 @@ jobs:
               mkdir -p monitoring/alloy
               
               ***REMOVED*** Download Alloy config file
-              curl -H "Authorization: token ${{ secrets.GH_PAT }}" \
+              curl -H "Authorization: token ${{ github.token }}" \
                    -H "Accept: application/vnd.github.v3.raw" \
                    -o monitoring/alloy/config.alloy \
                    https://api.github.com/repos/${{ github.repository }}/contents/infra/monitoring/alloy/config.alloy
