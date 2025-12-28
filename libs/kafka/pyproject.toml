@@ -97,4 +97,3 @@ ignore = ["E501"]
 [tool.black]
 line-length = 100
 target-version = ["py312"]
-
