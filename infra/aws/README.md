@@ -116,13 +116,13 @@ deploy-monitoring-one-click.sh
 The monitoring stack uses environment files for configuration:
 
 - **`.env.monitoring.prod`**: Full production configuration (120+ variables)
-- **`env.monitoring.prod.example`**: Template for new environments
+- **`env/monitoring.prod.example`**: Template for new environments
 
 To get started:
 
 ```bash
 cd infra
-cp env.monitoring.prod.example .env.monitoring.prod
+cp env/monitoring.prod.example .env.monitoring.prod
 nano .env.monitoring.prod
 ```
 
@@ -170,10 +170,10 @@ check-environment.sh → open-monitoring-ports.sh → deploy-monitoring-to-exist
 ./setup/check-environment.sh
 
 ***REMOVED*** Verify monitoring stack
-ssh -i ~/.ssh/your-key.pem ubuntu@YOUR_IP 'cd /opt/nextwatch-monitoring && sudo docker-compose ps'
+ssh -i ~/.ssh/your-key.pem ubuntu@YOUR_IP 'cd /opt/nextwatch-monitoring && sudo docker compose ps'
 
 ***REMOVED*** Check logs
-ssh -i ~/.ssh/your-key.pem ubuntu@YOUR_IP 'cd /opt/nextwatch-monitoring && sudo docker-compose logs grafana'
+ssh -i ~/.ssh/your-key.pem ubuntu@YOUR_IP 'cd /opt/nextwatch-monitoring && sudo docker compose logs grafana'
 ```
 
 ***REMOVED******REMOVED*** 🔄 Updates and Maintenance

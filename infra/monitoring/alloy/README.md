@@ -133,7 +133,7 @@ Only after validating Tier 1 usage is stable:
    ```hcl
    // Uncomment these blocks for search-api, ml-api, recommendation-api
    ```
-3. Restart: `docker-compose -f docker-compose.alloy.yml restart`
+3. Restart: `docker compose -f docker-compose.alloy.yml restart`
 4. Monitor usage increase carefully
 
 ***REMOVED******REMOVED*** 🚨 Troubleshooting
@@ -142,7 +142,7 @@ Only after validating Tier 1 usage is stable:
 
 ```bash
 ***REMOVED*** Check logs
-docker-compose -f docker-compose.alloy.yml logs grafana-alloy
+docker compose -f docker-compose.alloy.yml logs grafana-alloy
 
 ***REMOVED*** Common issues:
 ***REMOVED*** 1. Invalid credentials in .env

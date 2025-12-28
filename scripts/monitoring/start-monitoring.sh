@@ -40,8 +40,12 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 ***REMOVED*** Check if docker-compose is available
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}❌ docker-compose not found. Please install docker-compose.${NC}"
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    echo -e "${RED}❌ Neither 'docker compose' nor 'docker-compose' found. Please install Docker Compose.${NC}"
     exit 1
 fi
 
@@ -54,10 +58,10 @@ echo -e "${YELLOW}🐳 Starting monitoring containers...${NC}"
 cd "$INFRA_DIR"
 
 ***REMOVED*** Stop any existing containers
-docker-compose -f docker-compose.monitoring.yml down
+$DOCKER_COMPOSE_CMD -f "$INFRA_DIR/compose/monitoring.yml" down
 
 ***REMOVED*** Start the stack
-docker-compose -f docker-compose.monitoring.yml up -d
+$DOCKER_COMPOSE_CMD -f "$INFRA_DIR/compose/monitoring.yml" up -d
 
 ***REMOVED*** Wait for services to be healthy
 echo -e "${YELLOW}⏳ Waiting for services to be healthy...${NC}"
@@ -135,5 +139,5 @@ fi
 echo ""
 echo -e "${GREEN}✨ Setup complete! Happy monitoring! ✨${NC}"
 echo ""
-echo -e "${BLUE}📖 Documentation:${NC} docs/PROMETHEUS_GRAFANA_SETUP.md"
-echo -e "${BLUE}🐛 Logs:${NC} docker-compose -f $INFRA_DIR/docker-compose.monitoring.yml logs -f"
+echo -e "${BLUE}📖 Documentation:${NC} docs/observability/PROMETHEUS_GRAFANA_SETUP.md"
+echo -e "${BLUE}🐛 Logs:${NC} $DOCKER_COMPOSE_CMD -f $INFRA_DIR/compose/monitoring.yml logs -f"

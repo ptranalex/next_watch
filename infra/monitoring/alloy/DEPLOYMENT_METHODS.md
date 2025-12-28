@@ -76,7 +76,7 @@ infra/monitoring/alloy/
 └── docs/...                     ***REMOVED*** Documentation
 
 infra/
-└── docker-compose.prod.yml      ***REMOVED*** Production deployment (integrated)
+└── compose/prod.yml             ***REMOVED*** Production deployment (integrated)
 ```
 
 ---
@@ -85,7 +85,7 @@ infra/
 
 **Current Setup → Recommendation:**
 
-1. **Production**: Use integrated method (`docker-compose.prod.yml`)
+1. **Production**: Use integrated method (`infra/compose/prod.yml`)
 2. **Development**: Keep using standalone method for testing
 3. **CI/CD**: Updated to deploy integrated Alloy
 4. **Documentation**: Updated to reflect both approaches

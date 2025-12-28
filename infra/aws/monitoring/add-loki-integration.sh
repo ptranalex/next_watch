@@ -45,8 +45,14 @@ echo -e "${YELLOW}📋 Deploying Loki integration...${NC}"
 ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" << 'REMOTE_SCRIPT'
 cd /opt/nextwatch-monitoring
 
+if sudo docker compose version >/dev/null 2>&1; then
+  DOCKER_COMPOSE_CMD="sudo docker compose"
+else
+  DOCKER_COMPOSE_CMD="sudo docker-compose"
+fi
+
 echo "🛑 Stopping monitoring services..."
-sudo docker-compose -f docker-compose.aws.yml down
+$DOCKER_COMPOSE_CMD -f docker-compose.aws.yml down
 
 echo "📝 Updating Docker Compose with Loki services..."
 ***REMOVED*** Backup current configuration
@@ -115,13 +121,13 @@ LOKI_CONFIG
 sudo sed -i '/^volumes:/a \  loki-data:\n    driver: local' docker-compose.aws.yml
 
 echo "🐳 Starting monitoring stack with Loki..."
-sudo docker-compose -f docker-compose.aws.yml --env-file .env.monitoring.prod up -d
+$DOCKER_COMPOSE_CMD -f docker-compose.aws.yml --env-file .env.monitoring.prod up -d
 
 echo "⏳ Waiting for services to start..."
 sleep 30
 
 echo "🏥 Checking service health..."
-sudo docker-compose -f docker-compose.aws.yml ps
+$DOCKER_COMPOSE_CMD -f docker-compose.aws.yml ps
 
 echo ""
 echo "🎉 Loki integration deployment complete!"

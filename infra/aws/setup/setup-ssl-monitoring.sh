@@ -332,8 +332,14 @@ DOCKER_SSL
 
 ***REMOVED*** Restart monitoring stack with SSL configuration
 echo "🔄 Restarting monitoring stack with SSL configuration..."
-sudo docker-compose -f docker-compose.ssl.yml --env-file .env.monitoring.prod down
-sudo docker-compose -f docker-compose.ssl.yml --env-file .env.monitoring.prod up -d
+if sudo docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="sudo docker compose"
+else
+    DOCKER_COMPOSE_CMD="sudo docker-compose"
+fi
+
+$DOCKER_COMPOSE_CMD -f docker-compose.ssl.yml --env-file .env.monitoring.prod down
+$DOCKER_COMPOSE_CMD -f docker-compose.ssl.yml --env-file .env.monitoring.prod up -d
 
 ***REMOVED*** Display final status
 echo ""

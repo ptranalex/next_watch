@@ -58,7 +58,7 @@ echo "  4. Clean up git history"
 echo ""
 echo "Files/patterns to be removed:"
 echo "  - All .env files (except .example files)"
-echo "  - All .db files"  
+echo "  - All .db files"
 echo "  - Specific sensitive configuration files"
 echo ""
 echo "Credentials to be redacted:"
@@ -85,7 +85,7 @@ echo ""
 echo -e "${GREEN}Step 2: Creating replacement patterns...${NC}"
 cat > /tmp/nextwatch_passwords.txt << 'EOF'
 glc_eyJvIjoiMTUwMjI5NSIsIm4iOiJzdGFjay0xMzM5NjgxLWFsbG95LW5leHR3YXRjaCIsImsiOiJCYzM0Sk5rOHEyUTA4aDRKb3M4MXU5UkkiLCJtIjp7InIiOiJwcm9kLWFwLXNvdXRoZWFzdC0xIn19==>YOUR_GRAFANA_API_KEY_HERE
-NextWatch2024!Admin==>YOUR_ADMIN_PASSWORD_HERE  
+NextWatch2024!Admin==>YOUR_ADMIN_PASSWORD_HERE
 NextWatch2024!Grafana==>YOUR_DB_PASSWORD_HERE
 805656999857-a4ckp6k066aipeq52lkk1tm8h9ab908n==>YOUR_GOOGLE_CLIENT_ID
 p.tran.alex@gmail.com==>contributors@example.com
@@ -171,4 +171,3 @@ echo "   - Rotate internal API keys"
 echo ""
 echo -e "${RED}IMPORTANT: Anyone who has cloned the repo must re-clone!${NC}"
 echo ""
-

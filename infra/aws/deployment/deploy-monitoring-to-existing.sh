@@ -35,7 +35,7 @@ echo "Target instance: $INSTANCE_ID ($PUBLIC_IP)"
 if [ ! -f "$MONITORING_ENV_FILE" ]; then
     echo -e "${RED}❌ Monitoring environment file not found: $MONITORING_ENV_FILE${NC}"
     echo "Creating from template..."
-    cp "$INFRA_DIR/env.monitoring.prod.example" "$MONITORING_ENV_FILE"
+    cp "$INFRA_DIR/env/monitoring.prod.example" "$MONITORING_ENV_FILE"
     echo -e "${YELLOW}⚠️  Please edit $MONITORING_ENV_FILE with your production values${NC}"
     exit 1
 fi

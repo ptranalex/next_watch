@@ -147,7 +147,7 @@ prometheus.relabel "filter_health" {
 }
 
 //
-// TIER 2: SECONDARY SERVICES (All services from docker-compose.prod.yml)
+// TIER 2: SECONDARY SERVICES (All services from infra/compose/prod.yml)
 //
 
 // Search API - Dedicated search service
@@ -382,7 +382,7 @@ otelcol.auth.basic "grafana_cloud_traces" {
 //
 // CONFIGURATION NOTES
 //
-// 1. All API services and Qdrant from docker-compose.prod.yml are monitored
+// 1. All API services and Qdrant from infra/compose/prod.yml are monitored
 // 2. Monitor usage at http://localhost:12345 (Alloy UI)
 // 3. Tier 1 (30s scrape): backend-api, bff-api, auth-api
 // 4. Tier 2 (60s scrape): search-api, ml-api, recommendation-api, qdrant

@@ -76,7 +76,7 @@ if [ -f /tmp/nextwatch-aws-env.sh ]; then
     echo -e "${GREEN}✅ Docker socket permissions configured${NC}"
 
     echo "🔄 Restarting Promtail to apply changes..."
-    ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'cd /opt/nextwatch-monitoring && sudo docker-compose -f docker-compose.monitoring.yml restart promtail'
+    ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'cd /opt/nextwatch-monitoring && (sudo docker compose -f docker-compose.monitoring.yml restart promtail || sudo docker-compose -f docker-compose.monitoring.yml restart promtail)'
     echo -e "${GREEN}✅ Promtail restarted${NC}"
 fi
 
@@ -115,7 +115,7 @@ if [ -f /tmp/nextwatch-aws-env.sh ]; then
     echo "📋 Troubleshooting:"
     echo "  ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP"
     echo "  cd /opt/nextwatch-monitoring"
-    echo "  sudo docker-compose -f docker-compose.monitoring.yml ps"
+    echo "  sudo docker compose -f docker-compose.monitoring.yml ps  (or: sudo docker-compose -f docker-compose.monitoring.yml ps)"
     echo ""
     echo -e "${GREEN}🎊 Happy Monitoring! Your NextWatch observability is now complete.${NC}"
 fi

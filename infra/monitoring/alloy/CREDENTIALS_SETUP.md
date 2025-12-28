@@ -134,7 +134,7 @@ Add to your deployment workflow:
     GRAFANA_CLOUD_LOGS_PASSWORD: ${{ secrets.GRAFANA_CLOUD_LOGS_PASSWORD }}
   run: |
     cd infra/monitoring/alloy
-    docker-compose -f docker-compose.alloy.yml up -d
+    docker compose -f docker-compose.alloy.yml up -d
 ```
 
 ***REMOVED******REMOVED*** 🔍 **Testing Your Configuration**
@@ -143,7 +143,7 @@ Add to your deployment workflow:
 
 ```bash
 ***REMOVED*** Check if variables are loaded
-docker-compose -f docker-compose.alloy.yml config
+docker compose -f docker-compose.alloy.yml config
 
 ***REMOVED*** Should show resolved environment variables (passwords will be masked)
 ```
@@ -152,8 +152,8 @@ docker-compose -f docker-compose.alloy.yml config
 
 ```bash
 ***REMOVED*** Start Alloy and check logs
-docker-compose -f docker-compose.alloy.yml up -d
-docker-compose -f docker-compose.alloy.yml logs grafana-alloy
+docker compose -f docker-compose.alloy.yml up -d
+docker compose -f docker-compose.alloy.yml logs grafana-alloy
 
 ***REMOVED*** Look for successful authentication messages
 ```
@@ -198,10 +198,10 @@ docker-compose -f docker-compose.alloy.yml logs grafana-alloy
 export GRAFANA_CLOUD_METRICS_PASSWORD="new_api_key_here"
 
 ***REMOVED*** 3. Restart Alloy to pick up new credentials
-docker-compose -f docker-compose.alloy.yml restart grafana-alloy
+docker compose -f docker-compose.alloy.yml restart grafana-alloy
 
 ***REMOVED*** 4. Verify new credentials work
-docker-compose -f docker-compose.alloy.yml logs grafana-alloy
+docker compose -f docker-compose.alloy.yml logs grafana-alloy
 
 ***REMOVED*** 5. Revoke old API keys in Grafana Cloud
 ```
@@ -226,8 +226,8 @@ curl -u "$GRAFANA_CLOUD_METRICS_USERNAME:$GRAFANA_CLOUD_METRICS_PASSWORD" \
 ls -la .env
 cat .env  ***REMOVED*** Check content (be careful with sensitive data)
 
-***REMOVED*** Check if docker-compose can read them
-docker-compose -f docker-compose.alloy.yml config | grep GRAFANA
+***REMOVED*** Check if Docker Compose can read them
+docker compose -f docker-compose.alloy.yml config | grep GRAFANA
 ```
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** **API Key Permissions**

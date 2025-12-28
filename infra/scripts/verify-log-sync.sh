@@ -45,8 +45,17 @@ echo ""
 
 cd /opt/nextwatch-monitoring || exit 1
 
+if sudo docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="sudo docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="sudo docker-compose"
+else
+    echo -e "${RED}❌ Neither 'docker compose' nor 'docker-compose' found on host${NC}"
+    exit 1
+fi
+
 echo -e "${YELLOW}1. Checking monitoring containers status:${NC}"
-sudo docker-compose -f docker-compose.monitoring.yml ps | grep -E "(promtail|loki)"
+$DOCKER_COMPOSE_CMD -f docker-compose.monitoring.yml ps | grep -E "(promtail|loki)"
 echo ""
 
 echo -e "${YELLOW}2. Testing Loki API:${NC}"

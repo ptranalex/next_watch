@@ -20,7 +20,7 @@ MONITORING_DIR="$INFRA_DIR/monitoring"
 
 ***REMOVED*** Environment file
 ENV_FILE="$INFRA_DIR/.env.monitoring.prod"
-COMPOSE_FILE="$INFRA_DIR/docker-compose.monitoring.prod.yml"
+COMPOSE_FILE="$INFRA_DIR/compose/monitoring.yml"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE} NextWatch Production Monitoring Setup ${NC}"
@@ -48,13 +48,22 @@ log_error() {
 check_dependencies() {
     log_info "Checking dependencies..."
 
-    local deps=("docker" "docker-compose" "openssl")
+    local deps=("docker" "openssl")
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
             log_error "$dep is not installed. Please install it first."
             exit 1
         fi
     done
+
+    if docker compose version >/dev/null 2>&1; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    else
+        log_error "Neither 'docker compose' nor 'docker-compose' found. Please install Docker Compose."
+        exit 1
+    fi
 
     log_success "All dependencies are installed"
 }
@@ -67,8 +76,8 @@ check_environment() {
         log_warning "Production environment file not found: $ENV_FILE"
         log_info "Creating from template..."
 
-        if [[ -f "$INFRA_DIR/env.monitoring.prod.example" ]]; then
-            cp "$INFRA_DIR/env.monitoring.prod.example" "$ENV_FILE"
+    if [[ -f "$INFRA_DIR/env/monitoring.prod.example" ]]; then
+            cp "$INFRA_DIR/env/monitoring.prod.example" "$ENV_FILE"
             log_warning "Please edit $ENV_FILE with your production values before continuing"
             echo
             echo "Required configurations:"
@@ -196,11 +205,11 @@ deploy_monitoring() {
 
     ***REMOVED*** Pull latest images
     log_info "Pulling latest Docker images..."
-    docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
+    $DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
 
     ***REMOVED*** Deploy monitoring stack
     log_info "Starting monitoring services..."
-    docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
+    $DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 
     ***REMOVED*** Wait for services to be healthy
     log_info "Waiting for services to be healthy..."

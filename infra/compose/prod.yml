@@ -1,0 +1,761 @@
+services:
+  ***REMOVED*** Backend API - Core service (with fast-core integration)
+  backend-api:
+    image: ${DOCKER_BACKEND_IMAGE}
+    container_name: backend-api
+    restart: always
+    ports:
+      - "127.0.0.1:8000:8000" ***REMOVED*** Bind to localhost only for security
+    environment:
+      ***REMOVED*** Core Service Configuration (fast-core standard)
+      - ENVIRONMENT=production
+      - SERVICE_NAME=backend-api
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
+
+      ***REMOVED*** Database Configuration
+      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
+
+      ***REMOVED*** Redis Configuration (simplified - no suggestion engine)
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - REDIS_MAX_CONNECTIONS=20
+      - REDIS_SOCKET_TIMEOUT=5
+      - REDIS_RETRY_ON_TIMEOUT=true
+
+      ***REMOVED*** JWT Configuration
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+
+      ***REMOVED*** Security Configuration
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "backend-api", "0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+
+      ***REMOVED*** Performance & Monitoring
+      - BACKEND_PERFORMANCE_METRICS=true
+      - DATABASE_MONITORING_ENABLED=true
+      - SLOW_QUERY_THRESHOLD_MS=100
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
+      - TRACING_SAMPLE_RATE=0.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - backend-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25" ***REMOVED*** Reduced for AWS t3.medium
+          memory: 512M ***REMOVED*** Reduced for 4GB total limit
+        reservations:
+          cpus: "0.1"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** Recommendation API - Movie recommendation service
+  recommendation-api:
+    image: ${DOCKER_RECOMMENDATION_IMAGE}
+    container_name: recommendation-api
+    restart: always
+    ports:
+      - "127.0.0.1:8002:8000" ***REMOVED*** Map external 8002 to internal 8000 (Docker best practice)
+    environment:
+      ***REMOVED*** Core Service Configuration
+      - ENVIRONMENT=production
+      - SERVICE_NAME=recommendation-api
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration (optimized for cache warming load)
+      - WORKERS=2
+      - TIMEOUT=60
+      - MAX_KEEPALIVE=60
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=20000
+      - BACKLOG=2048
+
+      ***REMOVED*** Service URLs
+      - BACKEND_API_URL=http://backend-api:8000
+      - ML_API_URL=http://ml-api:8000
+      - BACKEND_API_TIMEOUT=30
+      - ML_API_TIMEOUT=30
+
+      ***REMOVED*** Redis Configuration (optimized for cache warming)
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - REDIS_MAX_CONNECTIONS=40 ***REMOVED*** 2x connections for 2 workers
+      - REDIS_SOCKET_TIMEOUT=3 ***REMOVED*** Faster timeout for cache warming
+      - REDIS_SOCKET_CONNECT_TIMEOUT=3 ***REMOVED*** Faster connect timeout
+      - REDIS_RETRY_ON_TIMEOUT=true
+      - CACHE_TTL_DEFAULT=3600 ***REMOVED*** Longer cache (1 hour vs 30 min)
+      - CACHE_KEY_PREFIX=reco
+
+      ***REMOVED*** Vector Database Configuration (matching config field names)
+      - QDRANT_URL=http://qdrant:6333
+      - VECTOR_COLLECTION_NAME=movies
+      - VECTOR_DIMENSION=384
+      - VECTOR_DISTANCE_METRIC=cosine
+
+      ***REMOVED*** Security Configuration
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}","http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}","www.${PRODUCTION_DOMAIN}","localhost","127.0.0.1","recommendation-api","0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+
+      ***REMOVED*** Recommendation Settings
+      - DEFAULT_RECOMMENDATION_COUNT=10
+      - MIN_IMDB_RATING=6.0
+      - SIMILARITY_THRESHOLD=0.7
+
+      ***REMOVED*** Feature Flags
+      - ENABLE_COLLABORATIVE_FILTERING=true
+      - ENABLE_CONTENT_FILTERING=true
+      - ENABLE_TRENDING_FALLBACK=true
+      - ENABLE_DIVERSITY_BOOST=true
+      - ENABLE_CACHING=true
+
+      ***REMOVED*** Performance Settings
+      - ENABLE_PERFORMANCE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
+      - TRACING_SAMPLE_RATE=0.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - recommendation-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - qdrant
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4" ***REMOVED*** AWS t3.medium optimized
+          memory: 700M ***REMOVED*** Further reduced for 4GB limit
+        reservations:
+          cpus: "0.2"
+          memory: 400M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** ML API - Machine learning service for text embeddings and analysis
+  ml-api:
+    image: ${DOCKER_ML_IMAGE}
+    container_name: ml-api
+    restart: always
+    ports:
+      - "127.0.0.1:8004:8000" ***REMOVED*** Map external 8004 to internal 8000 (Docker best practice)
+    environment:
+      ***REMOVED*** Core Service Configuration
+      - ENVIRONMENT=production
+      - SERVICE_NAME=ml-api
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
+
+      ***REMOVED*** ML-specific Configuration
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - ENABLE_EMBEDDINGS=true
+      - ENABLE_BATCH_PROCESSING=true
+      - ENABLE_MODEL_CACHING=true
+      ***REMOVED*** Security Configuration
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "ml-api", "0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      ***REMOVED*** Performance
+      - ENABLE_PERFORMANCE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
+      - TRACING_SAMPLE_RATE=0.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ml-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25" ***REMOVED*** AWS t3.medium optimized
+          memory: 600M ***REMOVED*** Further reduced for 4GB limit
+        reservations:
+          cpus: "0.1"
+          memory: 400M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** Search API - Dedicated search service with Redis-powered suggestions
+  search-api:
+    image: ${DOCKER_SEARCH_IMAGE}
+    container_name: search-api
+    restart: always
+    ports:
+      - "127.0.0.1:8005:8000" ***REMOVED*** Map external 8005 to internal 8000 (Docker best practice, fixes port conflict)
+    environment:
+      ***REMOVED*** Core Service Configuration
+      - ENVIRONMENT=production
+      - SERVICE_NAME=search-api
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - MAX_KEEPALIVE=60
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=15000
+      - BACKLOG=2048
+
+      ***REMOVED*** Service URLs
+      - BACKEND_API_URL=http://backend-api:8000
+      - ML_API_URL=http://ml-api:8000
+
+      ***REMOVED*** Service Timeouts
+      - BACKEND_API_TIMEOUT=30
+      - ML_API_TIMEOUT=60
+
+      ***REMOVED*** Redis Configuration (Search API uses Redis database 2)
+      - REDIS_URL=redis://host.docker.internal:6379/2
+      - REDIS_MAX_CONNECTIONS=100 ***REMOVED*** SuggestionEngine max connections (fixes "Too many connections")
+      - REDIS_SOCKET_TIMEOUT=5
+      - REDIS_SOCKET_CONNECT_TIMEOUT=5
+      - REDIS_RETRY_ON_TIMEOUT=true
+      - CACHE_TTL_DEFAULT=3600
+      - CACHE_KEY_PREFIX=search
+      - SEARCH_CACHE_TTL=300
+      - SUGGESTION_CACHE_TTL=3600
+
+      ***REMOVED*** Search-specific settings
+      - MAX_SUGGESTIONS=50
+      - MIN_QUERY_LENGTH=1
+      - MAX_QUERY_LENGTH=100
+      - "REDIS_SUGGESTION_KEY_PREFIX=suggestions:"
+      - "REDIS_ENTITY_KEY_PREFIX=entity:"
+      - "REDIS_SEARCH_RESULT_PREFIX=search_results:"
+
+      ***REMOVED*** Feature flags
+      - ENABLE_SEMANTIC_SEARCH=false
+      - ENABLE_SEARCH_ANALYTICS=true
+      - ENABLE_FUZZY_MATCHING=true
+      - ENABLE_TYPO_TOLERANCE=true
+
+      ***REMOVED*** Performance settings
+      - MAX_CONCURRENT_SEARCHES=100
+      - SEARCH_TIMEOUT_SECONDS=30
+      - SUGGESTION_BATCH_SIZE=1000
+
+      ***REMOVED*** Security Configuration
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "search-api", "0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+
+      ***REMOVED*** Performance & Monitoring
+      - ENABLE_PERFORMANCE_METRICS=true
+      - CACHE_ENABLE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
+      - TRACING_SAMPLE_RATE=0.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - search-logs:/app/logs
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2" ***REMOVED*** AWS t3.medium optimized
+          memory: 400M ***REMOVED*** Reduced for 4GB limit
+        reservations:
+          cpus: "0.1"
+          memory: 200M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** Auth API - Authentication service
+  auth-api:
+    image: ${DOCKER_AUTH_IMAGE}
+    container_name: auth-api
+    restart: always
+    ports:
+      - "127.0.0.1:8003:8000" ***REMOVED*** Map external 8003 to internal 8000 (Docker best practice)
+    environment:
+      ***REMOVED*** Core Service Configuration (matching ServiceConfig pattern)
+      - ENVIRONMENT=production
+      - SERVICE_NAME=auth-api
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
+      ***REMOVED*** Database Configuration
+      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
+      ***REMOVED*** JWT Configuration
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - JWT_JWK=${JWT_JWK:-}
+      - JWT_JWK_ROTATION_INTERVAL=${JWT_JWK_ROTATION_INTERVAL:-86400}
+      ***REMOVED*** Security Configuration
+      - PASSWORD_HASH_ROUNDS=12
+      - MAX_LOGIN_ATTEMPTS=5
+      - LOGIN_LOCKOUT_DURATION_MINUTES=15
+      - SESSION_TIMEOUT_MINUTES=60
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000", "http://localhost:8001"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "auth-api", "0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+
+      ***REMOVED*** Performance & Monitoring
+      - AUTH_PERFORMANCE_METRICS=true
+      - ENABLE_PERFORMANCE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
+      - TRACING_SAMPLE_RATE=0.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - auth-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: 512M
+        reservations:
+          cpus: "0.05"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** BFF API - Backend for Frontend (with unlimited cache warming)
+  ***REMOVED*** Configured for PRODUCTION: Warms ALL 4000+ movies without limits
+  bff-api:
+    image: ${DOCKER_BFF_IMAGE}
+    container_name: bff-api
+    restart: always
+    command: ["/app/scripts/start-with-cron.sh"]
+    ports:
+      - "127.0.0.1:8001:8000" ***REMOVED*** Map external 8001 to internal 8000 (Docker best practice)
+    environment:
+      ***REMOVED*** Core Service Configuration
+      - ENVIRONMENT=production
+      - SERVICE_NAME=bff-api
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - LOGS_DIR=/app/logs
+
+      ***REMOVED*** Uvicorn Configuration
+      - WORKERS=1
+      - TIMEOUT=120
+      - FORWARDED_ALLOW_IPS=*
+      - LIMIT_MAX_REQUESTS=10000
+      - BACKLOG=1024
+
+      ***REMOVED*** Service URLs
+      - BACKEND_API_URL=http://backend-api:8000
+      - AUTH_API_URL=http://auth-api:8000
+      - RECO_API_URL=http://recommendation-api:8000
+      - SEARCH_API_URL=http://search-api:8000
+      - ML_API_URL=http://ml-api:8000
+
+      ***REMOVED*** Service Timeouts
+      - BACKEND_API_TIMEOUT=30
+      - AUTH_API_TIMEOUT=10
+      - RECOMMENDATION_API_TIMEOUT=30
+      - SEARCH_API_TIMEOUT=15
+      - ML_API_TIMEOUT=60
+
+      ***REMOVED*** Redis Configuration (BFF config uses no prefix, cache service bridges to library)
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - REDIS_MAX_CONNECTIONS=20
+      - REDIS_SOCKET_TIMEOUT=5
+      - REDIS_SOCKET_CONNECT_TIMEOUT=5
+      - REDIS_RETRY_ON_TIMEOUT=true
+      - CACHE_TTL_DEFAULT=300
+      - CACHE_KEY_PREFIX=bff
+      - CACHE_TTL_SHORT=60
+      - CACHE_TTL_MEDIUM=900
+      - CACHE_TTL_LONG=3600
+
+      ***REMOVED*** JWT Configuration
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+
+      ***REMOVED*** Security Configuration
+      - CORS_ORIGINS=["https://${PRODUCTION_DOMAIN}", "http://localhost:3000"]
+      - ALLOWED_HOSTS=["${PRODUCTION_DOMAIN}", "www.${PRODUCTION_DOMAIN}", "localhost", "127.0.0.1", "bff-api", "0.0.0.0"]
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+
+      ***REMOVED*** Feature Flags
+      - ENABLE_RECOMMENDATIONS=true
+      - ENABLE_ML_FEATURES=true
+      - ENABLE_AUTH_SERVICE=true
+
+      ***REMOVED*** Cache Warming Configuration - PRODUCTION UNLIMITED WARMING
+      - ENABLE_CACHE_WARMING=true
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-your-secure-admin-key}
+
+      ***REMOVED*** Warming Strategy Settings (for unlimited warming in production)
+      ***REMOVED*** These settings enable processing ALL 4000+ movies without CLI limits
+      ***REMOVED*** OPTIMIZED: Recommendation API now has 2x CPU and 2x workers
+      - WARMING_MAX_ITEMS_PER_STRATEGY=10000 ***REMOVED*** Strategy limit (fallback, CLI overrides)
+      - WARMING_MAX_CONCURRENT=3 ***REMOVED*** Increased: Recommendation API can handle more load
+      - WARMING_OPERATION_TIMEOUT=120 ***REMOVED*** Reduced: Faster with optimized recommendation API
+      - WARMING_REQUESTS_PER_SECOND=4 ***REMOVED*** Increased: 2x faster warming
+      - WARMING_BURST_SIZE=5 ***REMOVED*** Increased: Better burst handling
+      - WARMING_MAX_CONNECTIONS=4 ***REMOVED*** Increased: More connections to recommendation API
+      - WARMING_REQUEST_TIMEOUT=8 ***REMOVED*** Reduced: Faster with optimized API
+
+      ***REMOVED*** Performance & Monitoring
+      - ENABLE_PERFORMANCE_METRICS=true
+      - CACHE_ENABLE_METRICS=true
+
+      ***REMOVED*** Tracing Configuration
+      - ENABLE_TRACING=true
+      - TRACING_ENDPOINT=http://grafana-alloy:4317
+      - TRACING_SAMPLE_RATE=0.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - bff-logs:/app/logs
+    depends_on:
+      backend-api:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+      recommendation-api:
+        condition: service_healthy
+      search-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2" ***REMOVED*** AWS t3.medium optimized
+          memory: 600M ***REMOVED*** Reduced for 4GB limit
+        reservations:
+          cpus: "0.1"
+          memory: 300M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** Frontend - Next.js Web Application
+  frontend:
+    image: ${DOCKER_FRONTEND_IMAGE}
+    container_name: frontend
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000" ***REMOVED*** Bind to localhost only for security
+    environment:
+      ***REMOVED*** Core Configuration
+      - NODE_ENV=production
+
+      ***REMOVED*** API Configuration
+      ***REMOVED*** - NEXT_PUBLIC_API_URL=https://${PRODUCTION_DOMAIN}/api
+      - NEXT_PUBLIC_BFF_API_URL=https://${PRODUCTION_DOMAIN}/
+    depends_on:
+      bff-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "pgrep -f 'node.*server.js' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: 512M
+        reservations:
+          cpus: "0.05"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** Cache Warmer - OPTION 2: Run cron inside BFF container instead
+  ***REMOVED*** Uncomment and modify BFF container to include cron setup
+  ***REMOVED*** See: infra/CACHE_WARMING_INSIDE_BFF.md for implementation
+
+  ***REMOVED*** Data Importer - Utility service for data synchronization
+  data-importer:
+    image: ${DOCKER_IMPORTER_IMAGE}
+    container_name: data-importer
+    restart: "no" ***REMOVED*** Run once or manually triggered
+    profiles: ["sync", "import"]
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+      ***REMOVED*** Database Configuration
+      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}
+      ***REMOVED*** API Keys
+      - TMDB_ACCESS_TOKEN=${TMDB_ACCESS_TOKEN}
+      - OMDB_API_KEY=${OMDB_API_KEY}
+      ***REMOVED*** Import Configuration
+      - BATCH_SIZE=100
+      - RATE_LIMIT_DELAY=1
+      - MAX_RETRIES=3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - importer-logs:/app/logs
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: 512M
+        reservations:
+          cpus: "0.05"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED*** Qdrant - Vector Database for similarity search
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    restart: always
+    ports:
+      - "127.0.0.1:6333:6333" ***REMOVED*** Bind to localhost only for security
+      - "127.0.0.1:6334:6334" ***REMOVED*** Bind to localhost only for security
+    volumes:
+      - qdrant-data:/qdrant/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25" ***REMOVED*** AWS t3.medium optimized
+          memory: 600M ***REMOVED*** Reduced for 4GB limit
+        reservations:
+          cpus: "0.1"
+          memory: 300M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  ***REMOVED***
+  ***REMOVED*** 🔍 OBSERVABILITY - Grafana Alloy (Metrics + Logs + Traces)
+  ***REMOVED***
+  grafana-alloy:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy-prod
+    restart: always
+    user: root
+    ports:
+      - "127.0.0.1:12345:12345" ***REMOVED*** Alloy UI (localhost only)
+      - "4317:4317" ***REMOVED*** OTLP gRPC receiver
+      - "4318:4318" ***REMOVED*** OTLP HTTP receiver
+    environment:
+      - ALLOY_MODE=flow
+      - ALLOY_CONFIG_FILE=/etc/alloy/config.alloy
+      - ALLOY_STORAGE_PATH=/var/lib/alloy/data
+      - ALLOY_LOG_LEVEL=info
+      ***REMOVED*** Grafana Cloud credentials from environment
+      - GRAFANA_CLOUD_METRICS_URL=${GRAFANA_CLOUD_METRICS_URL}
+      - GRAFANA_CLOUD_METRICS_USERNAME=${GRAFANA_CLOUD_METRICS_USERNAME}
+      - GRAFANA_CLOUD_METRICS_PASSWORD=${GRAFANA_CLOUD_METRICS_PASSWORD}
+      - GRAFANA_CLOUD_LOGS_URL=${GRAFANA_CLOUD_LOGS_URL}
+      - GRAFANA_CLOUD_LOGS_USERNAME=${GRAFANA_CLOUD_LOGS_USERNAME}
+      - GRAFANA_CLOUD_LOGS_PASSWORD=${GRAFANA_CLOUD_LOGS_PASSWORD}
+      - GRAFANA_CLOUD_TRACES_URL=${GRAFANA_CLOUD_TRACES_URL}
+      - GRAFANA_CLOUD_TRACES_USERNAME=${GRAFANA_CLOUD_TRACES_USERNAME}
+      - GRAFANA_CLOUD_TRACES_PASSWORD=${GRAFANA_CLOUD_TRACES_PASSWORD}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend-api
+      - auth-api
+      - bff-api
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:12345/-/ready",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+***REMOVED*** Named volumes for persistent logs
+volumes:
+  backend-logs:
+    driver: local
+  auth-logs:
+    driver: local
+  bff-logs:
+    driver: local
+  recommendation-logs:
+    driver: local
+  ml-logs:
+    driver: local
+  search-logs:
+    driver: local
+  importer-logs:
+    driver: local
+  qdrant-data:
+    driver: local
+  alloy-data:
+    driver: local
+
+***REMOVED*** Networks - Explicitly named to match Docker Compose auto-generation pattern
+***REMOVED*** Uses 'next_watch_default' to maintain compatibility with existing deployments
+***REMOVED*** and provide predictable network naming for monitoring service integration
+networks:
+  default:
+    driver: bridge
+    name: next_watch_default

@@ -7,6 +7,16 @@ set -e
 
 echo "🚀 Setting up Grafana Alloy for NextWatch monitoring migration..."
 
+***REMOVED*** Check if Docker Compose is available (prefer `docker compose`, fallback to `docker-compose`)
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    echo "❌ Neither 'docker compose' nor 'docker-compose' found. Please install Docker Compose."
+    exit 1
+fi
+
 ***REMOVED*** Check if we're in the right directory
 if [[ ! -f "docker-compose.alloy.yml" ]]; then
     echo "❌ Error: Please run this script from the infra/monitoring/alloy directory"
@@ -67,11 +77,11 @@ docker pull grafana/alloy:latest
 
 ***REMOVED*** Stop existing Alloy container if running
 echo "🛑 Stopping existing Alloy container..."
-docker-compose -f docker-compose.alloy.yml down || true
+$DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml down || true
 
 ***REMOVED*** Start Alloy
 echo "🚀 Starting Grafana Alloy..."
-docker-compose -f docker-compose.alloy.yml up -d
+$DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml up -d
 
 ***REMOVED*** Wait for Alloy to start
 echo "⏳ Waiting for Alloy to start..."
@@ -83,7 +93,7 @@ if curl -s http://localhost:12345/-/healthy >/dev/null; then
     echo "✅ Alloy is healthy and running!"
 else
     echo "❌ Alloy health check failed"
-    echo "📝 Check logs with: docker-compose -f docker-compose.alloy.yml logs grafana-alloy"
+    echo "📝 Check logs with: $DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml logs grafana-alloy"
     exit 1
 fi
 
@@ -92,9 +102,9 @@ echo ""
 echo "🎉 Grafana Alloy setup complete!"
 echo ""
 echo "📊 Alloy UI: http://localhost:12345"
-echo "📝 View logs: docker-compose -f docker-compose.alloy.yml logs -f grafana-alloy"
-echo "🔄 Restart: docker-compose -f docker-compose.alloy.yml restart"
-echo "🛑 Stop: docker-compose -f docker-compose.alloy.yml down"
+echo "📝 View logs: $DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml logs -f grafana-alloy"
+echo "🔄 Restart: $DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml restart"
+echo "🛑 Stop: $DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml down"
 echo ""
 echo "📈 Next steps:"
 echo "1. Visit http://localhost:12345 to see Alloy UI"
