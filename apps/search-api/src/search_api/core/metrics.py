@@ -4,12 +4,11 @@ This module provides custom metrics for the Search API service,
 including Redis operations, search performance, suggestion analytics, and user behavior tracking.
 """
 
-from typing import Dict, Optional, Any, Callable, TypeVar
-from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
-from config.logging import get_logger
+from collections.abc import Callable
+from typing import Any
 
-***REMOVED*** Type variable for function decorators
-F = TypeVar("F", bound=Callable[..., Any])
+from config.logging import get_logger
+from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
 
 logger = get_logger(__name__)
 
@@ -52,7 +51,7 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
 class SearchMetrics:
     """Search-specific metrics collection."""
 
-    def __init__(self, metrics_registry: Optional[MetricsRegistry] = None):
+    def __init__(self, metrics_registry: MetricsRegistry | None = None):
         """Initialize Search metrics.
 
         Args:
@@ -418,7 +417,7 @@ class SearchMetrics:
             else:
                 value_range = "none"
         elif filter_type == "rating":
-            if filter_value and isinstance(filter_value, (int, float)):
+            if filter_value and isinstance(filter_value, int | float):
                 if filter_value >= 8.0:
                     value_range = "8.0+"
                 elif filter_value >= 6.0:
@@ -615,15 +614,15 @@ class SearchMetrics:
 
 
 ***REMOVED*** Global Search metrics instance
-_search_metrics: Optional[SearchMetrics] = None
+_search_metrics: SearchMetrics | None = None
 
 
-def get_search_metrics() -> Optional[SearchMetrics]:
+def get_search_metrics() -> SearchMetrics | None:
     """Get the global Search metrics instance."""
     return _search_metrics
 
 
-def initialize_search_metrics() -> Optional[SearchMetrics]:
+def initialize_search_metrics() -> SearchMetrics | None:
     """Initialize global Search metrics instance.
 
     Returns:
@@ -638,9 +637,9 @@ def initialize_search_metrics() -> Optional[SearchMetrics]:
 
 
 ***REMOVED*** Decorator for tracking Search operations
-def track_search_operation(
-    operation_name: str, labels: Optional[Dict[str, str]] = None
-) -> Callable[[F], F]:
+def track_search_operation[Func: Callable[..., Any]](
+    operation_name: str, labels: dict[str, str] | None = None
+) -> Callable[[Func], Func]:
     """Decorator to track Search-specific operations.
 
     Args:
@@ -653,7 +652,7 @@ def track_search_operation(
     registry = get_metrics_registry()
     if not registry:
 
-        def noop_decorator(func: F) -> F:
+        def noop_decorator(func: Func) -> Func:
             return func
 
         return noop_decorator
@@ -662,26 +661,26 @@ def track_search_operation(
 
 
 ***REMOVED*** Example usage decorators for common Search operations
-def track_movie_search(func: F) -> F:
+def track_movie_search[Func: Callable[..., Any]](func: Func) -> Func:
     """Track movie search operations."""
     return track_search_operation("movie_search")(func)
 
 
-def track_suggestion_operation(func: F) -> F:
+def track_suggestion_operation[Func: Callable[..., Any]](func: Func) -> Func:
     """Track suggestion operations."""
     return track_search_operation("suggestion_operation")(func)
 
 
-def track_redis_operation(func: F) -> F:
+def track_redis_operation[Func: Callable[..., Any]](func: Func) -> Func:
     """Track Redis operations."""
     return track_search_operation("redis_operation")(func)
 
 
-def track_entity_search(func: F) -> F:
+def track_entity_search[Func: Callable[..., Any]](func: Func) -> Func:
     """Track entity search operations."""
     return track_search_operation("entity_search")(func)
 
 
-def track_analytics_operation(func: F) -> F:
+def track_analytics_operation[Func: Callable[..., Any]](func: Func) -> Func:
     """Track search analytics operations."""
     return track_search_operation("analytics_operation")(func)

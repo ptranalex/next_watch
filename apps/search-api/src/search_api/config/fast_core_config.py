@@ -3,9 +3,10 @@
 This module converts SearchAPIConfig to FastAPIConfig for use with fast-core.
 """
 
-from fast_core.config import FastAPIConfig
-from search_api.config.app import SearchAPIConfig
 from config.logging import get_logger
+from fast_core.config import FastAPIConfig
+
+from search_api.config.app import SearchAPIConfig
 
 logger = get_logger(__name__)
 

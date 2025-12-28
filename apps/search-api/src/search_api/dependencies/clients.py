@@ -1,6 +1,7 @@
 """Service client dependencies for Search API."""
 
-from typing import Dict, Any
+from typing import Any
+
 from config.logging import get_logger
 
 logger = get_logger(__name__)
@@ -16,7 +17,7 @@ async def cleanup_service_clients() -> None:
     ***REMOVED*** TODO: Implement actual cleanup when service clients are added
 
 
-async def get_all_services_health() -> Dict[str, Any]:
+async def get_all_services_health() -> dict[str, Any]:
     """Get health status of all registered services.
 
     Returns:

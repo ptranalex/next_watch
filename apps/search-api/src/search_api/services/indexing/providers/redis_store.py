@@ -1,8 +1,8 @@
 """Redis storage abstraction for suggestion indexing."""
 
-import re
 import json
-from typing import Any, Dict, List
+import re
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -42,7 +42,7 @@ class RedisStore:
 
     async def index_movies(
         self,
-        movies: List[Dict[str, Any]],
+        movies: list[dict[str, Any]],
         *,
         include_words: bool,
         min_word_length: int,
@@ -112,7 +112,7 @@ class RedisStore:
                 pipeline = self._client.pipeline()
         return count
 
-    async def index_actors(self, actors: List[Dict[str, Any]], *, batch_size: int) -> int:
+    async def index_actors(self, actors: list[dict[str, Any]], *, batch_size: int) -> int:
         pipeline = self._client.pipeline()
         count = 0
         for i, actor in enumerate(actors):
@@ -136,7 +136,7 @@ class RedisStore:
                 pipeline = self._client.pipeline()
         return count
 
-    async def counts(self) -> Dict[str, int]:
+    async def counts(self) -> dict[str, int]:
         zset_count = await self._client.zcard("suggestions")
         cursor = 0
         entity_count = 0

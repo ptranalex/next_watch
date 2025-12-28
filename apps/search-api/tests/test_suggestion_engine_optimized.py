@@ -4,9 +4,10 @@
 Unit tests for the optimized SuggestionEngine substring matching functionality.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 from search_api.services.suggestion_engine import SuggestionEngine
 
 
@@ -71,13 +72,15 @@ async def test_substring_matching_performance_monitoring(suggestion_engine):
     mock_redis = AsyncMock()
     mock_redis.scan.return_value = (0, [])
 
-    with patch("search_api.services.suggestion_engine.logger") as mock_logger:
-        with patch("time.time", side_effect=[0.0, 0.15]):  ***REMOVED*** 150ms duration
-            await suggestion_engine._get_substring_matches(mock_redis, "test", 5)
+    with (
+        patch("search_api.services.suggestion_engine.logger") as mock_logger,
+        patch("time.time", side_effect=[0.0, 0.15]),
+    ):  ***REMOVED*** 150ms duration
+        await suggestion_engine._get_substring_matches(mock_redis, "test", 5)
 
-            ***REMOVED*** Should log a warning for slow query
-            mock_logger.warning.assert_called_once()
-            assert "Slow substring search" in mock_logger.warning.call_args[0][0]
+        ***REMOVED*** Should log a warning for slow query
+        mock_logger.warning.assert_called_once()
+        assert "Slow substring search" in mock_logger.warning.call_args[0][0]
 
 
 @pytest.mark.asyncio
@@ -108,36 +111,36 @@ async def test_consolidated_substring_logic():
     """Test that the consolidated substring logic works correctly."""
     engine = SuggestionEngine("redis://localhost:6379/0")
 
-    with patch.object(engine, "get_suggestions") as mock_get_suggestions:
-        with patch.object(engine, "_get_substring_matches") as mock_substring:
-            mock_redis = AsyncMock()
+    with (
+        patch.object(engine, "get_suggestions") as mock_get_suggestions,
+        patch.object(engine, "_get_substring_matches") as mock_substring,
+    ):
+        ***REMOVED*** Simulate different scenarios
+        test_cases = [
+            ***REMOVED*** Case 1: Few initial results (< 3) - should be more aggressive
+            {
+                "initial_suggestions": ["leo"],
+                "expected_substring_limit_min": 3,
+                "expected_substring_limit_max": 8,
+            },
+            ***REMOVED*** Case 2: Good initial results (>= 3) - should be conservative
+            {
+                "initial_suggestions": ["leo", "leopold", "leonardo", "leon"],
+                "expected_substring_limit_min": 2,
+                "expected_substring_limit_max": 5,
+            },
+        ]
 
-            ***REMOVED*** Simulate different scenarios
-            test_cases = [
-                ***REMOVED*** Case 1: Few initial results (< 3) - should be more aggressive
-                {
-                    "initial_suggestions": ["leo"],
-                    "expected_substring_limit_min": 3,
-                    "expected_substring_limit_max": 8,
-                },
-                ***REMOVED*** Case 2: Good initial results (>= 3) - should be conservative
-                {
-                    "initial_suggestions": ["leo", "leopold", "leonardo", "leon"],
-                    "expected_substring_limit_min": 2,
-                    "expected_substring_limit_max": 5,
-                },
-            ]
+        for case in test_cases:
+            mock_get_suggestions.return_value = case["initial_suggestions"]
+            mock_substring.return_value = ["napoleon"]
 
-            for case in test_cases:
-                mock_get_suggestions.return_value = case["initial_suggestions"]
-                mock_substring.return_value = ["napoleon"]
+            ***REMOVED*** This would need the actual method call - simplified for demo
+            ***REMOVED*** In reality, you'd test the actual get_entity_suggestions method
 
-                ***REMOVED*** This would need the actual method call - simplified for demo
-                ***REMOVED*** In reality, you'd test the actual get_entity_suggestions method
-
-                ***REMOVED*** Verify substring matching was called with appropriate limits
-                ***REMOVED*** (This is a simplified test structure)
-                pass
+            ***REMOVED*** Verify substring matching was called with appropriate limits
+            ***REMOVED*** (This is a simplified test structure)
+            pass
 
 
 @pytest.mark.asyncio

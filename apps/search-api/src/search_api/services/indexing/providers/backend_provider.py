@@ -4,7 +4,7 @@ Abstracts the details of fetching movies/actors from Backend API so the
 indexer can remain decoupled from HTTP and response formats.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from config.logging import get_logger
 from search_api.services.backend_client import BackendAPIClient
@@ -18,8 +18,8 @@ class BackendProvider:
     def __init__(self, config: Any) -> None:
         self._client = BackendAPIClient(config)
 
-    async def fetch_movies(self, limit: Optional[int]) -> List[Dict[str, Any]]:
-        movies: List[Dict[str, Any]] = []
+    async def fetch_movies(self, limit: int | None) -> list[dict[str, Any]]:
+        movies: list[dict[str, Any]] = []
         page = 1
         page_size = 100
         effective_limit = limit if limit is not None else 999_999
@@ -77,8 +77,8 @@ class BackendProvider:
 
         return movies
 
-    async def fetch_actors(self, limit: int) -> List[Dict[str, Any]]:
-        actors: List[Dict[str, Any]] = []
+    async def fetch_actors(self, limit: int) -> list[dict[str, Any]]:
+        actors: list[dict[str, Any]] = []
         page = 1
         while len(actors) < limit:
             remaining = limit - len(actors)
@@ -104,5 +104,3 @@ class BackendProvider:
                 logger.warning("Reached maximum page limit (50) for actors")
                 break
         return actors
-
-

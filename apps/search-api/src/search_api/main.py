@@ -2,7 +2,6 @@
 
 import os
 import threading
-from typing import Optional
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -11,7 +10,7 @@ from fastapi import FastAPI
 from search_api.config.app import settings
 
 ***REMOVED*** Lazy app initialization - only create when needed
-_app: Optional[FastAPI] = None
+_app: FastAPI | None = None
 _app_lock = threading.Lock()  ***REMOVED*** Thread-safe initialization
 _initialized = False  ***REMOVED*** Additional flag to prevent re-initialization
 

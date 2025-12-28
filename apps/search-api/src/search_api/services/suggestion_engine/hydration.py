@@ -5,9 +5,10 @@ This module handles fetching and enriching entity data for suggestions.
 """
 
 import json
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from config.logging import get_logger
+
 from .utils import build_image_url
 
 logger = get_logger(__name__)
@@ -22,7 +23,7 @@ class EntityHydrator:
         self,
         suggestion_key_prefix: str = "suggestions:",
         entity_key_prefix: str = "entity:",
-        entity_types: List[str] | None = None,
+        entity_types: list[str] | None = None,
     ):
         """
         Initialize the entity hydrator.
@@ -37,8 +38,8 @@ class EntityHydrator:
         self._entity_types = entity_types or ["movie", "actor", "director"]
 
     async def hydrate_suggestions(
-        self, redis_client: Any, suggestions: List[str], limit: int
-    ) -> List[Dict[str, Any]]:
+        self, redis_client: Any, suggestions: list[str], limit: int
+    ) -> list[dict[str, Any]]:
         """
         Convert suggestion strings to detailed entity objects using batch hydrations.
 
@@ -74,7 +75,7 @@ class EntityHydrator:
         ***REMOVED*** Resolve type and id per suggestion
         types: list[str | None] = []
         ids: list[int | None] = []
-        for meta_val, id_val in zip(meta_results, id_results):
+        for meta_val, id_val in zip(meta_results, id_results, strict=False):
             t, vid = None, None
             if meta_val and isinstance(meta_val, str) and ":" in meta_val:
                 try:
@@ -100,7 +101,7 @@ class EntityHydrator:
             for vid in to_fetch_ids:
                 pipeline.get(f"entity:id:{vid}")
             id_entities = await pipeline.execute()
-            for vid, raw in zip(to_fetch_ids, id_entities):
+            for vid, raw in zip(to_fetch_ids, id_entities, strict=False):
                 if raw:
                     try:
                         id_to_entity[vid] = json.loads(raw)
@@ -110,7 +111,7 @@ class EntityHydrator:
         ***REMOVED*** Step 3: for unresolved, try entity by name in batch
         unresolved_names = [
             s
-            for s, vid in zip(suggestions, ids)
+            for s, vid in zip(suggestions, ids, strict=False)
             if not (isinstance(vid, int) and vid in id_to_entity)
         ]
         name_map: dict[str, dict[str, Any]] = {}
@@ -123,7 +124,7 @@ class EntityHydrator:
                     name_keys.append((s, e_type, k))
                     pipeline.get(k)
             name_entities = await pipeline.execute()
-            for (s, e_type, _), raw in zip(name_keys, name_entities):
+            for (s, e_type, _), raw in zip(name_keys, name_entities, strict=False):
                 if s in name_map:
                     continue
                 if raw:
@@ -135,7 +136,7 @@ class EntityHydrator:
                         pass
 
         ***REMOVED*** Build final hydrated objects
-        for s, t, vid in zip(suggestions, types, ids):
+        for s, t, vid in zip(suggestions, types, ids, strict=False):
             entity_data = None
             entity_type = t
             if isinstance(vid, int) and vid in id_to_entity:
@@ -171,11 +172,11 @@ class EntityHydrator:
     async def hydrate_extra_suggestions(
         self,
         redis_client: Any,
-        extra_candidates: List[str],
+        extra_candidates: list[str],
         suggestion_texts_seen: set[str],
         seen_ids: set[int],
         limit: int,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Hydrate extra suggestion candidates into detailed entity objects.
 
@@ -249,8 +250,8 @@ class EntityHydrator:
         return detailed_suggestions
 
     def _build_suggestion_object(
-        self, text: str, entity_type: str | None, entity_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, text: str, entity_type: str | None, entity_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Build a suggestion object from entity data.
 

@@ -1,11 +1,11 @@
 ***REMOVED*** Optimized Search API Dockerfile for fast builds
-***REMOVED*** 
+***REMOVED***
 ***REMOVED*** Build context should be the monorepo root to access local dependencies:
 ***REMOVED*** docker build -f apps/search-api/Dockerfile -t search-api .
 ***REMOVED***
 ***REMOVED*** Optimization Strategy:
 ***REMOVED*** 1. Maximize layer caching by ordering operations by change frequency
-***REMOVED*** 2. Use BuildKit cache mounts for package downloads  
+***REMOVED*** 2. Use BuildKit cache mounts for package downloads
 ***REMOVED*** 3. Separate dependency installation from app code for better caching
 ***REMOVED*** 4. Use multi-stage builds to minimize final image size
 
@@ -63,7 +63,7 @@ COPY apps/search-api/pyproject.toml ./pyproject.toml
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --user -e .
 
-***REMOVED*** Stage 5: Application code (changes most frequently)  
+***REMOVED*** Stage 5: Application code (changes most frequently)
 FROM app-deps AS app-build
 
 ***REMOVED*** Copy application source code (this layer changes most often)
@@ -111,4 +111,4 @@ ENTRYPOINT ["/sbin/tini", "--"]
 ***REMOVED*** Run the application using Python module entry point
 ***REMOVED*** This allows the app to use its own settings configuration
 ***REMOVED*** rather than manually passing uvicorn parameters
-CMD ["python", "-m", "search_api.main"] 
+CMD ["python", "-m", "search_api.main"]

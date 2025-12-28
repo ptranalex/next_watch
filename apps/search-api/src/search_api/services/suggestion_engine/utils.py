@@ -2,7 +2,7 @@
 Utility functions and constants for the suggestion engine.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 ***REMOVED*** TMDB image base URLs for different sizes
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
@@ -11,7 +11,7 @@ TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 DEFAULT_ENTITY_TYPES = ["movie", "actor", "director"]
 
 
-def format_suggestions(raw_suggestions: List[str]) -> List[Dict[str, Any]]:
+def format_suggestions(raw_suggestions: list[str]) -> list[dict[str, Any]]:
     """
     Format raw suggestion strings into structured suggestion objects.
 

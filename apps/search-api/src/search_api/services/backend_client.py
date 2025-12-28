@@ -4,8 +4,7 @@ This module provides a client for communicating with the Backend API
 to retrieve movie data, apply filters, and get search results.
 """
 
-import asyncio
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from urllib.parse import urljoin
 
 import httpx
@@ -22,8 +21,8 @@ class BackendAPIException(Exception):
     def __init__(
         self,
         message: str,
-        status_code: Optional[int] = None,
-        response_data: Optional[Dict[str, Any]] = None,
+        status_code: int | None = None,
+        response_data: dict[str, Any] | None = None,
     ):
         super().__init__(message)
         self.status_code = status_code
@@ -54,9 +53,9 @@ class BackendAPIClient:
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Make an HTTP request to the Backend API."""
         url = self._build_url(endpoint)
 
@@ -70,9 +69,14 @@ class BackendAPIClient:
 
                 if response.status_code >= 400:
                     error_msg = f"Backend API request failed: {response.status_code}"
+                    error_data: dict[str, Any] | None = None
                     try:
-                        error_data = response.json()
-                        error_msg += f" - {error_data.get('detail', 'Unknown error')}"
+                        raw_error_data = response.json()
+                        if isinstance(raw_error_data, dict):
+                            error_data = raw_error_data
+                            error_msg += f" - {error_data.get('detail', 'Unknown error')}"
+                        else:
+                            error_msg += " - Unknown error"
                     except Exception:
                         error_msg += f" - {response.text}"
 
@@ -80,42 +84,42 @@ class BackendAPIClient:
                     raise BackendAPIException(
                         error_msg,
                         status_code=response.status_code,
-                        response_data=error_data if "error_data" in locals() else None,
+                        response_data=error_data,
                     )
 
-                result: Dict[str, Any] = response.json()
+                result: dict[str, Any] = response.json()
                 logger.debug(f"Backend API response: {len(str(result))} characters")
                 return result
 
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as e:
             error_msg = f"Backend API request timed out after {self.timeout}s"
             logger.error(error_msg)
-            raise BackendAPIException(error_msg)
-        except httpx.ConnectError:
+            raise BackendAPIException(error_msg) from e
+        except httpx.ConnectError as e:
             error_msg = f"Could not connect to Backend API at {self.base_url}"
             logger.error(error_msg)
-            raise BackendAPIException(error_msg)
+            raise BackendAPIException(error_msg) from e
         except Exception as e:
             error_msg = f"Unexpected error calling Backend API: {str(e)}"
             logger.error(error_msg)
-            raise BackendAPIException(error_msg)
+            raise BackendAPIException(error_msg) from e
 
     async def search_movies(
         self,
         query: str,
         page: int = 1,
         limit: int = 20,
-        genre_id: Optional[int] = None,
-        actor_id: Optional[int] = None,
+        genre_id: int | None = None,
+        actor_id: int | None = None,
         sort_by: str = "title",
         sort_desc: bool = False,
-        imdb_rating: Optional[float] = None,
-        rotten_tomatoes_rating: Optional[int] = None,
-        metacritic_rating: Optional[int] = None,
-        year: Optional[int] = None,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        imdb_rating: float | None = None,
+        rotten_tomatoes_rating: int | None = None,
+        metacritic_rating: int | None = None,
+        year: int | None = None,
+        start_year: int | None = None,
+        end_year: int | None = None,
+    ) -> dict[str, Any]:
         """Search movies by title through Backend API.
 
         Args:
@@ -168,7 +172,7 @@ class BackendAPIClient:
         self,
         query: str,
         limit: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get search suggestions from Backend API.
 
         Args:
@@ -189,7 +193,7 @@ class BackendAPIClient:
         self,
         query: str,
         limit: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get text-based suggestions from Backend API.
 
         Args:
@@ -211,8 +215,8 @@ class BackendAPIClient:
         query: str,
         page: int = 1,
         limit: int = 20,
-        types: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        types: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Search across all entity types through Backend API.
 
         Args:
@@ -239,7 +243,7 @@ class BackendAPIClient:
         self,
         page: int = 1,
         limit: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get a list of actors from Backend API.
 
         Args:
@@ -262,7 +266,7 @@ class BackendAPIClient:
         limit: int = 20,
         sort_by: str = "imdb_rating",
         sort_desc: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get a list of movies from Backend API.
 
         Args:
@@ -283,7 +287,7 @@ class BackendAPIClient:
 
         return await self._make_request("GET", "/api/v1/movies", params=params)
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Check Backend API health.
 
         Returns:

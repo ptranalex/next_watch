@@ -3,18 +3,18 @@
 This module contains the suggestion endpoints that were moved from backend-api.
 """
 
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fast_core.security.rate_limit import rate_limit
-from fast_core.responses import ResponseBuilder
 from config.logging import get_logger
+from fast_core.responses import ResponseBuilder
+from fast_core.security.rate_limit import rate_limit
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from search_api.services.search_service import SearchService, SearchServiceException
 from search_api.core.metrics import (
     get_search_metrics,
     track_suggestion_operation,
 )
+from search_api.services.search_service import SearchService, SearchServiceException
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["suggestions"])
@@ -32,7 +32,7 @@ responses = ResponseBuilder(
 
 def get_search_service(request: Request) -> SearchService:
     """Get SearchService instance from app state."""
-    search_config = getattr(request.app.state, "search_config")
+    search_config = request.app.state.search_config
 
     ***REMOVED*** Create SearchService with shared suggestion engine from app state
     search_service = SearchService(search_config)
@@ -51,7 +51,7 @@ async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Max number of suggestions to return"),
     search_service: SearchService = Depends(get_search_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get basic search suggestions.
 
@@ -99,16 +99,16 @@ async def get_search_suggestions(
                 },
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except SearchServiceException as e:
         logger.error(f"Search service error: {str(e)}", query=query)
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logger.error(
             f"Unexpected error getting basic suggestions: {str(e)}", query=query, exc_info=True
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute
@@ -118,7 +118,7 @@ async def get_text_suggestions(
     query: str = Query(..., min_length=1, description="Search query prefix"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of suggestions"),
     search_service: SearchService = Depends(get_search_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get text-based search suggestions with rich metadata.
 
@@ -167,7 +167,7 @@ async def get_text_suggestions(
                 },
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except SearchServiceException as e:
         ***REMOVED*** Record search service errors
@@ -176,7 +176,7 @@ async def get_text_suggestions(
             metrics.record_suggestion_request("text", "error", 0.0, len(query))
 
         logger.error(f"Search service error: {str(e)}", query=query)
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         ***REMOVED*** Record unexpected errors
         if metrics:
@@ -186,4 +186,4 @@ async def get_text_suggestions(
         logger.error(
             f"Unexpected error getting text suggestions: {str(e)}", query=query, exc_info=True
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e

@@ -41,29 +41,29 @@ dependencies = [
     "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
     "pydantic>=2.4.2",          ***REMOVED*** Data validation
     "pydantic-settings>=2.0.0", ***REMOVED*** Settings management
-    
+
     ***REMOVED*** Database
     "sqlalchemy>=2.0.23",       ***REMOVED*** SQL ORM
     "sqlmodel>=0.0.8",          ***REMOVED*** SQL Model extension
     "psycopg2-binary>=2.9.10",  ***REMOVED*** PostgreSQL driver
-    
+
     ***REMOVED*** Cache and storage
     "redis>=6.0.0",             ***REMOVED*** Redis client for caching and suggestions
     "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
-    
+
     ***REMOVED*** HTTP client for Backend API
     "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
     "tenacity>=8.2.3",          ***REMOVED*** Retry logic for HTTP requests
-    
+
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework
     "rich>=13.7.0",             ***REMOVED*** Terminal formatting
     "structlog>=23.2.0",        ***REMOVED*** Structured logging
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
-    
+
     ***REMOVED*** Date/time handling
     "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
-    
+
     ***REMOVED*** Form handling
     "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
     "email-validator>=2.2.0",   ***REMOVED*** Email validation
@@ -77,13 +77,13 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-httpx>=0.21.3",
     "respx>=0.20.2",
-    
+
     ***REMOVED*** Code quality
     "black>=23.10.1",
     "isort>=5.12.0",
     "ruff>=0.1.6",
     "mypy>=1.7.0",
-    
+
     ***REMOVED*** Local NextWatch libraries (for development)
     ***REMOVED*** "cache @ file:../../libs/cache",
     ***REMOVED*** "cli @ file:../../libs/cli",
@@ -194,7 +194,7 @@ no_implicit_optional = true
 strict_optional = true
 disallow_any_unimported = true
 disallow_untyped_calls = true
-disallow_any_generics = true 
+disallow_any_generics = true
 disallow_subclassing_any = true
 
 ***REMOVED*** Warning settings
@@ -256,4 +256,4 @@ select = [
 ignore = [
     "E501", ***REMOVED*** line too long, handled by black
     "B008", ***REMOVED*** do not perform function calls in argument defaults
-] 
+]

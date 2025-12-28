@@ -4,18 +4,19 @@ This module creates a FastAPI application using the fast-core library
 with Search-specific configuration and dependencies.
 """
 
-from typing import Dict, List, Optional, AsyncGenerator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fast_core import create_app, AppOptions
+from config.logging import get_logger
+from fast_core import AppOptions, create_app
 from fast_core.middleware import MiddlewareConfig
+from fastapi import FastAPI
 
 from search_api.config.app import SearchAPIConfig
 from search_api.config.fast_core_config import create_fast_core_config
 from search_api.dependencies.clients import cleanup_service_clients, get_all_services_health
-from search_api.services.health_service import get_health_service, close_health_service
-from config.logging import get_logger
+from search_api.routes.api_v1 import api_v1_router
+from search_api.services.health_service import close_health_service, get_health_service
 
 ***REMOVED*** Add Search meta configuration constants after imports
 SEARCH_FEATURES = [
@@ -39,9 +40,6 @@ SEARCH_ENDPOINTS = {
     "/api/v1/search/analytics": "Search analytics and insights",
 }
 
-***REMOVED*** Import Search routes
-from search_api.routes.api_v1 import api_v1_router
-
 logger = get_logger(__name__)
 
 
@@ -64,6 +62,7 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
+
         from search_api.services.health_service import setup_search_health_checks
 
         registry = setup_kubernetes_health_checks(app, settings)
@@ -76,11 +75,12 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         ***REMOVED*** First initialize the global metrics registry
         from fast_core.monitoring.metrics import initialize_metrics
+
         from search_api.core.metrics import initialize_search_metrics
 
         ***REMOVED*** Initialize global metrics registry with service name
-        global_registry = initialize_metrics("search-api")
-        logger.info(f"Global metrics registry initialized for service: search-api")
+        app.state.metrics_registry = initialize_metrics("search-api")
+        logger.info("Global metrics registry initialized for service: search-api")
 
         ***REMOVED*** Now initialize Search-specific metrics
         metrics_instance = initialize_search_metrics()
@@ -319,7 +319,7 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
     return middleware
 
 
-def create_search_app(config: Optional[SearchAPIConfig] = None) -> FastAPI:
+def create_search_app(config: SearchAPIConfig | None = None) -> FastAPI:
     """Create Search API application using fast-core with enhanced middleware.
 
     Args:

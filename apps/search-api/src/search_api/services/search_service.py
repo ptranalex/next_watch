@@ -6,10 +6,10 @@ It does NOT make real-time calls to Backend API during search operations.
 All data should be precomputed and stored in Redis via CLI commands.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from config.logging import get_logger
-from fast_core.errors import critical_service_handler, optional_service_handler
+from fast_core.errors import optional_service_handler
 
 from search_api.config.app import SearchAPIConfig
 from search_api.schemas import (
@@ -62,17 +62,17 @@ class SearchService:
         query: str,
         page: int = 1,
         limit: int = 20,
-        genre_id: Optional[int] = None,
-        actor_id: Optional[int] = None,
+        genre_id: int | None = None,
+        actor_id: int | None = None,
         sort_by: str = "title",
         sort_desc: bool = False,
-        imdb_rating: Optional[float] = None,
-        rotten_tomatoes_rating: Optional[int] = None,
-        metacritic_rating: Optional[int] = None,
-        year: Optional[int] = None,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        imdb_rating: float | None = None,
+        rotten_tomatoes_rating: int | None = None,
+        metacritic_rating: int | None = None,
+        year: int | None = None,
+        start_year: int | None = None,
+        end_year: int | None = None,
+    ) -> dict[str, Any]:
         """Search movies using Redis-based search index.
 
         This method searches movies from precomputed Redis indices only.
@@ -326,7 +326,7 @@ class SearchService:
         query: str,
         page: int = 1,
         limit: int = 20,
-        types: Optional[List[str]] = None,
+        types: list[str] | None = None,
     ) -> SearchResponse:
         """Search across all entity types using Redis index only.
 

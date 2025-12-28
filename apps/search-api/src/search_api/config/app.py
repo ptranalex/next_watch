@@ -3,15 +3,13 @@
 Provides configuration for the Search API service using the simplified config library.
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from pydantic import Field, validator
 from config.base.config import ServiceConfig
+from config.logging import get_logger
 from config.services.cache import CacheConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
-from config.profiles.service_profiles import apply_profiles
-
-from config.logging import get_logger
+from pydantic import Field, validator
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
@@ -28,13 +26,13 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
     port: int = Field(default=8004, description="Service port")
 
     ***REMOVED*** Logging configuration
-    logs_dir: Optional[str] = Field(
+    logs_dir: str | None = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
 
     ***REMOVED*** Backend service URLs
     backend_api_url: str = Field(default="http://localhost:8000", description="Backend API URL")
-    ml_api_url: Optional[str] = Field(default=None, description="ML API URL (optional)")
+    ml_api_url: str | None = Field(default=None, description="ML API URL (optional)")
 
     ***REMOVED*** Service timeouts
     backend_api_timeout: int = Field(default=30, description="Backend API timeout in seconds")
@@ -153,7 +151,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         logger.info(f"Redis URL: {self.get_redis_url_masked()}")
 
     @validator("backend_api_url", "ml_api_url")
-    def validate_service_url(cls, v: Optional[str]) -> Optional[str]:
+    def validate_service_url(cls, v: str | None) -> str | None:
         """Validate service URL format."""
         if v is None:
             return None
@@ -197,7 +195,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
             raise ValueError("Query length must be at least 1")
         return v
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment."""
         issues = []
 
@@ -230,7 +228,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         return f"""Search API Configuration:
   Environment: {self.environment}
   Service: {self.service_name}
-  
+
   HTTP Service:
     Host: {self.host}
     Port: {self.port}

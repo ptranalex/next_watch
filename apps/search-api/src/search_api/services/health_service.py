@@ -7,11 +7,11 @@ This service provides comprehensive health checks for all dependencies:
 
 import asyncio
 import time
-from typing import Dict, Any, Optional, TYPE_CHECKING
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
-from config.logging import get_logger
 from cache.manager import CacheManager
+from config.logging import get_logger
 
 ***REMOVED*** from fast_core.dependencies.client_factory import get_service_client  ***REMOVED*** No longer used
 
@@ -27,15 +27,15 @@ class HealthCheckResult:
 
     is_healthy: bool
     status: str
-    response_time_ms: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    response_time_ms: float | None = None
+    details: dict[str, Any] | None = None
+    error: str | None = None
 
 
 class HealthService:
     """Service for performing health checks on all dependencies."""
 
-    def __init__(self, cache_manager: Optional[CacheManager] = None) -> None:
+    def __init__(self, cache_manager: CacheManager | None = None) -> None:
         """Initialize the health service.
 
         Args:
@@ -43,7 +43,7 @@ class HealthService:
         """
         self.cache_manager = cache_manager
 
-    async def check_all(self) -> Dict[str, HealthCheckResult]:
+    async def check_all(self) -> dict[str, HealthCheckResult]:
         """Check health of all services.
 
         Returns:
@@ -57,7 +57,7 @@ class HealthService:
         gather_results = await asyncio.gather(backend_task, redis_task, return_exceptions=True)
 
         ***REMOVED*** Handle any exceptions and build results
-        results: Dict[str, HealthCheckResult] = {}
+        results: dict[str, HealthCheckResult] = {}
 
         backend_result, redis_result = gather_results
 
@@ -97,6 +97,7 @@ class HealthService:
 
         try:
             import httpx
+
             from search_api.config.app import get_search_settings
 
             settings = get_search_settings()
@@ -177,8 +178,9 @@ class HealthService:
             else:
                 ***REMOVED*** No cache manager available - try basic connection check
                 try:
-                    from search_api.config.app import settings
                     import redis.asyncio as redis
+
+                    from search_api.config.app import settings
 
                     redis_client = redis.from_url(settings.redis_url)
                     await redis_client.ping()
@@ -223,10 +225,10 @@ class HealthService:
 
 
 ***REMOVED*** Global health service instance
-_health_service: Optional[HealthService] = None
+_health_service: HealthService | None = None
 
 
-def get_health_service(cache_manager: Optional[CacheManager] = None) -> HealthService:
+def get_health_service(cache_manager: CacheManager | None = None) -> HealthService:
     """Get the global health service instance.
 
     Args:
@@ -263,21 +265,22 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
     Args:
         registry: Health check registry to register checks with
     """
+    import time
+
     from fast_core.monitoring import (
-        HealthCheckDefinition,
-        HealthCheckType,
         HealthCheckCategory,
+        HealthCheckDefinition,
         HealthCheckResult,
     )
-    import time
 
     ***REMOVED*** Backend API - CRITICAL (search needs movie data)
     async def check_backend_api() -> HealthCheckResult:
         """Check Backend API connectivity."""
         start_time = time.time()
         try:
-            from search_api.config.app import get_search_settings
             import httpx
+
+            from search_api.config.app import get_search_settings
 
             settings = get_search_settings()
 
@@ -308,8 +311,9 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
         """Check Redis cache connectivity."""
         start_time = time.time()
         try:
-            from search_api.config.app import settings
             import redis.asyncio as redis
+
+            from search_api.config.app import settings
 
             redis_client = redis.from_url(settings.redis_url, socket_timeout=3.0)
             await redis_client.ping()
@@ -317,7 +321,7 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
             ***REMOVED*** Test basic operation
             test_key = "health_check:search_api"
             await redis_client.set(test_key, "ping", ex=10)
-            result = await redis_client.get(test_key)
+            await redis_client.get(test_key)
             await redis_client.delete(test_key)
             await redis_client.close()
 

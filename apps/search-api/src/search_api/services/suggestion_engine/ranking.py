@@ -4,7 +4,7 @@ Ranking and scoring algorithms for search suggestions.
 This module contains the ranking logic for suggestions.
 """
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from config.logging import get_logger
 
@@ -18,8 +18,8 @@ class SuggestionRanker:
 
     @staticmethod
     def sort_suggestions(
-        suggestions: List[Dict[str, Any]], query_prefix: str
-    ) -> List[Dict[str, Any]]:
+        suggestions: list[dict[str, Any]], query_prefix: str
+    ) -> list[dict[str, Any]]:
         """
         Sort suggestions by relevance (exact matches first, then by score).
 
@@ -31,7 +31,7 @@ class SuggestionRanker:
             Sorted list of suggestions
         """
 
-        def sort_key(sugg: Dict[str, Any]) -> Tuple[int, float]:
+        def sort_key(sugg: dict[str, Any]) -> tuple[int, float]:
             ***REMOVED*** Exact matches should be prioritized
             if sugg["text"] == query_prefix:
                 return (0, sugg.get("popularity", 0) or 0)
@@ -50,8 +50,8 @@ class SuggestionRanker:
 
     @staticmethod
     def enhance_with_search_metadata(
-        suggestions: List[Dict[str, Any]], query: str
-    ) -> List[Dict[str, Any]]:
+        suggestions: list[dict[str, Any]], query: str
+    ) -> list[dict[str, Any]]:
         """
         Enhance suggestions with search metadata.
 
@@ -74,11 +74,11 @@ class SuggestionRanker:
 
     @staticmethod
     def merge_unique_suggestions(
-        primary_suggestions: List[Dict[str, Any]],
-        additional_suggestions: List[Dict[str, Any]],
+        primary_suggestions: list[dict[str, Any]],
+        additional_suggestions: list[dict[str, Any]],
         limit: int,
         mark_additional_as_fuzzy: bool = False,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Merge additional suggestions with primary ones, ensuring uniqueness.
 

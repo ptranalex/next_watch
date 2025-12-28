@@ -3,8 +3,6 @@
 This module contains no CLI/output code so it can be reused from jobs/tests.
 """
 
-from typing import Any
-
 from .models import IndexOptions, IndexStats
 from .providers.backend_provider import BackendProvider
 from .providers.redis_store import RedisStore
@@ -44,5 +42,3 @@ class SuggestionIndexer:
         stats.zset_entries = counts.get("zset", 0)
         stats.entity_records = counts.get("entities", 0)
         return stats
-
-

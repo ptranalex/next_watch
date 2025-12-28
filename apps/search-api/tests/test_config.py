@@ -2,7 +2,6 @@
 
 """Test configuration for Search API."""
 
-import pytest
 from search_api.config.app import SearchAPIConfig
 
 

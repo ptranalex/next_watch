@@ -5,17 +5,16 @@ This module contains the main SuggestionEngine class that orchestrates
 all the suggestion functionality.
 """
 
+import contextlib
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import redis.asyncio
-from redis.exceptions import RedisError
-
 from config.logging import get_logger
-from fast_core.errors import optional_service_handler, critical_service_handler
+from fast_core.errors import critical_service_handler, optional_service_handler
 
-from .matching import MatchingStrategies
 from .hydration import EntityHydrator
+from .matching import MatchingStrategies
 from .ranking import SuggestionRanker
 from .utils import DEFAULT_ENTITY_TYPES, normalize_query
 
@@ -38,7 +37,7 @@ class SuggestionEngine:
         suggestion_key_prefix: str = "suggestions:",
         entity_key_prefix: str = "entity:",
         search_result_prefix: str = "search_results:",
-        entity_types: Optional[List[str]] = None,
+        entity_types: list[str] | None = None,
         ***REMOVED*** Performance/caching knobs
         suggestion_cache_ttl: int = 900,
         substring_min_length: int = 3,
@@ -61,7 +60,7 @@ class SuggestionEngine:
             substring_scan_page_limit: Maximum pages to scan for substring matching
         """
         self._redis_url = redis_url
-        self._pool: Optional[redis.asyncio.ConnectionPool] = None  ***REMOVED*** type: ignore
+        self._pool: redis.asyncio.ConnectionPool | None = None  ***REMOVED*** type: ignore
         self._max_connections = max_connections
         self._suggestion_key_prefix = suggestion_key_prefix
         self._entity_key_prefix = entity_key_prefix
@@ -115,7 +114,7 @@ class SuggestionEngine:
             self._pool = None
 
     @optional_service_handler(service_name="redis", logger=logger, fallback_value=[])
-    async def get_suggestions(self, query: str, limit: int = 10) -> List[str]:
+    async def get_suggestions(self, query: str, limit: int = 10) -> list[str]:
         """
         Get search suggestions based on the provided query prefix.
 
@@ -159,7 +158,7 @@ class SuggestionEngine:
             return await self._matching.get_prefix_matches(redis_client, query_prefix, limit)
 
     @optional_service_handler(service_name="redis", logger=logger, fallback_value=[])
-    async def get_entity_suggestions(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_entity_suggestions(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
         """
         Get enhanced entity-based suggestions (movies, actors, directors) with detailed information.
 
@@ -203,20 +202,18 @@ class SuggestionEngine:
             suggestions = await self.get_suggestions(query_prefix, limit)
 
             ***REMOVED*** If we didn't get enough results, try more aggressive matching
-            if len(suggestions) < min(3, limit) and len(query_prefix) >= 3:
-                ***REMOVED*** Try again using just the first part of the query if it has spaces
-                if " " in query_prefix:
-                    first_word = query_prefix.split()[0]
-                    if len(first_word) >= 3:
-                        more_suggestions = await self.get_suggestions(
-                            first_word, limit - len(suggestions)
-                        )
-                        ***REMOVED*** Add suggestions that aren't already included
-                        for sugg in more_suggestions:
-                            if sugg not in suggestions:
-                                suggestions.append(sugg)
-                                if len(suggestions) >= limit:
-                                    break
+            if len(suggestions) < min(3, limit) and len(query_prefix) >= 3 and " " in query_prefix:
+                first_word = query_prefix.split()[0]
+                if len(first_word) >= 3:
+                    more_suggestions = await self.get_suggestions(
+                        first_word, limit - len(suggestions)
+                    )
+                    ***REMOVED*** Add suggestions that aren't already included
+                    for sugg in more_suggestions:
+                        if sugg not in suggestions:
+                            suggestions.append(sugg)
+                            if len(suggestions) >= limit:
+                                break
 
             ***REMOVED*** Smart substring matching: always try for 3+ char queries to enhance results
             if len(query_prefix) >= 3 and len(suggestions) < limit:
@@ -277,13 +274,10 @@ class SuggestionEngine:
 
             ***REMOVED*** Write-through cache
             if self._suggestion_cache_ttl > 0:
-                try:
+                with contextlib.suppress(Exception):
                     await redis_client.set(
                         cache_key, json.dumps(final_results), ex=self._suggestion_cache_ttl
                     )
-                except Exception:
-                    ***REMOVED*** Do not fail request if cache write fails
-                    pass
 
             return final_results
 
@@ -293,7 +287,7 @@ class SuggestionEngine:
         query: str,
         limit: int = 10,
         fallback_to_fuzzy: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get ranked suggestions with advanced scoring and fuzzy matching fallback.
 
@@ -341,7 +335,7 @@ class SuggestionEngine:
         logger=logger,
         fallback_value={"status": "unhealthy", "error": "Redis connection failed"},
     )
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Check the health of the Redis connection.
 

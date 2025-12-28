@@ -2,23 +2,19 @@
 
 import asyncio
 import json
-import os
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-import redis.asyncio as redis
-import structlog
 import typer
+from config.logging import get_logger
 from rich.console import Console
 from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
-from rich.table import Table
 from typer import Typer
 
 from search_api.config.app import get_search_settings
-from search_api.services.suggestion_engine import SuggestionEngine
 from search_api.services.backend_client import BackendAPIClient
-from config.logging import get_logger
+from search_api.services.suggestion_engine import SuggestionEngine
 
 app: Typer = typer.Typer(
     name="redis", help="Redis data management commands for search suggestions."
@@ -27,7 +23,7 @@ console = Console()
 logger = get_logger(__name__)
 
 
-def display_redis_config(redis_url: str, options: Dict[str, Any], console: Console) -> None:
+def display_redis_config(redis_url: str, options: dict[str, Any], console: Console) -> None:
     """Display Redis configuration in a formatted way."""
     ***REMOVED*** Mask sensitive parts of the URL
     masked_url = redis_url
@@ -36,7 +32,7 @@ def display_redis_config(redis_url: str, options: Dict[str, Any], console: Conso
         if len(parts) > 1:
             masked_url = f"{parts[0].split('://')[0]}://***@{parts[1]}"
 
-    console.print(f"\n[bold blue]Redis Configuration:[/bold blue]")
+    console.print("\n[bold blue]Redis Configuration:[/bold blue]")
     console.print(f"  Redis URL: {masked_url}")
 
     for key, value in options.items():
@@ -170,20 +166,20 @@ def populate_suggestions(
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         logger.exception("Error populating Redis suggestions")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 async def _populate_suggestions_async(
     config: Any,
     redis_url: str,
-    limit: Optional[int],
+    limit: int | None,
     clear: bool,
     include_words: bool,
     min_word_length: int,
     include_movies: bool,
     include_actors: bool,
     include_directors: bool,
-    enabled_entity_types: List[str],
+    enabled_entity_types: list[str],
     actor_limit: int,
     director_limit: int,
     batch_size: int,
@@ -220,10 +216,11 @@ async def _populate_suggestions_async(
     ***REMOVED*** Initialize Backend API client
     backend_client = BackendAPIClient(config)
 
-    try:
-        ***REMOVED*** Initialize Redis connection with basic configuration
-        import redis.asyncio
+    ***REMOVED*** Initialize Redis connection with basic configuration
+    import redis.asyncio
 
+    redis_client: redis.asyncio.Redis | None = None
+    try:
         redis_client = redis.asyncio.Redis.from_url(
             redis_url, decode_responses=True, encoding="utf-8"
         )
@@ -550,7 +547,7 @@ async def _populate_suggestions_async(
         duration = (end_time - start_time).total_seconds()
 
         console.print(
-            f"\n[bold green]Successfully loaded entity suggestions into Redis:[/bold green]"
+            "\n[bold green]Successfully loaded entity suggestions into Redis:[/bold green]"
         )
         console.print(f"  • Movies: {movie_count:,}")
         console.print(f"  • Actors: {actor_count:,}")
@@ -571,20 +568,21 @@ async def _populate_suggestions_async(
                 console.print(f"    Invalid: {result['invalid']:,}")
                 if result["invalid_samples"]:
                     samples = result["invalid_samples"]
-                    if isinstance(samples, (list, tuple)):
+                    if isinstance(samples, list | tuple):
                         console.print(f"    Invalid samples: {', '.join(str(s) for s in samples)}")
                     else:
                         console.print(f"    Invalid samples: {samples}")
 
     finally:
         ***REMOVED*** Close connections
-        await redis_client.close()
+        if redis_client is not None:
+            await redis_client.close()
         await suggestion_engine.shutdown()
 
 
 async def _fetch_movie_data_from_backend(
-    backend_client: BackendAPIClient, limit: Optional[int]
-) -> List[Dict[str, Any]]:
+    backend_client: BackendAPIClient, limit: int | None
+) -> list[dict[str, Any]]:
     """
     Fetch movie data from the Backend API with pagination support.
 
@@ -596,9 +594,8 @@ async def _fetch_movie_data_from_backend(
         List of movie data with complete information
     """
     try:
-        movies: List[Dict[str, Any]] = []
+        movies: list[dict[str, Any]] = []
         page = 1
-        page_size = 100  ***REMOVED*** Backend API limit is 100
 
         ***REMOVED*** If no limit specified, use a very high number to fetch all
         effective_limit = limit if limit is not None else 999999
@@ -681,7 +678,7 @@ async def _fetch_movie_data_from_backend(
 
 async def _fetch_actor_data_from_backend(
     backend_client: BackendAPIClient, limit: int
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Fetch actor data from the Backend API with pagination support.
 
@@ -693,7 +690,7 @@ async def _fetch_actor_data_from_backend(
         List of actor data with complete information
     """
     try:
-        actors: List[Dict[str, Any]] = []
+        actors: list[dict[str, Any]] = []
         page = 1
 
         while len(actors) < limit:
@@ -744,7 +741,7 @@ async def _fetch_actor_data_from_backend(
 
 async def _fetch_director_data_from_backend(
     backend_client: BackendAPIClient, limit: int
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Fetch director data from the Backend API.
 
@@ -759,9 +756,7 @@ async def _fetch_director_data_from_backend(
         ***REMOVED*** Directors are not yet available via a direct endpoint in Backend API
         ***REMOVED*** They would need to be extracted from movie credits or a dedicated endpoint
         ***REMOVED*** TODO: Implement when Backend API adds a directors endpoint
-        logger.info(
-            f"Director fetching not yet implemented for Backend API (no dedicated endpoint)"
-        )
+        logger.info("Director fetching not yet implemented for Backend API (no dedicated endpoint)")
         return []
 
     except Exception as e:
@@ -802,7 +797,7 @@ def test_suggestions(
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         logger.exception("Error testing suggestions")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 async def _test_suggestions_async(redis_url: str, query: str, limit: int, verbose: bool) -> None:
@@ -812,7 +807,7 @@ async def _test_suggestions_async(redis_url: str, query: str, limit: int, verbos
 
     try:
         ***REMOVED*** Test basic suggestions
-        console.print(f"\n[bold green]Basic suggestions:[/bold green]")
+        console.print("\n[bold green]Basic suggestions:[/bold green]")
         basic_suggestions = await suggestion_engine.get_suggestions(query, limit)
 
         if basic_suggestions:
@@ -822,7 +817,7 @@ async def _test_suggestions_async(redis_url: str, query: str, limit: int, verbos
             console.print("  No basic suggestions found")
 
         ***REMOVED*** Test entity suggestions
-        console.print(f"\n[bold green]Entity suggestions:[/bold green]")
+        console.print("\n[bold green]Entity suggestions:[/bold green]")
         entity_suggestions = await suggestion_engine.get_entity_suggestions(query, limit)
 
         if entity_suggestions:
@@ -836,7 +831,7 @@ async def _test_suggestions_async(redis_url: str, query: str, limit: int, verbos
             console.print("  No entity suggestions found")
 
         ***REMOVED*** Test ranked suggestions
-        console.print(f"\n[bold green]Ranked suggestions:[/bold green]")
+        console.print("\n[bold green]Ranked suggestions:[/bold green]")
         ranked_suggestions = await suggestion_engine.get_ranked_suggestions(query, limit)
 
         if ranked_suggestions:
@@ -877,7 +872,7 @@ def redis_info(
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         logger.exception("Error getting Redis info")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 async def _redis_info_async(redis_url: str) -> None:
@@ -891,7 +886,7 @@ async def _redis_info_async(redis_url: str) -> None:
         ***REMOVED*** Test Redis connection
         health = await suggestion_engine.health_check()
 
-        console.print(f"[bold blue]Redis Connection Info:[/bold blue]")
+        console.print("[bold blue]Redis Connection Info:[/bold blue]")
         console.print(f"  Status: {health.get('status', 'unknown')}")
         console.print(f"  Redis URL: {health.get('redis_url', 'unknown')}")
 
@@ -918,7 +913,7 @@ async def _redis_info_async(redis_url: str) -> None:
                 if cursor == 0:
                     break
 
-            console.print(f"\n[bold green]Redis Data Summary:[/bold green]")
+            console.print("\n[bold green]Redis Data Summary:[/bold green]")
             console.print(f"  Sorted set entries: {zset_count:,}")
             console.print(f"  Entity records: {entity_count:,}")
             console.print(f"  Suggestion keys: {suggestion_count:,}")

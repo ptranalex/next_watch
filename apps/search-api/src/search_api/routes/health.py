@@ -1,15 +1,14 @@
 """Health check routes for Search service."""
 
 import datetime
-from typing import Dict
 
+from config.logging import get_logger
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from search_api.config.app import settings, SearchAPIConfig
+from search_api.config.app import SearchAPIConfig, settings
 from search_api.dependencies.clients import get_all_services_health
-from config.logging import get_logger
 
 
 def get_search_config(request: Request) -> SearchAPIConfig:
@@ -263,7 +262,7 @@ async def readiness_check(request: Request) -> JSONResponse:
 
 
 @router.get("/health/live")
-async def liveness_check() -> Dict[str, str]:
+async def liveness_check() -> dict[str, str]:
     """Liveness probe for Kubernetes deployment.
 
     Simple check to verify the service is running.

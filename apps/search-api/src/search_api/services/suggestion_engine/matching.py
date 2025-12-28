@@ -4,9 +4,9 @@ Matching strategies for search suggestions.
 This module contains the core matching logic for prefix and substring searches.
 """
 
-import time
 import asyncio
-from typing import Any, List
+import time
+from typing import Any
 
 from config.logging import get_logger
 
@@ -22,7 +22,7 @@ class MatchingStrategies:
         self,
         suggestion_key_prefix: str = "suggestions:",
         entity_key_prefix: str = "entity:",
-        entity_types: List[str] | None = None,
+        entity_types: list[str] | None = None,
         substring_min_length: int = 3,
         substring_time_budget_ms: int = 80,
         substring_scan_page_limit: int = 5,
@@ -47,7 +47,7 @@ class MatchingStrategies:
 
     async def get_prefix_matches(
         self, redis_client: Any, query_prefix: str, limit: int
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Get suggestions that match the given prefix using various strategies.
 
@@ -96,7 +96,7 @@ class MatchingStrategies:
             deadline = time.monotonic() + (self._substring_time_budget_ms / 1000.0)
             pattern = f"{self._suggestion_key_prefix}{query_prefix}*"
             cursor = 0
-            scan_suggestions: List[str] = []
+            scan_suggestions: list[str] = []
             pages_scanned = 0
 
             while len(scan_suggestions) < limit and pages_scanned < self._substring_scan_page_limit:
@@ -124,7 +124,7 @@ class MatchingStrategies:
 
     async def get_substring_matches(
         self, redis_client: Any, query_prefix: str, limit: int
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Get suggestions that contain the query as a substring.
 
@@ -142,7 +142,7 @@ class MatchingStrategies:
         if not query_prefix or limit <= 0:
             return []
 
-        matches: List[str] = []
+        matches: list[str] = []
         start_time = time.time()
         deadline = time.monotonic() + (self._substring_time_budget_ms / 1000.0)
 
@@ -151,8 +151,8 @@ class MatchingStrategies:
             if len(query_prefix) < self._substring_min_length:
                 return []
 
-            async def _scan_entity(pattern: str) -> List[str]:
-                results: List[str] = []
+            async def _scan_entity(pattern: str) -> list[str]:
+                results: list[str] = []
                 cursor_local = 0
                 pages_scanned_local = 0
                 while (

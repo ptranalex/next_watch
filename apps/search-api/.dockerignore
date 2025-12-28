@@ -175,8 +175,8 @@ model_cache/
 ***REMOVED*** KEEP ONLY WHAT'S NEEDED FOR SEARCH API BUILD:
 ***REMOVED*** -----------------------------------------------------------------------------
 ***REMOVED*** ✅ libs/cache/         - NextWatch Cache Library (Redis integration)
-***REMOVED*** ✅ libs/cli/           - NextWatch CLI Framework  
+***REMOVED*** ✅ libs/cli/           - NextWatch CLI Framework
 ***REMOVED*** ✅ libs/config/        - NextWatch Config Library
 ***REMOVED*** ✅ libs/fast-core/     - FastAPI Core Framework
 ***REMOVED*** ✅ apps/search-api/src/ - Search API source code
-***REMOVED*** ✅ apps/search-api/pyproject.toml - Dependencies 
+***REMOVED*** ✅ apps/search-api/pyproject.toml - Dependencies
