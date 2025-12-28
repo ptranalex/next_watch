@@ -1,10 +1,12 @@
 """Metrics-driven warming strategy."""
 
+from typing import Any
+
 import structlog
-from typing import List, Optional, Dict, Any
 
 from cache.metrics import MetricsCollector
-from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
+from cache.warming.types import WarmingConfig, WarmingStrategy, WarmingTarget
+
 from .base import BaseWarmingStrategy
 
 logger = structlog.get_logger(__name__)
@@ -16,7 +18,7 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
     def __init__(
         self,
         config: WarmingConfig,
-        metrics_collector: Optional[MetricsCollector] = None,
+        metrics_collector: MetricsCollector | None = None,
     ):
         """Initialize metrics-driven strategy.
 
@@ -29,8 +31,8 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
         self.metrics_collector = metrics_collector
 
     async def identify_targets(
-        self, limit: Optional[int] = None, context: Optional[Dict[str, Any]] = None
-    ) -> List[WarmingTarget]:
+        self, limit: int | None = None, context: dict[str, Any] | None = None
+    ) -> list[WarmingTarget]:
         """Identify warming targets based on metrics data.
 
         Args:
@@ -78,7 +80,7 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
         logger.info(f"Identified {len(targets)} targets for metrics-driven warming")
         return targets
 
-    def calculate_priority(self, target_data: Dict[str, Any]) -> float:
+    def calculate_priority(self, target_data: dict[str, Any]) -> float:
         """Calculate priority based on miss rate, timing, and usage.
 
         Args:
@@ -96,14 +98,9 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
         time_factor = min(avg_miss_time / 1000.0, 5.0)  ***REMOVED*** Cap at 5 seconds
         usage_factor = min(total_calls / 100.0, 10.0)  ***REMOVED*** Cap at 10x
 
-        return (
-            miss_rate_factor
-            * time_factor
-            * usage_factor
-            * self.config.metrics_driven_weight
-        )
+        return miss_rate_factor * time_factor * usage_factor * self.config.metrics_driven_weight
 
-    def should_warm_target(self, target_data: Dict[str, Any]) -> bool:
+    def should_warm_target(self, target_data: dict[str, Any]) -> bool:
         """Check if function should be warmed based on metrics thresholds.
 
         Args:
@@ -128,7 +125,7 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
 
         return True
 
-    def _calculate_benefit(self, metrics_dict: Dict[str, Any]) -> float:
+    def _calculate_benefit(self, metrics_dict: dict[str, Any]) -> float:
         """Calculate estimated benefit of warming.
 
         Args:

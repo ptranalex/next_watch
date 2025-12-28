@@ -2,10 +2,9 @@
 
 """Tests for cache metrics functionality."""
 
-import asyncio
-import pytest
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from cache.decorators import redis_cache
 from cache.metrics import get_global_collector, set_metrics_enabled
 from cache.metrics.storage import reset_global_storage
@@ -18,7 +17,6 @@ def reset_metrics():
     reset_global_storage()
 
     ***REMOVED*** Also reset the global collector instance
-    from cache.metrics.collector import _global_collector
     import cache.metrics.collector as collector_module
 
     collector_module._global_collector = None
@@ -171,9 +169,10 @@ async def test_metrics_disabled():
 
 def test_metrics_storage_thread_safety():
     """Test that metrics storage is thread-safe."""
-    from cache.metrics.storage import MetricsStorage
     import threading
     import time
+
+    from cache.metrics.storage import MetricsStorage
 
     storage = MetricsStorage()
 

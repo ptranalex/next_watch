@@ -2,11 +2,11 @@
 
 import json
 from abc import ABC, abstractmethod
-from typing import Optional, cast
+from typing import cast
 
 import structlog
 
-from cache.types import CacheKey, CacheResult, CacheSetResult, JSONSerializable, TTL
+from cache.types import TTL, CacheKey, CacheResult, CacheSetResult, JSONSerializable
 
 logger = structlog.get_logger(__name__)
 
@@ -75,7 +75,7 @@ class CacheProvider(ABC):
             raise ValueError(f"Invalid JSON value: {e}") from e
 
     @abstractmethod
-    async def get_raw(self, key: CacheKey) -> Optional[str]:
+    async def get_raw(self, key: CacheKey) -> str | None:
         """Get raw string value from cache.
 
         Args:
@@ -87,9 +87,7 @@ class CacheProvider(ABC):
         pass
 
     @abstractmethod
-    async def set_raw(
-        self, key: CacheKey, value: str, ttl: TTL = None
-    ) -> CacheSetResult:
+    async def set_raw(self, key: CacheKey, value: str, ttl: TTL = None) -> CacheSetResult:
         """Set raw string value in cache.
 
         Args:
@@ -153,9 +151,7 @@ class CacheProvider(ABC):
             return self._deserialize_json(raw_value)
         except ValueError:
             ***REMOVED*** Log error but don't raise - treat as cache miss
-            self.logger.warning(
-                "Found invalid JSON in cache, treating as miss", key=key
-            )
+            self.logger.warning("Found invalid JSON in cache, treating as miss", key=key)
             return None
 
     async def set_json(

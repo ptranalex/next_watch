@@ -1,11 +1,13 @@
 """Scheduled warming strategy."""
 
-from typing import List, Optional, Dict, Any, Callable, Awaitable
-import structlog
-from datetime import datetime, timedelta, time
+from datetime import datetime, time
 from enum import Enum
+from typing import Any
 
-from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
+import structlog
+
+from cache.warming.types import WarmingConfig, WarmingStrategy, WarmingTarget
+
 from .base import BaseWarmingStrategy
 
 logger = structlog.get_logger(__name__)
@@ -25,9 +27,7 @@ class ScheduleType(Enum):
 class ScheduledStrategy(BaseWarmingStrategy):
     """Warming strategy based on time-based patterns and schedules."""
 
-    def __init__(
-        self, config: WarmingConfig, schedule_config: Optional[Dict[str, Any]] = None
-    ):
+    def __init__(self, config: WarmingConfig, schedule_config: dict[str, Any] | None = None):
         """Initialize scheduled strategy.
 
         Args:
@@ -38,7 +38,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
         self.strategy_type = WarmingStrategy.SCHEDULED
         self.schedule_config = schedule_config or self._get_default_schedule_config()
 
-    def _get_default_schedule_config(self) -> Dict[str, Any]:
+    def _get_default_schedule_config(self) -> dict[str, Any]:
         """Get default schedule configuration.
 
         Returns:
@@ -71,8 +71,8 @@ class ScheduledStrategy(BaseWarmingStrategy):
         }
 
     async def identify_targets(
-        self, limit: Optional[int] = None, context: Optional[Dict[str, Any]] = None
-    ) -> List[WarmingTarget]:
+        self, limit: int | None = None, context: dict[str, Any] | None = None
+    ) -> list[WarmingTarget]:
         """Identify warming targets based on current time and schedule.
 
         Args:
@@ -82,9 +82,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
         Returns:
             List of warming targets for scheduled content
         """
-        current_time = (
-            context.get("current_time", datetime.now()) if context else datetime.now()
-        )
+        current_time = context.get("current_time", datetime.now()) if context else datetime.now()
 
         targets = []
 
@@ -92,30 +90,20 @@ class ScheduledStrategy(BaseWarmingStrategy):
         schedule_context = self._analyze_schedule_context(current_time)
 
         ***REMOVED*** Generate targets based on schedule context
-        targets.extend(
-            await self._create_peak_hour_targets(current_time, schedule_context)
-        )
-        targets.extend(
-            await self._create_daily_schedule_targets(current_time, schedule_context)
-        )
-        targets.extend(
-            await self._create_weekly_schedule_targets(current_time, schedule_context)
-        )
-        targets.extend(
-            await self._create_seasonal_targets(current_time, schedule_context)
-        )
+        targets.extend(await self._create_peak_hour_targets(current_time, schedule_context))
+        targets.extend(await self._create_daily_schedule_targets(current_time, schedule_context))
+        targets.extend(await self._create_weekly_schedule_targets(current_time, schedule_context))
+        targets.extend(await self._create_seasonal_targets(current_time, schedule_context))
 
         ***REMOVED*** Sort by priority and apply limit
         targets.sort(key=lambda t: t.priority, reverse=True)
         if limit:
             targets = targets[:limit]
 
-        logger.info(
-            f"Identified {len(targets)} scheduled targets for warming at {current_time}"
-        )
+        logger.info(f"Identified {len(targets)} scheduled targets for warming at {current_time}")
         return targets
 
-    def _analyze_schedule_context(self, current_time: datetime) -> Dict[str, Any]:
+    def _analyze_schedule_context(self, current_time: datetime) -> dict[str, Any]:
         """Analyze current time to determine schedule context.
 
         Args:
@@ -130,18 +118,14 @@ class ScheduledStrategy(BaseWarmingStrategy):
         month_name = current_time.strftime("%B").lower()
 
         ***REMOVED*** Determine if it's peak hours
-        peak_ranges = self.schedule_config["peak_hours"][
-            "weekend" if is_weekend else "weekday"
-        ]
+        peak_ranges = self.schedule_config["peak_hours"]["weekend" if is_weekend else "weekday"]
         is_peak_hour = any(start <= current_hour <= end for start, end in peak_ranges)
 
         ***REMOVED*** Determine if it's off-peak hours
         off_peak_ranges = self.schedule_config["off_peak_hours"][
             "weekend" if is_weekend else "weekday"
         ]
-        is_off_peak = any(
-            start <= current_hour <= end for start, end in off_peak_ranges
-        )
+        is_off_peak = any(start <= current_hour <= end for start, end in off_peak_ranges)
 
         return {
             "is_weekend": is_weekend,
@@ -172,8 +156,8 @@ class ScheduledStrategy(BaseWarmingStrategy):
             return "night"
 
     async def _create_peak_hour_targets(
-        self, current_time: datetime, schedule_context: Dict[str, Any]
-    ) -> List[WarmingTarget]:
+        self, current_time: datetime, schedule_context: dict[str, Any]
+    ) -> list[WarmingTarget]:
         """Create targets for peak hour preparation.
 
         Args:
@@ -249,8 +233,8 @@ class ScheduledStrategy(BaseWarmingStrategy):
         return targets
 
     async def _create_daily_schedule_targets(
-        self, current_time: datetime, schedule_context: Dict[str, Any]
-    ) -> List[WarmingTarget]:
+        self, current_time: datetime, schedule_context: dict[str, Any]
+    ) -> list[WarmingTarget]:
         """Create targets based on daily schedules.
 
         Args:
@@ -318,8 +302,8 @@ class ScheduledStrategy(BaseWarmingStrategy):
         return targets
 
     async def _create_weekly_schedule_targets(
-        self, current_time: datetime, schedule_context: Dict[str, Any]
-    ) -> List[WarmingTarget]:
+        self, current_time: datetime, schedule_context: dict[str, Any]
+    ) -> list[WarmingTarget]:
         """Create targets based on weekly schedules.
 
         Args:
@@ -377,8 +361,8 @@ class ScheduledStrategy(BaseWarmingStrategy):
         return targets
 
     async def _create_seasonal_targets(
-        self, current_time: datetime, schedule_context: Dict[str, Any]
-    ) -> List[WarmingTarget]:
+        self, current_time: datetime, schedule_context: dict[str, Any]
+    ) -> list[WarmingTarget]:
         """Create targets based on seasonal events.
 
         Args:
@@ -423,9 +407,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
 
         return targets
 
-    def _is_near_time(
-        self, current_time: time, target_time: time, minutes: int = 30
-    ) -> bool:
+    def _is_near_time(self, current_time: time, target_time: time, minutes: int = 30) -> bool:
         """Check if current time is near target time.
 
         Args:
@@ -470,7 +452,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
 
         return False
 
-    def calculate_priority(self, target_data: Dict[str, Any]) -> float:
+    def calculate_priority(self, target_data: dict[str, Any]) -> float:
         """Calculate priority based on schedule type and urgency.
 
         Args:
@@ -507,9 +489,4 @@ class ScheduledStrategy(BaseWarmingStrategy):
         if time_context.get("is_weekend"):
             context_boost *= 1.1
 
-        return (
-            base_priority
-            * urgency_multiplier
-            * context_boost
-            * self.config.scheduled_weight
-        )
+        return base_priority * urgency_multiplier * context_boost * self.config.scheduled_weight

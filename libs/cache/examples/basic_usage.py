@@ -1,7 +1,7 @@
 """Basic usage example for the cache library."""
 
 import asyncio
-from typing import Dict, Optional, Union, cast
+from typing import cast
 
 from cache import CacheManager, CacheSettings
 from cache.types import JSONSerializable
@@ -29,7 +29,7 @@ async def basic_example() -> None:
         print("\n2. Basic Cache Operations")
 
         ***REMOVED*** Set some data
-        user_data: Dict[str, Union[int, str, Dict[str, Union[str, bool]]]] = {
+        user_data: dict[str, int | str | dict[str, str | bool]] = {
             "id": 123,
             "name": "John Doe",
             "email": "john@example.com",
@@ -38,9 +38,7 @@ async def basic_example() -> None:
 
         key = "user:123"
         print(f"   Setting cache key: {key}")
-        success = await cache.set_json(
-            key, cast(JSONSerializable, user_data), ttl=300
-        )  ***REMOVED*** 5 minutes
+        success = await cache.set_json(key, cast(JSONSerializable, user_data), ttl=300)  ***REMOVED*** 5 minutes
         print(f"   Set successful: {success}")
 
         ***REMOVED*** Get the data back

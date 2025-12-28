@@ -6,13 +6,12 @@ manual API-triggered bulk warming.
 """
 
 import asyncio
+import logging
 import random
 import time
-from typing import Dict, Any, List, Optional, Callable, Awaitable
-from datetime import datetime, timedelta
-
-import logging
-from typing import TYPE_CHECKING
+from collections.abc import Awaitable, Callable
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     try:
@@ -115,8 +114,8 @@ class SmartWarmingService:
     async def warm_on_cache_miss(
         self,
         cache_key: str,
-        context: Dict[str, Any],
-        warming_func: Optional[Callable[[], Awaitable[Any]]] = None,
+        context: dict[str, Any],
+        warming_func: Callable[[], Awaitable[Any]] | None = None,
     ) -> bool:
         """Warm related content when a cache miss is detected.
 
@@ -181,7 +180,7 @@ class SmartWarmingService:
     async def warm_from_trigger(
         self,
         trigger_name: str,
-        warming_func: Optional[Callable[[], Awaitable[Any]]] = None,
+        warming_func: Callable[[], Awaitable[Any]] | None = None,
         **context: Any,
     ) -> bool:
         """Warm cache based on any trigger event.
@@ -220,9 +219,7 @@ class SmartWarmingService:
             if warming_func:
                 await warming_func()
             else:
-                logger.debug(
-                    f"No warming function provided for trigger: {trigger_name}"
-                )
+                logger.debug(f"No warming function provided for trigger: {trigger_name}")
 
             self.warming_stats["operations_successful"] += 1
             self.warming_stats["last_operation"] = datetime.utcnow().isoformat()
@@ -251,11 +248,9 @@ class SmartWarmingService:
         Returns:
             True if warming was attempted, False if rate limited or disabled
         """
-        return await self.warm_from_trigger(
-            "popular_content_refresh", warming_func, limit=limit
-        )
+        return await self.warm_from_trigger("popular_content_refresh", warming_func, limit=limit)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get warming statistics.
 
         Returns:
@@ -281,9 +276,7 @@ class SmartWarmingService:
             "last_operation": None,
         }
 
-    async def _warm_related_content(
-        self, cache_key: str, context: Dict[str, Any]
-    ) -> None:
+    async def _warm_related_content(self, cache_key: str, context: dict[str, Any]) -> None:
         """Default warming logic for cache misses.
 
         This is a fallback that should be overridden by business logic.
@@ -299,7 +292,7 @@ class SmartWarmingService:
 
 
 ***REMOVED*** Global smart warming service instance
-_global_smart_warming_service: Optional[SmartWarmingService] = None
+_global_smart_warming_service: SmartWarmingService | None = None
 
 
 def get_smart_warming_service() -> SmartWarmingService:

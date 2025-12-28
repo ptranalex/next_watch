@@ -1,7 +1,7 @@
 """Metrics collector for cache performance tracking."""
 
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 from .storage import get_global_storage
 
@@ -38,7 +38,7 @@ class MetricsCollector:
         if self.enabled and self._storage:
             self._storage.record_miss(function_name, response_time_ms)
 
-    def get_metrics(self) -> Optional[Dict[str, Any]]:
+    def get_metrics(self) -> dict[str, Any] | None:
         """Get current metrics.
 
         Returns:
@@ -48,7 +48,7 @@ class MetricsCollector:
             return self._storage.get_metrics().to_dict()
         return None
 
-    def get_function_metrics(self, function_name: str) -> Optional[Dict[str, Any]]:
+    def get_function_metrics(self, function_name: str) -> dict[str, Any] | None:
         """Get metrics for a specific function.
 
         Args:
@@ -61,7 +61,7 @@ class MetricsCollector:
             return self._storage.get_function_metrics(function_name)
         return None
 
-    def get_summary(self) -> Optional[Dict[str, Any]]:
+    def get_summary(self) -> dict[str, Any] | None:
         """Get summary metrics.
 
         Returns:
@@ -73,7 +73,7 @@ class MetricsCollector:
 
 
 ***REMOVED*** Global metrics collector instance
-_global_collector: Optional[MetricsCollector] = None
+_global_collector: MetricsCollector | None = None
 
 
 def get_global_collector() -> MetricsCollector:

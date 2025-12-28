@@ -1,9 +1,12 @@
 """Popular content warming strategy."""
 
-import structlog
-from typing import List, Optional, Dict, Any, Callable, Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
-from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
+import structlog
+
+from cache.warming.types import WarmingConfig, WarmingStrategy, WarmingTarget
+
 from .base import BaseWarmingStrategy
 
 logger = structlog.get_logger(__name__)
@@ -19,10 +22,8 @@ class PopularContentStrategy(BaseWarmingStrategy):
     def __init__(
         self,
         config: WarmingConfig,
-        popularity_provider: Optional[Callable[[], Awaitable[Dict[str, Any]]]] = None,
-        target_factories: Optional[
-            Dict[str, Callable[[Dict[str, Any]], List[WarmingTarget]]]
-        ] = None,
+        popularity_provider: Callable[[], Awaitable[dict[str, Any]]] | None = None,
+        target_factories: dict[str, Callable[[dict[str, Any]], list[WarmingTarget]]] | None = None,
     ):
         """Initialize popular content strategy.
 
@@ -40,7 +41,7 @@ class PopularContentStrategy(BaseWarmingStrategy):
     def register_target_factory(
         self,
         content_type: str,
-        factory: Callable[[Dict[str, Any]], List[WarmingTarget]],
+        factory: Callable[[dict[str, Any]], list[WarmingTarget]],
     ) -> None:
         """Register a target factory for a specific content type.
 
@@ -52,8 +53,8 @@ class PopularContentStrategy(BaseWarmingStrategy):
         logger.debug(f"Registered target factory for content type: {content_type}")
 
     async def identify_targets(
-        self, limit: Optional[int] = None, context: Optional[Dict[str, Any]] = None
-    ) -> List[WarmingTarget]:
+        self, limit: int | None = None, context: dict[str, Any] | None = None
+    ) -> list[WarmingTarget]:
         """Identify warming targets based on popular content.
 
         Args:
@@ -64,9 +65,7 @@ class PopularContentStrategy(BaseWarmingStrategy):
             List of warming targets for popular content
         """
         if not self.popularity_provider:
-            logger.warning(
-                "No popularity provider available for popular content warming"
-            )
+            logger.warning("No popularity provider available for popular content warming")
             return await self._get_default_popular_targets(limit)
 
         try:
@@ -88,25 +87,21 @@ class PopularContentStrategy(BaseWarmingStrategy):
                                 f"Error creating targets for {content_type} item {item.get('id', 'unknown')}: {e}"
                             )
                 else:
-                    logger.warning(
-                        f"No target factory registered for content type: {content_type}"
-                    )
+                    logger.warning(f"No target factory registered for content type: {content_type}")
 
             ***REMOVED*** Sort by priority and apply limit
             targets.sort(key=lambda t: t.priority, reverse=True)
             if limit:
                 targets = targets[:limit]
 
-            logger.info(
-                f"Identified {len(targets)} popular content targets for warming"
-            )
+            logger.info(f"Identified {len(targets)} popular content targets for warming")
             return targets
 
         except Exception as e:
             logger.error(f"Error getting popularity data: {e}")
             return await self._get_default_popular_targets(limit)
 
-    def calculate_priority(self, target_data: Dict[str, Any]) -> float:
+    def calculate_priority(self, target_data: dict[str, Any]) -> float:
         """Calculate priority based on popularity metrics.
 
         Args:
@@ -117,7 +112,6 @@ class PopularContentStrategy(BaseWarmingStrategy):
         """
         popularity_score = target_data.get("popularity_score", 1.0)
         view_count = target_data.get("view_count", 0)
-        content_type = target_data.get("content_type", "unknown")
 
         ***REMOVED*** Base priority from popularity
         base_priority = popularity_score
@@ -130,9 +124,7 @@ class PopularContentStrategy(BaseWarmingStrategy):
         ***REMOVED*** Generic priority calculation - no content-specific logic
         return (base_priority + view_boost) * self.config.popular_content_weight
 
-    async def _get_default_popular_targets(
-        self, limit: Optional[int] = None
-    ) -> List[WarmingTarget]:
+    async def _get_default_popular_targets(self, limit: int | None = None) -> list[WarmingTarget]:
         """Get default popular content targets when no provider is available.
 
         Args:

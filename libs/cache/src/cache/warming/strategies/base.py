@@ -1,10 +1,9 @@
 """Base warming strategy interface."""
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any
-from datetime import datetime
+from typing import Any
 
-from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
+from cache.warming.types import WarmingConfig, WarmingStrategy, WarmingTarget
 
 
 class BaseWarmingStrategy(ABC):
@@ -21,8 +20,8 @@ class BaseWarmingStrategy(ABC):
 
     @abstractmethod
     async def identify_targets(
-        self, limit: Optional[int] = None, context: Optional[Dict[str, Any]] = None
-    ) -> List[WarmingTarget]:
+        self, limit: int | None = None, context: dict[str, Any] | None = None
+    ) -> list[WarmingTarget]:
         """Identify warming targets based on strategy logic.
 
         Args:
@@ -35,7 +34,7 @@ class BaseWarmingStrategy(ABC):
         pass
 
     @abstractmethod
-    def calculate_priority(self, target_data: Dict[str, Any]) -> float:
+    def calculate_priority(self, target_data: dict[str, Any]) -> float:
         """Calculate priority score for a potential target.
 
         Args:
@@ -46,7 +45,7 @@ class BaseWarmingStrategy(ABC):
         """
         pass
 
-    def should_warm_target(self, target_data: Dict[str, Any]) -> bool:
+    def should_warm_target(self, target_data: dict[str, Any]) -> bool:
         """Check if a target should be warmed based on strategy criteria.
 
         Args:
@@ -58,7 +57,7 @@ class BaseWarmingStrategy(ABC):
         ***REMOVED*** Default implementation - can be overridden
         return True
 
-    def get_strategy_info(self) -> Dict[str, Any]:
+    def get_strategy_info(self) -> dict[str, Any]:
         """Get information about this strategy.
 
         Returns:
@@ -76,10 +75,10 @@ class BaseWarmingStrategy(ABC):
     def create_warming_target(
         self,
         function_name: str,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
         priority: float,
         estimated_benefit: float = 0.0,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
     ) -> WarmingTarget:
         """Create a warming target with this strategy.
 

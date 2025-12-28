@@ -1,12 +1,12 @@
 """CLI commands for cache metrics."""
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 
 from ..metrics.collector import get_global_collector
@@ -17,7 +17,7 @@ metrics_app = typer.Typer(name="metrics", help="Cache metrics commands")
 
 @metrics_app.command("show")
 def show_metrics(
-    function_name: Optional[str] = typer.Option(
+    function_name: str | None = typer.Option(
         None, "--function", "-f", help="Show metrics for specific function"
     ),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
@@ -64,7 +64,7 @@ def show_summary() -> None:
 
 @metrics_app.command("reset")
 def reset_metrics(
-    confirm: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt")
+    confirm: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
 ) -> None:
     """Reset all cache metrics."""
     if not confirm:
@@ -79,7 +79,7 @@ def reset_metrics(
         console.print("[yellow]Reset cancelled[/yellow]")
 
 
-def _display_overall_metrics(metrics: Dict[str, Any]) -> None:
+def _display_overall_metrics(metrics: dict[str, Any]) -> None:
     """Display overall metrics in a formatted table."""
     overall = metrics.get("overall", {})
     functions = metrics.get("functions", {})
@@ -120,16 +120,16 @@ def _display_overall_metrics(metrics: Dict[str, Any]) -> None:
         table.add_row(
             func_name.split(".")[-1],  ***REMOVED*** Show only function name, not full module path
             str(func_data.get("total_calls", 0)),
-            f"{hit_ratio}%",
+            Text(f"{hit_ratio}%", style=hit_ratio_style),
             f"{func_data.get('avg_cache_time_ms', 0):.1f}ms",
             f"{func_data.get('avg_uncached_time_ms', 0):.1f}ms",
-            f"{performance_gain:.1f}x",
+            Text(f"{performance_gain:.1f}x", style=gain_style),
         )
 
     console.print(table)
 
 
-def _display_function_metrics(func_metrics: Dict[str, Any]) -> None:
+def _display_function_metrics(func_metrics: dict[str, Any]) -> None:
     """Display metrics for a specific function."""
     func_name = func_metrics.get("function_name", "Unknown")
 
@@ -164,7 +164,7 @@ def _display_function_metrics(func_metrics: Dict[str, Any]) -> None:
     )
 
 
-def _display_summary(summary: Dict[str, Any]) -> None:
+def _display_summary(summary: dict[str, Any]) -> None:
     """Display metrics summary."""
     ***REMOVED*** Create a compact summary display
     table = Table(title="Cache Metrics Summary", show_header=False, box=None)

@@ -10,8 +10,6 @@ Enhanced features:
 """
 
 from cache.config.settings import CacheSettings
-from cache.manager import CacheManager, get_cache_manager
-from cache.providers.redis import RedisProvider
 from cache.decorators import redis_cache
 from cache.keys import (
     build_cache_key,
@@ -19,8 +17,10 @@ from cache.keys import (
     build_paginated_key,
     hash_parameters,
 )
+from cache.manager import CacheManager, get_cache_manager
 from cache.metrics import MetricsCollector, get_global_collector, set_metrics_enabled
-from cache.warming import WarmingEngine, WarmingConfig, WarmingTarget, WarmingStrategy
+from cache.providers.redis import RedisProvider
+from cache.warming import WarmingConfig, WarmingEngine, WarmingStrategy, WarmingTarget
 
 __version__ = "0.1.0"
 __all__ = [

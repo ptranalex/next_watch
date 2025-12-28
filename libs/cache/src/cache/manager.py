@@ -1,13 +1,13 @@
 """Cache manager - main interface for the cache library."""
 
-from typing import Any, Dict, List, Optional, TypeVar, cast
+from typing import Any, Optional, TypeVar, cast
 
 import structlog
 
 from cache.config.settings import CacheSettings
 from cache.providers.base import CacheProvider
 from cache.providers.redis import RedisProvider
-from cache.types import CacheKey, CacheResult, CacheSetResult, JSONSerializable, TTL
+from cache.types import TTL, CacheKey, CacheResult, CacheSetResult, JSONSerializable
 
 logger = structlog.get_logger(__name__)
 
@@ -21,9 +21,7 @@ _CACHE_MANAGER_INSTANCE: Optional["CacheManager"] = None
 class CacheManager:
     """Main cache manager providing unified interface to cache operations."""
 
-    def __init__(
-        self, provider: CacheProvider, settings: Optional[CacheSettings] = None
-    ) -> None:
+    def __init__(self, provider: CacheProvider, settings: CacheSettings | None = None) -> None:
         """Initialize cache manager.
 
         Args:
@@ -32,9 +30,7 @@ class CacheManager:
         """
         self.provider = provider
         self.settings = settings or CacheSettings()
-        self.logger = logger.bind(
-            manager="CacheManager", provider=provider.__class__.__name__
-        )
+        self.logger = logger.bind(manager="CacheManager", provider=provider.__class__.__name__)
 
         self.logger.info("Cache manager initialized")
 
@@ -43,7 +39,7 @@ class CacheManager:
         _CACHE_MANAGER_INSTANCE = self
 
     @classmethod
-    def from_settings(cls, settings: Optional[CacheSettings] = None) -> "CacheManager":
+    def from_settings(cls, settings: CacheSettings | None = None) -> "CacheManager":
         """Create cache manager from settings with Redis provider.
 
         Args:
@@ -175,7 +171,7 @@ class CacheManager:
     ***REMOVED*** Enhanced methods with error handling and type safety
     async def get_json_safe(
         self, key: CacheKey, log_errors: bool = True
-    ) -> Optional[JSONSerializable]:
+    ) -> JSONSerializable | None:
         """Get JSON value from cache with error handling.
 
         Args:
@@ -192,9 +188,7 @@ class CacheManager:
                 self.logger.error(f"Failed to get cache key {key}", error=str(e))
             return None
 
-    async def get_dict(
-        self, key: CacheKey, log_errors: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    async def get_dict(self, key: CacheKey, log_errors: bool = True) -> dict[str, Any] | None:
         """Get dictionary value from cache with type safety and error handling.
 
         Args:
@@ -207,18 +201,14 @@ class CacheManager:
         try:
             result = await self.get_json(key)
             if isinstance(result, dict):
-                return cast(Dict[str, Any], result)
+                return cast(dict[str, Any], result)
             return None
         except Exception as e:
             if log_errors:
-                self.logger.error(
-                    f"Failed to get dict from cache key {key}", error=str(e)
-                )
+                self.logger.error(f"Failed to get dict from cache key {key}", error=str(e))
             return None
 
-    async def get_list(
-        self, key: CacheKey, log_errors: bool = True
-    ) -> Optional[List[Any]]:
+    async def get_list(self, key: CacheKey, log_errors: bool = True) -> list[Any] | None:
         """Get list value from cache with type safety and error handling.
 
         Args:
@@ -231,13 +221,11 @@ class CacheManager:
         try:
             result = await self.get_json(key)
             if isinstance(result, list):
-                return cast(List[Any], result)
+                return cast(list[Any], result)
             return None
         except Exception as e:
             if log_errors:
-                self.logger.error(
-                    f"Failed to get list from cache key {key}", error=str(e)
-                )
+                self.logger.error(f"Failed to get list from cache key {key}", error=str(e))
             return None
 
     async def set_json_safe(
@@ -316,15 +304,15 @@ class CacheManager:
 
     async def __aexit__(
         self,
-        exc_type: Optional[type],
-        exc_val: Optional[Exception],
-        exc_tb: Optional[object],
+        exc_type: type | None,
+        exc_val: Exception | None,
+        exc_tb: object | None,
     ) -> None:
         """Async context manager exit."""
         await self.close()
 
 
-def get_cache_manager(settings: Optional[CacheSettings] = None) -> CacheManager:
+def get_cache_manager(settings: CacheSettings | None = None) -> CacheManager:
     """Get or create a singleton cache manager instance.
 
     This function implements the singleton pattern for the cache manager,

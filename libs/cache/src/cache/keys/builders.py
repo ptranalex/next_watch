@@ -2,7 +2,7 @@
 
 import hashlib
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 
 
 class CacheKeyBuilder(ABC):
@@ -24,7 +24,7 @@ class CacheKeyBuilder(ABC):
 
 
 def build_cache_key(
-    namespace: str, key_parts: List[Union[str, int, None]], prefix: str = "nextwatch"
+    namespace: str, key_parts: list[str | int | None], prefix: str = "nextwatch"
 ) -> str:
     """Build a cache key from namespace and parts.
 
@@ -46,7 +46,7 @@ def build_cache_key(
     return f"{prefix}:{namespace}:{key_string}"
 
 
-def hash_parameters(params: Dict[str, Any], length: int = 8) -> str:
+def hash_parameters(params: dict[str, Any], length: int = 8) -> str:
     """Create a short hash from parameters dictionary.
 
     Useful for creating cache keys from complex parameter sets.
@@ -72,9 +72,9 @@ def hash_parameters(params: Dict[str, Any], length: int = 8) -> str:
 
 def build_filtered_key(
     base_namespace: str,
-    base_id: Union[str, int],
-    filters: Dict[str, Any],
-    user_id: Optional[Union[str, int]] = None,
+    base_id: str | int,
+    filters: dict[str, Any],
+    user_id: str | int | None = None,
     prefix: str = "nextwatch",
 ) -> str:
     """Build a cache key for filtered data.
@@ -99,7 +99,7 @@ def build_filtered_key(
     filter_hash = hash_parameters(filters)
 
     ***REMOVED*** Build key parts
-    key_parts: List[Union[str, int, None]] = [str(base_id), "filters", filter_hash]
+    key_parts: list[str | int | None] = [str(base_id), "filters", filter_hash]
 
     if user_id is not None:
         key_parts.extend(["user", str(user_id)])
@@ -109,10 +109,10 @@ def build_filtered_key(
 
 def build_paginated_key(
     namespace: str,
-    base_parts: List[Union[str, int]],
+    base_parts: list[str | int],
     page: int,
     limit: int,
-    user_id: Optional[Union[str, int]] = None,
+    user_id: str | int | None = None,
     prefix: str = "nextwatch",
 ) -> str:
     """Build a cache key for paginated data.
@@ -132,8 +132,8 @@ def build_paginated_key(
         >>> build_paginated_key("actor", [123, "movies"], 2, 20, user_id=456)
         "nextwatch:actor:123:movies:page:2:limit:20:user:456"
     """
-    key_parts: List[Union[str, int, None]] = cast(
-        List[Union[str, int, None]],
+    key_parts: list[str | int | None] = cast(
+        list[str | int | None],
         [str(part) for part in base_parts]
         + [
             "page",

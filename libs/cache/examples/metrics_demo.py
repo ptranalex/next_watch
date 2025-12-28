@@ -10,14 +10,14 @@ This example demonstrates the cache metrics functionality, showing:
 
 import asyncio
 import time
-from typing import Dict, Any
+from typing import Any
 
-from cache import redis_cache, get_global_collector
+from cache import get_global_collector, redis_cache
 from cache.manager import CacheManager
 
 
 ***REMOVED*** Mock expensive operations
-async def expensive_database_query(user_id: int) -> Dict[str, Any]:
+async def expensive_database_query(user_id: int) -> dict[str, Any]:
     """Simulate an expensive database query."""
     await asyncio.sleep(0.1)  ***REMOVED*** 100ms delay
     return {
@@ -28,7 +28,7 @@ async def expensive_database_query(user_id: int) -> Dict[str, Any]:
     }
 
 
-async def expensive_api_call(product_id: int) -> Dict[str, Any]:
+async def expensive_api_call(product_id: int) -> dict[str, Any]:
     """Simulate an expensive external API call."""
     await asyncio.sleep(0.05)  ***REMOVED*** 50ms delay
     return {
@@ -41,13 +41,13 @@ async def expensive_api_call(product_id: int) -> Dict[str, Any]:
 
 ***REMOVED*** Cached functions
 @redis_cache(ttl=300, key_prefix="user")
-async def get_user_profile(user_id: int) -> Dict[str, Any]:
+async def get_user_profile(user_id: int) -> dict[str, Any]:
     """Get user profile with caching."""
     return await expensive_database_query(user_id)
 
 
 @redis_cache(ttl=600, key_prefix="product")
-async def get_product_details(product_id: int) -> Dict[str, Any]:
+async def get_product_details(product_id: int) -> dict[str, Any]:
     """Get product details with caching."""
     return await expensive_api_call(product_id)
 
@@ -104,7 +104,7 @@ def display_metrics() -> None:
 
     ***REMOVED*** Overall metrics
     overall = metrics["overall"]
-    print(f"\n🎯 OVERALL PERFORMANCE:")
+    print("\n🎯 OVERALL PERFORMANCE:")
     print(f"   Total Calls: {overall['total_calls']}")
     print(f"   Cache Hits:  {overall['total_hits']} ({overall['hit_ratio']:.1f}%)")
     print(f"   Cache Misses: {overall['total_misses']} ({overall['miss_ratio']:.1f}%)")
@@ -113,7 +113,7 @@ def display_metrics() -> None:
     ***REMOVED*** Function-specific metrics
     functions = metrics["functions"]
     if functions:
-        print(f"\n📈 FUNCTION PERFORMANCE:")
+        print("\n📈 FUNCTION PERFORMANCE:")
         print("-" * 60)
 
         for func_name, func_data in functions.items():
@@ -171,7 +171,7 @@ async def main() -> None:
 
     ***REMOVED*** Initialize cache manager (this would normally be done in your app startup)
     try:
-        cache_manager = CacheManager.from_settings()
+        CacheManager.from_settings()
         print("✅ Cache manager initialized")
     except Exception as e:
         print(f"⚠️  Cache manager initialization failed: {e}")

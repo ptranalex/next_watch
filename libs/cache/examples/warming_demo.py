@@ -3,10 +3,10 @@
 
 import asyncio
 import time
-from cache import CacheManager, get_global_collector, set_metrics_enabled
-from cache.warming import WarmingEngine, WarmingConfig, WarmingStrategy
-from cache.decorators import redis_cache
 
+from cache import CacheManager, get_global_collector, set_metrics_enabled
+from cache.decorators import redis_cache
+from cache.warming import WarmingConfig, WarmingEngine, WarmingStrategy
 
 ***REMOVED*** Enable metrics for the demo
 set_metrics_enabled(True)
@@ -105,7 +105,7 @@ async def demonstrate_warming():
     warming_time = time.time() - start_time
 
     print(f"\n✅ Warming completed in {warming_time:.2f}s")
-    print(f"📈 Warming Statistics:")
+    print("📈 Warming Statistics:")
     print(f"  Total targets: {stats.total_targets}")
     print(f"  Successful: {stats.successful_targets}")
     print(f"  Failed: {stats.failed_targets}")

@@ -3,7 +3,6 @@
 """Basic tests for cache functionality."""
 
 import pytest
-
 from cache import CacheManager, CacheSettings, RedisProvider
 
 
@@ -37,9 +36,7 @@ class TestRedisProvider:
 
     def test_redis_provider_initialization(self):
         """Test Redis provider can be initialized."""
-        provider = RedisProvider(
-            redis_url="redis://localhost:6379/0", key_prefix="test"
-        )
+        provider = RedisProvider(redis_url="redis://localhost:6379/0", key_prefix="test")
 
         assert provider.redis_url == "redis://localhost:6379/0"
         assert provider.key_prefix == "test"
@@ -48,9 +45,7 @@ class TestRedisProvider:
 
     def test_redis_provider_from_settings(self):
         """Test Redis provider creation from settings."""
-        settings = CacheSettings(
-            redis_url="redis://localhost:6379/1", key_prefix="myapp"
-        )
+        settings = CacheSettings(redis_url="redis://localhost:6379/1", key_prefix="myapp")
 
         provider = RedisProvider.from_settings(settings)
 

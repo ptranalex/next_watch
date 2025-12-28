@@ -1,18 +1,17 @@
 """Type definitions for the cache library."""
 
-from typing import Any, Dict, List, Optional, Union
-from typing_extensions import TypeAlias
+from typing import Any
 
 ***REMOVED*** Cache value types
-CacheValue: TypeAlias = Union[str, int, float, bool, Dict[str, Any], list[Any], None]
-CacheKey: TypeAlias = str
-TTL: TypeAlias = Optional[int]
+type CacheValue = str | int | float | bool | dict[str, Any] | list[Any] | None
+type CacheKey = str
+type TTL = int | None
 
 ***REMOVED*** JSON serializable types
-JSONSerializable: TypeAlias = Union[
-    str, int, float, bool, None, Dict[str, "JSONSerializable"], List["JSONSerializable"]
-]
+type JSONSerializable = (
+    str | int | float | bool | None | dict[str, "JSONSerializable"] | list["JSONSerializable"]
+)
 
 ***REMOVED*** Cache operation results
-CacheResult: TypeAlias = Optional[JSONSerializable]
-CacheSetResult: TypeAlias = bool
+type CacheResult = JSONSerializable | None
+type CacheSetResult = bool

@@ -1,6 +1,5 @@
 """Cache configuration settings."""
 
-from typing import Dict, List, Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -13,23 +12,15 @@ class CacheSettings(BaseSettings):
     """
 
     ***REMOVED*** Redis connection settings
-    redis_url: str = Field(
-        default="redis://localhost:6379/0", description="Redis connection URL"
-    )
-    redis_max_connections: int = Field(
-        default=10, description="Redis connection pool size"
-    )
-    redis_socket_timeout: int = Field(
-        default=5, description="Redis connection timeout in seconds"
-    )
+    redis_url: str = Field(default="redis://localhost:6379/0", description="Redis connection URL")
+    redis_max_connections: int = Field(default=10, description="Redis connection pool size")
+    redis_socket_timeout: int = Field(default=5, description="Redis connection timeout in seconds")
 
     ***REMOVED*** Cache behavior settings
     cache_key_prefix: str = Field(
         default="nextwatch", description="Global key prefix for all cache keys"
     )
-    cache_enable_metrics: bool = Field(
-        default=True, description="Enable cache metrics collection"
-    )
+    cache_enable_metrics: bool = Field(default=True, description="Enable cache metrics collection")
 
     ***REMOVED*** TTL settings (in seconds)
     cache_ttl_default: int = Field(
@@ -41,9 +32,7 @@ class CacheSettings(BaseSettings):
     cache_ttl_medium: int = Field(
         default=900, description="Medium TTL for moderately stable data"
     )  ***REMOVED*** 15 minutes
-    cache_ttl_long: int = Field(
-        default=3600, description="Long TTL for stable data"
-    )  ***REMOVED*** 1 hour
+    cache_ttl_long: int = Field(default=3600, description="Long TTL for stable data")  ***REMOVED*** 1 hour
 
     class Config:
         """Pydantic configuration."""

@@ -19,9 +19,7 @@ cache_app = typer.Typer(
 )
 
 ***REMOVED*** Add subcommands
-cache_app.add_typer(
-    metrics_app, name="metrics", help="Cache metrics and performance tracking"
-)
+cache_app.add_typer(metrics_app, name="metrics", help="Cache metrics and performance tracking")
 cache_app.add_typer(warming_app, name="warming", help="Cache warming and preloading")
 
 
@@ -58,9 +56,7 @@ def info() -> None:
 
 @cache_app.command()
 def validate_config(
-    strict: bool = typer.Option(
-        False, "--strict", "-s", help="Fail on any configuration issues"
-    )
+    strict: bool = typer.Option(False, "--strict", "-s", help="Fail on any configuration issues"),
 ) -> None:
     """Validate the cache configuration.
 
@@ -70,21 +66,15 @@ def validate_config(
     issues = settings.validate_config()
 
     if not issues:
-        console.print(
-            typer.style("✅ Cache configuration is valid", fg=typer.colors.GREEN)
-        )
+        console.print(typer.style("✅ Cache configuration is valid", fg=typer.colors.GREEN))
         return
 
-    console.print(
-        typer.style("⚠️ Cache configuration issues found:", fg=typer.colors.YELLOW)
-    )
+    console.print(typer.style("⚠️ Cache configuration issues found:", fg=typer.colors.YELLOW))
     for issue in issues:
         console.print(f"  - {issue}")
 
     if strict and any("Found" in issue for issue in issues):
-        console.print(
-            typer.style("\n❌ Validation failed in strict mode", fg=typer.colors.RED)
-        )
+        console.print(typer.style("\n❌ Validation failed in strict mode", fg=typer.colors.RED))
         raise typer.Exit(code=1)
 
 

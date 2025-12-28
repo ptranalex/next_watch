@@ -1,9 +1,10 @@
 """Type definitions for cache warming system."""
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, Callable, Awaitable
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 
 class WarmingStatus(Enum):
@@ -31,11 +32,11 @@ class WarmingTarget:
     """Represents a target for cache warming."""
 
     function_name: str
-    parameters: Dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
     priority: float = 1.0
     estimated_benefit: float = 0.0
-    ttl: Optional[int] = None
-    strategy: Optional[WarmingStrategy] = None
+    ttl: int | None = None
+    strategy: WarmingStrategy | None = None
 
     def __post_init__(self) -> None:
         """Validate warming target."""
@@ -50,13 +51,13 @@ class WarmingResult:
     target: WarmingTarget
     status: WarmingStatus
     start_time: datetime
-    end_time: Optional[datetime] = None
-    error: Optional[str] = None
-    cache_key: Optional[str] = None
-    execution_time_ms: Optional[float] = None
+    end_time: datetime | None = None
+    error: str | None = None
+    cache_key: str | None = None
+    execution_time_ms: float | None = None
 
     @property
-    def duration_ms(self) -> Optional[float]:
+    def duration_ms(self) -> float | None:
         """Calculate duration in milliseconds."""
         if self.end_time and self.start_time:
             return (self.end_time - self.start_time).total_seconds() * 1000
@@ -72,7 +73,7 @@ class WarmingResult:
 class WarmingBatch:
     """A batch of warming operations."""
 
-    targets: List[WarmingTarget]
+    targets: list[WarmingTarget]
     strategy: WarmingStrategy
     max_concurrent: int = 5
     timeout_seconds: int = 300
@@ -96,7 +97,7 @@ class WarmingStats:
     total_execution_time_ms: float = 0.0
     average_execution_time_ms: float = 0.0
     cache_hit_rate_improvement: float = 0.0
-    strategy_breakdown: Dict[str, int] = field(default_factory=dict)
+    strategy_breakdown: dict[str, int] = field(default_factory=dict)
 
     @property
     def success_rate(self) -> float:
@@ -159,7 +160,7 @@ class WarmingConfig:
 
     ***REMOVED*** Scheduling
     enable_automatic_warming: bool = True
-    warming_schedules: Dict[str, str] = field(
+    warming_schedules: dict[str, str] = field(
         default_factory=lambda: {
             "morning_warmup": "0 7 * * *",
             "evening_warmup": "0 17 * * *",

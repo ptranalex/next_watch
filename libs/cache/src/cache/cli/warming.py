@@ -1,23 +1,22 @@
 """CLI commands for cache warming operations."""
 
-import structlog
 import asyncio
-import json
-from typing import Optional, List, Dict, Any
+from typing import Any
+
+import structlog
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
+from rich.table import Table
 
+from cache import CacheManager, get_global_collector
 from cache.warming import (
-    WarmingEngine,
     WarmingConfig,
-    WarmingStrategy,
+    WarmingEngine,
     WarmingStats,
+    WarmingStrategy,
     get_global_warming_engine,
 )
-from cache import CacheManager, get_global_collector
 
 logger = structlog.get_logger(__name__)
 
@@ -27,20 +26,16 @@ warming_app = typer.Typer(help="Cache warming commands")
 
 @warming_app.command("start")
 def start_warming(
-    strategy: Optional[str] = typer.Option(
+    strategy: str | None = typer.Option(
         "all",
         help="Warming strategy (metrics_driven, popular_content, user_specific, scheduled, all)",
     ),
     limit: int = typer.Option(50, help="Maximum number of targets to warm"),
-    dry_run: bool = typer.Option(
-        False, help="Show what would be warmed without executing"
-    ),
-    user_ids: Optional[str] = typer.Option(
+    dry_run: bool = typer.Option(False, help="Show what would be warmed without executing"),
+    user_ids: str | None = typer.Option(
         None, help="Comma-separated user IDs for user-specific warming"
     ),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose logging"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
 ) -> None:
     """Start cache warming process."""
 
@@ -69,13 +64,9 @@ def start_warming(
             if user_ids:
                 context["user_ids"] = [int(uid.strip()) for uid in user_ids.split(",")]
 
-            console.print(
-                f"[green]Starting {strategy} warming with limit {limit}[/green]"
-            )
+            console.print(f"[green]Starting {strategy} warming with limit {limit}[/green]")
             if dry_run:
-                console.print(
-                    "[yellow]Dry run mode - no actual warming will be performed[/yellow]"
-                )
+                console.print("[yellow]Dry run mode - no actual warming will be performed[/yellow]")
 
             ***REMOVED*** Execute warming based on strategy
             if strategy == "all":
@@ -94,9 +85,7 @@ def start_warming(
 
                 if strategy not in strategy_map:
                     console.print(f"[red]Unknown strategy: {strategy}[/red]")
-                    console.print(
-                        f"Available strategies: {', '.join(strategy_map.keys())}"
-                    )
+                    console.print(f"Available strategies: {', '.join(strategy_map.keys())}")
                     return
 
                 warming_strategy = strategy_map[strategy]
@@ -153,9 +142,7 @@ def warming_status() -> None:
                     info = engine.get_strategy_info(strategy)
                     status = "[green]Enabled[/green]"
                     description = (
-                        info.get("description", "No description")
-                        if info
-                        else "No description"
+                        info.get("description", "No description") if info else "No description"
                     )
                 else:
                     status = "[red]Disabled[/red]"
@@ -198,9 +185,7 @@ def show_config() -> None:
     general_table.add_column("Setting", style="cyan")
     general_table.add_column("Value", style="green")
 
-    general_table.add_row(
-        "Max Concurrent Operations", str(config.max_concurrent_operations)
-    )
+    general_table.add_row("Max Concurrent Operations", str(config.max_concurrent_operations))
     general_table.add_row("Max Items Per Strategy", str(config.max_items_per_strategy))
     general_table.add_row("Operation Timeout", f"{config.operation_timeout_seconds}s")
     general_table.add_row("Max Duration", f"{config.max_warming_duration_minutes}min")
@@ -243,9 +228,7 @@ def show_config() -> None:
     threshold_table.add_row("Min Miss Rate", f"{config.min_miss_rate_threshold:.1%}")
     threshold_table.add_row("Min Avg Miss Time", f"{config.min_avg_miss_time_ms:.1f}ms")
     threshold_table.add_row("Min Total Calls", str(config.min_total_calls))
-    threshold_table.add_row(
-        "Popular Content Refresh", f"{config.popular_content_refresh_hours}h"
-    )
+    threshold_table.add_row("Popular Content Refresh", f"{config.popular_content_refresh_hours}h")
     threshold_table.add_row("Max Users Per Batch", str(config.max_users_per_batch))
     threshold_table.add_row(
         "Recommendation Confidence", f"{config.recommendation_confidence_threshold:.1%}"
@@ -257,9 +240,7 @@ def show_config() -> None:
 @warming_app.command("candidates")
 def show_candidates(
     limit: int = typer.Option(20, help="Maximum number of candidates to show"),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Show detailed metrics"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed metrics"),
 ) -> None:
     """Show warming candidates based on current metrics."""
 
@@ -297,27 +278,19 @@ def _display_warming_stats(stats: WarmingStats, dry_run: bool = False) -> None:
     if stats.total_targets == 0:
         console.print("[yellow]No warming targets identified[/yellow]")
     elif stats.success_rate == 1.0:
-        console.print(
-            "[green]✅ All warming operations completed successfully![/green]"
-        )
+        console.print("[green]✅ All warming operations completed successfully![/green]")
     elif stats.success_rate > 0.8:
-        console.print(
-            "[yellow]⚠️  Most warming operations completed successfully[/yellow]"
-        )
+        console.print("[yellow]⚠️  Most warming operations completed successfully[/yellow]")
     else:
         console.print("[red]❌ Many warming operations failed[/red]")
 
 
 def _display_all_strategy_results(
-    results: Dict[WarmingStrategy, WarmingStats], dry_run: bool = False
+    results: dict[WarmingStrategy, WarmingStats], dry_run: bool = False
 ) -> None:
     """Display results from all warming strategies."""
 
-    title = (
-        "🔥 All Strategies Results (Dry Run)"
-        if dry_run
-        else "🔥 All Strategies Results"
-    )
+    title = "🔥 All Strategies Results (Dry Run)" if dry_run else "🔥 All Strategies Results"
 
     ***REMOVED*** Summary table
     summary_table = Table(title=title)
@@ -353,9 +326,7 @@ def _display_all_strategy_results(
         )
 
     ***REMOVED*** Add totals row
-    overall_success_rate = (
-        total_successful / total_targets if total_targets > 0 else 0.0
-    )
+    overall_success_rate = total_successful / total_targets if total_targets > 0 else 0.0
     summary_table.add_row(
         "[bold]TOTAL[/bold]",
         f"[bold]{total_targets}[/bold]",
@@ -369,23 +340,19 @@ def _display_all_strategy_results(
 
     ***REMOVED*** Overall status message
     if total_targets == 0:
-        console.print(
-            "[yellow]No warming targets identified across all strategies[/yellow]"
-        )
+        console.print("[yellow]No warming targets identified across all strategies[/yellow]")
     elif overall_success_rate == 1.0:
         console.print(
             "[green]✅ All warming operations completed successfully across all strategies![/green]"
         )
     elif overall_success_rate > 0.8:
-        console.print(
-            "[yellow]⚠️  Most warming operations completed successfully[/yellow]"
-        )
+        console.print("[yellow]⚠️  Most warming operations completed successfully[/yellow]")
     else:
         console.print("[red]❌ Many warming operations failed[/red]")
 
 
 def _show_warming_candidates(
-    all_metrics: Dict[str, Any],
+    all_metrics: dict[str, Any],
     config: WarmingConfig,
     limit: int = 20,
     verbose: bool = False,

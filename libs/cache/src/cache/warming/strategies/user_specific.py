@@ -1,9 +1,12 @@
 """User-specific warming strategy."""
 
-import structlog
-from typing import List, Optional, Dict, Any, Callable, Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
-from cache.warming.types import WarmingTarget, WarmingConfig, WarmingStrategy
+import structlog
+
+from cache.warming.types import WarmingConfig, WarmingStrategy, WarmingTarget
+
 from .base import BaseWarmingStrategy
 
 logger = structlog.get_logger(__name__)
@@ -15,10 +18,8 @@ class UserSpecificStrategy(BaseWarmingStrategy):
     def __init__(
         self,
         config: WarmingConfig,
-        user_data_provider: Optional[Callable[[int], Awaitable[Dict[str, Any]]]] = None,
-        recommendation_provider: Optional[
-            Callable[[int], Awaitable[List[Dict[str, Any]]]]
-        ] = None,
+        user_data_provider: Callable[[int], Awaitable[dict[str, Any]]] | None = None,
+        recommendation_provider: Callable[[int], Awaitable[list[dict[str, Any]]]] | None = None,
     ):
         """Initialize user-specific strategy.
 
@@ -33,8 +34,8 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         self.recommendation_provider = recommendation_provider
 
     async def identify_targets(
-        self, limit: Optional[int] = None, context: Optional[Dict[str, Any]] = None
-    ) -> List[WarmingTarget]:
+        self, limit: int | None = None, context: dict[str, Any] | None = None
+    ) -> list[WarmingTarget]:
         """Identify warming targets based on user behavior and preferences.
 
         Args:
@@ -71,9 +72,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         logger.info(f"Identified {len(all_targets)} user-specific targets for warming")
         return all_targets
 
-    async def _process_user(
-        self, user_id: int, limit: Optional[int] = None
-    ) -> List[WarmingTarget]:
+    async def _process_user(self, user_id: int, limit: int | None = None) -> list[WarmingTarget]:
         """Process warming targets for a specific user.
 
         Args:
@@ -105,9 +104,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         targets.extend(self._create_profile_targets(user_id, user_data))
 
         ***REMOVED*** Create targets based on recommendations
-        targets.extend(
-            self._create_recommendation_targets(user_id, recommendations, user_data)
-        )
+        targets.extend(self._create_recommendation_targets(user_id, recommendations, user_data))
 
         ***REMOVED*** Create targets based on user preferences
         targets.extend(self._create_preference_targets(user_id, user_data))
@@ -120,8 +117,8 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         return targets
 
     def _create_profile_targets(
-        self, user_id: int, user_data: Dict[str, Any]
-    ) -> List[WarmingTarget]:
+        self, user_id: int, user_data: dict[str, Any]
+    ) -> list[WarmingTarget]:
         """Create warming targets based on user profile.
 
         Args:
@@ -198,9 +195,9 @@ class UserSpecificStrategy(BaseWarmingStrategy):
     def _create_recommendation_targets(
         self,
         user_id: int,
-        recommendations: List[Dict[str, Any]],
-        user_data: Dict[str, Any],
-    ) -> List[WarmingTarget]:
+        recommendations: list[dict[str, Any]],
+        user_data: dict[str, Any],
+    ) -> list[WarmingTarget]:
         """Create warming targets based on user recommendations.
 
         Args:
@@ -242,8 +239,8 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         return targets
 
     def _create_preference_targets(
-        self, user_id: int, user_data: Dict[str, Any]
-    ) -> List[WarmingTarget]:
+        self, user_id: int, user_data: dict[str, Any]
+    ) -> list[WarmingTarget]:
         """Create warming targets based on user preferences.
 
         Args:
@@ -315,7 +312,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
 
         return targets
 
-    def calculate_priority(self, target_data: Dict[str, Any]) -> float:
+    def calculate_priority(self, target_data: dict[str, Any]) -> float:
         """Calculate priority based on user engagement and content type.
 
         Args:
@@ -352,15 +349,10 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         confidence_boost = confidence if "recommendation" in content_type else 1.0
 
         return (
-            base_priority
-            * content_multiplier
-            * confidence_boost
-            * self.config.user_specific_weight
+            base_priority * content_multiplier * confidence_boost * self.config.user_specific_weight
         )
 
-    async def _get_default_user_targets(
-        self, limit: Optional[int] = None
-    ) -> List[WarmingTarget]:
+    async def _get_default_user_targets(self, limit: int | None = None) -> list[WarmingTarget]:
         """Get default user-specific targets when no user data is available.
 
         Args:

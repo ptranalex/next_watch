@@ -1,7 +1,7 @@
 """Example of how services can use enhanced cache methods directly without wrapper classes."""
 
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Any
 
 from cache import CacheManager
 from cache.config import CacheSettings
@@ -18,7 +18,7 @@ async def main():
     cache = CacheManager.from_settings(settings)
 
     ***REMOVED*** Example service function using enhanced methods directly
-    async def get_user_profile(user_id: int) -> Optional[Dict[str, Any]]:
+    async def get_user_profile(user_id: int) -> dict[str, Any] | None:
         """Get user profile from cache or backend."""
         ***REMOVED*** Use get_dict for type-safe dictionary retrieval
         cache_key = f"user:{user_id}"

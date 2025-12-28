@@ -40,18 +40,18 @@ requires-python = ">=3.12"
 dependencies = [
     ***REMOVED*** Redis client with async support
     "redis[hiredis]>=5.0.0",
-    
+
     ***REMOVED*** Configuration and validation
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
-    
+
     ***REMOVED*** CLI and rich output
     "typer>=0.15.2",
     "rich>=14.0.0",
-    
+
     ***REMOVED*** Structured logging
     "structlog>=23.0.0",
-    
+
     ***REMOVED*** Type support
     "typing-extensions>=4.0.0",
 ]
@@ -65,15 +65,15 @@ dev = [
     "pytest-mock>=3.11.0",
     "fakeredis>=2.18.0",
     "httpx>=0.24.0",
-    
+
     ***REMOVED*** Type checking
     "mypy>=1.5.0",
     "types-redis>=4.6.0",
-    
+
     ***REMOVED*** Linting and formatting
     "ruff>=0.1.0",
     "pre-commit>=3.4.0",
-    
+
     ***REMOVED*** Documentation
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.2.0",
@@ -221,4 +221,4 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
-] 
+]

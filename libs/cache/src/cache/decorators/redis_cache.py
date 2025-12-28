@@ -6,7 +6,8 @@ import hashlib
 import inspect
 import json
 import time
-from typing import Any, Callable, Optional, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from ..manager import CacheManager
 from ..metrics.collector import get_global_collector
@@ -16,9 +17,9 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 def redis_cache(
     ttl: int,
-    key_builder: Optional[Callable[..., str]] = None,
-    key_prefix: Optional[str] = None,
-    cache_manager: Optional[CacheManager] = None,
+    key_builder: Callable[..., str] | None = None,
+    key_prefix: str | None = None,
+    cache_manager: CacheManager | None = None,
     enable_metrics: bool = True,
 ) -> Callable[[F], F]:
     """Decorator for automatic Redis caching of function results.

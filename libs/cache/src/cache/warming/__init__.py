@@ -1,27 +1,25 @@
 """Cache warming system for NextWatch cache library."""
 
-from typing import Optional
-
-from .types import (
-    WarmingTarget,
-    WarmingResult,
-    WarmingBatch,
-    WarmingStats,
-    WarmingConfig,
-    WarmingStatus,
-    WarmingStrategy,
-)
 from .engine import WarmingEngine
 from .strategies import (
     BaseWarmingStrategy,
     MetricsDrivenStrategy,
     PopularContentStrategy,
-    UserSpecificStrategy,
     ScheduledStrategy,
+    UserSpecificStrategy,
+)
+from .types import (
+    WarmingBatch,
+    WarmingConfig,
+    WarmingResult,
+    WarmingStats,
+    WarmingStatus,
+    WarmingStrategy,
+    WarmingTarget,
 )
 
 ***REMOVED*** Global warming engine registry for dependency injection
-_global_warming_engine: Optional[WarmingEngine] = None
+_global_warming_engine: WarmingEngine | None = None
 
 
 def set_global_warming_engine(engine: WarmingEngine) -> None:
@@ -37,7 +35,7 @@ def set_global_warming_engine(engine: WarmingEngine) -> None:
     _global_warming_engine = engine
 
 
-def get_global_warming_engine() -> Optional[WarmingEngine]:
+def get_global_warming_engine() -> WarmingEngine | None:
     """Get the global warming engine if one has been set.
 
     Returns:

@@ -2,7 +2,7 @@
 
 import json
 import threading
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .types import CacheMetrics
 
@@ -37,7 +37,7 @@ class MetricsStorage:
                 started_at=self._metrics.started_at,
             )
 
-    def get_function_metrics(self, function_name: str) -> Optional[Dict[str, Any]]:
+    def get_function_metrics(self, function_name: str) -> dict[str, Any] | None:
         """Get metrics for a specific function."""
         with self._lock:
             if function_name in self._metrics.functions:
@@ -62,7 +62,7 @@ class MetricsStorage:
                 }
             return None
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get summary metrics."""
         with self._lock:
             return {
@@ -87,7 +87,7 @@ class MetricsStorage:
 
 
 ***REMOVED*** Global metrics storage instance
-_global_storage: Optional[MetricsStorage] = None
+_global_storage: MetricsStorage | None = None
 _storage_lock = threading.Lock()
 
 

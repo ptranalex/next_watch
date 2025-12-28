@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
@@ -15,8 +15,8 @@ class FunctionMetrics:
     total_calls: int = 0
     total_cache_time_ms: float = 0.0
     total_uncached_time_ms: float = 0.0
-    last_hit: Optional[datetime] = None
-    last_miss: Optional[datetime] = None
+    last_hit: datetime | None = None
+    last_miss: datetime | None = None
     created_at: datetime = field(default_factory=datetime.now)
 
     @property
@@ -60,7 +60,7 @@ class CacheMetrics:
     total_hits: int = 0
     total_misses: int = 0
     total_calls: int = 0
-    functions: Dict[str, FunctionMetrics] = field(default_factory=dict)
+    functions: dict[str, FunctionMetrics] = field(default_factory=dict)
     started_at: datetime = field(default_factory=datetime.now)
 
     @property
@@ -103,7 +103,7 @@ class CacheMetrics:
         func_metrics.total_uncached_time_ms += response_time_ms
         func_metrics.last_miss = datetime.now()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert metrics to dictionary for serialization."""
         return {
             "overall": {
