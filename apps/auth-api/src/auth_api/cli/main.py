@@ -3,6 +3,7 @@
 import logging
 import os
 import sys
+from importlib import metadata
 
 import typer
 import uvicorn
@@ -187,10 +188,8 @@ def show_version() -> None:
     try:
         ***REMOVED*** Try to get version from package metadata
         try:
-            import importlib.metadata
-
-            version = importlib.metadata.version("auth-api")
-        except (importlib.metadata.PackageNotFoundError, AttributeError):
+            version = metadata.version("auth-api")
+        except (metadata.PackageNotFoundError, AttributeError):
             version = "development"
 
         environment = os.getenv("ENVIRONMENT", "development")

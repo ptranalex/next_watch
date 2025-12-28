@@ -6,7 +6,7 @@ from typing import Any
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
-from sqlmodel import Session
+from sqlmodel import Session, text
 
 from auth_api.config.app import settings
 from auth_api.db.database import get_db
@@ -175,10 +175,6 @@ async def db_health_check(db: Session = Depends(get_db)) -> JSONResponse:
         Database health status and connection information
     """
     try:
-        import traceback
-
-        from sqlmodel import text
-
         ***REMOVED*** Try a simple query
         result = db.execute(text("SELECT 1")).scalar()
 
@@ -193,15 +189,13 @@ async def db_health_check(db: Session = Depends(get_db)) -> JSONResponse:
             },
         )
     except Exception as e:
-        stack_trace = traceback.format_exc()
-        logger.error(f"Database health check failed: {str(e)}")
-        logger.error(f"Stack trace: {stack_trace}")
+        ***REMOVED*** Avoid leaking stack traces to clients; keep details in logs.
+        logger.error("Database health check failed", exc_info=True)
         return JSONResponse(
             status_code=503,
             content={
                 "status": "error",
                 "error": str(e),
-                "trace": stack_trace,
                 "timestamp": datetime.utcnow().isoformat() + "Z",
             },
         )

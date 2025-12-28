@@ -7,6 +7,7 @@ from typing import Any
 import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
+from sqlalchemy.exc import SQLAlchemyError
 
 from auth_api.cli.utils import display_user_table
 from auth_api.config.app import settings
@@ -190,7 +191,6 @@ async def _list_users_async(
     """
     try:
         from sqlalchemy import create_engine, text
-        from sqlalchemy.exc import SQLAlchemyError
 
         engine = create_engine(settings.database_url)
 
@@ -254,7 +254,6 @@ async def _create_user_async(
         from datetime import datetime
 
         from sqlalchemy import create_engine, text
-        from sqlalchemy.exc import SQLAlchemyError
 
         ***REMOVED*** Try to import passlib, but provide fallback
         try:
@@ -334,7 +333,6 @@ async def _update_user_status_async(identifier: str, active: bool, verbose: bool
     """
     try:
         from sqlalchemy import create_engine, text
-        from sqlalchemy.exc import SQLAlchemyError
 
         engine = create_engine(settings.database_url)
 
@@ -378,7 +376,6 @@ async def _delete_user_async(identifier: str, verbose: bool) -> None:
     """
     try:
         from sqlalchemy import create_engine, text
-        from sqlalchemy.exc import SQLAlchemyError
 
         engine = create_engine(settings.database_url)
 
@@ -421,7 +418,6 @@ async def _display_user_stats_async(verbose: bool) -> None:
     try:
         from rich.table import Table
         from sqlalchemy import create_engine, text
-        from sqlalchemy.exc import SQLAlchemyError
 
         engine = create_engine(settings.database_url)
 

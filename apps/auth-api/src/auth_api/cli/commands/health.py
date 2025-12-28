@@ -7,6 +7,7 @@ from typing import Any
 
 import typer
 from rich.console import Console
+from sqlalchemy.exc import SQLAlchemyError
 
 from auth_api.cli.utils import check_service_health, display_service_status
 from auth_api.config.app import settings
@@ -228,7 +229,6 @@ async def _check_database_health(verbose: bool = False) -> bool:
     """
     try:
         from sqlalchemy import create_engine, text
-        from sqlalchemy.exc import SQLAlchemyError
 
         ***REMOVED*** Create engine with connection timeout
         engine = create_engine(

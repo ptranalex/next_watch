@@ -17,7 +17,7 @@ from config.logging import get_logger
 from config.services.auth import AuthConfigMixin
 from config.services.database import DatabaseConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
-from pydantic import Field, validator
+from pydantic import Field, model_validator, validator
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
@@ -110,6 +110,10 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         if self.jwt_secret == "change_this_in_production_very_important":
             logger.error("Default JWT secret detected in production - this is a security risk!")
             ***REMOVED*** Don't override in production - let it fail fast
+            raise ValueError(
+                "Default JWT secret is not allowed in production. "
+                "Set a secure JWT_SECRET environment variable."
+            )
 
     def _log_auth_specific_summary(self) -> None:
         """Log auth-specific configuration details."""
@@ -121,6 +125,16 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         logger.info(f"User Registration: {self.enable_user_registration}")
         logger.info(f"Password Reset: {self.enable_password_reset}")
         logger.info(f"Performance Metrics: {self.auth_performance_metrics}")
+
+    @model_validator(mode="after")
+    def validate_production_jwt_secret(self) -> "AuthAPIConfig":
+        """Fail fast if the default JWT secret is used in production."""
+        if self.is_production and self.jwt_secret == "change_this_in_production_very_important":
+            raise ValueError(
+                "Default JWT secret is not allowed in production. "
+                "Set a secure JWT_SECRET environment variable."
+            )
+        return self
 
     @validator("jwt_secret")
     def validate_jwt_secret_production(cls, v: str, values: dict[str, Any]) -> str:

@@ -18,7 +18,7 @@ from auth_api.models.user import User
 logger = get_logger(__name__)
 
 
-@critical_service_handler("auth-database", logger)
+@critical_service_handler("auth-database", logger, error_mapping={ValueError: lambda e: e})
 def create_user(
     session: Session,
     email: str,
@@ -165,7 +165,7 @@ def get_users(session: Session, skip: int = 0, limit: int = 100) -> list[User]:
     return list(users)
 
 
-@critical_service_handler("auth-database", logger)
+@critical_service_handler("auth-database", logger, error_mapping={ValueError: lambda e: e})
 def update_user(
     session: Session,
     user_id: int,

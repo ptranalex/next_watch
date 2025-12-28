@@ -241,7 +241,7 @@ class AuthService:
 
         return get_user_by_id(session, user_id)
 
-    @critical_service_handler("auth-database", logger)
+    @critical_service_handler("auth-database", logger, error_mapping={ValueError: lambda e: e})
     def register_user(
         self,
         session: Session,

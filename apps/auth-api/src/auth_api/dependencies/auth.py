@@ -27,7 +27,7 @@ def get_auth_service() -> AuthService:
     return AuthService()
 
 
-@critical_service_handler("auth-service", logger)
+@critical_service_handler("auth-service", logger, error_mapping={HTTPException: lambda e: e})
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     session: Annotated[Session, Depends(get_db)],

@@ -6,6 +6,7 @@ from typing import Any
 
 from config.logging import get_logger
 from sqlalchemy import Engine, inspect
+from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
 from auth_api.config.app import settings
@@ -35,13 +36,36 @@ def get_engine(enable_monitoring: bool = True) -> Engine:
         if settings.database_echo:
             logger.info("SQL echo is enabled - SQL statements will be logged")
 
-        _engine = create_engine(
-            settings.database_url,
-            echo=settings.database_echo,
-            pool_size=settings.database_pool_size,
-            max_overflow=settings.database_max_overflow,
-            pool_timeout=settings.database_pool_timeout,
-        )
+        database_url = settings.database_url
+
+        ***REMOVED*** SQLite needs special handling for thread safety (TestClient uses threads).
+        ***REMOVED*** In-memory SQLite also requires StaticPool to keep the DB alive across connections.
+        if database_url.startswith("sqlite"):
+            connect_args = {"check_same_thread": False}
+            if database_url.endswith(":memory:") or "mode=memory" in database_url:
+                _engine = create_engine(
+                    database_url,
+                    echo=settings.database_echo,
+                    connect_args=connect_args,
+                    poolclass=StaticPool,
+                )
+            else:
+                _engine = create_engine(
+                    database_url,
+                    echo=settings.database_echo,
+                    connect_args=connect_args,
+                    pool_size=settings.database_pool_size,
+                    max_overflow=settings.database_max_overflow,
+                    pool_timeout=settings.database_pool_timeout,
+                )
+        else:
+            _engine = create_engine(
+                database_url,
+                echo=settings.database_echo,
+                pool_size=settings.database_pool_size,
+                max_overflow=settings.database_max_overflow,
+                pool_timeout=settings.database_pool_timeout,
+            )
 
     return _engine
 

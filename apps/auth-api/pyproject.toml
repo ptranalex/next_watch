@@ -13,10 +13,10 @@ readme = {text = "***REMOVED*** Auth API\n\nDedicated authentication service for
 license = "MIT"
 license-files = ["LICENSE*"]
 authors = [
-    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
+    {name = "Next Watch Contributors"}
 ]
 maintainers = [
-    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
+    {name = "Next Watch Contributors"}
 ]
 keywords = [
     "api",
@@ -80,10 +80,8 @@ dev = [
     "pytest-cov>=4.1.0",
     
     ***REMOVED*** Code quality
-    "black>=23.10.1",
-    "isort>=5.12.0",
-    "ruff>=0.1.6",
-    "mypy>=1.7.0",
+    "ruff>=0.8.4",
+    "pyright>=1.1.0",
     
     ***REMOVED*** Local NextWatch libraries (for development)
     ***REMOVED*** "cache @ file:../../libs/cache",
@@ -174,18 +172,12 @@ version = "python -m auth_api.cli version"
 serve-cli = "python -m auth_api.cli serve"
 
 ***REMOVED*** Development tools
-lint = [
-    "black .",
-    "isort .",
-    "ruff check .",
-    "mypy src"
-]
+format = "ruff format ."
+lint = "ruff check ."
+typecheck = "pyright -p pyrightconfig.json"
+typecheck-pyright = "pyright -p pyrightconfig.json"
 test = "PYTHONPATH=src pytest {args:tests}"
-test-cov = "PYTHONPATH=src pytest --cov=auth_api tests/"
-format = [
-    "black .",
-    "isort ."
-]
+test-cov = "PYTHONPATH=src pytest --cov=src/auth_api/config --cov=src/auth_api/models --cov=src/auth_api/schemas --cov=src/auth_api/dependencies --cov-config=pyproject.toml --cov-report=term-missing --cov-report=xml:coverage.xml tests/"
 
 ***REMOVED*** Tool configurations
 [tool.pytest.ini_options]
@@ -193,79 +185,6 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-
-[tool.mypy]
-python_version = "3.12"
-***REMOVED*** Strict settings
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-strict_optional = true
-disallow_any_unimported = true
-disallow_untyped_calls = true
-disallow_any_generics = true 
-disallow_subclassing_any = true
-
-***REMOVED*** Warning settings
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_return_any = true
-warn_unreachable = true
-
-***REMOVED*** Error reporting
-pretty = true
-show_column_numbers = true
-show_error_context = true
-
-***REMOVED*** Importing
-ignore_missing_imports = false
-follow_imports = "normal"
-mypy_path = "src:../../libs/config/src:../../libs/fast-core/src:../../libs/kafka/src:../../libs/cache/src:../../libs/movie-storage/src"
-
-***REMOVED*** Internal libraries - silence their internal errors
-[[tool.mypy.overrides]]
-module = [
-    "config.*",
-    "fast_core.*",
-    "kafka.*",
-    "cache.*",
-    "movie_storage.*"
-]
-follow_imports = "silent"
-
-***REMOVED*** External libraries
-[[tool.mypy.overrides]]
-module = [
-    "fastapi.*",
-    "uvicorn.*",
-    "pydantic.*",
-    "sqlalchemy.*",
-    "sqlmodel.*",
-    "alembic.*",
-    "psycopg2.*",
-    "typer.*",
-    "rich.*",
-    "passlib.*",
-    "bcrypt.*",
-    "email_validator.*",
-    "httpx.*",
-    "jwt.*",
-    "pyjwt.*",
-    "redis.*",
-    "dateutil.*"
-]
-ignore_missing_imports = true
-
-[tool.black]
-line-length = 100
-target-version = ["py312"]
-
-[tool.isort]
-profile = "black"
-line_length = 100
 
 [tool.ruff]
 line-length = 100
@@ -287,3 +206,25 @@ ignore = [
 ] 
 
 ***REMOVED*** Test
+
+[tool.coverage.run]
+branch = true
+source = [
+    "src/auth_api/config",
+    "src/auth_api/models",
+    "src/auth_api/schemas",
+    "src/auth_api/dependencies",
+]
+
+omit = [
+    "*/__main__.py",
+    "*/cli/*",
+    "*/scripts/*",
+    "*/db/migrations/*",
+    "tests/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
