@@ -223,14 +223,21 @@ jobs:
             }
 
             compose_cmd() {
+              ***REMOVED*** Force a stable compose project name and project directory.
+              ***REMOVED*** If we run `docker compose -f compose/prod.yml ...` the default project name becomes
+              ***REMOVED*** "compose" (based on the first compose file directory), which causes warnings like:
+              ***REMOVED***   network ... exists but was not created for project "compose"
+              ***REMOVED*** and can create duplicate resources.
+              PROJECT_NAME="next_watch"
+              PROJECT_DIR="."
               if command -v docker-compose >/dev/null 2>&1; then
                 if [ -n "$SUDO" ]; then
-                  sudo docker-compose "$@"
+                  sudo docker-compose -p "$PROJECT_NAME" --project-directory "$PROJECT_DIR" "$@"
                 else
-                  docker-compose "$@"
+                  docker-compose -p "$PROJECT_NAME" --project-directory "$PROJECT_DIR" "$@"
                 fi
               else
-                docker_cmd compose "$@"
+                docker_cmd compose -p "$PROJECT_NAME" --project-directory "$PROJECT_DIR" "$@"
               fi
             }
 
@@ -383,6 +390,12 @@ jobs:
 
               ***REMOVED*** Remove unused networks
               docker_cmd network prune -f || true
+
+              ***REMOVED*** Remove any existing containers for the services we are about to (re)deploy.
+              ***REMOVED*** This avoids conflicts when compose files set `container_name: ...`.
+              for svc in $SERVICES; do
+                docker_cmd rm -f "$svc" >/dev/null 2>&1 || true
+              done
 
               ***REMOVED*** Pull and deploy only the specified services
               compose_cmd -f compose/prod.yml --env-file .env.prod pull $SERVICES
