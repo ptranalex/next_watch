@@ -5,12 +5,13 @@ following the proven BFF API CLI patterns.
 """
 
 import asyncio
-from typing import Dict, Callable, Any, Optional, Tuple
-from ..output.handler import CLIOutput
+from collections.abc import Callable
+from typing import Any
+
 import typer
 from typer import Typer
 
-from ..output.handler import get_cli_output
+from ..output.handler import CLIOutput, get_cli_output
 from .display import (
     display_health_results,
     display_single_health_result,
@@ -20,8 +21,8 @@ from .display import (
 
 def create_health_commands(
     health_service_getter: Callable[[], Any],
-    service_checks: Dict[str, Tuple[str, str]],
-    service_names: Optional[Dict[str, str]] = None,
+    service_checks: dict[str, tuple[str, str]],
+    service_names: dict[str, str] | None = None,
 ) -> Typer:
     """Create health check commands that use existing health service.
 
@@ -52,12 +53,8 @@ def create_health_commands(
     ***REMOVED*** Comprehensive health check command
     @health_app.command(name="check")
     def health_check_all(
-        verbose: bool = typer.Option(
-            False, "--verbose", "-v", help="Show detailed output"
-        ),
-        quiet: bool = typer.Option(
-            False, "--quiet", "-q", help="Suppress output except errors"
-        ),
+        verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
+        quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output except errors"),
     ) -> None:
         """Check health of all services."""
         out = get_cli_output("health", verbose=verbose, quiet=quiet)
@@ -66,9 +63,7 @@ def create_health_commands(
             out.info("[blue]🔍 Starting comprehensive health check...[/blue]")
             out.info("")
 
-        asyncio.run(
-            _run_comprehensive_health_check(health_service_getter, out, service_names)
-        )
+        asyncio.run(_run_comprehensive_health_check(health_service_getter, out, service_names))
 
     ***REMOVED*** Generate individual service commands
     for command_name, (method_name, display_name) in service_checks.items():
@@ -98,24 +93,18 @@ def _create_single_service_command(
 
     @app.command(name=command_name)
     def check_single_service(
-        verbose: bool = typer.Option(
-            False, "--verbose", "-v", help="Show detailed output"
-        ),
-        quiet: bool = typer.Option(
-            False, "--quiet", "-q", help="Suppress output except errors"
-        ),
+        verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
+        quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output except errors"),
     ) -> None:
         f"""Check health of {display_name} only."""
         out = get_cli_output(f"health.{command_name}", verbose=verbose, quiet=quiet)
-        asyncio.run(
-            _check_single_service(health_service_getter, method_name, display_name, out)
-        )
+        asyncio.run(_check_single_service(health_service_getter, method_name, display_name, out))
 
 
 async def _run_comprehensive_health_check(
     health_service_getter: Callable[[], Any],
     out: CLIOutput,
-    service_names: Optional[Dict[str, str]] = None,
+    service_names: dict[str, str] | None = None,
 ) -> None:
     """Run comprehensive health check using existing health service.
 

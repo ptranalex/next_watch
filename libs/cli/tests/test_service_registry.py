@@ -1,8 +1,7 @@
 """Tests for ServiceRegistry functionality."""
 
-from unittest.mock import Mock
+from cli.services.service_registry import ServiceConfig, ServiceRegistry
 
-from cli.services.service_registry import ServiceRegistry, ServiceConfig
 from tests.test_base import CLITestCase
 
 
@@ -31,9 +30,7 @@ class TestServiceConfig(CLITestCase):
 
     def test_service_config_base_url(self) -> None:
         """Test base URL property removes trailing slashes."""
-        config = ServiceConfig(
-            name="test-service", url="http://localhost:8000/", timeout=10
-        )
+        config = ServiceConfig(name="test-service", url="http://localhost:8000/", timeout=10)
 
         assert config.base_url == "http://localhost:8000"
 
@@ -106,9 +103,7 @@ class TestServiceRegistry(CLITestCase):
 
     def test_register_service(self) -> None:
         """Test registering a single service."""
-        config = ServiceConfig(
-            name="test-service", url="http://localhost:8000", timeout=10
-        )
+        config = ServiceConfig(name="test-service", url="http://localhost:8000", timeout=10)
 
         self.registry.register_service(config)
 
@@ -118,9 +113,7 @@ class TestServiceRegistry(CLITestCase):
 
     def test_register_duplicate_service(self) -> None:
         """Test that registering duplicate service raises ValueError."""
-        config = ServiceConfig(
-            name="test-service", url="http://localhost:8000", timeout=10
-        )
+        config = ServiceConfig(name="test-service", url="http://localhost:8000", timeout=10)
 
         self.registry.register_service(config)
 
@@ -132,9 +125,7 @@ class TestServiceRegistry(CLITestCase):
 
     def test_get_service(self) -> None:
         """Test retrieving a registered service."""
-        config = ServiceConfig(
-            name="test-service", url="http://localhost:8000", timeout=10
-        )
+        config = ServiceConfig(name="test-service", url="http://localhost:8000", timeout=10)
 
         self.registry.register_service(config)
         retrieved = self.registry.get_service("test-service")
@@ -196,9 +187,7 @@ class TestServiceRegistry(CLITestCase):
 
     def test_unregister_service(self) -> None:
         """Test unregistering a service."""
-        config = ServiceConfig(
-            name="test-service", url="http://localhost:8000", timeout=10
-        )
+        config = ServiceConfig(name="test-service", url="http://localhost:8000", timeout=10)
 
         self.registry.register_service(config)
         assert len(self.registry) == 1
@@ -233,9 +222,7 @@ class TestServiceRegistry(CLITestCase):
 
     def test_registry_contains(self) -> None:
         """Test registry __contains__ method."""
-        config = ServiceConfig(
-            name="test-service", url="http://localhost:8000", timeout=10
-        )
+        config = ServiceConfig(name="test-service", url="http://localhost:8000", timeout=10)
 
         assert "test-service" not in self.registry
 

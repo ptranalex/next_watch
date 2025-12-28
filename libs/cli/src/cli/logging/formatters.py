@@ -4,9 +4,9 @@ Provides Rich-compatible formatters and color themes for structured logging
 in CLI applications, based on enterprise patterns from BFF API.
 """
 
-from typing import Dict, Any, Optional
-import structlog
+from typing import Any
 
+import structlog
 
 ***REMOVED*** Color theme presets for different environments and preferences
 COLOR_THEMES = {
@@ -53,9 +53,7 @@ COLOR_THEMES = {
 }
 
 
-def get_cli_renderer(
-    colors: bool = True, theme: str = "modern", pad_event: int = 30
-) -> Any:
+def get_cli_renderer(colors: bool = True, theme: str = "modern", pad_event: int = 30) -> Any:
     """Get a CLI-optimized structlog renderer.
 
     Args:
@@ -103,7 +101,7 @@ class CLIFormatter:
     def __init__(
         self,
         service_name: str,
-        command_name: Optional[str] = None,
+        command_name: str | None = None,
         colors: bool = True,
         theme: str = "modern",
     ):
@@ -120,9 +118,7 @@ class CLIFormatter:
         self.colors = colors
         self.theme = theme
 
-    def __call__(
-        self, logger: Any, method_name: str, event_dict: Dict[str, Any]
-    ) -> Any:
+    def __call__(self, logger: Any, method_name: str, event_dict: dict[str, Any]) -> Any:
         """Format log record with CLI context.
 
         Args:

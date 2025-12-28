@@ -4,9 +4,9 @@ Based on the proven patterns from BFF API CLI, this module provides
 consistent formatting for health check results from existing health services.
 """
 
-from typing import Dict, Any, Optional, Protocol, Tuple, List
+from typing import Any, Protocol
+
 from rich.table import Table
-from rich.console import Console
 
 from ..output.handler import CLIOutput
 
@@ -19,15 +19,15 @@ class HealthCheckResult(Protocol):
 
     is_healthy: bool
     status: str
-    response_time_ms: Optional[float]
-    details: Optional[Dict[str, Any]]
-    error: Optional[str]
+    response_time_ms: float | None
+    details: dict[str, Any] | None
+    error: str | None
 
 
 def display_health_results(
-    results: Dict[str, HealthCheckResult],
+    results: dict[str, HealthCheckResult],
     out: CLIOutput,
-    service_names: Optional[Dict[str, str]] = None,
+    service_names: dict[str, str] | None = None,
 ) -> None:
     """Display health check results in a formatted table.
 
@@ -54,9 +54,7 @@ def display_health_results(
     names = service_names or default_names
 
     ***REMOVED*** Create Rich table with BFF-style formatting
-    table = Table(
-        title="Service Health Status", show_header=True, header_style="bold blue"
-    )
+    table = Table(title="Service Health Status", show_header=True, header_style="bold blue")
     table.add_column("Service", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
     table.add_column("Response Time", style="yellow", no_wrap=True)
@@ -76,9 +74,7 @@ def display_health_results(
             status = "[red]Unhealthy[/red]"
 
         ***REMOVED*** Response time formatting
-        response_time = (
-            f"{result.response_time_ms}ms" if result.response_time_ms else "N/A"
-        )
+        response_time = f"{result.response_time_ms}ms" if result.response_time_ms else "N/A"
 
         ***REMOVED*** Details (show error or service status)
         if result.error:
@@ -121,7 +117,7 @@ def display_single_health_result(
             out.error(f"Error: {result.error}")
 
 
-def get_health_summary(results: Dict[str, HealthCheckResult]) -> Tuple[bool, List[str]]:
+def get_health_summary(results: dict[str, HealthCheckResult]) -> tuple[bool, list[str]]:
     """Get overall health summary from results.
 
     Args:
@@ -131,7 +127,5 @@ def get_health_summary(results: Dict[str, HealthCheckResult]) -> Tuple[bool, Lis
         Tuple of (all_healthy, list_of_unhealthy_services)
     """
     all_healthy = all(result.is_healthy for result in results.values())
-    unhealthy_services = [
-        name for name, result in results.items() if not result.is_healthy
-    ]
+    unhealthy_services = [name for name, result in results.items() if not result.is_healthy]
     return all_healthy, unhealthy_services

@@ -6,9 +6,10 @@ need coordinated lifecycle management.
 """
 
 import asyncio
-from typing import Any, Dict, List, Optional, Union, AsyncContextManager
+from contextlib import AbstractAsyncContextManager, AsyncExitStack
+from typing import Any
+
 import structlog
-from contextlib import AsyncExitStack
 
 from ..services.client_factory import ServiceClientFactory
 
@@ -33,9 +34,9 @@ class ServiceLifecycleManager:
 
     def __init__(self) -> None:
         """Initialize the lifecycle manager."""
-        self._factories: Dict[str, ServiceClientFactory] = {}
-        self._cleanup_stack: Optional[AsyncExitStack] = None
-        self._services: Dict[str, Any] = {}
+        self._factories: dict[str, ServiceClientFactory] = {}
+        self._cleanup_stack: AsyncExitStack | None = None
+        self._services: dict[str, Any] = {}
         self.logger = logger.bind(component="lifecycle_manager")
 
     async def register_service(self, name: str, factory: ServiceClientFactory) -> None:
@@ -83,7 +84,7 @@ class ServiceLifecycleManager:
         else:
             raise ValueError(f"Invalid client type: {client_type}")
 
-    async def get_all_clients(self, client_type: str = "http") -> Dict[str, Any]:
+    async def get_all_clients(self, client_type: str = "http") -> dict[str, Any]:
         """Get clients for all registered services.
 
         Args:
@@ -117,7 +118,7 @@ class ServiceLifecycleManager:
             await factory.close_service(service_name)
             self.logger.info("Service closed early", service_name=service_name)
 
-    def get_registered_services(self) -> List[str]:
+    def get_registered_services(self) -> list[str]:
         """Get list of registered service names.
 
         Returns:
@@ -198,7 +199,7 @@ class ManagedService:
 
 def managed_service(
     service: Any, name: str, cleanup_method: str = "close"
-) -> AsyncContextManager[Any]:
+) -> AbstractAsyncContextManager[Any]:
     """Create a managed service context manager.
 
     Args:

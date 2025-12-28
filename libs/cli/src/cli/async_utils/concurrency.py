@@ -5,7 +5,9 @@ following the patterns from BFF API CLI for multi-service orchestration.
 """
 
 import asyncio
-from typing import Any, Dict, List, Optional, Tuple, Callable, Awaitable, TypeVar, Union
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
+
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -13,10 +15,10 @@ T = TypeVar("T")
 
 
 async def run_concurrently(
-    tasks: Dict[str, Awaitable[T]],
-    timeout: Optional[float] = None,
+    tasks: dict[str, Awaitable[T]],
+    timeout: float | None = None,
     return_exceptions: bool = True,
-) -> Dict[str, Union[T, Exception]]:
+) -> dict[str, T | Exception]:
     """Run multiple async tasks concurrently with named results.
 
     Args:
@@ -55,7 +57,7 @@ async def run_concurrently(
             )
 
         ***REMOVED*** Map results back to task names
-        results: Dict[str, Union[T, Exception]] = dict(zip(tasks.keys(), results_list))  ***REMOVED*** type: ignore
+        results: dict[str, T | Exception] = dict(zip(tasks.keys(), results_list))  ***REMOVED*** type: ignore
 
         ***REMOVED*** Log summary
         successes = sum(1 for r in results.values() if not isinstance(r, Exception))
@@ -70,7 +72,7 @@ async def run_concurrently(
 
         return results
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.error("Concurrent tasks timed out", timeout=timeout)
         raise
     except Exception as e:
@@ -79,10 +81,8 @@ async def run_concurrently(
 
 
 async def gather_with_timeout(
-    *awaitables: Awaitable[T],
-    timeout: Optional[float] = None,
-    return_exceptions: bool = True
-) -> List[Union[T, Exception]]:
+    *awaitables: Awaitable[T], timeout: float | None = None, return_exceptions: bool = True
+) -> list[T | Exception]:
     """Gather multiple awaitables with timeout support.
 
     Args:
@@ -113,12 +113,10 @@ async def gather_with_timeout(
             )
             return result  ***REMOVED*** type: ignore[return-value]
         else:
-            result = await asyncio.gather(
-                *awaitables, return_exceptions=return_exceptions
-            )
+            result = await asyncio.gather(*awaitables, return_exceptions=return_exceptions)
             return result  ***REMOVED*** type: ignore[return-value]
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.error("Gather operation timed out", timeout=timeout)
         raise
 
@@ -129,8 +127,8 @@ async def run_with_retries(
     retries: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    exceptions: Tuple[type[BaseException], ...] = (Exception,),
-    **kwargs: Any
+    exceptions: tuple[type[BaseException], ...] = (Exception,),
+    **kwargs: Any,
 ) -> T:
     """Run an async function with retry logic.
 
@@ -196,12 +194,12 @@ async def run_with_retries(
 
 
 async def run_in_batches(
-    items: List[T],
-    batch_func: Callable[[List[T]], Awaitable[Any]],
+    items: list[T],
+    batch_func: Callable[[list[T]], Awaitable[Any]],
     batch_size: int = 10,
-    timeout_per_batch: Optional[float] = None,
+    timeout_per_batch: float | None = None,
     max_concurrent_batches: int = 3,
-) -> List[Any]:
+) -> list[Any]:
     """Process items in batches with controlled concurrency.
 
     Args:
@@ -242,26 +240,21 @@ async def run_in_batches(
     results = []
     semaphore = asyncio.Semaphore(max_concurrent_batches)
 
-    async def process_batch_with_semaphore(batch: List[T]) -> Any:
+    async def process_batch_with_semaphore(batch: list[T]) -> Any:
         async with semaphore:
             try:
                 if timeout_per_batch:
-                    return await asyncio.wait_for(
-                        batch_func(batch), timeout=timeout_per_batch
-                    )
+                    return await asyncio.wait_for(batch_func(batch), timeout=timeout_per_batch)
                 else:
                     return await batch_func(batch)
             except Exception as e:
-                logger.error(
-                    "Batch processing failed", batch_size=len(batch), error=str(e)
-                )
+                logger.error("Batch processing failed", batch_size=len(batch), error=str(e))
                 raise
 
     ***REMOVED*** Process all batches concurrently (limited by semaphore)
     try:
         results = await asyncio.gather(
-            *[process_batch_with_semaphore(batch) for batch in batches],
-            return_exceptions=False
+            *[process_batch_with_semaphore(batch) for batch in batches], return_exceptions=False
         )
 
         logger.info(
@@ -284,9 +277,7 @@ class ConcurrentRunner:
     with shared configuration and state management.
     """
 
-    def __init__(
-        self, timeout: Optional[float] = None, max_concurrent: Optional[int] = None
-    ) -> None:
+    def __init__(self, timeout: float | None = None, max_concurrent: int | None = None) -> None:
         """Initialize concurrent runner.
 
         Args:
@@ -300,9 +291,9 @@ class ConcurrentRunner:
 
     async def run(
         self,
-        operations: Dict[str, Callable[[], Awaitable[T]]],
-        timeout: Optional[float] = None,
-    ) -> Dict[str, Union[T, Exception]]:
+        operations: dict[str, Callable[[], Awaitable[T]]],
+        timeout: float | None = None,
+    ) -> dict[str, T | Exception]:
         """Run multiple operations concurrently.
 
         Args:
@@ -316,7 +307,7 @@ class ConcurrentRunner:
 
         async def run_operation(
             name: str, op: Callable[[], Awaitable[T]]
-        ) -> Tuple[str, Union[T, Exception]]:
+        ) -> tuple[str, T | Exception]:
             try:
                 if self._semaphore:
                     async with self._semaphore:
@@ -332,9 +323,7 @@ class ConcurrentRunner:
         tasks = [run_operation(name, op) for name, op in operations.items()]
 
         if effective_timeout:
-            completed = await asyncio.wait_for(
-                asyncio.gather(*tasks), timeout=effective_timeout
-            )
+            completed = await asyncio.wait_for(asyncio.gather(*tasks), timeout=effective_timeout)
         else:
             completed = await asyncio.gather(*tasks)
 

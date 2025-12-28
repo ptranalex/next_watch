@@ -5,8 +5,10 @@ timeout handling, progress tracking, and resource management.
 """
 
 import asyncio
-from typing import Any, Optional, TypeVar, Callable, AsyncIterator, Tuple
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
+from typing import Any, TypeVar
+
 import structlog
 
 from ..output.handler import CLIOutput
@@ -17,9 +19,9 @@ T = TypeVar("T")
 
 @asynccontextmanager
 async def async_context_manager(
-    setup_fn: Optional[Callable[[], Any]] = None,
-    cleanup_fn: Optional[Callable[[Any], Any]] = None,
-    timeout: Optional[float] = None,
+    setup_fn: Callable[[], Any] | None = None,
+    cleanup_fn: Callable[[Any], Any] | None = None,
+    timeout: float | None = None,
 ) -> AsyncIterator[Any]:
     """Generic async context manager with setup/cleanup and timeout.
 
@@ -49,11 +51,7 @@ async def async_context_manager(
                     timeout=timeout,
                 )
             else:
-                resource = (
-                    await setup_fn()
-                    if asyncio.iscoroutinefunction(setup_fn)
-                    else setup_fn()
-                )
+                resource = await setup_fn() if asyncio.iscoroutinefunction(setup_fn) else setup_fn()
 
         ***REMOVED*** Context body
         if timeout:
@@ -62,7 +60,7 @@ async def async_context_manager(
         else:
             yield resource
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.error("Context manager timed out", timeout=timeout)
         raise
     except Exception as e:
@@ -82,7 +80,7 @@ async def async_context_manager(
 
 @asynccontextmanager
 async def with_progress(
-    out: CLIOutput, message: str, timeout: Optional[float] = None
+    out: CLIOutput, message: str, timeout: float | None = None
 ) -> AsyncIterator[None]:
     """Context manager for operations with progress indication.
 
@@ -104,7 +102,7 @@ async def with_progress(
                     yield
             else:
                 yield
-    except asyncio.TimeoutError:
+    except TimeoutError:
         out.error(f"Operation timed out after {timeout}s")
         raise
     except Exception as e:
@@ -113,9 +111,7 @@ async def with_progress(
 
 
 @asynccontextmanager
-async def with_timeout(
-    timeout: float, error_message: Optional[str] = None
-) -> AsyncIterator[None]:
+async def with_timeout(timeout: float, error_message: str | None = None) -> AsyncIterator[None]:
     """Simple timeout context manager.
 
     Args:
@@ -129,7 +125,7 @@ async def with_timeout(
     try:
         async with asyncio.timeout(timeout):
             yield
-    except asyncio.TimeoutError:
+    except TimeoutError:
         if error_message:
             logger.error(error_message, timeout=timeout)
         raise
@@ -140,7 +136,7 @@ async def with_retry_context(
     retries: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    exceptions: Tuple[type[BaseException], ...] = (Exception,),
+    exceptions: tuple[type[BaseException], ...] = (Exception,),
 ) -> AsyncIterator[Callable[..., Any]]:
     """Context manager that provides a retry decorator.
 
@@ -207,7 +203,7 @@ class AsyncResource:
     def __init__(
         self,
         init_fn: Callable[[], Any],
-        cleanup_fn: Optional[Callable[[Any], Any]] = None,
+        cleanup_fn: Callable[[Any], Any] | None = None,
         name: str = "resource",
     ) -> None:
         """Initialize async resource wrapper.
@@ -220,7 +216,7 @@ class AsyncResource:
         self.init_fn = init_fn
         self.cleanup_fn = cleanup_fn
         self.name = name
-        self.resource: Optional[Any] = None
+        self.resource: Any | None = None
         self.logger = logger.bind(resource_name=name)
 
     async def __aenter__(self) -> Any:

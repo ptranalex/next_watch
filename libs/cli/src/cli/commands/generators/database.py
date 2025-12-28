@@ -5,17 +5,19 @@ status, info, migration, and connection management functionality.
 """
 
 import asyncio
-from typing import Optional, Callable, Awaitable, Any, Dict, Union
+from collections.abc import Awaitable, Callable
+from typing import Any
+
 import typer
 from rich.table import Table
 
-from ...output.handler import get_cli_output
 from ...async_utils import run_with_retries
+from ...output.handler import get_cli_output
 
 
 def create_database_commands(
     get_db_connection: Callable[[], Awaitable[Any]],
-    migration_commands: Optional[Dict[str, Callable[..., Any]]] = None,
+    migration_commands: dict[str, Callable[..., Any]] | None = None,
     command_name: str = "db",
 ) -> typer.Typer:
     """Create database management commands following Backend API patterns.
@@ -45,7 +47,7 @@ def create_database_commands(
     def status(
         verbose: bool = typer.Option(
             False, "--verbose", "-v", help="Show detailed database status"
-        )
+        ),
     ) -> None:
         """Check database connection and status."""
         asyncio.run(_db_status(verbose))
@@ -54,22 +56,16 @@ def create_database_commands(
     def info(
         verbose: bool = typer.Option(
             False, "--verbose", "-v", help="Show detailed database information"
-        )
+        ),
     ) -> None:
         """Display database information."""
         asyncio.run(_db_info(verbose))
 
     @app.command()
     def test_connection(
-        retries: int = typer.Option(
-            3, "--retries", help="Number of connection retry attempts"
-        ),
-        delay: float = typer.Option(
-            1.0, "--delay", help="Delay between retries in seconds"
-        ),
-        verbose: bool = typer.Option(
-            False, "--verbose", "-v", help="Show detailed output"
-        ),
+        retries: int = typer.Option(3, "--retries", help="Number of connection retry attempts"),
+        delay: float = typer.Option(1.0, "--delay", help="Delay between retries in seconds"),
+        verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
     ) -> None:
         """Test database connection with retry logic."""
         asyncio.run(_test_connection(retries, delay, verbose))
@@ -84,9 +80,7 @@ def create_database_commands(
             db_connection = await get_db_connection()
 
             ***REMOVED*** Test connection with retries
-            await run_with_retries(
-                _test_db_connection, db_connection, retries=3, delay=1.0
-            )
+            await run_with_retries(_test_db_connection, db_connection, retries=3, delay=1.0)
 
             out.success("Database connection successful")
 
@@ -138,9 +132,7 @@ def create_database_commands(
                 ***REMOVED*** Add more detailed info based on database type
                 table.add_row("Framework", "NextWatch CLI Framework")
                 ***REMOVED*** Count available commands
-                command_count = len(
-                    [cmd for cmd in dir(app) if cmd.startswith("command")]
-                )
+                command_count = len([cmd for cmd in dir(app) if cmd.startswith("command")])
                 table.add_row("Available Commands", str(command_count))
 
                 ***REMOVED*** Try to get connection details
@@ -160,9 +152,7 @@ def create_database_commands(
                         url = str(db_connection.connection.engine.url)
                         ***REMOVED*** Mask password in URL
                         if "@" in url:
-                            masked_url = (
-                                url.split("://")[0] + "://***:***@" + url.split("@")[1]
-                            )
+                            masked_url = url.split("://")[0] + "://***:***@" + url.split("@")[1]
                             table.add_row("Connection URL", masked_url)
                     except Exception:
                         pass
@@ -179,13 +169,9 @@ def create_database_commands(
         out = get_cli_output("db-test", verbose=verbose)
 
         try:
-            out.info(
-                f"Testing database connection (retries: {retries}, delay: {delay}s)..."
-            )
+            out.info(f"Testing database connection (retries: {retries}, delay: {delay}s)...")
 
-            db_connection = await run_with_retries(
-                get_db_connection, retries=retries, delay=delay
-            )
+            db_connection = await run_with_retries(get_db_connection, retries=retries, delay=delay)
 
             ***REMOVED*** Additional connection test
             is_healthy = await run_with_retries(
@@ -202,9 +188,7 @@ def create_database_commands(
 
                     table.add_row("Connection Established", "✓ Pass")
                     table.add_row("Response Test", "✓ Pass")
-                    table.add_row(
-                        "Retry Configuration", f"{retries} attempts, {delay}s delay"
-                    )
+                    table.add_row("Retry Configuration", f"{retries} attempts, {delay}s delay")
 
                     out.console.print(table)
             else:
@@ -248,9 +232,7 @@ def create_database_commands(
                         kwargs["verbose"] = False
 
                     ***REMOVED*** Setup output handler
-                    out = get_cli_output(
-                        f"db-{cmd_name}", verbose=kwargs.get("verbose", False)
-                    )
+                    out = get_cli_output(f"db-{cmd_name}", verbose=kwargs.get("verbose", False))
 
                     try:
                         out.info(f"Running database {cmd_name}...")

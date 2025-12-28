@@ -7,7 +7,8 @@ environment information, and optional verbose details.
 import importlib.metadata
 import platform
 import sys
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import typer
 from rich.table import Table
@@ -17,13 +18,13 @@ from cli.output.handler import get_cli_output
 
 def create_version_command(
     service_name: str,
-    package_name: Optional[str] = None,
+    package_name: str | None = None,
     default_version: str = "0.1.0",
-    config_getter: Optional[Callable[[], Any]] = None,
+    config_getter: Callable[[], Any] | None = None,
     show_environment: bool = True,
     show_python_info: bool = True,
-    dependencies: Optional[List[str]] = None,
-    extra_info: Optional[Dict[str, str]] = None,
+    dependencies: list[str] | None = None,
+    extra_info: dict[str, str] | None = None,
 ) -> Callable[..., None]:
     """Create a standardized version command for a service.
 
@@ -58,9 +59,7 @@ def create_version_command(
         verbose: bool = typer.Option(
             False, "--verbose", "-v", help="Show detailed version information"
         ),
-        quiet: bool = typer.Option(
-            False, "--quiet", "-q", help="Suppress output except errors"
-        ),
+        quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output except errors"),
     ) -> None:
         """Show service version information."""
         out = get_cli_output("version", verbose=verbose, quiet=quiet)
@@ -73,9 +72,7 @@ def create_version_command(
                 version = default_version
 
             ***REMOVED*** Basic version info
-            out.info(
-                f"[bold blue]{service_name}[/bold blue] version [green]{version}[/green]"
-            )
+            out.info(f"[bold blue]{service_name}[/bold blue] version [green]{version}[/green]")
 
             ***REMOVED*** Environment information
             if show_environment and config_getter:
@@ -128,8 +125,8 @@ def _show_verbose_info(
     service_name: str,
     version: str,
     package_name: str,
-    dependencies: Optional[List[str]],
-    config_getter: Optional[Callable[[], Any]],
+    dependencies: list[str] | None,
+    config_getter: Callable[[], Any] | None,
 ) -> None:
     """Show detailed version information in verbose mode."""
 

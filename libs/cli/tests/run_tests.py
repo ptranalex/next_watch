@@ -7,12 +7,10 @@ basic functionality during development.
 
 import sys
 import traceback
-from typing import List, Callable, Tuple
+from collections.abc import Callable
 
 
-def run_test_function(
-    test_func: Callable[[], None], test_name: str
-) -> Tuple[bool, str]:
+def run_test_function(test_func: Callable[[], None], test_name: str) -> tuple[bool, str]:
     """Run a single test function and return result.
 
     Args:
@@ -41,15 +39,14 @@ def run_tests() -> int:
 
     ***REMOVED*** Import test classes
     try:
+        from tests.test_base import (
+            create_sample_health_results,
+            create_test_service_registry,
+        )
         from tests.test_service_registry import (
             TestServiceConfig,
             TestServiceRegistry,
             TestServiceRegistryIntegration,
-        )
-        from tests.test_base import (
-            CLITestCase,
-            create_sample_health_results,
-            create_test_service_registry,
         )
     except ImportError as e:
         print(f"❌ Failed to import test modules: {e}")
@@ -64,7 +61,7 @@ def run_tests() -> int:
 
     total_tests = 0
     passed_tests = 0
-    failed_tests: List[str] = []
+    failed_tests: list[str] = []
 
     for test_class in test_classes:
         print(f"\n📋 Running {test_class.__name__}")
@@ -74,9 +71,7 @@ def run_tests() -> int:
         test_instance = test_class()
 
         ***REMOVED*** Find all test methods
-        test_methods = [
-            method for method in dir(test_instance) if method.startswith("test_")
-        ]
+        test_methods = [method for method in dir(test_instance) if method.startswith("test_")]
 
         for method_name in test_methods:
             total_tests += 1
@@ -106,7 +101,7 @@ def run_tests() -> int:
                     print(f"  ⚠️  Teardown warning for {method_name}: {e}")
 
     ***REMOVED*** Test utility functions
-    print(f"\n📋 Running Utility Function Tests")
+    print("\n📋 Running Utility Function Tests")
     print("-" * 40)
 
     def test_sample_health_results() -> None:
@@ -143,18 +138,18 @@ def run_tests() -> int:
 
     ***REMOVED*** Print summary
     print("\n" + "=" * 50)
-    print(f"📊 Test Summary")
+    print("📊 Test Summary")
     print(f"Total tests: {total_tests}")
     print(f"Passed: {passed_tests} ✅")
     print(f"Failed: {len(failed_tests)} ❌")
 
     if failed_tests:
-        print(f"\n💥 Failed Test Details:")
+        print("\n💥 Failed Test Details:")
         for i, error in enumerate(failed_tests, 1):
             print(f"\n{i}. {error}")
         return 1
     else:
-        print(f"\n🎉 All tests passed!")
+        print("\n🎉 All tests passed!")
         return 0
 
 

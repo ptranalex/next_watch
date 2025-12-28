@@ -3,19 +3,14 @@
 Simplified version without pytest dependencies to avoid type checking issues.
 """
 
-import asyncio
-import tempfile
-import shutil
-from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 from cli.output.handler import CLIOutput
-from cli.services.service_registry import ServiceRegistry, ServiceConfig
-from cli.services.client_factory import ServiceClientFactory
+from cli.services.service_registry import ServiceConfig, ServiceRegistry
 
 
-def create_test_config() -> Dict[str, Any]:
+def create_test_config() -> dict[str, Any]:
     """Create test configuration dictionary."""
     return {
         "host": "localhost",
@@ -168,7 +163,7 @@ def create_mock_health_service() -> Mock:
     return service
 
 
-def create_sample_health_results() -> Dict[str, Any]:
+def create_sample_health_results() -> dict[str, Any]:
     """Create sample health check results for testing."""
     return {
         "backend-api": Mock(

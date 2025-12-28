@@ -4,21 +4,20 @@ Provides enterprise-grade HTTP client management with connection pooling,
 retry policies, and proper resource cleanup based on BFF API CLI patterns.
 """
 
-import asyncio
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 import httpx
 import redis.asyncio as redis
-from redis.asyncio import Redis
 import structlog
+from redis.asyncio import Redis
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
-from .service_registry import ServiceConfig, ServiceRegistry
+from .service_registry import ServiceRegistry
 
 logger = structlog.get_logger(__name__)
 
@@ -39,15 +38,15 @@ class ServiceClientFactory:
     - Service-specific configuration
     """
 
-    def __init__(self, registry: Optional[ServiceRegistry] = None):
+    def __init__(self, registry: ServiceRegistry | None = None):
         """Initialize service client factory.
 
         Args:
             registry: Service registry for configuration lookup
         """
         self.registry = registry or ServiceRegistry()
-        self._http_clients: Dict[str, httpx.AsyncClient] = {}
-        self._redis_clients: Dict[str, Redis] = {}
+        self._http_clients: dict[str, httpx.AsyncClient] = {}
+        self._redis_clients: dict[str, Redis] = {}
         self.logger = logger.bind(component="client_factory")
 
     async def get_http_client(self, service_name: str) -> httpx.AsyncClient:
@@ -68,9 +67,7 @@ class ServiceClientFactory:
         try:
             service_config = self.registry.get_service(service_name)
         except KeyError as e:
-            raise ServiceClientError(
-                f"Service '{service_name}' not found in registry"
-            ) from e
+            raise ServiceClientError(f"Service '{service_name}' not found in registry") from e
 
         if service_config.service_type != "http":
             raise ServiceClientError(
@@ -121,9 +118,7 @@ class ServiceClientFactory:
         try:
             service_config = self.registry.get_service(service_name)
         except KeyError as e:
-            raise ServiceClientError(
-                f"Service '{service_name}' not found in registry"
-            ) from e
+            raise ServiceClientError(f"Service '{service_name}' not found in registry") from e
 
         if service_config.service_type != "redis":
             raise ServiceClientError(
@@ -188,9 +183,7 @@ class ServiceClientFactory:
             @retry(
                 stop=stop_after_attempt(service_config.retry_attempts + 1),
                 wait=wait_strategy,
-                retry=retry_if_exception_type(
-                    (httpx.RequestError, httpx.HTTPStatusError)
-                ),
+                retry=retry_if_exception_type((httpx.RequestError, httpx.HTTPStatusError)),
                 reraise=True,
             )
             async def _make_request_with_retry() -> httpx.Response:
@@ -232,9 +225,7 @@ class ServiceClientFactory:
                 response.raise_for_status()
                 return response
             except Exception as e:
-                raise ServiceClientError(
-                    f"Request to {service_name} failed: {e}"
-                ) from e
+                raise ServiceClientError(f"Request to {service_name} failed: {e}") from e
 
     async def close_service(self, service_name: str) -> None:
         """Close clients for a specific service.

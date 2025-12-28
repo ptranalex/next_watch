@@ -1,17 +1,16 @@
 """Base test classes and utilities for CLI Framework tests."""
 
-import asyncio
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
-from typing import Dict, Any, Optional, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock
 
 if TYPE_CHECKING:
     from cli.services.service_registry import ServiceRegistry
 
 from cli.output.handler import CLIOutput
-from cli.services.service_registry import ServiceRegistry, ServiceConfig
+from cli.services.service_registry import ServiceConfig, ServiceRegistry
 
 
 class CLITestCase:
@@ -46,9 +45,7 @@ class CLITestCase:
         file_path.write_text(content)
         return file_path
 
-    def create_cli_output(
-        self, verbose: bool = False, quiet: bool = False
-    ) -> CLIOutput:
+    def create_cli_output(self, verbose: bool = False, quiet: bool = False) -> CLIOutput:
         """Create a CLI output handler for testing.
 
         Args:
@@ -60,7 +57,7 @@ class CLITestCase:
         """
         return CLIOutput(command_name="test-command", verbose=verbose, quiet=quiet)
 
-    def create_test_config(self) -> Dict[str, Any]:
+    def create_test_config(self) -> dict[str, Any]:
         """Create a test configuration dictionary."""
         return {
             "host": "localhost",
@@ -103,9 +100,7 @@ class CLITestCase:
         ***REMOVED*** Create a mock response
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.json = Mock(
-            return_value={"status": "healthy", "version": "1.0.0"}
-        )
+        mock_response.json = Mock(return_value={"status": "healthy", "version": "1.0.0"})
         mock_response.headers = {"content-type": "application/json"}
 
         mock_client.get = AsyncMock(return_value=mock_response)
@@ -149,7 +144,7 @@ class AsyncTestCase(CLITestCase):
     async def async_setup_method(self) -> None:
         """Async setup for test methods."""
         self.setup_method()
-        self.async_resources: List[Any] = []
+        self.async_resources: list[Any] = []
 
     async def async_teardown_method(self) -> None:
         """Async cleanup for test methods."""
@@ -205,7 +200,7 @@ class CLITestResult:
 
 
 ***REMOVED*** Test data factory functions
-def create_sample_health_results() -> Dict[str, Any]:
+def create_sample_health_results() -> dict[str, Any]:
     """Create sample health check results for testing."""
     return {
         "backend-api": Mock(

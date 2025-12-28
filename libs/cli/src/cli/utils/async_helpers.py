@@ -6,7 +6,9 @@ including confirmation dialogs and command runners.
 
 import asyncio
 import sys
-from typing import Any, Callable, Awaitable, Optional, Dict, List
+from collections.abc import Awaitable, Callable
+from typing import Any
+
 from rich.console import Console
 from rich.prompt import Confirm
 
@@ -47,7 +49,7 @@ async def run_async_command(
 
 
 async def async_input_confirmation(
-    message: str, default: bool = False, console: Optional[Console] = None
+    message: str, default: bool = False, console: Console | None = None
 ) -> bool:
     """Async confirmation dialog for CLI operations.
 
@@ -81,7 +83,7 @@ class AsyncCommandRunner:
         self,
         output: CLIOutput,
         service_name: str = "cli",
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ):
         """Initialize async command runner.
 
@@ -93,13 +95,13 @@ class AsyncCommandRunner:
         self.output = output
         self.service_name = service_name
         self.timeout = timeout
-        self._active_tasks: List[asyncio.Task[Any]] = []
+        self._active_tasks: list[asyncio.Task[Any]] = []
 
     async def run_with_progress(
         self,
         coro: Awaitable[Any],
         description: str,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> Any:
         """Run coroutine with progress indicator.
 
@@ -125,7 +127,7 @@ class AsyncCommandRunner:
             else:
                 result = await coro
             return result
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.output.error(f"Operation timed out after {effective_timeout}s")
             raise
         except Exception as e:
@@ -134,10 +136,10 @@ class AsyncCommandRunner:
 
     async def run_concurrent(
         self,
-        operations: Dict[str, Awaitable[Any]],
-        timeout: Optional[float] = None,
+        operations: dict[str, Awaitable[Any]],
+        timeout: float | None = None,
         fail_fast: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run multiple operations concurrently.
 
         Args:
@@ -163,7 +165,7 @@ class AsyncCommandRunner:
         self.output.info(f"Running {len(operations)} operations concurrently...")
 
         ***REMOVED*** Create tasks
-        tasks: Dict[str, asyncio.Task[Any]] = {
+        tasks: dict[str, asyncio.Task[Any]] = {
             name: asyncio.create_task(coro, name=name)  ***REMOVED*** type: ignore[arg-type]
             for name, coro in operations.items()
         }
@@ -197,9 +199,7 @@ class AsyncCommandRunner:
             else:
                 ***REMOVED*** Wait for all to complete, collecting results and errors
                 if effective_timeout:
-                    done, pending = await asyncio.wait(
-                        tasks.values(), timeout=effective_timeout
-                    )
+                    done, pending = await asyncio.wait(tasks.values(), timeout=effective_timeout)
                     ***REMOVED*** Cancel pending tasks
                     for task in pending:
                         task.cancel()
@@ -217,15 +217,13 @@ class AsyncCommandRunner:
                         results[name] = task.result()
 
                 if errors:
-                    self.output.warning(
-                        f"Some operations failed: {list(errors.keys())}"
-                    )
+                    self.output.warning(f"Some operations failed: {list(errors.keys())}")
                     for name, error in errors.items():
                         self.output.error(f"{name}: {error}")
 
                 return results
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             ***REMOVED*** Cancel all tasks
             for task in tasks.values():
                 task.cancel()

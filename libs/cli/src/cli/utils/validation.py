@@ -5,7 +5,6 @@ based on patterns from production NextWatch services.
 """
 
 import re
-from typing import Union, Optional, List
 from urllib.parse import urlparse
 
 
@@ -15,7 +14,7 @@ class ValidationError(Exception):
     pass
 
 
-def validate_url(url: str, allowed_schemes: Optional[List[str]] = None) -> str:
+def validate_url(url: str, allowed_schemes: list[str] | None = None) -> str:
     """Validate URL format and scheme.
 
     Args:
@@ -60,7 +59,7 @@ def validate_url(url: str, allowed_schemes: Optional[List[str]] = None) -> str:
     return url
 
 
-def validate_port(port: Union[int, str], allow_zero: bool = False) -> int:
+def validate_port(port: int | str, allow_zero: bool = False) -> int:
     """Validate port number.
 
     Args:
@@ -91,15 +90,13 @@ def validate_port(port: Union[int, str], allow_zero: bool = False) -> int:
     max_port = 65535
 
     if port_int < min_port or port_int > max_port:
-        raise ValidationError(
-            f"Port must be between {min_port} and {max_port}, got: {port_int}"
-        )
+        raise ValidationError(f"Port must be between {min_port} and {max_port}, got: {port_int}")
 
     return port_int
 
 
 def validate_timeout(
-    timeout: Union[int, float, str], min_value: float = 0.1, max_value: float = 300.0
+    timeout: int | float | str, min_value: float = 0.1, max_value: float = 300.0
 ) -> float:
     """Validate timeout value.
 
@@ -203,7 +200,7 @@ def validate_log_level(level: str) -> str:
     return level_upper
 
 
-def validate_file_size(size: Union[int, str], max_size: int = 100 * 1024 * 1024) -> int:
+def validate_file_size(size: int | str, max_size: int = 100 * 1024 * 1024) -> int:
     """Validate file size.
 
     Args:
@@ -231,8 +228,6 @@ def validate_file_size(size: Union[int, str], max_size: int = 100 * 1024 * 1024)
         raise ValidationError("File size cannot be negative")
 
     if size_int > max_size:
-        raise ValidationError(
-            f"File size too large: {size_int} bytes (max: {max_size} bytes)"
-        )
+        raise ValidationError(f"File size too large: {size_int} bytes (max: {max_size} bytes)")
 
     return size_int

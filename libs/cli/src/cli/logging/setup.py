@@ -11,7 +11,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any, Union, List
+from typing import Any
 
 import structlog
 
@@ -19,11 +19,11 @@ import structlog
 def configure_cli_logging(
     verbose: bool = False,
     quiet: bool = False,
-    command_name: Optional[str] = None,
-    log_level: Optional[str] = None,
-    log_dir: Optional[Path] = None,
+    command_name: str | None = None,
+    log_level: str | None = None,
+    log_dir: Path | None = None,
     http_verbose: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Configure logging for CLI operations.
 
     Args:
@@ -60,7 +60,7 @@ def configure_cli_logging(
     root_logger.handlers.clear()
 
     ***REMOVED*** Track configuration
-    config_info: Dict[str, Any] = {
+    config_info: dict[str, Any] = {
         "log_level": level_str,
         "verbose": verbose,
         "quiet": quiet,
@@ -87,9 +87,7 @@ def configure_cli_logging(
     ***REMOVED*** Console handler (only in verbose mode for operational logging)
     ***REMOVED*** User output goes through Rich console separately
     if verbose and not quiet:
-        console_handler = logging.StreamHandler(
-            sys.stderr
-        )  ***REMOVED*** Operational logs to stderr
+        console_handler = logging.StreamHandler(sys.stderr)  ***REMOVED*** Operational logs to stderr
         console_handler.setLevel(level)
         console_handler.setFormatter(plain_formatter)
         root_logger.addHandler(console_handler)
@@ -132,14 +130,11 @@ def configure_cli_logging(
     for http_logger in http_loggers:
         logging.getLogger(http_logger).setLevel(http_level)
         ***REMOVED*** Completely silence connection pools unless http_verbose
-        if (
-            http_logger in ["urllib3.connectionpool", "httpcore.connection"]
-            and not http_verbose
-        ):
+        if http_logger in ["urllib3.connectionpool", "httpcore.connection"] and not http_verbose:
             logging.getLogger(http_logger).propagate = False
 
     ***REMOVED*** Configure structlog
-    processors: List[Any] = [
+    processors: list[Any] = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
         structlog.processors.TimeStamper(fmt="iso"),

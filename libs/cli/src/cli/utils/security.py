@@ -4,10 +4,8 @@ Provides utilities for masking sensitive information in CLI output,
 based on patterns from production NextWatch services.
 """
 
-import re
-from typing import Optional, List, Set, Dict, Any
+from typing import Any
 from urllib.parse import urlparse
-
 
 ***REMOVED*** Patterns for detecting sensitive field names
 SENSITIVE_FIELD_PATTERNS = {
@@ -27,9 +25,7 @@ SENSITIVE_FIELD_PATTERNS = {
 }
 
 
-def mask_sensitive_value(
-    value: Optional[str], show_length: int = 4, mask_char: str = "*"
-) -> str:
+def mask_sensitive_value(value: str | None, show_length: int = 4, mask_char: str = "*") -> str:
     """Mask sensitive configuration values.
 
     Args:
@@ -129,9 +125,7 @@ def mask_url(url: str, mask_password: bool = True, mask_username: bool = False) 
     return result
 
 
-def is_sensitive_field(
-    field_name: str, additional_patterns: Optional[Set[str]] = None
-) -> bool:
+def is_sensitive_field(field_name: str, additional_patterns: set[str] | None = None) -> bool:
     """Check if a field name indicates sensitive data.
 
     Args:
@@ -167,11 +161,11 @@ def is_sensitive_field(
 
 
 def mask_dict_values(
-    data: Dict[str, Any],
-    sensitive_fields: Optional[List[str]] = None,
+    data: dict[str, Any],
+    sensitive_fields: list[str] | None = None,
     mask_all_sensitive: bool = True,
-    additional_patterns: Optional[Set[str]] = None,
-) -> Dict[str, Any]:
+    additional_patterns: set[str] | None = None,
+) -> dict[str, Any]:
     """Mask sensitive values in a dictionary.
 
     Args:
@@ -207,7 +201,7 @@ def mask_dict_values(
     return result
 
 
-def sanitize_log_data(data: Dict[str, Any], mask_urls: bool = True) -> Dict[str, Any]:
+def sanitize_log_data(data: dict[str, Any], mask_urls: bool = True) -> dict[str, Any]:
     """Sanitize data for logging by masking sensitive information.
 
     Args:
@@ -230,17 +224,13 @@ def sanitize_log_data(data: Dict[str, Any], mask_urls: bool = True) -> Dict[str,
 
     if mask_urls:
         for key, value in result.items():
-            if isinstance(value, str) and (
-                "://" in value or key.lower().endswith("_url")
-            ):
+            if isinstance(value, str) and ("://" in value or key.lower().endswith("_url")):
                 result[key] = mask_url(value)
 
     return result
 
 
-def mask_command_args(
-    args: List[str], sensitive_flags: Optional[Set[str]] = None
-) -> List[str]:
+def mask_command_args(args: list[str], sensitive_flags: set[str] | None = None) -> list[str]:
     """Mask sensitive command line arguments.
 
     Args:

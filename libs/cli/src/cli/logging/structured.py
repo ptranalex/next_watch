@@ -5,8 +5,9 @@ logging setup, following enterprise patterns from BFF API.
 """
 
 import functools
-from typing import Optional, Any, Callable, Dict
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from .setup import configure_cli_logging, get_logger
 
@@ -18,7 +19,7 @@ class CLILogger:
         self,
         name: str,
         service_name: str = "cli",
-        command_name: Optional[str] = None,
+        command_name: str | None = None,
         verbose: bool = False,
     ):
         """Initialize CLI logger.
@@ -35,7 +36,7 @@ class CLILogger:
         self.verbose = verbose
         self._logger = get_logger(name)
 
-    def _add_context(self, **kwargs: Any) -> Dict[str, Any]:
+    def _add_context(self, **kwargs: Any) -> dict[str, Any]:
         """Add standard CLI context to log entries."""
         context = {
             "service": self.service_name,
@@ -59,9 +60,7 @@ class CLILogger:
         """Log warning message with CLI context."""
         self._logger.warning(message, **self._add_context(**kwargs))
 
-    def error(
-        self, message: str, error: Optional[Exception] = None, **kwargs: Any
-    ) -> None:
+    def error(self, message: str, error: Exception | None = None, **kwargs: Any) -> None:
         """Log error message with CLI context.
 
         Args:
@@ -109,10 +108,10 @@ class CLILogger:
 
 
 def with_logging(
-    log_level: Optional[str] = None,
+    log_level: str | None = None,
     verbose: bool = False,
     quiet: bool = False,
-    log_dir: Optional[Path] = None,
+    log_dir: Path | None = None,
     service_name: str = "cli",
 ) -> Callable[..., Any]:
     """Decorator to automatically configure logging for CLI commands.
@@ -174,7 +173,7 @@ def with_logging(
 def get_cli_logger(
     name: str,
     service_name: str = "cli",
-    command_name: Optional[str] = None,
+    command_name: str | None = None,
     verbose: bool = False,
 ) -> CLILogger:
     """Get a CLI logger instance.

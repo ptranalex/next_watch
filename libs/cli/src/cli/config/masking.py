@@ -5,14 +5,14 @@ tokens, API keys, and URLs with credentials, following security best practices.
 """
 
 import re
-from typing import Any, List, Optional
+from typing import Any
 from urllib.parse import urlparse, urlunparse
 
 
 def mask_sensitive_value(
     value: Any,
     field_name: str = "",
-    secret_fields: Optional[List[str]] = None,
+    secret_fields: list[str] | None = None,
     show_secrets: bool = False,
 ) -> str:
     """Mask sensitive configuration values for safe display.
@@ -68,7 +68,7 @@ def mask_sensitive_value(
         return "None"
     elif isinstance(value, bool):
         return str(value)
-    elif isinstance(value, (int, float)):
+    elif isinstance(value, int | float):
         return str(value)
     elif isinstance(value, str):
         if len(value) == 0:

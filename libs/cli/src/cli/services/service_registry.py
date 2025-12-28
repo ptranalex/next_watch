@@ -4,8 +4,9 @@ Provides centralized service registration and discovery patterns based on
 the enterprise requirements discovered in BFF API CLI analysis.
 """
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterator, List, Optional, Protocol
+from typing import Any, Protocol
 from urllib.parse import urlparse
 
 import structlog
@@ -28,8 +29,8 @@ class ServiceConfig:
     retry_backoff: str = "exponential"
     health_endpoint: str = "/health"
     service_type: str = "http"
-    headers: Dict[str, str] = field(default_factory=dict)
-    extra_config: Dict[str, Any] = field(default_factory=dict)
+    headers: dict[str, str] = field(default_factory=dict)
+    extra_config: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate service configuration."""
@@ -74,7 +75,7 @@ class ConfigProvider(Protocol):
     (from config objects, environment, etc.)
     """
 
-    def get_services(self) -> List[ServiceConfig]:
+    def get_services(self) -> list[ServiceConfig]:
         """Get list of service configurations."""
         ...
 
@@ -88,7 +89,7 @@ class ServiceRegistry:
 
     def __init__(self) -> None:
         """Initialize empty service registry."""
-        self._services: Dict[str, ServiceConfig] = {}
+        self._services: dict[str, ServiceConfig] = {}
         self.logger = logger.bind(component="service_registry")
 
     def register_service(self, config: ServiceConfig) -> None:
@@ -113,7 +114,7 @@ class ServiceRegistry:
             retry_attempts=config.retry_attempts,
         )
 
-    def register_services(self, configs: List[ServiceConfig]) -> None:
+    def register_services(self, configs: list[ServiceConfig]) -> None:
         """Register multiple services.
 
         Args:
@@ -139,7 +140,7 @@ class ServiceRegistry:
 
         return self._services[name]
 
-    def list_services(self) -> List[str]:
+    def list_services(self) -> list[str]:
         """Get list of registered service names.
 
         Returns:
@@ -147,7 +148,7 @@ class ServiceRegistry:
         """
         return list(self._services.keys())
 
-    def get_services_by_type(self, service_type: str) -> List[ServiceConfig]:
+    def get_services_by_type(self, service_type: str) -> list[ServiceConfig]:
         """Get all services of a specific type.
 
         Args:
@@ -156,11 +157,7 @@ class ServiceRegistry:
         Returns:
             List of matching service configurations
         """
-        return [
-            config
-            for config in self._services.values()
-            if config.service_type == service_type
-        ]
+        return [config for config in self._services.values() if config.service_type == service_type]
 
     def is_registered(self, name: str) -> bool:
         """Check if a service is registered.
@@ -210,7 +207,7 @@ class ServiceRegistry:
         return registry
 
     @classmethod
-    def from_dict(cls, services_config: Dict[str, Dict[str, Any]]) -> "ServiceRegistry":
+    def from_dict(cls, services_config: dict[str, dict[str, Any]]) -> "ServiceRegistry":
         """Create registry from dictionary configuration.
 
         Args:

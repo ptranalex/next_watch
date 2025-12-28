@@ -1,9 +1,10 @@
 """Tests for CLIOutput handler functionality."""
 
-from unittest.mock import Mock, patch
 from io import StringIO
+from unittest.mock import Mock, patch
 
 from cli.output.handler import CLIOutput
+
 from tests.test_base import CLITestCase
 
 
@@ -100,9 +101,7 @@ class TestCLIOutput(CLITestCase):
         output.log_operation("Test operation", key="value", count=42)
 
         ***REMOVED*** Should log the operation with structured data
-        mock_logger.info.assert_called_once_with(
-            "Test operation", key="value", count=42
-        )
+        mock_logger.info.assert_called_once_with("Test operation", key="value", count=42)
 
     @patch("cli.output.handler.structlog")
     def test_log_operation_non_verbose_mode(self, mock_structlog: Mock) -> None:
@@ -163,7 +162,6 @@ class TestCLIOutputIntegration(CLITestCase):
     def test_real_console_integration(self) -> None:
         """Test CLIOutput with a real Rich console."""
         from rich.console import Console
-        from io import StringIO
 
         ***REMOVED*** Create a console that writes to a StringIO for testing
         string_io = StringIO()
@@ -187,7 +185,6 @@ class TestCLIOutputIntegration(CLITestCase):
     def test_error_console_integration(self) -> None:
         """Test error console with real Rich console."""
         from rich.console import Console
-        from io import StringIO
 
         string_io = StringIO()
         error_console = Console(file=string_io, width=80)

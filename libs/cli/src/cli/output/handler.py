@@ -5,25 +5,24 @@ unified CLI output handling with separation between user-facing output and
 operational logging.
 """
 
-import sys
 import logging
-from pathlib import Path
-from typing import Any, Optional
+import sys
+from typing import Any
 
 import structlog
 from rich.console import Console
 from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
     Progress,
     SpinnerColumn,
     TextColumn,
-    BarColumn,
-    MofNCompleteColumn,
 )
 from rich.prompt import Confirm
 
 
 def configure_basic_cli_logging(
-    verbose: bool = False, quiet: bool = False, command_name: Optional[str] = None
+    verbose: bool = False, quiet: bool = False, command_name: str | None = None
 ) -> None:
     """Configure basic structured logging for CLI operations.
 
@@ -48,20 +47,14 @@ def configure_basic_cli_logging(
             structlog.contextvars.merge_contextvars,
             structlog.processors.add_log_level,
             structlog.processors.StackInfoRenderer(),
-            (
-                structlog.dev.set_exc_info
-                if verbose
-                else structlog.processors.format_exc_info
-            ),
+            (structlog.dev.set_exc_info if verbose else structlog.processors.format_exc_info),
             (
                 structlog.processors.JSONRenderer()
                 if not verbose
                 else structlog.dev.ConsoleRenderer()
             ),
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, level, logging.INFO)
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(getattr(logging, level, logging.INFO)),
         logger_factory=structlog.WriteLoggerFactory(file=sys.stderr),
         cache_logger_on_first_use=True,
     )
@@ -103,9 +96,7 @@ class CLIOutput:
         self.error_console = Console(file=sys.stderr, style="red", highlight=False)
 
         ***REMOVED*** Operational logger (only used in verbose mode)
-        self.logger = structlog.get_logger("cli").bind(
-            command=command_name, component="cli"
-        )
+        self.logger = structlog.get_logger("cli").bind(command=command_name, component="cli")
 
     def info(self, message: str, **rich_kwargs: Any) -> None:
         """Display informational message to user.
@@ -174,11 +165,9 @@ class CLIOutput:
             error: Exception that occurred
             **context: Additional context for structured logging
         """
-        self.logger.error(
-            message, error=str(error), error_type=type(error).__name__, **context
-        )
+        self.logger.error(message, error=str(error), error_type=type(error).__name__, **context)
 
-    def progress(self, description: str, total: Optional[int] = None) -> Progress:
+    def progress(self, description: str, total: int | None = None) -> Progress:
         """Create a progress indicator.
 
         Args:
@@ -227,9 +216,7 @@ class CLIOutput:
         return Confirm.ask(question, console=self.console, default=default)
 
 
-def get_cli_output(
-    command_name: str, verbose: bool = False, quiet: bool = False
-) -> CLIOutput:
+def get_cli_output(command_name: str, verbose: bool = False, quiet: bool = False) -> CLIOutput:
     """Get CLI output handler for a command.
 
     Args:

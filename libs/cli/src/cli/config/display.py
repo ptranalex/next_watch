@@ -4,14 +4,16 @@ Provides universal configuration display functions and command generators
 following the Auth API patterns for beautiful, secure config presentation.
 """
 
-from typing import Any, Dict, List, Optional, Protocol, Callable, Union
-import typer
-from typer import Typer
-from rich.table import Table
-from rich.console import Console
+from collections.abc import Callable
+from typing import Any, Protocol
 
-from ..output.handler import get_cli_output, CLIOutput
-from .masking import mask_sensitive_value, COMMON_SECRET_FIELDS
+import typer
+from rich.console import Console
+from rich.table import Table
+from typer import Typer
+
+from ..output.handler import CLIOutput, get_cli_output
+from .masking import COMMON_SECRET_FIELDS, mask_sensitive_value
 
 
 class ConfigProtocol(Protocol):
@@ -26,11 +28,11 @@ class ConfigProtocol(Protocol):
 
 def print_config(
     config: Any,
-    console: Optional[Console] = None,
+    console: Console | None = None,
     title: str = "Configuration",
     show_secrets: bool = False,
-    secret_fields: Optional[List[str]] = None,
-    out: Optional[CLIOutput] = None,
+    secret_fields: list[str] | None = None,
+    out: CLIOutput | None = None,
 ) -> None:
     """Display configuration in a formatted Rich table.
 
@@ -95,11 +97,9 @@ def print_config(
         ***REMOVED*** Add styling for different value types
         if isinstance(value, bool):
             styled_value = (
-                f"[green]{masked_value}[/green]"
-                if value
-                else f"[red]{masked_value}[/red]"
+                f"[green]{masked_value}[/green]" if value else f"[red]{masked_value}[/red]"
             )
-        elif isinstance(value, (int, float)) and not show_secrets:
+        elif isinstance(value, int | float) and not show_secrets:
             styled_value = f"[yellow]{masked_value}[/yellow]"
         elif "***" in masked_value:
             styled_value = f"[dim]{masked_value}[/dim]"
@@ -124,7 +124,7 @@ def print_config(
 
 def create_config_command(
     config_getter: Callable[[], Any],
-    secret_fields: Optional[List[str]] = None,
+    secret_fields: list[str] | None = None,
     command_name: str = "config",
 ) -> Callable[..., None]:
     """Create a configuration display command function.
@@ -157,9 +157,7 @@ def create_config_command(
         verbose: bool = typer.Option(
             False, "--verbose", "-v", help="Show detailed configuration information"
         ),
-        quiet: bool = typer.Option(
-            False, "--quiet", "-q", help="Suppress output except errors"
-        ),
+        quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output except errors"),
     ) -> None:
         """Display current configuration."""
         out = get_cli_output(command_name, verbose=verbose, quiet=quiet)
@@ -201,7 +199,7 @@ def create_config_command(
 
 def create_config_app(
     config_getter: Callable[[], Any],
-    secret_fields: Optional[List[str]] = None,
+    secret_fields: list[str] | None = None,
     app_name: str = "config",
 ) -> Typer:
     """Create a complete configuration Typer app.
@@ -223,19 +221,15 @@ def create_config_app(
     config_app = Typer(name=app_name, help=f"Configuration management for {app_name}")
 
     ***REMOVED*** Add main config display command
-    config_app.command("show")(
-        create_config_command(config_getter, secret_fields, "show")
-    )
+    config_app.command("show")(create_config_command(config_getter, secret_fields, "show"))
 
     ***REMOVED*** Add alternative command names for convenience
-    config_app.command("display")(
-        create_config_command(config_getter, secret_fields, "display")
-    )
+    config_app.command("display")(create_config_command(config_getter, secret_fields, "display"))
 
     return config_app
 
 
-def get_config_summary(config: Any) -> Dict[str, Any]:
+def get_config_summary(config: Any) -> dict[str, Any]:
     """Get a summary of configuration for logging/monitoring.
 
     Args:

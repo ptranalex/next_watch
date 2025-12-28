@@ -5,7 +5,8 @@ logging, and operational patterns across all NextWatch services.
 """
 
 import sys
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 import typer
 import uvicorn
@@ -68,12 +69,12 @@ QUIET_OPTION = typer.Option(
 def create_serve_command(
     service_name: str,
     app_import_string: str,
-    get_app_instance: Optional[Callable[[], Any]] = None,
-    config_getter: Optional[Callable[[], Any]] = None,
+    get_app_instance: Callable[[], Any] | None = None,
+    config_getter: Callable[[], Any] | None = None,
     default_host: str = "0.0.0.0",
     default_port: int = 8000,
-    print_config_func: Optional[Callable[[Any, str, Any], None]] = None,
-    extra_uvicorn_kwargs: Optional[Dict[str, Any]] = None,
+    print_config_func: Callable[[Any, str, Any], None] | None = None,
+    extra_uvicorn_kwargs: dict[str, Any] | None = None,
 ) -> Callable[..., None]:
     """Create a standardized serve command for FastAPI applications.
 
@@ -102,11 +103,11 @@ def create_serve_command(
     """
 
     def serve_command(
-        host: Optional[str] = HOST_OPTION,
-        port: Optional[int] = PORT_OPTION,
+        host: str | None = HOST_OPTION,
+        port: int | None = PORT_OPTION,
         reload: bool = RELOAD_OPTION,
-        workers: Optional[int] = WORKERS_OPTION,
-        log_level: Optional[str] = LOG_LEVEL_OPTION,
+        workers: int | None = WORKERS_OPTION,
+        log_level: str | None = LOG_LEVEL_OPTION,
         verbose: bool = VERBOSE_OPTION,
         quiet: bool = QUIET_OPTION,
     ) -> None:
@@ -164,9 +165,7 @@ def create_serve_command(
                     cfg = config_getter()
                     if hasattr(cfg, "is_production"):
                         uvicorn_kwargs["access_log"] = not cfg.is_production
-                    elif hasattr(cfg, "environment") and isinstance(
-                        cfg.environment, str
-                    ):
+                    elif hasattr(cfg, "environment") and isinstance(cfg.environment, str):
                         uvicorn_kwargs["access_log"] = cfg.environment != PRODUCTION_ENV
                 except Exception:
                     pass
@@ -198,12 +197,12 @@ def create_serve_command(
 def create_serve_app(
     service_name: str,
     app_import_string: str,
-    get_app_instance: Optional[Callable[[], Any]] = None,
-    config_getter: Optional[Callable[[], Any]] = None,
+    get_app_instance: Callable[[], Any] | None = None,
+    config_getter: Callable[[], Any] | None = None,
     default_host: str = "0.0.0.0",
     default_port: int = 8000,
-    print_config_func: Optional[Callable[[Any, str, Any], None]] = None,
-    extra_uvicorn_kwargs: Optional[Dict[str, Any]] = None,
+    print_config_func: Callable[[Any, str, Any], None] | None = None,
+    extra_uvicorn_kwargs: dict[str, Any] | None = None,
     include_management_commands: bool = False,
 ) -> typer.Typer:
     """Create a complete serve command app with optional management commands.
@@ -255,11 +254,11 @@ def create_serve_app(
     @app.callback(invoke_without_command=True)
     def serve_callback(
         ctx: typer.Context,
-        host: Optional[str] = HOST_OPTION,
-        port: Optional[int] = PORT_OPTION,
+        host: str | None = HOST_OPTION,
+        port: int | None = PORT_OPTION,
         reload: bool = RELOAD_OPTION,
-        workers: Optional[int] = WORKERS_OPTION,
-        log_level: Optional[str] = LOG_LEVEL_OPTION,
+        workers: int | None = WORKERS_OPTION,
+        log_level: str | None = LOG_LEVEL_OPTION,
         verbose: bool = VERBOSE_OPTION,
         quiet: bool = QUIET_OPTION,
     ) -> None:
@@ -284,13 +283,13 @@ def create_serve_app(
 
 
 def _get_effective_config(
-    config_getter: Optional[Callable[[], Any]],
-    host: Optional[str],
-    port: Optional[int],
-    log_level: Optional[str],
+    config_getter: Callable[[], Any] | None,
+    host: str | None,
+    port: int | None,
+    log_level: str | None,
     default_host: str,
     default_port: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get effective configuration with CLI overrides."""
     config = {}
 
@@ -330,9 +329,9 @@ def _display_startup_info(
     service_name: str,
     host: str,
     port: int,
-    config: Dict[str, Any],
+    config: dict[str, Any],
     verbose: bool,
-    print_config_func: Optional[Callable[[Any, str, Any], None]],
+    print_config_func: Callable[[Any, str, Any], None] | None,
 ) -> None:
     """Display server startup information."""
     ***REMOVED*** Main startup message
@@ -359,9 +358,7 @@ def _display_startup_info(
     ***REMOVED*** Verbose configuration display
     if verbose and config_obj and print_config_func:
         try:
-            print_config_func(
-                config_obj, f"{service_name} Server Configuration", out.console
-            )
+            print_config_func(config_obj, f"{service_name} Server Configuration", out.console)
         except Exception:
             ***REMOVED*** Fallback to simple table
             _display_simple_config_table(out, config)
@@ -369,7 +366,7 @@ def _display_startup_info(
         _display_simple_config_table(out, config)
 
 
-def _display_simple_config_table(out: CLIOutput, config: Dict[str, Any]) -> None:
+def _display_simple_config_table(out: CLIOutput, config: dict[str, Any]) -> None:
     """Display a simple configuration table."""
     table = Table(title="Server Configuration")
     table.add_column("Setting", style="cyan")
@@ -397,9 +394,7 @@ def _add_management_commands(app: typer.Typer, service_name: str) -> None:
         out.warning(f"Stopping {service_name} server...")
         out.info("Note: This is a placeholder command.")
         out.info("To stop the server, press Ctrl+C in the terminal where it's running.")
-        out.info(
-            "For production deployments, use your process manager (systemd, supervisor, etc.)"
-        )
+        out.info("For production deployments, use your process manager (systemd, supervisor, etc.)")
 
     @app.command()
     def restart(
@@ -412,6 +407,4 @@ def _add_management_commands(app: typer.Typer, service_name: str) -> None:
 
         out.warning(f"Restarting {service_name} server...")
         out.info("Note: This is a placeholder command.")
-        out.info(
-            "For production deployments, use your process manager to restart the service."
-        )
+        out.info("For production deployments, use your process manager to restart the service.")

@@ -5,20 +5,22 @@ Backend API patterns with serve, status, and operational commands.
 """
 
 import asyncio
-from typing import Optional, Callable, Awaitable, Any, Dict, List
+from collections.abc import Awaitable, Callable
+from typing import Any
+
 import typer
 from rich.table import Table
 
-from ...output.handler import get_cli_output
 from ...async_utils import run_with_retries, with_timeout
 from ...health import display_health_results
+from ...output.handler import get_cli_output
 
 
 def create_service_commands(
     service_name: str,
-    get_health_service: Optional[Callable[[], Awaitable[Any]]] = None,
-    serve_command: Optional[Callable[..., Any]] = None,
-    additional_commands: Optional[Dict[str, Callable[..., Any]]] = None,
+    get_health_service: Callable[[], Awaitable[Any]] | None = None,
+    serve_command: Callable[..., Any] | None = None,
+    additional_commands: dict[str, Callable[..., Any]] | None = None,
 ) -> typer.Typer:
     """Create service management commands following Backend API patterns.
 
@@ -40,9 +42,7 @@ def create_service_commands(
         ... )
         >>> main_app.add_typer(service_app, name="service")
     """
-    app = typer.Typer(
-        name="service", help=f"{service_name} service management commands."
-    )
+    app = typer.Typer(name="service", help=f"{service_name} service management commands.")
 
     if serve_command:
 
@@ -53,13 +53,9 @@ def create_service_commands(
             reload: bool = typer.Option(
                 False, "--reload", help="Enable auto-reload for development"
             ),
-            workers: int = typer.Option(
-                1, "--workers", help="Number of worker processes"
-            ),
+            workers: int = typer.Option(1, "--workers", help="Number of worker processes"),
             log_level: str = typer.Option("info", "--log-level", help="Log level"),
-            verbose: bool = typer.Option(
-                False, "--verbose", "-v", help="Enable verbose output"
-            ),
+            verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
         ) -> None:
             """Start the service server."""
             out = get_cli_output("serve", verbose=verbose)
@@ -101,9 +97,7 @@ def create_service_commands(
 
         @app.command()
         def status(
-            verbose: bool = typer.Option(
-                False, "--verbose", "-v", help="Show detailed status"
-            ),
+            verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed status"),
             timeout: int = typer.Option(
                 30, "--timeout", help="Timeout for health checks in seconds"
             ),
@@ -111,18 +105,14 @@ def create_service_commands(
             """Check service status and health."""
             asyncio.run(_service_status(service_name, verbose, timeout))
 
-        async def _service_status(
-            service_name: str, verbose: bool, timeout: int
-        ) -> None:
+        async def _service_status(service_name: str, verbose: bool, timeout: int) -> None:
             """Check service status."""
             out = get_cli_output("status", verbose=verbose)
 
             try:
                 out.info(f"Checking {service_name} status...")
 
-                async with with_timeout(
-                    timeout, f"Health check timed out after {timeout}s"
-                ):
+                async with with_timeout(timeout, f"Health check timed out after {timeout}s"):
                     health_service = await get_health_service()
 
                     ***REMOVED*** Use existing health service for comprehensive checks
@@ -138,9 +128,7 @@ def create_service_commands(
                         out.success(f"{service_name} is healthy")
                     else:
                         unhealthy = [
-                            name
-                            for name, result in results.items()
-                            if not result.is_healthy
+                            name for name, result in results.items() if not result.is_healthy
                         ]
                         out.error(
                             f"{service_name} has unhealthy dependencies: {', '.join(unhealthy)}"
@@ -153,9 +141,7 @@ def create_service_commands(
 
     @app.command()
     def info(
-        verbose: bool = typer.Option(
-            False, "--verbose", "-v", help="Show detailed information"
-        )
+        verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed information"),
     ) -> None:
         """Display service information."""
         out = get_cli_output("info", verbose=verbose)
@@ -171,13 +157,9 @@ def create_service_commands(
             ***REMOVED*** Add more service-specific info if available
             if verbose:
                 ***REMOVED*** Count commands manually since app.commands doesn't exist
-                command_count = len(
-                    [cmd for cmd in dir(app) if not cmd.startswith("_")]
-                )
+                command_count = len([cmd for cmd in dir(app) if not cmd.startswith("_")])
                 table.add_row("Commands Available", str(command_count))
-                table.add_row(
-                    "Health Monitoring", "Yes" if get_health_service else "No"
-                )
+                table.add_row("Health Monitoring", "Yes" if get_health_service else "No")
                 table.add_row("Serve Command", "Yes" if serve_command else "No")
 
             out.console.print(table)
@@ -191,7 +173,7 @@ def create_service_commands(
     def version(
         verbose: bool = typer.Option(
             False, "--verbose", "-v", help="Show detailed version information"
-        )
+        ),
     ) -> None:
         """Display service version information."""
         out = get_cli_output("version", verbose=verbose)
@@ -209,9 +191,7 @@ def create_service_commands(
                 try:
                     import importlib.metadata
 
-                    pkg_version = importlib.metadata.version(
-                        service_name.replace("-", "_")
-                    )
+                    pkg_version = importlib.metadata.version(service_name.replace("-", "_"))
                     table.add_row("Package Version", pkg_version)
                 except Exception:
                     table.add_row("Package Version", "Unknown")
@@ -235,7 +215,7 @@ def create_service_commands(
 
 def create_database_commands(
     get_db_connection: Callable[[], Awaitable[Any]],
-    migration_commands: Optional[Dict[str, Callable[..., Any]]] = None,
+    migration_commands: dict[str, Callable[..., Any]] | None = None,
 ) -> typer.Typer:
     """Create database management commands following Backend API patterns.
 
@@ -262,7 +242,7 @@ def create_database_commands(
     def status(
         verbose: bool = typer.Option(
             False, "--verbose", "-v", help="Show detailed database status"
-        )
+        ),
     ) -> None:
         """Check database connection and status."""
         asyncio.run(_db_status(verbose))
@@ -271,7 +251,7 @@ def create_database_commands(
     def info(
         verbose: bool = typer.Option(
             False, "--verbose", "-v", help="Show detailed database information"
-        )
+        ),
     ) -> None:
         """Display database information."""
         asyncio.run(_db_info(verbose))
@@ -286,9 +266,7 @@ def create_database_commands(
             db_connection = await get_db_connection()
 
             ***REMOVED*** Test connection
-            await run_with_retries(
-                _test_db_connection, db_connection, retries=3, delay=1.0
-            )
+            await run_with_retries(_test_db_connection, db_connection, retries=3, delay=1.0)
 
             out.success("Database connection successful")
 
@@ -330,9 +308,7 @@ def create_database_commands(
                 ***REMOVED*** Add more detailed info based on database type
                 table.add_row("Framework", "NextWatch CLI Framework")
                 ***REMOVED*** Count commands manually since app.commands doesn't exist
-                command_count = len(
-                    [cmd for cmd in dir(app) if not cmd.startswith("_")]
-                )
+                command_count = len([cmd for cmd in dir(app) if not cmd.startswith("_")])
                 table.add_row("Available Commands", str(command_count))
 
             out.console.print(table)

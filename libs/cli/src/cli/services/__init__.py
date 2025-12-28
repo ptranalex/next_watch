@@ -8,7 +8,6 @@ Provides enterprise-grade service interaction patterns including:
 """
 
 from .client_factory import ServiceClientFactory
-
 from .service_registry import ServiceRegistry
 
 __all__ = [
