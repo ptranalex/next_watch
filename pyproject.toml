@@ -1,0 +1,17 @@
+***REMOVED*** Root pyproject.toml for next_watch monorepo
+***REMOVED*** This file provides shared Ruff configuration for all shared libraries
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]  ***REMOVED*** Line too long - handled by formatter
+
+[tool.ruff.lint.per-file-ignores]
+***REMOVED*** Pydantic v1 `@validator` methods intentionally take `cls` as the first arg, but
+***REMOVED*** Ruff's N805 doesn't recognize the decorator and flags these as instance methods.
+"libs/config/src/config/base/config.py" = ["N805"]
+"libs/config/src/config/services/*.py" = ["N805"]
+"libs/fast-core/src/fast_core/config.py" = ["N805"]

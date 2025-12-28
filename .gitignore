@@ -129,3 +129,10 @@ id_rsa*
 **/config
 **/.boto
 **/.s3cfg
+
+***REMOVED*** ------------------------------------------------------------------------------
+***REMOVED*** SECURITY: internal docs / incident reports (never commit)
+***REMOVED*** ------------------------------------------------------------------------------
+SECURITY_CLEANUP_REPORT*.md
+docs/internal/
+**/docs/internal/
