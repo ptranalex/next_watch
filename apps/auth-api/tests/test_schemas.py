@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from auth_api.schemas.auth_schemas import UserCreate
 
 
