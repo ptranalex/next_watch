@@ -1,6 +1,6 @@
 """Genre model definition."""
 
-from typing import TYPE_CHECKING, ForwardRef, List, Optional
+from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 class Genre(SQLModel, table=True):
     """Genre model representing a movie category/genre."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str
-    tmdb_id: Optional[int] = Field(default=None, index=True, unique=True)
+    tmdb_id: int | None = Field(default=None, index=True, unique=True)
 
     ***REMOVED*** Relationships
-    movies: List["Movie"] = Relationship(back_populates="genres", link_model=MovieGenreLink)
+    movies: list["Movie"] = Relationship(back_populates="genres", link_model=MovieGenreLink)

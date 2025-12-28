@@ -1,6 +1,6 @@
 """Configuration settings for the movie storage module."""
 
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 from movie_storage.config.env import get_env_bool, get_env_int, get_env_var
 

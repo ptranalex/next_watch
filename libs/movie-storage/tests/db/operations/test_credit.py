@@ -1,8 +1,5 @@
 """Tests for credit database operations."""
 
-import pytest
-from sqlmodel import Session
-
 from movie_storage.db.operations import (
     create_credit,
     create_credits_from_tmdb_data,
@@ -15,7 +12,7 @@ from movie_storage.db.operations import (
     get_credits_by_person_id,
     update_credit,
 )
-from movie_storage.models import Credit, Movie
+from sqlmodel import Session
 
 
 def test_create_credit(db_session: Session):

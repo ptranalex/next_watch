@@ -3,7 +3,7 @@ User model for authentication and user management.
 """
 
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 import passlib.hash
 from sqlmodel import Field, Relationship, SQLModel
@@ -26,15 +26,15 @@ class User(SQLModel, table=True):
         movie_interactions: Relationship to UserMovieInteraction
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-    username: Optional[str] = Field(default=None, index=True)
+    username: str | None = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     ***REMOVED*** Relationships
-    movie_interactions: List["UserMovieInteraction"] = Relationship(back_populates="user")
+    movie_interactions: list["UserMovieInteraction"] = Relationship(back_populates="user")
 
     @staticmethod
     def hash_password(password: str) -> str:

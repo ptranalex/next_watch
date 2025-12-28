@@ -1,17 +1,14 @@
 """Database downgrade commands."""
 
 import importlib
-from pathlib import Path
-from typing import Dict, Optional
 
 import typer
 from rich.console import Console
-from rich.panel import Panel
 from rich.prompt import Confirm
-from sqlalchemy import text, Engine
+from sqlalchemy import Engine, text
 
+from movie_storage.cli import app as cli_app
 from movie_storage.config.app import Config
-from movie_storage.config.logging import with_logging
 from movie_storage.db.db import get_engine
 from movie_storage.db.migrations import get_applied_migrations
 
@@ -24,7 +21,7 @@ console = Console()
 def main(
     all: bool = typer.Option(False, "--all", help="Downgrade all migrations"),
     confirm: bool = typer.Option(False, "--confirm", help="Confirm destructive operation"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    database_url: str | None = typer.Option(None, help="Database URL (overrides config)"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
 ) -> int:
@@ -160,6 +157,4 @@ def _downgrade_single_migration(
 
 
 ***REMOVED*** Register with parent app
-from movie_storage.cli import app as cli_app
-
 cli_app.add_typer(app, name="downgrade")

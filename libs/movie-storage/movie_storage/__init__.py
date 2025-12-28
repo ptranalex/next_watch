@@ -1,9 +1,5 @@
 """Movie storage operations module."""
 
-from typing import List
-
-__version__ = "0.1.0"
-
 from movie_storage.cli import app as cli_app
 
 ***REMOVED*** Export database utilities
@@ -36,8 +32,11 @@ from movie_storage.models import Credit, Genre, Movie, MovieGenreLink
 ***REMOVED*** Export other utilities
 from movie_storage.utils import setup_movie_storage
 
+***REMOVED*** Package version
+__version__ = "0.1.0"
+
 ***REMOVED*** Define all exported names
-__all__: List[str] = [
+__all__: list[str] = [
     ***REMOVED*** Models
     "Movie",
     "Genre",

@@ -2,12 +2,8 @@
 
 import logging
 from datetime import datetime
-from typing import Optional
 
-from sqlalchemy import (
-    MetaData,
-    text,
-)
+from sqlalchemy import text
 
 from movie_storage.config.app import Config
 
@@ -17,15 +13,13 @@ MIGRATION_ID = "002_add_credits_and_extended_movie_fields"
 MIGRATION_DESCRIPTION = "Add Credits table and extend Movie fields with additional TMDB data"
 
 
-def upgrade(engine, config: Optional[Config] = None):
+def upgrade(engine, config: Config | None = None):
     """Run the upgrade migration.
 
     Args:
         engine: SQLAlchemy engine
         config: Optional Config object
     """
-    metadata = MetaData()
-
     ***REMOVED*** First, check if movie table exists
     with engine.connect() as conn:
         result = conn.execute(
@@ -122,10 +116,10 @@ def upgrade(engine, config: Optional[Config] = None):
         conn.execute(
             text(
                 """
-                ALTER TABLE credit 
-                ADD CONSTRAINT fk_credit_movie_id 
-                FOREIGN KEY (movie_id) 
-                REFERENCES movie(id) 
+                ALTER TABLE credit
+                ADD CONSTRAINT fk_credit_movie_id
+                FOREIGN KEY (movie_id)
+                REFERENCES movie(id)
                 ON DELETE CASCADE
                 """
             )
@@ -149,7 +143,7 @@ def upgrade(engine, config: Optional[Config] = None):
     logger.info(f"Applied migration: {MIGRATION_ID}")
 
 
-def downgrade(engine, config: Optional[Config] = None):
+def downgrade(engine, config: Config | None = None):
     """Run the downgrade migration.
 
     Args:
@@ -164,7 +158,7 @@ def downgrade(engine, config: Optional[Config] = None):
             DO $$
             BEGIN
                 IF EXISTS (
-                    SELECT 1 FROM information_schema.table_constraints 
+                    SELECT 1 FROM information_schema.table_constraints
                     WHERE constraint_name = 'fk_credit_movie_id'
                 ) THEN
                     ALTER TABLE credit DROP CONSTRAINT fk_credit_movie_id;

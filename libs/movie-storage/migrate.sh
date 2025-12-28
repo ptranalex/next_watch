@@ -41,12 +41,12 @@ if [ "$ACTION" == "downgrade" ]; then
   ***REMOVED*** Downgrade the database
   echo "Downgrading database to previous version..."
   python -m movie_storage.cli downgrade --confirm --verbose
-  
+
   echo "Downgrade completed!"
 else
   ***REMOVED*** Run database migration using the CLI
   echo "Running database migration..."
   python -m movie_storage.cli migrate --verbose
-  
+
   echo "Migration completed!"
-fi 
+fi

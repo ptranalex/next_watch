@@ -4,9 +4,10 @@ import functools
 import logging
 import os
 import sys
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any
 
 from movie_storage.config.app import Config
 
@@ -15,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 def configure_logging(
-    config: Optional[Config] = None,
-    log_dir: Optional[Path] = None,
-    log_level: Optional[str] = None,
+    config: Config | None = None,
+    log_dir: Path | None = None,
+    log_level: str | None = None,
     verbose: bool = False,
     quiet: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Configure logging for the movie storage module.
 
     Args:
@@ -124,11 +125,11 @@ def configure_logging(
 
 
 def with_logging(
-    log_level: Optional[str] = None,
-    log_dir: Optional[Path] = None,
+    log_level: str | None = None,
+    log_dir: Path | None = None,
     verbose: bool = False,
     quiet: bool = False,
-    config: Optional[Config] = None,
+    config: Config | None = None,
 ) -> Callable[[Callable], Callable]:
     """Decorator to configure logging for a function.
 

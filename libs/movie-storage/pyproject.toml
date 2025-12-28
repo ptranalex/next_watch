@@ -13,7 +13,7 @@ readme = {text = "***REMOVED*** Movie Storage\n\nDatabase storage operations for
 requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers", 
+    "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
 ]
@@ -23,11 +23,11 @@ dependencies = [
     "sqlalchemy>=2.0.23",        ***REMOVED*** SQLAlchemy for database operations
     "alembic<=1.13.1",           ***REMOVED*** Database migrations
     "psycopg2-binary>=2.9.10",   ***REMOVED*** PostgreSQL adapter
-    
+
     ***REMOVED*** Configuration and utilities
     "python-dotenv>=1.0.0",      ***REMOVED*** Environment variable loading
     "passlib[bcrypt]>=1.7.4",    ***REMOVED*** Password hashing
-    
+
     ***REMOVED*** CLI dependencies
     "typer>=0.15.2",             ***REMOVED*** CLI framework
     "rich>=14.0.0",              ***REMOVED*** Rich text output
@@ -117,4 +117,4 @@ disallow_untyped_defs = false
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
-python_functions = "test_*" 
+python_functions = "test_*"

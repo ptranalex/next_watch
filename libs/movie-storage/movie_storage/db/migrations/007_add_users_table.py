@@ -5,7 +5,7 @@ This migration adds support for user authentication.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, ProgrammingError
@@ -86,7 +86,7 @@ def downgrade(engine: Any, config: Any = None) -> None:
             logger.warning(f"Could not remove migration record - {str(e)}")
 
 
-def get_revision_info() -> Dict[str, Any]:
+def get_revision_info() -> dict[str, Any]:
     """
     Get revision metadata.
 
@@ -102,7 +102,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> List[str]:
+def get_affected_tables() -> list[str]:
     """
     Get list of affected tables.
 

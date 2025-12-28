@@ -2,25 +2,24 @@
 
 import logging
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from sqlalchemy import func
-from sqlalchemy.sql import text
-from sqlmodel import Session, or_, select
+from sqlmodel import Session, select
 
 from movie_storage.config.logging import with_logging
 from movie_storage.db.operations.credit import (
     create_credits_from_tmdb_data,
     delete_credits_for_movie,
 )
-from movie_storage.models import Credit, Genre, Movie, MovieGenreLink
+from movie_storage.models import Movie, MovieGenreLink
 
 logger = logging.getLogger(__name__)
 
 
 @with_logging(log_level="INFO")
 def create_movie(
-    session: Session, movie_data: Dict[str, Any], genre_ids: Optional[List[int]] = None
+    session: Session, movie_data: dict[str, Any], genre_ids: list[int] | None = None
 ) -> Movie:
     """Create a movie record and associate it with genres.
 
@@ -58,7 +57,7 @@ def create_movie(
     return movie
 
 
-def get_movie_by_id(session: Session, movie_id: int) -> Optional[Movie]:
+def get_movie_by_id(session: Session, movie_id: int) -> Movie | None:
     """Get a movie by its primary key ID.
 
     Args:
@@ -71,7 +70,7 @@ def get_movie_by_id(session: Session, movie_id: int) -> Optional[Movie]:
     return session.get(Movie, movie_id)
 
 
-def get_movie_by_tmdb_id(session: Session, tmdb_id: int) -> Optional[Movie]:
+def get_movie_by_tmdb_id(session: Session, tmdb_id: int) -> Movie | None:
     """Get a movie by its TMDB ID.
 
     Args:
@@ -86,7 +85,7 @@ def get_movie_by_tmdb_id(session: Session, tmdb_id: int) -> Optional[Movie]:
     return result
 
 
-def get_movie_by_imdb_id(session: Session, imdb_id: str) -> Optional[Movie]:
+def get_movie_by_imdb_id(session: Session, imdb_id: str) -> Movie | None:
     """Get a movie by its IMDB ID.
 
     Args:
@@ -105,11 +104,11 @@ def get_movies(
     session: Session,
     skip: int = 0,
     limit: int = 100,
-    title_search: Optional[str] = None,
-    genre_id: Optional[int] = None,
+    title_search: str | None = None,
+    genre_id: int | None = None,
     sort_by: str = "title",
     sort_desc: bool = False,
-) -> List[Movie]:
+) -> list[Movie]:
     """Get movies with optional filtering and sorting.
 
     Args:
@@ -151,9 +150,9 @@ def get_movies(
 def update_movie(
     session: Session,
     movie_id: int,
-    movie_data: Dict[str, Any],
-    genre_ids: Optional[List[int]] = None,
-) -> Optional[Movie]:
+    movie_data: dict[str, Any],
+    genre_ids: list[int] | None = None,
+) -> Movie | None:
     """Update a movie record.
 
     Args:
@@ -244,13 +243,13 @@ def delete_movie(session: Session, movie_id: int) -> bool:
     ***REMOVED*** Delete the movie
     session.delete(movie)
     session.commit()
-    logger.info(f"Movie deleted successfully")
+    logger.info("Movie deleted successfully")
 
     return True
 
 
 @with_logging(log_level="INFO")
-def create_movie_from_tmdb_details(session: Session, tmdb_details: Dict[str, Any]) -> Movie:
+def create_movie_from_tmdb_details(session: Session, tmdb_details: dict[str, Any]) -> Movie:
     """Create or update a movie from TMDB movie details API response.
 
     This function processes a TMDB movie details API response and maps it

@@ -1,13 +1,12 @@
 """Database connection utilities."""
 
 import logging
-from typing import Generator, Optional
+from collections.abc import Generator
 
 from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
 from movie_storage.config.app import Config
-from movie_storage.models import Credit, Genre, Movie, MovieGenreLink
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 engine = None
 
 
-def get_engine(db_url: Optional[str] = None, config: Optional[Config] = None) -> Engine:
+def get_engine(db_url: str | None = None, config: Config | None = None) -> Engine:
     """Get or create the database engine.
 
     Args:
@@ -68,7 +67,7 @@ def get_engine(db_url: Optional[str] = None, config: Optional[Config] = None) ->
 
 
 def get_session(
-    db_url: Optional[str] = None, config: Optional[Config] = None
+    db_url: str | None = None, config: Config | None = None
 ) -> Generator[Session, None, None]:
     """Get a database session.
 
@@ -85,9 +84,9 @@ def get_session(
 
 
 def init_db(
-    db_url: Optional[str] = None,
+    db_url: str | None = None,
     create_tables: bool = False,
-    config: Optional[Config] = None,
+    config: Config | None = None,
 ) -> None:
     """Initialize the database.
 

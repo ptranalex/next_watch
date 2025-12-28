@@ -6,7 +6,6 @@ to use BIGINT instead of INTEGER, allowing for larger financial values.
 
 import logging
 
-from sqlalchemy import BigInteger, Integer
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.sql import text
 

@@ -7,10 +7,10 @@ take precedence over default values.
 
 import os
 from pathlib import Path
-from typing import Optional, overload
+from typing import overload
 
 
-def find_project_root(start_path: Optional[Path] = None) -> Path:
+def find_project_root(start_path: Path | None = None) -> Path:
     """Find the project root directory by looking for common project markers.
 
     Args:
@@ -44,7 +44,7 @@ def find_project_root(start_path: Optional[Path] = None) -> Path:
     raise FileNotFoundError("Could not determine project root directory")
 
 
-def load_environment_variables(project_root: Optional[Path] = None) -> bool:
+def load_environment_variables(project_root: Path | None = None) -> bool:
     """Load environment variables from .env files in hierarchical order.
 
     Loading order (later files override earlier ones):
@@ -105,10 +105,10 @@ def get_env_var(key: str, default: str, required: bool = False) -> str: ...
 
 
 @overload
-def get_env_var(key: str, default: None = None, required: bool = False) -> Optional[str]: ...
+def get_env_var(key: str, default: None = None, required: bool = False) -> str | None: ...
 
 
-def get_env_var(key: str, default: Optional[str] = None, required: bool = False) -> Optional[str]:
+def get_env_var(key: str, default: str | None = None, required: bool = False) -> str | None:
     """Get an environment variable with optional validation.
 
     Args:
@@ -171,10 +171,10 @@ def get_env_int(key: str, default: int) -> int: ...
 
 
 @overload
-def get_env_int(key: str, default: None = None) -> Optional[int]: ...
+def get_env_int(key: str, default: None = None) -> int | None: ...
 
 
-def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
+def get_env_int(key: str, default: int | None = None) -> int | None:
     """Get an integer environment variable.
 
     Args:

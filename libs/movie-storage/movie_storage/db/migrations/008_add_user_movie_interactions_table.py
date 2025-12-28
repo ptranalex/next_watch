@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -11,7 +11,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     MetaData,
-    String,
     Table,
     UniqueConstraint,
     text,
@@ -26,7 +25,7 @@ MIGRATION_DESCRIPTION = "Add user movie interactions table"
 logger = logging.getLogger(__name__)
 
 
-def upgrade(engine: Engine, config: Optional[Any] = None) -> None:
+def upgrade(engine: Engine, config: Any | None = None) -> None:
     """
     Create user_movie_interactions table.
 
@@ -68,7 +67,7 @@ def upgrade(engine: Engine, config: Optional[Any] = None) -> None:
             logger.warning(f"Could not record migration - {str(e)}")
 
 
-def downgrade(engine: Engine, config: Optional[Any] = None) -> None:
+def downgrade(engine: Engine, config: Any | None = None) -> None:
     """
     Drop user_movie_interactions table.
 
@@ -99,7 +98,7 @@ def downgrade(engine: Engine, config: Optional[Any] = None) -> None:
             logger.warning(f"Could not remove migration record - {str(e)}")
 
 
-def get_revision_info() -> Dict[str, Any]:
+def get_revision_info() -> dict[str, Any]:
     """
     Get revision metadata.
 
@@ -115,7 +114,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> List[str]:
+def get_affected_tables() -> list[str]:
     """
     Get list of affected tables.
 

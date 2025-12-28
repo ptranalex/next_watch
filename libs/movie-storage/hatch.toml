@@ -43,7 +43,7 @@ dependencies = [
   "psycopg2-binary>=2.9.10",
   "alembic<=1.13.1",
   "passlib[bcrypt]>=1.7.4",
-  
+
   ***REMOVED*** CLI dependencies
   "typer>=0.15.2",
   "rich>=14.0.0",
@@ -85,4 +85,4 @@ test-cov = "pytest --cov=movie_storage tests/"
 format = [
   "black .",
   "isort ."
-] 
+]

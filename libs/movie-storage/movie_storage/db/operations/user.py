@@ -5,7 +5,7 @@ This module provides functions for managing user records in the database.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from sqlmodel import Session, select
 
@@ -18,7 +18,7 @@ def create_user(
     session: Session,
     email: str,
     password: str,
-    username: Optional[str] = None,
+    username: str | None = None,
 ) -> User:
     """
     Create a new user in the database.
@@ -57,7 +57,7 @@ def create_user(
     return user
 
 
-def get_user_by_id(session: Session, user_id: int) -> Optional[User]:
+def get_user_by_id(session: Session, user_id: int) -> User | None:
     """
     Get a user by ID.
 
@@ -71,7 +71,7 @@ def get_user_by_id(session: Session, user_id: int) -> Optional[User]:
     return session.get(User, user_id)
 
 
-def get_user_by_email(session: Session, email: str) -> Optional[User]:
+def get_user_by_email(session: Session, email: str) -> User | None:
     """
     Get a user by email address.
 
@@ -87,7 +87,7 @@ def get_user_by_email(session: Session, email: str) -> Optional[User]:
     return results.first()
 
 
-def get_user_by_username(session: Session, username: str) -> Optional[User]:
+def get_user_by_username(session: Session, username: str) -> User | None:
     """
     Get a user by username.
 
@@ -103,7 +103,7 @@ def get_user_by_username(session: Session, username: str) -> Optional[User]:
     return results.first()
 
 
-def get_users(session: Session, skip: int = 0, limit: int = 100) -> List[User]:
+def get_users(session: Session, skip: int = 0, limit: int = 100) -> list[User]:
     """
     Get a list of users, with pagination.
 
@@ -122,8 +122,8 @@ def get_users(session: Session, skip: int = 0, limit: int = 100) -> List[User]:
 def update_user(
     session: Session,
     user_id: int,
-    data: Dict[str, Any],
-) -> Optional[User]:
+    data: dict[str, Any],
+) -> User | None:
     """
     Update user data.
 
@@ -177,7 +177,7 @@ def delete_user(session: Session, user_id: int) -> bool:
     return True
 
 
-def authenticate_user(session: Session, email: str, password: str) -> Optional[User]:
+def authenticate_user(session: Session, email: str, password: str) -> User | None:
     """
     Authenticate a user with email and password.
 

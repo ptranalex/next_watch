@@ -1,18 +1,14 @@
 """Database teardown commands."""
 
-from pathlib import Path
-from typing import List, Optional
-
 import typer
 from rich.console import Console
-from rich.panel import Panel
 from rich.prompt import Confirm
 from sqlalchemy import text
 from sqlmodel import SQLModel
 
+from movie_storage.cli import app as cli_app
 from movie_storage.config.app import Config
 from movie_storage.db.db import get_engine
-from movie_storage.models import Credit, Genre, Movie, MovieGenreLink
 
 ***REMOVED*** Create app for this command group
 app = typer.Typer(help="Database teardown commands (DEVELOPMENT ONLY)")
@@ -24,14 +20,14 @@ def main(
     drop_all: bool = typer.Option(
         False, "--drop-all", help="Drop all tables (WARNING: Destructive operation)"
     ),
-    clear: Optional[List[str]] = typer.Option(
+    clear: list[str] | None = typer.Option(
         None,
         "--clear",
         help="Clear specific tables",
         show_default=False,
     ),
     confirm: bool = typer.Option(False, "--confirm", help="Confirm destructive operation"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    database_url: str | None = typer.Option(None, help="Database URL (overrides config)"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
 ) -> int:
@@ -136,6 +132,4 @@ def main(
 
 
 ***REMOVED*** Register with parent app
-from movie_storage.cli import app as cli_app
-
 cli_app.add_typer(app, name="teardown")

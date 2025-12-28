@@ -3,9 +3,8 @@ Operations for user movie interactions.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
 
-from sqlmodel import Session, and_, delete, select, update
+from sqlmodel import Session, and_, select
 
 from movie_storage.models import Movie, User, UserMovieInteraction
 
@@ -77,7 +76,7 @@ def create_user_movie_interaction(
 
 def get_user_movie_interaction(
     db: Session, user_id: int, movie_id: int
-) -> Optional[UserMovieInteraction]:
+) -> UserMovieInteraction | None:
     """
     Get a user movie interaction by user ID and movie ID.
 
@@ -101,10 +100,10 @@ def get_user_movie_interaction(
 def get_user_movie_interactions(
     db: Session,
     user_id: int,
-    watched: Optional[bool] = None,
-    liked: Optional[bool] = None,
-    in_watchlist: Optional[bool] = None,
-) -> List[UserMovieInteraction]:
+    watched: bool | None = None,
+    liked: bool | None = None,
+    in_watchlist: bool | None = None,
+) -> list[UserMovieInteraction]:
     """
     Get user movie interactions by user ID with optional filters.
 
@@ -130,7 +129,7 @@ def get_user_movie_interactions(
     return list(db.exec(query).all())
 
 
-def get_user_watchlist(db: Session, user_id: int) -> List[UserMovieInteraction]:
+def get_user_watchlist(db: Session, user_id: int) -> list[UserMovieInteraction]:
     """
     Get a user's watchlist.
 
@@ -144,7 +143,7 @@ def get_user_watchlist(db: Session, user_id: int) -> List[UserMovieInteraction]:
     return list(get_user_movie_interactions(db, user_id, in_watchlist=True))
 
 
-def get_user_watched_movies(db: Session, user_id: int) -> List[UserMovieInteraction]:
+def get_user_watched_movies(db: Session, user_id: int) -> list[UserMovieInteraction]:
     """
     Get movies that a user has watched.
 
@@ -158,7 +157,7 @@ def get_user_watched_movies(db: Session, user_id: int) -> List[UserMovieInteract
     return list(get_user_movie_interactions(db, user_id, watched=True))
 
 
-def get_user_liked_movies(db: Session, user_id: int) -> List[UserMovieInteraction]:
+def get_user_liked_movies(db: Session, user_id: int) -> list[UserMovieInteraction]:
     """
     Get movies that a user has liked.
 
@@ -176,10 +175,10 @@ def update_user_movie_interaction(
     db: Session,
     user_id: int,
     movie_id: int,
-    watched: Optional[bool] = None,
-    liked: Optional[bool] = None,
-    in_watchlist: Optional[bool] = None,
-) -> Optional[UserMovieInteraction]:
+    watched: bool | None = None,
+    liked: bool | None = None,
+    in_watchlist: bool | None = None,
+) -> UserMovieInteraction | None:
     """
     Update a user movie interaction.
 

@@ -3,7 +3,7 @@ User Movie Interactions model for tracking user engagement with movies.
 """
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
@@ -33,7 +33,7 @@ class UserMovieInteraction(SQLModel, table=True):
     ***REMOVED*** Table constraints
     __table_args__ = (UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),)
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)
     movie_id: int = Field(foreign_key="movie.id", index=True)
 

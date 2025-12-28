@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from movie_storage.config.app import Config
 from movie_storage.config.logging import with_logging
@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 
 @with_logging()
 def setup_movie_storage(
-    database_url: Optional[str] = None,
+    database_url: str | None = None,
     create_tables: bool = False,
     run_migrations: bool = False,
-    log_dir: Optional[Path] = None,
-    log_level: Optional[str] = None,
+    log_dir: Path | None = None,
+    log_level: str | None = None,
     verbose: bool = False,
     quiet: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Set up movie storage with configuration, logging, and database.
 
     Args:

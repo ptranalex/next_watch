@@ -2,7 +2,6 @@
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     Column,
@@ -13,7 +12,6 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
-    create_engine,
     text,
 )
 
@@ -25,7 +23,7 @@ MIGRATION_ID = "001_create_initial_tables"
 MIGRATION_DESCRIPTION = "Create initial movie and genre tables"
 
 
-def upgrade(engine, config: Optional[Config] = None):
+def upgrade(engine, config: Config | None = None):
     """Run the upgrade migration.
 
     Args:
@@ -35,7 +33,7 @@ def upgrade(engine, config: Optional[Config] = None):
     metadata = MetaData()
 
     ***REMOVED*** Create genre table
-    genre = Table(
+    Table(
         "genre",
         metadata,
         Column("id", Integer, primary_key=True),
@@ -44,7 +42,7 @@ def upgrade(engine, config: Optional[Config] = None):
     )
 
     ***REMOVED*** Create movie table with base fields
-    movie = Table(
+    Table(
         "movie",
         metadata,
         Column("id", Integer, primary_key=True),
@@ -68,7 +66,7 @@ def upgrade(engine, config: Optional[Config] = None):
     )
 
     ***REMOVED*** Create link table for many-to-many relationship
-    movie_genre_link = Table(
+    Table(
         "moviegenrelink",
         metadata,
         Column("movie_id", Integer, ForeignKey("movie.id"), primary_key=True),
@@ -76,7 +74,7 @@ def upgrade(engine, config: Optional[Config] = None):
     )
 
     ***REMOVED*** Create migrations table if it doesn't exist yet
-    migrations = Table(
+    Table(
         "migrations",
         metadata,
         Column("id", String, primary_key=True),
@@ -103,7 +101,7 @@ def upgrade(engine, config: Optional[Config] = None):
     logger.info(f"Applied migration: {MIGRATION_ID}")
 
 
-def downgrade(engine, config: Optional[Config] = None):
+def downgrade(engine, config: Config | None = None):
     """Run the downgrade migration.
 
     Args:

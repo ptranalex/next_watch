@@ -1,14 +1,10 @@
 """Database initialization commands."""
 
-from pathlib import Path
-from typing import Optional
-
 import typer
 from rich.console import Console
-from rich.panel import Panel
 
+from movie_storage.cli import app as cli_app
 from movie_storage.config.app import Config
-from movie_storage.config.logging import with_logging
 from movie_storage.db.db import init_db
 
 ***REMOVED*** Create app for this command group
@@ -19,7 +15,7 @@ console = Console()
 @app.callback(invoke_without_command=True)
 def main(
     create_tables: bool = typer.Option(False, "--create-tables", help="Create database tables"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    database_url: str | None = typer.Option(None, help="Database URL (overrides config)"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
 ) -> int:
@@ -54,6 +50,4 @@ def main(
 
 
 ***REMOVED*** Register with parent app
-from movie_storage.cli import app as cli_app
-
 cli_app.add_typer(app, name="init")

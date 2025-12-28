@@ -37,4 +37,4 @@ python -m movie_storage.cli init --create-tables --verbose
 echo -e "\033[0;33m⏳ Running migrations...\033[0m"
 python -m movie_storage.cli migrate --verbose
 
-echo -e "\033[0;32m✅ Database reset complete!\033[0m" 
+echo -e "\033[0;32m✅ Database reset complete!\033[0m"

@@ -17,10 +17,9 @@ To add a new migration:
 
 import importlib
 import logging
-from typing import Dict, List, Optional
 
 from sqlalchemy import inspect, text
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import create_engine
 
 from movie_storage.config.app import Config
 
@@ -40,7 +39,7 @@ MIGRATIONS = [
 ]
 
 
-def get_applied_migrations(engine) -> Dict[str, str]:
+def get_applied_migrations(engine) -> dict[str, str]:
     """Get a list of applied migrations from the database.
 
     Args:
@@ -101,7 +100,7 @@ def get_applied_migrations(engine) -> Dict[str, str]:
         return {}
 
 
-def run_migration(db_url: Optional[str] = None, config: Optional[Config] = None) -> List[str]:
+def run_migration(db_url: str | None = None, config: Config | None = None) -> list[str]:
     """Run database migrations.
 
     Args:

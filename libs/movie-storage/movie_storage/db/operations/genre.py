@@ -1,18 +1,15 @@
 """Genre storage operations."""
 
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
 
 from sqlmodel import Session, select
-from sqlmodel.sql.expression import SelectOfScalar
 
 from movie_storage.models import Genre
 
 logger = logging.getLogger(__name__)
 
 
-def create_genre(session: Session, name: str, tmdb_id: Optional[int] = None) -> Genre:
+def create_genre(session: Session, name: str, tmdb_id: int | None = None) -> Genre:
     """Create a genre record.
 
     Args:
@@ -30,7 +27,7 @@ def create_genre(session: Session, name: str, tmdb_id: Optional[int] = None) -> 
     return genre
 
 
-def get_genre_by_id(session: Session, genre_id: int) -> Optional[Genre]:
+def get_genre_by_id(session: Session, genre_id: int) -> Genre | None:
     """Get a genre by its ID.
 
     Args:
@@ -43,7 +40,7 @@ def get_genre_by_id(session: Session, genre_id: int) -> Optional[Genre]:
     return session.get(Genre, genre_id)
 
 
-def get_genre_by_tmdb_id(session: Session, tmdb_id: int) -> Optional[Genre]:
+def get_genre_by_tmdb_id(session: Session, tmdb_id: int) -> Genre | None:
     """Get a genre by its TMDB ID.
 
     Args:
@@ -58,7 +55,7 @@ def get_genre_by_tmdb_id(session: Session, tmdb_id: int) -> Optional[Genre]:
     return result
 
 
-def get_genre_by_name(session: Session, name: str) -> Optional[Genre]:
+def get_genre_by_name(session: Session, name: str) -> Genre | None:
     """Get a genre by its name.
 
     Args:
@@ -73,7 +70,7 @@ def get_genre_by_name(session: Session, name: str) -> Optional[Genre]:
     return result
 
 
-def get_genres(session: Session, skip: int = 0, limit: int = 100) -> List[Genre]:
+def get_genres(session: Session, skip: int = 0, limit: int = 100) -> list[Genre]:
     """Get all genres with pagination.
 
     Args:
@@ -89,7 +86,7 @@ def get_genres(session: Session, skip: int = 0, limit: int = 100) -> List[Genre]
     return list(genres)
 
 
-def update_genre(session: Session, genre_id: int, name: str) -> Optional[Genre]:
+def update_genre(session: Session, genre_id: int, name: str) -> Genre | None:
     """Update a genre record.
 
     Args:

@@ -1,13 +1,10 @@
 """Database migration commands."""
 
-from pathlib import Path
-from typing import Optional
-
 import typer
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
+from movie_storage.cli import app as cli_app
 from movie_storage.config.app import Config
 from movie_storage.config.logging import configure_logging
 from movie_storage.db.migrations import run_migration
@@ -22,7 +19,7 @@ def main(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     log_level: str = typer.Option("INFO", help="Logging level", show_default=True),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    database_url: str | None = typer.Option(None, help="Database URL (overrides config)"),
 ) -> int:
     """Run database migrations to update schema."""
     ***REMOVED*** Configure logging
@@ -62,6 +59,4 @@ def main(
 
 
 ***REMOVED*** Register with parent app
-from movie_storage.cli import app as cli_app
-
 cli_app.add_typer(app, name="migrate")

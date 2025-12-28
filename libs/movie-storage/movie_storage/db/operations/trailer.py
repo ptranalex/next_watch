@@ -1,7 +1,7 @@
 """Trailer storage operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlmodel import Session, select
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @with_logging(log_level="INFO")
-def create_trailer(session: Session, trailer_data: Dict[str, Any]) -> Trailer:
+def create_trailer(session: Session, trailer_data: dict[str, Any]) -> Trailer:
     """Create a trailer record.
 
     Args:
@@ -30,7 +30,7 @@ def create_trailer(session: Session, trailer_data: Dict[str, Any]) -> Trailer:
     return trailer
 
 
-def get_trailers_for_movie(session: Session, movie_id: int) -> List[Trailer]:
+def get_trailers_for_movie(session: Session, movie_id: int) -> list[Trailer]:
     """Get all trailers for a movie.
 
     Args:
