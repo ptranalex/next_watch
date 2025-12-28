@@ -120,13 +120,13 @@ Next Watch is a microservices-based platform with 8 main services:
 
 ***REMOVED******REMOVED*** 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+New to the repo? Start here:
 
-- Docker & Docker Compose
-- PostgreSQL (running on host)
-- Redis (running on host)
+- `docs/getting-started/ONBOARDING.md` (recommended local development path)
 
-***REMOVED******REMOVED******REMOVED*** Local Development
+***REMOVED******REMOVED******REMOVED*** Production-like stack (Docker Compose)
+
+Note: `infra/compose/prod.yml` expects PostgreSQL and Redis to be reachable on the host (`host.docker.internal`).
 
 ```bash
 ***REMOVED*** Clone the repository
@@ -134,7 +134,7 @@ git clone https://github.com/your-username/next_watch.git
 cd next_watch
 
 ***REMOVED*** Copy environment template
-cp infra/env.prod.example .env.prod
+cp infra/env/prod.example .env.prod
 
 ***REMOVED*** Edit environment variables
 nano .env.prod
@@ -150,7 +150,7 @@ docker build -f apps/web-nextjs/Dockerfile -t next-watch-frontend:latest .
 docker build -f apps/data-importer/Dockerfile -t next-watch-importer:latest .
 
 ***REMOVED*** Start services
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d
+docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 
 ***REMOVED*** Check status
 docker ps
@@ -207,7 +207,7 @@ RECOMMENDATION_API_URL=http://recommendation-api:8000
 SEARCH_API_URL=http://search-api:8000
 ```
 
-See `infra/env.prod.example` for complete configuration options.
+See `infra/env/prod.example` for complete configuration options.
 
 ***REMOVED******REMOVED*** 🔄 CI/CD Workflows
 
@@ -516,9 +516,13 @@ Interactive API documentation available at `/docs` on each service:
 
 ***REMOVED******REMOVED******REMOVED*** Infrastructure Documentation
 
+- **Docs index**: `docs/README.md`
+- **Onboarding (New Devs)**: `docs/getting-started/ONBOARDING.md`
+- **Service Map**: `docs/getting-started/SERVICE_MAP.md`
+- **Docs Conventions**: `docs/meta/DOCS_GUIDE.md`
 - **Deployment Guide**: `infra/DEPLOYMENT.md`
 - **Production Deployment**: `infra/production-deployment-guide.md`
-- **Monitoring Setup**: `infra/docker-compose.monitoring.yml`
+- **Monitoring Setup**: `infra/compose/monitoring.yml`
 - **AWS Infrastructure**: `infra/aws/`
 
 ***REMOVED******REMOVED*** 🤝 Contributing
