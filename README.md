@@ -6,31 +6,41 @@ A comprehensive movie discovery and tracking platform built with modern microser
 
 Next Watch is a microservices-based platform with 8 main services:
 
-```text
-┌──────────────┐
-│   Frontend   │ (Next.js - Port 3000)
-│  (Next.js)   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   BFF API    │────▶│  Auth API    │     │ Backend API  │     │  Search API  │
-│  (Port 8001) │     │ (Port 8003)  │     │ (Port 8000)  │     │ (Port 8005)  │
-└──────┬───────┘     └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
-       │                    │                     │                     │
-       │                    │                     │                     │
-       ▼                    ▼                     ▼                     ▼
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│Recommendation│────▶│    ML API    │     │  PostgreSQL  │     │    Redis     │
-│     API      │     │ (Port 8004)  │     │ (Port 5432)  │     │ (Port 6379)  │
-│ (Port 8002)  │     └──────────────┘     └──────────────┘     └──────────────┘
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐     ┌──────────────┐
-│   Qdrant     │     │Data Importer │
-│ (Port 6333)  │     │ (On-demand)  │
-└──────────────┘     └──────────────┘
+```mermaid
+flowchart LR
+  subgraph clients [Clients]
+    Frontend["Frontend (web-nextjs) :3000"]
+  end
+
+  subgraph services [Services]
+    BFF["BFF API (bff-api) :8001"]
+    Backend["Backend API (backend-api) :8000"]
+    Auth["Auth API (auth-api) :8003"]
+    Search["Search API (search-api) :8005"]
+    Reco["Recommendation API (recommendation-api) :8002"]
+    ML["ML API (ml-api) :8004"]
+    Importer["Data Importer (data-importer) (on-demand)"]
+  end
+
+  subgraph storage [Storage]
+    Postgres["PostgreSQL :5432"]
+    Redis["Redis :6379"]
+    Qdrant["Qdrant :6333"]
+  end
+
+  Frontend --> BFF
+  BFF --> Backend
+  BFF --> Auth
+  BFF --> Search
+  BFF --> Reco
+  Reco --> ML
+
+  Backend --> Postgres
+  Backend --> Redis
+  Search --> Redis
+  Reco --> Redis
+  Reco --> Qdrant
+  Importer --> Postgres
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Core Services
@@ -83,7 +93,7 @@ Next Watch is a microservices-based platform with 8 main services:
 - **ORM**: SQLAlchemy with asyncpg
 - **Validation**: Pydantic v2
 - **Testing**: pytest
-- **Code Quality**: mypy, ruff, black, isort
+- **Code Quality**: varies by service (commonly mypy/ruff/black/isort); see each service’s `pyproject.toml`
 
 ***REMOVED******REMOVED******REMOVED*** Frontend (TypeScript)
 
@@ -329,7 +339,7 @@ All services include built-in observability:
 
 Access your monitoring:
 
-- **Grafana**: <https://your-domain.com/grafana/> (admin/NextWatch2024Admin)
+- **Grafana**: <https://your-domain.com/grafana/> (credentials configured via `infra/env/monitoring.prod.example`)
 - **Prometheus**: <https://your-domain.com/prometheus/>
 - **AlertManager**: <https://your-domain.com/alertmanager/>
 
@@ -404,12 +414,12 @@ hatch run cli sync --verbose
 
 ***REMOVED******REMOVED******REMOVED*** Python Project Configuration
 
-All Python services follow modern packaging standards:
+Python services are **mostly** configured via `pyproject.toml`, and use Hatch for env management.
 
-- **Single Configuration File**: All project configuration is in `pyproject.toml` (no separate `hatch.toml` files)
-- **Hatch Build System**: Uses Hatch for environment management and builds
-- **Local Dependencies**: Development environments include local library dependencies
-- **Docker Compatibility**: Production builds comment out local dependencies for Docker
+Notes:
+
+- Some apps may also include additional config files (for example `hatch.toml` or `requirements.txt`) to support legacy workflows or Docker builds.
+- Always follow the service’s README and config in `apps/<service>/`.
 
 ***REMOVED******REMOVED******REMOVED*** CLI Tools
 
