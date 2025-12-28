@@ -7,6 +7,7 @@ indexer can remain decoupled from HTTP and response formats.
 from typing import Any
 
 from config.logging import get_logger
+
 from search_api.services.backend_client import BackendAPIClient
 
 logger = get_logger(__name__)

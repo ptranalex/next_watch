@@ -257,3 +257,9 @@ ignore = [
     "E501", ***REMOVED*** line too long, handled by black
     "B008", ***REMOVED*** do not perform function calls in argument defaults
 ]
+
+[tool.ruff.lint.isort]
+***REMOVED*** Pre-commit runs Ruff from the monorepo root, so make first/third-party grouping explicit
+***REMOVED*** to keep import blocks stable regardless of current working directory.
+known-first-party = ["search_api"]
+known-third-party = ["config"]
