@@ -13,7 +13,7 @@ This document outlines when and how to enable distributed tracing across differe
 **Purpose**: Full visibility for debugging and feature development
 
 ```bash
-***REMOVED*** .env.development
+***REMOVED*** Example (dev): infra/env/development.example or per-service .env/.env.local
 ENABLE_TRACING=true
 TRACING_SAMPLE_RATE=1.0          ***REMOVED*** 100% sampling
 TRACING_ENDPOINT=http://localhost:4317
@@ -49,7 +49,7 @@ TRACING_ENDPOINT=http://tempo-staging:4317
 **Purpose**: Essential observability with minimal performance impact
 
 ```bash
-***REMOVED*** .env.production
+***REMOVED*** Production env (Docker Compose): .env.prod
 ENABLE_TRACING=true
 TRACING_SAMPLE_RATE=0.05         ***REMOVED*** 5% sampling
 TRACING_ENDPOINT=http://tempo-prod:4317
@@ -78,7 +78,7 @@ python -m uvicorn app:create_app --factory
 ***REMOVED******REMOVED******REMOVED*** Strategy 2: Service-Specific Configuration
 
 ```yaml
-***REMOVED*** docker-compose.yml
+***REMOVED*** Docker Compose (example)
 services:
   backend-api:
     environment:
@@ -210,7 +210,7 @@ After changing tracing configuration, services need restart:
 
 ```bash
 ***REMOVED*** Graceful restart with new config
-docker-compose restart backend-api
+docker compose -f infra/compose/prod.yml --env-file .env.prod restart backend-api
 
 ***REMOVED*** Or for development
 pkill -f uvicorn  ***REMOVED*** Kill and restart manually
@@ -263,7 +263,7 @@ export TRACING_SAMPLE_RATE=1.0  ***REMOVED*** Increase sampling temporarily
 
 ```bash
 ***REMOVED*** Production deployment
-ENABLE_TRACING=true TRACING_SAMPLE_RATE=0.05 docker-compose up -d
+docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 
 ***REMOVED*** Incident investigation
 kubectl set env deployment/backend-api TRACING_SAMPLE_RATE=0.5

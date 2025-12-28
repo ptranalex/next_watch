@@ -47,8 +47,8 @@ SERVICE_NAME=backend-api
 
 Already configured in:
 
-- `infra/.env.development` → 100% sampling
-- `infra/.env.production` → 5% sampling
+- `infra/.env.development.example` → example dev settings (100% sampling)
+- `.env.prod` (Docker Compose production env file) → set `TRACING_SAMPLE_RATE` as desired (commonly 0.05–0.1)
 
 ***REMOVED******REMOVED*** 📊 **Tracing Configuration Options**
 
@@ -89,26 +89,26 @@ hatch run python -m uvicorn backend_api.main:create_app --factory --reload --por
 ***REMOVED******REMOVED******REMOVED*** **Enable Tracing for All Services**
 
 ```bash
-***REMOVED*** Add to infra/.env.local (affects all services)
-cat >> infra/.env.local << EOF
+***REMOVED*** Add to each service's local env file (recommended)
+cat >> apps/backend-api/.env.local << EOF
 ENABLE_TRACING=true
-TRACING_SAMPLE_RATE=1.0
 TRACING_ENDPOINT=http://localhost:4317
+TRACING_SAMPLE_RATE=1.0
 EOF
 
-***REMOVED*** Start services normally - they pick up tracing config
-cd apps/backend-api && hatch run uvicorn backend_api.main:create_app --factory &
-cd apps/bff-api && hatch run uvicorn bff_api.main:create_app --factory --port 8001 &
+cat >> apps/bff-api/.env.local << EOF
+ENABLE_TRACING=true
+TRACING_ENDPOINT=http://localhost:4317
+TRACING_SAMPLE_RATE=1.0
+EOF
 ```
 
 ***REMOVED******REMOVED******REMOVED*** **Production Deployment**
 
 ```bash
-***REMOVED*** Tracing already configured in infra/.env.production
-export ENVIRONMENT=production
-
-***REMOVED*** Deploy services - tracing enabled with 5% sampling
-docker-compose up -d
+***REMOVED*** Deploy services via Docker Compose
+***REMOVED*** (ensure .env.prod includes ENABLE_TRACING/TRACING_* variables)
+docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 ```
 
 ***REMOVED******REMOVED*** 🔄 **Dynamic Configuration Changes**
@@ -186,8 +186,14 @@ TRACING_SAMPLE_RATE=0.1
 
 ***REMOVED******REMOVED******REMOVED*** **Docker Compose Override**
 
+Run with the override file:
+
+```bash
+docker compose -f infra/compose/prod.yml -f infra/compose/prod.override.yml --env-file .env.prod up -d
+```
+
 ```yaml
-***REMOVED*** docker-compose.override.yml
+***REMOVED*** infra/compose/prod.override.yml
 services:
   backend-api:
     environment:

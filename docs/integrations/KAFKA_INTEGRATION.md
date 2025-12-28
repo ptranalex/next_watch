@@ -279,7 +279,7 @@ python -m kafka.cli_tools consume --topic user.activity --count 10
 
 ```bash
 ***REMOVED*** Start Kafka services
-docker-compose -f infra/docker-compose.prod.yml up -d zookeeper kafka schema-registry kafka-ui
+docker compose -f infra/compose/prod.yml up -d zookeeper kafka schema-registry kafka-ui
 
 ***REMOVED*** Initialize topics
 bash infra/kafka/init-topics.sh
@@ -290,10 +290,10 @@ open http://localhost:8080
 
 ***REMOVED******REMOVED******REMOVED*** Production
 
-Kafka services are defined in `infra/docker-compose.prod.yml` and started with other services:
+Kafka services are defined in `infra/compose/prod.yml` and started with other services:
 
 ```bash
-docker-compose -f infra/docker-compose.prod.yml up -d
+docker compose -f infra/compose/prod.yml up -d
 ```
 
 ***REMOVED******REMOVED*** Feature Flags

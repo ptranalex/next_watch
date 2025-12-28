@@ -18,7 +18,6 @@ This guide explains when and how to use the different monitoring scripts in the 
 - Sets up complete monitoring stack on your local machine
 - Includes Grafana Tempo for distributed tracing
 - Uses localhost endpoints and development-friendly settings
-- Creates `.env.tracing` for local service configuration
 - Interactive and verbose output for debugging
 
 ***REMOVED******REMOVED******REMOVED*** Usage:
@@ -27,9 +26,11 @@ This guide explains when and how to use the different monitoring scripts in the 
 ***REMOVED*** From project root
 ./scripts/start-monitoring-with-tempo.sh
 
-***REMOVED*** Then start your services with tracing
-source infra/.env.tracing
-cd apps/backend-api && python -m backend_api
+***REMOVED*** Then start your services with tracing enabled (example)
+export ENABLE_TRACING=true
+export TRACING_ENDPOINT=http://localhost:4317
+export TRACING_SAMPLE_RATE=1.0
+cd apps/backend-api && hatch run python -m backend_api
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Access:

@@ -18,7 +18,7 @@ This guide covers deploying the NextWatch monitoring stack to production, includ
 cd infra
 
 ***REMOVED*** Copy environment template
-cp env.monitoring.prod.example .env.monitoring.prod
+cp env/monitoring.prod.example .env.monitoring.prod
 
 ***REMOVED*** Edit with your production values
 nano .env.monitoring.prod
@@ -171,13 +171,13 @@ server {
 ```bash
 ***REMOVED*** 1. Deploy monitoring stack
 cd infra
-docker-compose -f docker-compose.monitoring.prod.yml --env-file .env.monitoring.prod up -d
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod up -d
 
 ***REMOVED*** 2. Verify services
-docker-compose -f docker-compose.monitoring.prod.yml ps
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod ps
 
 ***REMOVED*** 3. Check logs
-docker-compose -f docker-compose.monitoring.prod.yml logs
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod logs
 ```
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** **Automated Deployment**
@@ -238,7 +238,7 @@ chmod +x scripts/monitoring/deploy-production.sh
 
 ```bash
 ***REMOVED*** Check service status
-docker-compose -f docker-compose.monitoring.prod.yml ps
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod ps
 
 ***REMOVED*** Monitor resource usage
 docker stats
@@ -279,14 +279,14 @@ crontab -e
 
 ```bash
 ***REMOVED*** Check logs
-docker-compose -f docker-compose.monitoring.prod.yml logs [service-name]
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod logs [service-name]
 
 ***REMOVED*** Check resources
 docker system df
 free -h
 
 ***REMOVED*** Restart services
-docker-compose -f docker-compose.monitoring.prod.yml restart
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod restart
 ```
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** **Permission Issues**
@@ -411,13 +411,13 @@ Loki:          http://your-domain.com:3100
 ./scripts/monitoring/deploy-production.sh
 
 ***REMOVED*** Status
-docker-compose -f docker-compose.monitoring.prod.yml ps
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod ps
 
 ***REMOVED*** Logs
-docker-compose -f docker-compose.monitoring.prod.yml logs -f
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod logs -f
 
 ***REMOVED*** Restart
-docker-compose -f docker-compose.monitoring.prod.yml restart
+docker compose -f compose/monitoring.yml --env-file .env.monitoring.prod restart
 
 ***REMOVED*** Backup
 ./scripts/monitoring/backup-monitoring.sh
@@ -426,7 +426,7 @@ docker-compose -f docker-compose.monitoring.prod.yml restart
 ***REMOVED******REMOVED******REMOVED*** **Important Files**
 
 ```
-infra/docker-compose.monitoring.prod.yml  ***REMOVED*** Main deployment file
+infra/compose/monitoring.yml             ***REMOVED*** Main deployment file
 infra/.env.monitoring.prod                ***REMOVED*** Environment configuration
 infra/monitoring/prometheus/              ***REMOVED*** Prometheus configs
 infra/monitoring/grafana/                 ***REMOVED*** Grafana configs

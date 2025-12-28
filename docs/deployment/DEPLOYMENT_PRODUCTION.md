@@ -101,6 +101,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 3. Get credentials from: Your Stack → Configuration → Data Sources
 
 **Prometheus (Metrics)**:
+
 ```env
 GRAFANA_CLOUD_METRICS_URL=https://prometheus-prod-XX...
 GRAFANA_CLOUD_METRICS_USERNAME=your-username
@@ -108,6 +109,7 @@ GRAFANA_CLOUD_METRICS_PASSWORD=your-api-key
 ```
 
 **Loki (Logs)**:
+
 ```env
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-XXX...
 GRAFANA_CLOUD_LOGS_USERNAME=your-username
@@ -115,6 +117,7 @@ GRAFANA_CLOUD_LOGS_PASSWORD=your-api-key
 ```
 
 **Tempo (Traces)**:
+
 ```env
 GRAFANA_CLOUD_TRACES_URL=https://tempo-prod-XX...
 GRAFANA_CLOUD_TRACES_USERNAME=your-username
@@ -156,13 +159,13 @@ chmod +x scripts/deploy-prod.sh
 
 ```bash
 ***REMOVED*** Start all services
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.production.local up -d
+docker compose -f infra/compose/prod.yml --env-file .env.production.local up -d
 
 ***REMOVED*** Check status
 docker ps
 
 ***REMOVED*** View logs
-docker-compose -f infra/docker-compose.prod.yml logs -f
+docker compose -f infra/compose/prod.yml logs -f
 ```
 
 ***REMOVED******REMOVED*** 7. Initial Data Import (Optional)
@@ -282,10 +285,10 @@ Before going live:
 
 ```bash
 ***REMOVED*** Check logs
-docker-compose -f infra/docker-compose.prod.yml logs
+docker compose -f infra/compose/prod.yml logs
 
 ***REMOVED*** Check environment variables
-docker-compose -f infra/docker-compose.prod.yml config
+docker compose -f infra/compose/prod.yml config
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Database connection errors
@@ -319,7 +322,7 @@ git pull origin main
 ./scripts/deploy-prod.sh
 
 ***REMOVED*** Restart services
-docker-compose -f infra/docker-compose.prod.yml restart
+docker compose -f infra/compose/prod.yml restart
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Backup Database
@@ -336,7 +339,7 @@ psql -h localhost -U your_user next_watch < backup_20240101.sql
 
 ```bash
 ***REMOVED*** All services
-docker-compose -f infra/docker-compose.prod.yml logs -f
+docker compose -f infra/compose/prod.yml logs -f
 
 ***REMOVED*** Specific service
 docker logs -f backend-api
@@ -345,6 +348,7 @@ docker logs -f backend-api
 ***REMOVED******REMOVED*** Support
 
 For issues or questions:
+
 - Check documentation in `/docs`
 - Review service-specific READMEs in `/apps`
 - Open an issue on GitHub

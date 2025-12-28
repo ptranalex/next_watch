@@ -373,7 +373,7 @@ After running tests, verify:
 make test-tracing
 
 ***REMOVED*** In CI/CD pipeline
-docker-compose -f infra/docker-compose.monitoring.yml up -d
+docker compose -f infra/compose/monitoring.yml up -d
 ./scripts/test-tracing-integration.sh
 ```
 

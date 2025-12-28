@@ -200,7 +200,7 @@ logger.info(
 ***REMOVED******REMOVED******REMOVED*** Docker Compose
 
 ```yaml
-***REMOVED*** docker-compose.monitoring.yml
+***REMOVED*** infra/compose/monitoring.yml
 tempo:
   image: grafana/tempo:2.6.0
   ports:

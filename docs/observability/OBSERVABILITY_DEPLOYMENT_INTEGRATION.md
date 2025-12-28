@@ -81,7 +81,7 @@ GRAFANA_CLOUD_TRACES_PASSWORD=glc_eyJ...
 
 Ensure these files are in your repository:
 
-- ✅ `infra/docker-compose.prod.yml` (includes grafana-alloy service)
+- ✅ `infra/compose/prod.yml` (includes grafana-alloy service)
 - ✅ `infra/monitoring/alloy/config.alloy` (Alloy configuration)
 
 ***REMOVED******REMOVED*** 🔄 Deployment Flow
@@ -89,7 +89,7 @@ Ensure these files are in your repository:
 When you deploy with observability enabled:
 
 1. **Environment Setup**: GitHub Actions creates `.env.prod` with all secrets
-2. **File Download**: Downloads `docker-compose.prod.yml` and `config.alloy`
+2. **File Download**: Downloads `infra/compose/prod.yml` and `config.alloy`
 3. **Service Deployment**: Deploys selected services including `grafana-alloy`
 4. **Health Checks**: Verifies all services are healthy
 5. **Observability Active**: Metrics, logs, and traces flow to Grafana Cloud
