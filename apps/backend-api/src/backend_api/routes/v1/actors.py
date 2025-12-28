@@ -110,9 +110,7 @@ async def list_actors(
         all_actors = result.fetchall()
 
         ***REMOVED*** Sort all actors by popularity (descending) and apply pagination
-        sorted_actors = sorted(
-            all_actors, key=lambda x: x.popularity or 0, reverse=True
-        )
+        sorted_actors = sorted(all_actors, key=lambda x: x.popularity or 0, reverse=True)
         paginated_actors = sorted_actors[offset : offset + limit]
 
         ***REMOVED*** Create actor response objects
@@ -146,9 +144,7 @@ async def list_actors(
 
 
 @router.get("/{actor_id}", response_model=ActorResponse)
-async def get_actor_details(
-    actor_id: int, db: Session = Depends(get_db)
-) -> ActorResponse:
+async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> ActorResponse:
     """
     Get detailed information for a specific actor.
     """
@@ -166,9 +162,7 @@ async def get_actor_details(
             ***REMOVED*** Record not found error
             if metrics:
                 metrics.record_actor_operation("detail", "not_found")
-            raise HTTPException(
-                status_code=404, detail=f"Actor with ID {actor_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Actor with ID {actor_id} not found")
 
         ***REMOVED*** Use the first credit to get actor information
         ***REMOVED*** (since actor information is stored in each credit)
@@ -216,9 +210,7 @@ async def get_actor_movies(
 
         ***REMOVED*** Check if actor exists
         if not credits:
-            raise HTTPException(
-                status_code=404, detail=f"Actor with ID {actor_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Actor with ID {actor_id} not found")
 
         ***REMOVED*** Get the movie IDs for this actor
         movie_ids = set(credit.movie_id for credit in credits if credit.movie_id)
@@ -274,7 +266,5 @@ async def get_actor_movies(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            f"Error fetching movies for actor {actor_id}: {str(e)}", exc_info=True
-        )
+        logger.error(f"Error fetching movies for actor {actor_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

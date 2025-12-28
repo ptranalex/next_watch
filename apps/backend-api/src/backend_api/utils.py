@@ -51,9 +51,7 @@ def setup_backend_api_storage(
         run_migration(db_url=config.database_url if database_url else None)
         logger.info("Database migrations completed")
 
-    logger.info(
-        f"Backend API storage set up with database URL: {config.get_database_url_masked()}"
-    )
+    logger.info(f"Backend API storage set up with database URL: {config.get_database_url_masked()}")
 
     ***REMOVED*** Return setup information
     return {

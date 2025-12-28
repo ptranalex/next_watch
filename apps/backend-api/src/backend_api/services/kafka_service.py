@@ -54,15 +54,11 @@ class BackendKafkaService:
             return
 
         try:
-            self._producer = KafkaEventProducer(
-                config=self.config, service_name="backend-api"
-            )
+            self._producer = KafkaEventProducer(config=self.config, service_name="backend-api")
             await self._producer.start()
             self.logger.info("Kafka producer started")
         except Exception as e:
-            self.logger.error(
-                "Failed to start Kafka producer", error=str(e), exc_info=True
-            )
+            self.logger.error("Failed to start Kafka producer", error=str(e), exc_info=True)
             ***REMOVED*** Don't raise - service should continue even if Kafka is unavailable
 
     async def stop(self) -> None:
@@ -75,9 +71,7 @@ class BackendKafkaService:
             self._producer = None
             self.logger.info("Kafka producer stopped")
         except Exception as e:
-            self.logger.error(
-                "Error stopping Kafka producer", error=str(e), exc_info=True
-            )
+            self.logger.error("Error stopping Kafka producer", error=str(e), exc_info=True)
 
     async def emit_movie_viewed(
         self,

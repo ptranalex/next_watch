@@ -31,9 +31,7 @@ class UserMovieInteraction(SQLModel, table=True):
     __tablename__ = "user_movie_interactions"  ***REMOVED*** pyright: ignore
 
     ***REMOVED*** Table constraints
-    __table_args__ = (
-        UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),)
 
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)

@@ -115,9 +115,7 @@ class CollectionItemResponse(BaseModel):
 
     movie_id: int
     user_id: int
-    added_at: datetime = Field(
-        ..., description="When the item was added to the collection"
-    )
+    added_at: datetime = Field(..., description="When the item was added to the collection")
 
     model_config = ConfigDict(from_attributes=True)
 

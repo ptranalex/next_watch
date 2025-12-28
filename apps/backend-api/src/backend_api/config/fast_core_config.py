@@ -5,9 +5,11 @@ compatible configuration using the enhanced FastAPIConfig.
 """
 
 from typing import Optional
-from fast_core import FastAPIConfig
-from backend_api.config.app import BackendAPIConfig
+
 from config.logging import get_logger
+from fast_core import FastAPIConfig
+
+from backend_api.config.app import BackendAPIConfig
 
 logger = get_logger(__name__)
 
@@ -64,12 +66,8 @@ def create_fast_core_config(backend_config: BackendAPIConfig) -> FastAPIConfig:
     fast_core_config.enable_tracing = backend_config.enable_tracing
     fast_core_config.tracing_endpoint = backend_config.tracing_endpoint
     fast_core_config.tracing_sample_rate = backend_config.tracing_sample_rate
-    fast_core_config.enable_performance_metrics = (
-        backend_config.enable_performance_metrics
-    )
-    fast_core_config.enable_deep_health_checks = (
-        backend_config.enable_deep_health_checks
-    )
+    fast_core_config.enable_performance_metrics = backend_config.enable_performance_metrics
+    fast_core_config.enable_deep_health_checks = backend_config.enable_deep_health_checks
     fast_core_config.enable_error_tracking = backend_config.enable_error_tracking
 
     logger.info("Fast-core config created successfully")

@@ -112,15 +112,12 @@ def format_movie_for_response(
     """
     ***REMOVED*** Convert genres to the expected format
     genre_list = [
-        {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]}
-        for genre in genres
+        {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]} for genre in genres
     ]
 
     ***REMOVED*** Convert movie to dictionary based on its features
     is_dict_like = (
-        hasattr(movie, "keys")
-        and hasattr(movie, "values")
-        and hasattr(movie, "__getitem__")
+        hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__")
     )
 
     if is_dict_like:
@@ -131,9 +128,7 @@ def format_movie_for_response(
             movie_dict = dict(movie._mapping)
         except (AttributeError, TypeError):
             ***REMOVED*** Fallback to __dict__ for other objects
-            movie_dict = {
-                k: v for k, v in movie.__dict__.items() if not k.startswith("_")
-            }
+            movie_dict = {k: v for k, v in movie.__dict__.items() if not k.startswith("_")}
 
     ***REMOVED*** Add genres to the dictionary
     movie_dict["genres"] = genre_list
@@ -170,11 +165,7 @@ def create_pagination_response(
 def get_movie_id(movie: Any) -> int:
     """Extract the movie ID safely from any movie object type."""
     ***REMOVED*** Dictionary-like check
-    if (
-        hasattr(movie, "keys")
-        and hasattr(movie, "values")
-        and hasattr(movie, "__getitem__")
-    ):
+    if hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__"):
         try:
             movie_dict = cast(dict[str, Any], movie)
             return int(movie_dict.get("id", 0))
@@ -200,17 +191,13 @@ async def _get_bulk_movies_internal(
     try:
         movie_ids = [int(id_str.strip()) for id_str in ids.split(",") if id_str.strip()]
     except ValueError:
-        raise ValidationError(
-            "Invalid movie IDs provided. Must be comma-separated integers."
-        )
+        raise ValidationError("Invalid movie IDs provided. Must be comma-separated integers.")
 
     if not movie_ids:
         return create_pagination_response([], 0, page, limit)
 
     if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit to prevent abuse
-        raise ValidationError(
-            "Too many movie IDs provided. Maximum 1000 IDs per request."
-        )
+        raise ValidationError("Too many movie IDs provided. Maximum 1000 IDs per request.")
 
     ***REMOVED*** Record bulk operation metrics
     metrics = get_backend_metrics()
@@ -247,9 +234,7 @@ async def _get_bulk_movies_internal(
 async def get_movies_bulk(
     ids: str = Query(..., description="Comma-separated list of movie IDs"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
-    limit: int = Query(
-        100, ge=1, le=200, description="Max number of movies to return per page"
-    ),
+    limit: int = Query(100, ge=1, le=200, description="Max number of movies to return per page"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
@@ -304,9 +289,7 @@ async def list_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: int | None = Query(None, description="Filter by release year"),
-    start_year: int | None = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: int | None = Query(None, description="Filter by start year (inclusive)"),
     end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
@@ -352,9 +335,7 @@ async def list_movies(
                 total=0,
                 metadata={"request_id": request_id, "filters_applied": True},
             )
-            return convert_paginated_response_to_movies_list(
-                paginated_response, request_id
-            )
+            return convert_paginated_response_to_movies_list(paginated_response, request_id)
 
         ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
         movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
@@ -475,9 +456,7 @@ async def search_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: int | None = Query(None, description="Filter by release year"),
-    start_year: int | None = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: int | None = Query(None, description="Filter by start year (inclusive)"),
     end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
@@ -585,9 +564,7 @@ async def get_movie_details(
         if metrics:
             metrics.record_movie_operation(
                 "detail",
-                "not_found"
-                if isinstance(e, ResourceNotFoundError)
-                else "validation_error",
+                "not_found" if isinstance(e, ResourceNotFoundError) else "validation_error",
             )
         raise service_error_to_http_exception(e)
 

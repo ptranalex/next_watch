@@ -103,9 +103,7 @@ class MovieQuery:
         if sort_by not in valid_sort_fields:
             raise ValidationError(
                 message="Invalid sort field",
-                field_errors={
-                    "sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]
-                },
+                field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
             )
 
         ***REMOVED*** Get movies
@@ -235,9 +233,7 @@ class MovieQuery:
         if not movie_ids:
             return {}
 
-        if not all(
-            isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids
-        ):
+        if not all(isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids):
             raise ValidationError(
                 message="Invalid movie IDs",
                 field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
@@ -278,9 +274,7 @@ class MovieQuery:
         if not movie_ids:
             return []
 
-        if not all(
-            isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids
-        ):
+        if not all(isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids):
             raise ValidationError(
                 message="Invalid movie IDs",
                 field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
@@ -319,9 +313,7 @@ class MovieQuery:
                                 for movie in missing_movies
                                 if (movie_id := movie.get("id")) is not None
                             ]
-                            genres_by_movie = self.get_movie_genres_bulk(
-                                db, missing_ids_for_genres
-                            )
+                            genres_by_movie = self.get_movie_genres_bulk(db, missing_ids_for_genres)
 
                             for movie in missing_movies:
                                 movie_id = movie.get("id")
@@ -468,9 +460,7 @@ class MovieQuery:
         if sort_by not in valid_sort_fields:
             raise ValidationError(
                 message="Invalid sort field",
-                field_errors={
-                    "sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]
-                },
+                field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
             )
 
         ***REMOVED*** Use the search function from movie_listings

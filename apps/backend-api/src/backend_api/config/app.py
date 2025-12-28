@@ -127,9 +127,7 @@ class BackendAPIConfig(
 
         ***REMOVED*** Backend-specific security overrides
         if self.enable_db_profiling:
-            logger.warning(
-                "Database profiling disabled in production for security and performance"
-            )
+            logger.warning("Database profiling disabled in production for security and performance")
             object.__setattr__(self, "enable_db_profiling", False)
 
         ***REMOVED*** Note: File logging works fine in production with Docker volume mounts

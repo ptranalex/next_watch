@@ -9,9 +9,7 @@ from sqlalchemy import Engine, event
 logger = get_logger(__name__)
 
 
-def setup_database_instrumentation(
-    engine: Engine, slow_query_threshold_ms: float = 100.0
-) -> None:
+def setup_database_instrumentation(engine: Engine, slow_query_threshold_ms: float = 100.0) -> None:
     """Set up database query instrumentation on the given engine.
 
     Args:
@@ -56,9 +54,7 @@ def setup_database_instrumentation(
 
         ***REMOVED*** Log at appropriate level with structured data
         if duration_ms >= slow_query_threshold_ms:
-            logger.warning(
-                "Slow database query detected", slow_query=True, **log_kwargs
-            )
+            logger.warning("Slow database query detected", slow_query=True, **log_kwargs)
         else:
             logger.debug("Database query executed", **log_kwargs)
 

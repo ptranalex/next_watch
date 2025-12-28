@@ -34,8 +34,7 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
 
         ***REMOVED*** Handle sensitive values
         if any(
-            sensitive in attr.lower()
-            for sensitive in ["api_key", "token", "password", "secret"]
+            sensitive in attr.lower() for sensitive in ["api_key", "token", "password", "secret"]
         ):
             if value:
                 masked_value = f"{'*' * 4}{str(value)[-4:] if value else 'Not set'}"
@@ -43,9 +42,7 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
             else:
                 table.add_row(attr, "[red]Not set[/red]")
         elif isinstance(value, bool):
-            formatted_value = (
-                "[green]Enabled[/green]" if value else "[grey]Disabled[/grey]"
-            )
+            formatted_value = "[green]Enabled[/green]" if value else "[grey]Disabled[/grey]"
             table.add_row(attr, formatted_value)
         else:
             table.add_row(attr, str(value))
@@ -53,9 +50,7 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
     return table
 
 
-def print_config(
-    config: Any, title: str = "Configuration", console: Console | None = None
-) -> None:
+def print_config(config: Any, title: str = "Configuration", console: Console | None = None) -> None:
     """Print configuration settings in a readable format.
 
     Args:

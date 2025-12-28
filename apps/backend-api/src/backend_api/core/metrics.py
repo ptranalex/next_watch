@@ -233,9 +233,7 @@ class BackendMetrics:
         }
         self.movie_operations.labels(**labels).inc()
 
-    def record_movie_search(
-        self, search_type: str, filters_count: int, duration: float
-    ) -> None:
+    def record_movie_search(self, search_type: str, filters_count: int, duration: float) -> None:
         """Record a movie search operation.
 
         Args:
@@ -263,9 +261,7 @@ class BackendMetrics:
         }
         self.movie_search_operations.labels(**labels).observe(duration)
 
-    def record_bulk_operation(
-        self, operation: str, batch_size: int, duration: float
-    ) -> None:
+    def record_bulk_operation(self, operation: str, batch_size: int, duration: float) -> None:
         """Record a bulk operation.
 
         Args:
@@ -312,9 +308,7 @@ class BackendMetrics:
         }
         self.actor_operations.labels(**labels).inc()
 
-    def record_cast_retrieval(
-        self, movie_type: str, cast_size: int, duration: float
-    ) -> None:
+    def record_cast_retrieval(self, movie_type: str, cast_size: int, duration: float) -> None:
         """Record cast retrieval operation.
 
         Args:
@@ -376,9 +370,7 @@ class BackendMetrics:
             }
             self.user_collection_size.labels(**size_labels).observe(collection_size)
 
-    def record_data_validation_error(
-        self, validation_type: str, entity_type: str
-    ) -> None:
+    def record_data_validation_error(self, validation_type: str, entity_type: str) -> None:
         """Record a data validation error.
 
         Args:
@@ -429,9 +421,7 @@ class BackendMetrics:
         }
         self.genre_operations.labels(**labels).inc()
 
-    def record_metadata_operation(
-        self, metadata_type: str, operation: str, status: str
-    ) -> None:
+    def record_metadata_operation(self, metadata_type: str, operation: str, status: str) -> None:
         """Record a metadata operation.
 
         Args:

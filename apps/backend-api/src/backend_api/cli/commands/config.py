@@ -20,9 +20,7 @@ logger = get_logger("backend_api.cli.commands.config")
 
 @app.command(name="show")
 def show_config(
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Show detailed configuration"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed configuration"),
     show_secrets: bool = typer.Option(
         False, "--show-secrets", help="Show sensitive configuration values"
     ),
@@ -63,9 +61,7 @@ def show_config(
                     for sensitive in ["api_key", "password", "secret", "token"]
                 ):
                     if value:
-                        masked_value = (
-                            f"{'*' * 4}{str(value)[-4:] if len(str(value)) > 4 else ''}"
-                        )
+                        masked_value = f"{'*' * 4}{str(value)[-4:] if len(str(value)) > 4 else ''}"
                         table.add_row(attr, masked_value)
                     else:
                         table.add_row(attr, "[grey]Not set[/grey]")
@@ -75,12 +71,8 @@ def show_config(
             console.print(table)
     else:
         ***REMOVED*** Show all config, including sensitive values
-        console.print(
-            "[bold red]⚠️  WARNING: Displaying sensitive configuration values[/bold red]"
-        )
-        print_config(
-            settings, title="Full Configuration (Including Secrets)", console=console
-        )
+        console.print("[bold red]⚠️  WARNING: Displaying sensitive configuration values[/bold red]")
+        print_config(settings, title="Full Configuration (Including Secrets)", console=console)
 
     if verbose:
         logger.info("Configuration displayed")

@@ -22,9 +22,7 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "010_create_movie_metadata_materialized_view"
-MIGRATION_DESCRIPTION = (
-    "Create materialized view for movie metadata optimization (Netflix pattern)"
-)
+MIGRATION_DESCRIPTION = "Create materialized view for movie metadata optimization (Netflix pattern)"
 
 logger = get_logger(__name__)
 
@@ -39,9 +37,7 @@ def upgrade(engine: Engine) -> None:
     Args:
         engine: SQLAlchemy engine instance
     """
-    logger.info(
-        "Creating movie metadata materialized view (Netflix optimization pattern)"
-    )
+    logger.info("Creating movie metadata materialized view (Netflix optimization pattern)")
 
     with engine.begin() as conn:
         try:
@@ -50,9 +46,7 @@ def upgrade(engine: Engine) -> None:
             logger.info("Set statement timeout to 30 minutes for initial population")
             ***REMOVED*** Step 1: Drop existing view if it exists
             logger.info("Dropping existing materialized view if present")
-            conn.execute(
-                text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete")
-            )
+            conn.execute(text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete"))
 
             ***REMOVED*** Step 2: Create the materialized view with complete movie metadata
             logger.info("Creating materialized view with precomputed metadata")
@@ -377,9 +371,7 @@ def upgrade(engine: Engine) -> None:
                 current_user = row[0]
 
                 ***REMOVED*** Grant permissions directly to current user
-                conn.execute(
-                    text(f"GRANT SELECT ON movie_metadata_complete TO {current_user}")
-                )
+                conn.execute(text(f"GRANT SELECT ON movie_metadata_complete TO {current_user}"))
                 conn.execute(
                     text(
                         f"GRANT EXECUTE ON FUNCTION refresh_movie_metadata_complete() TO {current_user}"
@@ -401,9 +393,7 @@ def upgrade(engine: Engine) -> None:
                 logger.warning(
                     f"Initial population failed (likely due to large dataset): {populate_error}"
                 )
-                logger.info(
-                    "💡 The materialized view structure is created successfully"
-                )
+                logger.info("💡 The materialized view structure is created successfully")
                 logger.info("💡 Run this command after migration to populate:")
                 logger.info("   SELECT refresh_movie_metadata_complete();")
                 ***REMOVED*** Don't fail the migration - the structure is ready
@@ -415,9 +405,7 @@ def upgrade(engine: Engine) -> None:
             logger.info("Recording migration in the database")
             try:
                 conn.execute(
-                    text(
-                        "INSERT INTO migrations (id, description) VALUES (:id, :description)"
-                    ),
+                    text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
                     {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
                 )
                 logger.info("Migration recorded in the database")
@@ -442,32 +430,20 @@ def downgrade(engine: Engine) -> None:
         try:
             ***REMOVED*** Drop triggers first
             logger.info("Dropping automatic refresh triggers")
+            conn.execute(text("DROP TRIGGER IF EXISTS movie_metadata_refresh_trigger ON movie"))
             conn.execute(
-                text("DROP TRIGGER IF EXISTS movie_metadata_refresh_trigger ON movie")
+                text("DROP TRIGGER IF EXISTS genre_metadata_refresh_trigger ON movie_genre_link")
             )
-            conn.execute(
-                text(
-                    "DROP TRIGGER IF EXISTS genre_metadata_refresh_trigger ON movie_genre_link"
-                )
-            )
-            conn.execute(
-                text("DROP TRIGGER IF EXISTS credit_metadata_refresh_trigger ON credit")
-            )
+            conn.execute(text("DROP TRIGGER IF EXISTS credit_metadata_refresh_trigger ON credit"))
 
             ***REMOVED*** Drop functions
             logger.info("Dropping refresh functions")
-            conn.execute(
-                text("DROP FUNCTION IF EXISTS trigger_refresh_movie_metadata()")
-            )
-            conn.execute(
-                text("DROP FUNCTION IF EXISTS refresh_movie_metadata_complete()")
-            )
+            conn.execute(text("DROP FUNCTION IF EXISTS trigger_refresh_movie_metadata()"))
+            conn.execute(text("DROP FUNCTION IF EXISTS refresh_movie_metadata_complete()"))
 
             ***REMOVED*** Drop materialized view (indexes will be dropped automatically)
             logger.info("Dropping materialized view")
-            conn.execute(
-                text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete")
-            )
+            conn.execute(text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete"))
 
             logger.info("✅ Movie metadata materialized view removed successfully")
 

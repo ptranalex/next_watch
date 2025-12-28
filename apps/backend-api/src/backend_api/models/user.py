@@ -34,9 +34,7 @@ class User(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     ***REMOVED*** Relationships
-    movie_interactions: list["UserMovieInteraction"] = Relationship(
-        back_populates="user"
-    )
+    movie_interactions: list["UserMovieInteraction"] = Relationship(back_populates="user")
 
     @staticmethod
     def hash_password(password: str) -> str:

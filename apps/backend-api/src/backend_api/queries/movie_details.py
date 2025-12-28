@@ -12,9 +12,7 @@ from backend_api.queries.common import DBSession
 logger = get_logger(__name__)
 
 
-def get_movie_genres(
-    db_session: DBSession, movie_id: int | None = None
-) -> list[dict[str, Any]]:
+def get_movie_genres(db_session: DBSession, movie_id: int | None = None) -> list[dict[str, Any]]:
     """
     Get all genres for a specific movie.
 
@@ -36,9 +34,7 @@ def get_movie_genres(
     """
 
     result = db_session.execute(text(query), {"movie_id": int(movie_id)})
-    return [
-        dict(row._mapping) for row in result.all()
-    ]  ***REMOVED*** Convert Row objects to dictionaries
+    return [dict(row._mapping) for row in result.all()]  ***REMOVED*** Convert Row objects to dictionaries
 
 
 def get_movie_genres_bulk(
@@ -81,17 +77,13 @@ def get_movie_genres_bulk(
     ***REMOVED*** Populate with actual genre data
     for row in result.all():
         movie_id = row.movie_id
-        genre_data = {
-            key: value for key, value in row._mapping.items() if key != "movie_id"
-        }
+        genre_data = {key: value for key, value in row._mapping.items() if key != "movie_id"}
         genres_by_movie[movie_id].append(genre_data)
 
     return genres_by_movie
 
 
-def get_movie_details_by_id(
-    db_session: DBSession, movie_id: int
-) -> dict[str, Any] | None:
+def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> dict[str, Any] | None:
     """
     Get detailed information about a specific movie by its ID.
 
@@ -151,9 +143,7 @@ def get_movie_details_by_id(
     WHERE c.movie_id = :movie_id
     """
 
-    all_credits_result = db_session.execute(
-        text(all_credits_query), {"movie_id": movie_id}
-    )
+    all_credits_result = db_session.execute(text(all_credits_query), {"movie_id": movie_id})
     credits = [dict(row._mapping) for row in all_credits_result.all()]
 
     ***REMOVED*** Combine movie and credits
@@ -165,9 +155,7 @@ def get_movie_details_by_id(
     return movie_dict
 
 
-def get_movie_details_by_tmdb_id(
-    db_session: DBSession, tmdb_id: int
-) -> dict[str, Any] | None:
+def get_movie_details_by_tmdb_id(db_session: DBSession, tmdb_id: int) -> dict[str, Any] | None:
     """
     Get detailed information about a specific movie by its TMDB ID.
 
@@ -194,9 +182,7 @@ def get_movie_details_by_tmdb_id(
     return dict(movie._mapping)
 
 
-def get_movies_by_ids_bulk(
-    db_session: DBSession, movie_ids: list[int]
-) -> list[dict[str, Any]]:
+def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: list[int]) -> list[dict[str, Any]]:
     """
     Get detailed information about multiple movies by their IDs.
 

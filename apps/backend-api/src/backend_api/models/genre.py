@@ -19,6 +19,4 @@ class Genre(SQLModel, table=True):
     tmdb_id: int | None = Field(default=None, index=True, unique=True)
 
     ***REMOVED*** Relationships
-    movies: list["Movie"] = Relationship(
-        back_populates="genres", link_model=MovieGenreLink
-    )
+    movies: list["Movie"] = Relationship(back_populates="genres", link_model=MovieGenreLink)

@@ -68,9 +68,7 @@ def upgrade(engine: Engine) -> None:
     with engine.begin() as conn:
         try:
             conn.execute(
-                text(
-                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
-                ),
+                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")

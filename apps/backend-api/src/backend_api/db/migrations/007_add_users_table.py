@@ -50,16 +50,12 @@ def upgrade(engine: Engine) -> None:
         conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_email ON "user"(email)'))
 
         ***REMOVED*** Create index on username
-        conn.execute(
-            text('CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username)')
-        )
+        conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username)'))
 
         ***REMOVED*** Record the migration
         try:
             conn.execute(
-                text(
-                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
-                ),
+                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")

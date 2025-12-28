@@ -42,9 +42,7 @@ class UserInteractionService:
 
     ***REMOVED*** Command methods (write operations)
 
-    def toggle_watchlist(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def toggle_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
         Toggle a movie in a user's watchlist.
 
@@ -83,9 +81,7 @@ class UserInteractionService:
 
         ***REMOVED*** If no interaction exists, create one with in_watchlist=True
         if not interaction:
-            result = create_user_movie_interaction(
-                db, user_id, movie_id, in_watchlist=True
-            )
+            result = create_user_movie_interaction(db, user_id, movie_id, in_watchlist=True)
             return result
 
         ***REMOVED*** Toggle the watchlist flag
@@ -102,9 +98,7 @@ class UserInteractionService:
 
         return interaction
 
-    def toggle_watched(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def toggle_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
         Toggle a movie as watched by a user.
 
@@ -160,9 +154,7 @@ class UserInteractionService:
 
         return interaction
 
-    def toggle_liked(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def toggle_liked(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
         Toggle a movie as liked by a user.
 
@@ -291,9 +283,7 @@ class UserInteractionService:
 
         return get_user_movie_interaction(db, user_id, movie_id)
 
-    def set_flag(
-        self, db: Session, user_id: int, movie_id: int, flag: str
-    ) -> UserMovieInteraction:
+    def set_flag(self, db: Session, user_id: int, movie_id: int, flag: str) -> UserMovieInteraction:
         """
         Set a specific flag to True for a user's movie interaction.
 
@@ -347,15 +337,11 @@ class UserInteractionService:
 
         ***REMOVED*** If flag is already True, return as-is
         if getattr(interaction, flag):
-            logger.info(
-                f"Flag {flag} already True for user {user_id} and movie {movie_id}"
-            )
+            logger.info(f"Flag {flag} already True for user {user_id} and movie {movie_id}")
             return interaction
 
         ***REMOVED*** Set the flag to True directly on the interaction object
-        logger.info(
-            f"Setting flag {flag} to True for user {user_id} and movie {movie_id}"
-        )
+        logger.info(f"Setting flag {flag} to True for user {user_id} and movie {movie_id}")
         setattr(interaction, flag, True)
         interaction.updated_at = datetime.utcnow()
 
@@ -413,9 +399,7 @@ class UserInteractionService:
 
         ***REMOVED*** If no interaction exists, create a representation with the flag set to False
         if not interaction:
-            logger.info(
-                f"No interaction exists for user {user_id} and movie {movie_id}"
-            )
+            logger.info(f"No interaction exists for user {user_id} and movie {movie_id}")
             ***REMOVED*** Create a representation (not saved to DB) with the flag set to False
             return UserMovieInteraction(
                 user_id=user_id,
@@ -429,15 +413,11 @@ class UserInteractionService:
 
         ***REMOVED*** If flag is already False, return as-is
         if not getattr(interaction, flag):
-            logger.info(
-                f"Flag {flag} already False for user {user_id} and movie {movie_id}"
-            )
+            logger.info(f"Flag {flag} already False for user {user_id} and movie {movie_id}")
             return interaction
 
         ***REMOVED*** Set the flag to False directly on the interaction object
-        logger.info(
-            f"Setting flag {flag} to False for user {user_id} and movie {movie_id}"
-        )
+        logger.info(f"Setting flag {flag} to False for user {user_id} and movie {movie_id}")
         setattr(interaction, flag, False)
         interaction.updated_at = datetime.utcnow()
 
@@ -453,39 +433,27 @@ class UserInteractionService:
         return interaction
 
     ***REMOVED*** Now add convenience methods for each flag type
-    def set_watched(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def set_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set watched flag to True."""
         return self.set_flag(db, user_id, movie_id, "watched")
 
-    def unset_watched(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def unset_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set watched flag to False."""
         return self.unset_flag(db, user_id, movie_id, "watched")
 
-    def set_liked(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def set_liked(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set liked flag to True."""
         return self.set_flag(db, user_id, movie_id, "liked")
 
-    def unset_liked(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def unset_liked(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set liked flag to False."""
         return self.unset_flag(db, user_id, movie_id, "liked")
 
-    def set_watchlist(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def set_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set in_watchlist flag to True."""
         return self.set_flag(db, user_id, movie_id, "in_watchlist")
 
-    def unset_watchlist(
-        self, db: Session, user_id: int, movie_id: int
-    ) -> UserMovieInteraction:
+    def unset_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set in_watchlist flag to False."""
         return self.unset_flag(db, user_id, movie_id, "in_watchlist")
 
@@ -799,9 +767,7 @@ class UserInteractionService:
         interaction = self.unset_liked(db, user_id, movie_id)
         return interaction, True
 
-    def import_netflix_history(
-        self, db: Session, user_id: int, csv_content: str
-    ) -> dict[str, Any]:
+    def import_netflix_history(self, db: Session, user_id: int, csv_content: str) -> dict[str, Any]:
         """
         Import Netflix watch history from CSV content.
 
@@ -901,9 +867,7 @@ class UserInteractionService:
                         matched_movies += 1
                     except Exception as e:
                         ***REMOVED*** Log but continue with next movie
-                        logger.error(
-                            f"Error marking movie {movie_id} as watched: {str(e)}"
-                        )
+                        logger.error(f"Error marking movie {movie_id} as watched: {str(e)}")
                         continue
 
             ***REMOVED*** Return results summary

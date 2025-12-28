@@ -94,9 +94,7 @@ def get_credits(
     return list(credits)
 
 
-def update_credit(
-    session: Session, credit_id: int, credit_data: dict[str, Any]
-) -> Credit | None:
+def update_credit(session: Session, credit_id: int, credit_data: dict[str, Any]) -> Credit | None:
     """Update a credit record.
 
     Args:

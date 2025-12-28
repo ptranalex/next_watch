@@ -28,9 +28,7 @@ def get_engine(enable_monitoring: bool = True) -> Engine:
 
     ***REMOVED*** Create engine if it doesn't exist
     if _engine is None:
-        logger.info(
-            f"Creating database engine with URL: {settings.get_database_url_masked()}"
-        )
+        logger.info(f"Creating database engine with URL: {settings.get_database_url_masked()}")
 
         ***REMOVED*** Use database_echo from settings
         if settings.database_echo:
@@ -118,9 +116,7 @@ def check_database_schema() -> dict[str, Any]:
 
         ***REMOVED*** Check for critical tables
         required_tables = ["movie", "genre", "migrations"]
-        missing_tables = [
-            table for table in required_tables if table not in table_names
-        ]
+        missing_tables = [table for table in required_tables if table not in table_names]
 
         return {
             "schema_ready": len(missing_tables) == 0,

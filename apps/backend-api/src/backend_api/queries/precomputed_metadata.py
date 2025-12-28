@@ -102,9 +102,7 @@ def get_movies_precomputed_bulk(
             ***REMOVED*** If it's already a list/dict, keep it as-is
 
         except (json.JSONDecodeError, TypeError) as e:
-            logger.warning(
-                f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}"
-            )
+            logger.warning(f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}")
             movie_dict["genres"] = []
             movie_dict["cast"] = []
 
@@ -114,9 +112,7 @@ def get_movies_precomputed_bulk(
     return movies
 
 
-def get_movie_precomputed_single(
-    db_session: DBSession, movie_id: int
-) -> dict[str, Any] | None:
+def get_movie_precomputed_single(db_session: DBSession, movie_id: int) -> dict[str, Any] | None:
     """
     Get single movie's complete precomputed metadata.
 
@@ -210,9 +206,7 @@ def get_popular_movies_precomputed(
             ***REMOVED*** If it's already a list/dict, keep it as-is
 
         except (json.JSONDecodeError, TypeError) as e:
-            logger.warning(
-                f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}"
-            )
+            logger.warning(f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}")
             movie_dict["genres"] = []
             movie_dict["cast"] = []
 
@@ -225,9 +219,7 @@ def get_popular_movies_precomputed(
     return movies, total_count
 
 
-def check_metadata_freshness(
-    db_session: DBSession, movie_ids: list[int]
-) -> dict[int, bool]:
+def check_metadata_freshness(db_session: DBSession, movie_ids: list[int]) -> dict[int, bool]:
     """
     Check if precomputed metadata is fresh for given movie IDs.
 

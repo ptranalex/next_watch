@@ -83,11 +83,7 @@ class Movie(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     ***REMOVED*** Relationships
-    genres: list["Genre"] = Relationship(
-        back_populates="movies", link_model=MovieGenreLink
-    )
+    genres: list["Genre"] = Relationship(back_populates="movies", link_model=MovieGenreLink)
     credits: list["Credit"] = Relationship(back_populates="movie")
     trailers: list["Trailer"] = Relationship(back_populates="movie")
-    user_interactions: list["UserMovieInteraction"] = Relationship(
-        back_populates="movie"
-    )
+    user_interactions: list["UserMovieInteraction"] = Relationship(back_populates="movie")

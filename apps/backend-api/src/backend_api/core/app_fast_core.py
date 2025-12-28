@@ -70,9 +70,7 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         init_database()
         logger.info("Database connection established successfully")
         if hasattr(settings, "get_database_url_masked"):
-            logger.debug(
-                f"Database configuration: {settings.get_database_url_masked()}"
-            )
+            logger.debug(f"Database configuration: {settings.get_database_url_masked()}")
     except Exception as e:
         logger.error(f"Failed to connect to database: {e}")
         raise
@@ -117,9 +115,7 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             )
     except ImportError as e:
         logger.error(f"Metrics dependencies not installed: {e}")
-        logger.info(
-            "Install prometheus-client to enable metrics: pip install prometheus-client"
-        )
+        logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
     except Exception as e:
         logger.error(f"Failed to initialize Backend metrics: {e}", exc_info=True)
         if getattr(backend_config, "is_production", False):
@@ -216,11 +212,7 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         default_limit="1000/hour" if config.is_production else "2000/hour",
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
-        + (
-            ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
-            if not config.is_production
-            else []
-        ),
+        + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
         headers=True,  ***REMOVED*** Include rate limit headers for debugging
         key_func="ip",  ***REMOVED*** Rate limit by IP address
     )
@@ -259,9 +251,7 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_additional=[
-            "/favicon.ico"
-        ],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
+        exclude_additional=["/favicon.ico"],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
         exclude_methods=["OPTIONS"],
         track_request_size=True,
         track_response_size=True,
@@ -293,9 +283,7 @@ def create_backend_app(config: BackendAPIConfig | None = None) -> FastAPI:
 
         config = settings
 
-    logger.info(
-        "Creating Backend API application with fast-core and enhanced middleware"
-    )
+    logger.info("Creating Backend API application with fast-core and enhanced middleware")
 
     ***REMOVED*** Convert Backend config to fast-core config
     fast_core_config = create_fast_core_config(config)
@@ -333,9 +321,7 @@ def create_backend_app(config: BackendAPIConfig | None = None) -> FastAPI:
     )
 
     ***REMOVED*** Meta endpoints are now automatically configured with simple static configuration
-    logger.info(
-        "Backend API meta endpoints configured automatically with static config"
-    )
+    logger.info("Backend API meta endpoints configured automatically with static config")
 
     logger.info("Backend API application created with fast-core integration")
     return app

@@ -113,9 +113,7 @@ class HealthService:
                 if not redis_url:
                     redis_url = settings.redis_url
 
-                logger.debug(
-                    f"Connecting to Cache Redis at {settings.get_redis_url_masked()}"
-                )
+                logger.debug(f"Connecting to Cache Redis at {settings.get_redis_url_masked()}")
                 self._redis_client = redis.Redis.from_url(
                     redis_url,
                     decode_responses=True,
@@ -145,9 +143,7 @@ class HealthService:
                         "uptime_in_days": info.get("uptime_in_days", 0),
                         "keyspace_hits": info.get("keyspace_hits", 0),
                         "keyspace_misses": info.get("keyspace_misses", 0),
-                        "total_commands_processed": info.get(
-                            "total_commands_processed", 0
-                        ),
+                        "total_commands_processed": info.get("total_commands_processed", 0),
                     },
                 )
             else:
@@ -200,9 +196,7 @@ class HealthService:
 
                 ***REMOVED*** Get database size
                 db_size_result = db.execute(
-                    text(
-                        "SELECT pg_size_pretty(pg_database_size(current_database())) as size"
-                    )
+                    text("SELECT pg_size_pretty(pg_database_size(current_database())) as size")
                 ).scalar()
                 db_size = db_size_result if db_size_result else "Unknown"
 
@@ -333,9 +327,7 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
         start_time = time.time()
         try:
             redis_url = os.getenv("CACHE_REDIS_URL") or settings.redis_url
-            client = redis.Redis.from_url(
-                redis_url, decode_responses=True, socket_timeout=3.0
-            )
+            client = redis.Redis.from_url(redis_url, decode_responses=True, socket_timeout=3.0)
 
             ***REMOVED*** Ping Redis
             ping_result = client.ping()
@@ -351,9 +343,7 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
                         details={
                             "version": info.get("redis_version", "Unknown"),
                             "connected_clients": info.get("connected_clients", 0),
-                            "used_memory_human": info.get(
-                                "used_memory_human", "Unknown"
-                            ),
+                            "used_memory_human": info.get("used_memory_human", "Unknown"),
                         },
                     )
                 finally:

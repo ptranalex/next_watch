@@ -9,9 +9,7 @@ from sqlalchemy.engine import Engine
 logger = get_logger(__name__)
 
 MIGRATION_ID = "002_add_credits_and_extended_movie_fields"
-MIGRATION_DESCRIPTION = (
-    "Add Credits table and extend Movie fields with additional TMDB data"
-)
+MIGRATION_DESCRIPTION = "Add Credits table and extend Movie fields with additional TMDB data"
 
 
 def upgrade(engine: Engine) -> None:
@@ -31,9 +29,7 @@ def upgrade(engine: Engine) -> None:
         movie_table_exists = result.scalar()
 
     if not movie_table_exists:
-        logger.warning(
-            "Movie table does not exist. Creating it before applying migration."
-        )
+        logger.warning("Movie table does not exist. Creating it before applying migration.")
         ***REMOVED*** Create the movie table with basic structure using direct SQL
         with engine.begin() as conn:
             conn.execute(
@@ -60,47 +56,27 @@ def upgrade(engine: Engine) -> None:
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS status TEXT"))
 
         ***REMOVED*** New language and country columns
-        conn.execute(
-            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS original_language TEXT")
-        )
-        conn.execute(
-            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS origin_country TEXT")
-        )
+        conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS original_language TEXT"))
+        conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS origin_country TEXT"))
 
         ***REMOVED*** New collection columns
         conn.execute(
-            text(
-                "ALTER TABLE movie ADD COLUMN IF NOT EXISTS belongs_to_collection_id INTEGER"
-            )
+            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS belongs_to_collection_id INTEGER")
         )
         conn.execute(
-            text(
-                "ALTER TABLE movie ADD COLUMN IF NOT EXISTS belongs_to_collection_name TEXT"
-            )
+            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS belongs_to_collection_name TEXT")
         )
 
         ***REMOVED*** New URL and path columns
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS homepage TEXT"))
 
         ***REMOVED*** New performance metrics
-        conn.execute(
-            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS vote_average FLOAT")
-        )
-        conn.execute(
-            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS vote_count INTEGER")
-        )
+        conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS vote_average FLOAT"))
+        conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS vote_count INTEGER"))
 
         ***REMOVED*** New boolean flags
-        conn.execute(
-            text(
-                "ALTER TABLE movie ADD COLUMN IF NOT EXISTS adult BOOLEAN DEFAULT FALSE"
-            )
-        )
-        conn.execute(
-            text(
-                "ALTER TABLE movie ADD COLUMN IF NOT EXISTS video BOOLEAN DEFAULT FALSE"
-            )
-        )
+        conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS adult BOOLEAN DEFAULT FALSE"))
+        conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS video BOOLEAN DEFAULT FALSE"))
 
         logger.info("Added new columns to movie table")
 
@@ -132,9 +108,7 @@ def upgrade(engine: Engine) -> None:
 
         ***REMOVED*** Create index on tmdb_person_id
         conn.execute(
-            text(
-                "CREATE INDEX IF NOT EXISTS idx_credit_tmdb_person_id ON credit (tmdb_person_id)"
-            )
+            text("CREATE INDEX IF NOT EXISTS idx_credit_tmdb_person_id ON credit (tmdb_person_id)")
         )
 
         ***REMOVED*** Add foreign key separately
@@ -207,12 +181,8 @@ def downgrade(engine: Engine) -> None:
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS origin_country"))
 
         ***REMOVED*** Collection
-        conn.execute(
-            text("ALTER TABLE movie DROP COLUMN IF EXISTS belongs_to_collection_id")
-        )
-        conn.execute(
-            text("ALTER TABLE movie DROP COLUMN IF EXISTS belongs_to_collection_name")
-        )
+        conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS belongs_to_collection_id"))
+        conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS belongs_to_collection_name"))
 
         ***REMOVED*** URL and path
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS homepage"))

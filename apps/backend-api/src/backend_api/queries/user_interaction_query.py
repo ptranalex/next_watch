@@ -120,9 +120,7 @@ class UserInteractionQuery:
         if not unique_movie_ids:
             raise ValidationError(
                 message="No valid movie IDs provided",
-                field_errors={
-                    "movie_ids": ["Must contain at least one positive movie ID"]
-                },
+                field_errors={"movie_ids": ["Must contain at least one positive movie ID"]},
             )
 
             ***REMOVED*** Use a single optimized batch query
@@ -328,9 +326,7 @@ class UserInteractionQuery:
         if category not in ["watchlist", "watched", "liked"]:
             raise ValidationError(
                 message="Invalid category",
-                field_errors={
-                    "category": ["Must be one of: watchlist, watched, liked"]
-                },
+                field_errors={"category": ["Must be one of: watchlist, watched, liked"]},
             )
 
         ***REMOVED*** Construct query based on category
@@ -372,9 +368,7 @@ class UserInteractionQuery:
                         title=movie.title,
                         poster_url=movie.poster_url,
                         release_date=(
-                            movie.release_date.isoformat()
-                            if movie.release_date
-                            else None
+                            movie.release_date.isoformat() if movie.release_date else None
                         ),
                         watched=interaction.watched,
                         liked=interaction.liked,

@@ -77,9 +77,7 @@ async def get_movie_interaction(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
 ) -> UserMovieInteraction | dict[str, Any]:
     """
     Get user's interaction with a specific movie.
@@ -124,9 +122,7 @@ async def get_movie_interactions_batch(
     request: BatchInteractionsRequest,
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
 ) -> dict[str, Any]:
     """
     Get user's interactions with multiple movies in a single request.
@@ -167,14 +163,10 @@ async def get_movie_interactions_batch(
                     "liked": interaction.liked,
                     "in_watchlist": interaction.in_watchlist,
                     "created_at": (
-                        interaction.created_at.isoformat()
-                        if interaction.created_at
-                        else None
+                        interaction.created_at.isoformat() if interaction.created_at else None
                     ),
                     "updated_at": (
-                        interaction.updated_at.isoformat()
-                        if interaction.updated_at
-                        else None
+                        interaction.updated_at.isoformat() if interaction.updated_at else None
                     ),
                 }
             else:
@@ -183,9 +175,7 @@ async def get_movie_interactions_batch(
         return {
             "interactions": result,
             "total_requested": len(request.movie_ids),
-            "total_found": sum(
-                1 for interaction in interactions_dict.values() if interaction
-            ),
+            "total_found": sum(1 for interaction in interactions_dict.values() if interaction),
         }
 
     except (ResourceNotFoundError, ValidationError) as e:
@@ -204,9 +194,7 @@ async def get_movie_interactions_batch(
 async def get_user_watchlist(
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     page: Annotated[int, Query(ge=1)] = 1,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> PaginatedResponse:
@@ -235,9 +223,7 @@ async def get_user_watchlist(
 
     try:
         offset = (page - 1) * limit
-        interactions, total = interaction_query.get_user_watchlist(
-            db, user_id, limit, offset
-        )
+        interactions, total = interaction_query.get_user_watchlist(db, user_id, limit, offset)
 
         ***REMOVED*** Convert to collection items
         collection_items = [
@@ -274,9 +260,7 @@ async def get_user_watchlist(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "get", "watchlist", "validation_error"
-            )
+            metrics.record_user_collection_operation("get", "watchlist", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -289,9 +273,7 @@ async def add_to_watchlist(
     request: AddToCollectionRequest,
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> ActionResponse:
     """
     Add a movie to user's watchlist collection.
@@ -354,9 +336,7 @@ async def add_to_watchlist(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "add", "watchlist", "validation_error"
-            )
+            metrics.record_user_collection_operation("add", "watchlist", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -368,9 +348,7 @@ async def remove_from_watchlist(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> ActionResponse:
     """
     Remove a movie from user's watchlist collection.
@@ -396,9 +374,7 @@ async def remove_from_watchlist(
         metrics.record_user_collection_operation("remove", "watchlist", "started")
 
     try:
-        interaction, was_removed = interaction_service.remove_from_watchlist(
-            db, user_id, movie_id
-        )
+        interaction, was_removed = interaction_service.remove_from_watchlist(db, user_id, movie_id)
 
         if not was_removed:
             raise HTTPException(
@@ -428,9 +404,7 @@ async def remove_from_watchlist(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "remove", "watchlist", "validation_error"
-            )
+            metrics.record_user_collection_operation("remove", "watchlist", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -446,9 +420,7 @@ async def remove_from_watchlist(
 async def get_user_watched_movies(
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     page: Annotated[int, Query(ge=1)] = 1,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> PaginatedResponse:
@@ -477,9 +449,7 @@ async def get_user_watched_movies(
 
     try:
         offset = (page - 1) * limit
-        interactions, total = interaction_query.get_user_watched_movies(
-            db, user_id, limit, offset
-        )
+        interactions, total = interaction_query.get_user_watched_movies(db, user_id, limit, offset)
 
         ***REMOVED*** Convert to collection items
         collection_items = [
@@ -519,9 +489,7 @@ async def get_user_watched_movies(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "get", "watched_movies", "validation_error"
-            )
+            metrics.record_user_collection_operation("get", "watched_movies", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -534,9 +502,7 @@ async def mark_movie_as_watched(
     request: AddToCollectionRequest,
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> ActionResponse:
     """
     Mark a movie as watched by adding it to watched movies collection.
@@ -599,9 +565,7 @@ async def mark_movie_as_watched(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "add", "watched_movies", "validation_error"
-            )
+            metrics.record_user_collection_operation("add", "watched_movies", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -613,9 +577,7 @@ async def unmark_movie_as_watched(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> ActionResponse:
     """
     Unmark a movie as watched by removing it from watched movies collection.
@@ -641,9 +603,7 @@ async def unmark_movie_as_watched(
         metrics.record_user_collection_operation("remove", "watched_movies", "started")
 
     try:
-        interaction, was_removed = interaction_service.unmark_as_watched(
-            db, user_id, movie_id
-        )
+        interaction, was_removed = interaction_service.unmark_as_watched(db, user_id, movie_id)
 
         if not was_removed:
             raise HTTPException(
@@ -653,9 +613,7 @@ async def unmark_movie_as_watched(
 
         ***REMOVED*** Record successful user collection operation metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "remove", "watched_movies", "success"
-            )
+            metrics.record_user_collection_operation("remove", "watched_movies", "success")
 
         return responses.action(
             success=True,
@@ -675,9 +633,7 @@ async def unmark_movie_as_watched(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "remove", "watched_movies", "validation_error"
-            )
+            metrics.record_user_collection_operation("remove", "watched_movies", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -693,9 +649,7 @@ async def unmark_movie_as_watched(
 async def get_user_liked_movies(
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_query: Annotated[
-        UserInteractionQuery, Depends(get_user_interaction_query)
-    ],
+    interaction_query: Annotated[UserInteractionQuery, Depends(get_user_interaction_query)],
     page: Annotated[int, Query(ge=1)] = 1,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> PaginatedResponse:
@@ -724,9 +678,7 @@ async def get_user_liked_movies(
 
     try:
         offset = (page - 1) * limit
-        interactions, total = interaction_query.get_user_liked_movies(
-            db, user_id, limit, offset
-        )
+        interactions, total = interaction_query.get_user_liked_movies(db, user_id, limit, offset)
 
         ***REMOVED*** Convert to collection items
         collection_items = [
@@ -763,9 +715,7 @@ async def get_user_liked_movies(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "get", "liked_movies", "validation_error"
-            )
+            metrics.record_user_collection_operation("get", "liked_movies", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -778,9 +728,7 @@ async def like_movie(
     request: AddToCollectionRequest,
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> ActionResponse:
     """
     Like a movie by adding it to liked movies collection.
@@ -807,14 +755,10 @@ async def like_movie(
         metrics.record_user_collection_operation("add", "liked_movies", "started")
 
     try:
-        interaction, was_created = interaction_service.like_movie(
-            db, user_id, request.movie_id
-        )
+        interaction, was_created = interaction_service.like_movie(db, user_id, request.movie_id)
 
         ***REMOVED*** Make operation idempotent - return success regardless of whether it was already liked
-        message = (
-            "Movie successfully liked" if was_created else "Movie was already liked"
-        )
+        message = "Movie successfully liked" if was_created else "Movie was already liked"
 
         ***REMOVED*** Record successful user collection operation metrics
         if metrics:
@@ -841,9 +785,7 @@ async def like_movie(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "add", "liked_movies", "validation_error"
-            )
+            metrics.record_user_collection_operation("add", "liked_movies", "validation_error")
         raise service_error_to_http_exception(e)
 
 
@@ -855,9 +797,7 @@ async def unlike_movie(
     movie_id: Annotated[int, Path(title="Movie ID", ge=1)],
     user_id: Annotated[int, Depends(get_user_id_from_header)],
     db: Annotated[Session, Depends(get_db)],
-    interaction_service: Annotated[
-        UserInteractionService, Depends(get_user_interaction_service)
-    ],
+    interaction_service: Annotated[UserInteractionService, Depends(get_user_interaction_service)],
 ) -> ActionResponse:
     """
     Unlike a movie by removing it from liked movies collection.
@@ -883,9 +823,7 @@ async def unlike_movie(
         metrics.record_user_collection_operation("remove", "liked_movies", "started")
 
     try:
-        interaction, was_removed = interaction_service.unlike_movie(
-            db, user_id, movie_id
-        )
+        interaction, was_removed = interaction_service.unlike_movie(db, user_id, movie_id)
 
         if not was_removed:
             raise HTTPException(
@@ -895,9 +833,7 @@ async def unlike_movie(
 
         ***REMOVED*** Record successful user collection operation metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "remove", "liked_movies", "success"
-            )
+            metrics.record_user_collection_operation("remove", "liked_movies", "success")
 
         return responses.action(
             success=True,
@@ -917,7 +853,5 @@ async def unlike_movie(
     except ValidationError as e:
         ***REMOVED*** Record error metrics
         if metrics:
-            metrics.record_user_collection_operation(
-                "remove", "liked_movies", "validation_error"
-            )
+            metrics.record_user_collection_operation("remove", "liked_movies", "validation_error")
         raise service_error_to_http_exception(e)

@@ -63,9 +63,7 @@ async def list_genres(db: Session = Depends(get_db)) -> GenresListResponse:
 
 
 @router.get("/{genre_id}", response_model=GenreResponse)
-async def get_genre_details(
-    genre_id: int, db: Session = Depends(get_db)
-) -> GenreResponse:
+async def get_genre_details(genre_id: int, db: Session = Depends(get_db)) -> GenreResponse:
     """
     Get detailed information for a specific genre by its ID.
     """
@@ -99,9 +97,7 @@ async def get_genre_details(
 
 
 @router.get("/name/{name}", response_model=GenreResponse)
-async def get_genre_by_name_route(
-    name: str, db: Session = Depends(get_db)
-) -> GenreResponse:
+async def get_genre_by_name_route(name: str, db: Session = Depends(get_db)) -> GenreResponse:
     """
     Get genre information by its name.
     """

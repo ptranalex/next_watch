@@ -34,9 +34,7 @@ class TextSuggestion(BaseModel):
     year: int | None = None  ***REMOVED*** Useful for movies
     popularity: float | None = None
     is_partial: bool = False  ***REMOVED*** Whether this is a partial/incomplete match
-    search_type: str = (
-        "unknown"  ***REMOVED*** How this suggestion was matched (exact, prefix, word, contains)
-    )
+    search_type: str = "unknown"  ***REMOVED*** How this suggestion was matched (exact, prefix, word, contains)
     additional_info: dict[str, Any] | None = None
 
 
@@ -66,9 +64,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 @router.get("/suggestions", response_model=SuggestionsResponse)
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
-    limit: int = Query(
-        10, ge=1, le=20, description="Max number of suggestions to return"
-    ),
+    limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
     db: Session = Depends(get_db),
 ) -> SuggestionsResponse:
     """
@@ -79,9 +75,7 @@ async def get_search_suggestions(
     ***REMOVED*** Record metrics
     metrics = get_backend_metrics()
     if metrics:
-        metrics.record_movie_search(
-            "suggestions", 0, 0.0
-        )  ***REMOVED*** No filters, placeholder duration
+        metrics.record_movie_search("suggestions", 0, 0.0)  ***REMOVED*** No filters, placeholder duration
 
     try:
         logger.debug(f"Getting search suggestions for '{query}'")
@@ -117,9 +111,7 @@ async def get_text_suggestions(
 
         ***REMOVED*** Use MovieQuery to search for movies that match the query
         movie_query = MovieQuery()
-        movies, _ = movie_query.search_movies_by_title(
-            db, title_search=query, skip=0, limit=limit
-        )
+        movies, _ = movie_query.search_movies_by_title(db, title_search=query, skip=0, limit=limit)
 
         ***REMOVED*** Format as suggestions
         formatted_suggestions = []
