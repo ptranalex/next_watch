@@ -5,7 +5,7 @@ popularity data and trending movie data.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from config.logging import get_logger
 
@@ -30,7 +30,7 @@ class RecommendationDataProviders:
             self._movie_adapter = get_movie_adapter()
         return self._movie_adapter
 
-    async def get_popularity_data(self) -> Dict[str, Any]:
+    async def get_popularity_data(self) -> dict[str, Any]:
         """Get recommendation-specific popularity data for warming.
 
         Returns:
@@ -62,7 +62,7 @@ class RecommendationDataProviders:
                 "timestamp": datetime.now().isoformat(),
             }
 
-    async def _get_popular_movie_ids(self, limit: int = 50) -> List[int]:
+    async def _get_popular_movie_ids(self, limit: int = 50) -> list[int]:
         """Get popular movie IDs for warming.
 
         Args:
@@ -84,7 +84,7 @@ class RecommendationDataProviders:
             logger.error(f"Failed to get popular movie IDs: {e}")
             return []
 
-    async def _get_trending_movie_ids(self, limit: int = 50) -> List[int]:
+    async def _get_trending_movie_ids(self, limit: int = 50) -> list[int]:
         """Get trending movie IDs for warming.
 
         Args:
@@ -106,7 +106,7 @@ class RecommendationDataProviders:
             logger.error(f"Failed to get trending movie IDs: {e}")
             return []
 
-    async def _get_recently_updated_movie_ids(self, limit: int = 50) -> List[int]:
+    async def _get_recently_updated_movie_ids(self, limit: int = 50) -> list[int]:
         """Get recently updated movie IDs for warming similar movies.
 
         Args:

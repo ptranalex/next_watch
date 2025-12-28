@@ -8,4 +8,4 @@ including databases, vector stores, and external services.
 from recommendation_api.repositories.vector import VectorRepository
 
 ***REMOVED*** Export public API
-__all__ = ["VectorRepository"] 
+__all__ = ["VectorRepository"]

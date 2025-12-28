@@ -4,7 +4,7 @@ This module provides a client for interacting with the ML API service
 to generate embeddings for movies and user preferences.
 """
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
 import httpx
 from config.logging import get_logger
@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 class MLApiClient:
     """Client for interacting with the ML API service."""
 
-    def __init__(self, base_url: Optional[str] = None, timeout: float = 30.0):
+    def __init__(self, base_url: str | None = None, timeout: float = 30.0):
         """Initialize the ML API client.
 
         Args:
@@ -30,7 +30,7 @@ class MLApiClient:
         logger.info(f"Initialized ML API client with base URL: {self.base_url}")
 
     async def _make_request(
-        self, method: str, endpoint: str, json_data: Optional[Dict[str, Any]] = None
+        self, method: str, endpoint: str, json_data: dict[str, Any] | None = None
     ) -> Response:
         """Make a request to the ML API.
 
@@ -60,7 +60,7 @@ class MLApiClient:
             response.raise_for_status()
             return response
 
-    async def generate_movie_embedding(self, movie_features: Dict[str, Any]) -> List[float]:
+    async def generate_movie_embedding(self, movie_features: dict[str, Any]) -> list[float]:
         """Generate an embedding for a movie.
 
         Args:
@@ -92,14 +92,14 @@ class MLApiClient:
 
         ***REMOVED*** Process response
         response_data = response.json()
-        return cast(List[float], response_data["embedding"])
+        return cast(list[float], response_data["embedding"])
 
     async def generate_user_preference_vector(
         self,
         user_id: str,
-        liked_movies: List[Dict[str, Any]],
-        watched_genres: Dict[str, float],
-    ) -> List[float]:
+        liked_movies: list[dict[str, Any]],
+        watched_genres: dict[str, float],
+    ) -> list[float]:
         """Generate a user preference vector.
 
         Args:
@@ -126,9 +126,9 @@ class MLApiClient:
 
         ***REMOVED*** Process response
         response_data = response.json()
-        return cast(List[float], response_data["preference_vector"])
+        return cast(list[float], response_data["preference_vector"])
 
-    async def get_model_info(self) -> Dict[str, Any]:
+    async def get_model_info(self) -> dict[str, Any]:
         """Get information about the embedding model.
 
         Returns:
@@ -141,11 +141,11 @@ class MLApiClient:
         response = await self._make_request("GET", "/api/v1/embeddings/info")
 
         ***REMOVED*** Process response
-        return cast(Dict[str, Any], response.json())
+        return cast(dict[str, Any], response.json())
 
 
 ***REMOVED*** Singleton instance
-_ml_api_client: Optional[MLApiClient] = None
+_ml_api_client: MLApiClient | None = None
 
 
 def get_ml_api_client() -> MLApiClient:

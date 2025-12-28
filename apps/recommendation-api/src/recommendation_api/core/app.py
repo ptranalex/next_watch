@@ -4,33 +4,34 @@ This module contains the FastAPI application factory, lifespan management,
 and global exception handling for the Next Watch Recommendation API service.
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional, Any, Dict
-
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+from typing import Any
 
 from config.logging import get_logger
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 from recommendation_api.core.middleware import setup_middleware
-from recommendation_api.routes.health import router as health_router
 from recommendation_api.routes import api_v1_router
-from recommendation_api.services.health_service import get_health_service, close_health_service
+from recommendation_api.routes.health import router as health_router
+from recommendation_api.services.backend_client import close_backend_client, get_backend_client
 from recommendation_api.services.cache_service import (
-    get_cache_service,
     close_cache_service,
     configure_recommendation_warming,
+    get_cache_service,
     start_background_warming,
     stop_background_warming,
 )
-from recommendation_api.services.backend_client import get_backend_client, close_backend_client
+from recommendation_api.services.health_service import close_health_service, get_health_service
 from recommendation_api.services.movie_adapter import get_movie_adapter
-from recommendation_api.services.vector_service import get_vector_service, close_vector_service
+from recommendation_api.services.vector_service import close_vector_service, get_vector_service
 
 logger = get_logger(__name__)
 
 ***REMOVED*** Module-level settings for lifespan access
-_app_settings: Optional[Any] = None
+_app_settings: Any | None = None
 
 
 @asynccontextmanager
@@ -146,7 +147,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     try:
         ***REMOVED*** Initialize the global backend client
-        backend_client = get_backend_client()
+        get_backend_client()
         logger.info(
             "Backend client initialized successfully",
             service="recommendation-api",
@@ -167,7 +168,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     try:
         ***REMOVED*** Initialize the global movie adapter
-        movie_adapter = get_movie_adapter()
+        get_movie_adapter()
         logger.info(
             "Movie adapter initialized successfully",
             service="recommendation-api",
@@ -188,7 +189,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     try:
         ***REMOVED*** Initialize the global vector service
-        vector_service = get_vector_service()
+        get_vector_service()
         logger.info(
             "Vector service initialized successfully",
             service="recommendation-api",
@@ -348,7 +349,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
-def create_app(settings: Optional[Any] = None) -> FastAPI:
+def create_app(settings: Any | None = None) -> FastAPI:
     """Create and configure FastAPI application.
 
     Args:

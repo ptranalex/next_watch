@@ -5,8 +5,9 @@ using different warming strategies.
 """
 
 import asyncio
+from contextlib import suppress
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cache import WarmingStrategy
 from config.logging import get_logger
@@ -17,7 +18,7 @@ from recommendation_api.services.cache_service.warming import get_recommendation
 logger = get_logger(__name__)
 
 ***REMOVED*** Global background task
-_background_task: Optional[asyncio.Task] = None
+_background_task: asyncio.Task | None = None
 _is_running = False
 
 
@@ -31,8 +32,8 @@ class BackgroundWarmingService:
             settings, "warming_interval_seconds", 3600
         )  ***REMOVED*** Default: 1 hour
         self.is_running = False
-        self.last_run: Optional[datetime] = None
-        self.stats: Dict[str, Any] = {}
+        self.last_run: datetime | None = None
+        self.stats: dict[str, Any] = {}
 
     async def start(self) -> None:
         """Start the background warming service."""
@@ -117,7 +118,7 @@ class BackgroundWarmingService:
             scheduled_targets=scheduled_stats.get("targets_warmed", 0),
         )
 
-    async def _run_strategy(self, strategy: WarmingStrategy) -> Dict[str, Any]:
+    async def _run_strategy(self, strategy: WarmingStrategy) -> dict[str, Any]:
         """Run a specific warming strategy.
 
         Args:
@@ -160,7 +161,7 @@ class BackgroundWarmingService:
                 "timestamp": datetime.now().isoformat(),
             }
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get statistics about the background warming service.
 
         Returns:
@@ -175,7 +176,7 @@ class BackgroundWarmingService:
 
 
 ***REMOVED*** Global background warming service instance
-_background_warming_service: Optional[BackgroundWarmingService] = None
+_background_warming_service: BackgroundWarmingService | None = None
 
 
 def get_background_warming_service() -> BackgroundWarmingService:
@@ -237,10 +238,8 @@ async def stop_background_warming() -> None:
 
         if _background_task:
             _background_task.cancel()
-            try:
+            with suppress(asyncio.CancelledError):
                 await _background_task
-            except asyncio.CancelledError:
-                pass
             _background_task = None
 
         _is_running = False

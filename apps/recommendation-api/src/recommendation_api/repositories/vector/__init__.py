@@ -4,19 +4,19 @@ This package provides access to vector databases for similarity search operation
 """
 
 from recommendation_api.repositories.vector.repository import (
+    batch_store_embeddings,
+    close_vector_repository,
     create_collection,
-    store_movie_embedding,
-    search_similar_movies,
-    get_movie_embedding,
     delete_movie_embedding,
     get_collection_info,
-    batch_store_embeddings,
-    search_by_movie_id,
     get_embeddings_stats,
+    get_movie_embedding,
     get_vector_repository,
-    close_vector_repository,
-    search_similar_movies_with_metadata,
+    search_by_movie_id,
     search_by_movie_id_with_metadata,
+    search_similar_movies,
+    search_similar_movies_with_metadata,
+    store_movie_embedding,
 )
 
 ***REMOVED*** Define the public API

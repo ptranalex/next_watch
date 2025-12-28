@@ -4,10 +4,11 @@ This module contains Pydantic models for recommendation requests and responses,
 including validation rules and data structures.
 """
 
+from contextlib import suppress
+from datetime import date, datetime
+from typing import Any
+
 from config.logging import get_logger
-import json
-from typing import List, Optional, Dict, Any
-from datetime import datetime, date
 from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
@@ -18,18 +19,18 @@ class MovieRecommendation(BaseModel):
 
     id: int = Field(..., description="Movie ID")
     title: str = Field(..., description="Movie title")
-    overview: Optional[str] = Field(None, description="Movie overview/plot")
-    release_date: Optional[date] = Field(None, description="Release date")
-    imdb_rating: Optional[float] = Field(None, ge=0, le=10, description="IMDb rating (0-10)")
-    tmdb_rating: Optional[float] = Field(None, ge=0, le=10, description="TMDB rating (0-10)")
-    poster_url: Optional[str] = Field(None, description="URL to movie poster")
-    genres: Optional[List[str]] = Field(None, description="List of genres")
-    score: Optional[float] = Field(None, ge=0, le=1, description="Similarity score (0-1)")
-    reason: Optional[str] = Field(None, description="Reason for recommendation")
+    overview: str | None = Field(None, description="Movie overview/plot")
+    release_date: date | None = Field(None, description="Release date")
+    imdb_rating: float | None = Field(None, ge=0, le=10, description="IMDb rating (0-10)")
+    tmdb_rating: float | None = Field(None, ge=0, le=10, description="TMDB rating (0-10)")
+    poster_url: str | None = Field(None, description="URL to movie poster")
+    genres: list[str] | None = Field(None, description="List of genres")
+    score: float | None = Field(None, ge=0, le=1, description="Similarity score (0-1)")
+    reason: str | None = Field(None, description="Reason for recommendation")
 
     @classmethod
     def from_movie(
-        cls, movie: Any, reason: Optional[str] = None, score: Optional[float] = None
+        cls, movie: Any, reason: str | None = None, score: float | None = None
     ) -> "MovieRecommendation":
         """Create a MovieRecommendation from a Movie model.
 
@@ -45,15 +46,15 @@ class MovieRecommendation(BaseModel):
             raise ValueError("Movie must have a valid ID")
 
         ***REMOVED*** Handle different date formats
-        release_date = None
+        release_date: date | None = None
         if hasattr(movie, "release_date") and movie.release_date:
-            if isinstance(movie.release_date, (date, datetime)):
+            if isinstance(movie.release_date, datetime):
+                release_date = movie.release_date.date()
+            elif isinstance(movie.release_date, date):
                 release_date = movie.release_date
             elif isinstance(movie.release_date, str):
-                try:
+                with suppress(ValueError):
                     release_date = datetime.strptime(movie.release_date, "%Y-%m-%d").date()
-                except ValueError:
-                    pass
 
         ***REMOVED*** Handle genres - extract names from Genre objects if needed
         genres = None
@@ -82,12 +83,12 @@ class MovieRecommendation(BaseModel):
 class RecommendationsResponse(BaseModel):
     """Response model for movie recommendations."""
 
-    recommendations: List[MovieRecommendation] = Field(
+    recommendations: list[MovieRecommendation] = Field(
         ..., description="List of movie recommendations"
     )
     total: int = Field(..., ge=0, description="Total number of recommendations")
     type: str = Field(..., description="Type of recommendations")
-    filters: Dict[str, Any] = Field({}, description="Filters used for recommendations")
+    filters: dict[str, Any] = Field({}, description="Filters used for recommendations")
     timestamp: datetime = Field(default_factory=datetime.now, description="Timestamp of response")
 
     class Config:
@@ -117,7 +118,7 @@ class RecommendationRequest(BaseModel):
     user_id: int = Field(..., description="User ID to generate recommendations for")
     count: int = Field(10, ge=1, le=50, description="Number of recommendations to return")
     min_rating: float = Field(6.0, ge=0.0, le=10.0, description="Minimum IMDb rating")
-    genres: Optional[List[str]] = Field(None, description="Filter by genres")
+    genres: list[str] | None = Field(None, description="Filter by genres")
     exclude_watched: bool = Field(True, description="Exclude already watched movies")
     include_trending: bool = Field(True, description="Include trending movies")
     diversity_boost: bool = Field(True, description="Apply diversity boost")
@@ -127,10 +128,10 @@ class RecommendationResponse(BaseModel):
     """Model for recommendation response."""
 
     user_id: int = Field(..., description="User ID recommendations were generated for")
-    recommendations: List[MovieRecommendation] = Field(
+    recommendations: list[MovieRecommendation] = Field(
         ..., description="List of movie recommendations"
     )
     total_count: int = Field(..., description="Total number of recommendations")
     source: str = Field(..., description="Recommendation source (collaborative/content/hybrid)")
     timestamp: str = Field(..., description="Timestamp of recommendation generation")
-    metadata: dict = Field(default_factory=dict, description="Additional metadata")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")

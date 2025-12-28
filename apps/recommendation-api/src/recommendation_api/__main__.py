@@ -4,9 +4,9 @@ import os
 import sys
 
 import uvicorn
+from config.logging import get_logger
 
 from recommendation_api.config.app import settings
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 

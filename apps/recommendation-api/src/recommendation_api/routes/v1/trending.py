@@ -1,32 +1,27 @@
 """Trending movie recommendation endpoints."""
 
-from config.logging import get_logger
-from typing import Optional, Dict, Any
+from typing import Any
 
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
-from fastapi import APIRouter, HTTPException, Depends, Query, status
-from sqlalchemy.exc import SQLAlchemyError
-
+from config.logging import get_logger
 from fast_core.errors import (
-    optional_service_handler,
     ValidationException,
+    optional_service_handler,
 )
+from fastapi import APIRouter, Depends, Query
 
-from recommendation_api.services.movie_adapter import MovieDataAdapter
-from recommendation_api.services.recommendation import RecommendationService
-from recommendation_api.dependencies.common import (
-    get_movie_adapter_dependency,
-    get_recommendation_service,
-)
-from recommendation_api.models.recommendation import (
-    MovieRecommendation,
-    RecommendationsResponse,
-)
 from recommendation_api.core.metrics import (
     get_recommendation_metrics,
     track_trending_recommendation,
 )
+from recommendation_api.dependencies.common import (
+    get_recommendation_service,
+)
+from recommendation_api.models.recommendation import (
+    RecommendationsResponse,
+)
+from recommendation_api.services.recommendation import RecommendationService
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -36,12 +31,12 @@ router = APIRouter()
 def _build_trending_movies_key(
     limit: int = 20,
     days: int = 7,
-    min_rating: Optional[float] = None,
-    recommendation_service: RecommendationService = None,
+    min_rating: float | None = None,
+    recommendation_service: RecommendationService | None = None,
     **kwargs,
 ) -> str:
     """Build a custom cache key for trending movies."""
-    parts = [f"limit:{limit}", f"days:{days}"]
+    parts: list[str | int | None] = [f"limit:{limit}", f"days:{days}"]
     if min_rating is not None:
         parts.append(f"rating:{min_rating}")
 
@@ -56,9 +51,9 @@ def _build_trending_movies_key(
 async def _get_trending_recommendations_data(
     limit: int,
     days: int,
-    min_rating: Optional[float],
+    min_rating: float | None,
     recommendation_service: RecommendationService,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Internal cached function for trending recommendations data.
 
     This function returns a dictionary that can be JSON serialized for caching.
@@ -114,7 +109,7 @@ async def _get_trending_recommendations_data(
 async def get_trending_recommendations_endpoint(
     limit: int = Query(20, ge=1, le=100),
     days: int = Query(7, ge=1, le=30),
-    min_rating: Optional[float] = Query(None, ge=0, le=10),
+    min_rating: float | None = Query(None, ge=0, le=10),
     recommendation_service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationsResponse:
     """Get trending movie recommendations.

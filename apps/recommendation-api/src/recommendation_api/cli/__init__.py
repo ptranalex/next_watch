@@ -7,7 +7,6 @@ including server management, configuration, health checks, and embedding operati
 import importlib.metadata
 import logging
 import sys
-from typing import Optional
 
 ***REMOVED*** Try to get version from package metadata
 try:
@@ -41,38 +40,9 @@ def main() -> None:
         sys.exit(1)
 
 
-***REMOVED*** Import these after the main function to avoid circular imports
-from recommendation_api.cli.main import app as cli_app
-from recommendation_api.cli.utils import (
-    print_error,
-    print_success,
-    print_config,
-)
-
-***REMOVED*** Import command modules - these are primarily for IDE auto-completion and docs
-from recommendation_api.cli.commands import (
-    serve,
-    config,
-    health,
-    embeddings,
-    debug,
-)
-
 __all__ = [
     ***REMOVED*** Version
     "__version__",
     ***REMOVED*** Main function
     "main",
-    ***REMOVED*** Main CLI app
-    "cli_app",
-    ***REMOVED*** Utility functions
-    "print_error",
-    "print_success",
-    "print_config",
-    ***REMOVED*** Command modules
-    "serve",
-    "config",
-    "health",
-    "embeddings",
-    "debug",
 ]

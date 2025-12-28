@@ -1,21 +1,18 @@
 """Main CLI application for Recommendation API service."""
 
+import importlib.metadata
 import logging
 import sys
-from pathlib import Path
-from typing import Optional, Dict, Any
 
 import typer
-import uvicorn
 from rich.console import Console
 from rich.traceback import install
 
 ***REMOVED*** Import command modules
-from recommendation_api.cli.commands import serve, config, health, embeddings, debug, cache, ml
+from recommendation_api.cli.commands import cache, config, debug, embeddings, health, ml, serve
 
 ***REMOVED*** Import configuration and utilities
-from recommendation_api.config.app import settings, Config
-from recommendation_api.cli.utils import print_config
+from recommendation_api.config.app import settings
 
 ***REMOVED*** Install rich traceback handler
 install()
@@ -46,8 +43,6 @@ def show_version() -> None:
     try:
         ***REMOVED*** Try to get version from package metadata
         try:
-            import importlib.metadata
-
             version = importlib.metadata.version("recommendation_api")
         except (importlib.metadata.PackageNotFoundError, AttributeError):
             version = "development"
@@ -58,7 +53,7 @@ def show_version() -> None:
 
     except Exception as e:
         console.print(f"[bold red]Error getting version: {e}[/bold red]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

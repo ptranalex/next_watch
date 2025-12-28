@@ -4,28 +4,26 @@ This module provides functionality for generating movie recommendations
 based on various criteria and user preferences.
 """
 
-from config.logging import get_logger
-from typing import List, Optional, Dict, Any, Tuple, Union, TypeVar, cast
 import time
+from typing import Any
 
+from config.logging import get_logger
 from fast_core.errors import (
+    ValidationException,
     critical_service_handler,
     optional_service_handler,
-    ValidationException,
-    ResourceNotFoundException,
 )
 
-***REMOVED*** No longer importing database operations - using API-based approach via MovieDataAdapter
-from recommendation_api.services.vector_service import VectorService, get_vector_service
+***REMOVED*** Remove movie_storage dependency - now using API-based approach
+from recommendation_api.models.recommendation import MovieRecommendation
 
 ***REMOVED*** Replace local embedding import with ML API client
 ***REMOVED*** from recommendation_api.services.embedding import generate_user_preference_vector
 from recommendation_api.services.ml_api_client import get_ml_api_client
-
-***REMOVED*** Remove movie_storage dependency - now using API-based approach
-from recommendation_api.models.recommendation import MovieRecommendation
 from recommendation_api.services.movie_adapter import MovieDataAdapter
-from recommendation_api.config import settings
+
+***REMOVED*** No longer importing database operations - using API-based approach via MovieDataAdapter
+from recommendation_api.services.vector_service import VectorService, get_vector_service
 
 logger = get_logger(__name__)
 
@@ -34,7 +32,7 @@ class RecommendationService:
     """Service for generating movie recommendations."""
 
     def __init__(
-        self, movie_adapter: MovieDataAdapter, vector_service: Optional[VectorService] = None
+        self, movie_adapter: MovieDataAdapter, vector_service: VectorService | None = None
     ):
         """Initialize the recommendation service.
 
@@ -77,7 +75,7 @@ class RecommendationService:
         limit: int = 20,
         min_rating: float = 7.0,
         min_vote_count: int = 1000,
-    ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
+    ) -> tuple[list[MovieRecommendation], dict[str, Any]]:
         """Get popular movie recommendations using the backend API.
 
         This now uses the MovieDataAdapter to fetch data from backend-api
@@ -130,7 +128,7 @@ class RecommendationService:
         limit: int = 20,
         min_rating: float = 7.0,
         min_vote_count: int = 1000,
-    ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
+    ) -> tuple[list[MovieRecommendation], dict[str, Any]]:
         """Get personalized movie recommendations using the backend API.
 
         This now uses the MovieDataAdapter to fetch data from backend-api
@@ -181,7 +179,7 @@ class RecommendationService:
         min_rating: float = 6.0,
         min_vote_count: int = 500,
         min_score: float = 0.01,
-    ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
+    ) -> tuple[list[MovieRecommendation], dict[str, Any]]:
         """Get similar movies based on vector similarity.
 
         Uses graceful degradation - returns empty list if vector service is unavailable.
@@ -250,10 +248,12 @@ class RecommendationService:
                     if source_embedding:
                         ***REMOVED*** Try to get source movie metadata from vector DB
                         try:
-                            from recommendation_api.repositories.vector import get_qdrant_client
+                            from recommendation_api.repositories.vector.client import (
+                                get_qdrant_client,
+                            )
 
                             client = get_qdrant_client()
-                            source_point = client.get_point(movie_id, with_payload=True)
+                            source_point = client.get_point(point_id=movie_id, with_vectors=False)
                             if source_point and source_point.payload:
                                 source_movie_title = source_point.payload.get("title", "Unknown")
                         except Exception as e:
@@ -298,7 +298,7 @@ class RecommendationService:
                     ***REMOVED*** Create recommendation objects with similarity scores
                     recommendations = []
 
-                    for movie_id_val, score, movie_metadata in filtered_movies:
+                    for _movie_id_val, score, movie_metadata in filtered_movies:
                         reason = f"similar to {source_movie_title}"
 
                         ***REMOVED*** Convert metadata to recommendation using adapter's helper
@@ -436,9 +436,9 @@ class RecommendationService:
     async def generate_user_preference_vector(
         self,
         user_id: int,
-        liked_movies: List[Dict[str, Any]],
-        watched_genres: Dict[str, float],
-    ) -> List[float]:
+        liked_movies: list[dict[str, Any]],
+        watched_genres: dict[str, float],
+    ) -> list[float]:
         """Generate a user preference vector using the ML API.
 
         Args:

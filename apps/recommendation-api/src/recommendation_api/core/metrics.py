@@ -5,9 +5,11 @@ including recommendation generation, vector similarity searches, caching perform
 ML API integration, and personalization algorithms.
 """
 
-from typing import Dict, Optional, Any, Callable, TypeVar
-from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
+from collections.abc import Callable
+from typing import Any, TypeVar
+
 from config.logging import get_logger
+from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
 
 ***REMOVED*** Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
@@ -53,7 +55,7 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
 class RecommendationMetrics:
     """Recommendation-specific metrics collection."""
 
-    def __init__(self, metrics_registry: Optional[MetricsRegistry] = None):
+    def __init__(self, metrics_registry: MetricsRegistry | None = None):
         """Initialize Recommendation metrics."""
         self.registry = metrics_registry or get_metrics_registry()
         if not self.registry:
@@ -273,15 +275,15 @@ class RecommendationMetrics:
 
 
 ***REMOVED*** Global Recommendation metrics instance
-_recommendation_metrics: Optional[RecommendationMetrics] = None
+_recommendation_metrics: RecommendationMetrics | None = None
 
 
-def get_recommendation_metrics() -> Optional[RecommendationMetrics]:
+def get_recommendation_metrics() -> RecommendationMetrics | None:
     """Get the global Recommendation metrics instance."""
     return _recommendation_metrics
 
 
-def initialize_recommendation_metrics() -> Optional[RecommendationMetrics]:
+def initialize_recommendation_metrics() -> RecommendationMetrics | None:
     """Initialize global Recommendation metrics instance."""
     global _recommendation_metrics
     _recommendation_metrics = RecommendationMetrics()
@@ -292,7 +294,7 @@ def initialize_recommendation_metrics() -> Optional[RecommendationMetrics]:
 
 ***REMOVED*** Decorators for tracking Recommendation operations
 def track_recommendation_operation(
-    operation_name: str, labels: Optional[Dict[str, str]] = None
+    operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:
     """Decorator to track Recommendation-specific operations."""
     registry = get_metrics_registry()

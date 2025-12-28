@@ -1,15 +1,13 @@
 """Configuration settings for the Recommendation API service using the config library."""
 
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from pydantic import Field, validator, computed_field
 from config.base.config import ServiceConfig
-from config.services.cache import CacheConfigMixin
-from config.services.vector import VectorDBConfigMixin
-from config.services.monitoring import MonitoringConfigMixin
-from config.profiles.service_profiles import apply_profiles
-
 from config.logging import get_logger
+from config.services.cache import CacheConfigMixin
+from config.services.monitoring import MonitoringConfigMixin
+from config.services.vector import VectorDBConfigMixin
+from pydantic import Field, validator
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
@@ -28,7 +26,7 @@ class RecommendationAPIConfig(
     port: int = Field(default=8002, description="Service port")
 
     ***REMOVED*** Logging configuration
-    logs_dir: Optional[str] = Field(
+    logs_dir: str | None = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
 
@@ -100,7 +98,7 @@ class RecommendationAPIConfig(
 
     ***REMOVED*** Monitoring settings
 
-    metrics_port: int = Field(default=9090, description="Metrics server port")
+    metrics_port: int | None = Field(default=9090, description="Metrics server port")
     health_check_interval: int = Field(default=30, description="Health check interval in seconds")
 
     ***REMOVED*** Compatibility property for vector_collection_name vs qdrant_collection_name
@@ -194,7 +192,7 @@ class RecommendationAPIConfig(
         return v
 
     @validator("user_vector_weight", "content_vector_weight")
-    def validate_weights_sum(cls, v: float, values: Dict[str, Any]) -> float:
+    def validate_weights_sum(cls, v: float, values: dict[str, Any]) -> float:
         """Validate that weights sum to 1.0."""
         if "user_vector_weight" in values and "content_vector_weight" in values:
             total = values["user_vector_weight"] + v
@@ -202,7 +200,7 @@ class RecommendationAPIConfig(
                 raise ValueError("User and content vector weights must sum to 1.0")
         return v
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment."""
         issues = []
 
@@ -236,13 +234,13 @@ class RecommendationAPIConfig(
         return f"""Recommendation API Configuration:
   Environment: {self.environment}
   Service: {self.service_name}
-  
+
   HTTP Service:
     Host: {self.host}
     Port: {self.port}
     Debug: {self.debug}
-    CORS Origins: {', '.join(self.cors_origins)}
-    Allowed Hosts: {', '.join(self.allowed_hosts)}
+    CORS Origins: {", ".join(self.cors_origins)}
+    Allowed Hosts: {", ".join(self.allowed_hosts)}
 
   Service URLs:
     Backend: {self.backend_api_url}
@@ -263,7 +261,7 @@ class RecommendationAPIConfig(
     Content Filtering: {self.enable_content_filtering}
     Trending Fallback: {self.enable_trending_fallback}
     Diversity Boost: {self.enable_diversity_boost}
-    
+
   Recommendation Settings:
     Default Count: {self.default_recommendation_count}
     Min IMDb Rating: {self.min_imdb_rating}

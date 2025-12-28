@@ -4,8 +4,9 @@ This module provides warming functions that call the actual cached endpoints
 to populate the cache with recommendation data.
 """
 
+from typing import Any
+
 from config.logging import get_logger
-from typing import Any, Dict, List, Optional
 
 from recommendation_api.config import settings
 from recommendation_api.services.movie_adapter import MovieDataAdapter, get_movie_adapter
@@ -55,7 +56,7 @@ class RecommendationWarmingFunctions:
 
     async def warm_similar_movies(
         self, movie_id: int, limit: int = 20, min_score: float = 0.01
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Warm the similar movies cache for a specific movie.
 
         Args:
@@ -98,7 +99,7 @@ class RecommendationWarmingFunctions:
 
     async def warm_popular_movies(
         self, limit: int = 20, min_rating: float = 7.0, min_vote_count: int = 1000
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Warm the popular movies cache.
 
         Args:
@@ -139,8 +140,8 @@ class RecommendationWarmingFunctions:
             }
 
     async def warm_trending_movies(
-        self, limit: int = 20, days: int = 7, min_rating: Optional[float] = None
-    ) -> Dict[str, Any]:
+        self, limit: int = 20, days: int = 7, min_rating: float | None = None
+    ) -> dict[str, Any]:
         """Warm the trending movies cache.
 
         Args:

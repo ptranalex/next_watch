@@ -1,17 +1,15 @@
 """Server commands for the Recommendation API CLI."""
 
-from typing import Union, Dict, Any
 import typer
-from typer import Typer
 import uvicorn
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.panel import Panel
-from rich.text import Text
 from rich.table import Table
+from typer import Typer
 
-from recommendation_api.config.app import settings, Config
 from recommendation_api.cli.utils import print_error, print_success
-from config.logging import configure_logging, get_logger
+from recommendation_api.config.app import RecommendationAPIConfig
 
 app: Typer = typer.Typer(
     name="serve",
@@ -108,7 +106,7 @@ def start(
 
     try:
         ***REMOVED*** Get configuration
-        config = Config()
+        config = RecommendationAPIConfig()
 
         ***REMOVED*** Override config with command line arguments
         if host:
@@ -119,8 +117,7 @@ def start(
             config.log_level = log_level
         if reload:
             config.reload = reload
-        if verbose:
-            config.verbose = verbose
+        ***REMOVED*** Note: verbose is handled by logging, not stored in config
         if workers:
             config.workers = workers
 
@@ -166,7 +163,7 @@ def start(
         print_error(f"Failed to start server: {str(e)}", console)
         if verbose:
             logger.exception("Server start error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -201,7 +198,7 @@ def stop(
         print_error("Failed to stop server", console, e)
         if verbose:
             logger.exception("Server stop error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -280,7 +277,7 @@ def restart(
         print_error(f"Failed to restart server: {str(e)}", console)
         if verbose:
             logger.exception("Server restart error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.callback(invoke_without_command=True)

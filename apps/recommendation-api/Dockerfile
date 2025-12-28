@@ -1,5 +1,5 @@
 ***REMOVED*** Recommendation API Optimized Multi-Stage Dockerfile
-***REMOVED*** 
+***REMOVED***
 ***REMOVED*** Build context should be the monorepo root to access local dependencies:
 ***REMOVED*** docker build -f apps/recommendation-api/Dockerfile -t recommendation-api .
 
@@ -97,4 +97,4 @@ ENTRYPOINT ["/sbin/tini", "--"]
 ***REMOVED*** Run the application using Python module entry point
 ***REMOVED*** This allows the app to use its own settings configuration
 ***REMOVED*** rather than manually passing uvicorn parameters
-CMD ["python", "-m", "recommendation_api"] 
+CMD ["python", "-m", "recommendation_api"]

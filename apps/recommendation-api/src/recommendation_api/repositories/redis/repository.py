@@ -4,10 +4,11 @@ This module provides the RedisRepository class for caching and retrieving
 precomputed recommendation data, especially similar movie recommendations.
 """
 
-from config.logging import get_logger
 import json
-from typing import List, Optional, Dict, Any, Tuple, Union, Set, cast
+from typing import Any, cast
+
 import redis
+from config.logging import get_logger
 from redis.exceptions import RedisError
 
 from recommendation_api.config import settings
@@ -26,7 +27,7 @@ class RedisRepository:
 
     def __init__(
         self,
-        redis_url: Optional[str] = None,
+        redis_url: str | None = None,
         default_ttl: int = DEFAULT_CACHE_TTL,
     ):
         """Initialize the Redis repository.
@@ -37,10 +38,10 @@ class RedisRepository:
         """
         self.redis_url = redis_url or settings.redis_url
         self.default_ttl = default_ttl
-        self._client: Optional[redis.Redis] = None
+        self._client: redis.Redis[str] | None = None
 
     @property
-    def client(self) -> redis.Redis:
+    def client(self) -> redis.Redis[str]:
         """Get the Redis client, creating it if needed.
 
         Returns:
@@ -94,8 +95,8 @@ class RedisRepository:
     def store_similar_movies(
         self,
         movie_id: int,
-        similar_movies: List[Tuple[int, float]],
-        ttl: Optional[int] = None,
+        similar_movies: list[tuple[int, float]],
+        ttl: int | None = None,
     ) -> bool:
         """Store similar movies in Redis.
 
@@ -129,9 +130,9 @@ class RedisRepository:
     def get_similar_movies(
         self,
         movie_id: int,
-        limit: Optional[int] = None,
-        min_score: Optional[float] = None,
-    ) -> Optional[List[Tuple[int, float]]]:
+        limit: int | None = None,
+        min_score: float | None = None,
+    ) -> list[tuple[int, float]] | None:
         """Get similar movies from Redis.
 
         Args:
@@ -190,13 +191,12 @@ class RedisRepository:
         try:
             result = self.client.delete(key)
             logger.debug(f"Deleted similar movies for movie {movie_id}")
-            ***REMOVED*** Cast result to int to satisfy type checker
-            return bool(cast(int, result) > 0)
+            return bool(result > 0)
         except RedisError as e:
             logger.error(f"Failed to delete similar movies for {movie_id}: {e}")
             return False
 
-    def get_cache_info(self) -> Dict[str, Any]:
+    def get_cache_info(self) -> dict[str, Any]:
         """Get information about the Redis cache.
 
         Returns:
@@ -207,12 +207,12 @@ class RedisRepository:
             pattern = f"{SIMILAR_MOVIES_KEY_PREFIX}:*"
             keys_result = self.client.keys(pattern)
             ***REMOVED*** Convert to list to satisfy type checker
-            similar_keys = list(cast(List[str], keys_result))
+            similar_keys = list(cast(list[str], keys_result))
 
             ***REMOVED*** Get server info
             info_result = self.client.info()
             ***REMOVED*** Convert to dict to satisfy type checker
-            info = cast(Dict[str, Any], info_result)
+            info = cast(dict[str, Any], info_result)
 
             return {
                 "similar_movies_count": len(similar_keys),
@@ -235,7 +235,7 @@ class RedisRepository:
             pattern = f"{SIMILAR_MOVIES_KEY_PREFIX}:*"
             keys_result = self.client.keys(pattern)
             ***REMOVED*** Convert to list to satisfy type checker
-            keys = list(cast(List[str], keys_result))
+            keys = list(cast(list[str], keys_result))
 
             if not keys:
                 logger.debug("No similar movies keys to delete")
@@ -247,8 +247,7 @@ class RedisRepository:
 
             for i in range(0, len(keys), batch_size):
                 batch = keys[i : i + batch_size]
-                ***REMOVED*** Cast result to int to satisfy type checker
-                deleted += cast(int, self.client.delete(*batch))
+                deleted += self.client.delete(*batch)
 
             logger.info(f"Deleted {deleted} similar movies keys")
             return deleted
@@ -258,8 +257,8 @@ class RedisRepository:
 
     def batch_store_similar_movies(
         self,
-        similar_movies_data: Dict[int, List[Tuple[int, float]]],
-        ttl: Optional[int] = None,
+        similar_movies_data: dict[int, list[tuple[int, float]]],
+        ttl: int | None = None,
     ) -> int:
         """Store multiple similar movies entries in batch.
 
@@ -300,7 +299,7 @@ class RedisRepository:
             logger.error(f"Failed to batch store similar movies: {e}")
             return 0
 
-    def batch_check_cached_movies(self, movie_ids: List[int]) -> Dict[int, bool]:
+    def batch_check_cached_movies(self, movie_ids: list[int]) -> dict[int, bool]:
         """Check which movies already have cached similar movies.
 
         Args:
@@ -326,7 +325,7 @@ class RedisRepository:
 
             ***REMOVED*** Create result mapping
             cached_status = {}
-            for movie_id, exists in zip(movie_ids, results):
+            for movie_id, exists in zip(movie_ids, results, strict=False):
                 cached_status[movie_id] = bool(exists)
 
             cached_count = sum(cached_status.values())
@@ -342,8 +341,8 @@ class RedisRepository:
     def store_similar_movie_recommendations(
         self,
         movie_id: int,
-        recommendations: List[Dict[str, Any]],
-        ttl: Optional[int] = None,
+        recommendations: list[dict[str, Any]],
+        ttl: int | None = None,
     ) -> bool:
         """Store similar movie recommendations (lightweight objects) in Redis.
 
@@ -376,9 +375,9 @@ class RedisRepository:
     def get_similar_movie_recommendations(
         self,
         movie_id: int,
-        limit: Optional[int] = None,
-        min_score: Optional[float] = None,
-    ) -> Optional[List[Dict[str, Any]]]:
+        limit: int | None = None,
+        min_score: float | None = None,
+    ) -> list[dict[str, Any]] | None:
         """Get similar movie recommendations (lightweight objects) from Redis.
 
         Args:
@@ -399,7 +398,7 @@ class RedisRepository:
                 return None
 
             ***REMOVED*** Parse the JSON data
-            recommendations = json.loads(cast(str, json_data))
+            recommendations: list[dict[str, Any]] = json.loads(cast(str, json_data))
 
             ***REMOVED*** Handle backward compatibility - check if it's the old format (list of lists)
             if recommendations and isinstance(recommendations[0], list):
@@ -429,7 +428,7 @@ class RedisRepository:
 
 
 ***REMOVED*** Create a singleton instance for global use
-_redis_repository: Optional[RedisRepository] = None
+_redis_repository: RedisRepository | None = None
 
 
 def get_redis_repository() -> RedisRepository:
@@ -447,8 +446,8 @@ def get_redis_repository() -> RedisRepository:
 ***REMOVED*** For backwards compatibility, also provide standalone functions
 def store_similar_movies(
     movie_id: int,
-    similar_movies: List[Tuple[int, float]],
-    ttl: Optional[int] = None,
+    similar_movies: list[tuple[int, float]],
+    ttl: int | None = None,
 ) -> bool:
     """Store similar movies in Redis.
 
@@ -465,9 +464,9 @@ def store_similar_movies(
 
 def get_similar_movies(
     movie_id: int,
-    limit: Optional[int] = None,
-    min_score: Optional[float] = None,
-) -> Optional[List[Tuple[int, float]]]:
+    limit: int | None = None,
+    min_score: float | None = None,
+) -> list[tuple[int, float]] | None:
     """Get similar movies from Redis.
 
     Args:
@@ -493,7 +492,7 @@ def delete_similar_movies(movie_id: int) -> bool:
     return get_redis_repository().delete_similar_movies(movie_id)
 
 
-def get_cache_info() -> Dict[str, Any]:
+def get_cache_info() -> dict[str, Any]:
     """Get information about the Redis cache.
 
     Returns:

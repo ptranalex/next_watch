@@ -16,14 +16,12 @@ Usage:
     movie = await client.get_movie(123)
 """
 
-from typing import Optional
-
 ***REMOVED*** Import all classes from the internal clients module
 from recommendation_api.services.clients.backend_client import BackendClient
 from recommendation_api.services.clients.base import BackendClientError
 
 ***REMOVED*** Global backend client instance
-_backend_client: Optional[BackendClient] = None
+_backend_client: BackendClient | None = None
 
 
 def get_backend_client() -> BackendClient:

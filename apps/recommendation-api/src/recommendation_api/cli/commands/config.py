@@ -1,21 +1,15 @@
 """Configuration commands for the Recommendation API CLI."""
 
-import json
-import logging
-import os
-from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple, cast
+from typing import Any
 
 import typer
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.table import Table
-from rich import print as rprint
 from typer import Typer
-from rich.panel import Panel
 
+from recommendation_api.cli.utils import print_config, print_error
 from recommendation_api.config.app import settings
-from recommendation_api.cli.utils import print_config, print_error, print_success
-from config.logging import configure_logging, get_logger
 
 app: Typer = typer.Typer(
     name="config",
@@ -92,7 +86,7 @@ def show(
         print_error(f"Failed to display configuration: {str(e)}", console)
         if verbose:
             logger.exception("Configuration display error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -115,9 +109,8 @@ def validate(
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
-        ***REMOVED*** Check required settings
+        ***REMOVED*** Check required settings (Note: recommendation-api doesn't use database)
         required_settings = [
-            ("Database URL", settings.database_url),
             ("Qdrant URL", settings.qdrant_url),
             ("Embedding Model", settings.embedding_model),
         ]
@@ -137,7 +130,7 @@ def validate(
         if verbose:
             console.print("\n[bold cyan]Optional Settings:[/bold cyan]")
             ***REMOVED*** Create properly typed list of tuples
-            optional_settings: List[Tuple[str, Any, Any]] = [
+            optional_settings: list[tuple[str, Any, Any]] = [
                 ("Host", settings.host, "0.0.0.0"),
                 ("Port", settings.port, 8000),
                 ("Log Level", settings.log_level, "INFO"),
@@ -161,7 +154,7 @@ def validate(
         print_error(f"Failed to validate configuration: {str(e)}", console)
         if verbose:
             logger.exception("Configuration validation error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -207,7 +200,6 @@ def env(
             ("Port", str(settings.port), "Server port number"),
             ("Workers", str(settings.workers), "Number of worker processes"),
             ("Reload", "Enabled" if settings.reload else "Disabled", "Auto-reload on code changes"),
-            ("Verbose", "Enabled" if settings.verbose else "Disabled", "Verbose output"),
         ]
 
         for setting_data in settings_list:
@@ -229,7 +221,7 @@ def env(
         print_error(f"Failed to display environment configuration: {str(e)}", console)
         if verbose:
             logger.exception("Environment display error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.callback(invoke_without_command=True)

@@ -1,16 +1,14 @@
 """Embedding generation and management commands."""
 
 import asyncio
-from config.logging import get_logger
-from typing import Optional, List
+import logging
 
 import typer
-from typer import Typer
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.table import Table
+from typer import Typer
 
-from recommendation_api.config import settings
-from config.logging import get_logger
 from recommendation_api.services.embedding_service import get_embedding_service
 
 app: Typer = typer.Typer()
@@ -20,12 +18,10 @@ logger = get_logger(__name__)
 
 @app.command()
 def generate(
-    batch_size: Optional[int] = typer.Option(
-        None, "--batch-size", help="Batch size for processing"
-    ),
+    batch_size: int | None = typer.Option(None, "--batch-size", help="Batch size for processing"),
     force: bool = typer.Option(False, "--force", help="Force regeneration of existing embeddings"),
-    limit: Optional[int] = typer.Option(None, "--limit", help="Limit number of movies to process"),
-    movie_id: Optional[int] = typer.Option(None, "--movie-id", help="Process specific movie by ID"),
+    limit: int | None = typer.Option(None, "--limit", help="Limit number of movies to process"),
+    movie_id: int | None = typer.Option(None, "--movie-id", help="Process specific movie by ID"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed progress"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
@@ -82,13 +78,13 @@ def generate(
 
 
 async def _run_generate(
-    batch_size: Optional[int],
+    batch_size: int | None,
     force: bool,
-    limit: Optional[int],
-    movie_id: Optional[int],
+    limit: int | None,
+    movie_id: int | None,
     verbose: bool,
     quiet: bool,
-    noisy_loggers: List[str],
+    noisy_loggers: list[str],
 ) -> None:
     """Async implementation of generate command."""
     ***REMOVED*** Temporarily suppress logs during generation unless verbose
@@ -201,7 +197,7 @@ async def _run_generate(
             import traceback
 
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
     finally:
         ***REMOVED*** Restore log levels
@@ -284,7 +280,7 @@ async def _run_status(verbose: bool) -> None:
             import traceback
 
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
     finally:
         ***REMOVED*** Clean up embedding service
@@ -358,7 +354,7 @@ async def _run_info(verbose: bool) -> None:
             import traceback
 
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
     finally:
         ***REMOVED*** Clean up embedding service
@@ -369,7 +365,7 @@ async def _run_info(verbose: bool) -> None:
 @app.command()
 def repair_embeddings(
     batch_size: int = typer.Option(100, "--batch-size", "-b", help="Batch size for processing"),
-    specific_movie_id: Optional[int] = typer.Option(
+    specific_movie_id: int | None = typer.Option(
         None, "--movie-id", "-m", help="Specific movie ID to repair"
     ),
     dry_run: bool = typer.Option(
@@ -439,11 +435,11 @@ def repair_embeddings(
 
 async def _run_repair(
     batch_size: int,
-    specific_movie_id: Optional[int],
+    specific_movie_id: int | None,
     dry_run: bool,
     quiet: bool,
     verbose: bool,
-    noisy_loggers: List[str],
+    noisy_loggers: list[str],
 ) -> None:
     """Async implementation of repair command."""
     ***REMOVED*** Temporarily suppress logs during repair unless verbose
@@ -515,7 +511,7 @@ async def _run_repair(
             import traceback
 
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
     finally:
         ***REMOVED*** Restore log levels

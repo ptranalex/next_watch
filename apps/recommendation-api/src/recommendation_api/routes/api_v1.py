@@ -3,10 +3,10 @@
 from fastapi import APIRouter
 
 from recommendation_api.routes.v1 import (
-    trending_router,
-    popular_router,
     personalized_router,
+    popular_router,
     similar_router,
+    trending_router,
 )
 
 ***REMOVED*** Create the main API v1 router

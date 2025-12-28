@@ -1,33 +1,27 @@
 """Personalized movie recommendations endpoints."""
 
-from config.logging import get_logger
-from typing import Dict, Any, Optional
+from typing import Any
 
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
-from fastapi import APIRouter, HTTPException, Depends, Query, status
-from sqlalchemy.exc import SQLAlchemyError
-
+from config.logging import get_logger
 from fast_core.errors import (
-    critical_service_handler,
     ValidationException,
-    ResourceNotFoundException,
+    critical_service_handler,
 )
+from fastapi import APIRouter, Depends, Query
 
-from recommendation_api.services.movie_adapter import MovieDataAdapter
-from recommendation_api.services.recommendation import RecommendationService
-from recommendation_api.dependencies.common import (
-    get_movie_adapter_dependency,
-    get_recommendation_service,
-)
-from recommendation_api.models.recommendation import (
-    MovieRecommendation,
-    PersonalizedRecommendationsResponse,
-)
 from recommendation_api.core.metrics import (
     get_recommendation_metrics,
     track_personalized_recommendation,
 )
+from recommendation_api.dependencies.common import (
+    get_recommendation_service,
+)
+from recommendation_api.models.recommendation import (
+    PersonalizedRecommendationsResponse,
+)
+from recommendation_api.services.recommendation import RecommendationService
 
 logger = get_logger(__name__)
 
@@ -40,7 +34,7 @@ def _build_personalized_movies_key(
     limit: int = 20,
     min_rating: float = 7.0,
     min_vote_count: int = 1000,
-    recommendation_service: RecommendationService = None,
+    recommendation_service: RecommendationService | None = None,
     **kwargs,
 ) -> str:
     """Build a custom cache key for personalized movies."""
@@ -62,7 +56,7 @@ async def _get_personalized_recommendations_data(
     min_rating: float,
     min_vote_count: int,
     recommendation_service: RecommendationService,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Internal cached function for personalized recommendations data.
 
     This function returns a dictionary that can be JSON serialized for caching.

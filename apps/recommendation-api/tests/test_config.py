@@ -1,73 +1,42 @@
-"""Tests for configuration module."""
+"""Tests for Recommendation API configuration."""
 
-import pytest
-from recommendation_api.config import Config, get_config, reset_config
+import os
+from unittest.mock import patch
+
+from recommendation_api.config.app import RecommendationAPIConfig
 
 
-def test_config_creation():
-    """Test that Config can be created with defaults."""
-    config = Config()
-    
-    ***REMOVED*** Test basic attributes exist
-    assert hasattr(config, 'database_url')
-    assert hasattr(config, 'qdrant_url')
-    assert hasattr(config, 'embedding_model')
-    assert hasattr(config, 'port')
-    assert hasattr(config, 'debug')
-    
-    ***REMOVED*** Test default values
-    assert config.port == 8004
+def test_config_creation_defaults() -> None:
+    config = RecommendationAPIConfig()
+
+    assert config.service_name == "recommendation-api"
+    assert config.port == 8002
+
+    ***REMOVED*** Embeddings defaults
     assert config.embedding_dimension == 384
-    assert config.batch_size == 100
+    assert config.batch_size == 32
+    assert isinstance(config.embedding_model, str)
+
+    ***REMOVED*** External service URLs
+    assert config.backend_api_url.startswith(("http://", "https://"))
+    assert config.ml_api_url.startswith(("http://", "https://"))
+    assert config.qdrant_url.startswith(("http://", "https://"))
 
 
-def test_config_singleton():
-    """Test that get_config returns the same instance."""
-    reset_config()  ***REMOVED*** Reset for clean test
-    
-    config1 = get_config()
-    config2 = get_config()
-    
-    assert config1 is config2
+def test_config_env_overrides() -> None:
+    with patch.dict(
+        os.environ,
+        {
+            "PORT": "9002",
+            "ENVIRONMENT": "production",
+            "DEBUG": "true",
+        },
+        clear=True,
+    ):
+        config = RecommendationAPIConfig()
 
-
-def test_config_repr():
-    """Test that config string representation masks sensitive data."""
-    config = Config()
-    repr_str = repr(config)
-    
-    assert "***masked***" in repr_str
-    assert config.qdrant_url in repr_str
-    assert config.embedding_model in repr_str
-
-
-def test_config_mask_database_password():
-    """Test database password masking."""
-    config = Config()
-    
-    ***REMOVED*** Test with password in URL
-    test_url = "postgresql://user:password@localhost:5432/db"
-    masked = config._mask_database_password(test_url)
-    
-    assert "password" not in masked
-    assert "****" in masked
-    assert "user" in masked
-    assert "localhost" in masked
-    
-    ***REMOVED*** Test with URL without password
-    simple_url = "postgresql://localhost:5432/db"
-    masked_simple = config._mask_database_password(simple_url)
-    
-    assert masked_simple == simple_url  ***REMOVED*** Should be unchanged
-
-
-def test_config_environment_detection():
-    """Test environment detection."""
-    config = Config()
-    
-    ***REMOVED*** Should have environment attribute
-    assert hasattr(config, 'environment')
-    assert hasattr(config, 'is_production')
-    
-    ***REMOVED*** Default should be development
-    assert config.environment in ['development', 'production'] 
+    ***REMOVED*** env override
+    assert config.port == 9002
+    assert config.environment == "production"
+    ***REMOVED*** production overrides should force debug off
+    assert config.debug is False

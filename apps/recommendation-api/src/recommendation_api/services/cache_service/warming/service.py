@@ -5,16 +5,14 @@ including configuration, functions, providers, and factories.
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cache import (
-    CacheManager,
     WarmingEngine,
     WarmingStrategy,
     get_global_collector,
 )
 from cache.warming import set_global_warming_engine
-from cache.warming.strategies import PopularContentStrategy
 from config.logging import get_logger
 
 from recommendation_api.services.cache_service.cache_service import get_cache
@@ -113,8 +111,8 @@ class RecommendationWarmingService:
         )
 
     async def warm_by_strategy(
-        self, strategy: WarmingStrategy, limit: Optional[int] = None
-    ) -> Dict[str, Any]:
+        self, strategy: WarmingStrategy, limit: int | None = None
+    ) -> dict[str, Any]:
         """Warm cache using a specific strategy.
 
         Args:
@@ -176,7 +174,7 @@ class RecommendationWarmingService:
                 "timestamp": datetime.now().isoformat(),
             }
 
-    async def test_warming_function(self, function_name: str, **kwargs) -> Dict[str, Any]:
+    async def test_warming_function(self, function_name: str, **kwargs) -> dict[str, Any]:
         """Test a specific warming function.
 
         Args:
@@ -253,7 +251,7 @@ class RecommendationWarmingService:
 
 
 ***REMOVED*** Global recommendation warming service instance
-_recommendation_warming_service: Optional[RecommendationWarmingService] = None
+_recommendation_warming_service: RecommendationWarmingService | None = None
 
 
 def get_recommendation_warming_service() -> RecommendationWarmingService:
@@ -276,7 +274,7 @@ def configure_recommendation_warming() -> None:
     """
     try:
         ***REMOVED*** Initialize recommendation warming service which configures the cache library
-        service = get_recommendation_warming_service()
+        get_recommendation_warming_service()
         logger.info(
             "✅ Recommendation warming configuration applied",
             service="recommendation-api",

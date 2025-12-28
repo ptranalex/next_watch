@@ -3,7 +3,7 @@
 This module provides a service layer for interacting with the vector database.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from config.logging import get_logger
 
@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 class VectorService:
     """Service for interacting with vector database."""
 
-    def __init__(self, vector_repository: Optional[VectorRepository] = None):
+    def __init__(self, vector_repository: VectorRepository | None = None):
         """Initialize the vector service.
 
         Args:
@@ -38,7 +38,7 @@ class VectorService:
         """
         return self.repository.create_collection()
 
-    def get_movie_embedding(self, movie_id: int) -> Optional[List[float]]:
+    def get_movie_embedding(self, movie_id: int) -> list[float] | None:
         """Get the embedding for a movie.
 
         Args:
@@ -53,8 +53,8 @@ class VectorService:
     ***REMOVED*** Movie features now come from the backend API via MovieDataAdapter
     ***REMOVED*** Vector embeddings should be generated and stored by the ML service directly
     async def generate_and_store_movie_embedding(
-        self, movie_features: Dict[str, Any]
-    ) -> Optional[List[float]]:
+        self, movie_features: dict[str, Any]
+    ) -> list[float] | None:
         """Generate and store an embedding for a movie using API-provided features.
 
         This method will:
@@ -107,11 +107,11 @@ class VectorService:
 
     def find_similar_movies(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         limit: int = 10,
         min_score: float = 0.6,
-        exclude_movie_ids: Optional[List[int]] = None,
-    ) -> List[Tuple[int, float]]:
+        exclude_movie_ids: list[int] | None = None,
+    ) -> list[tuple[int, float]]:
         """Find movies similar to a query embedding.
 
         Args:
@@ -135,7 +135,7 @@ class VectorService:
         movie_id: int,
         limit: int = 10,
         min_score: float = 0.01,  ***REMOVED*** Use a much lower default threshold
-    ) -> List[Tuple[int, float]]:
+    ) -> list[tuple[int, float]]:
         """Find movies similar to a specific movie by ID.
 
         Args:
@@ -158,7 +158,7 @@ class VectorService:
         logger.debug(f"Found {len(similar_movies)} similar movies for movie {movie_id}")
         return similar_movies
 
-    def get_vector_stats(self) -> Dict[str, Any]:
+    def get_vector_stats(self) -> dict[str, Any]:
         """Get statistics about vector database.
 
         Returns:
@@ -175,9 +175,9 @@ class VectorService:
     ***REMOVED*** Movie data should now come from the backend API
     def batch_process_movies_deprecated(
         self,
-        movie_features_list: List[Dict[str, Any]],
+        movie_features_list: list[dict[str, Any]],
         force: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """DEPRECATED: Process multiple movies in batch, generating and storing embeddings.
 
         This method is deprecated in favor of using the ML service directly
@@ -204,11 +204,11 @@ class VectorService:
 
     def find_similar_movies_with_metadata(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         limit: int = 10,
         min_score: float = 0.6,
-        exclude_movie_ids: Optional[List[int]] = None,
-    ) -> List[Tuple[int, float, Dict[str, Any]]]:
+        exclude_movie_ids: list[int] | None = None,
+    ) -> list[tuple[int, float, dict[str, Any]]]:
         """Find movies similar to a query embedding with metadata.
 
         Args:
@@ -232,7 +232,7 @@ class VectorService:
         movie_id: int,
         limit: int = 10,
         min_score: float = 0.01,  ***REMOVED*** Use a much lower default threshold
-    ) -> List[Tuple[int, float, Dict[str, Any]]]:
+    ) -> list[tuple[int, float, dict[str, Any]]]:
         """Find movies similar to a specific movie by ID with metadata.
 
         Args:
@@ -267,7 +267,7 @@ class VectorService:
 
 
 ***REMOVED*** Global vector service instance
-_vector_service: Optional[VectorService] = None
+_vector_service: VectorService | None = None
 
 
 def get_vector_service() -> VectorService:

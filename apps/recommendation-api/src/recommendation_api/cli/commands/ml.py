@@ -5,19 +5,19 @@ testing connectivity and generating embeddings for movies.
 """
 
 import asyncio
+import json
 import logging
 import sys
-from typing import List, Optional, Dict, Any
-import json
+from typing import Any
 
 import typer
-from typer import Typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
+from typer import Typer
 
+from recommendation_api.config import configure_logging, settings
 from recommendation_api.services.ml_api_client import get_ml_api_client
-from recommendation_api.config import settings, configure_logging
 
 ***REMOVED*** Create CLI app
 app: Typer = typer.Typer(name="ml", help="ML API commands and utilities")
@@ -26,7 +26,7 @@ console = Console()
 
 @app.command("test-connection")
 def test_connection(
-    url: Optional[str] = typer.Option(None, "--url", "-u", help="ML API URL"),
+    url: str | None = typer.Option(None, "--url", "-u", help="ML API URL"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed information"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most console output"),
 ) -> None:
@@ -125,7 +125,7 @@ def generate_embedding(
     overview: str = typer.Argument(..., help="Movie overview/description"),
     genres: str = typer.Option("", "--genres", "-g", help="Comma-separated genres"),
     movie_id: str = typer.Option("test-movie", "--id", help="Movie ID"),
-    url: Optional[str] = typer.Option(None, "--url", "-u", help="ML API URL"),
+    url: str | None = typer.Option(None, "--url", "-u", help="ML API URL"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed information"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most console output"),
 ) -> None:
@@ -197,7 +197,7 @@ def generate_embedding(
 
 async def _generate_embedding(
     client: Any,
-    movie_features: Dict[str, Any],
+    movie_features: dict[str, Any],
     verbose: bool = False,
     quiet: bool = False,
 ) -> None:

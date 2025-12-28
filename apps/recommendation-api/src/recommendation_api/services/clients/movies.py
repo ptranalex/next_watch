@@ -1,6 +1,6 @@
 """Movie-related operations for backend API."""
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any
 
 from config.logging import get_logger
 
@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 class MoviesClient(BaseBackendClient):
     """Client for movie-related operations."""
 
-    async def get_movie(self, movie_id: int) -> Dict[str, Any]:
+    async def get_movie(self, movie_id: int) -> dict[str, Any]:
         """Get movie details by ID.
 
         Args:
@@ -28,7 +28,7 @@ class MoviesClient(BaseBackendClient):
         page: int = 1,
         limit: int = 20,
         **filters: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get movies list with filters.
 
         Args:
@@ -47,9 +47,9 @@ class MoviesClient(BaseBackendClient):
         self,
         page: int = 1,
         limit: int = 20,
-        year: Optional[int] = None,
-        genre_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        year: int | None = None,
+        genre_id: int | None = None,
+    ) -> dict[str, Any]:
         """Get top-rated movies.
 
         Args:
@@ -75,7 +75,7 @@ class MoviesClient(BaseBackendClient):
         page: int = 1,
         limit: int = 20,
         **filters: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Search movies by title.
 
         Args:
@@ -95,10 +95,10 @@ class MoviesClient(BaseBackendClient):
 
     async def get_movies_bulk(
         self,
-        movie_ids: List[int],
+        movie_ids: list[int],
         page: int = 1,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get multiple movies by their IDs using the bulk endpoint.
 
         Args:
@@ -160,7 +160,7 @@ class MoviesClient(BaseBackendClient):
             )
             return movies
 
-    async def get_movies_batch(self, movie_ids: List[int]) -> List[Dict[str, Any]]:
+    async def get_movies_batch(self, movie_ids: list[int]) -> list[dict[str, Any]]:
         """Get multiple movies by their IDs.
 
         This is an alias for get_movies_bulk with default parameters.
@@ -178,7 +178,7 @@ class MoviesClient(BaseBackendClient):
         limit: int = 20,
         min_rating: float = 7.0,
         min_vote_count: int = 1000,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get popular movies from the backend API.
 
         Args:
@@ -226,7 +226,7 @@ class MoviesClient(BaseBackendClient):
         limit: int = 20,
         min_rating: float = 7.0,
         min_vote_count: int = 1000,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get personalized movie recommendations for a user.
 
         Args:
@@ -267,7 +267,7 @@ class MoviesClient(BaseBackendClient):
         self,
         limit: int = 20,
         days: int = 7,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get trending movies from the backend API.
 
         Args:
@@ -302,7 +302,7 @@ class MoviesClient(BaseBackendClient):
     async def get_recent_movies(
         self,
         limit: int = 20,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get recently updated movies from the backend API.
 
         Args:

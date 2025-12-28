@@ -4,16 +4,16 @@ This module creates a FastAPI application using the fast-core library
 with recommendation-specific configuration and dependencies.
 """
 
-from typing import Dict, List, Optional, AsyncGenerator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fast_core import create_app, AppOptions
+from config.logging import get_logger
+from fast_core import AppOptions, create_app
 from fast_core.middleware import MiddlewareConfig
+from fastapi import FastAPI
 
 from recommendation_api.config.app import RecommendationAPIConfig
 from recommendation_api.config.fast_core_config import create_fast_core_config
-from config.logging import get_logger
 
 ***REMOVED*** Add Recommendation meta configuration constants after imports
 RECOMMENDATION_FEATURES = [
@@ -38,7 +38,6 @@ RECOMMENDATION_ENDPOINTS = {
 }
 
 ***REMOVED*** Import recommendation routes
-from recommendation_api.routes.health import router as health_router  ***REMOVED*** Will remove this
 
 ***REMOVED*** from recommendation_api.routes import api_v1_router  ***REMOVED*** Move this import to avoid circular dependency
 
@@ -64,6 +63,7 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
+
         from recommendation_api.services.health_service import setup_recommendation_health_checks
 
         registry = setup_kubernetes_health_checks(app, settings)
@@ -78,11 +78,12 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         try:
             ***REMOVED*** First initialize the global metrics registry
             from fast_core.monitoring.metrics import initialize_metrics
+
             from recommendation_api.core.metrics import initialize_recommendation_metrics
 
             ***REMOVED*** Initialize global metrics registry with service name
-            global_registry = initialize_metrics("recommendation-api")
-            logger.info(f"Global metrics registry initialized for service: recommendation-api")
+            initialize_metrics("recommendation-api")
+            logger.info("Global metrics registry initialized for service: recommendation-api")
 
             ***REMOVED*** Now initialize Recommendation-specific metrics
             metrics_instance = initialize_recommendation_metrics()
@@ -120,21 +121,21 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Initializing vector service", service="recommendation-api")
         from recommendation_api.services.vector_service import get_vector_service
 
-        vector_service = get_vector_service()
+        get_vector_service()
         logger.info("Vector service initialized", service="recommendation-api")
 
         ***REMOVED*** Initialize backend client
         logger.info("Initializing backend client", service="recommendation-api")
         from recommendation_api.services.backend_client import get_backend_client
 
-        backend_client = get_backend_client()
+        get_backend_client()
         logger.info("Backend client initialized", service="recommendation-api")
 
         ***REMOVED*** Initialize movie adapter
         logger.info("Initializing movie adapter", service="recommendation-api")
         from recommendation_api.services.movie_adapter import get_movie_adapter
 
-        movie_adapter = get_movie_adapter()
+        get_movie_adapter()
         logger.info("Movie adapter initialized", service="recommendation-api")
 
         logger.info(
@@ -156,9 +157,9 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     try:
         ***REMOVED*** Close recommendation-specific services
+        from recommendation_api.services.backend_client import close_backend_client
         from recommendation_api.services.cache_service import close_cache_service
         from recommendation_api.services.vector_service import close_vector_service
-        from recommendation_api.services.backend_client import close_backend_client
 
         await close_cache_service()
         await close_vector_service()
@@ -258,7 +259,7 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
     return middleware
 
 
-def create_recommendation_app(config: Optional[RecommendationAPIConfig] = None) -> FastAPI:
+def create_recommendation_app(config: RecommendationAPIConfig | None = None) -> FastAPI:
     """Create Recommendation API application using fast-core with enhanced middleware.
 
     Args:

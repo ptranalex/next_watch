@@ -4,10 +4,10 @@ This module provides utilities to convert Recommendation API configuration to fa
 compatible configuration using the enhanced FastAPIConfig.
 """
 
-from typing import Optional
-from fast_core import FastAPIConfig
-from recommendation_api.config.app import RecommendationAPIConfig
 from config.logging import get_logger
+from fast_core import FastAPIConfig
+
+from recommendation_api.config.app import RecommendationAPIConfig
 
 logger = get_logger(__name__)
 
@@ -64,15 +64,10 @@ def create_fast_core_config(reco_config: RecommendationAPIConfig) -> FastAPIConf
             "metrics": True,  ***REMOVED*** Always enabled for production observability
             "precompute_similarities": reco_config.precompute_similarities,
         },
-        ***REMOVED*** Cache configuration
-        cache_ttl=reco_config.cache_ttl_default,
-        cache_prefix=reco_config.cache_key_prefix,
         ***REMOVED*** FastAPI-specific configuration
         docs_url="/docs" if reco_config.debug else None,
         redoc_url="/redoc" if reco_config.debug else None,
         openapi_url="/openapi.json" if reco_config.debug else None,
-        ***REMOVED*** Security settings
-        trusted_hosts=["*"] if reco_config.environment == "development" else ["localhost"],
     )
 
     ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
@@ -88,7 +83,7 @@ def create_fast_core_config(reco_config: RecommendationAPIConfig) -> FastAPIConf
     return fast_core_config
 
 
-def get_service_url(config: FastAPIConfig, service_name: str) -> Optional[str]:
+def get_service_url(config: FastAPIConfig, service_name: str) -> str | None:
     """Get service URL from fast-core config.
 
     Args:

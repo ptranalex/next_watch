@@ -8,8 +8,24 @@ and compatibility purposes.
 """
 
 import logging
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 ***REMOVED*** Movie database connections are now handled via MovieDataAdapter and Backend API
 ***REMOVED*** See services/movie_adapter.py for the new API-based approach
+
+
+@contextmanager
+def get_db_context() -> Iterator[Any]:
+    """Backward-compatible DB context manager.
+
+    The Recommendation API migrated to an API-based architecture and no longer
+    maintains a direct movie database connection. This exists for legacy debug tooling.
+    """
+    raise NotImplementedError(
+        "Database operations are not available; use MovieDataAdapter / Backend API."
+    )
+    yield  ***REMOVED*** pragma: no cover

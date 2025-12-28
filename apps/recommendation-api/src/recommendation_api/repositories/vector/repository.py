@@ -4,14 +4,18 @@ This module provides the VectorRepository class for interacting with the vector 
 along with standalone functions for backward compatibility.
 """
 
-from config.logging import get_logger
 import time
-from typing import List, Optional, Dict, Any, Tuple, cast, Union
-from qdrant_client import QdrantClient
+from typing import Any, cast
+
+from config.logging import get_logger
 from qdrant_client.http import models
 
 from recommendation_api.config import settings
-from recommendation_api.repositories.vector.client import get_qdrant_client, close_qdrant_client
+from recommendation_api.repositories.vector.client import (
+    QdrantClient,
+    close_qdrant_client,
+    get_qdrant_client,
+)
 
 logger = get_logger(__name__)
 
@@ -23,7 +27,7 @@ class VectorRepository:
     in the vector database.
     """
 
-    def __init__(self, client: Optional[QdrantClient] = None):
+    def __init__(self, client: QdrantClient | None = None):
         """Initialize the vector repository.
 
         Args:
@@ -53,8 +57,8 @@ class VectorRepository:
     def store_movie_embedding(
         self,
         movie_id: int,
-        embedding: List[float],
-        metadata: Optional[Dict[str, Any]] = None,
+        embedding: list[float],
+        metadata: dict[str, Any] | None = None,
     ) -> bool:
         """Store a movie embedding in the vector database.
 
@@ -101,11 +105,11 @@ class VectorRepository:
 
     def search_similar_movies(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-        exclude_movie_ids: Optional[List[int]] = None,
-    ) -> List[Tuple[int, float]]:
+        score_threshold: float | None = None,
+        exclude_movie_ids: list[int] | None = None,
+    ) -> list[tuple[int, float]]:
         """Search for movies similar to the query embedding.
 
         Args:
@@ -149,7 +153,7 @@ class VectorRepository:
             logger.error(f"Error searching for similar movies: {e}")
             return []
 
-    def get_movie_embedding(self, movie_id: int) -> Optional[List[float]]:
+    def get_movie_embedding(self, movie_id: int) -> list[float] | None:
         """Get the embedding for a specific movie.
 
         Args:
@@ -166,7 +170,7 @@ class VectorRepository:
             )
 
             if point and point.vector:
-                return cast(List[float], point.vector)
+                return cast(list[float], point.vector)
             else:
                 logger.debug(f"No embedding found for movie {movie_id}")
                 return None
@@ -189,7 +193,7 @@ class VectorRepository:
             collection_name=self.collection_name,
         )
 
-    def get_collection_info(self) -> Optional[Dict[str, Any]]:
+    def get_collection_info(self) -> dict[str, Any] | None:
         """Get information about the movie embeddings collection.
 
         Returns:
@@ -199,7 +203,7 @@ class VectorRepository:
 
     def batch_store_embeddings(
         self,
-        embeddings_data: List[Tuple[int, List[float], Optional[Dict[str, Any]]]],
+        embeddings_data: list[tuple[int, list[float], dict[str, Any] | None]],
     ) -> bool:
         """Store multiple movie embeddings in batch using repository.
 
@@ -226,7 +230,7 @@ class VectorRepository:
                 continue
 
             ***REMOVED*** Add metadata version and timestamp
-            payload = metadata.copy()
+            payload = (metadata or {}).copy()
             payload["metadata_version"] = "v2"
             payload["indexed_at"] = time.time()
 
@@ -249,7 +253,7 @@ class VectorRepository:
 
     def upsert_batch(
         self,
-        embeddings_data: List[Dict[str, Any]],
+        embeddings_data: list[dict[str, Any]],
     ) -> bool:
         """Store multiple movie embeddings in batch using repository with improved format.
 
@@ -288,8 +292,8 @@ class VectorRepository:
         self,
         movie_id: int,
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-    ) -> List[Tuple[int, float]]:
+        score_threshold: float | None = None,
+    ) -> list[tuple[int, float]]:
         """Search for movies similar to a specific movie.
 
         Args:
@@ -311,9 +315,7 @@ class VectorRepository:
                 limit=limit + 1,  ***REMOVED*** +1 to account for excluding the original
                 score_threshold=score_threshold,
                 exclude_movie_ids=[movie_id],
-            )[
-                :limit
-            ]  ***REMOVED*** Limit to requested number
+            )[:limit]  ***REMOVED*** Limit to requested number
 
         ***REMOVED*** If embedding retrieval failed, try direct search with filtering
         logger.warning(f"No embedding found for movie {movie_id}, using fallback search approach")
@@ -330,8 +332,9 @@ class VectorRepository:
         ***REMOVED*** If movie exists but vector couldn't be retrieved, use fallback approach
         try:
             ***REMOVED*** Use a dummy vector to search and filter by movie_id
-            from recommendation_api.config import settings
             from qdrant_client.http import models
+
+            from recommendation_api.config import settings
 
             ***REMOVED*** Use a random-ish vector as query (exact values don't matter)
             vector_size = settings.embedding_dimension
@@ -364,13 +367,13 @@ class VectorRepository:
         ***REMOVED*** If all approaches failed
         return []
 
-    def get_embeddings_stats(self) -> Dict[str, Any]:
+    def get_embeddings_stats(self) -> dict[str, Any]:
         """Get statistics about stored embeddings.
 
         Returns:
             Statistics dictionary
         """
-        stats: Dict[str, Any] = {
+        stats: dict[str, Any] = {
             "total_embeddings": 0,
             "collection_exists": False,
         }
@@ -399,11 +402,11 @@ class VectorRepository:
 
     def search_similar_movies_with_metadata(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-        exclude_movie_ids: Optional[List[int]] = None,
-    ) -> List[Tuple[int, float, Dict[str, Any]]]:
+        score_threshold: float | None = None,
+        exclude_movie_ids: list[int] | None = None,
+    ) -> list[tuple[int, float, dict[str, Any]]]:
         """Search for movies similar to the query embedding with metadata.
 
         Args:
@@ -450,7 +453,7 @@ class VectorRepository:
                         collection_name=self.collection_name,
                         point_id=movie_id,
                     )
-                    payload = point.payload or {}
+                    payload = point.payload if point and getattr(point, "payload", None) else {}
                 except Exception as e:
                     logger.warning(f"Error getting payload for movie {movie_id}: {e}")
                     payload = {}
@@ -468,8 +471,8 @@ class VectorRepository:
         self,
         movie_id: int,
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-    ) -> List[Tuple[int, float, Dict[str, Any]]]:
+        score_threshold: float | None = None,
+    ) -> list[tuple[int, float, dict[str, Any]]]:
         """Search for movies similar to a specific movie with metadata.
 
         Args:
@@ -491,9 +494,7 @@ class VectorRepository:
                 limit=limit + 1,  ***REMOVED*** +1 to account for excluding the original
                 score_threshold=score_threshold,
                 exclude_movie_ids=[movie_id],
-            )[
-                :limit
-            ]  ***REMOVED*** Limit to requested number
+            )[:limit]  ***REMOVED*** Limit to requested number
 
         ***REMOVED*** If embedding retrieval failed, fallback to old approach
         logger.warning(f"No embedding found for movie {movie_id}, falling back to standard search")
@@ -552,7 +553,7 @@ class VectorRepository:
 
 
 ***REMOVED*** Create a singleton instance for global use
-_vector_repository: Optional[VectorRepository] = None
+_vector_repository: VectorRepository | None = None
 
 
 def get_vector_repository() -> VectorRepository:
@@ -581,8 +582,8 @@ def create_collection() -> bool:
 
 def store_movie_embedding(
     movie_id: int,
-    embedding: List[float],
-    metadata: Optional[Dict[str, Any]] = None,
+    embedding: list[float],
+    metadata: dict[str, Any] | None = None,
 ) -> bool:
     """Store a movie embedding in the vector database.
 
@@ -598,11 +599,11 @@ def store_movie_embedding(
 
 
 def search_similar_movies(
-    query_embedding: List[float],
+    query_embedding: list[float],
     limit: int = 10,
-    score_threshold: Optional[float] = None,
-    exclude_movie_ids: Optional[List[int]] = None,
-) -> List[Tuple[int, float]]:
+    score_threshold: float | None = None,
+    exclude_movie_ids: list[int] | None = None,
+) -> list[tuple[int, float]]:
     """Search for movies similar to the query embedding.
 
     Args:
@@ -619,7 +620,7 @@ def search_similar_movies(
     )
 
 
-def get_movie_embedding(movie_id: int) -> Optional[List[float]]:
+def get_movie_embedding(movie_id: int) -> list[float] | None:
     """Get the embedding for a specific movie.
 
     Args:
@@ -643,7 +644,7 @@ def delete_movie_embedding(movie_id: int) -> bool:
     return get_vector_repository().delete_movie_embedding(movie_id)
 
 
-def get_collection_info() -> Optional[Dict[str, Any]]:
+def get_collection_info() -> dict[str, Any] | None:
     """Get information about the movie embeddings collection.
 
     Returns:
@@ -653,7 +654,7 @@ def get_collection_info() -> Optional[Dict[str, Any]]:
 
 
 def batch_store_embeddings(
-    embeddings_data: List[Tuple[int, List[float], Optional[Dict[str, Any]]]],
+    embeddings_data: list[tuple[int, list[float], dict[str, Any] | None]],
 ) -> bool:
     """Store multiple movie embeddings in batch using repository.
 
@@ -668,7 +669,7 @@ def batch_store_embeddings(
 
 
 def upsert_batch(
-    embeddings_data: List[Dict[str, Any]],
+    embeddings_data: list[dict[str, Any]],
 ) -> bool:
     """Store multiple movie embeddings in batch using repository with improved format.
 
@@ -685,8 +686,8 @@ def upsert_batch(
 def search_by_movie_id(
     movie_id: int,
     limit: int = 10,
-    score_threshold: Optional[float] = None,
-) -> List[Tuple[int, float]]:
+    score_threshold: float | None = None,
+) -> list[tuple[int, float]]:
     """Search for movies similar to a specific movie.
 
     Args:
@@ -700,7 +701,7 @@ def search_by_movie_id(
     return get_vector_repository().search_by_movie_id(movie_id, limit, score_threshold)
 
 
-def get_embeddings_stats() -> Dict[str, Any]:
+def get_embeddings_stats() -> dict[str, Any]:
     """Get statistics about stored embeddings.
 
     Returns:
@@ -710,11 +711,11 @@ def get_embeddings_stats() -> Dict[str, Any]:
 
 
 def search_similar_movies_with_metadata(
-    query_embedding: List[float],
+    query_embedding: list[float],
     limit: int = 10,
-    score_threshold: Optional[float] = None,
-    exclude_movie_ids: Optional[List[int]] = None,
-) -> List[Tuple[int, float, Dict[str, Any]]]:
+    score_threshold: float | None = None,
+    exclude_movie_ids: list[int] | None = None,
+) -> list[tuple[int, float, dict[str, Any]]]:
     """Search for movies similar to the query embedding with metadata.
 
     Args:
@@ -734,8 +735,8 @@ def search_similar_movies_with_metadata(
 def search_by_movie_id_with_metadata(
     movie_id: int,
     limit: int = 10,
-    score_threshold: Optional[float] = None,
-) -> List[Tuple[int, float, Dict[str, Any]]]:
+    score_threshold: float | None = None,
+) -> list[tuple[int, float, dict[str, Any]]]:
     """Search for movies similar to a specific movie with metadata.
 
     Args:

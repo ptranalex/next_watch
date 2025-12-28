@@ -4,20 +4,20 @@ This package contains Pydantic models for request/response validation
 and SQLAlchemy models for database operations.
 """
 
+from recommendation_api.models.movie import (
+    Movie,
+    MovieMetadata,
+    MovieVector,
+)
 from recommendation_api.models.recommendation import (
     MovieRecommendation,
-    RecommendationsResponse,
     PersonalizedRecommendationsResponse,
+    RecommendationsResponse,
     SimilarMoviesResponse,
 )
 from recommendation_api.models.user import (
     UserPreferences,
     UserProfile,
-)
-from recommendation_api.models.movie import (
-    Movie,
-    MovieMetadata,
-    MovieVector,
 )
 
 __all__ = [
@@ -30,4 +30,4 @@ __all__ = [
     "Movie",
     "MovieMetadata",
     "MovieVector",
-] 
+]

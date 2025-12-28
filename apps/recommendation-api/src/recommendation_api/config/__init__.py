@@ -4,8 +4,9 @@ This module provides centralized configuration management for the Recommendation
 including environment variables, logging settings, and application settings.
 """
 
+from config.logging import configure_logging, get_logger
+
 from recommendation_api.config.app import RecommendationAPIConfig, settings
-from config.logging import get_logger, configure_logging
 
 ***REMOVED*** Backward compatibility: Import old Config class name
 Config = RecommendationAPIConfig

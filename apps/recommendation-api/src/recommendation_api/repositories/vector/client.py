@@ -1,11 +1,10 @@
 """Qdrant vector database client for the Recommendation API service."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, cast
 
 from config.logging import get_logger
 from qdrant_client import QdrantClient as QdrantClientBase
 from qdrant_client.http import models
-from qdrant_client.http.exceptions import ResponseHandlingException
 
 from recommendation_api.config import settings
 
@@ -43,7 +42,7 @@ class QdrantClient:
             logger.error(f"Qdrant connection failed: {e}")
             return False
 
-    def collection_exists(self, collection_name: Optional[str] = None) -> bool:
+    def collection_exists(self, collection_name: str | None = None) -> bool:
         """Check if collection exists.
 
         Args:
@@ -62,7 +61,7 @@ class QdrantClient:
 
     def create_collection(
         self,
-        collection_name: Optional[str] = None,
+        collection_name: str | None = None,
         vector_size: int = 384,
         distance: str = "Cosine",
     ) -> bool:
@@ -107,9 +106,7 @@ class QdrantClient:
             logger.error(f"Error creating collection '{name}': {e}")
             return False
 
-    def get_collection_info(
-        self, collection_name: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+    def get_collection_info(self, collection_name: str | None = None) -> dict[str, Any] | None:
         """Get collection information.
 
         Args:
@@ -122,7 +119,7 @@ class QdrantClient:
 
         try:
             info = self.client.get_collection(collection_name=name)
-            collection_info: Dict[str, Any] = {
+            collection_info: dict[str, Any] = {
                 "name": name,
                 "status": info.status,
                 "vectors_count": info.vectors_count,
@@ -139,19 +136,21 @@ class QdrantClient:
                     params = config.params
                     if hasattr(params, "vectors") and params.vectors is not None:
                         vectors = params.vectors
+                        vectors_any = cast(Any, vectors)
                         ***REMOVED*** Safely extract vector size if present
                         if isinstance(vectors, dict) and "size" in vectors:
                             collection_info["config"]["vector_size"] = vectors["size"]
-                        elif hasattr(vectors, "size"):
-                            collection_info["config"]["vector_size"] = vectors.size
+                        elif hasattr(vectors_any, "size"):
+                            collection_info["config"]["vector_size"] = vectors_any.size
 
                         ***REMOVED*** Safely extract distance if present
                         if isinstance(vectors, dict) and "distance" in vectors:
-                            if hasattr(vectors["distance"], "value"):
-                                collection_info["config"]["distance"] = vectors["distance"].value
-                        elif hasattr(vectors, "distance") and vectors.distance is not None:
-                            if hasattr(vectors.distance, "value"):
-                                collection_info["config"]["distance"] = vectors.distance.value
+                            distance_any = cast(Any, vectors["distance"])
+                            if hasattr(distance_any, "value"):
+                                collection_info["config"]["distance"] = distance_any.value
+                        elif hasattr(vectors_any, "distance") and vectors_any.distance is not None:
+                            if hasattr(vectors_any.distance, "value"):
+                                collection_info["config"]["distance"] = vectors_any.distance.value
 
             return collection_info
         except Exception as e:
@@ -160,8 +159,8 @@ class QdrantClient:
 
     def upsert_points(
         self,
-        points: List[models.PointStruct],
-        collection_name: Optional[str] = None,
+        points: list[models.PointStruct],
+        collection_name: str | None = None,
     ) -> bool:
         """Upsert points into collection.
 
@@ -188,12 +187,12 @@ class QdrantClient:
 
     def search(
         self,
-        query_vector: List[float],
+        query_vector: list[float],
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-        collection_name: Optional[str] = None,
-        query_filter: Optional[models.Filter] = None,
-    ) -> List[models.ScoredPoint]:
+        score_threshold: float | None = None,
+        collection_name: str | None = None,
+        query_filter: models.Filter | None = None,
+    ) -> list[models.ScoredPoint]:
         """Search for similar vectors.
 
         Args:
@@ -240,9 +239,9 @@ class QdrantClient:
     def get_point(
         self,
         point_id: int,
-        collection_name: Optional[str] = None,
+        collection_name: str | None = None,
         with_vectors: bool = True,
-    ) -> Optional[models.Record]:
+    ) -> models.Record | None:
         """Get a specific point by ID.
 
         Args:
@@ -294,8 +293,8 @@ class QdrantClient:
 
     def delete_points(
         self,
-        point_ids: List[int],
-        collection_name: Optional[str] = None,
+        point_ids: list[int],
+        collection_name: str | None = None,
     ) -> bool:
         """Delete points by IDs.
 
@@ -311,7 +310,7 @@ class QdrantClient:
         try:
             ***REMOVED*** Convert to the appropriate type for Qdrant API
             ***REMOVED*** The API expects List[Union[int, str]], but we'll use all strings for consistency
-            point_ids_for_api: List[Union[int, str]] = [str(point_id) for point_id in point_ids]
+            point_ids_for_api: list[int | str] = [str(point_id) for point_id in point_ids]
 
             self.client.delete(
                 collection_name=name,

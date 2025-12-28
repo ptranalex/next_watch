@@ -1,35 +1,27 @@
 """Similar movie recommendations endpoint for Recommendation API v1."""
 
-from config.logging import get_logger
-import time
-from typing import Optional, Dict, Any, List
+from typing import Any
 
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
-from fastapi import APIRouter, HTTPException, Depends, Query, status
-from sqlalchemy.exc import SQLAlchemyError
-
-from fast_core.errors import (
-    optional_service_handler,
-    ValidationException,
-    ResourceNotFoundException,
-)
 from config.logging import get_logger
+from fast_core.errors import (
+    ValidationException,
+    optional_service_handler,
+)
+from fastapi import APIRouter, Depends, Query
 
-from recommendation_api.services.movie_adapter import MovieDataAdapter
-from recommendation_api.services.recommendation import RecommendationService
-from recommendation_api.dependencies.common import (
-    get_movie_adapter_dependency,
-    get_recommendation_service,
-)
-from recommendation_api.models.recommendation import (
-    MovieRecommendation,
-    SimilarMoviesResponse,
-)
 from recommendation_api.core.metrics import (
     get_recommendation_metrics,
     track_similar_recommendation,
 )
+from recommendation_api.dependencies.common import (
+    get_recommendation_service,
+)
+from recommendation_api.models.recommendation import (
+    SimilarMoviesResponse,
+)
+from recommendation_api.services.recommendation import RecommendationService
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -40,7 +32,7 @@ def _build_similar_movies_key(
     movie_id: int,
     limit: int = 20,
     min_score: float = 0.01,
-    recommendation_service: RecommendationService = None,
+    recommendation_service: RecommendationService | None = None,
     **kwargs,
 ) -> str:
     """Build a custom cache key for similar movies."""
@@ -59,7 +51,7 @@ async def _get_similar_movies_data(
     limit: int,
     min_score: float,
     recommendation_service: RecommendationService,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Internal cached function for similar movies data.
 
     This function returns a dictionary that can be JSON serialized for caching.

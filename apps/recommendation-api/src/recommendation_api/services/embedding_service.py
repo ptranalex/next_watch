@@ -1,10 +1,10 @@
 """Embedding service for generating and managing movie embeddings using API-based architecture."""
 
-import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from functools import wraps
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Set, Tuple, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from config.logging import get_logger
 
@@ -75,7 +75,7 @@ class EmbeddingService:
         self.vector_repo = vector_repo
         self.qdrant_client = get_qdrant_client()
 
-    async def get_movies_for_embeddings(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    async def get_movies_for_embeddings(self, limit: int | None = None) -> list[dict[str, Any]]:
         """Get movies from the backend API that need embeddings.
 
         Args:
@@ -114,11 +114,11 @@ class EmbeddingService:
     @async_timeit
     async def generate_embeddings(
         self,
-        movie_ids: Optional[List[int]] = None,
+        movie_ids: list[int] | None = None,
         force: bool = False,
-        limit: Optional[int] = None,
-        batch_size: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        limit: int | None = None,
+        batch_size: int | None = None,
+    ) -> dict[str, Any]:
         """Generate embeddings for movies.
 
         Args:
@@ -231,7 +231,7 @@ class EmbeddingService:
 
         return result
 
-    async def _generate_movie_embedding(self, movie_data: Dict[str, Any]) -> bool:
+    async def _generate_movie_embedding(self, movie_data: dict[str, Any]) -> bool:
         """Generate embedding for a single movie.
 
         Args:
@@ -330,7 +330,7 @@ class EmbeddingService:
             )
             return False
 
-    def get_embedding_status(self) -> Dict[str, Any]:
+    def get_embedding_status(self) -> dict[str, Any]:
         """Get current embedding status and statistics.
 
         Returns:
@@ -367,7 +367,7 @@ class EmbeddingService:
             logger.error(f"Failed to get embedding status: {e}")
             return {"error": str(e), "timestamp": datetime.now().isoformat()}
 
-    def get_configuration_info(self) -> Dict[str, Any]:
+    def get_configuration_info(self) -> dict[str, Any]:
         """Get embedding configuration information.
 
         Returns:
@@ -385,7 +385,7 @@ class EmbeddingService:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def find_movies_needing_repair(self) -> List[int]:
+    def find_movies_needing_repair(self) -> list[int]:
         """Find movies that have metadata but missing vectors.
 
         Returns:
@@ -393,14 +393,15 @@ class EmbeddingService:
         """
         try:
             ***REMOVED*** Get all points with vectors explicitly requested
-            from qdrant_client.http import models
 
             ***REMOVED*** Use scroll to get all points
             movies_needing_repair = []
             offset = None
 
+            qdrant_client = cast(Any, self.qdrant_client)
+
             while True:
-                result = self.qdrant_client.scroll(
+                result = qdrant_client.scroll(
                     collection_name=settings.qdrant_collection_name,
                     limit=100,
                     offset=offset,
@@ -427,10 +428,10 @@ class EmbeddingService:
 
     async def repair_embeddings(
         self,
-        movie_ids: Optional[List[int]] = None,
+        movie_ids: list[int] | None = None,
         batch_size: int = 100,
         dry_run: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Repair embeddings that have metadata but missing vectors.
 
         Args:
@@ -463,7 +464,7 @@ class EmbeddingService:
             "needing_repair": len(movies_to_repair),
             "repaired": 0,
             "failed": 0,
-            "elapsed_time": 0,
+            "elapsed_time": 0.0,
         }
 
         if dry_run or not movies_to_repair:

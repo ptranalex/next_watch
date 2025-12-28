@@ -3,8 +3,10 @@
 This module handles all configuration settings and setup for the recommendation API cache warming system.
 """
 
-from typing import Dict, Any
+from typing import Any
+
 from cache.warming import WarmingConfig
+
 from recommendation_api.config import settings
 
 
@@ -33,7 +35,7 @@ def get_recommendation_warming_config() -> WarmingConfig:
     )
 
 
-def get_recommendation_warming_settings() -> Dict[str, Any]:
+def get_recommendation_warming_settings() -> dict[str, Any]:
     """Get recommendation-specific warming settings as a dictionary.
 
     Returns:

@@ -2,7 +2,6 @@
 
 from config.logging import get_logger
 
-from recommendation_api.services.clients.base import BackendClientError
 from recommendation_api.services.clients.movies import MoviesClient
 
 logger = get_logger(__name__)

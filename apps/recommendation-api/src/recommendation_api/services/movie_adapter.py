@@ -4,12 +4,12 @@ This module provides a MovieDataAdapter class that adapts the backend API
 to provide movie data for the recommendation service.
 """
 
+from typing import Any
+
 from config.logging import get_logger
-from typing import Any, Dict, List, Optional, Tuple, cast
 
 from recommendation_api.models.recommendation import MovieRecommendation
 from recommendation_api.services.backend_client import BackendClient, get_backend_client
-from recommendation_api.config import settings
 
 logger = get_logger(__name__)
 
@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 class MovieDataAdapter:
     """Adapter for movie data from backend API."""
 
-    def __init__(self, backend_client: Optional[BackendClient] = None):
+    def __init__(self, backend_client: BackendClient | None = None):
         """Initialize the movie data adapter.
 
         Args:
@@ -26,7 +26,7 @@ class MovieDataAdapter:
         self.backend_client = backend_client or get_backend_client()
 
     def _convert_to_recommendation(
-        self, movie_data: Dict[str, Any], reason: str = "", score: float = 0.0
+        self, movie_data: dict[str, Any], reason: str = "", score: float = 0.0
     ) -> MovieRecommendation:
         """Convert movie data to a MovieRecommendation object.
 
@@ -66,8 +66,14 @@ class MovieDataAdapter:
             logger.debug(f"Clamped score from {score} to {clamped_score}")
 
         ***REMOVED*** Handle both API response format and vector DB metadata format
+        ***REMOVED*** Ensure we always provide an int ID to the response model.
+        try:
+            movie_id_int = int(movie_id or 0)
+        except Exception:
+            movie_id_int = 0
+
         return MovieRecommendation(
-            id=movie_id,
+            id=movie_id_int,
             title=movie_data.get("title", "Unknown"),
             poster_url=movie_data.get("poster_path") or movie_data.get("poster_url"),
             overview=movie_data.get("overview", ""),
@@ -79,7 +85,7 @@ class MovieDataAdapter:
             score=clamped_score,
         )
 
-    async def get_movie_by_id(self, movie_id: int) -> Optional[Dict[str, Any]]:
+    async def get_movie_by_id(self, movie_id: int) -> dict[str, Any] | None:
         """Get a movie by ID from the backend API.
 
         Args:
@@ -94,7 +100,7 @@ class MovieDataAdapter:
             logger.error(f"Error getting movie {movie_id}: {e}")
             return None
 
-    async def get_movies_by_ids(self, movie_ids: List[int]) -> List[Dict[str, Any]]:
+    async def get_movies_by_ids(self, movie_ids: list[int]) -> list[dict[str, Any]]:
         """Get multiple movies by IDs from the backend API.
 
         Args:
@@ -111,7 +117,7 @@ class MovieDataAdapter:
 
     async def get_popular_movies(
         self, limit: int = 20, min_rating: float = 7.0, min_vote_count: int = 1000
-    ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
+    ) -> tuple[list[MovieRecommendation], dict[str, Any]]:
         """Get popular movies from the backend API.
 
         Args:
@@ -150,7 +156,7 @@ class MovieDataAdapter:
 
     async def get_personalized_movies(
         self, user_id: int, limit: int = 20, min_rating: float = 7.0, min_vote_count: int = 1000
-    ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
+    ) -> tuple[list[MovieRecommendation], dict[str, Any]]:
         """Get personalized movie recommendations for a user.
 
         Args:
@@ -193,7 +199,7 @@ class MovieDataAdapter:
 
     async def get_trending_movies(
         self, limit: int = 20, days: int = 7
-    ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
+    ) -> tuple[list[MovieRecommendation], dict[str, Any]]:
         """Get trending movies from the backend API.
 
         Args:
@@ -232,7 +238,7 @@ class MovieDataAdapter:
 
     async def get_recent_movies(
         self, limit: int = 20
-    ) -> Tuple[List[MovieRecommendation], Dict[str, Any]]:
+    ) -> tuple[list[MovieRecommendation], dict[str, Any]]:
         """Get recently updated movies from the backend API.
 
         Args:
@@ -267,7 +273,7 @@ class MovieDataAdapter:
 
 
 ***REMOVED*** Global movie adapter instance
-_movie_adapter: Optional[MovieDataAdapter] = None
+_movie_adapter: MovieDataAdapter | None = None
 
 
 def get_movie_adapter() -> MovieDataAdapter:

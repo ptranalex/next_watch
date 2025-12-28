@@ -41,33 +41,33 @@ dependencies = [
     "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
     "pydantic>=2.4.2",          ***REMOVED*** Data validation
     "pydantic-settings>=2.0.0", ***REMOVED*** Settings management
-    
+
     ***REMOVED*** Database
     "sqlalchemy>=2.0.23",       ***REMOVED*** SQL ORM
     "sqlmodel>=0.0.8",          ***REMOVED*** SQL Model extension
     "psycopg2-binary>=2.9.10",  ***REMOVED*** PostgreSQL driver
     "alembic>=1.13.1",          ***REMOVED*** Database migrations
     "asyncpg>=0.29.0",          ***REMOVED*** Async PostgreSQL driver
-    
+
     ***REMOVED*** Vector database
     "qdrant-client>=1.1.1",     ***REMOVED*** Vector database client
-    
+
     ***REMOVED*** Cache and storage
     "redis>=6.0.0",             ***REMOVED*** Redis client for caching
     "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
-    
+
     ***REMOVED*** HTTP client for ML API and Backend API
     "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
     "tenacity>=8.2.3",          ***REMOVED*** Retry logic for HTTP requests
-    
+
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework
     "rich>=13.7.0",             ***REMOVED*** Terminal formatting
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
-    
+
     ***REMOVED*** Date/time handling
     "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
-    
+
     ***REMOVED*** Form handling
     "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
     "email-validator>=2.2.0",   ***REMOVED*** Email validation
@@ -79,13 +79,11 @@ dev = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
-    
+
     ***REMOVED*** Code quality
-    "black>=23.10.1",
-    "isort>=5.12.0",
-    "ruff>=0.1.6",
-    "mypy>=1.7.0",
-    
+    "ruff>=0.8.4",
+    "pyright>=1.1.0",
+
     ***REMOVED*** Local NextWatch libraries (for development)
     ***REMOVED*** "cache @ file:../../libs/cache",
     ***REMOVED*** "cli @ file:../../libs/cli",
@@ -174,18 +172,11 @@ version = "python -m recommendation_api.cli version"
 serve-cli = "python -m recommendation_api.cli serve"
 
 ***REMOVED*** Development tools
-lint = [
-    "black .",
-    "isort .",
-    "ruff check .",
-    "mypy src"
-]
+format = "ruff format ."
+lint = "ruff check ."
+typecheck = "pyright -p pyrightconfig.json"
 test = "PYTHONPATH=src pytest {args:tests}"
-test-cov = "PYTHONPATH=src pytest --cov=recommendation_api tests/"
-format = [
-    "black .",
-    "isort ."
-]
+test-cov = "PYTHONPATH=src pytest --cov=src/recommendation_api/config --cov=src/recommendation_api/models --cov-config=pyproject.toml --cov-report=term-missing --cov-report=xml:coverage.xml tests/"
 
 ***REMOVED*** Tool configurations
 [tool.pytest.ini_options]
@@ -193,66 +184,6 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-
-[tool.mypy]
-python_version = "3.12"
-***REMOVED*** Strict settings
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-strict_optional = true
-disallow_any_unimported = true
-disallow_untyped_calls = true
-disallow_any_generics = true 
-disallow_subclassing_any = true
-
-***REMOVED*** Warning settings
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_return_any = true
-warn_unreachable = true
-
-***REMOVED*** Error reporting
-pretty = true
-show_column_numbers = true
-show_error_context = true
-
-***REMOVED*** Importing
-ignore_missing_imports = false
-follow_imports = "normal"
-
-[[tool.mypy.overrides]]
-module = [
-    "fastapi.*",
-    "uvicorn.*",
-    "pydantic.*",
-    "sqlalchemy.*",
-    "sqlmodel.*",
-    "alembic.*",
-    "psycopg2.*",
-    "asyncpg.*",
-    "qdrant_client.*",
-    "sentence_transformers.*",
-    "typer.*",
-    "rich.*",
-    "redis.*",
-    "httpx.*",
-    "tenacity.*",
-    "dateutil.*",
-    "email_validator.*"
-]
-ignore_missing_imports = true
-
-[tool.black]
-line-length = 100
-target-version = ["py312"]
-
-[tool.isort]
-profile = "black"
-line_length = 100
 
 [tool.ruff]
 line-length = 100
@@ -272,3 +203,22 @@ ignore = [
     "E501", ***REMOVED*** line too long, handled by black
     "B008", ***REMOVED*** do not perform function calls in argument defaults
 ]
+
+[tool.coverage.run]
+branch = true
+source = [
+    "src/recommendation_api/config",
+    "src/recommendation_api/models",
+]
+
+omit = [
+    "*/__main__.py",
+    "*/cli/*",
+    "*/scripts/*",
+    "*/db/migrations/*",
+    "tests/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

@@ -9,7 +9,7 @@ import asyncio
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import redis
 from config.logging import get_logger
@@ -31,9 +31,9 @@ class HealthCheckResult:
 
     is_healthy: bool
     status: str
-    response_time_ms: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    response_time_ms: float | None = None
+    details: dict[str, Any] | None = None
+    error: str | None = None
 
 
 class HealthService:
@@ -41,10 +41,10 @@ class HealthService:
 
     def __init__(self):
         """Initialize the health service."""
-        self._redis_client: Optional[redis.Redis] = None
-        self._qdrant_client: Optional[QdrantClient] = None
+        self._redis_client: redis.Redis | None = None
+        self._qdrant_client: QdrantClient | None = None
 
-    async def check_all(self) -> Dict[str, HealthCheckResult]:
+    async def check_all(self) -> dict[str, HealthCheckResult]:
         """Check health of all services.
 
         Returns:
@@ -243,7 +243,7 @@ class HealthService:
 
 
 ***REMOVED*** Global health service instance
-_health_service: Optional[HealthService] = None
+_health_service: HealthService | None = None
 
 
 def get_health_service() -> HealthService:
@@ -280,16 +280,15 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
     Args:
         registry: Health check registry to register checks with
     """
+    import time
+
+    import redis
     from fast_core.monitoring import (
-        HealthCheckDefinition,
-        HealthCheckType,
         HealthCheckCategory,
+        HealthCheckDefinition,
         HealthCheckResult,
     )
-    import time
-    import redis
     from qdrant_client import QdrantClient
-    from qdrant_client.http.exceptions import ResponseHandlingException
 
     ***REMOVED*** Backend Client - CRITICAL (recommendation service needs movie data)
     async def check_backend_client() -> HealthCheckResult:
@@ -298,7 +297,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
         try:
             from recommendation_api.services.backend_client import get_backend_client
 
-            client = get_backend_client()
+            get_backend_client()
             ***REMOVED*** Simple health check - try to get a basic endpoint
             ***REMOVED*** This is a mock check since we don't have direct health endpoint access
             response_time = (time.time() - start_time) * 1000
@@ -366,7 +365,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
         start_time = time.time()
         try:
             client = QdrantClient(
-                url=settings.qdrant_url, api_key=settings.qdrant_api_key, timeout=5.0
+                url=settings.qdrant_url, api_key=settings.qdrant_api_key, timeout=5
             )
 
             ***REMOVED*** Quick connectivity test

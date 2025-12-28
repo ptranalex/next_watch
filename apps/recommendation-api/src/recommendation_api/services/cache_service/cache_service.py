@@ -1,8 +1,6 @@
 """Cache service for Recommendation API using the NextWatch cache library."""
 
-from typing import Optional
-
-from cache import CacheManager, get_global_collector, set_metrics_enabled
+from cache import CacheManager, set_metrics_enabled
 from cache.config import CacheSettings
 from config.logging import get_logger
 
@@ -11,7 +9,7 @@ from recommendation_api.config import settings
 logger = get_logger(__name__)
 
 ***REMOVED*** Global cache manager instance
-_cache_manager: Optional[CacheManager] = None
+_cache_manager: CacheManager | None = None
 
 
 def get_cache_settings() -> CacheSettings:
@@ -23,7 +21,7 @@ def get_cache_settings() -> CacheSettings:
     try:
         cache_settings = CacheSettings(
             redis_url=settings.redis_url,
-            key_prefix="reco:",  ***REMOVED*** Add recommendation-specific prefix
+            cache_key_prefix="reco:",  ***REMOVED*** Add recommendation-specific prefix
             cache_ttl_default=settings.cache_ttl_default,
         )
         return cache_settings

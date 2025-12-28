@@ -1,16 +1,14 @@
 """Base HTTP client for backend services."""
 
-import asyncio
 import logging
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 from urllib.parse import urljoin
 
 import httpx
-
 from fast_core.errors import (
+    ExternalServiceException,
     ResourceNotFoundException,
     ValidationException,
-    ExternalServiceException,
 )
 
 logger = logging.getLogger(__name__)
@@ -19,7 +17,7 @@ logger = logging.getLogger(__name__)
 class BackendClientError(Exception):
     """Exception raised when backend API requests fail."""
 
-    def __init__(self, message: str, status_code: Optional[int] = None):
+    def __init__(self, message: str, status_code: int | None = None):
         super().__init__(message)
         self.status_code = status_code
 
@@ -27,7 +25,7 @@ class BackendClientError(Exception):
 class BaseBackendClient:
     """Base HTTP client for backend API interactions."""
 
-    def __init__(self, base_url: Optional[str] = None, timeout: Optional[int] = None):
+    def __init__(self, base_url: str | None = None, timeout: int | None = None):
         """Initialize base client.
 
         Args:
@@ -48,7 +46,7 @@ class BaseBackendClient:
             "Content-Type": "application/json",
             "User-Agent": "RecommendationAPI/1.0",
         }
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     def _build_api_path(self, path: str) -> str:
         """Build API path with version prefix.
@@ -79,10 +77,10 @@ class BaseBackendClient:
         self,
         method: str,
         path: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Make HTTP request with enhanced error handling.
 
         Args:
@@ -150,27 +148,27 @@ class BaseBackendClient:
                 ***REMOVED*** If the response is a list, wrap it in a dict for consistency
                 if isinstance(json_response, list):
                     return {"data": json_response}
-                return cast(Dict[str, Any], json_response)
+                return cast(dict[str, Any], json_response)
             else:
                 return {"data": response.text}
 
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as e:
             error_msg = f"Backend API request timed out after {self.timeout}s"
             logger.error(error_msg)
-            raise BackendClientError(error_msg)
-        except httpx.ConnectError:
+            raise BackendClientError(error_msg) from e
+        except httpx.ConnectError as e:
             error_msg = f"Could not connect to Backend API at {self.base_url}"
             logger.error(error_msg)
-            raise ExternalServiceException(error_msg)
+            raise ExternalServiceException(error_msg) from e
         except (ValidationException, ResourceNotFoundException, ExternalServiceException):
             ***REMOVED*** Re-raise semantic exceptions without wrapping
             raise
         except Exception as e:
             error_msg = f"Unexpected error calling Backend API: {str(e)}"
             logger.error(error_msg)
-            raise BackendClientError(error_msg)
+            raise BackendClientError(error_msg) from e
 
-    def _get_service_headers(self) -> Dict[str, str]:
+    def _get_service_headers(self) -> dict[str, str]:
         """Get headers for service-to-service authentication.
 
         Returns:

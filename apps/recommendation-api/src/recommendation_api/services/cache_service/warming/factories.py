@@ -3,7 +3,7 @@
 This module provides factories to create warming targets for different strategies.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cache.warming import WarmingTarget
 from config.logging import get_logger
@@ -19,8 +19,8 @@ class RecommendationTargetFactories:
         pass
 
     def create_similar_movies_targets(
-        self, movie_ids: List[int], limit: int = 20, min_score: float = 0.01
-    ) -> List[WarmingTarget]:
+        self, movie_ids: list[int], limit: int = 20, min_score: float = 0.01
+    ) -> list[WarmingTarget]:
         """Create warming targets for similar movies.
 
         Args:
@@ -49,8 +49,8 @@ class RecommendationTargetFactories:
         return targets
 
     def create_popular_movies_targets(
-        self, limits: List[int] = [10, 20, 50], min_ratings: List[float] = [7.0, 7.5]
-    ) -> List[WarmingTarget]:
+        self, limits: list[int] | None = None, min_ratings: list[float] | None = None
+    ) -> list[WarmingTarget]:
         """Create warming targets for popular movies with different parameters.
 
         Args:
@@ -60,6 +60,11 @@ class RecommendationTargetFactories:
         Returns:
             List of warming targets
         """
+        if limits is None:
+            limits = [10, 20, 50]
+        if min_ratings is None:
+            min_ratings = [7.0, 7.5]
+
         targets = []
 
         ***REMOVED*** Create targets for different combinations of parameters
@@ -81,8 +86,8 @@ class RecommendationTargetFactories:
         return targets
 
     def create_trending_movies_targets(
-        self, limits: List[int] = [10, 20, 50], days_values: List[int] = [7, 30]
-    ) -> List[WarmingTarget]:
+        self, limits: list[int] | None = None, days_values: list[int] | None = None
+    ) -> list[WarmingTarget]:
         """Create warming targets for trending movies with different parameters.
 
         Args:
@@ -92,6 +97,11 @@ class RecommendationTargetFactories:
         Returns:
             List of warming targets
         """
+        if limits is None:
+            limits = [10, 20, 50]
+        if days_values is None:
+            days_values = [7, 30]
+
         targets = []
 
         ***REMOVED*** Create targets for different combinations of parameters
@@ -126,8 +136,8 @@ class RecommendationTargetFactories:
         return targets
 
     def create_popular_content_targets(
-        self, popularity_data: Dict[str, Any]
-    ) -> List[WarmingTarget]:
+        self, popularity_data: dict[str, Any]
+    ) -> list[WarmingTarget]:
         """Create warming targets based on popularity data.
 
         Args:

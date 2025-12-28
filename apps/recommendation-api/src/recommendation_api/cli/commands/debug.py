@@ -1,43 +1,26 @@
 """Debug commands for the Recommendation API CLI."""
 
 import asyncio
-import json
 import logging
-import os
 import time
-from typing import Dict, Any, List, Optional
-import httpx
-import typer
-from typer import Typer
+from typing import Any, cast
+
 import numpy as np
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.syntax import Syntax
-
-***REMOVED*** NOTE: This debug CLI still uses database operations directly and needs refactoring
-***REMOVED*** to use the API-based architecture like cache.py and embeddings.py
-try:
-    from recommendation_api.db.connection import get_db_context
-    from recommendation_api.db.operations import get_movies_by_ids, get_movie_by_id
-except ImportError:
-    ***REMOVED*** Graceful fallback when database operations are not available
-    def get_db_context():
-        raise NotImplementedError("Database operations not available - debug CLI needs refactoring")
-
-    def get_movies_by_ids(*args, **kwargs):
-        raise NotImplementedError("Database operations not available - debug CLI needs refactoring")
-
-    def get_movie_by_id(*args, **kwargs):
-        raise NotImplementedError("Database operations not available - debug CLI needs refactoring")
-
-
-from recommendation_api.repositories.vector import VectorRepository
-from recommendation_api.repositories.vector.client import get_qdrant_client
-from recommendation_api.services.vector_service import VectorService, get_vector_service
-from recommendation_api.config.app import settings
+import typer
 from config.logging import configure_logging, get_logger
 from qdrant_client.http import models
+from rich.console import Console
+from rich.table import Table
+from typer import Typer
+
+from recommendation_api.config.app import settings
+from recommendation_api.db.connection import get_db_context
+from recommendation_api.db.operations import get_movie_by_id, get_movies_by_ids
+from recommendation_api.repositories.vector import VectorRepository
+from recommendation_api.repositories.vector.client import get_qdrant_client
+from recommendation_api.services.backend_client import BackendClient
+from recommendation_api.services.movie_adapter import MovieDataAdapter
+from recommendation_api.services.vector_service import VectorService, get_vector_service
 
 app: Typer = typer.Typer(
     name="debug",
@@ -92,7 +75,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
 
 
-def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
+def cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
     """Calculate cosine similarity between two vectors.
 
     Args:
@@ -224,7 +207,10 @@ def check_embedding(
                 with get_db_context() as session:
                     movie = get_movie_by_id(session, movie_id)
                     if movie:
-                        console.print(f"[yellow]Movie exists in database: {movie.title}[/yellow]")
+                        title = (
+                            movie.get("title", "Unknown") if isinstance(movie, dict) else str(movie)
+                        )
+                        console.print(f"[yellow]Movie exists in database: {title}[/yellow]")
                         console.print(
                             "[yellow]Run 'rec-api debug recreate_embedding {movie_id}' to create the embedding[/yellow]"
                         )
@@ -343,15 +329,29 @@ def similar_movies(
                     table.add_column("Release Year", style="blue")
 
                     ***REMOVED*** Map IDs to movies
-                    id_to_movie = {m.id: m for m in movies if m.id is not None}
+                    id_to_movie: dict[int, dict[str, Any]] = {}
+                    for m in movies:
+                        if not isinstance(m, dict):
+                            continue
+                        m_id = m.get("id")
+                        if isinstance(m_id, int):
+                            id_to_movie[m_id] = m
 
                     ***REMOVED*** Add rows
                     for m_id, score in similar_movies:
                         movie = id_to_movie.get(m_id)
                         if movie:
-                            title = movie.title
-                            imdb = movie.imdb_rating if movie.imdb_rating is not None else "N/A"
-                            year = movie.release_date if movie.release_date is not None else "N/A"
+                            title = str(movie.get("title") or "Unknown")
+                            imdb = (
+                                movie.get("imdb_rating")
+                                if movie.get("imdb_rating") is not None
+                                else "N/A"
+                            )
+                            year = (
+                                movie.get("release_date")
+                                if movie.get("release_date") is not None
+                                else "N/A"
+                            )
                         else:
                             title = f"Unknown (ID: {m_id})"
                             imdb = "N/A"
@@ -414,7 +414,7 @@ def compare_movies(
         console.print(f"[red]No embedding found for movie ID {movie_id2}[/red]")
         return
 
-    console.print(f"[green]Found embeddings for both movies[/green]")
+    console.print("[green]Found embeddings for both movies[/green]")
 
     ***REMOVED*** Get movie details
     try:
@@ -428,34 +428,54 @@ def compare_movies(
             table.add_column(f"Movie {movie_id2}", style="yellow")
 
             ***REMOVED*** Get movie objects
-            movie1 = next((m for m in movies if m.id == movie_id1), None)
-            movie2 = next((m for m in movies if m.id == movie_id2), None)
+            movie1 = next(
+                (m for m in movies if isinstance(m, dict) and m.get("id") == movie_id1),
+                None,
+            )
+            movie2 = next(
+                (m for m in movies if isinstance(m, dict) and m.get("id") == movie_id2),
+                None,
+            )
 
             if movie1 and movie2:
-                table.add_row("Title", movie1.title, movie2.title)
+                table.add_row(
+                    "Title",
+                    str(movie1.get("title") or "Unknown"),
+                    str(movie2.get("title") or "Unknown"),
+                )
                 table.add_row(
                     "Release Year",
-                    str(movie1.release_date) if movie1.release_date else "N/A",
-                    str(movie2.release_date) if movie2.release_date else "N/A",
+                    str(movie1.get("release_date")) if movie1.get("release_date") else "N/A",
+                    str(movie2.get("release_date")) if movie2.get("release_date") else "N/A",
                 )
                 table.add_row(
                     "IMDb Rating",
-                    str(movie1.imdb_rating) if movie1.imdb_rating else "N/A",
-                    str(movie2.imdb_rating) if movie2.imdb_rating else "N/A",
+                    str(movie1.get("imdb_rating")) if movie1.get("imdb_rating") else "N/A",
+                    str(movie2.get("imdb_rating")) if movie2.get("imdb_rating") else "N/A",
                 )
 
                 ***REMOVED*** Handle genres correctly (either as list of strings or list of Genre objects)
-                genres1 = movie1.genres if movie1.genres else []
-                genres2 = movie2.genres if movie2.genres else []
+                genres1 = movie1.get("genres") or []
+                genres2 = movie2.get("genres") or []
 
                 ***REMOVED*** Convert genre objects to strings if needed
-                if genres1 and hasattr(genres1[0], "name"):
-                    genres1_str = ", ".join(g.name for g in genres1)
+                if (
+                    genres1
+                    and isinstance(genres1, list)
+                    and isinstance(genres1[0], dict)
+                    and "name" in genres1[0]
+                ):
+                    genres1_str = ", ".join(str(g.get("name")) for g in genres1)
                 else:
                     genres1_str = ", ".join(str(g) for g in genres1) if genres1 else "N/A"
 
-                if genres2 and hasattr(genres2[0], "name"):
-                    genres2_str = ", ".join(g.name for g in genres2)
+                if (
+                    genres2
+                    and isinstance(genres2, list)
+                    and isinstance(genres2[0], dict)
+                    and "name" in genres2[0]
+                ):
+                    genres2_str = ", ".join(str(g.get("name")) for g in genres2)
                 else:
                     genres2_str = ", ".join(str(g) for g in genres2) if genres2 else "N/A"
 
@@ -526,41 +546,39 @@ def vector_status(
             console.print(f"[red]Error getting collection info: {e}[/red]")
 
         if collection_info:
+            info = cast(dict[str, Any], collection_info)
             ***REMOVED*** Display collection info in a table
             table = Table(title=f"Vector Collection: {collection_name}")
             table.add_column("Property", style="cyan")
             table.add_column("Value", style="green")
 
             ***REMOVED*** Add basic info
-            if hasattr(collection_info, "points_count"):
-                table.add_row("Points Count", str(collection_info.points_count))
-            if hasattr(collection_info, "vectors_count"):
-                table.add_row("Vectors Count", str(collection_info.vectors_count))
-            if hasattr(collection_info, "segments_count"):
-                table.add_row("Segments Count", str(collection_info.segments_count))
-            if hasattr(collection_info, "config"):
-                if hasattr(collection_info.config, "params"):
-                    if hasattr(collection_info.config.params, "vectors"):
-                        vector_params = collection_info.config.params.vectors
-                        if hasattr(vector_params, "size"):
-                            table.add_row("Vector Size", str(vector_params.size))
-                        if hasattr(vector_params, "distance"):
-                            table.add_row("Distance Metric", str(vector_params.distance))
+            table.add_row("Points Count", str(info.get("points_count", "Unknown")))
+            table.add_row("Vectors Count", str(info.get("vectors_count", "Unknown")))
+            table.add_row("Segments Count", str(info.get("segments_count", "Unknown")))
+            config = cast(dict[str, Any], info.get("config") or {})
+            if "vector_size" in config:
+                table.add_row("Vector Size", str(config.get("vector_size")))
+            if "distance" in config:
+                table.add_row("Distance Metric", str(config.get("distance")))
 
             console.print(table)
 
             ***REMOVED*** Provide some helpful context about the data
-            if hasattr(collection_info, "points_count") and hasattr(
-                collection_info, "vectors_count"
+            points_count = info.get("points_count")
+            vectors_count = info.get("vectors_count")
+            if (
+                isinstance(points_count, int)
+                and isinstance(vectors_count, int)
+                and points_count > vectors_count
             ):
-                if collection_info.points_count > collection_info.vectors_count:
-                    diff = collection_info.points_count - collection_info.vectors_count
-                    console.print(
-                        f"[yellow]⚠ Warning: {diff} points have metadata but no vector data[/yellow]"
-                    )
-                    console.print(
-                        "[yellow]Use 'rec-api debug recreate_embedding' or 'rec-api embeddings repair_embeddings' to fix[/yellow]"
-                    )
+                diff = points_count - vectors_count
+                console.print(
+                    f"[yellow]⚠ Warning: {diff} points have metadata but no vector data[/yellow]"
+                )
+                console.print(
+                    "[yellow]Use 'rec-api debug recreate_embedding' or 'rec-api embeddings repair_embeddings' to fix[/yellow]"
+                )
         else:
             console.print(f"[yellow]Collection '{collection_name}' not found[/yellow]")
 
@@ -626,40 +644,40 @@ def recreate_embedding(
             console.print(f"[red]Failed to delete existing point for movie ID {movie_id}[/red]")
             return
 
-    ***REMOVED*** Generate and store new embedding
     console.print("[cyan]Generating and storing new embedding...[/cyan]")
 
-    with get_db_context() as session:
-        ***REMOVED*** Get movie details to confirm it exists
-        movie = get_movie_by_id(session, movie_id)
-        if not movie:
-            console.print(f"[red]Movie ID {movie_id} not found in database[/red]")
-            return
+    async def _run() -> list[float] | None:
+        backend = BackendClient()
+        adapter = MovieDataAdapter(backend)
+        try:
+            movie_features = await adapter.get_movie_by_id(movie_id)
+            if not movie_features:
+                return None
+            return await vector_service.generate_and_store_movie_embedding(movie_features)
+        finally:
+            await backend.close()
 
-        console.print(f"[green]Found movie in database: {movie.title}[/green]")
+    embedding = asyncio.run(_run())
 
-        ***REMOVED*** Generate and store embedding
-        embedding = vector_service.generate_and_store_movie_embedding(session, movie_id)
+    if embedding:
+        console.print(
+            f"[green]✓ Successfully generated and stored embedding for movie ID {movie_id}[/green]"
+        )
 
-        if embedding:
+        ***REMOVED*** Verify the embedding was stored correctly
+        console.print("[cyan]Verifying embedding...[/cyan]")
+        point = client.get_point(point_id=movie_id, with_vectors=True)
+
+        if point and point.vector is not None:
             console.print(
-                f"[green]✓ Successfully generated and stored embedding for movie ID {movie_id}[/green]"
+                f"[green]✓ Verification successful. Embedding stored correctly with {len(point.vector)} dimensions.[/green]"
             )
-
-            ***REMOVED*** Verify the embedding was stored correctly
-            console.print("[cyan]Verifying embedding...[/cyan]")
-            point = client.get_point(movie_id, with_vectors=True)
-
-            if point and point.vector is not None:
-                console.print(
-                    f"[green]✓ Verification successful. Embedding stored correctly with {len(point.vector)} dimensions.[/green]"
-                )
-            else:
-                console.print(
-                    f"[red]✗ Verification failed. Embedding was generated but not stored correctly.[/red]"
-                )
         else:
-            console.print(f"[red]✗ Failed to generate embedding for movie ID {movie_id}[/red]")
+            console.print(
+                "[red]✗ Verification failed. Embedding was generated but not stored correctly.[/red]"
+            )
+    else:
+        console.print(f"[red]✗ Failed to generate embedding for movie ID {movie_id}[/red]")
 
 
 @app.command()
@@ -685,12 +703,9 @@ def test_metadata_optimization(
         verbose: Show detailed progress
         quiet: Suppress most log output
     """
-    import asyncio
-    import time
-    from recommendation_api.services.recommendation import RecommendationService
-    from recommendation_api.services.movie_adapter import MovieDataAdapter
     from recommendation_api.services.backend_client import BackendClient
-    from recommendation_api.config import settings
+    from recommendation_api.services.movie_adapter import MovieDataAdapter
+    from recommendation_api.services.recommendation import RecommendationService
 
     ***REMOVED*** Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
@@ -741,7 +756,7 @@ def test_metadata_optimization(
                 table.add_column("IMDb Rating", style="magenta")
                 table.add_column("Release Date", style="blue")
 
-                for i, rec in enumerate(recommendations[:5]):  ***REMOVED*** Show first 5
+                for _i, rec in enumerate(recommendations[:5]):  ***REMOVED*** Show first 5
                     table.add_row(
                         str(rec.id),
                         rec.title,
@@ -756,7 +771,7 @@ def test_metadata_optimization(
             if optimized_used:
                 api_time_estimate = 4.5  ***REMOVED*** Typical API path time
                 speedup = api_time_estimate / optimized_time
-                console.print(f"\n[green]Performance Improvement:[/green]")
+                console.print("\n[green]Performance Improvement:[/green]")
                 console.print(f"  Optimized path: {optimized_time:.3f}s")
                 console.print(f"  Typical API path: ~{api_time_estimate}s")
                 console.print(f"  Speedup: {speedup:.1f}x faster")
@@ -765,7 +780,7 @@ def test_metadata_optimization(
                 )
             else:
                 console.print(
-                    f"\n[yellow]Note: To benefit from optimization, re-run embeddings with new metadata format[/yellow]"
+                    "\n[yellow]Note: To benefit from optimization, re-run embeddings with new metadata format[/yellow]"
                 )
 
         except Exception as e:

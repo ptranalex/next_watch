@@ -1,9 +1,9 @@
 """Health check routes for the Recommendation API."""
 
-from config.logging import get_logger
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any
 
+from config.logging import get_logger
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -33,7 +33,7 @@ async def health_check(request: Request) -> JSONResponse:
         overall_status = "healthy" if all_healthy else "unhealthy"
 
         ***REMOVED*** Build response
-        response = {
+        response: dict[str, Any] = {
             "status": overall_status,
             "service": "recommendation-api",
             "version": "0.1.0",
@@ -86,7 +86,7 @@ async def health_check(request: Request) -> JSONResponse:
 
 
 @router.get("/health/live")
-async def liveness_check() -> Dict[str, Any]:
+async def liveness_check() -> dict[str, Any]:
     """Simple liveness check endpoint.
 
     Returns basic service status without dependency checks.

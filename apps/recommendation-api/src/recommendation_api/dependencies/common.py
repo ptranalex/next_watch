@@ -1,13 +1,18 @@
 """Common dependencies for Recommendation API routes."""
 
 from config.logging import get_logger
-from typing import cast
+from fastapi import Depends, Request
 
-from fastapi import Request, Depends
-
-from recommendation_api.services.backend_client import BackendClient, get_backend_client
+from recommendation_api.services.backend_client import (
+    BackendClient,
+)
+from recommendation_api.services.backend_client import (
+    get_backend_client as backend_client_factory,
+)
 from recommendation_api.services.movie_adapter import (
     MovieDataAdapter,
+)
+from recommendation_api.services.movie_adapter import (
     get_movie_adapter as movie_adapter_factory,
 )
 from recommendation_api.services.recommendation import RecommendationService
@@ -22,7 +27,7 @@ def get_backend_client_dependency() -> BackendClient:
     Returns:
         Backend client instance
     """
-    return get_backend_client()
+    return backend_client_factory()
 
 
 def get_movie_adapter_dependency() -> MovieDataAdapter:

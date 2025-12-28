@@ -1,19 +1,15 @@
 """Health check commands for the Recommendation API CLI."""
 
 import asyncio
-import logging
-from typing import Dict, Any, Awaitable
-import typer
-from typer import Typer
-from rich.console import Console
-from rich.table import Table
-import asyncpg  ***REMOVED*** type: ignore
-from qdrant_client import QdrantClient
-from qdrant_client.http import models
 
-from recommendation_api.config.app import settings
-from recommendation_api.cli.utils import check_service_health, display_service_status, print_error
+import typer
 from config.logging import configure_logging, get_logger
+from qdrant_client import QdrantClient
+from rich.console import Console
+from typer import Typer
+
+from recommendation_api.cli.utils import check_service_health, display_service_status, print_error
+from recommendation_api.config.app import settings
 
 app: Typer = typer.Typer(
     name="health",
@@ -48,20 +44,21 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
     )
 
 
-async def check_database_health() -> bool:
-    """Check database health by attempting to connect and execute a simple query.
-
-    Returns:
-        bool: True if database is healthy, False otherwise
-    """
-    try:
-        conn = await asyncpg.connect(settings.database_url)
-        await conn.execute("SELECT 1")
-        await conn.close()
-        return True
-    except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        return False
+***REMOVED*** Note: Recommendation API doesn't use a database - it uses Redis and Qdrant
+***REMOVED*** async def check_database_health() -> bool:
+***REMOVED***     """Check database health by attempting to connect and execute a simple query.
+***REMOVED***
+***REMOVED***     Returns:
+***REMOVED***         bool: True if database is healthy, False otherwise
+***REMOVED***     """
+***REMOVED***     try:
+***REMOVED***         conn = await asyncpg.connect(settings.database_url)
+***REMOVED***         await conn.execute("SELECT 1")
+***REMOVED***         await conn.close()
+***REMOVED***         return True
+***REMOVED***     except Exception as e:
+***REMOVED***         logger.error(f"Database health check failed: {e}")
+***REMOVED***         return False
 
 
 async def check_qdrant_health() -> bool:
@@ -72,7 +69,7 @@ async def check_qdrant_health() -> bool:
     """
     try:
         client = QdrantClient(url=settings.qdrant_url)
-        collections = client.get_collections()
+        client.get_collections()
         return True
     except Exception as e:
         logger.error(f"Qdrant health check failed: {e}")
@@ -106,11 +103,7 @@ def check(
                 "status": "Unknown",
                 "response_time": "N/A",
             },
-            "Database": {
-                "url": settings.database_url,
-                "status": "Unknown",
-                "response_time": "N/A",
-            },
+            ***REMOVED*** Note: Recommendation API doesn't use a database
             "Qdrant": {
                 "url": settings.qdrant_url,
                 "status": "Unknown",
@@ -131,13 +124,7 @@ def check(
             )
             services["Recommendation API"]["status"] = "Healthy" if is_healthy else "Unhealthy"
 
-            ***REMOVED*** Check Database
-            is_healthy = await check_database_health()
-            services["Database"]["status"] = "Healthy" if is_healthy else "Unhealthy"
-            if is_healthy:
-                console.print("✅ Database is healthy")
-            else:
-                console.print("❌ Database is unhealthy")
+            ***REMOVED*** Note: Database check removed - recommendation API doesn't use a database
 
             ***REMOVED*** Check Qdrant
             is_healthy = await check_qdrant_health()
@@ -180,7 +167,7 @@ def check(
         print_error(f"Failed to check service health: {str(e)}", console)
         if verbose:
             logger.exception("Health check error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -219,12 +206,13 @@ def ping(
                     console=console,
                 )
             )
-        elif service == "db":
-            is_healthy = asyncio.run(check_database_health())
-            if is_healthy:
-                console.print("✅ Database is healthy")
-            else:
-                console.print("❌ Database is unhealthy")
+        ***REMOVED*** Note: Database check removed - recommendation API doesn't use a database
+        ***REMOVED*** elif service == "db":
+        ***REMOVED***     is_healthy = asyncio.run(check_database_health())
+        ***REMOVED***     if is_healthy:
+        ***REMOVED***         console.print("✅ Database is healthy")
+        ***REMOVED***     else:
+        ***REMOVED***         console.print("❌ Database is unhealthy")
         elif service == "qdrant":
             is_healthy = asyncio.run(check_qdrant_health())
             if is_healthy:
@@ -233,7 +221,7 @@ def ping(
                 console.print("❌ Qdrant is unhealthy")
         else:
             console.print(f"[red]❌ Unknown service: {service}[/red]")
-            console.print("[yellow]Available services: api, db, qdrant[/yellow]")
+            console.print("[yellow]Available services: api, qdrant[/yellow]")
             raise typer.Exit(code=1)
 
         ***REMOVED*** Show summary
@@ -260,7 +248,7 @@ def ping(
         print_error(f"Failed to ping {service} service: {str(e)}", console)
         if verbose:
             logger.exception(f"Ping {service} error")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.callback(invoke_without_command=True)

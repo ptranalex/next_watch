@@ -11,4 +11,4 @@ __all__ = [
     "RecommendationService",
     "VectorService",
     "get_vector_service",
-] 
+]

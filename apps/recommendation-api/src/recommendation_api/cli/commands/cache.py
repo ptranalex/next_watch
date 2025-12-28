@@ -3,17 +3,16 @@
 import asyncio
 import logging
 import time
-from typing import Optional, List
+from typing import Any, cast
 
 import typer
-from typer import Typer
+from config.logging import configure_logging
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 from rich.table import Table
+from typer import Typer
 
-from recommendation_api.services.cache_service import get_cache_service
 from recommendation_api.config import settings
-from recommendation_api.config.logging import configure_logging
+from recommendation_api.services.cache_service import get_cache_service
 
 ***REMOVED*** Create Typer app
 app: Typer = typer.Typer(
@@ -35,13 +34,13 @@ def precompute_similar_movies(
     min_score: float = typer.Option(
         0.01, "--min-score", "-s", help="Minimum similarity score threshold"
     ),
-    ttl: Optional[int] = typer.Option(
+    ttl: int | None = typer.Option(
         None, "--ttl", "-t", help="Cache TTL in seconds (default: from config)"
     ),
     batch_size: int = typer.Option(
         100, "--batch-size", "-b", help="Number of movies to process in each batch"
     ),
-    movie_ids: Optional[List[int]] = typer.Option(
+    movie_ids: list[int] | None = typer.Option(
         None, "--movie-id", "-m", help="Specific movie IDs to process (comma-separated)"
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
@@ -108,13 +107,13 @@ def precompute_similar_movies(
 async def _run_precompute(
     limit: int,
     min_score: float,
-    ttl: Optional[int],
+    ttl: int | None,
     batch_size: int,
-    movie_ids: Optional[List[int]],
+    movie_ids: list[int] | None,
     verbose: bool,
     quiet: bool,
     force: bool,
-    noisy_loggers: List[str],
+    noisy_loggers: list[str],
 ) -> None:
     """Async implementation of precompute command."""
     ***REMOVED*** Configure logging levels
@@ -130,7 +129,7 @@ async def _run_precompute(
         def __init__(self, console, quiet=False):
             self.console = console
             self.quiet = quiet
-            self.start_time = None
+            self.start_time: float | None = None
             self.last_update = 0
             self.total_movies = 0
             self.processed = 0
@@ -188,6 +187,8 @@ async def _run_precompute(
                     progress_pct = (
                         (total_processed / self.total_movies * 100) if self.total_movies > 0 else 0
                     )
+                    if self.start_time is None:
+                        self.start_time = current_time
                     elapsed = current_time - self.start_time
 
                     ***REMOVED*** Calculate overall throughput (including skips)
@@ -232,7 +233,7 @@ async def _run_precompute(
                     if processing_rate > 0:
                         rate_display += f" (processing: {processing_rate:.1f}/s)"
 
-                    eta_display = f"{int(eta//60)}m{int(eta%60):02d}s"
+                    eta_display = f"{int(eta // 60)}m{int(eta % 60):02d}s"
 
                     ***REMOVED*** Add estimated remaining work info for better context
                     if processing_rate > 0 and total_processed > 10:
@@ -252,7 +253,7 @@ async def _run_precompute(
         ***REMOVED*** Initialize cache service
         if not quiet:
             console.print("[cyan]Initializing cache service...[/cyan]")
-        cache_service = await get_cache_service()
+        cache_service = cast(Any, get_cache_service())
 
         ***REMOVED*** Create progress tracker
         progress_tracker = ProgressTracker(console, quiet)
@@ -272,8 +273,9 @@ async def _run_precompute(
                     console.print("[red]No movies found from API[/red]")
                 raise typer.Exit(code=1)
 
-            movie_ids = all_movie_ids
-            total_movies = len(movie_ids)
+            movie_ids_list: list[int] = cast(list[int], all_movie_ids)
+            total_movies = len(movie_ids_list)
+            movie_ids = movie_ids_list
 
         ***REMOVED*** Start progress tracking
         progress_tracker.start(total_movies)
@@ -285,8 +287,9 @@ async def _run_precompute(
         failed = 0
 
         ***REMOVED*** Process movies in batches
+        movie_ids_list2: list[int] = cast(list[int], movie_ids)
         for i in range(0, total_movies, batch_size):
-            batch = movie_ids[i : i + batch_size]
+            batch = movie_ids_list2[i : i + batch_size]
             batch_num = i // batch_size + 1
             total_batches = (total_movies - 1) // batch_size + 1
 
@@ -312,12 +315,13 @@ async def _run_precompute(
                     progress_tracker.start_processing()
 
                     ***REMOVED*** Get similar movies (this will cache them automatically)
-                    similar_movies, _ = (
-                        await cache_service.recommendation_service.get_similar_movies(
-                            movie_id=movie_id,
-                            limit=limit,
-                            min_score=min_score,
-                        )
+                    (
+                        similar_movies,
+                        _,
+                    ) = await cache_service.recommendation_service.get_similar_movies(
+                        movie_id=movie_id,
+                        limit=limit,
+                        min_score=min_score,
                     )
 
                     ***REMOVED*** End timing actual processing
@@ -396,7 +400,7 @@ async def _run_precompute(
             import traceback
 
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
     finally:
         ***REMOVED*** Restore log levels
@@ -449,7 +453,7 @@ async def _run_cache_info(verbose: bool, quiet: bool) -> None:
         if not quiet:
             console.print("[cyan]Getting cache information...[/cyan]")
 
-        cache_service = await get_cache_service()
+        cache_service = cast(Any, get_cache_service())
 
         ***REMOVED*** Get cache stats
         if not quiet:
@@ -477,7 +481,7 @@ async def _run_cache_info(verbose: bool, quiet: bool) -> None:
         table.add_row("Memory Used", str(redis_info.get("memory_used", "N/A")))
         table.add_row("Total Keys", str(redis_info.get("total_keys", "N/A")))
         table.add_row("Uptime (days)", str(redis_info.get("uptime_days", "N/A")))
-        table.add_row("TTL", f"{settings.redis_ttl} seconds")
+        table.add_row("TTL", f"{settings.cache_ttl_default} seconds")
         table.add_row("Caching Enabled", "Yes" if settings.enable_caching else "No")
 
         console.print(table)
@@ -494,7 +498,7 @@ async def _run_cache_info(verbose: bool, quiet: bool) -> None:
             import traceback
 
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
     finally:
         ***REMOVED*** Clean up cache service
@@ -550,7 +554,7 @@ async def _run_clear_cache(verbose: bool, quiet: bool) -> None:
         if not quiet:
             console.print("[cyan]Initializing cache service...[/cyan]")
 
-        cache_service = await get_cache_service()
+        cache_service = cast(Any, get_cache_service())
 
         ***REMOVED*** Clear cache
         if not quiet:
@@ -573,7 +577,7 @@ async def _run_clear_cache(verbose: bool, quiet: bool) -> None:
             import traceback
 
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
     finally:
         ***REMOVED*** Clean up cache service

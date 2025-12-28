@@ -1,23 +1,24 @@
 """Utility functions for the Recommendation API CLI interface."""
 
 import logging
-from typing import Any, Dict, Optional, Type, List, Union
-from logging import Handler, StreamHandler, FileHandler
+from logging import FileHandler, Handler, StreamHandler
+from typing import Any
 
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.text import Text
-from rich import box
-from rich.progress import Progress, SpinnerColumn, TextColumn
 import httpx
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
+from rich.text import Text
 
-from recommendation_api.config.app import Config
+from recommendation_api.config.app import RecommendationAPIConfig
 
 logger = logging.getLogger(__name__)
 
 
-def format_config_table(config: Config, title: str = "Recommendation API Configuration") -> Table:
+def format_config_table(
+    config: RecommendationAPIConfig, title: str = "Recommendation API Configuration"
+) -> Table:
     """Format configuration settings as a Rich table.
 
     Args:
@@ -39,7 +40,6 @@ def format_config_table(config: Config, title: str = "Recommendation API Configu
         ("Environment", config.environment, "ENV/DEFAULT"),
         ("Debug", _format_boolean(config.debug), "ENV/DEFAULT"),
         ("Log Level", config.log_level, "ENV/DEFAULT"),
-        ("Database URL", _mask_database_url(config.database_url), "ENV/DEFAULT"),
         ("Qdrant URL", config.qdrant_url, "ENV/DEFAULT"),
         ("Embedding Model", config.embedding_model, "ENV/DEFAULT"),
         ("Embedding Dimension", str(config.embedding_dimension), "ENV/DEFAULT"),
@@ -51,7 +51,7 @@ def format_config_table(config: Config, title: str = "Recommendation API Configu
         ("User Vector Weight", str(config.user_vector_weight), "ENV/DEFAULT"),
         ("Content Vector Weight", str(config.content_vector_weight), "ENV/DEFAULT"),
         ("Enable Caching", _format_boolean(config.enable_caching), "ENV/DEFAULT"),
-        ("Cache TTL", f"{config.cache_ttl_seconds}s", "ENV/DEFAULT"),
+        ("Cache TTL", f"{config.cache_ttl_default}s", "ENV/DEFAULT"),
         ("Precompute Similarities", _format_boolean(config.precompute_similarities), "ENV/DEFAULT"),
         ("Max Concurrent Requests", str(config.max_concurrent_requests), "ENV/DEFAULT"),
         ("Request Timeout", f"{config.request_timeout_seconds}s", "ENV/DEFAULT"),
@@ -90,9 +90,9 @@ def format_config_table(config: Config, title: str = "Recommendation API Configu
 
 
 def print_config(
-    config: Config,
+    config: RecommendationAPIConfig,
     title: str = "Recommendation API Configuration",
-    console: Optional[Console] = None,
+    console: Console | None = None,
     show_secrets: bool = False,
 ) -> None:
     """Print configuration settings in a readable format.
@@ -119,7 +119,6 @@ def print_config(
 
         ***REMOVED*** Add settings with unmasked secrets
         settings = [
-            ("Database URL", config.database_url, "ENV/DEFAULT"),
             ("Qdrant API Key", config.qdrant_api_key or "[red]Not Set[/red]", "ENV/DEFAULT"),
         ]
 
@@ -135,7 +134,7 @@ def print_config(
 
 
 async def check_service_health(
-    url: str, service_name: str, timeout: int = 5, console: Optional[Console] = None
+    url: str, service_name: str, timeout: int = 5, console: Console | None = None
 ) -> bool:
     """Check the health of a service endpoint.
 
@@ -160,7 +159,7 @@ async def check_service_health(
             console=console,
             transient=True,
         ) as progress:
-            task = progress.add_task(f"Checking {service_name}...", total=None)
+            progress.add_task(f"Checking {service_name}...", total=None)
 
             async with httpx.AsyncClient() as client:
                 response = await client.get(health_url, timeout=timeout)
@@ -194,7 +193,7 @@ def _format_boolean(value: bool) -> str:
     return "[green]Enabled[/green]" if value else "[grey]Disabled[/grey]"
 
 
-def _mask_sensitive_value(value: Optional[str]) -> str:
+def _mask_sensitive_value(value: str | None) -> str:
     """Mask sensitive configuration values."""
     if not value:
         return "[red]Not Set[/red]"
@@ -221,7 +220,7 @@ def _mask_database_url(url: str) -> str:
 
 
 def display_service_status(
-    services: Dict[str, Dict[str, Any]], console: Optional[Console] = None
+    services: dict[str, dict[str, Any]], console: Console | None = None
 ) -> None:
     """Display status of multiple services in a table.
 
@@ -259,7 +258,7 @@ def display_service_status(
 
 def configure_logging(
     level: str = "INFO",
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
 ) -> None:
     """Configure logging for the application.
 
@@ -270,7 +269,7 @@ def configure_logging(
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     log_level = getattr(logging, level.upper())
 
-    handlers: List[Handler] = [StreamHandler()]
+    handlers: list[Handler] = [StreamHandler()]
     if log_file:
         handlers.append(FileHandler(log_file))
 
@@ -284,7 +283,7 @@ def configure_logging(
 def print_error(
     message: str,
     console: Console,
-    error: Optional[Exception] = None,
+    error: Exception | None = None,
 ) -> None:
     """Print error message with optional exception details.
 
