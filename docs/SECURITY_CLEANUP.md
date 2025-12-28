@@ -4,7 +4,7 @@ This document intentionally **does not** include any real credentials, API keys,
 
 ***REMOVED******REMOVED*** Why this exists
 
-- **Goal**: keep the *process* for security cleanup documented, without ever storing secrets in git.
+- **Goal**: keep the _process_ for security cleanup documented, without ever storing secrets in git.
 - **Rule**: never commit `.env` files, API keys, passwords, tokens, private keys, or “incident reports” that embed them.
 
 ***REMOVED******REMOVED*** If secrets were committed
