@@ -107,7 +107,7 @@ services_found=false
 check_nextwatch_service() {
     local service_name=$1
     local port=$2
-    
+
     if curl -sf "http://localhost:$port/metrics" >/dev/null 2>&1; then
         echo -e "  $service_name: ${GREEN}✅ Running with metrics${NC}"
         services_found=true
@@ -137,4 +137,3 @@ echo -e "${GREEN}✨ Setup complete! Happy monitoring! ✨${NC}"
 echo ""
 echo -e "${BLUE}📖 Documentation:${NC} docs/PROMETHEUS_GRAFANA_SETUP.md"
 echo -e "${BLUE}🐛 Logs:${NC} docker-compose -f $INFRA_DIR/docker-compose.monitoring.yml logs -f"
- 

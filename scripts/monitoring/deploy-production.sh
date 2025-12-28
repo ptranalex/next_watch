@@ -47,7 +47,7 @@ log_error() {
 ***REMOVED*** Function to check if required tools are installed
 check_dependencies() {
     log_info "Checking dependencies..."
-    
+
     local deps=("docker" "docker-compose" "openssl")
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
@@ -55,18 +55,18 @@ check_dependencies() {
             exit 1
         fi
     done
-    
+
     log_success "All dependencies are installed"
 }
 
 ***REMOVED*** Function to check if environment file exists
 check_environment() {
     log_info "Checking environment configuration..."
-    
+
     if [[ ! -f "$ENV_FILE" ]]; then
         log_warning "Production environment file not found: $ENV_FILE"
         log_info "Creating from template..."
-        
+
         if [[ -f "$INFRA_DIR/env.monitoring.prod.example" ]]; then
             cp "$INFRA_DIR/env.monitoring.prod.example" "$ENV_FILE"
             log_warning "Please edit $ENV_FILE with your production values before continuing"
@@ -83,13 +83,13 @@ check_environment() {
             exit 1
         fi
     fi
-    
+
     ***REMOVED*** Source the environment file to validate
     if ! source "$ENV_FILE"; then
         log_error "Failed to source environment file. Please check for syntax errors."
         exit 1
     fi
-    
+
     ***REMOVED*** Check required variables
     local required_vars=("PRODUCTION_DOMAIN" "GRAFANA_ADMIN_PASSWORD" "SMTP_HOST" "ALERT_EMAIL_TO")
     for var in "${required_vars[@]}"; do
@@ -98,21 +98,21 @@ check_environment() {
             exit 1
         fi
     done
-    
+
     log_success "Environment configuration validated"
 }
 
 ***REMOVED*** Function to create necessary directories
 create_directories() {
     log_info "Creating monitoring directories..."
-    
+
     local dirs=(
         "$MONITORING_DIR/prometheus/data"
         "$MONITORING_DIR/grafana/data"
         "$MONITORING_DIR/alertmanager/data"
         "$MONITORING_DIR/loki/data"
     )
-    
+
     for dir in "${dirs[@]}"; do
         mkdir -p "$dir"
         ***REMOVED*** Set appropriate permissions for Docker containers
@@ -121,7 +121,7 @@ create_directories() {
         sudo chown -R 65534:65534 "$MONITORING_DIR/alertmanager/data" 2>/dev/null || true
         sudo chown -R 10001:10001 "$MONITORING_DIR/loki/data" 2>/dev/null || true
     done
-    
+
     log_success "Monitoring directories created"
 }
 
@@ -129,7 +129,7 @@ create_directories() {
 setup_ssl() {
     if [[ -n "${SSL_CERT_PATH:-}" ]] && [[ -n "${SSL_KEY_PATH:-}" ]]; then
         log_info "Checking SSL certificates..."
-        
+
         if [[ ! -f "$SSL_CERT_PATH" ]] || [[ ! -f "$SSL_KEY_PATH" ]]; then
             log_warning "SSL certificates not found. Monitoring will run without HTTPS."
             log_info "To enable HTTPS, place certificates at:"
@@ -144,12 +144,12 @@ setup_ssl() {
 ***REMOVED*** Function to create Grafana database
 setup_grafana_database() {
     log_info "Setting up Grafana database..."
-    
+
     ***REMOVED*** Check if PostgreSQL is accessible
     if command -v psql &> /dev/null; then
         ***REMOVED*** Create Grafana database and user
         log_info "Creating Grafana database in PostgreSQL..."
-        
+
         ***REMOVED*** This assumes PostgreSQL is running and accessible
         ***REMOVED*** You may need to adjust connection parameters
         PGPASSWORD="${POSTGRES_PASSWORD}" psql -h localhost -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -c "
@@ -157,7 +157,7 @@ setup_grafana_database() {
         CREATE USER ${GRAFANA_DB_USER} WITH PASSWORD '${GRAFANA_DB_PASSWORD}';
         GRANT ALL PRIVILEGES ON DATABASE ${GRAFANA_DB_NAME} TO ${GRAFANA_DB_USER};
         " 2>/dev/null || log_warning "Database setup failed or already exists"
-        
+
         log_success "Grafana database configured"
     else
         log_warning "PostgreSQL client not found. Skipping database setup."
@@ -170,42 +170,42 @@ setup_grafana_database() {
 ***REMOVED*** Function to validate configuration files
 validate_configs() {
     log_info "Validating configuration files..."
-    
+
     local configs=(
         "$MONITORING_DIR/prometheus/prometheus.prod.yml"
         "$MONITORING_DIR/alertmanager/alertmanager.prod.yml"
         "$MONITORING_DIR/loki/loki.prod.yml"
         "$MONITORING_DIR/promtail/promtail.prod.yml"
     )
-    
+
     for config in "${configs[@]}"; do
         if [[ ! -f "$config" ]]; then
             log_error "Configuration file not found: $config"
             exit 1
         fi
     done
-    
+
     log_success "Configuration files validated"
 }
 
 ***REMOVED*** Function to deploy monitoring stack
 deploy_monitoring() {
     log_info "Deploying monitoring stack to production..."
-    
+
     cd "$INFRA_DIR"
-    
+
     ***REMOVED*** Pull latest images
     log_info "Pulling latest Docker images..."
     docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
-    
+
     ***REMOVED*** Deploy monitoring stack
     log_info "Starting monitoring services..."
     docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
-    
+
     ***REMOVED*** Wait for services to be healthy
     log_info "Waiting for services to be healthy..."
     sleep 30
-    
+
     ***REMOVED*** Check service health
     local services=("prometheus-prod" "grafana-prod" "alertmanager-prod" "loki-prod")
     for service in "${services[@]}"; do
@@ -247,7 +247,7 @@ show_access_info() {
 ***REMOVED*** Function to create backup script
 create_backup_script() {
     log_info "Creating backup script..."
-    
+
     cat > "$SCRIPT_DIR/backup-monitoring.sh" << 'EOF'
 ***REMOVED***!/bin/bash
 ***REMOVED*** Backup script for NextWatch monitoring data
@@ -271,7 +271,7 @@ tar czf "$BACKUP_DIR/monitoring-configs.tar.gz" -C "$MONITORING_DIR" .
 
 echo "Backup completed: $BACKUP_DIR"
 EOF
-    
+
     chmod +x "$SCRIPT_DIR/backup-monitoring.sh"
     log_success "Backup script created at $SCRIPT_DIR/backup-monitoring.sh"
 }
@@ -279,7 +279,7 @@ EOF
 ***REMOVED*** Main execution
 main() {
     log_info "Starting production monitoring deployment..."
-    
+
     check_dependencies
     check_environment
     create_directories
@@ -289,9 +289,9 @@ main() {
     deploy_monitoring
     create_backup_script
     show_access_info
-    
+
     log_success "Production monitoring deployment completed!"
 }
 
 ***REMOVED*** Run the main function
-main "$@" 
+main "$@"
