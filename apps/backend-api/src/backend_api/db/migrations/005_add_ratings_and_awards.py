@@ -5,12 +5,10 @@ This migration adds new columns for Rotten Tomatoes rating, Metacritic rating,
 and awards information to the movie table.
 """
 
-from sqlalchemy import text
-from sqlalchemy.exc import OperationalError, ProgrammingError
-from sqlalchemy.engine import Engine
-from typing import Optional
-
 from config.logging import get_logger
+from sqlalchemy import text
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "005_add_ratings_and_awards"
@@ -31,15 +29,21 @@ def upgrade(engine: Engine) -> None:
     with engine.begin() as conn:
         ***REMOVED*** Add new rating columns
         conn.execute(
-            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS rotten_tomatoes_rating INTEGER")
+            text(
+                "ALTER TABLE movie ADD COLUMN IF NOT EXISTS rotten_tomatoes_rating INTEGER"
+            )
         )
-        conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS metacritic_rating INTEGER"))
+        conn.execute(
+            text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS metacritic_rating INTEGER")
+        )
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS awards TEXT"))
 
         ***REMOVED*** Record the migration
         try:
             conn.execute(
-                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                text(
+                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                ),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")
@@ -58,7 +62,9 @@ def downgrade(engine: Engine) -> None:
 
     with engine.begin() as conn:
         ***REMOVED*** Remove the added columns
-        conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS rotten_tomatoes_rating"))
+        conn.execute(
+            text("ALTER TABLE movie DROP COLUMN IF EXISTS rotten_tomatoes_rating")
+        )
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS metacritic_rating"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS awards"))
 

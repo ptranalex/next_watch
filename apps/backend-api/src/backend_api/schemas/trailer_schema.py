@@ -3,7 +3,7 @@ Trailer schemas for API responses using Pydantic.
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -14,7 +14,7 @@ class TrailerBase(BaseModel):
     youtube_key: str
     name: str
     is_official: bool
-    url_link: Optional[str] = None
+    url_link: str | None = None
 
 
 class TrailerCreate(TrailerBase):

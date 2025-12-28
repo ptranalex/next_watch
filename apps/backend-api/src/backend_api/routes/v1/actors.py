@@ -2,17 +2,17 @@
 Actor-related API routes (v1).
 """
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
+from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 ***REMOVED*** Import fast-core dependencies and utilities
-from fast_core.dependencies import get_pagination, get_request_id
-from fast_core.responses import ResponseBuilder
-
 ***REMOVED*** Import schemas
 from pydantic import BaseModel
 from sqlmodel import Session
+
+from backend_api.core.metrics import get_backend_metrics
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
@@ -24,21 +24,17 @@ from backend_api.db.operations import (
 )
 
 ***REMOVED*** Import models
-from backend_api.models import Credit
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
-
-from config.logging import get_logger
-from backend_api.core.metrics import get_backend_metrics
 
 
 ***REMOVED*** Actor schemas
 class ActorResponse(BaseModel):
     id: int
     name: str
-    profile_path: Optional[str] = None
-    biography: Optional[str] = None
-    tmdb_id: Optional[int] = None
-    popularity: Optional[float] = None
+    profile_path: str | None = None
+    biography: str | None = None
+    tmdb_id: int | None = None
+    popularity: float | None = None
 
 
 class ActorDetailResponse(ActorResponse):
@@ -48,14 +44,14 @@ class ActorDetailResponse(ActorResponse):
 
 
 class ActorsListResponse(BaseModel):
-    actors: List[ActorResponse]
+    actors: list[ActorResponse]
     total: int
 
 
 class PaginatedActorResponse(BaseModel):
     """Paginated list of actors."""
 
-    actors: List[ActorResponse]
+    actors: list[ActorResponse]
     total: int
     page: int
     per_page: int
@@ -87,7 +83,7 @@ async def list_actors(
         metrics.record_actor_operation("list", "started")
 
     try:
-        from sqlmodel import select, text
+        from sqlmodel import text
 
         ***REMOVED*** Calculate offset
         offset = (page - 1) * limit
@@ -96,13 +92,13 @@ async def list_actors(
         ***REMOVED*** DISTINCT ON ensures we get only one record per tmdb_person_id (the highest popularity one)
         query = text(
             """
-            SELECT DISTINCT ON (tmdb_person_id) 
-                tmdb_person_id, 
-                name, 
-                popularity, 
+            SELECT DISTINCT ON (tmdb_person_id)
+                tmdb_person_id,
+                name,
+                popularity,
                 profile_path
-            FROM credit 
-            WHERE department = 'Acting' 
+            FROM credit
+            WHERE department = 'Acting'
                 AND tmdb_person_id IS NOT NULL
                 AND name IS NOT NULL
             ORDER BY tmdb_person_id, popularity DESC NULLS LAST
@@ -114,7 +110,9 @@ async def list_actors(
         all_actors = result.fetchall()
 
         ***REMOVED*** Sort all actors by popularity (descending) and apply pagination
-        sorted_actors = sorted(all_actors, key=lambda x: x.popularity or 0, reverse=True)
+        sorted_actors = sorted(
+            all_actors, key=lambda x: x.popularity or 0, reverse=True
+        )
         paginated_actors = sorted_actors[offset : offset + limit]
 
         ***REMOVED*** Create actor response objects
@@ -148,7 +146,9 @@ async def list_actors(
 
 
 @router.get("/{actor_id}", response_model=ActorResponse)
-async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> ActorResponse:
+async def get_actor_details(
+    actor_id: int, db: Session = Depends(get_db)
+) -> ActorResponse:
     """
     Get detailed information for a specific actor.
     """
@@ -166,11 +166,13 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)) -> Act
             ***REMOVED*** Record not found error
             if metrics:
                 metrics.record_actor_operation("detail", "not_found")
-            raise HTTPException(status_code=404, detail=f"Actor with ID {actor_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Actor with ID {actor_id} not found"
+            )
 
         ***REMOVED*** Use the first credit to get actor information
         ***REMOVED*** (since actor information is stored in each credit)
-        first_credit = credits[0]
+        _ = credits[0]
 
         ***REMOVED*** Find the credit with highest popularity for this actor
         best_credit = max(credits, key=lambda c: c.popularity or 0)
@@ -214,7 +216,9 @@ async def get_actor_movies(
 
         ***REMOVED*** Check if actor exists
         if not credits:
-            raise HTTPException(status_code=404, detail=f"Actor with ID {actor_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Actor with ID {actor_id} not found"
+            )
 
         ***REMOVED*** Get the movie IDs for this actor
         movie_ids = set(credit.movie_id for credit in credits if credit.movie_id)
@@ -236,7 +240,7 @@ async def get_actor_movies(
                 )
 
                 if is_dict_like:
-                    movie_data = cast(Dict[str, Any], movie)
+                    movie_data = cast(dict[str, Any], movie)
                 elif hasattr(movie, "model_dump"):
                     movie_data = movie.model_dump()
                 else:
@@ -270,5 +274,7 @@ async def get_actor_movies(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching movies for actor {actor_id}: {str(e)}", exc_info=True)
+        logger.error(
+            f"Error fetching movies for actor {actor_id}: {str(e)}", exc_info=True
+        )
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

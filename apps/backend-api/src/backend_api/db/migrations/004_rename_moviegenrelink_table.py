@@ -5,12 +5,10 @@ This migration renames the 'moviegenrelink' table to 'movie_genre_link'
 to ensure consistent naming conventions between the SQL queries and the database.
 """
 
-from sqlalchemy import inspect, text
-from sqlalchemy.exc import OperationalError, ProgrammingError
-from sqlalchemy.engine import Engine
-from typing import Optional
-
 from config.logging import get_logger
+from sqlalchemy import inspect, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "004_rename_moviegenrelink_table"
@@ -38,34 +36,47 @@ def upgrade(engine: Engine) -> None:
         if old_table_exists:
             ***REMOVED*** Use appropriate SQL for the database type
             if engine.dialect.name == "sqlite":
-                conn.execute(text("ALTER TABLE moviegenrelink RENAME TO movie_genre_link"))
+                conn.execute(
+                    text("ALTER TABLE moviegenrelink RENAME TO movie_genre_link")
+                )
             else:
                 ***REMOVED*** PostgreSQL and most others use this syntax
-                conn.execute(text("ALTER TABLE moviegenrelink RENAME TO movie_genre_link"))
+                conn.execute(
+                    text("ALTER TABLE moviegenrelink RENAME TO movie_genre_link")
+                )
 
             logger.info("Table renamed successfully")
 
             ***REMOVED*** Record the migration
             try:
                 conn.execute(
-                    text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                    text(
+                        "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                    ),
                     {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
                 )
             except (OperationalError, ProgrammingError):
-                logger.warning("Could not record migration - migrations table might not exist yet")
+                logger.warning(
+                    "Could not record migration - migrations table might not exist yet"
+                )
         else:
             ***REMOVED*** Check if the new table name already exists
             new_table_exists = "movie_genre_link" in inspector.get_table_names()
 
             if new_table_exists:
-                logger.info("Target table 'movie_genre_link' already exists, skipping rename")
+                logger.info(
+                    "Target table 'movie_genre_link' already exists, skipping rename"
+                )
                 ***REMOVED*** Record the migration as complete even though no changes were made
                 try:
                     conn.execute(
-                        text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                        text(
+                            "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                        ),
                         {
                             "id": MIGRATION_ID,
-                            "description": MIGRATION_DESCRIPTION + " (no changes needed)",
+                            "description": MIGRATION_DESCRIPTION
+                            + " (no changes needed)",
                         },
                     )
                 except (OperationalError, ProgrammingError):
@@ -73,7 +84,9 @@ def upgrade(engine: Engine) -> None:
                         "Could not record migration - migrations table might not exist yet"
                     )
             else:
-                logger.warning("Neither 'moviegenrelink' nor 'movie_genre_link' tables exist!")
+                logger.warning(
+                    "Neither 'moviegenrelink' nor 'movie_genre_link' tables exist!"
+                )
 
 
 def downgrade(engine: Engine) -> None:
@@ -95,10 +108,14 @@ def downgrade(engine: Engine) -> None:
         if table_exists:
             ***REMOVED*** Use appropriate SQL for the database type
             if engine.dialect.name == "sqlite":
-                conn.execute(text("ALTER TABLE movie_genre_link RENAME TO moviegenrelink"))
+                conn.execute(
+                    text("ALTER TABLE movie_genre_link RENAME TO moviegenrelink")
+                )
             else:
                 ***REMOVED*** PostgreSQL and most others use this syntax
-                conn.execute(text("ALTER TABLE movie_genre_link RENAME TO moviegenrelink"))
+                conn.execute(
+                    text("ALTER TABLE movie_genre_link RENAME TO moviegenrelink")
+                )
 
             logger.info("Table renamed back to original name")
 
@@ -113,4 +130,6 @@ def downgrade(engine: Engine) -> None:
                     "Could not remove migration record - migrations table might not exist"
                 )
         else:
-            logger.warning("Table 'movie_genre_link' doesn't exist, nothing to downgrade")
+            logger.warning(
+                "Table 'movie_genre_link' doesn't exist, nothing to downgrade"
+            )

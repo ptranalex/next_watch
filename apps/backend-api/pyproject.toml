@@ -79,12 +79,11 @@ dev = [
     ***REMOVED*** Testing
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
+    "pytest-cov>=4.1.0",
     
     ***REMOVED*** Code quality
-    "black>=23.10.1",
-    "isort>=5.12.0",
-    "flake8>=6.1.0",
-    "mypy>=1.7.0",
+    "ruff>=0.8.4",
+    "pyright>=1.1.0",
     
     ***REMOVED*** System monitoring for memory and CPU usage
     "psutil>=5.9.0",
@@ -190,18 +189,11 @@ version = "python -m backend_api.cli version"
 serve-cli = "python -m backend_api.cli serve"
 
 ***REMOVED*** Development tools
-lint = [
-    "black .",
-    "isort .",
-    "flake8 .",
-    "mypy src"
-]
+format = "ruff format ."
+lint = "ruff check ."
+typecheck = "pyright -p pyrightconfig.json"
 test = "PYTHONPATH=src pytest {args:tests}"
-test-cov = "PYTHONPATH=src pytest --cov=backend_api tests/"
-format = [
-    "black .",
-    "isort ."
-]
+test-cov = "PYTHONPATH=src pytest --cov=src/backend_api/config --cov=src/backend_api/models --cov=src/backend_api/schemas --cov=src/backend_api/utils.py --cov=src/backend_api/errors.py --cov-config=pyproject.toml --cov-report=term-missing --cov-report=xml:coverage.xml tests/"
 
 ***REMOVED*** Performance testing and profiling (now in default env)
 profile-bulk = "python profile_bulk_endpoint.py"
@@ -243,7 +235,6 @@ perf-analysis = [
 ]
 
 
-
 ***REMOVED*** Tool configurations
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -251,66 +242,30 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 
-[tool.mypy]
-python_version = "3.12"
-***REMOVED*** Strict settings
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-strict_optional = true
-disallow_any_unimported = true
-disallow_untyped_calls = true
-disallow_any_generics = true 
-disallow_subclassing_any = true
-
-***REMOVED*** Warning settings
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_return_any = true
-warn_unreachable = true
-
-***REMOVED*** Error reporting
-pretty = true
-show_column_numbers = true
-show_error_context = true
-
-***REMOVED*** Importing
-ignore_missing_imports = false
-follow_imports = "normal"
-
-[[tool.mypy.overrides]]
-module = [
-    "fastapi.*",
-    "uvicorn.*",
-    "pydantic.*",
-    "sqlalchemy.*",
-    "sqlmodel.*",
-    "alembic.*",
-    "psycopg2.*",
-    "typer.*",
-    "rich.*",
-    "redis.*",
-    "jwt.*",
-    "pyjwt.*",
-    "passlib.*",
-    "bcrypt.*",
-    "dateutil.*",
-    "email_validator.*"
-]
-ignore_missing_imports = true
-
-[tool.black]
-line-length = 100
-target-version = ["py312"]
-
-[tool.isort]
-profile = "black"
-line_length = 100
-
 [tool.flake8]
 max-line-length = 100
 exclude = [".git", "__pycache__", "build", "dist"]
-extend-ignore = ["E203"] 
+extend-ignore = ["E203"]
+
+[tool.coverage.run]
+branch = true
+source = [
+    "src/backend_api/config",
+    "src/backend_api/models",
+    "src/backend_api/schemas",
+    "src/backend_api/utils.py",
+    "src/backend_api/errors.py",
+]
+
+omit = [
+    "*/__main__.py",
+    "*/cli/*",
+    "*/scripts/*",
+    "*/db/migrations/*",
+    "tests/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+

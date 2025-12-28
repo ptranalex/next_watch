@@ -1,16 +1,17 @@
 """Database query instrumentation for performance monitoring."""
 
 import time
-from typing import Any, Dict
-
-from sqlalchemy import Engine, event
+from typing import Any
 
 from config.logging import get_logger
+from sqlalchemy import Engine, event
 
 logger = get_logger(__name__)
 
 
-def setup_database_instrumentation(engine: Engine, slow_query_threshold_ms: float = 100.0) -> None:
+def setup_database_instrumentation(
+    engine: Engine, slow_query_threshold_ms: float = 100.0
+) -> None:
     """Set up database query instrumentation on the given engine.
 
     Args:
@@ -20,14 +21,24 @@ def setup_database_instrumentation(engine: Engine, slow_query_threshold_ms: floa
 
     @event.listens_for(engine, "before_cursor_execute")
     def before_cursor_execute(
-        conn: Any, cursor: Any, statement: str, parameters: Any, context: Any, executemany: bool
+        conn: Any,
+        cursor: Any,
+        statement: str,
+        parameters: Any,
+        context: Any,
+        executemany: bool,
     ) -> None:
         """Record query start time."""
         context._query_start_time = time.perf_counter()
 
     @event.listens_for(engine, "after_cursor_execute")
     def after_cursor_execute(
-        conn: Any, cursor: Any, statement: str, parameters: Any, context: Any, executemany: bool
+        conn: Any,
+        cursor: Any,
+        statement: str,
+        parameters: Any,
+        context: Any,
+        executemany: bool,
     ) -> None:
         """Log query completion with timing and context."""
         if not hasattr(context, "_query_start_time"):
@@ -45,11 +56,16 @@ def setup_database_instrumentation(engine: Engine, slow_query_threshold_ms: floa
 
         ***REMOVED*** Log at appropriate level with structured data
         if duration_ms >= slow_query_threshold_ms:
-            logger.warning("Slow database query detected", slow_query=True, **log_kwargs)
+            logger.warning(
+                "Slow database query detected", slow_query=True, **log_kwargs
+            )
         else:
             logger.debug("Database query executed", **log_kwargs)
 
-    logger.info("Database instrumentation enabled", slow_query_threshold_ms=slow_query_threshold_ms)
+    logger.info(
+        "Database instrumentation enabled",
+        slow_query_threshold_ms=slow_query_threshold_ms,
+    )
 
     @event.listens_for(engine, "handle_error")
     def handle_error(exception_context: Any) -> None:

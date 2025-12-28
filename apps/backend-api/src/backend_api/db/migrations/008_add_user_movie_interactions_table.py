@@ -1,7 +1,6 @@
 """Migration to add user movie interactions table."""
 
-from datetime import datetime
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Any
 
 from config.logging import get_logger
 from sqlalchemy import (
@@ -11,7 +10,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     MetaData,
-    String,
     Table,
     UniqueConstraint,
     text,
@@ -48,8 +46,18 @@ def upgrade(engine: Engine) -> None:
         Column("watched", Boolean, nullable=False, default=False),
         Column("liked", Boolean, nullable=False, default=False),
         Column("in_watchlist", Boolean, nullable=False, default=False),
-        Column("created_at", DateTime, nullable=False, default=datetime.utcnow()),
-        Column("updated_at", DateTime, nullable=False, default=datetime.utcnow()),
+        Column(
+            "created_at",
+            DateTime,
+            nullable=False,
+            server_default=text("CURRENT_TIMESTAMP"),
+        ),
+        Column(
+            "updated_at",
+            DateTime,
+            nullable=False,
+            server_default=text("CURRENT_TIMESTAMP"),
+        ),
         UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),
     )
 
@@ -60,7 +68,9 @@ def upgrade(engine: Engine) -> None:
     with engine.begin() as conn:
         try:
             conn.execute(
-                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                text(
+                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                ),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")
@@ -99,7 +109,7 @@ def downgrade(engine: Engine) -> None:
             logger.warning(f"Could not remove migration record - {str(e)}")
 
 
-def get_revision_info() -> Dict[str, Any]:
+def get_revision_info() -> dict[str, Any]:
     """
     Get revision metadata.
 
@@ -115,7 +125,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> List[str]:
+def get_affected_tables() -> list[str]:
     """
     Get list of affected tables.
 

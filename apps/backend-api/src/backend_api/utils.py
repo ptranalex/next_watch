@@ -1,25 +1,26 @@
 """Utility functions for movie storage."""
 
-from typing import Any, Dict, Optional
 from pathlib import Path
+from typing import Any
 
-from backend_api.config import settings
+from config.logging import get_logger
+
+from backend_api.config import Config
 from backend_api.db import init_db
 from backend_api.db.migrations import run_migration
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 def setup_backend_api_storage(
-    database_url: Optional[str] = None,
+    database_url: str | None = None,
     create_tables: bool = False,
     run_migrations: bool = False,
-    log_dir: Optional[Path] = None,
-    log_level: Optional[str] = None,
+    log_dir: Path | None = None,
+    log_level: str | None = None,
     verbose: bool = False,
     quiet: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Set up backend API storage with configuration, logging, and database.
 
     Args:
@@ -42,12 +43,12 @@ def setup_backend_api_storage(
         config.database_url = database_url
 
     ***REMOVED*** Initialize database
-    init_db(create_tables=create_tables, config=config)
+    init_db(create_tables=create_tables)
 
     ***REMOVED*** Run database migrations if requested
     if run_migrations:
         logger.info("Running database migrations")
-        run_migration(config=config)
+        run_migration(db_url=config.database_url if database_url else None)
         logger.info("Database migrations completed")
 
     logger.info(

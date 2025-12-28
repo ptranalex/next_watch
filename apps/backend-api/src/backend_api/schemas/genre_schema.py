@@ -2,7 +2,7 @@
 Genre schemas for API responses using Pydantic.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -11,7 +11,7 @@ class GenreBase(BaseModel):
     """Base genre fields shared across schemas."""
 
     name: str
-    tmdb_id: Optional[int] = None
+    tmdb_id: int | None = None
 
 
 class GenreCreate(GenreBase):
@@ -38,5 +38,5 @@ class GenreResponse(GenreBase):
 class GenresListResponse(BaseModel):
     """Schema for genre list responses."""
 
-    genres: List[GenreResponse]
+    genres: list[GenreResponse]
     total: int

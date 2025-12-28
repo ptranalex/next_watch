@@ -4,30 +4,28 @@ This module creates a FastAPI application using the fast-core library
 with Backend-specific configuration and dependencies.
 """
 
-import os
-from typing import Dict, List, Optional, AsyncGenerator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from pathlib import Path
 
-from fastapi import FastAPI
-from fast_core import create_app, AppOptions
+from config.logging import get_logger
+from fast_core import AppOptions, create_app  ***REMOVED*** pyright: ignore[reportUnknownVariableType]
 from fast_core.middleware import MiddlewareConfig
+from fastapi import FastAPI
 
 from backend_api.config.app import BackendAPIConfig
 from backend_api.config.fast_core_config import create_fast_core_config
 from backend_api.db.database import init_database
-from backend_api.services.health_service import HealthService, close_health_service
-from config.logging import get_logger
 
 ***REMOVED*** Import Backend routes
 from backend_api.routes.api_v1 import api_v1_router
+from backend_api.services.health_service import close_health_service
 
 logger = get_logger(__name__)
 
 ***REMOVED*** Backend API focuses on core movie data operations
 
 ***REMOVED*** Simple meta configuration constants
-BACKEND_FEATURES: List[str] = [
+BACKEND_FEATURES: list[str] = [
     "Movie search and browsing",
     "User authentication and profiles",
     "Personalized recommendations",
@@ -38,7 +36,7 @@ BACKEND_FEATURES: List[str] = [
     "Advanced movie filtering",
 ]
 
-BACKEND_ENDPOINTS: Dict[str, str] = {
+BACKEND_ENDPOINTS: dict[str, str] = {
     "/api/v1/movies": "Movie catalog browsing and search",
     "/api/v1/movies/{id}": "Individual movie details",
     "/api/v1/movies/{id}/cast": "Movie cast and crew information",
@@ -72,7 +70,9 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         init_database()
         logger.info("Database connection established successfully")
         if hasattr(settings, "get_database_url_masked"):
-            logger.debug(f"Database configuration: {settings.get_database_url_masked()}")
+            logger.debug(
+                f"Database configuration: {settings.get_database_url_masked()}"
+            )
     except Exception as e:
         logger.error(f"Failed to connect to database: {e}")
         raise
@@ -82,6 +82,7 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
+
         from backend_api.services.health_service import setup_backend_health_checks
 
         registry = setup_kubernetes_health_checks(app, settings)
@@ -98,11 +99,12 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         ***REMOVED*** First initialize the global metrics registry
         from fast_core.monitoring.metrics import initialize_metrics
+
         from backend_api.core.metrics import initialize_backend_metrics
 
         ***REMOVED*** Initialize global metrics registry with service name
-        global_registry = initialize_metrics("backend-api")
-        logger.info(f"Global metrics registry initialized for service: backend-api")
+        initialize_metrics("backend-api")
+        logger.info("Global metrics registry initialized for service: backend-api")
 
         ***REMOVED*** Now initialize Backend-specific metrics
         metrics_instance = initialize_backend_metrics()
@@ -115,7 +117,9 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             )
     except ImportError as e:
         logger.error(f"Metrics dependencies not installed: {e}")
-        logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
+        logger.info(
+            "Install prometheus-client to enable metrics: pip install prometheus-client"
+        )
     except Exception as e:
         logger.error(f"Failed to initialize Backend metrics: {e}", exc_info=True)
         if getattr(backend_config, "is_production", False):
@@ -212,7 +216,11 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         default_limit="1000/hour" if config.is_production else "2000/hour",
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
-        + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
+        + (
+            ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+            if not config.is_production
+            else []
+        ),
         headers=True,  ***REMOVED*** Include rate limit headers for debugging
         key_func="ip",  ***REMOVED*** Rate limit by IP address
     )
@@ -224,7 +232,11 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         include_request_body=not config.is_production,  ***REMOVED*** Only log bodies in development
         include_response_body=False,  ***REMOVED*** Never log response bodies (too verbose)
         max_body_size=2048,
-        exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],  ***REMOVED*** Add to defaults
+        exclude_additional=[
+            "/docs",
+            "/openapi.json",
+            "/favicon.ico",
+        ],  ***REMOVED*** Add to defaults
         include_headers=True,
         exclude_headers=["authorization", "cookie", "x-api-key", "internal-api-key"],
         log_timing=True,
@@ -247,7 +259,9 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_additional=["/favicon.ico"],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
+        exclude_additional=[
+            "/favicon.ico"
+        ],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
         exclude_methods=["OPTIONS"],
         track_request_size=True,
         track_response_size=True,
@@ -264,7 +278,7 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
     return middleware
 
 
-def create_backend_app(config: Optional[BackendAPIConfig] = None) -> FastAPI:
+def create_backend_app(config: BackendAPIConfig | None = None) -> FastAPI:
     """Create Backend API application using fast-core with enhanced middleware.
 
     Args:
@@ -279,7 +293,9 @@ def create_backend_app(config: Optional[BackendAPIConfig] = None) -> FastAPI:
 
         config = settings
 
-    logger.info("Creating Backend API application with fast-core and enhanced middleware")
+    logger.info(
+        "Creating Backend API application with fast-core and enhanced middleware"
+    )
 
     ***REMOVED*** Convert Backend config to fast-core config
     fast_core_config = create_fast_core_config(config)
@@ -317,7 +333,9 @@ def create_backend_app(config: Optional[BackendAPIConfig] = None) -> FastAPI:
     )
 
     ***REMOVED*** Meta endpoints are now automatically configured with simple static configuration
-    logger.info("Backend API meta endpoints configured automatically with static config")
+    logger.info(
+        "Backend API meta endpoints configured automatically with static config"
+    )
 
     logger.info("Backend API application created with fast-core integration")
     return app

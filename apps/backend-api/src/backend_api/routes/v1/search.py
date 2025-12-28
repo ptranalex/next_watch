@@ -2,22 +2,17 @@
 Search-related API routes (v1).
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from config.logging import get_logger
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-
 from sqlmodel import Session
 
-from backend_api.config.app import settings
-from config.logging import get_logger
-from backend_api.db.database import get_db
-from backend_api.errors import ResourceNotFoundError, ValidationError
-from backend_api.queries.movie_query import MovieQuery
-
-from backend_api.schemas.movie_schema import MovieResponse
-from backend_api.schemas.search import SearchResponse, SearchResult
 from backend_api.core.metrics import get_backend_metrics
+from backend_api.db.database import get_db
+from backend_api.queries.movie_query import MovieQuery
+from backend_api.schemas.search import SearchResponse
 
 ***REMOVED*** Note: Backend API focuses on core data - no suggestion engine
 
@@ -26,7 +21,7 @@ class Suggestion(BaseModel):
     id: int
     name: str
     type: str  ***REMOVED*** "movie", "actor", "genre"
-    image_path: Optional[str] = None
+    image_path: str | None = None
 
 
 class TextSuggestion(BaseModel):
@@ -34,24 +29,26 @@ class TextSuggestion(BaseModel):
 
     text: str
     type: str  ***REMOVED*** "movie", "actor", "director"
-    id: Optional[int] = None
-    image_path: Optional[str] = None
-    year: Optional[int] = None  ***REMOVED*** Useful for movies
-    popularity: Optional[float] = None
+    id: int | None = None
+    image_path: str | None = None
+    year: int | None = None  ***REMOVED*** Useful for movies
+    popularity: float | None = None
     is_partial: bool = False  ***REMOVED*** Whether this is a partial/incomplete match
-    search_type: str = "unknown"  ***REMOVED*** How this suggestion was matched (exact, prefix, word, contains)
-    additional_info: Optional[Dict[str, Any]] = None
+    search_type: str = (
+        "unknown"  ***REMOVED*** How this suggestion was matched (exact, prefix, word, contains)
+    )
+    additional_info: dict[str, Any] | None = None
 
 
 class SuggestionsResponse(BaseModel):
-    suggestions: List[Suggestion]
+    suggestions: list[Suggestion]
     total: int
 
 
 class TextSuggestionsResponse(BaseModel):
     """Response model for text-based suggestions"""
 
-    suggestions: List[TextSuggestion]
+    suggestions: list[TextSuggestion]
     total: int
 
 
@@ -69,7 +66,9 @@ router = APIRouter(prefix="/search", tags=["search"])
 @router.get("/suggestions", response_model=SuggestionsResponse)
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
-    limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
+    limit: int = Query(
+        10, ge=1, le=20, description="Max number of suggestions to return"
+    ),
     db: Session = Depends(get_db),
 ) -> SuggestionsResponse:
     """
@@ -80,7 +79,9 @@ async def get_search_suggestions(
     ***REMOVED*** Record metrics
     metrics = get_backend_metrics()
     if metrics:
-        metrics.record_movie_search("suggestions", 0, 0.0)  ***REMOVED*** No filters, placeholder duration
+        metrics.record_movie_search(
+            "suggestions", 0, 0.0
+        )  ***REMOVED*** No filters, placeholder duration
 
     try:
         logger.debug(f"Getting search suggestions for '{query}'")
@@ -116,17 +117,26 @@ async def get_text_suggestions(
 
         ***REMOVED*** Use MovieQuery to search for movies that match the query
         movie_query = MovieQuery()
-        movies, _ = movie_query.search_movies_by_title(db, title_search=query, skip=0, limit=limit)
+        movies, _ = movie_query.search_movies_by_title(
+            db, title_search=query, skip=0, limit=limit
+        )
 
         ***REMOVED*** Format as suggestions
         formatted_suggestions = []
         for movie in movies:
             ***REMOVED*** Extract movie title and basic info
-            title = getattr(movie, "title", "Unknown")
-            movie_id = getattr(movie, "id", None)
+            if isinstance(movie, dict):
+                title = str(movie.get("title") or "Unknown")
+                movie_id = movie.get("id")
+                release_date = movie.get("release_date")
+            else:
+                title = getattr(movie, "title", "Unknown")
+                movie_id = getattr(movie, "id", None)
+                release_date = getattr(movie, "release_date", None)
+
             year = None
-            if hasattr(movie, "release_date") and movie.release_date:
-                year = movie.release_date.year
+            if release_date and hasattr(release_date, "year"):
+                year = release_date.year
 
             formatted_suggestions.append(
                 TextSuggestion(
@@ -153,7 +163,7 @@ async def search_all(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of results per page"),
-    types: List[str] = Query(None, description="Entity types to include in results"),
+    types: list[str] = Query(None, description="Entity types to include in results"),
     db: Session = Depends(get_db),
 ) -> SearchResponse:
     """

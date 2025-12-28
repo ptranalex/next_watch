@@ -2,13 +2,13 @@
 User movie interaction queries for optimized read operations.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
+from config.logging import get_logger
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from config.logging import get_logger
 from backend_api.db.operations import (
     get_movie_by_id,
     get_user_liked_movies,
@@ -25,15 +25,15 @@ logger = get_logger(__name__)
 class UserMovieDetail(BaseModel):
     """Detailed information about a movie with user interaction status."""
 
-    interaction_id: Optional[int] = None
+    interaction_id: int | None = None
     movie_id: int
     title: str
-    poster_url: Optional[str] = None
-    release_date: Optional[str] = None
+    poster_url: str | None = None
+    release_date: str | None = None
     watched: bool = False
     liked: bool = False
     in_watchlist: bool = False
-    imdb_rating: Optional[float] = None
+    imdb_rating: float | None = None
 
 
 class UserInteractionQuery:
@@ -46,7 +46,7 @@ class UserInteractionQuery:
 
     def get_user_interaction(
         self, db: Session, user_id: int, movie_id: int
-    ) -> Optional[UserMovieInteraction]:
+    ) -> UserMovieInteraction | None:
         """
         Get a user's interaction with a specific movie.
 
@@ -82,8 +82,8 @@ class UserInteractionQuery:
         return get_user_movie_interaction(db, user_id, movie_id)
 
     def get_user_interactions_batch(
-        self, db: Session, user_id: int, movie_ids: List[int]
-    ) -> Dict[int, Optional[UserMovieInteraction]]:
+        self, db: Session, user_id: int, movie_ids: list[int]
+    ) -> dict[int, UserMovieInteraction | None]:
         """
         Get a user's interactions with multiple movies in a single query.
 
@@ -120,11 +120,13 @@ class UserInteractionQuery:
         if not unique_movie_ids:
             raise ValidationError(
                 message="No valid movie IDs provided",
-                field_errors={"movie_ids": ["Must contain at least one positive movie ID"]},
+                field_errors={
+                    "movie_ids": ["Must contain at least one positive movie ID"]
+                },
             )
 
             ***REMOVED*** Use a single optimized batch query
-        from sqlmodel import select, col
+        from sqlmodel import col, select
 
         ***REMOVED*** Execute single batch query to get all interactions at once
         query = (
@@ -136,7 +138,7 @@ class UserInteractionQuery:
         interactions = db.exec(query).all()
 
         ***REMOVED*** Build result dictionary
-        result: Dict[int, Optional[UserMovieInteraction]] = {}
+        result: dict[int, UserMovieInteraction | None] = {}
 
         ***REMOVED*** Initialize all movie IDs to None
         for movie_id in unique_movie_ids:
@@ -150,7 +152,7 @@ class UserInteractionQuery:
 
     def get_user_watchlist(
         self, db: Session, user_id: int, limit: int = 50, offset: int = 0
-    ) -> Tuple[List[UserMovieInteraction], int]:
+    ) -> tuple[list[UserMovieInteraction], int]:
         """
         Get a user's watchlist with pagination.
 
@@ -184,7 +186,7 @@ class UserInteractionQuery:
 
     def get_user_watched_movies(
         self, db: Session, user_id: int, limit: int = 50, offset: int = 0
-    ) -> Tuple[List[UserMovieInteraction], int]:
+    ) -> tuple[list[UserMovieInteraction], int]:
         """
         Get movies a user has watched with pagination.
 
@@ -218,7 +220,7 @@ class UserInteractionQuery:
 
     def get_user_liked_movies(
         self, db: Session, user_id: int, limit: int = 50, offset: int = 0
-    ) -> Tuple[List[UserMovieInteraction], int]:
+    ) -> tuple[list[UserMovieInteraction], int]:
         """
         Get movies a user has liked with pagination.
 
@@ -254,10 +256,10 @@ class UserInteractionQuery:
         self,
         db: Session,
         user_id: int,
-        interactions: List[UserMovieInteraction],
+        interactions: list[UserMovieInteraction],
         limit: int = 50,
         offset: int = 0,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Get user interactions with movie details.
 
@@ -296,7 +298,7 @@ class UserInteractionQuery:
 
     def get_user_movie_details(
         self, db: Session, user_id: int, category: str, limit: int = 20, offset: int = 0
-    ) -> Tuple[List[UserMovieDetail], int]:
+    ) -> tuple[list[UserMovieDetail], int]:
         """
         Get detailed movie information with user interaction status.
 
@@ -326,7 +328,9 @@ class UserInteractionQuery:
         if category not in ["watchlist", "watched", "liked"]:
             raise ValidationError(
                 message="Invalid category",
-                field_errors={"category": ["Must be one of: watchlist, watched, liked"]},
+                field_errors={
+                    "category": ["Must be one of: watchlist, watched, liked"]
+                },
             )
 
         ***REMOVED*** Construct query based on category
@@ -339,11 +343,11 @@ class UserInteractionQuery:
 
         ***REMOVED*** Apply category filter
         if category == "watchlist":
-            query = query.where(UserMovieInteraction.in_watchlist == True)
+            query = query.where(UserMovieInteraction.in_watchlist)
         elif category == "watched":
-            query = query.where(UserMovieInteraction.watched == True)
+            query = query.where(UserMovieInteraction.watched)
         elif category == "liked":
-            query = query.where(UserMovieInteraction.liked == True)
+            query = query.where(UserMovieInteraction.liked)
 
         ***REMOVED*** Get total count with a separate count query
         count_query = select(func.count()).select_from(query.subquery())
@@ -368,7 +372,9 @@ class UserInteractionQuery:
                         title=movie.title,
                         poster_url=movie.poster_url,
                         release_date=(
-                            movie.release_date.isoformat() if movie.release_date else None
+                            movie.release_date.isoformat()
+                            if movie.release_date
+                            else None
                         ),
                         watched=interaction.watched,
                         liked=interaction.liked,

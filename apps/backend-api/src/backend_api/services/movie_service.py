@@ -5,20 +5,17 @@ This service follows the CQRS pattern, with this service handling state-changing
 operations, while read operations are in a separate query class.
 """
 
-from typing import Any, Dict, List, Optional, TypedDict, cast
+from typing import Any, TypedDict, cast
 
+from config.logging import get_logger
 from sqlmodel import Session
 
 ***REMOVED*** Use absolute import to avoid mypy errors
-import backend_api.errors
 from backend_api.db.operations import (
     get_credits_by_movie_id,
     get_movie_by_id,
 )
 from backend_api.errors import ResourceNotFoundError, ValidationError
-from config.logging import get_logger
-from backend_api.models import Movie
-from backend_api.queries.movie_query import MovieQuery
 
 logger = get_logger(__name__)
 
@@ -28,10 +25,10 @@ class CastMember(TypedDict):
 
     id: int
     name: str
-    character: Optional[str]  ***REMOVED*** Character can be None
-    profile_path: Optional[str]
-    order: Optional[int]
-    popularity: Optional[float]
+    character: str | None  ***REMOVED*** Character can be None
+    profile_path: str | None
+    order: int | None
+    popularity: float | None
 
 
 class MovieService:
@@ -42,7 +39,7 @@ class MovieService:
     while query operations are handled by separate query classes.
     """
 
-    def get_movie_details(self, db: Session, movie_id: int) -> Dict[str, Any]:
+    def get_movie_details(self, db: Session, movie_id: int) -> dict[str, Any]:
         """
         Get detailed information for a specific movie.
 
@@ -74,9 +71,13 @@ class MovieService:
             )
 
         ***REMOVED*** Convert to dictionary based on the object's features
-        if hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__"):
+        if (
+            hasattr(movie, "keys")
+            and hasattr(movie, "values")
+            and hasattr(movie, "__getitem__")
+        ):
             ***REMOVED*** Dictionary-like object
-            return cast(Dict[str, Any], movie)
+            return cast(dict[str, Any], movie)
 
         ***REMOVED*** For SQLModel objects, use their built-in conversion method
         try:
@@ -92,7 +93,7 @@ class MovieService:
 
     def get_movie_cast(
         self, db: Session, movie_id: int, popularity_threshold: float = 3.0
-    ) -> List[CastMember]:
+    ) -> list[CastMember]:
         """
         Get cast information for a specific movie.
 
@@ -129,7 +130,7 @@ class MovieService:
         credits = get_credits_by_movie_id(db, movie_id)
 
         ***REMOVED*** Filter for cast members only
-        cast_members: List[CastMember] = []
+        cast_members: list[CastMember] = []
         for credit in credits:
             ***REMOVED*** Filter for cast members (actors)
             if credit.department == "Acting":
@@ -144,7 +145,9 @@ class MovieService:
                 cast_members.append(cast_member)
 
         ***REMOVED*** Sort cast by order, properly handling 0 values
-        cast_members.sort(key=lambda x: float("inf") if x["order"] is None else x["order"])
+        cast_members.sort(
+            key=lambda x: float("inf") if x["order"] is None else x["order"]
+        )
 
         ***REMOVED*** Apply popularity filtering while ensuring at least 3 cast members are returned
         if popularity_threshold > 0:
@@ -155,7 +158,9 @@ class MovieService:
 
             ***REMOVED*** Filter by popularity threshold
             filtered_cast = [
-                m for m in by_popularity if float(m["popularity"] or 0) >= popularity_threshold
+                m
+                for m in by_popularity
+                if float(m["popularity"] or 0) >= popularity_threshold
             ]
 
             ***REMOVED*** Ensure we have at least 3 cast members (or all if there are fewer than 3)
@@ -164,13 +169,19 @@ class MovieService:
             ***REMOVED*** If we don't have enough members after filtering, add more from the popularity-sorted list
             if len(filtered_cast) < min_members:
                 ***REMOVED*** Get the most popular cast members we don't already have
-                additional_members = [m for m in by_popularity if m not in filtered_cast]
+                additional_members = [
+                    m for m in by_popularity if m not in filtered_cast
+                ]
 
                 ***REMOVED*** Add enough to meet the minimum
-                filtered_cast.extend(additional_members[: min_members - len(filtered_cast)])
+                filtered_cast.extend(
+                    additional_members[: min_members - len(filtered_cast)]
+                )
 
             ***REMOVED*** Sort the filtered cast by order again
-            filtered_cast.sort(key=lambda x: float("inf") if x["order"] is None else x["order"])
+            filtered_cast.sort(
+                key=lambda x: float("inf") if x["order"] is None else x["order"]
+            )
 
             return filtered_cast
 

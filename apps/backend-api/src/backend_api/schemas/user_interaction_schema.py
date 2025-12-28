@@ -2,8 +2,7 @@
 User movie interaction schemas for API responses using Pydantic.
 """
 
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Union
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -26,17 +25,17 @@ class UserMovieInteractionCreate(UserMovieInteractionBase):
 class UserMovieInteractionUpdate(BaseModel):
     """Schema for updating a user movie interaction."""
 
-    watched: Optional[bool] = None
-    liked: Optional[bool] = None
-    in_watchlist: Optional[bool] = None
+    watched: bool | None = None
+    liked: bool | None = None
+    in_watchlist: bool | None = None
 
 
 class UserMovieInteractionResponse(UserMovieInteractionBase):
     """Response model for user movie interactions."""
 
     user_id: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -46,9 +45,9 @@ class MovieSummary(BaseModel):
 
     id: int
     title: str
-    poster_url: Optional[str] = None
-    release_date: Optional[datetime] = None
-    tmdb_rating: Optional[float] = None
+    poster_url: str | None = None
+    release_date: datetime | None = None
+    tmdb_rating: float | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,15 +64,15 @@ class UserMovieInteractionWithMovie(BaseModel):
 class UserMovieDetail(BaseModel):
     """Detailed information about a movie with user interaction status."""
 
-    interaction_id: Optional[int] = None
+    interaction_id: int | None = None
     movie_id: int
     title: str
-    poster_url: Optional[str] = None
-    release_date: Optional[str] = None
+    poster_url: str | None = None
+    release_date: str | None = None
     watched: bool = False
     liked: bool = False
     in_watchlist: bool = False
-    imdb_rating: Optional[float] = None
+    imdb_rating: float | None = None
 
 
 class UserMovieInteractionsListResponse(BaseModel):
@@ -85,7 +84,7 @@ class UserMovieInteractionsListResponse(BaseModel):
     total_pages: int
     has_next: bool
     has_prev: bool
-    results: List[UserMovieInteractionResponse]
+    results: list[UserMovieInteractionResponse]
 
 
 class UserMovieInteractionsWithMovieListResponse(BaseModel):
@@ -97,7 +96,7 @@ class UserMovieInteractionsWithMovieListResponse(BaseModel):
     total_pages: int
     has_next: bool
     has_prev: bool
-    results: List[UserMovieInteractionWithMovie]
+    results: list[UserMovieInteractionWithMovie]
 
 
 ***REMOVED*** ============================================================================
@@ -116,7 +115,9 @@ class CollectionItemResponse(BaseModel):
 
     movie_id: int
     user_id: int
-    added_at: datetime = Field(..., description="When the item was added to the collection")
+    added_at: datetime = Field(
+        ..., description="When the item was added to the collection"
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -124,7 +125,7 @@ class CollectionItemResponse(BaseModel):
 class CollectionResponse(BaseModel):
     """Response model for user collections (watchlist, watched movies, liked movies)."""
 
-    items: List[CollectionItemResponse]
+    items: list[CollectionItemResponse]
     total_count: int
     page: int = Field(default=1, ge=1)
     limit: int = Field(default=20, ge=1, le=100)
@@ -154,7 +155,7 @@ class CollectionStatsResponse(BaseModel):
 
     collection_type: str
     total_count: int
-    last_updated: Optional[datetime] = None
+    last_updated: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

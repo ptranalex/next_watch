@@ -1,8 +1,6 @@
 """Main FastAPI application for the Next Watch Backend API service."""
 
-import os
 from pathlib import Path
-from typing import Optional
 
 from fastapi import FastAPI
 
@@ -10,7 +8,7 @@ from fastapi import FastAPI
 from backend_api.config.app import settings
 
 ***REMOVED*** Lazy app initialization - only create when needed
-_app: Optional[FastAPI] = None
+_app: FastAPI | None = None
 
 
 def create_app() -> FastAPI:
@@ -60,7 +58,8 @@ def create_app() -> FastAPI:
 
         _app = create_backend_app(settings)
         logger.info(
-            "Backend Service initialized successfully with Fast Core", service="backend-api"
+            "Backend Service initialized successfully with Fast Core",
+            service="backend-api",
         )
 
     return _app

@@ -5,19 +5,20 @@ This module implements the Netflix-style "cache forever" pattern by using
 precomputed materialized views for movie metadata aggregation.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
 import json
+from typing import Any
 
-from sqlalchemy.sql import text
 from config.logging import get_logger
+from sqlalchemy.sql import text
+
 from backend_api.queries.common import DBSession
 
 logger = get_logger(__name__)
 
 
 def get_movies_precomputed_bulk(
-    db_session: DBSession, movie_ids: List[int]
-) -> List[Dict[str, Any]]:
+    db_session: DBSession, movie_ids: list[int]
+) -> list[dict[str, Any]]:
     """
     Get complete movie metadata using precomputed materialized view.
 
@@ -38,7 +39,7 @@ def get_movies_precomputed_bulk(
 
     ***REMOVED*** Single query to get complete precomputed metadata
     query = """
-    SELECT 
+    SELECT
         id,
         title,
         overview,
@@ -101,7 +102,9 @@ def get_movies_precomputed_bulk(
             ***REMOVED*** If it's already a list/dict, keep it as-is
 
         except (json.JSONDecodeError, TypeError) as e:
-            logger.warning(f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}")
+            logger.warning(
+                f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}"
+            )
             movie_dict["genres"] = []
             movie_dict["cast"] = []
 
@@ -111,7 +114,9 @@ def get_movies_precomputed_bulk(
     return movies
 
 
-def get_movie_precomputed_single(db_session: DBSession, movie_id: int) -> Optional[Dict[str, Any]]:
+def get_movie_precomputed_single(
+    db_session: DBSession, movie_id: int
+) -> dict[str, Any] | None:
     """
     Get single movie's complete precomputed metadata.
 
@@ -127,8 +132,11 @@ def get_movie_precomputed_single(db_session: DBSession, movie_id: int) -> Option
 
 
 def get_popular_movies_precomputed(
-    db_session: DBSession, limit: int = 100, skip: int = 0, min_rating: Optional[float] = None
-) -> Tuple[List[Dict[str, Any]], int]:
+    db_session: DBSession,
+    limit: int = 100,
+    skip: int = 0,
+    min_rating: float | None = None,
+) -> tuple[list[dict[str, Any]], int]:
     """
     Get popular movies using precomputed metadata for cache warming.
 
@@ -143,7 +151,7 @@ def get_popular_movies_precomputed(
     """
     ***REMOVED*** Build WHERE clause
     where_conditions = []
-    params: Dict[str, Any] = {"limit": limit, "offset": skip}
+    params: dict[str, Any] = {"limit": limit, "offset": skip}
 
     if min_rating is not None:
         where_conditions.append("imdb_rating >= :min_rating")
@@ -153,7 +161,7 @@ def get_popular_movies_precomputed(
 
     ***REMOVED*** Get movies
     movies_query = f"""
-    SELECT 
+    SELECT
         id, title, overview, release_date, runtime, budget, revenue,
         imdb_rating, rotten_tomatoes_rating, metacritic_rating,
         poster_path, backdrop_path, tmdb_id, imdb_id, popularity,
@@ -202,7 +210,9 @@ def get_popular_movies_precomputed(
             ***REMOVED*** If it's already a list/dict, keep it as-is
 
         except (json.JSONDecodeError, TypeError) as e:
-            logger.warning(f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}")
+            logger.warning(
+                f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}"
+            )
             movie_dict["genres"] = []
             movie_dict["cast"] = []
 
@@ -215,7 +225,9 @@ def get_popular_movies_precomputed(
     return movies, total_count
 
 
-def check_metadata_freshness(db_session: DBSession, movie_ids: List[int]) -> Dict[int, bool]:
+def check_metadata_freshness(
+    db_session: DBSession, movie_ids: list[int]
+) -> dict[int, bool]:
     """
     Check if precomputed metadata is fresh for given movie IDs.
 
@@ -234,7 +246,7 @@ def check_metadata_freshness(db_session: DBSession, movie_ids: List[int]) -> Dic
 
     ***REMOVED*** Check if precomputed metadata exists and when it was last updated
     query = """
-    SELECT 
+    SELECT
         m.id,
         m.updated_at as source_updated,
         pmc.cached_at as precomputed_cached,
@@ -272,7 +284,7 @@ def check_metadata_freshness(db_session: DBSession, movie_ids: List[int]) -> Dic
 
 
 def refresh_movie_metadata_selective(
-    db_session: DBSession, movie_ids: Optional[List[int]] = None
+    db_session: DBSession, movie_ids: list[int] | None = None
 ) -> bool:
     """
     Refresh materialized view for specific movies or completely.
@@ -307,7 +319,7 @@ def refresh_movie_metadata_selective(
         return False
 
 
-def get_metadata_stats(db_session: DBSession) -> Dict[str, Any]:
+def get_metadata_stats(db_session: DBSession) -> dict[str, Any]:
     """
     Get statistics about the precomputed metadata store.
 
@@ -318,7 +330,7 @@ def get_metadata_stats(db_session: DBSession) -> Dict[str, Any]:
         Dictionary with metadata statistics
     """
     query = """
-    SELECT 
+    SELECT
         COUNT(*) as total_movies,
         COUNT(DISTINCT jsonb_array_length(genres)) as unique_genre_counts,
         AVG(jsonb_array_length(cast)) as avg_cast_size,

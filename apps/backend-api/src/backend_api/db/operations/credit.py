@@ -1,18 +1,16 @@
 """Credit storage operations."""
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
-
-from sqlmodel import Session, select
-from sqlmodel.sql.expression import SelectOfScalar
+from typing import Any
 
 from config.logging import get_logger
-from backend_api.models import Credit, Movie
+from sqlmodel import Session, select
+
+from backend_api.models import Credit
 
 logger = get_logger(__name__)
 
 
-def create_credit(session: Session, credit_data: Dict[str, Any]) -> Credit:
+def create_credit(session: Session, credit_data: dict[str, Any]) -> Credit:
     """Create a credit record for a cast or crew member.
 
     Args:
@@ -29,7 +27,7 @@ def create_credit(session: Session, credit_data: Dict[str, Any]) -> Credit:
     return credit
 
 
-def get_credit_by_id(session: Session, credit_id: int) -> Optional[Credit]:
+def get_credit_by_id(session: Session, credit_id: int) -> Credit | None:
     """Get a credit by its ID.
 
     Args:
@@ -42,7 +40,7 @@ def get_credit_by_id(session: Session, credit_id: int) -> Optional[Credit]:
     return session.get(Credit, credit_id)
 
 
-def get_credits_by_movie_id(session: Session, movie_id: int) -> List[Credit]:
+def get_credits_by_movie_id(session: Session, movie_id: int) -> list[Credit]:
     """Get all credits for a specific movie.
 
     Args:
@@ -57,7 +55,7 @@ def get_credits_by_movie_id(session: Session, movie_id: int) -> List[Credit]:
     return list(credits)
 
 
-def get_credits_by_person_id(session: Session, tmdb_person_id: int) -> List[Credit]:
+def get_credits_by_person_id(session: Session, tmdb_person_id: int) -> list[Credit]:
     """Get all credits for a specific person.
 
     Args:
@@ -73,8 +71,8 @@ def get_credits_by_person_id(session: Session, tmdb_person_id: int) -> List[Cred
 
 
 def get_credits(
-    session: Session, skip: int = 0, limit: int = 100, department: Optional[str] = None
-) -> List[Credit]:
+    session: Session, skip: int = 0, limit: int = 100, department: str | None = None
+) -> list[Credit]:
     """Get all credits with optional filtering.
 
     Args:
@@ -97,8 +95,8 @@ def get_credits(
 
 
 def update_credit(
-    session: Session, credit_id: int, credit_data: Dict[str, Any]
-) -> Optional[Credit]:
+    session: Session, credit_id: int, credit_data: dict[str, Any]
+) -> Credit | None:
     """Update a credit record.
 
     Args:
@@ -166,8 +164,8 @@ def delete_credits_for_movie(session: Session, movie_id: int) -> int:
 
 
 def create_credits_from_tmdb_data(
-    session: Session, movie_id: int, credits_data: Dict[str, Any]
-) -> List[Credit]:
+    session: Session, movie_id: int, credits_data: dict[str, Any]
+) -> list[Credit]:
     """Create credit records from TMDB credits data.
 
     This function processes the "credits" section of TMDB API response

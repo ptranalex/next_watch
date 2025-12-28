@@ -9,17 +9,17 @@ optimize queries that retrieve the director for a given movie:
 The index uses INCLUDE(name) to enable index-only scans when feasible.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
+from config.logging import get_logger
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-from config.logging import get_logger
-
-
 MIGRATION_ID = "011_add_credit_director_index"
-MIGRATION_DESCRIPTION = "Add partial covering index for Directing/Director queries on credit"
+MIGRATION_DESCRIPTION = (
+    "Add partial covering index for Directing/Director queries on credit"
+)
 
 logger = get_logger(__name__)
 
@@ -44,7 +44,9 @@ def upgrade(engine: Engine) -> None:
     with engine.begin() as conn:
         try:
             conn.execute(
-                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                text(
+                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                ),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")
@@ -62,7 +64,7 @@ def downgrade(engine: Engine) -> None:
     ***REMOVED*** Note: migration record removal is handled automatically by the CLI after successful downgrade
 
 
-def get_revision_info() -> Dict[str, Any]:
+def get_revision_info() -> dict[str, Any]:
     """
     Get revision metadata.
 
@@ -78,7 +80,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> List[str]:
+def get_affected_tables() -> list[str]:
     """
     Get list of affected tables.
 

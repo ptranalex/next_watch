@@ -5,12 +5,10 @@ This migration creates a new table for storing movie trailers with YouTube keys
 and optional URL links.
 """
 
-from sqlalchemy import text
-from sqlalchemy.exc import OperationalError, ProgrammingError
-from sqlalchemy.engine import Engine
-from typing import Optional
-
 from config.logging import get_logger
+from sqlalchemy import text
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "006_add_trailer_table"
@@ -49,16 +47,22 @@ def upgrade(engine: Engine) -> None:
 
         ***REMOVED*** Create index on youtube_key
         conn.execute(
-            text("CREATE INDEX IF NOT EXISTS idx_trailer_youtube_key ON trailer(youtube_key)")
+            text(
+                "CREATE INDEX IF NOT EXISTS idx_trailer_youtube_key ON trailer(youtube_key)"
+            )
         )
 
         ***REMOVED*** Create index on movie_id
-        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_trailer_movie_id ON trailer(movie_id)"))
+        conn.execute(
+            text("CREATE INDEX IF NOT EXISTS idx_trailer_movie_id ON trailer(movie_id)")
+        )
 
         ***REMOVED*** Record the migration
         try:
             conn.execute(
-                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                text(
+                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                ),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")

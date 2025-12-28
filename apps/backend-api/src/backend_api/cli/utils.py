@@ -1,15 +1,11 @@
-import typer
-from typer import Typer
-
 """Utility functions for the CLI interface."""
 
+from typing import Any
 
-from typing import Any, Dict, Optional
-
+from config.logging import get_logger
 from rich.console import Console
 from rich.table import Table
 
-from config.logging import get_logger
 logger = get_logger(__name__)
 
 
@@ -38,7 +34,8 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
 
         ***REMOVED*** Handle sensitive values
         if any(
-            sensitive in attr.lower() for sensitive in ["api_key", "token", "password", "secret"]
+            sensitive in attr.lower()
+            for sensitive in ["api_key", "token", "password", "secret"]
         ):
             if value:
                 masked_value = f"{'*' * 4}{str(value)[-4:] if value else 'Not set'}"
@@ -46,7 +43,9 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
             else:
                 table.add_row(attr, "[red]Not set[/red]")
         elif isinstance(value, bool):
-            formatted_value = "[green]Enabled[/green]" if value else "[grey]Disabled[/grey]"
+            formatted_value = (
+                "[green]Enabled[/green]" if value else "[grey]Disabled[/grey]"
+            )
             table.add_row(attr, formatted_value)
         else:
             table.add_row(attr, str(value))
@@ -55,7 +54,7 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
 
 
 def print_config(
-    config: Any, title: str = "Configuration", console: Optional[Console] = None
+    config: Any, title: str = "Configuration", console: Console | None = None
 ) -> None:
     """Print configuration settings in a readable format.
 
@@ -72,7 +71,7 @@ def print_config(
 
 
 def display_redis_config(
-    redis_url: str, options: Dict[str, Any], console: Optional[Console] = None
+    redis_url: str, options: dict[str, Any], console: Console | None = None
 ) -> None:
     """Display Redis connection and command configuration.
 
@@ -97,7 +96,7 @@ def display_redis_config(
 
         ***REMOVED*** Get username/password part
         if ":" in auth_part:
-            protocol_user, password = auth_part.rsplit(":", 1)
+            protocol_user, _ = auth_part.rsplit(":", 1)
             masked_url = f"{protocol_user}:****@{host_part}"
         else:
             masked_url = redis_url

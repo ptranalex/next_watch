@@ -13,17 +13,18 @@ Performance Benefits:
 - Supports cache invalidation with versioning
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from sqlalchemy import MetaData, text
+from config.logging import get_logger
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-from config.logging import get_logger
-
 ***REMOVED*** Migration identification
 MIGRATION_ID = "010_create_movie_metadata_materialized_view"
-MIGRATION_DESCRIPTION = "Create materialized view for movie metadata optimization (Netflix pattern)"
+MIGRATION_DESCRIPTION = (
+    "Create materialized view for movie metadata optimization (Netflix pattern)"
+)
 
 logger = get_logger(__name__)
 
@@ -38,7 +39,9 @@ def upgrade(engine: Engine) -> None:
     Args:
         engine: SQLAlchemy engine instance
     """
-    logger.info("Creating movie metadata materialized view (Netflix optimization pattern)")
+    logger.info(
+        "Creating movie metadata materialized view (Netflix optimization pattern)"
+    )
 
     with engine.begin() as conn:
         try:
@@ -47,7 +50,9 @@ def upgrade(engine: Engine) -> None:
             logger.info("Set statement timeout to 30 minutes for initial population")
             ***REMOVED*** Step 1: Drop existing view if it exists
             logger.info("Dropping existing materialized view if present")
-            conn.execute(text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete"))
+            conn.execute(
+                text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete")
+            )
 
             ***REMOVED*** Step 2: Create the materialized view with complete movie metadata
             logger.info("Creating materialized view with precomputed metadata")
@@ -55,7 +60,7 @@ def upgrade(engine: Engine) -> None:
                 text(
                     """
                 CREATE MATERIALIZED VIEW movie_metadata_complete AS
-                SELECT 
+                SELECT
                     m.id,
                     m.title,
                     m.overview,
@@ -81,7 +86,7 @@ def upgrade(engine: Engine) -> None:
                     m.homepage,
                     m.created_at,
                     m.updated_at,
-                    
+
                     -- Aggregated genres as JSON array
                     COALESCE(
                         json_agg(
@@ -93,7 +98,7 @@ def upgrade(engine: Engine) -> None:
                         ) FILTER (WHERE g.id IS NOT NULL),
                         '[]'::json
                     ) as genres,
-                    
+
                     -- Aggregated cast as JSON array (top 10 cast members)
                     COALESCE(
                         json_agg(
@@ -109,19 +114,19 @@ def upgrade(engine: Engine) -> None:
                         ) FILTER (WHERE cast_credits.name IS NOT NULL AND cast_credits.cast_order <= 10),
                         '[]'::json
                     ) as cast,
-                    
+
                     -- Director information
                     director_credits.director_name as director,
-                    
-                    -- Writer information  
+
+                    -- Writer information
                     writer_credits.writer_name as writer,
-                    
+
                     -- Trailer count for quick reference
                     COALESCE(trailer_counts.trailer_count, 0) as trailer_count,
-                    
+
                     -- Metadata version for cache invalidation
                     EXTRACT(EPOCH FROM m.updated_at)::bigint as metadata_version,
-                    
+
                     -- Cache timestamp
                     NOW() as cached_at
 
@@ -133,7 +138,7 @@ def upgrade(engine: Engine) -> None:
 
                 -- Join with cast (limited to top 10)
                 LEFT JOIN LATERAL (
-                    SELECT 
+                    SELECT
                         c.id as credit_id,
                         c.name,
                         c.character,
@@ -141,7 +146,7 @@ def upgrade(engine: Engine) -> None:
                         c.profile_path,
                         c.tmdb_person_id
                     FROM credit c
-                    WHERE c.movie_id = m.id 
+                    WHERE c.movie_id = m.id
                     AND c.department = 'Acting'
                     AND c."order" IS NOT NULL
                     AND c."order" <= 10
@@ -175,7 +180,7 @@ def upgrade(engine: Engine) -> None:
                     WHERE t.movie_id = m.id
                 ) trailer_counts ON true
 
-                GROUP BY 
+                GROUP BY
                     m.id, m.title, m.overview, m.release_date, m.runtime, m.budget, m.revenue,
                     m.imdb_rating, m.rotten_tomatoes_rating, m.metacritic_rating,
                     m.poster_url, m.backdrop_url, m.tmdb_id, m.imdb_id, m.popularity,
@@ -196,7 +201,7 @@ def upgrade(engine: Engine) -> None:
             conn.execute(
                 text(
                     """
-                CREATE UNIQUE INDEX idx_movie_metadata_complete_id 
+                CREATE UNIQUE INDEX idx_movie_metadata_complete_id
                 ON movie_metadata_complete(id)
             """
                 )
@@ -206,7 +211,7 @@ def upgrade(engine: Engine) -> None:
             conn.execute(
                 text(
                     """
-                CREATE INDEX idx_movie_metadata_complete_title 
+                CREATE INDEX idx_movie_metadata_complete_title
                 ON movie_metadata_complete(title)
             """
                 )
@@ -216,7 +221,7 @@ def upgrade(engine: Engine) -> None:
             conn.execute(
                 text(
                     """
-                CREATE INDEX idx_movie_metadata_complete_release_date 
+                CREATE INDEX idx_movie_metadata_complete_release_date
                 ON movie_metadata_complete(release_date)
             """
                 )
@@ -226,7 +231,7 @@ def upgrade(engine: Engine) -> None:
             conn.execute(
                 text(
                     """
-                CREATE INDEX idx_movie_metadata_complete_imdb_rating 
+                CREATE INDEX idx_movie_metadata_complete_imdb_rating
                 ON movie_metadata_complete(imdb_rating)
             """
                 )
@@ -236,7 +241,7 @@ def upgrade(engine: Engine) -> None:
             conn.execute(
                 text(
                     """
-                CREATE INDEX idx_movie_metadata_complete_version 
+                CREATE INDEX idx_movie_metadata_complete_version
                 ON movie_metadata_complete(metadata_version)
             """
                 )
@@ -246,7 +251,7 @@ def upgrade(engine: Engine) -> None:
             conn.execute(
                 text(
                     """
-                CREATE INDEX idx_movie_metadata_complete_bulk 
+                CREATE INDEX idx_movie_metadata_complete_bulk
                 ON movie_metadata_complete(id, title, imdb_rating, release_date)
             """
                 )
@@ -272,17 +277,17 @@ def upgrade(engine: Engine) -> None:
                         -- Subsequent refreshes - use concurrent (non-blocking)
                         REFRESH MATERIALIZED VIEW CONCURRENTLY movie_metadata_complete;
                     END IF;
-                    
+
                     -- Log the refresh (only if system_log table exists)
                     BEGIN
-                        INSERT INTO system_log (message, level, created_at) 
+                        INSERT INTO system_log (message, level, created_at)
                         VALUES ('Materialized view movie_metadata_complete refreshed', 'INFO', NOW())
                         ON CONFLICT DO NOTHING;
                     EXCEPTION WHEN undefined_table THEN
                         -- system_log table doesn't exist, skip logging
                         NULL;
                     END;
-                    
+
                 END;
                 $$ LANGUAGE plpgsql
             """
@@ -300,7 +305,7 @@ def upgrade(engine: Engine) -> None:
                     -- For production: Queue a background refresh job
                     -- For development: Immediate refresh (can be slow)
                     PERFORM refresh_movie_metadata_complete();
-                    
+
                     RETURN COALESCE(NEW, OLD);
                 END;
                 $$ LANGUAGE plpgsql
@@ -354,8 +359,8 @@ def upgrade(engine: Engine) -> None:
             conn.execute(
                 text(
                     """
-                COMMENT ON MATERIALIZED VIEW movie_metadata_complete IS 
-                'Precomputed movie metadata for high-performance bulk operations. 
+                COMMENT ON MATERIALIZED VIEW movie_metadata_complete IS
+                'Precomputed movie metadata for high-performance bulk operations.
                 Refreshed automatically via triggers or background jobs.
                 Follows Netflix-style architecture for static content caching.'
             """
@@ -372,7 +377,9 @@ def upgrade(engine: Engine) -> None:
                 current_user = row[0]
 
                 ***REMOVED*** Grant permissions directly to current user
-                conn.execute(text(f"GRANT SELECT ON movie_metadata_complete TO {current_user}"))
+                conn.execute(
+                    text(f"GRANT SELECT ON movie_metadata_complete TO {current_user}")
+                )
                 conn.execute(
                     text(
                         f"GRANT EXECUTE ON FUNCTION refresh_movie_metadata_complete() TO {current_user}"
@@ -394,7 +401,9 @@ def upgrade(engine: Engine) -> None:
                 logger.warning(
                     f"Initial population failed (likely due to large dataset): {populate_error}"
                 )
-                logger.info("💡 The materialized view structure is created successfully")
+                logger.info(
+                    "💡 The materialized view structure is created successfully"
+                )
                 logger.info("💡 Run this command after migration to populate:")
                 logger.info("   SELECT refresh_movie_metadata_complete();")
                 ***REMOVED*** Don't fail the migration - the structure is ready
@@ -406,7 +415,9 @@ def upgrade(engine: Engine) -> None:
             logger.info("Recording migration in the database")
             try:
                 conn.execute(
-                    text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                    text(
+                        "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                    ),
                     {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
                 )
                 logger.info("Migration recorded in the database")
@@ -431,20 +442,32 @@ def downgrade(engine: Engine) -> None:
         try:
             ***REMOVED*** Drop triggers first
             logger.info("Dropping automatic refresh triggers")
-            conn.execute(text("DROP TRIGGER IF EXISTS movie_metadata_refresh_trigger ON movie"))
             conn.execute(
-                text("DROP TRIGGER IF EXISTS genre_metadata_refresh_trigger ON movie_genre_link")
+                text("DROP TRIGGER IF EXISTS movie_metadata_refresh_trigger ON movie")
             )
-            conn.execute(text("DROP TRIGGER IF EXISTS credit_metadata_refresh_trigger ON credit"))
+            conn.execute(
+                text(
+                    "DROP TRIGGER IF EXISTS genre_metadata_refresh_trigger ON movie_genre_link"
+                )
+            )
+            conn.execute(
+                text("DROP TRIGGER IF EXISTS credit_metadata_refresh_trigger ON credit")
+            )
 
             ***REMOVED*** Drop functions
             logger.info("Dropping refresh functions")
-            conn.execute(text("DROP FUNCTION IF EXISTS trigger_refresh_movie_metadata()"))
-            conn.execute(text("DROP FUNCTION IF EXISTS refresh_movie_metadata_complete()"))
+            conn.execute(
+                text("DROP FUNCTION IF EXISTS trigger_refresh_movie_metadata()")
+            )
+            conn.execute(
+                text("DROP FUNCTION IF EXISTS refresh_movie_metadata_complete()")
+            )
 
             ***REMOVED*** Drop materialized view (indexes will be dropped automatically)
             logger.info("Dropping materialized view")
-            conn.execute(text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete"))
+            conn.execute(
+                text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete")
+            )
 
             logger.info("✅ Movie metadata materialized view removed successfully")
 
@@ -453,7 +476,7 @@ def downgrade(engine: Engine) -> None:
             raise
 
 
-def get_revision_info() -> Dict[str, Any]:
+def get_revision_info() -> dict[str, Any]:
     """
     Get revision metadata.
 
@@ -469,7 +492,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> List[str]:
+def get_affected_tables() -> list[str]:
     """
     Get list of affected tables/objects.
 

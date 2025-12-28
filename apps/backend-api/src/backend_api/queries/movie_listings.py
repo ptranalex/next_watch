@@ -2,11 +2,11 @@
 Query implementations for retrieving lists of movies with various filtering options.
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-from sqlalchemy.sql import text
+from typing import Any
 
 from config.logging import get_logger
+from sqlalchemy.sql import text
+
 from backend_api.queries.common import DBSession
 
 logger = get_logger(__name__)
@@ -16,18 +16,18 @@ def get_movies_with_filters(
     db_session: DBSession,
     skip: int = 0,
     limit: int = 20,
-    genre_id: Optional[int] = None,
-    actor_id: Optional[int] = None,
-    actor_tmdb_id: Optional[int] = None,
+    genre_id: int | None = None,
+    actor_id: int | None = None,
+    actor_tmdb_id: int | None = None,
     sort_by: str = "title",
     sort_desc: bool = False,
-    imdb_rating: Optional[float] = None,
-    rotten_tomatoes_rating: Optional[int] = None,
-    metacritic_rating: Optional[int] = None,
-    year: Optional[int] = None,
-    start_year: Optional[int] = None,
-    end_year: Optional[int] = None,
-) -> Tuple[List[Any], int]:
+    imdb_rating: float | None = None,
+    rotten_tomatoes_rating: int | None = None,
+    metacritic_rating: int | None = None,
+    year: int | None = None,
+    start_year: int | None = None,
+    end_year: int | None = None,
+) -> tuple[list[Any], int]:
     """
     Get movies with pagination, filtering, and sorting.
 
@@ -58,11 +58,11 @@ def get_movies_with_filters(
 
     ***REMOVED*** If filtering by genre, join with genre table
     where_clauses = []
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
 
     if genre_id is not None:
         query += """
-        JOIN movie_genre_link mgl ON m.id = mgl.movie_id 
+        JOIN movie_genre_link mgl ON m.id = mgl.movie_id
         JOIN genre g ON mgl.genre_id = g.id
         """
         where_clauses.append("mgl.genre_id = :genre_id")
@@ -81,7 +81,9 @@ def get_movies_with_filters(
 
         ***REMOVED*** Or filter by actor's TMDB ID
         if actor_tmdb_id is not None:
-            where_clauses.append("c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'")
+            where_clauses.append(
+                "c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'"
+            )
             params["actor_tmdb_id"] = actor_tmdb_id
 
     ***REMOVED*** Add rating filters
@@ -143,7 +145,7 @@ def get_movies_with_filters(
 
     ***REMOVED*** Count query
     count_query = """
-    SELECT COUNT(DISTINCT m.id) 
+    SELECT COUNT(DISTINCT m.id)
     FROM movie m
     """
 
@@ -179,18 +181,18 @@ def search_movies_by_title(
     title_search: str,
     skip: int = 0,
     limit: int = 20,
-    genre_id: Optional[int] = None,
-    actor_id: Optional[int] = None,
-    actor_tmdb_id: Optional[int] = None,
+    genre_id: int | None = None,
+    actor_id: int | None = None,
+    actor_tmdb_id: int | None = None,
     sort_by: str = "title",
     sort_desc: bool = False,
-    imdb_rating: Optional[float] = None,
-    rotten_tomatoes_rating: Optional[int] = None,
-    metacritic_rating: Optional[int] = None,
-    year: Optional[int] = None,
-    start_year: Optional[int] = None,
-    end_year: Optional[int] = None,
-) -> Tuple[List[Any], int]:
+    imdb_rating: float | None = None,
+    rotten_tomatoes_rating: int | None = None,
+    metacritic_rating: int | None = None,
+    year: int | None = None,
+    start_year: int | None = None,
+    end_year: int | None = None,
+) -> tuple[list[Any], int]:
     """
     Search for movies by title with additional filtering options.
 
@@ -222,7 +224,7 @@ def search_movies_by_title(
 
     ***REMOVED*** Start building WHERE clauses and parameters
     where_clauses = []
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
 
     ***REMOVED*** Add title search condition
     search_pattern = f"%{title_search}%"
@@ -232,7 +234,7 @@ def search_movies_by_title(
     ***REMOVED*** If filtering by genre, join with genre table
     if genre_id is not None:
         query += """
-        JOIN movie_genre_link mgl ON m.id = mgl.movie_id 
+        JOIN movie_genre_link mgl ON m.id = mgl.movie_id
         JOIN genre g ON mgl.genre_id = g.id
         """
         where_clauses.append("mgl.genre_id = :genre_id")
@@ -251,7 +253,9 @@ def search_movies_by_title(
 
         ***REMOVED*** Or filter by actor's TMDB ID
         if actor_tmdb_id is not None:
-            where_clauses.append("c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'")
+            where_clauses.append(
+                "c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'"
+            )
             params["actor_tmdb_id"] = actor_tmdb_id
 
     ***REMOVED*** Add rating filters
@@ -313,13 +317,13 @@ def search_movies_by_title(
 
     ***REMOVED*** Count query - needs to match the filters of the main query
     count_query = """
-    SELECT COUNT(DISTINCT m.id) 
+    SELECT COUNT(DISTINCT m.id)
     FROM movie m
     """
 
     if genre_id is not None:
         count_query += """
-        JOIN movie_genre_link mgl ON m.id = mgl.movie_id 
+        JOIN movie_genre_link mgl ON m.id = mgl.movie_id
         JOIN genre g ON mgl.genre_id = g.id
         """
 

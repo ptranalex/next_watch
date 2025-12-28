@@ -2,17 +2,17 @@
 Query implementations for genre-related operations.
 """
 
-from typing import Any, Dict, Optional
-
-from sqlalchemy.sql import text
+from typing import Any
 
 from config.logging import get_logger
+from sqlalchemy.sql import text
+
 from backend_api.queries.common import DBSession
 
 logger = get_logger(__name__)
 
 
-def get_genre_by_name(db_session: DBSession, genre_name: str) -> Optional[Dict[str, Any]]:
+def get_genre_by_name(db_session: DBSession, genre_name: str) -> dict[str, Any] | None:
     """
     Get a genre by its name (case-insensitive match).
 

@@ -4,10 +4,15 @@ This module provides custom metrics for the Backend API service,
 including database operations, movie CRUD operations, and data integrity tracking.
 """
 
-import re
-from typing import Dict, Optional, Any, Callable, TypeVar
-from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
+from collections.abc import Callable
+from typing import Any, TypeVar
+
 from config.logging import get_logger
+from fast_core.monitoring.metrics import (
+    MetricsRegistry,
+    get_metrics_registry,
+    track_operation,
+)
 
 ***REMOVED*** Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
@@ -37,7 +42,7 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
 
     ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
-    normalized_parts = []
+    normalized_parts: list[str] = []
 
     for part in parts:
         if part.isdigit():
@@ -53,7 +58,7 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
 class BackendMetrics:
     """Backend-specific metrics collection."""
 
-    def __init__(self, metrics_registry: Optional[MetricsRegistry] = None):
+    def __init__(self, metrics_registry: MetricsRegistry | None = None):
         """Initialize Backend metrics.
 
         Args:
@@ -228,7 +233,9 @@ class BackendMetrics:
         }
         self.movie_operations.labels(**labels).inc()
 
-    def record_movie_search(self, search_type: str, filters_count: int, duration: float) -> None:
+    def record_movie_search(
+        self, search_type: str, filters_count: int, duration: float
+    ) -> None:
         """Record a movie search operation.
 
         Args:
@@ -256,7 +263,9 @@ class BackendMetrics:
         }
         self.movie_search_operations.labels(**labels).observe(duration)
 
-    def record_bulk_operation(self, operation: str, batch_size: int, duration: float) -> None:
+    def record_bulk_operation(
+        self, operation: str, batch_size: int, duration: float
+    ) -> None:
         """Record a bulk operation.
 
         Args:
@@ -303,7 +312,9 @@ class BackendMetrics:
         }
         self.actor_operations.labels(**labels).inc()
 
-    def record_cast_retrieval(self, movie_type: str, cast_size: int, duration: float) -> None:
+    def record_cast_retrieval(
+        self, movie_type: str, cast_size: int, duration: float
+    ) -> None:
         """Record cast retrieval operation.
 
         Args:
@@ -336,7 +347,7 @@ class BackendMetrics:
         operation: str,
         collection_type: str,
         status: str,
-        collection_size: Optional[int] = None,
+        collection_size: int | None = None,
     ) -> None:
         """Record user collection operation.
 
@@ -365,7 +376,9 @@ class BackendMetrics:
             }
             self.user_collection_size.labels(**size_labels).observe(collection_size)
 
-    def record_data_validation_error(self, validation_type: str, entity_type: str) -> None:
+    def record_data_validation_error(
+        self, validation_type: str, entity_type: str
+    ) -> None:
         """Record a data validation error.
 
         Args:
@@ -416,7 +429,9 @@ class BackendMetrics:
         }
         self.genre_operations.labels(**labels).inc()
 
-    def record_metadata_operation(self, metadata_type: str, operation: str, status: str) -> None:
+    def record_metadata_operation(
+        self, metadata_type: str, operation: str, status: str
+    ) -> None:
         """Record a metadata operation.
 
         Args:
@@ -489,15 +504,15 @@ class BackendMetrics:
 
 
 ***REMOVED*** Global Backend metrics instance
-_backend_metrics: Optional[BackendMetrics] = None
+_backend_metrics: BackendMetrics | None = None
 
 
-def get_backend_metrics() -> Optional[BackendMetrics]:
+def get_backend_metrics() -> BackendMetrics | None:
     """Get the global Backend metrics instance."""
     return _backend_metrics
 
 
-def initialize_backend_metrics() -> Optional[BackendMetrics]:
+def initialize_backend_metrics() -> BackendMetrics | None:
     """Initialize global Backend metrics instance.
 
     Returns:
@@ -513,7 +528,7 @@ def initialize_backend_metrics() -> Optional[BackendMetrics]:
 
 ***REMOVED*** Decorator for tracking Backend operations
 def track_backend_operation(
-    operation_name: str, labels: Optional[Dict[str, str]] = None
+    operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:
     """Decorator to track Backend-specific operations.
 
@@ -536,31 +551,31 @@ def track_backend_operation(
 
 
 ***REMOVED*** Example usage decorators for common Backend operations
-def track_movie_operation(func: F) -> F:
+def track_movie_operation[T: Callable[..., Any]](func: T) -> T:
     """Track movie-related operations."""
     return track_backend_operation("movie_operation")(func)
 
 
-def track_database_operation(func: F) -> F:
+def track_database_operation[T: Callable[..., Any]](func: T) -> T:
     """Track database operations."""
     return track_backend_operation("database_operation")(func)
 
 
-def track_search_operation(func: F) -> F:
+def track_search_operation[T: Callable[..., Any]](func: T) -> T:
     """Track search operations."""
     return track_backend_operation("search_operation")(func)
 
 
-def track_user_collection_operation(func: F) -> F:
+def track_user_collection_operation[T: Callable[..., Any]](func: T) -> T:
     """Track user collection operations."""
     return track_backend_operation("user_collection_operation")(func)
 
 
-def track_actor_operation(func: F) -> F:
+def track_actor_operation[T: Callable[..., Any]](func: T) -> T:
     """Track actor-related operations."""
     return track_backend_operation("actor_operation")(func)
 
 
-def track_bulk_operation(func: F) -> F:
+def track_bulk_operation[T: Callable[..., Any]](func: T) -> T:
     """Track bulk operations."""
     return track_backend_operation("bulk_operation")(func)

@@ -5,7 +5,7 @@ In the new architecture, the BFF validates user tokens and authenticates to Back
 using an internal service token, then passes the verified user_id via headers.
 """
 
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -40,7 +40,7 @@ async def verify_internal_token(
 
 
 async def get_user_id_from_header(
-    x_user_id: Annotated[Optional[str], Header(alias="X-User-ID")] = None,
+    x_user_id: Annotated[str | None, Header(alias="X-User-ID")] = None,
     _: bool = Depends(verify_internal_token),
 ) -> int:
     """
@@ -72,8 +72,8 @@ async def get_user_id_from_header(
 
 
 async def get_optional_user_id_from_header(
-    x_user_id: Annotated[Optional[str], Header(alias="X-User-ID")] = None,
-) -> Optional[int]:
+    x_user_id: Annotated[str | None, Header(alias="X-User-ID")] = None,
+) -> int | None:
     """
     Extract optional user ID from X-User-ID header injected by BFF.
 

@@ -2,19 +2,23 @@
 Movie-related API routes (v1) with Fast Core integration.
 """
 
-from typing import Any, Dict, List, Optional, cast
-
-from fastapi import APIRouter, Depends, Path, Query, Request
-from fastapi.responses import JSONResponse
-from sqlmodel import Session
+from typing import Any, cast
 
 from config.logging import get_logger
-from fast_core.dependencies import get_pagination, get_request_id, get_service_client
+from fast_core.dependencies import get_pagination, get_request_id
 from fast_core.dependencies.common import PaginationParams
-from fast_core.responses import ResponseBuilder, PaginatedResponse
+from fast_core.responses import PaginatedResponse, ResponseBuilder
+from fastapi import APIRouter, Depends, Path, Query, Request
+from sqlmodel import Session
+
+from backend_api.core.metrics import (
+    get_backend_metrics,
+    track_bulk_operation,
+    track_movie_operation,
+    track_search_operation,
+)
 
 ***REMOVED*** Redis cache removed for bulk endpoints - too dynamic for effective caching
-
 from backend_api.db.database import get_db
 from backend_api.errors import (
     ResourceNotFoundError,
@@ -33,12 +37,6 @@ from backend_api.schemas.trailer_schema import TrailerResponse
 
 ***REMOVED*** Import service and query
 from backend_api.services.movie_service import MovieService
-from backend_api.core.metrics import (
-    get_backend_metrics,
-    track_movie_operation,
-    track_search_operation,
-    track_bulk_operation,
-)
 
 logger = get_logger(__name__)
 
@@ -62,22 +60,35 @@ response_builder = ResponseBuilder(
 
 
 def convert_paginated_response_to_movies_list(
-    paginated_response: PaginatedResponse, request_id: Optional[str] = None
+    paginated_response: PaginatedResponse, request_id: str | None = None
 ) -> MoviesListResponse:
     """Convert fast-core paginated response to MoviesListResponse format.
 
     This helper maintains backward compatibility while using fast-core internally.
     """
-    pagination = paginated_response["pagination"]
+    ***REMOVED*** fast-core models these as TypedDict with optional keys; in practice, our
+    ***REMOVED*** ResponseBuilder always includes them. Use defensive .get() + sensible defaults
+    ***REMOVED*** to satisfy typecheckers and avoid runtime KeyErrors.
+    pagination = paginated_response.get("pagination") or {}
+    results = cast(list[Any], paginated_response.get("results") or [])
+
+    page = pagination.get("page", 1)
+    per_page = pagination.get("per_page", len(results) or 1) or 1
+    total = pagination.get("total", len(results))
+    total_pages = pagination.get("total_pages")
+    if total_pages is None:
+        total_pages = (total + per_page - 1) // per_page if per_page else 1
+    has_next = pagination.get("has_next", page < total_pages)
+    has_prev = pagination.get("has_prev", page > 1)
 
     return MoviesListResponse(
-        total=pagination["total"],
-        page=pagination["page"],
-        per_page=pagination["per_page"],
-        total_pages=pagination["total_pages"],
-        has_next=pagination["has_next"],
-        has_prev=pagination["has_prev"],
-        results=paginated_response["results"],
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages,
+        has_next=has_next,
+        has_prev=has_prev,
+        results=results,
     )
 
 
@@ -94,30 +105,35 @@ def get_movie_query() -> MovieQuery:
 
 ***REMOVED*** Helper function (enhanced with request tracking)
 def format_movie_for_response(
-    movie: Any, genres: List[Dict[str, Any]], request_id: Optional[str] = None
+    movie: Any, genres: list[dict[str, Any]], request_id: str | None = None
 ) -> MovieResponse:
     """
     Format a movie database row into a MovieResponse model with request tracking.
     """
     ***REMOVED*** Convert genres to the expected format
     genre_list = [
-        {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]} for genre in genres
+        {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]}
+        for genre in genres
     ]
 
     ***REMOVED*** Convert movie to dictionary based on its features
     is_dict_like = (
-        hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__")
+        hasattr(movie, "keys")
+        and hasattr(movie, "values")
+        and hasattr(movie, "__getitem__")
     )
 
     if is_dict_like:
-        movie_dict = cast(Dict[str, Any], movie)
+        movie_dict = cast(dict[str, Any], movie)
     else:
         ***REMOVED*** Convert SQLAlchemy Row or other object to dictionary
         try:
             movie_dict = dict(movie._mapping)
         except (AttributeError, TypeError):
             ***REMOVED*** Fallback to __dict__ for other objects
-            movie_dict = {k: v for k, v in movie.__dict__.items() if not k.startswith("_")}
+            movie_dict = {
+                k: v for k, v in movie.__dict__.items() if not k.startswith("_")
+            }
 
     ***REMOVED*** Add genres to the dictionary
     movie_dict["genres"] = genre_list
@@ -127,7 +143,7 @@ def format_movie_for_response(
 
 
 def create_pagination_response(
-    movie_responses: List[MovieResponse],
+    movie_responses: list[MovieResponse],
     total_count: int,
     page: int,
     per_page: int,
@@ -154,9 +170,13 @@ def create_pagination_response(
 def get_movie_id(movie: Any) -> int:
     """Extract the movie ID safely from any movie object type."""
     ***REMOVED*** Dictionary-like check
-    if hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__"):
+    if (
+        hasattr(movie, "keys")
+        and hasattr(movie, "values")
+        and hasattr(movie, "__getitem__")
+    ):
         try:
-            movie_dict = cast(Dict[str, Any], movie)
+            movie_dict = cast(dict[str, Any], movie)
             return int(movie_dict.get("id", 0))
         except (KeyError, TypeError, ValueError):
             pass
@@ -180,13 +200,17 @@ async def _get_bulk_movies_internal(
     try:
         movie_ids = [int(id_str.strip()) for id_str in ids.split(",") if id_str.strip()]
     except ValueError:
-        raise ValidationError("Invalid movie IDs provided. Must be comma-separated integers.")
+        raise ValidationError(
+            "Invalid movie IDs provided. Must be comma-separated integers."
+        )
 
     if not movie_ids:
         return create_pagination_response([], 0, page, limit)
 
     if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit to prevent abuse
-        raise ValidationError("Too many movie IDs provided. Maximum 1000 IDs per request.")
+        raise ValidationError(
+            "Too many movie IDs provided. Maximum 1000 IDs per request."
+        )
 
     ***REMOVED*** Record bulk operation metrics
     metrics = get_backend_metrics()
@@ -223,7 +247,9 @@ async def _get_bulk_movies_internal(
 async def get_movies_bulk(
     ids: str = Query(..., description="Comma-separated list of movie IDs"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
-    limit: int = Query(100, ge=1, le=200, description="Max number of movies to return per page"),
+    limit: int = Query(
+        100, ge=1, le=200, description="Max number of movies to return per page"
+    ),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
@@ -261,25 +287,27 @@ async def list_movies(
     request: Request,
     pagination: PaginationParams = get_pagination(max_page_size=100),
     request_id: str = Depends(get_request_id),
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
-    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
+    genre_id: int | None = Query(None, description="Filter by genre ID"),
+    actor_id: int | None = Query(None, description="Filter by actor TMDB ID"),
     sort_by: str = Query(
         "title",
         description="Field to sort by (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
     sort_desc: bool = Query(False, description="Sort in descending order"),
-    imdb_rating: Optional[float] = Query(
+    imdb_rating: float | None = Query(
         None, ge=0, le=10, description="Filter by minimum IMDb rating"
     ),
-    rotten_tomatoes_rating: Optional[int] = Query(
+    rotten_tomatoes_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[int] = Query(
+    metacritic_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
-    end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
+    year: int | None = Query(None, description="Filter by release year"),
+    start_year: int | None = Query(
+        None, description="Filter by start year (inclusive)"
+    ),
+    end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
@@ -324,7 +352,9 @@ async def list_movies(
                 total=0,
                 metadata={"request_id": request_id, "filters_applied": True},
             )
-            return convert_paginated_response_to_movies_list(paginated_response, request_id)
+            return convert_paginated_response_to_movies_list(
+                paginated_response, request_id
+            )
 
         ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
         movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
@@ -341,7 +371,11 @@ async def list_movies(
 
         logger.debug(
             f"[{request_id}] Successfully fetched {len(movie_responses)} movies",
-            extra={"request_id": request_id, "count": len(movie_responses), "total": total_count},
+            extra={
+                "request_id": request_id,
+                "count": len(movie_responses),
+                "total": total_count,
+            },
         )
 
         ***REMOVED*** Record successful movie list request
@@ -370,15 +404,16 @@ async def list_movies(
         if metrics:
             metrics.record_movie_operation("list", "validation_error")
         logger.error(
-            f"[{request_id}] Error fetching movies: {str(e)}", extra={"request_id": request_id}
+            f"[{request_id}] Error fetching movies: {str(e)}",
+            extra={"request_id": request_id},
         )
         raise service_error_to_http_exception(e)
 
 
 @router.get("/top", response_model=MoviesListResponse)
 async def get_top_movies(
-    year: Optional[int] = Query(None, description="Filter by release year"),
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
+    year: int | None = Query(None, description="Filter by release year"),
+    genre_id: int | None = Query(None, description="Filter by genre ID"),
     limit: int = Query(10, ge=1, le=50, description="Max number of movies to return"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     db: Session = Depends(get_db),
@@ -423,25 +458,27 @@ async def search_movies(
     q: str = Query(..., description="Search query for movie titles"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of movies to return"),
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
-    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
+    genre_id: int | None = Query(None, description="Filter by genre ID"),
+    actor_id: int | None = Query(None, description="Filter by actor TMDB ID"),
     sort_by: str = Query(
         "title",
         description="Field to sort by (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
     sort_desc: bool = Query(False, description="Sort in descending order"),
-    imdb_rating: Optional[float] = Query(
+    imdb_rating: float | None = Query(
         None, ge=0, le=10, description="Filter by minimum IMDb rating"
     ),
-    rotten_tomatoes_rating: Optional[int] = Query(
+    rotten_tomatoes_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[int] = Query(
+    metacritic_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
-    end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
+    year: int | None = Query(None, description="Filter by release year"),
+    start_year: int | None = Query(
+        None, description="Filter by start year (inclusive)"
+    ),
+    end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
 ) -> MoviesListResponse:
@@ -548,7 +585,9 @@ async def get_movie_details(
         if metrics:
             metrics.record_movie_operation(
                 "detail",
-                "not_found" if isinstance(e, ResourceNotFoundError) else "validation_error",
+                "not_found"
+                if isinstance(e, ResourceNotFoundError)
+                else "validation_error",
             )
         raise service_error_to_http_exception(e)
 
@@ -592,12 +631,12 @@ async def get_movie_by_tmdb(
         raise service_error_to_http_exception(e)
 
 
-@router.get("/{movie_id}/trailers", response_model=List[TrailerResponse])
+@router.get("/{movie_id}/trailers", response_model=list[TrailerResponse])
 async def get_movie_trailers(
     movie_id: int = Path(..., ge=1, description="Movie database ID"),
     db: Session = Depends(get_db),
     movie_query: MovieQuery = Depends(get_movie_query),
-) -> List[TrailerResponse]:
+) -> list[TrailerResponse]:
     """
     Get trailers for a specific movie.
     """

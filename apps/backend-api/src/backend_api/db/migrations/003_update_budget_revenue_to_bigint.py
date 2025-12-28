@@ -5,13 +5,10 @@ This migration alters the column types for the budget and revenue fields in the 
 to use BIGINT instead of INTEGER, allowing for larger financial values.
 """
 
-from sqlalchemy import BigInteger, Integer
+from config.logging import get_logger
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.sql import text
-from sqlalchemy.engine import Engine
-from typing import Optional
-
-from config.logging import get_logger
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "003_update_budget_revenue_to_bigint"
@@ -27,16 +24,22 @@ def upgrade(engine: Engine) -> None:
     ***REMOVED*** Alter budget and revenue columns to BIGINT
     with engine.begin() as connection:
         connection.execute(
-            text("ALTER TABLE movie ALTER COLUMN budget TYPE BIGINT USING budget::BIGINT")
+            text(
+                "ALTER TABLE movie ALTER COLUMN budget TYPE BIGINT USING budget::BIGINT"
+            )
         )
         connection.execute(
-            text("ALTER TABLE movie ALTER COLUMN revenue TYPE BIGINT USING revenue::BIGINT")
+            text(
+                "ALTER TABLE movie ALTER COLUMN revenue TYPE BIGINT USING revenue::BIGINT"
+            )
         )
 
         ***REMOVED*** Record the migration in the migrations table
         try:
             connection.execute(
-                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                text(
+                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                ),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")

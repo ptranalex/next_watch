@@ -1,22 +1,20 @@
 """Database management commands for the Backend API CLI."""
 
-import importlib
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import typer
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from sqlalchemy import Engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 from backend_api.config import settings
-from config.logging import configure_logging, get_logger
 from backend_api.db.database import get_engine, init_db
 from backend_api.db.migrations import (
+    downgrade_single_migration,
     get_applied_migrations,
     run_migration,
-    downgrade_single_migration,
 )
 
 ***REMOVED*** Create app for database commands
@@ -31,10 +29,18 @@ console = Console()
 
 @app.command("init")
 def init_database(
-    create_tables: bool = typer.Option(False, "--create-tables", help="Create database tables"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
-    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
+    create_tables: bool = typer.Option(
+        False, "--create-tables", help="Create database tables"
+    ),
+    database_url: str | None = typer.Option(
+        None, help="Database URL (overrides config)"
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose logging"
+    ),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Suppress non-essential output"
+    ),
 ) -> int:
     """Initialize the database and optionally create tables."""
     ***REMOVED*** Show config if verbose
@@ -55,7 +61,9 @@ def init_database(
     ***REMOVED*** Show results
     if not quiet:
         if create_tables:
-            console.print("[bold green]✓[/] Database initialized and tables created successfully!")
+            console.print(
+                "[bold green]✓[/] Database initialized and tables created successfully!"
+            )
         else:
             console.print("[bold green]✓[/] Database initialized successfully!")
             console.print("[dim]Use --create-tables to create database tables.[/dim]")
@@ -70,16 +78,24 @@ def init_database(
 
 @app.command("migrate")
 def migrate_database(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose logging"
+    ),
     log_level: str = typer.Option("INFO", help="Logging level", show_default=True),
-    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Suppress non-essential output"
+    ),
+    database_url: str | None = typer.Option(
+        None, help="Database URL (overrides config)"
+    ),
 ) -> int:
     """Run database migrations to update schema."""
     import time
 
     ***REMOVED*** Configure logging
-    configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
+    configure_logging(
+        logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet
+    )
 
     ***REMOVED*** Show config if verbose
     if verbose and not quiet:
@@ -124,7 +140,7 @@ def migrate_database(
             if stop_timer.wait(1):
                 break
 
-    def _update_status_safely(status_ref: Optional[Any], time_display: str) -> None:
+    def _update_status_safely(status_ref: Any | None, time_display: str) -> None:
         """Safely update status object"""
         if status_ref is not None:
             try:
@@ -139,7 +155,9 @@ def migrate_database(
     timer_thread.start()
 
     ***REMOVED*** Use rich status with dynamic updates
-    with console.status("[bold green]Running database migrations... Elapsed: 0s[/]") as status:
+    with console.status(
+        "[bold green]Running database migrations... Elapsed: 0s[/]"
+    ) as status:
         status_obj = status  ***REMOVED*** Make status available to the timer thread
         try:
             applied_migrations = run_migration(db_url=database_url)
@@ -173,7 +191,9 @@ def migrate_database(
             table.add_column("Duration", style="yellow")
 
             for migration_id in applied_migrations:
-                table.add_row(migration_id, time_str if len(applied_migrations) == 1 else "N/A")
+                table.add_row(
+                    migration_id, time_str if len(applied_migrations) == 1 else "N/A"
+                )
 
             console.print(table)
             console.print(
@@ -192,18 +212,34 @@ def migrate_database(
 
 @app.command("downgrade")
 def downgrade_database(
-    steps: int = typer.Option(1, "--steps", "-s", help="Number of migrations to downgrade"),
-    target: Optional[str] = typer.Option(None, "--target", "-t", help="Target migration ID"),
-    all_migrations: bool = typer.Option(False, "--all", help="Downgrade all migrations"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    steps: int = typer.Option(
+        1, "--steps", "-s", help="Number of migrations to downgrade"
+    ),
+    target: str | None = typer.Option(
+        None, "--target", "-t", help="Target migration ID"
+    ),
+    all_migrations: bool = typer.Option(
+        False, "--all", help="Downgrade all migrations"
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose logging"
+    ),
     log_level: str = typer.Option("INFO", help="Logging level", show_default=True),
-    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
-    confirm: bool = typer.Option(True, "--confirm/--no-confirm", help="Confirm before downgrading"),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Suppress non-essential output"
+    ),
+    database_url: str | None = typer.Option(
+        None, help="Database URL (overrides config)"
+    ),
+    confirm: bool = typer.Option(
+        True, "--confirm/--no-confirm", help="Confirm before downgrading"
+    ),
 ) -> int:
     """Downgrade database migrations."""
     ***REMOVED*** Configure logging
-    configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
+    configure_logging(
+        logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet
+    )
     logger = get_logger(__name__)
 
     ***REMOVED*** Show config if verbose
@@ -218,7 +254,6 @@ def downgrade_database(
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
     try:
-
         ***REMOVED*** Get engine and applied migrations
         engine = get_engine()
         applied_migrations = get_applied_migrations(engine)
@@ -283,7 +318,9 @@ def downgrade_database(
             if success:
                 downgraded_count += 1
             else:
-                console.print(f"[bold red]❌ Failed to downgrade migration: {migration_id}[/]")
+                console.print(
+                    f"[bold red]❌ Failed to downgrade migration: {migration_id}[/]"
+                )
                 break
 
         ***REMOVED*** Show results
@@ -311,16 +348,28 @@ def downgrade_database(
 
 @app.command("teardown")
 def teardown_database(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose logging"
+    ),
     log_level: str = typer.Option("INFO", help="Logging level", show_default=True),
-    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
-    database_url: Optional[str] = typer.Option(None, help="Database URL (overrides config)"),
-    confirm: bool = typer.Option(True, "--confirm/--no-confirm", help="Confirm before teardown"),
-    force: bool = typer.Option(False, "--force", help="Force teardown in production (dangerous!)"),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Suppress non-essential output"
+    ),
+    database_url: str | None = typer.Option(
+        None, help="Database URL (overrides config)"
+    ),
+    confirm: bool = typer.Option(
+        True, "--confirm/--no-confirm", help="Confirm before teardown"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Force teardown in production (dangerous!)"
+    ),
 ) -> int:
     """Teardown database (DEVELOPMENT ONLY - destroys all data!)."""
     ***REMOVED*** Configure logging
-    configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
+    configure_logging(
+        logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet
+    )
     logger = get_logger(__name__)
 
     ***REMOVED*** Safety check for production
@@ -360,21 +409,24 @@ def teardown_database(
     ***REMOVED*** Confirm teardown
     if confirm:
         console.print(f"[bold red]Environment: {settings.environment}[/]")
-        if not typer.confirm("Are you absolutely sure you want to proceed with teardown?"):
+        if not typer.confirm(
+            "Are you absolutely sure you want to proceed with teardown?"
+        ):
             console.print("Teardown cancelled.")
             return 0
 
         ***REMOVED*** Double confirmation for production
         if settings.environment == "production":
             console.print("[bold red]This is a PRODUCTION environment![/]")
-            if not typer.confirm("Type 'yes' to confirm production teardown", default=False):
+            if not typer.confirm(
+                "Type 'yes' to confirm production teardown", default=False
+            ):
                 console.print("Teardown cancelled.")
                 return 0
 
     try:
         ***REMOVED*** Import here to avoid circular imports
         from sqlalchemy import create_engine, text
-        from sqlalchemy.exc import SQLAlchemyError
 
         ***REMOVED*** Create engine
         db_url = database_url or settings.database_url
@@ -423,7 +475,7 @@ def teardown_database(
 
 
 ***REMOVED*** Register database commands directly with db_app (not as a nested group)
-from backend_api.cli import db_app
+from backend_api.cli import db_app  ***REMOVED*** noqa: E402
 
 ***REMOVED*** Register each command directly
 db_app.command("init")(init_database)

@@ -2,11 +2,11 @@
 Query implementations for retrieving top-rated movies.
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-from sqlalchemy.sql import text
+from typing import Any
 
 from config.logging import get_logger
+from sqlalchemy.sql import text
+
 from backend_api.queries.common import DBSession
 
 logger = get_logger(__name__)
@@ -14,13 +14,13 @@ logger = get_logger(__name__)
 
 def get_top_rated_movies(
     db_session: DBSession,
-    year: Optional[int] = None,
+    year: int | None = None,
     all_time: bool = False,
-    genre_id: Optional[int] = None,
+    genre_id: int | None = None,
     limit: int = 10,
     page: int = 1,
     min_votes: int = 100,
-) -> Tuple[List[Any], int]:
+) -> tuple[list[Any], int]:
     """
     Get top-rated movies by IMDB rating.
 
@@ -51,7 +51,7 @@ def get_top_rated_movies(
     WHERE m.imdb_rating IS NOT NULL
     """
 
-    params: Dict[str, Union[str, int]] = {}
+    params: dict[str, str | int] = {}
 
     ***REMOVED*** Apply year filter if not getting all-time movies
     if not all_time and year is not None:
@@ -82,7 +82,7 @@ def get_top_rated_movies(
 
     ***REMOVED*** Count query for pagination
     count_query = """
-    SELECT COUNT(DISTINCT m.id) 
+    SELECT COUNT(DISTINCT m.id)
     FROM movie m
     LEFT JOIN movie_genre_link mgl ON m.id = mgl.movie_id
     LEFT JOIN genre g ON mgl.genre_id = g.id

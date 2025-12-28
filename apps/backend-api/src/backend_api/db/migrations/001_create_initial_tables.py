@@ -1,8 +1,8 @@
 """Migration to create initial database tables."""
 
-from datetime import datetime
-from typing import Optional
+from datetime import UTC, datetime
 
+from config.logging import get_logger
 from sqlalchemy import (
     Column,
     DateTime,
@@ -12,12 +12,9 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
-    create_engine,
     text,
 )
 from sqlalchemy.engine import Engine
-
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -34,7 +31,7 @@ def upgrade(engine: Engine) -> None:
     metadata = MetaData()
 
     ***REMOVED*** Create genre table
-    genre = Table(
+    Table(
         "genre",
         metadata,
         Column("id", Integer, primary_key=True),
@@ -43,7 +40,7 @@ def upgrade(engine: Engine) -> None:
     )
 
     ***REMOVED*** Create movie table with base fields
-    movie = Table(
+    Table(
         "movie",
         metadata,
         Column("id", Integer, primary_key=True),
@@ -57,9 +54,9 @@ def upgrade(engine: Engine) -> None:
         Column("runtime", Integer),
         Column("poster_url", String),
         Column("backdrop_url", String),
-        Column("tmdb_rating", Float),
-        Column("imdb_rating", Float),
-        Column("popularity", Float),
+        Column("tmdb_rating", Float(precision=2)),
+        Column("imdb_rating", Float(precision=2)),
+        Column("popularity", Float(precision=2)),
         Column("budget", Integer),
         Column("revenue", Integer),
         Column("created_at", DateTime),
@@ -67,7 +64,7 @@ def upgrade(engine: Engine) -> None:
     )
 
     ***REMOVED*** Create link table for many-to-many relationship
-    movie_genre_link = Table(
+    Table(
         "moviegenrelink",
         metadata,
         Column("movie_id", Integer, ForeignKey("movie.id"), primary_key=True),
@@ -75,7 +72,7 @@ def upgrade(engine: Engine) -> None:
     )
 
     ***REMOVED*** Create migrations table if it doesn't exist yet
-    migrations = Table(
+    Table(
         "migrations",
         metadata,
         Column("id", String, primary_key=True),
@@ -95,7 +92,7 @@ def upgrade(engine: Engine) -> None:
             {
                 "id": MIGRATION_ID,
                 "description": MIGRATION_DESCRIPTION,
-                "applied_at": datetime.utcnow(),
+                "applied_at": datetime.now(UTC),
             },
         )
 

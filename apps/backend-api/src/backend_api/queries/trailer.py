@@ -1,13 +1,11 @@
 """Trailer queries."""
 
-from typing import List
-
 from sqlmodel import Session, select
 
 from backend_api.models import Trailer
 
 
-def get_trailers_for_movie(session: Session, movie_id: int) -> List[Trailer]:
+def get_trailers_for_movie(session: Session, movie_id: int) -> list[Trailer]:
     """Get all trailers for a movie.
 
     Args:

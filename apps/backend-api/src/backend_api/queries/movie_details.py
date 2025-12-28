@@ -2,17 +2,19 @@
 Query implementations for retrieving detailed information about movies.
 """
 
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy.sql import text
+from typing import Any
 
 from config.logging import get_logger
+from sqlalchemy.sql import text
+
 from backend_api.queries.common import DBSession
 
 logger = get_logger(__name__)
 
 
-def get_movie_genres(db_session: DBSession, movie_id: Optional[int] = None) -> List[Dict[str, Any]]:
+def get_movie_genres(
+    db_session: DBSession, movie_id: int | None = None
+) -> list[dict[str, Any]]:
     """
     Get all genres for a specific movie.
 
@@ -34,12 +36,14 @@ def get_movie_genres(db_session: DBSession, movie_id: Optional[int] = None) -> L
     """
 
     result = db_session.execute(text(query), {"movie_id": int(movie_id)})
-    return [dict(row._mapping) for row in result.all()]  ***REMOVED*** Convert Row objects to dictionaries
+    return [
+        dict(row._mapping) for row in result.all()
+    ]  ***REMOVED*** Convert Row objects to dictionaries
 
 
 def get_movie_genres_bulk(
-    db_session: DBSession, movie_ids: List[int]
-) -> Dict[int, List[Dict[str, Any]]]:
+    db_session: DBSession, movie_ids: list[int]
+) -> dict[int, list[dict[str, Any]]]:
     """
     Get genres for multiple movies in a single query (bulk operation).
 
@@ -68,7 +72,7 @@ def get_movie_genres_bulk(
     result = db_session.execute(text(query), {"movie_ids": movie_ids})
 
     ***REMOVED*** Group genres by movie_id
-    genres_by_movie: Dict[int, List[Dict[str, Any]]] = {}
+    genres_by_movie: dict[int, list[dict[str, Any]]] = {}
 
     ***REMOVED*** Initialize all movie IDs with empty lists
     for movie_id in movie_ids:
@@ -77,13 +81,17 @@ def get_movie_genres_bulk(
     ***REMOVED*** Populate with actual genre data
     for row in result.all():
         movie_id = row.movie_id
-        genre_data = {key: value for key, value in row._mapping.items() if key != "movie_id"}
+        genre_data = {
+            key: value for key, value in row._mapping.items() if key != "movie_id"
+        }
         genres_by_movie[movie_id].append(genre_data)
 
     return genres_by_movie
 
 
-def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> Optional[Dict[str, Any]]:
+def get_movie_details_by_id(
+    db_session: DBSession, movie_id: int
+) -> dict[str, Any] | None:
     """
     Get detailed information about a specific movie by its ID.
 
@@ -143,7 +151,9 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> Optional[Di
     WHERE c.movie_id = :movie_id
     """
 
-    all_credits_result = db_session.execute(text(all_credits_query), {"movie_id": movie_id})
+    all_credits_result = db_session.execute(
+        text(all_credits_query), {"movie_id": movie_id}
+    )
     credits = [dict(row._mapping) for row in all_credits_result.all()]
 
     ***REMOVED*** Combine movie and credits
@@ -155,7 +165,9 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> Optional[Di
     return movie_dict
 
 
-def get_movie_details_by_tmdb_id(db_session: DBSession, tmdb_id: int) -> Optional[Dict[str, Any]]:
+def get_movie_details_by_tmdb_id(
+    db_session: DBSession, tmdb_id: int
+) -> dict[str, Any] | None:
     """
     Get detailed information about a specific movie by its TMDB ID.
 
@@ -182,7 +194,9 @@ def get_movie_details_by_tmdb_id(db_session: DBSession, tmdb_id: int) -> Optiona
     return dict(movie._mapping)
 
 
-def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: List[int]) -> List[Dict[str, Any]]:
+def get_movies_by_ids_bulk(
+    db_session: DBSession, movie_ids: list[int]
+) -> list[dict[str, Any]]:
     """
     Get detailed information about multiple movies by their IDs.
 
@@ -215,7 +229,7 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: List[int]) -> List[
 
     ***REMOVED*** Step 2: Bulk fetch director and writer information for all movies
     credits_query = """
-    SELECT 
+    SELECT
         c.movie_id,
         c.name,
         c.department,

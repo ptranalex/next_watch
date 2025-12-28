@@ -1,20 +1,15 @@
 """Version information command for the Backend API CLI."""
 
 import importlib
-
 import platform
-import sys
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 
 import typer
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.table import Table
-from typer import Typer
 
-from config.logging import configure_logging, get_logger
-
-from config.logging import get_logger
 app = typer.Typer(
     name="version",
     help="Display version information for the Backend API and its dependencies.",
@@ -101,7 +96,7 @@ def show_version(
 
 
 ***REMOVED*** Register version command directly with main app
-from backend_api.cli import app as main_app
+from backend_api.cli import app as main_app  ***REMOVED*** noqa: E402
 
 ***REMOVED*** Register the show_version command directly as "version"
 main_app.command("version")(show_version)

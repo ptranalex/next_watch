@@ -1,18 +1,18 @@
 """Database connection and utilities for the backend API."""
 
-from typing import Any, Dict, Generator, Iterator, Optional
+from collections.abc import Generator, Iterator
+from typing import Any
 
+from config.logging import get_logger
 from sqlalchemy import Engine, inspect
 from sqlmodel import Session, SQLModel, create_engine
 
-from backend_api.config import settings, Config
-from config.logging import get_logger
-from backend_api.models import Credit, Genre, Movie, MovieGenreLink
+from backend_api.config import settings
 
 logger = get_logger(__name__)
 
 ***REMOVED*** Global engine instance
-_engine: Optional[Engine] = None
+_engine: Engine | None = None
 
 
 def get_engine(enable_monitoring: bool = True) -> Engine:
@@ -28,7 +28,9 @@ def get_engine(enable_monitoring: bool = True) -> Engine:
 
     ***REMOVED*** Create engine if it doesn't exist
     if _engine is None:
-        logger.info(f"Creating database engine with URL: {settings.get_database_url_masked()}")
+        logger.info(
+            f"Creating database engine with URL: {settings.get_database_url_masked()}"
+        )
 
         ***REMOVED*** Use database_echo from settings
         if settings.database_echo:
@@ -103,7 +105,7 @@ def get_db() -> Iterator[Session]:
             pass
 
 
-def check_database_schema() -> Dict[str, Any]:
+def check_database_schema() -> dict[str, Any]:
     """Check if database schema is properly set up.
 
     Returns:
@@ -116,7 +118,9 @@ def check_database_schema() -> Dict[str, Any]:
 
         ***REMOVED*** Check for critical tables
         required_tables = ["movie", "genre", "migrations"]
-        missing_tables = [table for table in required_tables if table not in table_names]
+        missing_tables = [
+            table for table in required_tables if table not in table_names
+        ]
 
         return {
             "schema_ready": len(missing_tables) == 0,

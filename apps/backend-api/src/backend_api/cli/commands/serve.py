@@ -1,15 +1,13 @@
 """Server commands for the Backend API CLI."""
 
 from pathlib import Path
-from typing import Optional
 
 import typer
 import uvicorn
+from config.logging import configure_logging, get_logger
 from rich.console import Console
-from typer import Typer
 
 from backend_api.config.app import settings
-from config.logging import configure_logging, get_logger
 
 app = typer.Typer(
     name="serve",
@@ -24,11 +22,17 @@ logger = get_logger("backend_api.cli.commands.serve")
 @app.command(name="start")
 def start_server(
     host: str = typer.Option("0.0.0.0", help="Host to bind to"),
-    port: int = typer.Option(getattr(settings, "api_port", 8000), help="Port to bind to"),
+    port: int = typer.Option(
+        getattr(settings, "api_port", 8000), help="Port to bind to"
+    ),
     reload: bool = typer.Option(False, help="Enable auto-reload"),
-    log_level: str = typer.Option("info", help="Log level (debug, info, warning, error)"),
-    log_dir: Optional[str] = typer.Option(None, help="Directory for log files"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+    log_level: str = typer.Option(
+        "info", help="Log level (debug, info, warning, error)"
+    ),
+    log_dir: str | None = typer.Option(None, help="Directory for log files"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose logging"
+    ),
     quiet: bool = typer.Option(
         False, "--quiet", "-q", help="Suppress console output except errors"
     ),
@@ -77,7 +81,7 @@ def serve(ctx: typer.Context) -> None:
 
 
 ***REMOVED*** Register serve command directly with main app
-from backend_api.cli import app as main_app
+from backend_api.cli import app as main_app  ***REMOVED*** noqa: E402
 
 ***REMOVED*** Register the start_server command directly as "serve"
 main_app.command("serve")(start_server)

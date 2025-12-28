@@ -2,10 +2,9 @@
 Cast schemas for API responses using Pydantic.
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class CastMemberResponse(BaseModel):
@@ -13,10 +12,10 @@ class CastMemberResponse(BaseModel):
 
     id: int
     name: str
-    character: Optional[str] = None
-    profile_path: Optional[str] = None
-    order: Optional[int] = None
-    popularity: Optional[float] = None
+    character: str | None = None
+    profile_path: str | None = None
+    order: int | None = None
+    popularity: float | None = None
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
@@ -36,9 +35,9 @@ class CrewMemberResponse(BaseModel):
 
     id: int
     name: str
-    department: Optional[str] = None
-    job: Optional[str] = None
-    profile_path: Optional[str] = None
+    department: str | None = None
+    job: str | None = None
+    profile_path: str | None = None
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
@@ -56,8 +55,8 @@ class CrewMemberResponse(BaseModel):
 class MovieCreditsResponse(BaseModel):
     """Schema for movie credits response."""
 
-    cast: List[CastMemberResponse]
-    crew: List[CrewMemberResponse]
+    cast: list[CastMemberResponse]
+    crew: list[CrewMemberResponse]
     movie_id: int
 
     model_config = ConfigDict(from_attributes=True)
@@ -66,7 +65,7 @@ class MovieCreditsResponse(BaseModel):
 class MovieCastResponse(BaseModel):
     """Schema for movie cast response (actors only)."""
 
-    cast: List[CastMemberResponse]
+    cast: list[CastMemberResponse]
     movie_id: int
 
     model_config = ConfigDict(from_attributes=True)

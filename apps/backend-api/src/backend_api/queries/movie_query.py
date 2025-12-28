@@ -5,11 +5,11 @@ This module provides query operations for movies following the CQRS pattern,
 separating read operations from write operations.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
-
-from sqlmodel import Session
+from typing import Any
 
 from config.logging import get_logger
+from sqlmodel import Session
+
 from backend_api.errors import ResourceNotFoundError, ValidationError
 from backend_api.queries.movie_details import (
     get_movie_details_by_id,
@@ -18,12 +18,13 @@ from backend_api.queries.movie_details import (
     get_movie_genres_bulk,
     get_movies_by_ids_bulk,
 )
+from backend_api.queries.movie_listings import (
+    get_movies_with_filters,
+    search_movies_by_title,
+)
 from backend_api.queries.precomputed_metadata import (
     get_movies_precomputed_bulk,
-    get_movie_precomputed_single,
-    check_metadata_freshness,
 )
-from backend_api.queries.movie_listings import get_movies_with_filters, search_movies_by_title
 
 ***REMOVED*** Import query functions directly to avoid circular imports
 from backend_api.queries.top_movies import get_top_rated_movies
@@ -45,17 +46,17 @@ class MovieQuery:
         db: Session,
         skip: int = 0,
         limit: int = 20,
-        genre_id: Optional[int] = None,
-        actor_tmdb_id: Optional[int] = None,
+        genre_id: int | None = None,
+        actor_tmdb_id: int | None = None,
         sort_by: str = "title",
         sort_desc: bool = False,
-        imdb_rating: Optional[float] = None,
-        rotten_tomatoes_rating: Optional[int] = None,
-        metacritic_rating: Optional[int] = None,
-        year: Optional[int] = None,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+        imdb_rating: float | None = None,
+        rotten_tomatoes_rating: int | None = None,
+        metacritic_rating: int | None = None,
+        year: int | None = None,
+        start_year: int | None = None,
+        end_year: int | None = None,
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Get movies with various filtering options.
 
@@ -102,7 +103,9 @@ class MovieQuery:
         if sort_by not in valid_sort_fields:
             raise ValidationError(
                 message="Invalid sort field",
-                field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
+                field_errors={
+                    "sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]
+                },
             )
 
         ***REMOVED*** Get movies
@@ -122,7 +125,7 @@ class MovieQuery:
             end_year=end_year,
         )
 
-    def get_movie_details(self, db: Session, movie_id: int) -> Dict[str, Any]:
+    def get_movie_details(self, db: Session, movie_id: int) -> dict[str, Any]:
         """
         Get detailed information for a specific movie.
 
@@ -155,7 +158,7 @@ class MovieQuery:
 
         return movie
 
-    def get_movie_by_tmdb_id(self, db: Session, tmdb_id: int) -> Dict[str, Any]:
+    def get_movie_by_tmdb_id(self, db: Session, tmdb_id: int) -> dict[str, Any]:
         """
         Get movie by TMDB ID.
 
@@ -188,7 +191,7 @@ class MovieQuery:
 
         return movie
 
-    def get_movie_genres(self, db: Session, movie_id: int) -> List[Dict[str, Any]]:
+    def get_movie_genres(self, db: Session, movie_id: int) -> list[dict[str, Any]]:
         """
         Get genres for a specific movie.
 
@@ -213,8 +216,8 @@ class MovieQuery:
         return get_movie_genres(db, movie_id)
 
     def get_movie_genres_bulk(
-        self, db: Session, movie_ids: List[int]
-    ) -> Dict[int, List[Dict[str, Any]]]:
+        self, db: Session, movie_ids: list[int]
+    ) -> dict[int, list[dict[str, Any]]]:
         """
         Get genres for multiple movies in a single query (eliminates N+1 queries).
 
@@ -232,7 +235,9 @@ class MovieQuery:
         if not movie_ids:
             return {}
 
-        if not all(isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids):
+        if not all(
+            isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids
+        ):
             raise ValidationError(
                 message="Invalid movie IDs",
                 field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
@@ -248,8 +253,8 @@ class MovieQuery:
         return get_movie_genres_bulk(db, movie_ids)
 
     def get_movies_by_ids(
-        self, db: Session, movie_ids: List[int], use_precomputed: bool = True
-    ) -> List[Dict[str, Any]]:
+        self, db: Session, movie_ids: list[int], use_precomputed: bool = True
+    ) -> list[dict[str, Any]]:
         """
         Get multiple movies by their IDs with optional precomputed metadata.
 
@@ -273,7 +278,9 @@ class MovieQuery:
         if not movie_ids:
             return []
 
-        if not all(isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids):
+        if not all(
+            isinstance(movie_id, int) and movie_id > 0 for movie_id in movie_ids
+        ):
             raise ValidationError(
                 message="Invalid movie IDs",
                 field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
@@ -308,9 +315,13 @@ class MovieQuery:
                         ***REMOVED*** Add genre information for missing movies (they won't have it precomputed)
                         if missing_movies:
                             missing_ids_for_genres = [
-                                movie.get("id") for movie in missing_movies if movie.get("id")
+                                movie_id
+                                for movie in missing_movies
+                                if (movie_id := movie.get("id")) is not None
                             ]
-                            genres_by_movie = self.get_movie_genres_bulk(db, missing_ids_for_genres)
+                            genres_by_movie = self.get_movie_genres_bulk(
+                                db, missing_ids_for_genres
+                            )
 
                             for movie in missing_movies:
                                 movie_id = movie.get("id")
@@ -334,7 +345,7 @@ class MovieQuery:
         logger.debug(f"Using real-time aggregation for {len(movie_ids)} movies")
         return get_movies_by_ids_bulk(db, movie_ids)
 
-    def get_movie_trailers(self, db: Session, movie_id: int) -> List[Any]:
+    def get_movie_trailers(self, db: Session, movie_id: int) -> list[Any]:
         """Get trailers for a movie."""
         trailers = get_trailers_for_movie(db, movie_id)
         return trailers
@@ -344,9 +355,9 @@ class MovieQuery:
         db: Session,
         limit: int = 10,
         skip: int = 0,
-        year: Optional[int] = None,
-        genre_id: Optional[int] = None,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+        year: int | None = None,
+        genre_id: int | None = None,
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Get top rated movies for the current year.
 
@@ -393,17 +404,17 @@ class MovieQuery:
         title_search: str,
         skip: int = 0,
         limit: int = 20,
-        genre_id: Optional[int] = None,
-        actor_tmdb_id: Optional[int] = None,
+        genre_id: int | None = None,
+        actor_tmdb_id: int | None = None,
         sort_by: str = "title",
         sort_desc: bool = False,
-        imdb_rating: Optional[float] = None,
-        rotten_tomatoes_rating: Optional[int] = None,
-        metacritic_rating: Optional[int] = None,
-        year: Optional[int] = None,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+        imdb_rating: float | None = None,
+        rotten_tomatoes_rating: int | None = None,
+        metacritic_rating: int | None = None,
+        year: int | None = None,
+        start_year: int | None = None,
+        end_year: int | None = None,
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Search for movies by title with additional filtering options.
 
@@ -457,7 +468,9 @@ class MovieQuery:
         if sort_by not in valid_sort_fields:
             raise ValidationError(
                 message="Invalid sort field",
-                field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
+                field_errors={
+                    "sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]
+                },
             )
 
         ***REMOVED*** Use the search function from movie_listings

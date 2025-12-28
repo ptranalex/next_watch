@@ -9,14 +9,14 @@ import asyncio
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import redis
+from config.logging import get_logger
 from redis.exceptions import RedisError
-from sqlmodel import Session, text
+from sqlmodel import text
 
 from backend_api.config.app import settings
-from config.logging import get_logger
 from backend_api.db.database import get_db
 
 if TYPE_CHECKING:
@@ -31,9 +31,9 @@ class HealthCheckResult:
 
     is_healthy: bool
     status: str
-    response_time_ms: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    response_time_ms: float | None = None
+    details: dict[str, Any] | None = None
+    error: str | None = None
 
 
 class HealthService:
@@ -41,9 +41,9 @@ class HealthService:
 
     def __init__(self) -> None:
         """Initialize the health service."""
-        self._redis_client: Optional[redis.Redis[str]] = None
+        self._redis_client: redis.Redis[str] | None = None
 
-    async def check_all(self) -> Dict[str, HealthCheckResult]:
+    async def check_all(self) -> dict[str, HealthCheckResult]:
         """Check health of all services.
 
         Returns:
@@ -59,7 +59,7 @@ class HealthService:
         )
 
         ***REMOVED*** Handle any exceptions and build results
-        results: Dict[str, HealthCheckResult] = {}
+        results: dict[str, HealthCheckResult] = {}
 
         if isinstance(postgres_result, Exception):
             results["postgres"] = HealthCheckResult(
@@ -113,7 +113,9 @@ class HealthService:
                 if not redis_url:
                     redis_url = settings.redis_url
 
-                logger.debug(f"Connecting to Cache Redis at {settings.get_redis_url_masked()}")
+                logger.debug(
+                    f"Connecting to Cache Redis at {settings.get_redis_url_masked()}"
+                )
                 self._redis_client = redis.Redis.from_url(
                     redis_url,
                     decode_responses=True,
@@ -143,7 +145,9 @@ class HealthService:
                         "uptime_in_days": info.get("uptime_in_days", 0),
                         "keyspace_hits": info.get("keyspace_hits", 0),
                         "keyspace_misses": info.get("keyspace_misses", 0),
-                        "total_commands_processed": info.get("total_commands_processed", 0),
+                        "total_commands_processed": info.get(
+                            "total_commands_processed", 0
+                        ),
                     },
                 )
             else:
@@ -196,7 +200,9 @@ class HealthService:
 
                 ***REMOVED*** Get database size
                 db_size_result = db.execute(
-                    text("SELECT pg_size_pretty(pg_database_size(current_database())) as size")
+                    text(
+                        "SELECT pg_size_pretty(pg_database_size(current_database())) as size"
+                    )
                 ).scalar()
                 db_size = db_size_result if db_size_result else "Unknown"
 
@@ -237,7 +243,7 @@ class HealthService:
 
 
 ***REMOVED*** Global health service instance
-_health_service: Optional[HealthService] = None
+_health_service: HealthService | None = None
 
 
 def get_health_service() -> HealthService:
@@ -274,14 +280,14 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
     Args:
         registry: Health check registry to register checks with
     """
+    import time
+
+    import redis
     from fast_core.monitoring import (
-        HealthCheckDefinition,
-        HealthCheckType,
         HealthCheckCategory,
+        HealthCheckDefinition,
         HealthCheckResult,
     )
-    import time
-    import redis
     from sqlmodel import text
 
     ***REMOVED*** PostgreSQL Database - CRITICAL dependency
@@ -291,7 +297,7 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
         try:
             with next(get_db()) as db:
                 ***REMOVED*** Simple connectivity test
-                result = db.execute(text("SELECT 1")).scalar()
+                db.execute(text("SELECT 1")).scalar()
 
                 ***REMOVED*** Get version for details
                 version_result = db.execute(text("SELECT version()")).scalar()
@@ -327,7 +333,9 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
         start_time = time.time()
         try:
             redis_url = os.getenv("CACHE_REDIS_URL") or settings.redis_url
-            client = redis.Redis.from_url(redis_url, decode_responses=True, socket_timeout=3.0)
+            client = redis.Redis.from_url(
+                redis_url, decode_responses=True, socket_timeout=3.0
+            )
 
             ***REMOVED*** Ping Redis
             ping_result = client.ping()
@@ -343,7 +351,9 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
                         details={
                             "version": info.get("redis_version", "Unknown"),
                             "connected_clients": info.get("connected_clients", 0),
-                            "used_memory_human": info.get("used_memory_human", "Unknown"),
+                            "used_memory_human": info.get(
+                                "used_memory_human", "Unknown"
+                            ),
                         },
                     )
                 finally:

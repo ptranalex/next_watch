@@ -10,13 +10,12 @@ This migration adds several indexes to improve query performance for common acce
 5. Relationship indexing for genre and credits
 """
 
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import MetaData, text
-from sqlalchemy.exc import OperationalError, ProgrammingError
-from sqlalchemy.engine import Engine
+from typing import Any
 
 from config.logging import get_logger
+from sqlalchemy import MetaData, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "009_add_performance_optimization_indexes"
@@ -46,7 +45,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_user_movie_flags 
+            CREATE INDEX IF NOT EXISTS idx_user_movie_flags
             ON user_movie_interactions (user_id, watched, liked, in_watchlist)
         """
             )
@@ -57,7 +56,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_release_year 
+            CREATE INDEX IF NOT EXISTS idx_movie_release_year
             ON movie (EXTRACT(YEAR FROM release_date))
         """
             )
@@ -68,7 +67,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_ratings 
+            CREATE INDEX IF NOT EXISTS idx_movie_ratings
             ON movie (imdb_rating, rotten_tomatoes_rating, metacritic_rating)
         """
             )
@@ -80,7 +79,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_title_gin 
+            CREATE INDEX IF NOT EXISTS idx_movie_title_gin
             ON movie USING gin (title gin_trgm_ops)
         """
             )
@@ -91,7 +90,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_sort_imdb 
+            CREATE INDEX IF NOT EXISTS idx_movie_sort_imdb
             ON movie (imdb_rating DESC NULLS LAST, id)
         """
             )
@@ -99,7 +98,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_sort_release 
+            CREATE INDEX IF NOT EXISTS idx_movie_sort_release
             ON movie (release_date DESC NULLS LAST, id)
         """
             )
@@ -107,7 +106,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_sort_popularity 
+            CREATE INDEX IF NOT EXISTS idx_movie_sort_popularity
             ON movie (popularity DESC NULLS LAST, id)
         """
             )
@@ -118,7 +117,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_genre_movie 
+            CREATE INDEX IF NOT EXISTS idx_movie_genre_movie
             ON movie_genre_link (movie_id)
         """
             )
@@ -126,7 +125,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_genre_genre 
+            CREATE INDEX IF NOT EXISTS idx_movie_genre_genre
             ON movie_genre_link (genre_id)
         """
             )
@@ -137,7 +136,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_credit_tmdb_person 
+            CREATE INDEX IF NOT EXISTS idx_credit_tmdb_person
             ON credit (tmdb_person_id) WHERE department = 'Acting'
         """
             )
@@ -148,7 +147,7 @@ def upgrade(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-            CREATE INDEX IF NOT EXISTS idx_movie_tmdb_id 
+            CREATE INDEX IF NOT EXISTS idx_movie_tmdb_id
             ON movie (tmdb_id)
         """
             )
@@ -158,7 +157,9 @@ def upgrade(engine: Engine) -> None:
     with engine.begin() as conn:
         try:
             conn.execute(
-                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                text(
+                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                ),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")
@@ -202,7 +203,7 @@ def downgrade(engine: Engine) -> None:
             logger.warning(f"Could not remove migration record - {str(e)}")
 
 
-def get_revision_info() -> Dict[str, Any]:
+def get_revision_info() -> dict[str, Any]:
     """
     Get revision metadata.
 
@@ -218,7 +219,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> List[str]:
+def get_affected_tables() -> list[str]:
     """
     Get list of affected tables.
 

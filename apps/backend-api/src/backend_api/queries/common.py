@@ -2,14 +2,11 @@
 Common utilities, imports, and type definitions for query modules.
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TypeVar, Union, cast
-
-from sqlalchemy.engine import Connection
-from sqlalchemy.sql import text
-from sqlmodel import Session
+from typing import TypeVar
 
 from config.logging import get_logger
+from sqlalchemy.engine import Connection
+from sqlmodel import Session
 
 ***REMOVED*** Define a type alias for database sessions that can be either Connection or Session
 DBSession = TypeVar("DBSession", Session, Connection)

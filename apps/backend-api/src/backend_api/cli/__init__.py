@@ -20,6 +20,3 @@ app.add_typer(cache_app, name="cache")
 
 ***REMOVED*** Make apps available for importing
 __all__ = ["app", "db_app", "health_app", "cache_app"]
-
-***REMOVED*** Import commands at the end to avoid circular imports
-from backend_api.cli import commands

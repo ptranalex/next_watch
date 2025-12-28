@@ -17,13 +17,12 @@ To add a new migration:
 """
 
 import importlib
-from typing import Any, Dict, List, Optional
 
+from config.logging import get_logger
 from sqlalchemy import Engine, inspect, text
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import create_engine
 
 from backend_api.config import settings
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -43,7 +42,7 @@ MIGRATIONS = [
 ]
 
 
-def get_applied_migrations(engine: Engine) -> Dict[str, str]:
+def get_applied_migrations(engine: Engine) -> dict[str, str]:
     """Get a list of applied migrations from the database.
 
     Args:
@@ -104,7 +103,7 @@ def get_applied_migrations(engine: Engine) -> Dict[str, str]:
         return {}
 
 
-def run_migration(db_url: Optional[str] = None) -> List[str]:
+def run_migration(db_url: str | None = None) -> list[str]:
     """Run database migrations.
 
     Args:
@@ -126,8 +125,9 @@ def run_migration(db_url: Optional[str] = None) -> List[str]:
     logger.info(f"Found {len(applied_migrations)} applied migrations")
 
     ***REMOVED*** Run pending migrations
-    applied_ids = []
+    applied_ids: list[str] = []
     for migration_module in MIGRATIONS:
+        migration_start = 0.0  ***REMOVED*** Initialize before try block
         try:
             ***REMOVED*** Import migration module
             module = importlib.import_module(migration_module)
@@ -155,7 +155,9 @@ def run_migration(db_url: Optional[str] = None) -> List[str]:
 
             ***REMOVED*** Auto-record migration completion to avoid human error
             try:
-                migration_description = getattr(module, "MIGRATION_DESCRIPTION", migration_id)
+                migration_description = getattr(
+                    module, "MIGRATION_DESCRIPTION", migration_id
+                )
                 with engine.begin() as conn:
                     conn.execute(
                         text(
@@ -174,14 +176,18 @@ def run_migration(db_url: Optional[str] = None) -> List[str]:
                     f"📘 Recorded migration {migration_id} in migrations table (idempotent)"
                 )
             except Exception as record_err:
-                logger.warning(f"Could not auto-record migration {migration_id}: {record_err}")
+                logger.warning(
+                    f"Could not auto-record migration {migration_id}: {record_err}"
+                )
 
             applied_ids.append(migration_id)
-            logger.info(f"✅ Migration {migration_id} completed successfully in {time_str}")
+            logger.info(
+                f"✅ Migration {migration_id} completed successfully in {time_str}"
+            )
 
         except Exception as e:
             migration_elapsed = (
-                time.time() - migration_start if "migration_start" in locals() else 0
+                time.time() - migration_start if migration_start > 0 else 0.0
             )
             logger.error(
                 f"❌ Error applying migration {migration_module} after {migration_elapsed:.1f}s: {str(e)}"
@@ -226,7 +232,9 @@ def downgrade_single_migration(engine: Engine, migration_id: str) -> bool:
     ***REMOVED*** Remove the migration record
     try:
         with engine.begin() as conn:
-            conn.execute(text("DELETE FROM migrations WHERE id = :id"), {"id": migration_id})
+            conn.execute(
+                text("DELETE FROM migrations WHERE id = :id"), {"id": migration_id}
+            )
     except Exception as e:
         logger.error(
             f"Failed to remove migration record for {migration_id} after downgrade: {str(e)}"

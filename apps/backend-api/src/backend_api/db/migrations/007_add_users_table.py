@@ -5,13 +5,12 @@ Migration for adding the users table.
 This migration adds support for user authentication.
 """
 
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import text
-from sqlalchemy.exc import OperationalError, ProgrammingError
-from sqlalchemy.engine import Engine
+from typing import Any
 
 from config.logging import get_logger
+from sqlalchemy import text
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 ***REMOVED*** Migration identification
 MIGRATION_ID = "007_add_users_table"
@@ -51,12 +50,16 @@ def upgrade(engine: Engine) -> None:
         conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_email ON "user"(email)'))
 
         ***REMOVED*** Create index on username
-        conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username)'))
+        conn.execute(
+            text('CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username)')
+        )
 
         ***REMOVED*** Record the migration
         try:
             conn.execute(
-                text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
+                text(
+                    "INSERT INTO migrations (id, description) VALUES (:id, :description)"
+                ),
                 {"id": MIGRATION_ID, "description": MIGRATION_DESCRIPTION},
             )
             logger.info("Migration recorded in the database")
@@ -89,7 +92,7 @@ def downgrade(engine: Engine) -> None:
             logger.warning(f"Could not remove migration record - {str(e)}")
 
 
-def get_revision_info() -> Dict[str, Any]:
+def get_revision_info() -> dict[str, Any]:
     """
     Get revision metadata.
 
@@ -105,7 +108,7 @@ def get_revision_info() -> Dict[str, Any]:
     }
 
 
-def get_affected_tables() -> List[str]:
+def get_affected_tables() -> list[str]:
     """
     Get list of affected tables.
 

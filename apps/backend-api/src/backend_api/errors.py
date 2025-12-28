@@ -5,7 +5,7 @@ This module defines a set of standard error types that can be raised by services
 providing a consistent error handling approach throughout the application.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from fastapi import HTTPException, status
 
@@ -13,7 +13,7 @@ from fastapi import HTTPException, status
 class ServiceError(Exception):
     """Base class for all service errors."""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         self.message = message
         self.details = details or {}
         super().__init__(message)
@@ -30,9 +30,9 @@ class ResourceNotFoundError(ServiceError):
     def __init__(
         self,
         message: str = "Resource not found",
-        resource_type: Optional[str] = None,
-        resource_id: Optional[Union[str, int]] = None,
-        details: Optional[Dict[str, Any]] = None,
+        resource_type: str | None = None,
+        resource_id: str | int | None = None,
+        details: dict[str, Any] | None = None,
     ):
         resource_details = details or {}
         if resource_type:
@@ -49,8 +49,8 @@ class ValidationError(ServiceError):
     def __init__(
         self,
         message: str = "Validation error",
-        field_errors: Optional[Dict[str, List[str]]] = None,
-        details: Optional[Dict[str, Any]] = None,
+        field_errors: dict[str, list[str]] | None = None,
+        details: dict[str, Any] | None = None,
     ):
         validation_details = details or {}
         if field_errors:
@@ -65,7 +65,7 @@ class ConflictError(ServiceError):
     def __init__(
         self,
         message: str = "Operation would result in a conflict",
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
     ):
         super().__init__(message, details)
 
@@ -76,8 +76,8 @@ class PermissionError(ServiceError):
     def __init__(
         self,
         message: str = "Permission denied",
-        required_permission: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        required_permission: str | None = None,
+        details: dict[str, Any] | None = None,
     ):
         permission_details = details or {}
         if required_permission:

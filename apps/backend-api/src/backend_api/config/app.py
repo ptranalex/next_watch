@@ -9,23 +9,26 @@ settings with backend-api specific customizations. It leverages shared patterns
 for production security overrides and configuration logging.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from config.base.config import ServiceConfig
+from config.logging import get_logger
 from config.services.auth import AuthConfigMixin
 from config.services.cache import CacheConfigMixin
 from config.services.database import DatabaseConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
-from pydantic import Field, validator
-
-from config.logging import get_logger
+from pydantic import Field, field_validator
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
 
 
 class BackendAPIConfig(
-    ServiceConfig, DatabaseConfigMixin, CacheConfigMixin, AuthConfigMixin, MonitoringConfigMixin
+    ServiceConfig,
+    DatabaseConfigMixin,
+    CacheConfigMixin,
+    AuthConfigMixin,
+    MonitoringConfigMixin,
 ):
     """Backend API service configuration using shared NextWatch config library.
 
@@ -50,11 +53,23 @@ class BackendAPIConfig(
 
     ***REMOVED*** Backend-specific settings
     backend_performance_metrics: bool = Field(
-        default=False, description="Enable backend-specific performance metrics collection"
+        default=False,
+        description="Enable backend-specific performance metrics collection",
     )
-    logs_dir: Optional[str] = Field(
+    logs_dir: str | None = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
+
+    @field_validator("logs_dir", mode="before")
+    @classmethod
+    def normalize_logs_dir(cls, v: Any) -> Any:
+        """Normalize logs_dir environment value.
+
+        Empty string should behave like unset (None) to disable file logging.
+        """
+        if v == "":
+            return None
+        return v
 
     ***REMOVED*** Database profiling settings (development only)
     enable_db_profiling: bool = Field(
@@ -112,7 +127,9 @@ class BackendAPIConfig(
 
         ***REMOVED*** Backend-specific security overrides
         if self.enable_db_profiling:
-            logger.warning("Database profiling disabled in production for security and performance")
+            logger.warning(
+                "Database profiling disabled in production for security and performance"
+            )
             object.__setattr__(self, "enable_db_profiling", False)
 
         ***REMOVED*** Note: File logging works fine in production with Docker volume mounts
@@ -127,16 +144,15 @@ class BackendAPIConfig(
         logger.info(f"DB Monitoring: {self.database_monitoring_enabled}")
         logger.info(f"Performance Metrics: {self.backend_performance_metrics}")
 
-    @validator("enable_db_profiling")
-    def validate_db_profiling(cls, v: bool, values: Dict[str, Any]) -> bool:
+    @field_validator("enable_db_profiling")
+    @classmethod
+    def validate_db_profiling(cls, v: bool) -> bool:
         """Ensure database profiling is disabled in production."""
-        environment = values.get("environment", "development")
-        if v and environment == "production":
-            logger.warning("Database profiling disabled in production for security")
-            return False
+        ***REMOVED*** Note: In Pydantic V2, we can't access other fields in field_validator
+        ***REMOVED*** Production override is handled in _apply_backend_specific_overrides instead
         return v
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment.
 
         Combines validation from all mixins plus backend-specific checks.
@@ -144,7 +160,7 @@ class BackendAPIConfig(
         Returns:
             List of validation issues, empty if valid
         """
-        issues = []
+        issues: list[str] = []
 
         ***REMOVED*** Get validation from parent classes (includes basic debug mode checks)
         issues.extend(super().validate_production_settings())
@@ -167,13 +183,13 @@ class BackendAPIConfig(
         return f"""Backend API Configuration:
   Environment: {self.environment}
   Service: {self.service_name} v{self.version}
-  
+
   HTTP Service:
     Host: {self.host}
     Port: {self.port}
     Debug: {self.debug}
-    CORS Origins: {', '.join(self.cors_origins)}
-    Allowed Hosts: {', '.join(self.allowed_hosts)}
+    CORS Origins: {", ".join(self.cors_origins)}
+    Allowed Hosts: {", ".join(self.allowed_hosts)}
 
   Database:
     URL: {self.get_database_url_masked()}
@@ -186,7 +202,7 @@ class BackendAPIConfig(
     Log Level: {self.log_level}
     Performance Metrics: {self.backend_performance_metrics}
     DB Monitoring: {self.database_monitoring_enabled}
-    Logs Directory: {self.logs_dir or 'disabled'}
+    Logs Directory: {self.logs_dir or "disabled"}
 
   Cache:
     Redis URL: {self.get_redis_url_masked()}"""

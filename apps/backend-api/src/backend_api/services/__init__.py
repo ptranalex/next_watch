@@ -12,7 +12,7 @@ from .user_interaction import UserInteractionService
 
 ***REMOVED*** Optional services
 try:
-    from .suggestion_engine import SuggestionEngine
+    from .suggestion_engine import SuggestionEngine  ***REMOVED*** noqa: F401
 
     _suggestion_engine_available = True
 except ImportError:

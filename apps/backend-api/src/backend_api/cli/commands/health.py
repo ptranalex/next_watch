@@ -1,18 +1,13 @@
 """Health check commands for the Backend API CLI."""
 
-
-from typing import Optional
-
 import httpx
 import typer
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.table import Table
-from typer import Typer
 
 from backend_api.config.app import settings
-from config.logging import configure_logging, get_logger
 
-from config.logging import get_logger
 app = typer.Typer(
     name="health",
     help="Health check commands for Backend API and dependent services.",
@@ -26,7 +21,9 @@ logger = get_logger("backend_api.cli.commands.health")
 @app.command(name="check")
 def check_health(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-    timeout: float = typer.Option(5.0, "--timeout", "-t", help="Request timeout in seconds"),
+    timeout: float = typer.Option(
+        5.0, "--timeout", "-t", help="Request timeout in seconds"
+    ),
 ) -> None:
     """Check the health of the backend API service.
 
@@ -59,7 +56,9 @@ def check_health(
 
             for service, info in data.items():
                 if isinstance(info, dict):
-                    status = "✅ Healthy" if info.get("status") == "ok" else "❌ Unhealthy"
+                    status = (
+                        "✅ Healthy" if info.get("status") == "ok" else "❌ Unhealthy"
+                    )
                     details = str(info.get("details", ""))
                     table.add_row(service, status, details)
                 else:
@@ -88,7 +87,9 @@ def check_health(
 @app.command(name="redis")
 def check_redis_health(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-    timeout: float = typer.Option(5.0, "--timeout", "-t", help="Request timeout in seconds"),
+    timeout: float = typer.Option(
+        5.0, "--timeout", "-t", help="Request timeout in seconds"
+    ),
 ) -> None:
     """Check the health of the Redis service.
 
@@ -130,8 +131,12 @@ def check_redis_health(
                 table.add_row("Mode", info.get("redis_mode", "Unknown"))
                 table.add_row("OS", info.get("os", "Unknown"))
                 table.add_row("Uptime", f"{info.get('uptime_in_days', 0)} days")
-                table.add_row("Connected clients", str(info.get("connected_clients", 0)))
-                table.add_row("Memory used", f"{info.get('used_memory_human', 'Unknown')}")
+                table.add_row(
+                    "Connected clients", str(info.get("connected_clients", 0))
+                )
+                table.add_row(
+                    "Memory used", f"{info.get('used_memory_human', 'Unknown')}"
+                )
 
                 console.print(table)
             else:
@@ -155,7 +160,9 @@ def check_redis_health(
 @app.command(name="db")
 def check_db_health(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-    timeout: float = typer.Option(5.0, "--timeout", "-t", help="Request timeout in seconds"),
+    timeout: float = typer.Option(
+        5.0, "--timeout", "-t", help="Request timeout in seconds"
+    ),
 ) -> None:
     """Check the health of the database service.
 
@@ -229,7 +236,7 @@ def check_db_health(
 
 
 ***REMOVED*** Register health commands directly with health_app
-from backend_api.cli import health_app
+from backend_api.cli import health_app  ***REMOVED*** noqa: E402
 
 ***REMOVED*** Register each command directly
 health_app.command("check")(check_health)

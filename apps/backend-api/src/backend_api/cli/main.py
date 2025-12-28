@@ -2,7 +2,6 @@
 
 import sys
 
-import typer
 from rich.traceback import install
 
 from backend_api.cli import app

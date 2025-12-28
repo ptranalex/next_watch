@@ -3,7 +3,7 @@ Movie schemas for API responses using Pydantic.
 """
 
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -13,7 +13,7 @@ class GenreInfo(BaseModel):
 
     id: int
     name: str
-    tmdb_id: Optional[int] = None
+    tmdb_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -22,21 +22,21 @@ class MovieBase(BaseModel):
     """Base movie fields shared across schemas."""
 
     title: str
-    overview: Optional[str] = None
-    release_date: Optional[date] = None
+    overview: str | None = None
+    release_date: date | None = None
 
 
 class MovieCreate(MovieBase):
     """Schema for creating a new movie."""
 
     tmdb_id: int
-    genre_ids: List[int] = []
-    imdb_id: Optional[str] = None
-    original_title: Optional[str] = None
-    language: Optional[str] = None
-    original_language: Optional[str] = None
-    poster_url: Optional[str] = None
-    backdrop_url: Optional[str] = None
+    genre_ids: list[int] = []
+    imdb_id: str | None = None
+    original_title: str | None = None
+    language: str | None = None
+    original_language: str | None = None
+    poster_url: str | None = None
+    backdrop_url: str | None = None
 
 
 class MovieResponse(BaseModel):
@@ -45,24 +45,24 @@ class MovieResponse(BaseModel):
     id: int
     tmdb_id: int
     title: str
-    overview: Optional[str] = None
-    release_date: Optional[date] = None
-    poster_url: Optional[str] = None
-    backdrop_url: Optional[str] = None
-    vote_average: Optional[float] = None
-    popularity: Optional[float] = None
-    imdb_rating: Optional[float] = None
-    imdb_id: Optional[str] = None
-    runtime: Optional[int] = None
-    director: Optional[str] = None
-    writer: Optional[str] = None
-    genres: List[Dict[str, Any]] = Field(default_factory=list)
-    metacritic_rating: Optional[int] = None
-    rotten_tomatoes_rating: Optional[int] = None
-    awards: Optional[str] = None
-    original_language: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    overview: str | None = None
+    release_date: date | None = None
+    poster_url: str | None = None
+    backdrop_url: str | None = None
+    vote_average: float | None = None
+    popularity: float | None = None
+    imdb_rating: float | None = None
+    imdb_id: str | None = None
+    runtime: int | None = None
+    director: str | None = None
+    writer: str | None = None
+    genres: list[dict[str, Any]] = Field(default_factory=list)
+    metacritic_rating: int | None = None
+    rotten_tomatoes_rating: int | None = None
+    awards: str | None = None
+    original_language: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
@@ -82,4 +82,4 @@ class MoviesListResponse(BaseModel):
     total_pages: int
     has_next: bool
     has_prev: bool
-    results: List[MovieResponse]
+    results: list[MovieResponse]

@@ -2,8 +2,8 @@
 User Movie Interactions model for tracking user engagement with movies.
 """
 
-from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
@@ -28,12 +28,14 @@ class UserMovieInteraction(SQLModel, table=True):
         updated_at: Timestamp when the interaction was last updated
     """
 
-    __tablename__ = "user_movie_interactions"
+    __tablename__ = "user_movie_interactions"  ***REMOVED*** pyright: ignore
 
     ***REMOVED*** Table constraints
-    __table_args__ = (UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),
+    )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)
     movie_id: int = Field(foreign_key="movie.id", index=True)
 
@@ -43,8 +45,8 @@ class UserMovieInteraction(SQLModel, table=True):
     in_watchlist: bool = Field(default=False)
 
     ***REMOVED*** Timestamp fields
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     ***REMOVED*** Relationships - avoid circular imports with TYPE_CHECKING
     user: "User" = Relationship(back_populates="movie_interactions")

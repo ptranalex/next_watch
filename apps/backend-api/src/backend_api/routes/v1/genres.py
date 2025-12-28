@@ -2,12 +2,11 @@
 Genre-related API routes (v1).
 """
 
-from typing import List
-
+from config.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from config.logging import get_logger
+from backend_api.core.metrics import get_backend_metrics
 
 ***REMOVED*** Import database session dependency
 from backend_api.db.database import get_db
@@ -17,7 +16,6 @@ from backend_api.db.operations import get_genre_by_id, get_genre_by_name, get_ge
 
 ***REMOVED*** Import response schemas
 from backend_api.schemas.genre_schema import GenreResponse, GenresListResponse
-from backend_api.core.metrics import get_backend_metrics
 
 
 ***REMOVED*** Define a GenreDetailResponse type for consistency
@@ -65,7 +63,9 @@ async def list_genres(db: Session = Depends(get_db)) -> GenresListResponse:
 
 
 @router.get("/{genre_id}", response_model=GenreResponse)
-async def get_genre_details(genre_id: int, db: Session = Depends(get_db)) -> GenreResponse:
+async def get_genre_details(
+    genre_id: int, db: Session = Depends(get_db)
+) -> GenreResponse:
     """
     Get detailed information for a specific genre by its ID.
     """
@@ -99,7 +99,9 @@ async def get_genre_details(genre_id: int, db: Session = Depends(get_db)) -> Gen
 
 
 @router.get("/name/{name}", response_model=GenreResponse)
-async def get_genre_by_name_route(name: str, db: Session = Depends(get_db)) -> GenreResponse:
+async def get_genre_by_name_route(
+    name: str, db: Session = Depends(get_db)
+) -> GenreResponse:
     """
     Get genre information by its name.
     """

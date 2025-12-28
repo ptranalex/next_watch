@@ -1,19 +1,16 @@
 """Cache management commands for the Backend API CLI."""
 
 import json
-
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import cast
 
 import typer
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
-from typer import Typer
 
 from backend_api.config.app import settings
-from config.logging import configure_logging, get_logger
 
-from config.logging import get_logger
 app = typer.Typer(
     name="cache",
     help="Redis cache management commands.",
@@ -26,8 +23,10 @@ logger = get_logger("backend_api.cli.commands.cache")
 
 @app.command(name="info")
 def cache_info(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed cache information"),
-    redis_url: Optional[str] = typer.Option(
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show detailed cache information"
+    ),
+    redis_url: str | None = typer.Option(
         None, "--redis-url", "-r", help="Redis URL (defaults to REDIS_URL env var)"
     ),
 ) -> None:
@@ -45,7 +44,9 @@ def cache_info(
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
-    actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
+    actual_redis_url = redis_url or getattr(
+        settings, "redis_url", "redis://localhost:6379/0"
+    )
 
     try:
         ***REMOVED*** Connect to Redis
@@ -65,7 +66,7 @@ def cache_info(
             info = redis_client.info()
 
         ***REMOVED*** Display basic info
-        console.print(f"📊 Redis Cache Information")
+        console.print("📊 Redis Cache Information")
         console.print(f"Version: {info.get('redis_version', 'Unknown')}")
         console.print(f"Mode: {info.get('redis_mode', 'Unknown')}")
         console.print(f"Memory used: {info.get('used_memory_human', 'Unknown')}")
@@ -89,15 +90,19 @@ def cache_info(
             table.add_row("Used memory", info.get("used_memory_human", "Unknown"))
             table.add_row("Peak memory", info.get("used_memory_peak_human", "Unknown"))
             table.add_row(
-                "Memory fragmentation ratio", str(info.get("mem_fragmentation_ratio", "Unknown"))
+                "Memory fragmentation ratio",
+                str(info.get("mem_fragmentation_ratio", "Unknown")),
             )
 
             ***REMOVED*** Stats
             table.add_row("Connected clients", str(info.get("connected_clients", 0)))
             table.add_row(
-                "Total connections received", str(info.get("total_connections_received", 0))
+                "Total connections received",
+                str(info.get("total_connections_received", 0)),
             )
-            table.add_row("Total commands processed", str(info.get("total_commands_processed", 0)))
+            table.add_row(
+                "Total commands processed", str(info.get("total_commands_processed", 0))
+            )
             table.add_row("Keyspace hits", str(info.get("keyspace_hits", 0)))
             table.add_row("Keyspace misses", str(info.get("keyspace_misses", 0)))
 
@@ -127,8 +132,10 @@ def cache_info(
 @app.command(name="keys")
 def list_keys(
     pattern: str = typer.Option("*", "--pattern", "-p", help="Key pattern to match"),
-    limit: int = typer.Option(50, "--limit", "-l", help="Maximum number of keys to display"),
-    redis_url: Optional[str] = typer.Option(
+    limit: int = typer.Option(
+        50, "--limit", "-l", help="Maximum number of keys to display"
+    ),
+    redis_url: str | None = typer.Option(
         None, "--redis-url", "-r", help="Redis URL (defaults to REDIS_URL env var)"
     ),
 ) -> None:
@@ -147,7 +154,9 @@ def list_keys(
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
-    actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
+    actual_redis_url = redis_url or getattr(
+        settings, "redis_url", "redis://localhost:6379/0"
+    )
 
     try:
         ***REMOVED*** Connect to Redis
@@ -164,15 +173,18 @@ def list_keys(
             redis_client = redis.from_url(cast(str, actual_redis_url))
 
             progress.add_task(
-                description=f"Scanning for keys matching pattern '{pattern}'...", total=None
+                description=f"Scanning for keys matching pattern '{pattern}'...",
+                total=None,
             )
 
             ***REMOVED*** Use SCAN to iterate through keys
             cursor = 0
-            keys: List[bytes] = []  ***REMOVED*** Redis keys are always bytes
+            keys: list[bytes] = []  ***REMOVED*** Redis keys are always bytes
 
             while len(keys) < limit:
-                cursor, batch = redis_client.scan(cursor=cursor, match=pattern, count=100)
+                cursor, batch = redis_client.scan(
+                    cursor=cursor, match=pattern, count=100
+                )
 
                 ***REMOVED*** Add keys from this batch
                 for key in batch:
@@ -240,7 +252,7 @@ def list_keys(
 def get_key(
     key: str = typer.Argument(..., help="Key to retrieve"),
     format_json: bool = typer.Option(True, "--json/--raw", help="Format JSON values"),
-    redis_url: Optional[str] = typer.Option(
+    redis_url: str | None = typer.Option(
         None, "--redis-url", "-r", help="Redis URL (defaults to REDIS_URL env var)"
     ),
 ) -> None:
@@ -259,7 +271,9 @@ def get_key(
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
-    actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
+    actual_redis_url = redis_url or getattr(
+        settings, "redis_url", "redis://localhost:6379/0"
+    )
 
     try:
         ***REMOVED*** Connect to Redis
@@ -283,24 +297,34 @@ def get_key(
             if format_json and value:
                 try:
                     ***REMOVED*** Handle both str and bytes values
-                    value_str = value.decode("utf-8") if isinstance(value, bytes) else str(value)
+                    value_str = (
+                        value.decode("utf-8")
+                        if isinstance(value, bytes)
+                        else str(value)
+                    )
 
                     json_value = json.loads(value_str)
                     console.print(f"📝 Key: {key} (string, JSON)")
                     console.print_json(json.dumps(json_value, indent=2))
                 except json.JSONDecodeError:
                     console.print(f"📝 Key: {key} (string)")
-                    console.print(value.decode("utf-8") if isinstance(value, bytes) else value)
+                    console.print(
+                        value.decode("utf-8") if isinstance(value, bytes) else value
+                    )
             else:
                 console.print(f"📝 Key: {key} (string)")
-                console.print(value.decode("utf-8") if isinstance(value, bytes) else value)
+                console.print(
+                    value.decode("utf-8") if isinstance(value, bytes) else value
+                )
 
         elif key_type_str == "list":
             list_values = redis_client.lrange(key, 0, -1)
             console.print(f"📝 Key: {key} (list, {len(list_values)} items)")
 
             for i, item in enumerate(list_values):
-                item_str = item.decode("utf-8") if isinstance(item, bytes) else str(item)
+                item_str = (
+                    item.decode("utf-8") if isinstance(item, bytes) else str(item)
+                )
                 console.print(f"{i}: {item_str}")
 
         elif key_type_str == "set":
@@ -309,7 +333,9 @@ def get_key(
             console.print(f"📝 Key: {key} (set, {len(set_values)} items)")
 
             for item in set_values:
-                item_str = item.decode("utf-8") if isinstance(item, bytes) else str(item)
+                item_str = (
+                    item.decode("utf-8") if isinstance(item, bytes) else str(item)
+                )
                 console.print(f"- {item_str}")
 
         elif key_type_str == "zset":
@@ -318,7 +344,9 @@ def get_key(
             console.print(f"📝 Key: {key} (sorted set, {len(zset_values)} items)")
 
             for item, score in zset_values:
-                item_str = item.decode("utf-8") if isinstance(item, bytes) else str(item)
+                item_str = (
+                    item.decode("utf-8") if isinstance(item, bytes) else str(item)
+                )
                 console.print(f"{score}: {item_str}")
 
         elif key_type_str == "hash":
@@ -332,8 +360,12 @@ def get_key(
 
             for field, value in hash_values.items():
                 ***REMOVED*** Convert bytes to string for both field and value
-                field_str = field.decode("utf-8") if isinstance(field, bytes) else str(field)
-                value_str = value.decode("utf-8") if isinstance(value, bytes) else str(value)
+                field_str = (
+                    field.decode("utf-8") if isinstance(field, bytes) else str(field)
+                )
+                value_str = (
+                    value.decode("utf-8") if isinstance(value, bytes) else str(value)
+                )
 
                 ***REMOVED*** Try to format JSON values
                 if format_json:
@@ -362,8 +394,10 @@ def get_key(
 @app.command(name="delete")
 def delete_key(
     key: str = typer.Argument(..., help="Key to delete"),
-    confirm: bool = typer.Option(True, "--confirm/--no-confirm", help="Confirm deletion"),
-    redis_url: Optional[str] = typer.Option(
+    confirm: bool = typer.Option(
+        True, "--confirm/--no-confirm", help="Confirm deletion"
+    ),
+    redis_url: str | None = typer.Option(
         None, "--redis-url", "-r", help="Redis URL (defaults to REDIS_URL env var)"
     ),
 ) -> None:
@@ -382,7 +416,9 @@ def delete_key(
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
-    actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
+    actual_redis_url = redis_url or getattr(
+        settings, "redis_url", "redis://localhost:6379/0"
+    )
 
     try:
         ***REMOVED*** Connect to Redis
@@ -421,8 +457,10 @@ def delete_key(
 @app.command(name="clear")
 def clear_cache(
     pattern: str = typer.Option("*", "--pattern", "-p", help="Key pattern to delete"),
-    confirm: bool = typer.Option(True, "--confirm/--no-confirm", help="Confirm deletion"),
-    redis_url: Optional[str] = typer.Option(
+    confirm: bool = typer.Option(
+        True, "--confirm/--no-confirm", help="Confirm deletion"
+    ),
+    redis_url: str | None = typer.Option(
         None, "--redis-url", "-r", help="Redis URL (defaults to REDIS_URL env var)"
     ),
 ) -> None:
@@ -441,7 +479,9 @@ def clear_cache(
     logger = get_logger(__name__)
 
     ***REMOVED*** Get Redis URL from options, environment, or default
-    actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
+    actual_redis_url = redis_url or getattr(
+        settings, "redis_url", "redis://localhost:6379/0"
+    )
 
     try:
         ***REMOVED*** Connect to Redis
@@ -450,7 +490,7 @@ def clear_cache(
 
         ***REMOVED*** Get keys matching pattern
         cursor = 0
-        keys: List[bytes] = []  ***REMOVED*** Redis keys are always bytes
+        keys: list[bytes] = []  ***REMOVED*** Redis keys are always bytes
 
         with Progress(
             SpinnerColumn(),
@@ -459,11 +499,14 @@ def clear_cache(
             transient=True,
         ) as progress:
             task = progress.add_task(
-                description=f"Scanning for keys matching pattern '{pattern}'...", total=None
+                description=f"Scanning for keys matching pattern '{pattern}'...",
+                total=None,
             )
 
             while True:
-                cursor, batch = redis_client.scan(cursor=cursor, match=pattern, count=100)
+                cursor, batch = redis_client.scan(
+                    cursor=cursor, match=pattern, count=100
+                )
                 ***REMOVED*** Explicitly cast to bytes to handle type checking
                 keys.extend([key for key in batch])
 
@@ -477,7 +520,9 @@ def clear_cache(
 
         ***REMOVED*** Confirm deletion if requested
         if confirm:
-            console.print(f"⚠️  About to delete {len(keys)} keys matching pattern '{pattern}'")
+            console.print(
+                f"⚠️  About to delete {len(keys)} keys matching pattern '{pattern}'"
+            )
             if not typer.confirm("Are you sure?"):
                 console.print("Operation cancelled.")
                 return
@@ -489,7 +534,7 @@ def clear_cache(
             TextColumn("[progress.description]{task.description}"),
             console=console,
         ) as progress:
-            task = progress.add_task(description=f"Deleting keys...", total=len(keys))
+            task = progress.add_task(description="Deleting keys...", total=len(keys))
 
             ***REMOVED*** Delete in batches of 100
             batch_size = 100
@@ -512,7 +557,7 @@ def clear_cache(
 
 
 ***REMOVED*** Register cache commands directly with cache_app
-from backend_api.cli import cache_app
+from backend_api.cli import cache_app  ***REMOVED*** noqa: E402
 
 ***REMOVED*** Register each command directly
 cache_app.command("info")(cache_info)

@@ -1,18 +1,13 @@
 """Configuration commands for the Backend API CLI."""
 
-
-from typing import Optional
-
 import typer
+from config.logging import configure_logging, get_logger
 from rich.console import Console
 from rich.table import Table
-from typer import Typer
 
-from backend_api.cli.utils import format_config_table, print_config
+from backend_api.cli.utils import print_config
 from backend_api.config.app import settings
-from config.logging import configure_logging, get_logger
 
-from config.logging import get_logger
 app = typer.Typer(
     name="config",
     help="Display and manage configuration settings.",
@@ -25,7 +20,9 @@ logger = get_logger("backend_api.cli.commands.config")
 
 @app.command(name="show")
 def show_config(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed configuration"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show detailed configuration"
+    ),
     show_secrets: bool = typer.Option(
         False, "--show-secrets", help="Show sensitive configuration values"
     ),
@@ -66,7 +63,9 @@ def show_config(
                     for sensitive in ["api_key", "password", "secret", "token"]
                 ):
                     if value:
-                        masked_value = f"{'*' * 4}{str(value)[-4:] if len(str(value)) > 4 else ''}"
+                        masked_value = (
+                            f"{'*' * 4}{str(value)[-4:] if len(str(value)) > 4 else ''}"
+                        )
                         table.add_row(attr, masked_value)
                     else:
                         table.add_row(attr, "[grey]Not set[/grey]")
@@ -76,8 +75,12 @@ def show_config(
             console.print(table)
     else:
         ***REMOVED*** Show all config, including sensitive values
-        console.print("[bold red]⚠️  WARNING: Displaying sensitive configuration values[/bold red]")
-        print_config(settings, title="Full Configuration (Including Secrets)", console=console)
+        console.print(
+            "[bold red]⚠️  WARNING: Displaying sensitive configuration values[/bold red]"
+        )
+        print_config(
+            settings, title="Full Configuration (Including Secrets)", console=console
+        )
 
     if verbose:
         logger.info("Configuration displayed")
@@ -92,7 +95,7 @@ def config(ctx: typer.Context) -> None:
 
 
 ***REMOVED*** Register config command directly with main app
-from backend_api.cli import app as main_app
+from backend_api.cli import app as main_app  ***REMOVED*** noqa: E402
 
 ***REMOVED*** Register the show command directly as "config"
 main_app.command("config")(show_config)

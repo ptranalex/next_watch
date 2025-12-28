@@ -2,24 +2,22 @@
 
 import asyncio
 import json
-
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import typer
+from config.logging import get_logger
 from rich.console import Console
 from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
-from sqlmodel import Session, create_engine, select, text
+from sqlmodel import text
 from typer import Typer
 
 from backend_api.cli.utils import display_redis_config
-from backend_api.config.app import settings
 from backend_api.db.database import get_db
 from backend_api.services.suggestion_engine import SuggestionEngine
 
-from config.logging import get_logger
 app: Typer = typer.Typer(name="redis", help="Redis data management commands.")
 console = Console()
 logger = get_logger(__name__)
@@ -27,8 +25,12 @@ logger = get_logger(__name__)
 
 @app.command(name="populate-suggestions")
 def populate_suggestions(
-    limit: int = typer.Option(1000, "--limit", "-l", help="Maximum number of movies to load"),
-    clear: bool = typer.Option(True, "--clear/--no-clear", help="Clear existing suggestions first"),
+    limit: int = typer.Option(
+        1000, "--limit", "-l", help="Maximum number of movies to load"
+    ),
+    clear: bool = typer.Option(
+        True, "--clear/--no-clear", help="Clear existing suggestions first"
+    ),
     include_words: bool = typer.Option(
         True, "--words/--no-words", help="Include individual words from titles"
     ),
@@ -41,7 +43,9 @@ def populate_suggestions(
     include_directors: bool = typer.Option(
         True, "--directors/--no-directors", help="Include directors in suggestions"
     ),
-    actor_limit: int = typer.Option(500, "--actor-limit", help="Maximum number of actors to load"),
+    actor_limit: int = typer.Option(
+        500, "--actor-limit", help="Maximum number of actors to load"
+    ),
     director_limit: int = typer.Option(
         200, "--director-limit", help="Maximum number of directors to load"
     ),
@@ -147,15 +151,20 @@ async def _populate_suggestions_async(
     ***REMOVED*** Initialize Redis suggestion engine
     console.print(f"Connecting to Redis at {redis_url}")
     suggestion_engine = SuggestionEngine(redis_url)
-    await suggestion_engine.initialize()
+    redis_client: Any | None = None
 
     try:
+        await suggestion_engine.initialize()
+
         ***REMOVED*** Initialize Redis connection with basic configuration
         import redis.asyncio
 
         redis_client = redis.asyncio.Redis.from_url(
             redis_url, decode_responses=True, encoding="utf-8"
         )
+        pipeline = redis_client.pipeline()
+        batch_size = 100
+        movie_count = 0
 
         ***REMOVED*** Clear existing data if requested
         if clear:
@@ -165,7 +174,9 @@ async def _populate_suggestions_async(
                 TaskProgressColumn(),
                 console=console,
             ) as progress:
-                task = progress.add_task("Clearing existing suggestion data...", total=1)
+                task = progress.add_task(
+                    "Clearing existing suggestion data...", total=1
+                )
                 if verbose:
                     console.print("Deleting existing suggestion data...")
 
@@ -219,10 +230,9 @@ async def _populate_suggestions_async(
                 console.print(f"Found {len(movies)} movies to process")
 
                 ***REMOVED*** Process movies
-                movie_task = progress.add_task("Processing movies...", total=len(movies))
-                pipeline = redis_client.pipeline()
-                batch_size = 100
-                movie_count = 0
+                movie_task = progress.add_task(
+                    "Processing movies...", total=len(movies)
+                )
 
                 for i, movie in enumerate(movies):
                     title = movie["title"].lower()
@@ -260,7 +270,9 @@ async def _populate_suggestions_async(
                         if main_title:
                             pipeline.zadd("suggestions", {main_title: i})
                             pipeline.set(f"suggestions:{main_title}", movie_id)
-                            pipeline.set(f"entity:movie:{main_title}", json.dumps(movie_data))
+                            pipeline.set(
+                                f"entity:movie:{main_title}", json.dumps(movie_data)
+                            )
 
                         ***REMOVED*** Also get what's inside the parentheses
                         for paren_part in re.findall(r"\((.*?)\)", title):
@@ -285,7 +297,9 @@ async def _populate_suggestions_async(
                                 prefix = word[:prefix_len]
                                 ***REMOVED*** Store prefix with score offset to prioritize full words
                                 pipeline.zadd("suggestions", {prefix: i + 100000})
-                                if not await redis_client.exists(f"suggestions:{prefix}"):
+                                if not await redis_client.exists(
+                                    f"suggestions:{prefix}"
+                                ):
                                     pipeline.set(f"suggestions:{prefix}", movie_id)
 
                     movie_count += 1
@@ -308,14 +322,18 @@ async def _populate_suggestions_async(
                     console.print("[yellow]No actors found in database.[/yellow]")
                 else:
                     console.print(f"Found {len(actors)} actors to process")
-                    actor_task = progress.add_task("Processing actors...", total=len(actors))
+                    actor_task = progress.add_task(
+                        "Processing actors...", total=len(actors)
+                    )
 
                     for i, actor in enumerate(actors):
                         name = actor["name"].lower()
                         actor_id = actor["id"]
 
                         ***REMOVED*** Add to sorted set
-                        pipeline.zadd("suggestions", {name: i + 10000})  ***REMOVED*** Offset for sorting
+                        pipeline.zadd(
+                            "suggestions", {name: i + 10000}
+                        )  ***REMOVED*** Offset for sorting
 
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", actor_id)
@@ -360,7 +378,9 @@ async def _populate_suggestions_async(
                         director_id = director["id"]
 
                         ***REMOVED*** Add to sorted set
-                        pipeline.zadd("suggestions", {name: i + 20000})  ***REMOVED*** Offset for sorting
+                        pipeline.zadd(
+                            "suggestions", {name: i + 20000}
+                        )  ***REMOVED*** Offset for sorting
 
                         ***REMOVED*** Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", director_id)
@@ -374,7 +394,9 @@ async def _populate_suggestions_async(
                             "popularity": director.get("popularity"),
                         }
 
-                        pipeline.set(f"entity:director:{name}", json.dumps(director_data))
+                        pipeline.set(
+                            f"entity:director:{name}", json.dumps(director_data)
+                        )
                         director_count += 1
 
                         ***REMOVED*** Execute pipeline in batches
@@ -394,7 +416,9 @@ async def _populate_suggestions_async(
             cursor = 0
             entity_count = 0
             while True:
-                cursor, keys = await redis_client.scan(cursor=cursor, match="entity:*", count=1000)
+                cursor, keys = await redis_client.scan(
+                    cursor=cursor, match="entity:*", count=1000
+                )
                 entity_count += len(keys)
                 if cursor == 0:
                     break
@@ -406,25 +430,28 @@ async def _populate_suggestions_async(
         duration = (end_time - start_time).total_seconds()
 
         console.print(
-            f"\n[bold green]Successfully loaded entity suggestions into Redis:[/bold green]"
+            "\n[bold green]Successfully loaded entity suggestions into Redis:[/bold green]"
         )
         console.print(f"  • Movies: {movie_count:,}")
         console.print(f"  • Actors: {actor_count:,}")
         console.print(f"  • Directors: {director_count:,}")
-        console.print(f"  • Total entities: {movie_count + actor_count + director_count:,}")
+        console.print(
+            f"  • Total entities: {movie_count + actor_count + director_count:,}"
+        )
         console.print(f"  • Entries in sorted set: {zset_count:,}")
         console.print(f"  • Entity detail records: {entity_count:,}")
         console.print(f"  • Duration: {duration:.2f} seconds")
 
     finally:
         ***REMOVED*** Close Redis connection
-        await redis_client.close()
+        if redis_client is not None:
+            await redis_client.close()
 
         ***REMOVED*** Clean up suggestion engine connection
         await suggestion_engine.shutdown()
 
 
-async def _fetch_movie_data(limit: int) -> List[Dict[str, Any]]:
+async def _fetch_movie_data(limit: int) -> list[dict[str, Any]]:
     """
     Fetch movie data from the database.
 
@@ -440,8 +467,8 @@ async def _fetch_movie_data(limit: int) -> List[Dict[str, Any]]:
         ***REMOVED*** Updated query with correct column name poster_url
         query = text(
             """
-            SELECT 
-                id, 
+            SELECT
+                id,
                 title,
                 poster_url,
                 release_date,
@@ -476,7 +503,7 @@ async def _fetch_movie_data(limit: int) -> List[Dict[str, Any]]:
         db.close()
 
 
-async def _fetch_actor_data(limit: int) -> List[Dict[str, Any]]:
+async def _fetch_actor_data(limit: int) -> list[dict[str, Any]]:
     """
     Fetch actor data from the database.
 
@@ -492,14 +519,14 @@ async def _fetch_actor_data(limit: int) -> List[Dict[str, Any]]:
         ***REMOVED*** Updated query to use the Credit table for actors
         query = text(
             """
-            SELECT 
-                c.tmdb_person_id as id, 
+            SELECT
+                c.tmdb_person_id as id,
                 c.name,
                 c.profile_path,
                 c.popularity
             FROM credit c
-            WHERE 
-                c.name IS NOT NULL 
+            WHERE
+                c.name IS NOT NULL
                 AND c.name != ''
                 AND c.department = 'Acting'
             GROUP BY c.tmdb_person_id, c.name, c.profile_path, c.popularity
@@ -527,7 +554,7 @@ async def _fetch_actor_data(limit: int) -> List[Dict[str, Any]]:
         db.close()
 
 
-async def _fetch_director_data(limit: int) -> List[Dict[str, Any]]:
+async def _fetch_director_data(limit: int) -> list[dict[str, Any]]:
     """
     Fetch director data from the database.
 
@@ -543,14 +570,14 @@ async def _fetch_director_data(limit: int) -> List[Dict[str, Any]]:
         ***REMOVED*** Updated query to use the Credit table for directors
         query = text(
             """
-            SELECT 
-                c.tmdb_person_id as id, 
+            SELECT
+                c.tmdb_person_id as id,
                 c.name,
                 c.profile_path,
                 c.popularity
             FROM credit c
-            WHERE 
-                c.name IS NOT NULL 
+            WHERE
+                c.name IS NOT NULL
                 AND c.name != ''
                 AND c.department = 'Directing'
                 AND c.job = 'Director'
@@ -579,6 +606,6 @@ async def _fetch_director_data(limit: int) -> List[Dict[str, Any]]:
 
 
 ***REMOVED*** Register with cache command group
-from backend_api.cli import cache_app
+from backend_api.cli import cache_app  ***REMOVED*** noqa: E402
 
 cache_app.add_typer(app, name="redis")
