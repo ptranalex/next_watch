@@ -8,8 +8,9 @@ This service provides comprehensive health checks for all dependencies:
 
 import asyncio
 import time
-from typing import Dict, Any, Optional, TYPE_CHECKING
 from dataclasses import dataclass
+from functools import lru_cache
+from typing import TYPE_CHECKING, Any, Optional
 
 from config.logging import get_logger
 
@@ -26,7 +27,7 @@ class HealthCheckResult:
     is_healthy: bool
     status: str
     response_time_ms: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[dict[str, Any]] = None
     error: Optional[str] = None
 
 
@@ -35,9 +36,8 @@ class HealthService:
 
     def __init__(self) -> None:
         """Initialize the health service."""
-        pass
 
-    async def check_all(self) -> Dict[str, HealthCheckResult]:
+    async def check_all(self) -> dict[str, HealthCheckResult]:
         """Check health of all services.
 
         Returns:
@@ -50,7 +50,7 @@ class HealthService:
         gather_results = await asyncio.gather(model_task, return_exceptions=True)
 
         ***REMOVED*** Handle any exceptions and build results
-        results: Dict[str, HealthCheckResult] = {}
+        results: dict[str, HealthCheckResult] = {}
 
         model_result = gather_results[0]
         if isinstance(model_result, Exception):
@@ -135,34 +135,23 @@ class HealthService:
 
     def close(self) -> None:
         """Close all client connections."""
-        pass
 
 
-***REMOVED*** Global health service instance
-_health_service: Optional[HealthService] = None
-
-
+@lru_cache(maxsize=1)
 def get_health_service() -> HealthService:
     """Get the global health service instance.
 
     Returns:
         HealthService instance
     """
-    global _health_service
-
-    if _health_service is None:
-        _health_service = HealthService()
-
-    return _health_service
+    return HealthService()
 
 
 def close_health_service() -> None:
     """Close the global health service instance."""
-    global _health_service
-
-    if _health_service is not None:
-        _health_service.close()
-        _health_service = None
+    svc = get_health_service()
+    svc.close()
+    get_health_service.cache_clear()
 
 
 ***REMOVED***
@@ -176,13 +165,13 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
     Args:
         registry: Health check registry to register checks with
     """
+    import time
+
     from fast_core.monitoring import (
-        HealthCheckDefinition,
-        HealthCheckType,
         HealthCheckCategory,
+        HealthCheckDefinition,
         HealthCheckResult,
     )
-    import time
 
     ***REMOVED*** Embedding Model - CRITICAL (core ML functionality)
     async def check_embedding_model() -> HealthCheckResult:
@@ -330,5 +319,6 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
     )
 
     logger.info(
-        "ML API health checks registered - CRITICAL: embedding_model | IMPORTANT: vector_storage | INFO: model_performance"
+        "ML API health checks registered - CRITICAL: embedding_model | IMPORTANT: vector_storage | "
+        "INFO: model_performance"
     )

@@ -10,10 +10,10 @@ from ml_api.models.embedding import (
 )
 
 __all__ = [
+    "ModelInfo",
     "MovieEmbeddingRequest",
     "MovieEmbeddingResponse",
-    "UserMovieRating",
     "UserEmbeddingRequest",
     "UserEmbeddingResponse",
-    "ModelInfo",
+    "UserMovieRating",
 ]

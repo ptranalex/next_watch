@@ -3,18 +3,25 @@
 This module provides ML-specific metrics for monitoring embedding service performance.
 """
 
-from typing import Optional, Any
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Any
 
 try:
-    from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry
-
-    PROMETHEUS_AVAILABLE = True
+    import prometheus_client
 except ImportError:
+    prometheus_client = None  ***REMOVED*** type: ignore[assignment]
     PROMETHEUS_AVAILABLE = False
+else:
+    PROMETHEUS_AVAILABLE = True
 
 from config.logging import get_logger
 
 logger = get_logger(__name__)
+
+BATCH_SIZE_SMALL_MAX = 10
+BATCH_SIZE_MEDIUM_MAX = 50
 
 
 def normalize_endpoint_for_metrics(endpoint: str) -> str:
@@ -55,64 +62,68 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
 class MLMetrics:
     """ML API metrics collector."""
 
-    def __init__(self, registry: Optional[Any] = None) -> None:
+    def __init__(self, registry: Any | None = None) -> None:
         """Initialize ML metrics.
 
         Args:
             registry: Prometheus registry (optional)
         """
-        self.registry = registry or CollectorRegistry()
-
-        if PROMETHEUS_AVAILABLE:
-            ***REMOVED*** Embedding-specific metrics
-            self.embedding_requests = Counter(
-                "ml_embedding_requests_total",
-                "Total number of embedding requests",
-                ["model", "batch_size_range"],
-                registry=self.registry,
-            )
-
-            self.embedding_duration = Histogram(
-                "ml_embedding_duration_seconds",
-                "Time spent generating embeddings",
-                ["model"],
-                registry=self.registry,
-            )
-
-            self.embedding_batch_size = Histogram(
-                "ml_embedding_batch_size",
-                "Size of embedding batches processed",
-                ["model"],
-                buckets=(1, 5, 10, 20, 50, 100, 200, 500),
-                registry=self.registry,
-            )
-
-            ***REMOVED*** Model metrics
-            self.model_load_duration = Histogram(
-                "ml_model_load_duration_seconds",
-                "Time spent loading ML models",
-                ["model"],
-                registry=self.registry,
-            )
-
-            self.model_memory_usage = Gauge(
-                "ml_model_memory_usage_bytes",
-                "Memory usage of loaded models",
-                ["model"],
-                registry=self.registry,
-            )
-
-            ***REMOVED*** Error metrics
-            self.embedding_errors = Counter(
-                "ml_embedding_errors_total",
-                "Total number of embedding errors",
-                ["model", "error_type"],
-                registry=self.registry,
-            )
-
-            logger.info("ML metrics initialized with Prometheus")
-        else:
+        if not PROMETHEUS_AVAILABLE:
             logger.warning("Prometheus client not available, metrics disabled")
+            self.registry = registry
+            return
+
+        ***REMOVED*** At this point, prometheus_client is installed and the symbols are available.
+        assert prometheus_client is not None
+        self.registry = registry or prometheus_client.CollectorRegistry()
+
+        ***REMOVED*** Embedding-specific metrics
+        self.embedding_requests = prometheus_client.Counter(
+            "ml_embedding_requests_total",
+            "Total number of embedding requests",
+            ["model", "batch_size_range"],
+            registry=self.registry,
+        )
+
+        self.embedding_duration = prometheus_client.Histogram(
+            "ml_embedding_duration_seconds",
+            "Time spent generating embeddings",
+            ["model"],
+            registry=self.registry,
+        )
+
+        self.embedding_batch_size = prometheus_client.Histogram(
+            "ml_embedding_batch_size",
+            "Size of embedding batches processed",
+            ["model"],
+            buckets=(1, 5, 10, 20, 50, 100, 200, 500),
+            registry=self.registry,
+        )
+
+        ***REMOVED*** Model metrics
+        self.model_load_duration = prometheus_client.Histogram(
+            "ml_model_load_duration_seconds",
+            "Time spent loading ML models",
+            ["model"],
+            registry=self.registry,
+        )
+
+        self.model_memory_usage = prometheus_client.Gauge(
+            "ml_model_memory_usage_bytes",
+            "Memory usage of loaded models",
+            ["model"],
+            registry=self.registry,
+        )
+
+        ***REMOVED*** Error metrics
+        self.embedding_errors = prometheus_client.Counter(
+            "ml_embedding_errors_total",
+            "Total number of embedding errors",
+            ["model", "error_type"],
+            registry=self.registry,
+        )
+
+        logger.info("ML metrics initialized with Prometheus")
 
     def record_embedding_request(self, model: str, batch_size: int) -> None:
         """Record an embedding request."""
@@ -122,9 +133,9 @@ class MLMetrics:
         ***REMOVED*** Categorize batch size
         if batch_size == 1:
             batch_range = "single"
-        elif batch_size <= 10:
+        elif batch_size <= BATCH_SIZE_SMALL_MAX:
             batch_range = "small"
-        elif batch_size <= 50:
+        elif batch_size <= BATCH_SIZE_MEDIUM_MAX:
             batch_range = "medium"
         else:
             batch_range = "large"
@@ -157,11 +168,7 @@ class MLMetrics:
             self.embedding_errors.labels(model=model, error_type=error_type).inc()
 
 
-***REMOVED*** Global metrics instance
-_ml_metrics: Optional[MLMetrics] = None
-
-
-def initialize_ml_metrics(registry: Optional[Any] = None) -> Optional[MLMetrics]:
+def initialize_ml_metrics(registry: Any | None = None) -> MLMetrics | None:
     """Initialize ML metrics.
 
     Args:
@@ -170,23 +177,26 @@ def initialize_ml_metrics(registry: Optional[Any] = None) -> Optional[MLMetrics]
     Returns:
         ML metrics instance or None if metrics not available
     """
-    global _ml_metrics
-
     if not PROMETHEUS_AVAILABLE:
         logger.warning("Prometheus client not available, ML metrics disabled")
         return None
 
-    if _ml_metrics is None:
-        _ml_metrics = MLMetrics(registry=registry)
-        logger.info("ML metrics initialized")
-
-    return _ml_metrics
+    if registry is not None:
+        return MLMetrics(registry=registry)
+    return _get_cached_ml_metrics()
 
 
-def get_ml_metrics() -> Optional[MLMetrics]:
+def get_ml_metrics() -> MLMetrics | None:
     """Get the global ML metrics instance.
 
     Returns:
         ML metrics instance or None if not initialized
     """
-    return _ml_metrics
+    return initialize_ml_metrics()
+
+
+@lru_cache(maxsize=1)
+def _get_cached_ml_metrics() -> MLMetrics:
+    metrics = MLMetrics()
+    logger.info("ML metrics initialized")
+    return metrics

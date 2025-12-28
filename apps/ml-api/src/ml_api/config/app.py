@@ -3,15 +3,22 @@
 Provides configuration for the ML API service using the simplified config library.
 """
 
-from typing import List, Optional, Dict, Any
+from __future__ import annotations
+
+from functools import lru_cache
 from pathlib import Path
-from pydantic import Field, validator
+from typing import Any
+
 from config.base.config import ServiceConfig
 from config.logging import get_logger
 from config.services.monitoring import MonitoringConfigMixin
+from pydantic import Field, validator
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
+
+MAX_BATCH_SIZE = 1000
+LARGE_BATCH_SIZE_WARNING = 100
 
 
 class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
@@ -25,7 +32,7 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
     port: int = Field(default=8000, description="Service port")
 
     ***REMOVED*** Logging configuration
-    logs_dir: Optional[str] = Field(
+    logs_dir: str | None = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
 
@@ -33,13 +40,11 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
     embedding_model: str = Field(
         default="all-MiniLM-L6-v2", description="Sentence transformer model name"
     )
-    model_cache_dir: Optional[str] = Field(
+    model_cache_dir: str | None = Field(
         default=None, description="Directory for model cache (None uses default)"
     )
     max_batch_size: int = Field(default=32, description="Maximum batch size for embeddings")
-    embeddings_db_path: Optional[str] = Field(
-        default=None, description="Path to embeddings database"
-    )
+    embeddings_db_path: str | None = Field(default=None, description="Path to embeddings database")
 
     ***REMOVED*** Feature flags
     enable_embeddings: bool = Field(default=True, description="Enable embedding features")
@@ -50,7 +55,7 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         """Pydantic configuration for environment handling."""
 
         env_prefix = ""  ***REMOVED*** Remove ML_ prefix requirement
-        env_file = [".env", ".env.local"]
+        env_file = (".env", ".env.local")
         env_file_encoding = "utf-8"
         case_sensitive = False
         extra = "ignore"
@@ -100,12 +105,12 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         """Validate batch size is reasonable."""
         if v < 1:
             raise ValueError("Batch size must be at least 1")
-        if v > 1000:
-            raise ValueError("Batch size should not exceed 1000")
+        if v > MAX_BATCH_SIZE:
+            raise ValueError(f"Batch size should not exceed {MAX_BATCH_SIZE}")
         return v
 
     @validator("model_cache_dir")
-    def validate_cache_dir(cls, v: Optional[str]) -> Optional[str]:
+    def validate_cache_dir(cls, v: str | None) -> str | None:
         """Validate cache directory format."""
         if v is None:
             return None
@@ -113,12 +118,12 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         ***REMOVED*** Ensure it's a valid path
         try:
             Path(v)
-        except Exception:
-            raise ValueError("Invalid cache directory path")
+        except Exception as e:
+            raise ValueError("Invalid cache directory path") from e
 
         return v
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment."""
         issues = []
 
@@ -132,13 +137,13 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
                 issues.append("Model caching should be enabled in production for performance")
 
             ***REMOVED*** Check for reasonable batch size
-            if self.max_batch_size > 100:
+            if self.max_batch_size > LARGE_BATCH_SIZE_WARNING:
                 issues.append("Large batch sizes (>100) may cause memory issues in production")
 
         return issues
 
     @property
-    def model_cache_path(self) -> Optional[Path]:
+    def model_cache_path(self) -> Path | None:
         """Get model cache path as Path object."""
         if self.model_cache_dir:
             return Path(self.model_cache_dir)
@@ -149,13 +154,13 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         return f"""ML API Configuration:
   Environment: {self.environment}
   Service: {self.service_name}
-  
+
   HTTP Service:
     Host: {self.host}
     Port: {self.port}
     Debug: {self.debug}
-    CORS Origins: {', '.join(self.cors_origins)}
-    Allowed Hosts: {', '.join(self.allowed_hosts)}
+    CORS Origins: {", ".join(self.cors_origins)}
+    Allowed Hosts: {", ".join(self.allowed_hosts)}
 
   ML Configuration:
     Embedding Model: {self.embedding_model}
@@ -174,20 +179,10 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
     Log Directory: {self.logs_dir}"""
 
 
-***REMOVED*** Create settings instance using environment variable discovery
-_cached_settings: Optional[MLAPIConfig] = None
-
-
+@lru_cache(maxsize=1)
 def get_ml_settings() -> MLAPIConfig:
-    """Get ML API settings instance (cached singleton).
-
-    Returns:
-        Cached MLAPIConfig instance to avoid re-initialization
-    """
-    global _cached_settings
-    if _cached_settings is None:
-        _cached_settings = MLAPIConfig()
-    return _cached_settings
+    """Get ML API settings instance (cached singleton)."""
+    return MLAPIConfig()
 
 
 ***REMOVED*** Default settings instance

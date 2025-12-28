@@ -1,5 +1,5 @@
 ***REMOVED*** Optimized ML API Dockerfile for GitHub Actions
-***REMOVED*** 
+***REMOVED***
 ***REMOVED*** Build context should be the monorepo root to access local dependencies:
 ***REMOVED*** docker build -f apps/ml-api/Dockerfile -t ml-api .
 ***REMOVED***
@@ -79,7 +79,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python-multipart>=0.0.20 \
     email-validator>=2.2.0
 
-***REMOVED*** Stage 5: Application code (changes most frequently)  
+***REMOVED*** Stage 5: Application code (changes most frequently)
 FROM app-deps AS app-build
 
 ***REMOVED*** Copy application source code (this layer changes most often)

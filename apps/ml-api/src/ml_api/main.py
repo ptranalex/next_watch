@@ -1,8 +1,5 @@
 """Main FastAPI application for the ML API."""
 
-import os
-from typing import Optional
-
 from fastapi import FastAPI
 
 ***REMOVED*** Import configuration after environment variables are loaded
@@ -14,8 +11,9 @@ from ml_api.config.app import settings
 def create_app() -> FastAPI:
     """Create FastAPI application instance using factory pattern."""
     ***REMOVED*** Configure logging for web server mode
-    from config.logging import configure_logging, get_logger
     from pathlib import Path
+
+    from config.logging import configure_logging, get_logger
 
     ***REMOVED*** Configure logging with enhanced settings
     log_dir = None

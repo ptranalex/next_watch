@@ -1,8 +1,11 @@
 """Service for generating embeddings using sentence-transformers."""
 
-from config.logging import get_logger
+from __future__ import annotations
+
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
+
+from config.logging import get_logger
 
 from ml_api.config import settings
 
@@ -24,19 +27,7 @@ else:
 class EmbeddingService:
     """Service for generating embeddings using sentence-transformers."""
 
-    _instance = None
-    _model: Optional[Any] = None
-    _model_info: Dict[str, Any] = {
-        "model_id": settings.embedding_model,
-        "dimensions": 384,  ***REMOVED*** Default for all-MiniLM-L6-v2
-        "version": "1.0.0",
-        "status": "not_loaded",
-        "health": "unknown",
-        "stats": {
-            "requests_processed": 0,
-            "average_processing_time_ms": 0,
-        },
-    }
+    _instance: ClassVar["EmbeddingService | None"] = None
 
     @classmethod
     def get_instance(cls) -> "EmbeddingService":
@@ -48,6 +39,18 @@ class EmbeddingService:
     def __init__(self) -> None:
         """Initialize the embedding service."""
         self._total_processing_time = 0.0
+        self._model: Any | None = None
+        self._model_info: dict[str, Any] = {
+            "model_id": settings.embedding_model,
+            "dimensions": 384,  ***REMOVED*** Default for all-MiniLM-L6-v2
+            "version": "1.0.0",
+            "status": "not_loaded",
+            "health": "unknown",
+            "stats": {
+                "requests_processed": 0,
+                "average_processing_time_ms": 0,
+            },
+        }
 
     def load_model(self) -> bool:
         """Load the sentence-transformer model.
@@ -64,7 +67,7 @@ class EmbeddingService:
             from sentence_transformers import SentenceTransformer
 
             logger.info(f"Loading model: {settings.embedding_model}")
-            model_kwargs: Dict[str, Any] = {}
+            model_kwargs: dict[str, Any] = {}
 
             if settings.model_cache_dir:
                 model_kwargs["cache_folder"] = str(settings.model_cache_dir)
@@ -100,11 +103,11 @@ class EmbeddingService:
             self._model_info["health"] = "error"
             return False
 
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         """Get information about the current model.
 
         Returns:
-            Dict[str, Any]: Information about the model.
+            dict[str, Any]: Information about the model.
         """
         return self._model_info
 
@@ -113,9 +116,9 @@ class EmbeddingService:
         movie_id: str,
         title: str,
         overview: str,
-        genres: Optional[List[str]] = None,
-        additional_metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        genres: list[str] | None = None,
+        additional_metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Generate an embedding for a movie.
 
         Args:
@@ -126,7 +129,7 @@ class EmbeddingService:
             additional_metadata: Additional movie metadata.
 
         Returns:
-            Dict[str, Any]: Dictionary with movie_id, embedding, model_id, and dimensions.
+            dict[str, Any]: Dictionary with movie_id, embedding, model_id, and dimensions.
         """
         ***REMOVED*** Ensure model is loaded
         if not self._model and not self.load_model():
@@ -141,6 +144,12 @@ class EmbeddingService:
 
         if genres:
             text_to_embed += f" Genres: {', '.join(genres)}"
+        if additional_metadata:
+            meta_text = " ".join(
+                f"{k}={v}" for k, v in additional_metadata.items() if v is not None
+            )
+            if meta_text:
+                text_to_embed += f" Metadata: {meta_text}"
 
         ***REMOVED*** Generate embedding
         start_time = time.time()
@@ -150,21 +159,24 @@ class EmbeddingService:
         ***REMOVED*** Update stats
         self._update_stats(processing_time)
 
-        logger.debug(f"Generated embedding for movie {movie_id} in {processing_time*1000:.2f}ms")
+        logger.debug(f"Generated embedding for movie {movie_id} in {processing_time * 1000:.2f}ms")
 
-        return {
+        result: dict[str, Any] = {
             "movie_id": movie_id,
             "embedding": embedding,
             "model_id": self._model_info["model_id"],
             "dimensions": self._model_info["dimensions"],
         }
+        if additional_metadata:
+            result["additional_metadata"] = additional_metadata
+        return result
 
     def generate_user_preference_vector(
         self,
         user_id: str,
-        liked_movies: Optional[List[Dict[str, Union[str, float]]]] = None,
-        watched_genres: Optional[Dict[str, float]] = None,
-    ) -> Dict[str, Any]:
+        liked_movies: list[dict[str, str | float]] | None = None,
+        watched_genres: dict[str, float] | None = None,
+    ) -> dict[str, Any]:
         """Generate a preference vector for a user.
 
         Args:
@@ -173,7 +185,7 @@ class EmbeddingService:
             watched_genres: Genres watched by the user with preference weights.
 
         Returns:
-            Dict[str, Any]: Dictionary with user_id, preference_vector, model_id, and dimensions.
+            dict[str, Any]: Dictionary with user_id, preference_vector, model_id, and dimensions.
         """
         ***REMOVED*** Ensure model is loaded
         if not self._model and not self.load_model():
@@ -193,11 +205,20 @@ class EmbeddingService:
         ***REMOVED*** based on the genres the user watches
 
         ***REMOVED*** This is a simplified approach - in a real system, this would be more sophisticated
+        genres_text = ""
         if watched_genres:
             genres_text = " ".join(
                 [f"{genre} " * int(weight * 10) for genre, weight in watched_genres.items()]
             )
 
+        if liked_movies:
+            liked_ids = " ".join(
+                str(m.get("movie_id", "")) for m in liked_movies if m.get("movie_id")
+            )
+            if liked_ids:
+                genres_text = f"{genres_text} LikedMovies: {liked_ids}".strip()
+
+        if genres_text:
             start_time = time.time()
             preference_vector = cast(Any, self._model).encode(genres_text).tolist()
             processing_time = time.time() - start_time
@@ -206,7 +227,7 @@ class EmbeddingService:
             self._update_stats(processing_time)
 
             logger.debug(
-                f"Generated preference vector for user {user_id} in {processing_time*1000:.2f}ms"
+                f"Generated preference vector for user {user_id} in {processing_time * 1000:.2f}ms"
             )
         else:
             ***REMOVED*** If no genre preferences, return a zero vector
@@ -223,14 +244,14 @@ class EmbeddingService:
             "dimensions": self._model_info["dimensions"],
         }
 
-    def _generate_mock_embedding(self, movie_id: str) -> Dict[str, Any]:
+    def _generate_mock_embedding(self, movie_id: str) -> dict[str, Any]:
         """Generate a mock embedding for testing or when the model is unavailable.
 
         Args:
             movie_id: Unique identifier for the movie.
 
         Returns:
-            Dict[str, Any]: Dictionary with movie_id, embedding, model_id, and dimensions.
+            dict[str, Any]: Dictionary with movie_id, embedding, model_id, and dimensions.
         """
         ***REMOVED*** Generate a zero vector with the expected dimensions
         dimensions = int(self._model_info["dimensions"])
@@ -243,14 +264,14 @@ class EmbeddingService:
             "dimensions": dimensions,
         }
 
-    def _generate_mock_user_vector(self, user_id: str) -> Dict[str, Any]:
+    def _generate_mock_user_vector(self, user_id: str) -> dict[str, Any]:
         """Generate a mock user preference vector for testing or when the model is unavailable.
 
         Args:
             user_id: Unique identifier for the user.
 
         Returns:
-            Dict[str, Any]: Dictionary with user_id, preference_vector, model_id, and dimensions.
+            dict[str, Any]: Dictionary with user_id, preference_vector, model_id, and dimensions.
         """
         ***REMOVED*** Generate a zero vector with the expected dimensions
         dimensions = int(self._model_info["dimensions"])
@@ -273,7 +294,7 @@ class EmbeddingService:
         self._total_processing_time += processing_time
 
         ***REMOVED*** Update the number of requests processed
-        stats = cast(Dict[str, Any], self._model_info["stats"])
+        stats = cast(dict[str, Any], self._model_info["stats"])
         stats["requests_processed"] += 1
 
         ***REMOVED*** Update the average processing time

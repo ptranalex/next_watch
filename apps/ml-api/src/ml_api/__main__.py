@@ -1,13 +1,12 @@
 """Main entry point for running the ML API server."""
 
-import logging
 import os
 import sys
 
 import uvicorn
+from config.logging import get_logger
 
 from ml_api.config.app import settings
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -30,7 +29,10 @@ def main() -> None:
 
         if not settings.debug:
             logger.info(
-                f"Production config: workers={workers}, timeout={timeout_keep_alive}s, backlog={backlog}"
+                "Production config: workers=%s, timeout=%ss, backlog=%s",
+                workers,
+                timeout_keep_alive,
+                backlog,
             )
 
         ***REMOVED*** Run the server with appropriate configuration

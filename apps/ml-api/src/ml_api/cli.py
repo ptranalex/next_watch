@@ -2,7 +2,7 @@
 
 import logging
 import sys
-from typing import Any, Dict, List, NoReturn, Optional, Union
+from typing import Optional
 
 import typer
 import uvicorn
@@ -63,7 +63,7 @@ def start_server(
     configure_logging(log_level, verbose)
 
     if not quiet:
-        console.print(f"[bold green]Starting ML API server[/]")
+        console.print("[bold green]Starting ML API server[/]")
         console.print(f"Host: [cyan]{host}[/]")
         console.print(f"Port: [cyan]{port}[/]")
         console.print(f"Workers: [cyan]{workers}[/]")
@@ -97,6 +97,8 @@ def show_config(
             table.add_row(key, str(value))
 
     console.print(table)
+    if verbose:
+        console.print(f"[dim]Loaded settings type: {type(settings).__name__}[/dim]")
 
 
 @config_app.command("validate")
@@ -122,7 +124,7 @@ def load_model(
 ) -> int:
     """Load the embedding model."""
     if model_name:
-        console.print(f"[yellow]Warning: Custom model selection not yet implemented[/]")
+        console.print("[yellow]Warning: Custom model selection not yet implemented[/]")
         console.print(f"Using default model: [cyan]{settings.embedding_model}[/]")
 
     console.print(f"Loading model: [cyan]{settings.embedding_model}[/]")
@@ -155,7 +157,7 @@ def model_info() -> None:
 
     console.print(table)
 
-    if "stats" in model_info and model_info["stats"]:
+    if model_info.get("stats"):
         stats_table = Table(title="Model Statistics")
 
         stats_table.add_column("Metric", style="cyan")

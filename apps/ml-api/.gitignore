@@ -379,6 +379,6 @@ assets/build/
 *.rar
 
 ***REMOVED*** Runtime files
-*.pid 
+*.pid
 
 model_cache

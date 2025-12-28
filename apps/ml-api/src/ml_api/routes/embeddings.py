@@ -1,11 +1,11 @@
 """API routes for embedding generation."""
 
-from config.logging import get_logger
-import os
 from typing import Any, Callable
 
+from config.logging import get_logger
 from fastapi import APIRouter, HTTPException
 
+from ml_api.core.metrics import get_ml_metrics
 from ml_api.models import (
     ModelInfo,
     MovieEmbeddingRequest,
@@ -14,10 +14,15 @@ from ml_api.models import (
     UserEmbeddingResponse,
 )
 from ml_api.services import embedding_service
-from ml_api.core.metrics import get_ml_metrics
 
-***REMOVED*** This will be overridden by app.py if precomputed service is available
-get_active_embedding_service: Callable[[], Any] = lambda: embedding_service
+
+def _default_active_embedding_service() -> Any:
+    """Default embedding service provider (can be overridden at runtime)."""
+    return embedding_service
+
+
+***REMOVED*** This can be overridden by app wiring if another implementation is available.
+get_active_embedding_service: Callable[[], Any] = _default_active_embedding_service
 
 logger = get_logger(__name__)
 
@@ -64,7 +69,7 @@ async def generate_movie_embedding(request: MovieEmbeddingRequest) -> MovieEmbed
         ***REMOVED*** Record embedding error
         if metrics:
             metrics.record_embedding_error("movie", "generation_failed")
-        raise HTTPException(status_code=500, detail=f"Failed to generate embedding: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate embedding: {e!s}") from e
 
 
 @router.post("/user", response_model=UserEmbeddingResponse)
@@ -72,8 +77,8 @@ async def generate_user_embedding(request: UserEmbeddingRequest) -> UserEmbeddin
     """Generate a preference vector for a user."""
     ***REMOVED*** Record metrics
     metrics = get_ml_metrics()
+    batch_size = len(request.liked_movies)
     if metrics:
-        batch_size = len(request.liked_movies)
         metrics.record_embedding_request("user", batch_size)
 
     try:
@@ -111,8 +116,8 @@ async def generate_user_embedding(request: UserEmbeddingRequest) -> UserEmbeddin
         if metrics:
             metrics.record_embedding_error("user", "generation_failed")
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate preference vector: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to generate preference vector: {e!s}"
+        ) from e
 
 
 @router.get("/info", response_model=ModelInfo)
@@ -139,4 +144,4 @@ async def get_model_info() -> ModelInfo:
         ***REMOVED*** Record embedding error
         if metrics:
             metrics.record_embedding_error("info", "info_retrieval_failed")
-        raise HTTPException(status_code=500, detail=f"Failed to get model info: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get model info: {e!s}") from e

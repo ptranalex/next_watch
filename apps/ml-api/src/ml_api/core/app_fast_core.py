@@ -4,16 +4,17 @@ This module creates a FastAPI application using the fast-core library
 with ML-specific configuration and dependencies.
 """
 
-from typing import Dict, Optional, AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator, Optional
 
-from fastapi import FastAPI
-from fast_core import create_app, AppOptions
+from config.logging import get_logger
+from fast_core import AppOptions, create_app
 from fast_core.middleware import MiddlewareConfig
+from fastapi import FastAPI
 
 from ml_api.config.app import MLAPIConfig
 from ml_api.config.fast_core_config import create_fast_core_config
-from config.logging import get_logger
+from ml_api.routes.embeddings import router as embeddings_router
 
 ***REMOVED*** Add ML meta configuration constants after imports
 ML_FEATURES = [
@@ -36,11 +37,47 @@ ML_ENDPOINTS = {
     "/ping": "Simple health ping endpoint",
 }
 
-***REMOVED*** Import ML routes
-from ml_api.routes.embeddings import router as embeddings_router
-from ml_api.routes.health import router as health_router  ***REMOVED*** Will remove this
-
 logger = get_logger(__name__)
+
+
+def _setup_health_check_system(app: FastAPI, settings: Any) -> None:
+    """Initialize the fast-core multi-endpoint health check system."""
+    from fast_core.monitoring import setup_kubernetes_health_checks
+
+    from ml_api.services.health_service import setup_ml_health_checks
+
+    registry = setup_kubernetes_health_checks(app, settings)
+    setup_ml_health_checks(registry)
+
+
+def _load_embedding_model(app: FastAPI, ml_config: MLAPIConfig) -> None:
+    """Load embedding model and attach service to app state if enabled."""
+    if not ml_config.enable_embeddings:
+        return
+
+    from ml_api.services import embedding_service
+
+    logger.info("Loading embedding model...")
+    embedding_service.load_model()
+    logger.info("Embedding model loaded successfully")
+    app.state.embedding_service = embedding_service
+
+
+def _setup_metrics(app: FastAPI) -> None:
+    """Initialize global and ML-specific metrics and attach to app state."""
+    from fast_core.monitoring.metrics import initialize_metrics
+
+    from ml_api.core.metrics import initialize_ml_metrics
+
+    initialize_metrics("ml-api")
+    logger.info("Global metrics registry initialized for service: ml-api")
+
+    metrics_instance = initialize_ml_metrics()
+    if metrics_instance:
+        logger.info("ML metrics initialized successfully")
+        app.state.metrics = metrics_instance
+    else:
+        logger.warning("ML metrics initialization returned None - metrics registry not available")
 
 
 @asynccontextmanager
@@ -60,53 +97,24 @@ async def ml_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     ***REMOVED*** Setup new multi-endpoint health checks
     try:
-        from fast_core.monitoring import setup_kubernetes_health_checks
-        from ml_api.services.health_service import setup_ml_health_checks
-
-        registry = setup_kubernetes_health_checks(app, settings)
-        setup_ml_health_checks(registry)
+        _setup_health_check_system(app, settings)
         logger.info("Multi-endpoint health check system initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
     ***REMOVED*** Initialize ML model if enabled
-    if ml_config.enable_embeddings:
-        try:
-            from ml_api.services import embedding_service
-
-            logger.info("Loading embedding model...")
-            embedding_service.load_model()
-            logger.info("Embedding model loaded successfully")
-
-            ***REMOVED*** Store service in app state for access
-            app.state.embedding_service = embedding_service
-        except Exception as e:
-            logger.error(f"Failed to load embedding model: {e}")
-            if ml_config.is_production:
-                ***REMOVED*** In production, we want to know about model loading failures
-                raise
-            else:
-                logger.warning("Continuing with mock embeddings in development")
+    try:
+        _load_embedding_model(app, ml_config)
+    except Exception as e:
+        logger.error(f"Failed to load embedding model: {e}")
+        if ml_config.is_production:
+            ***REMOVED*** In production, we want to know about model loading failures
+            raise
+        logger.warning("Continuing with mock embeddings in development")
 
     ***REMOVED*** Initialize ML-specific metrics (always enabled for observability)
     try:
-        ***REMOVED*** First initialize the global metrics registry
-        from fast_core.monitoring.metrics import initialize_metrics
-        from ml_api.core.metrics import initialize_ml_metrics
-
-        ***REMOVED*** Initialize global metrics registry with service name
-        global_registry = initialize_metrics("ml-api")
-        logger.info(f"Global metrics registry initialized for service: ml-api")
-
-        ***REMOVED*** Now initialize ML-specific metrics
-        metrics_instance = initialize_ml_metrics()
-        if metrics_instance:
-            logger.info("ML metrics initialized successfully")
-            app.state.metrics = metrics_instance
-        else:
-            logger.warning(
-                "ML metrics initialization returned None - metrics registry not available"
-            )
+        _setup_metrics(app)
     except ImportError as e:
         logger.error(f"Metrics dependencies not installed: {e}")
         logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")

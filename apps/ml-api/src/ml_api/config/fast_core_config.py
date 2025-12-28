@@ -4,10 +4,10 @@ This module provides utilities to convert ML API configuration to fast-core
 compatible configuration using the enhanced FastAPIConfig.
 """
 
-from typing import Optional
-from fast_core import FastAPIConfig
-from ml_api.config.app import MLAPIConfig
 from config.logging import get_logger
+from fast_core import FastAPIConfig
+
+from ml_api.config.app import MLAPIConfig
 
 logger = get_logger(__name__)
 

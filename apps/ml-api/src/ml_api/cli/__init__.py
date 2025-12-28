@@ -1,5 +1,5 @@
 """ML API CLI package."""
 
-from .main import main, app
+from .main import app, main
 
-__all__ = ["main", "app"]
+__all__ = ["app", "main"]
