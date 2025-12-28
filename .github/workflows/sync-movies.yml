@@ -73,7 +73,8 @@ jobs:
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
             ***REMOVED*** Pull the latest image
-            IMAGE="ghcr.io/${{ github.repository }}/data-importer:latest"
+            REPO_NAME="${GITHUB_REPOSITORY***REMOVED****/}"
+            IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-data-importer:latest"
             docker pull $IMAGE
 
             ***REMOVED*** Run the data importer

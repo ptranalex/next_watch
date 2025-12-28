@@ -61,6 +61,15 @@ jobs:
         with:
           fetch-depth: 0 ***REMOVED*** Full history for better caching
 
+      - name: Compute image repository
+        shell: bash
+        env:
+          APP_NAME: ${{ inputs.app_name }}
+        run: |
+          set -euo pipefail
+          REPO_NAME="${GITHUB_REPOSITORY***REMOVED****/}"
+          echo "IMAGE_REPO=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-${APP_NAME}" >> "$GITHUB_ENV"
+
       - name: Create cache directory
         run: |
           sudo mkdir -p /tmp/buildkit-cache/${{ inputs.app_name }}
@@ -104,7 +113,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/${{ inputs.app_name }}
+          images: ${{ env.IMAGE_REPO }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -158,10 +167,10 @@ jobs:
           ***REMOVED*** Self-hosted runner optimized caching strategy
           cache-from: |
             type=local,src=/tmp/buildkit-cache/${{ inputs.app_name }}
-            type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache
+            type=registry,ref=${{ env.IMAGE_REPO }}:cache
           cache-to: |
             type=local,dest=/tmp/buildkit-cache/${{ inputs.app_name }},mode=max
-            type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache,mode=max
+            type=registry,ref=${{ env.IMAGE_REPO }}:cache,mode=max
           ***REMOVED*** Build optimizations
           provenance: mode=max
           sbom: true
