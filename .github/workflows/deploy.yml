@@ -239,18 +239,22 @@ jobs:
             ***REMOVED*** repository owner's packages, and images are stored under that namespace.
             echo "${{ github.token }}" | docker_cmd login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-            REPO_NAME="${GITHUB_REPOSITORY***REMOVED****/}"
+            ***REMOVED*** NOTE: The following runs on the remote host via SSH, so GitHub-provided environment
+            ***REMOVED*** variables like $GITHUB_REPOSITORY are NOT available. Use GitHub Actions expressions
+            ***REMOVED*** to inject the values into this script at workflow runtime.
+            OWNER="${{ github.repository_owner }}"
+            REPO_NAME="${{ github.event.repository.name }}"
 
             ***REMOVED*** Create comprehensive .env.prod file
             echo "***REMOVED*** Docker Images" > .env.prod
-            echo "DOCKER_BACKEND_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-backend-api:latest" >> .env.prod
-            echo "DOCKER_AUTH_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-auth-api:latest" >> .env.prod
-            echo "DOCKER_BFF_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-bff-api:latest" >> .env.prod
-            echo "DOCKER_FRONTEND_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-frontend:latest" >> .env.prod
-            echo "DOCKER_IMPORTER_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-data-importer:latest" >> .env.prod
-            echo "DOCKER_RECOMMENDATION_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-recommendation-api:latest" >> .env.prod
-            echo "DOCKER_SEARCH_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-search-api:latest" >> .env.prod
-            echo "DOCKER_ML_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-ml-api:latest" >> .env.prod
+            echo "DOCKER_BACKEND_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-backend-api:latest" >> .env.prod
+            echo "DOCKER_AUTH_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-auth-api:latest" >> .env.prod
+            echo "DOCKER_BFF_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-bff-api:latest" >> .env.prod
+            echo "DOCKER_FRONTEND_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-frontend:latest" >> .env.prod
+            echo "DOCKER_IMPORTER_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-data-importer:latest" >> .env.prod
+            echo "DOCKER_RECOMMENDATION_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-recommendation-api:latest" >> .env.prod
+            echo "DOCKER_SEARCH_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-search-api:latest" >> .env.prod
+            echo "DOCKER_ML_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-ml-api:latest" >> .env.prod
 
             echo "" >> .env.prod
             echo "***REMOVED*** Database Configuration" >> .env.prod
