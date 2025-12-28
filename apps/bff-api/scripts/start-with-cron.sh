@@ -2,7 +2,7 @@
 set -e
 
 ***REMOVED*** BFF API Startup Script with Smart Cache Warming
-***REMOVED*** 
+***REMOVED***
 ***REMOVED*** Production Mode: Warms ALL available movies (no limits)
 ***REMOVED*** Development Mode: Uses debug limits for faster testing
 ***REMOVED***
@@ -10,7 +10,7 @@ set -e
 ***REMOVED*** - ENVIRONMENT: "production" or "development"
 ***REMOVED*** - ENABLE_CACHE_WARMING: "true" or "false" (default: true)
 ***REMOVED*** - TIER1_DEV_LIMIT: Max movies for Tier 1 in dev (default: 50)
-***REMOVED*** - TIER2_DEV_LIMIT: Max movies for Tier 2 in dev (default: 200)  
+***REMOVED*** - TIER2_DEV_LIMIT: Max movies for Tier 2 in dev (default: 200)
 ***REMOVED*** - TIER3_DEV_LIMIT: Max movies for Tier 3 in dev (default: 500)
 
 echo "🚀 Starting BFF API with cache warming..."
@@ -36,7 +36,7 @@ fi
 ***REMOVED*** Check if we should enable cache warming
 if [ "${ENABLE_CACHE_WARMING:-true}" = "true" ]; then
     echo "⏰ Cache warming is ENABLED"
-    
+
     ***REMOVED*** Create cron jobs based on environment
     if [ "$ENVIRONMENT" = "production" ]; then
         echo "⏰ Setting up PRODUCTION cache warming schedule - UNLIMITED warming (ALL movies)..."
@@ -49,7 +49,7 @@ if [ "${ENABLE_CACHE_WARMING:-true}" = "true" ]; then
 0 6 * * * su app -c "cd /app && python -m bff_api.cli cache warm-tier 2 --verbose >> /app/logs/tier2-warming.log 2>&1"
 0 18 * * * su app -c "cd /app && python -m bff_api.cli cache warm-tier 2 --verbose >> /app/logs/tier2-warming.log 2>&1"
 
-***REMOVED*** Tier 3: Full catalog refresh (weekly) - ALL MOVIES  
+***REMOVED*** Tier 3: Full catalog refresh (weekly) - ALL MOVIES
 0 2 * * 0 su app -c "cd /app && python -m bff_api.cli cache warm-tier 3 --verbose >> /app/logs/tier3-warming.log 2>&1"
 
 ***REMOVED*** Legacy popular warming (reduced frequency) - FALLBACK
@@ -87,11 +87,11 @@ DEV_EOF
     crontab /tmp/crontab
     echo "📋 Cache warming cron jobs installed:"
     crontab -l
-    
+
     ***REMOVED*** Start cron daemon in background
     echo "🔄 Starting cron daemon in background..."
     crond
-    
+
     echo "✅ Cache warming enabled and scheduled"
 else
     echo "⏰ Cache warming is DISABLED (set ENABLE_CACHE_WARMING=true to enable)"

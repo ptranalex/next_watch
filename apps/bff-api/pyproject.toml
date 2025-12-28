@@ -40,33 +40,33 @@ dependencies = [
     "fastapi>=0.104.0",         ***REMOVED*** API framework
     "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
     "pydantic>=2.4.2",          ***REMOVED*** Data validation
-    
+
     ***REMOVED*** HTTP client
     "httpx>=0.23.0",            ***REMOVED*** Async HTTP client
-    
+
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework
     "rich>=13.7.0",             ***REMOVED*** Terminal formatting
     "structlog>=23.2.0",        ***REMOVED*** Structured logging
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
-    
+
     ***REMOVED*** Cache
     "redis>=6.0.0",             ***REMOVED*** Redis client
     "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
-    
+
     ***REMOVED*** Auth and security
     "pyjwt>=2.8.0",             ***REMOVED*** JWT handling
-    
+
     ***REMOVED*** Date/time handling
     "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
-    
+
     ***REMOVED*** Resilience
     "tenacity>=8.2.3",          ***REMOVED*** Retry logic
-    
+
     ***REMOVED*** Form validation
     "email-validator>=2.2.0",   ***REMOVED*** Email validation
     "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
-    
+
     ***REMOVED*** System monitoring
     "psutil>=5.9.0",            ***REMOVED*** System and process monitoring
     "types-psutil>=5.9.0",      ***REMOVED*** Type stubs for psutil
@@ -80,11 +80,11 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-httpx>=0.21.3",
     "respx>=0.20.2",
-    
+
     ***REMOVED*** Code quality
     "ruff>=0.8.4",
     "pyright>=1.1.0",
-    
+
     ***REMOVED*** Local NextWatch libraries (for development)
     ***REMOVED*** "config @ file:../../libs/config",
     ***REMOVED*** "cache @ file:../../libs/cache",
@@ -206,4 +206,3 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-

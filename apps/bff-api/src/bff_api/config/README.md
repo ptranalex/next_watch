@@ -191,17 +191,17 @@ def create_bff_app(config: Optional[BFFAPIConfig] = None) -> FastAPI:
 
 ***REMOVED******REMOVED******REMOVED*** What Fast-Core Provides
 
-✅ **Middleware**: Logging, CORS, security, error handling  
-✅ **Dependencies**: Service clients, auth, configuration  
-✅ **Health Checks**: Comprehensive health monitoring  
-✅ **Exception Handlers**: Standardized error responses  
+✅ **Middleware**: Logging, CORS, security, error handling
+✅ **Dependencies**: Service clients, auth, configuration
+✅ **Health Checks**: Comprehensive health monitoring
+✅ **Exception Handlers**: Standardized error responses
 ✅ **App Factory**: Consistent application creation pattern
 
 ***REMOVED******REMOVED******REMOVED*** What BFF Still Manages
 
-✅ **BFF Config**: Service-specific configuration (`BFFAPIConfig`)  
-✅ **Route Logic**: Business logic and data aggregation  
-✅ **Cache Integration**: BFF-specific caching patterns  
+✅ **BFF Config**: Service-specific configuration (`BFFAPIConfig`)
+✅ **Route Logic**: Business logic and data aggregation
+✅ **Cache Integration**: BFF-specific caching patterns
 ✅ **Service Facades**: `BackendClient` facade for cache compatibility
 
 ***REMOVED******REMOVED******REMOVED*** Migration Benefits

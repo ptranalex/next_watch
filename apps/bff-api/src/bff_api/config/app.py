@@ -269,7 +269,7 @@ class BFFAPIConfig(
         return f"""BFF API Configuration:
   Environment: {self.environment}
   Service: {self.service_name}
-  
+
   HTTP Service:
     Host: {self.host}
     Port: {self.port}
