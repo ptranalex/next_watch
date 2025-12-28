@@ -108,7 +108,7 @@ This allows:
 
 ***REMOVED******REMOVED******REMOVED*** Docker Configuration
 
-The `docker-compose.monitoring.yml` includes:
+The `infra/compose/monitoring.yml` includes:
 
 ```yaml
 extra_hosts:
@@ -122,14 +122,14 @@ This makes `host.docker.internal` work on Linux systems (AWS/cloud).
 ***REMOVED******REMOVED******REMOVED*** Development
 
 ```bash
-docker-compose -f docker-compose.monitoring.yml up -d
+docker compose -f infra/compose/monitoring.yml up -d
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Production/AWS
 
 ```bash
-cd infra/
-./scripts/fix-metrics-aws.sh
+***REMOVED*** Deploy the monitoring stack on AWS (one-click)
+./infra/aws/deployment/deploy-monitoring-one-click.sh
 ```
 
 ***REMOVED******REMOVED*** Service Discovery
@@ -163,7 +163,7 @@ Note: All NextWatch API services now use internal port 8000 for standardization.
 ***REMOVED******REMOVED******REMOVED*** Common Issues
 
 1. **Services showing as DOWN**: Check if the service is running on the expected port
-2. **host.docker.internal not working**: Ensure `extra_hosts` is configured in docker-compose
+2. **host.docker.internal not working**: Ensure `extra_hosts` is configured in Docker Compose
 3. **No metrics**: Verify the service has `/metrics` endpoint enabled
 
 ***REMOVED******REMOVED******REMOVED*** Debug Commands

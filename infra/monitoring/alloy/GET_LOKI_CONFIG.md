@@ -142,7 +142,7 @@ Often the logs use the same credentials as metrics:
 ***REMOVED*** Try using the same values as metrics
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-37-prod-ap-southeast-1.grafana.net/loki/api/v1/push
 GRAFANA_CLOUD_LOGS_USERNAME=2603597
-GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJvIjoiMTUwMjI5NSIsIm4iOiJzdGFjay0xMzM5NjgxLWFsbG95LW5leHR3YXRjaCIsImsiOiJCYzM0Sk5rOHEyUTA4aDRKb3M4MXU5UkkiLCJtIjp7InIiOiJwcm9kLWFwLXNvdXRoZWFzdC0xIn19
+GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ...
 ```
 
 ***REMOVED******REMOVED******REMOVED*** **Option B: Check Stack Documentation**

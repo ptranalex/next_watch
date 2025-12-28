@@ -35,7 +35,7 @@ Ensure you have the following installed:
 
 ```bash
 ***REMOVED*** Copy the environment template
-cp infra/env.prod.example .env.prod
+cp infra/env/prod.example .env.prod
 
 ***REMOVED*** Edit the environment file with your values
 nano .env.prod
@@ -94,42 +94,42 @@ echo "✅ All builds completed"
 
 ```bash
 ***REMOVED*** Start all services
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d
+docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 
 ***REMOVED*** Stop all services
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod down
+docker compose -f infra/compose/prod.yml --env-file .env.prod down
 
 ***REMOVED*** View service status
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod ps
+docker compose -f infra/compose/prod.yml --env-file .env.prod ps
 
 ***REMOVED*** View logs for all services
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod logs -f
+docker compose -f infra/compose/prod.yml --env-file .env.prod logs -f
 
 ***REMOVED*** View logs for specific service
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod logs -f backend-api
+docker compose -f infra/compose/prod.yml --env-file .env.prod logs -f backend-api
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Service Management
 
 ```bash
 ***REMOVED*** Restart a specific service
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod restart backend-api
+docker compose -f infra/compose/prod.yml --env-file .env.prod restart backend-api
 
 ***REMOVED*** Scale a service (if needed)
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d --scale bff-api=2
+docker compose -f infra/compose/prod.yml --env-file .env.prod up -d --scale bff-api=2
 
 ***REMOVED*** Update a single service
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d --no-deps backend-api
+docker compose -f infra/compose/prod.yml --env-file .env.prod up -d --no-deps backend-api
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Data Import
 
 ```bash
 ***REMOVED*** Run data import (one-time)
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod --profile import up data-importer
+docker compose -f infra/compose/prod.yml --env-file .env.prod --profile import up data-importer
 
 ***REMOVED*** Run data sync (scheduled)
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod --profile sync up data-importer
+docker compose -f infra/compose/prod.yml --env-file .env.prod --profile sync up data-importer
 ```
 
 ***REMOVED******REMOVED*** 🔧 Configuration
@@ -194,13 +194,13 @@ done
 
 ```bash
 ***REMOVED*** All services
-docker-compose -f infra/docker-compose.prod.yml logs -f
+docker compose -f infra/compose/prod.yml logs -f
 
 ***REMOVED*** Specific service
-docker-compose -f infra/docker-compose.prod.yml logs -f backend-api
+docker compose -f infra/compose/prod.yml logs -f backend-api
 
 ***REMOVED*** Last 100 lines
-docker-compose -f infra/docker-compose.prod.yml logs --tail=100 bff-api
+docker compose -f infra/compose/prod.yml logs --tail=100 bff-api
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Resource Usage
@@ -210,7 +210,7 @@ docker-compose -f infra/docker-compose.prod.yml logs --tail=100 bff-api
 docker stats
 
 ***REMOVED*** View service resource limits
-docker-compose -f infra/docker-compose.prod.yml config
+docker compose -f infra/compose/prod.yml config
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Log Files
@@ -252,10 +252,10 @@ Never commit these to version control:
 
 ```bash
 ***REMOVED*** Check logs
-docker-compose -f infra/docker-compose.prod.yml logs service-name
+docker compose -f infra/compose/prod.yml logs service-name
 
 ***REMOVED*** Check health
-docker-compose -f infra/docker-compose.prod.yml ps
+docker compose -f infra/compose/prod.yml ps
 ```
 
 **Database connection issues:**
@@ -289,10 +289,10 @@ If you need to restart services, follow this order:
 
 ```bash
 ***REMOVED*** Restart in correct order
-docker-compose -f infra/docker-compose.prod.yml restart backend-api
-docker-compose -f infra/docker-compose.prod.yml restart auth-api
-docker-compose -f infra/docker-compose.prod.yml restart bff-api
-docker-compose -f infra/docker-compose.prod.yml restart frontend
+docker compose -f infra/compose/prod.yml restart backend-api
+docker compose -f infra/compose/prod.yml restart auth-api
+docker compose -f infra/compose/prod.yml restart bff-api
+docker compose -f infra/compose/prod.yml restart frontend
 ```
 
 ***REMOVED******REMOVED*** 📈 Performance Tuning
@@ -313,10 +313,10 @@ To scale services horizontally:
 
 ```bash
 ***REMOVED*** Scale BFF API to 2 instances
-docker-compose -f infra/docker-compose.prod.yml up -d --scale bff-api=2
+docker compose -f infra/compose/prod.yml up -d --scale bff-api=2
 
 ***REMOVED*** Scale with load balancer (requires additional configuration)
-docker-compose -f infra/docker-compose.prod.yml up -d --scale backend-api=3
+docker compose -f infra/compose/prod.yml up -d --scale backend-api=3
 ```
 
 ***REMOVED******REMOVED*** 🔄 Updates and Maintenance
@@ -331,7 +331,7 @@ docker build -f apps/backend-api/Dockerfile -t next-watch-backend:v2.0 .
 sed -i 's/next-watch-backend:latest/next-watch-backend:v2.0/' .env.prod
 
 ***REMOVED*** Deploy update
-docker-compose -f infra/docker-compose.prod.yml up -d --no-deps backend-api
+docker compose -f infra/compose/prod.yml up -d --no-deps backend-api
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Backup

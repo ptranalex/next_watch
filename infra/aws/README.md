@@ -116,10 +116,15 @@ deploy-monitoring-one-click.sh
 The monitoring stack uses environment files for configuration:
 
 - **`.env.monitoring.prod`**: Full production configuration (120+ variables)
-- **`.env.monitoring.simple`**: Minimal configuration (17 variables, used as fallback)
 - **`env.monitoring.prod.example`**: Template for new environments
 
-See `../MONITORING_ENV_GUIDE.md` for detailed configuration instructions.
+To get started:
+
+```bash
+cd infra
+cp env.monitoring.prod.example .env.monitoring.prod
+nano .env.monitoring.prod
+```
 
 ***REMOVED******REMOVED*** 🔍 Script Dependencies
 

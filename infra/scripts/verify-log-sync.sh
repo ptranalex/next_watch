@@ -138,4 +138,4 @@ echo ""
 echo -e "${GREEN}🎉 Verification Complete!${NC}"
 
 ***REMOVED*** Clean up
-rm -f /tmp/aws-log-verify.sh 
+rm -f /tmp/aws-log-verify.sh

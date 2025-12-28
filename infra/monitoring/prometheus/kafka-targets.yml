@@ -1,0 +1,20 @@
+***REMOVED*** Kafka JMX Metrics Targets for Prometheus
+***REMOVED*** Add this file to be included in prometheus.yml
+
+- job_name: "kafka-broker"
+  static_configs:
+    - targets:
+        - "kafka:9999"
+      labels:
+        service: "kafka"
+        component: "broker"
+        environment: "production"
+
+- job_name: "zookeeper"
+  static_configs:
+    - targets:
+        - "zookeeper:7000"
+      labels:
+        service: "kafka"
+        component: "zookeeper"
+        environment: "production"

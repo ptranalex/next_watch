@@ -1,0 +1,169 @@
+{
+  "dashboard": {
+    "title": "Kafka Overview - Next Watch",
+    "description": "Kafka cluster monitoring dashboard for Next Watch microservices",
+    "tags": ["kafka", "messaging", "events"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Kafka Broker Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job='kafka-broker'}",
+            "legendFormat": "Broker Status"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+      },
+      {
+        "id": 2,
+        "title": "Messages In Per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(kafka_server_broker_topic_metrics_messages_in_total[5m])",
+            "legendFormat": "Messages/sec"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }
+      },
+      {
+        "id": 3,
+        "title": "Bytes In Per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(kafka_server_broker_topic_metrics_bytes_in_total[5m])",
+            "legendFormat": "Bytes/sec"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }
+      },
+      {
+        "id": 4,
+        "title": "Bytes Out Per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(kafka_server_broker_topic_metrics_bytes_out_total[5m])",
+            "legendFormat": "Bytes/sec"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }
+      },
+      {
+        "id": 5,
+        "title": "Consumer Lag by Topic",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "kafka_consumer_lag_sum",
+            "legendFormat": "{{topic}} - {{consumer_group}}"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }
+      },
+      {
+        "id": 6,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(kafka_network_request_metrics_requests_total[5m])",
+            "legendFormat": "{{request}}"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 }
+      },
+      {
+        "id": 7,
+        "title": "Request Latency (P99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "kafka_network_request_metrics_request_latency_percentile{percentile='99'}",
+            "legendFormat": "{{request}} P99"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 }
+      },
+      {
+        "id": 8,
+        "title": "Active Controllers",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "kafka_controller_active_controller_count",
+            "legendFormat": "Active Controllers"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+      },
+      {
+        "id": 9,
+        "title": "Under Replicated Partitions",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "kafka_server_replica_manager_under_replicated_partitions",
+            "legendFormat": "Under Replicated"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+        "thresholds": [
+          { "value": 0, "color": "green" },
+          { "value": 1, "color": "red" }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "JVM Heap Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "jvm_memory_heap_used{job='kafka-broker'}",
+            "legendFormat": "Heap Used"
+          },
+          {
+            "expr": "jvm_memory_heap_max{job='kafka-broker'}",
+            "legendFormat": "Heap Max"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 }
+      },
+      {
+        "id": 11,
+        "title": "GC Collection Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(jvm_gc_collection_time_ms_total{job='kafka-broker'}[5m])",
+            "legendFormat": "{{gc}}"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 }
+      },
+      {
+        "id": 12,
+        "title": "Offline Partitions",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "kafka_controller_offline_partitions_count",
+            "legendFormat": "Offline Partitions"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+        "thresholds": [
+          { "value": 0, "color": "green" },
+          { "value": 1, "color": "red" }
+        ]
+      }
+    ]
+  }
+}

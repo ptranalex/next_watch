@@ -123,4 +123,4 @@ esac
 echo ""
 echo -e "${GREEN}✅ Operation completed!${NC}"
 echo ""
-echo "Run './aws-helper.sh' again to perform another action." 
+echo "Run './aws-helper.sh' again to perform another action."

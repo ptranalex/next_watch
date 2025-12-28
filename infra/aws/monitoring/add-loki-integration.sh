@@ -132,7 +132,7 @@ echo "  📊 Grafana: http://$(curl -s ifconfig.me):3001 (now with Loki datasour
 echo ""
 echo "📝 Next Steps:"
 echo "  1. Access Grafana and verify Loki datasource"
-echo "  2. Create log dashboards" 
+echo "  2. Create log dashboards"
 echo "  3. Set up log-based alerts"
 REMOTE_SCRIPT
 
@@ -152,4 +152,4 @@ echo ""
 echo "📋 Verify Loki is working:"
 echo "  1. Go to Grafana → Explore"
 echo "  2. Select 'Loki' datasource"
-echo "  3. Query: {container_name=\"backend-api\"}" 
+echo "  3. Query: {container_name=\"backend-api\"}"

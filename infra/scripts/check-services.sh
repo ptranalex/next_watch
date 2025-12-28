@@ -24,7 +24,7 @@ echo
 echo '🚀 Application Services:'
 services=(
     'Backend API:http://localhost:8000/health'
-    'BFF API:http://localhost:8001/health' 
+    'BFF API:http://localhost:8001/health'
     'Recommendation API:http://localhost:8002/health'
     'Auth API:http://localhost:8003/health'
     'ML API:http://localhost:8004/health'
@@ -35,7 +35,7 @@ services=(
 for service in "${services[@]}"; do
     name=$(echo $service | cut -d: -f1)
     url=$(echo $service | cut -d: -f2-)
-    
+
     if curl -f -s $url > /dev/null 2>&1; then
         echo "✅ $name - UP"
     else

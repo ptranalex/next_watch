@@ -50,16 +50,16 @@ The script automatically creates local configuration files:
 
 ```bash
 ***REMOVED*** View logs
-docker-compose -f docker-compose.monitoring.local.yml logs -f
+docker compose -f infra/compose/monitoring.local.yml logs -f
 
 ***REMOVED*** Restart services
-docker-compose -f docker-compose.monitoring.local.yml restart
+docker compose -f infra/compose/monitoring.local.yml restart
 
 ***REMOVED*** Stop monitoring
-docker-compose -f docker-compose.monitoring.local.yml down
+docker compose -f infra/compose/monitoring.local.yml down
 
 ***REMOVED*** Clean up (removes volumes)
-docker-compose -f docker-compose.monitoring.local.yml down -v
+docker compose -f infra/compose/monitoring.local.yml down -v
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Accessing Services

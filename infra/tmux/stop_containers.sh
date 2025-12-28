@@ -12,4 +12,4 @@ docker rm nextwatch-qdrant 2>/dev/null || echo "No Qdrant container to remove"
 
 echo "✅ NextWatch Docker containers stopped and removed"
 echo "ℹ️  Redis (Homebrew service) is still running"
-echo "   To stop Redis: brew services stop redis" 
+echo "   To stop Redis: brew services stop redis"

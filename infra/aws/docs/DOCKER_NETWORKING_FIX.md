@@ -32,7 +32,7 @@ networks:
 
 ***REMOVED******REMOVED******REMOVED*** Updated Configuration
 
-**File:** `infra/docker-compose.monitoring.simple.yml`
+**File:** `infra/compose/monitoring.yml`
 
 ```yaml
 services:
@@ -90,8 +90,8 @@ docker network ls | grep -E "(next|watch|infra)"
 
 ***REMOVED******REMOVED*** Implementation Status
 
-✅ **Fixed in:** `infra/docker-compose.monitoring.simple.yml`  
-✅ **Working in:** Production AWS deployment  
+✅ **Fixed in:** `infra/compose/monitoring.yml`
+✅ **Working in:** Production AWS deployment
 ✅ **Tested with:** 4/6 NextWatch services reporting metrics
 
 ***REMOVED******REMOVED*** Verification

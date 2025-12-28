@@ -1,0 +1,6 @@
+***REMOVED*** Local Monitoring Environment (example)
+***REMOVED*** The local monitoring deploy script can also generate this automatically:
+***REMOVED*** `infra/scripts/deploy-monitoring-local.sh`
+
+GRAFANA_ADMIN_PASSWORD=admin123
+GRAFANA_SECRET_KEY=local-secret-key

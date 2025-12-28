@@ -69,7 +69,7 @@ add_window_if_missing() {
     local window_num=$1
     local window_name=$2
     local window_cmd=$3
-    
+
     if window_exists $window_num; then
         echo -e "${GREEN}✅ Window $window_num ($window_name) exists${NC}"
         return 0
@@ -87,7 +87,7 @@ add_window_if_missing() {
 fix_missing_windows() {
     echo -e "${BLUE}🔧 Checking and fixing missing windows...${NC}"
     local windows_added=0
-    
+
     ***REMOVED*** Check all expected windows and add missing ones
     add_window_if_missing 0 "infra" "echo '🔴 Redis Infrastructure' && redis-cli ping 2>/dev/null && echo '✅ Redis responding' || echo '❌ Redis not responding'" || ((windows_added++))
     add_window_if_missing 1 "qdrant" "echo '🟠 Starting Qdrant...' && mkdir -p ${PROJECT_ROOT}/data/qdrant_storage && docker run --rm --name nextwatch-qdrant -p 6333:6333 -p 6334:6334 -v ${PROJECT_ROOT}/data/qdrant_storage:/qdrant/storage qdrant/qdrant" || ((windows_added++))
@@ -100,7 +100,7 @@ fix_missing_windows() {
     add_window_if_missing 8 "frontend" "cd ${PROJECT_ROOT}/apps/web-nextjs && echo '🎨 Starting Frontend...' && pnpm install && pnpm dev" || ((windows_added++))
     add_window_if_missing 9 "data" "cd ${PROJECT_ROOT}/apps/data-importer && echo '📊 Data Importer ready. Use: hatch run cli sync movies --help'" || ((windows_added++))
     add_window_if_missing 10 "monitoring" "cd ${PROJECT_ROOT} && echo '📈 Monitoring ready. Run ./infra/scripts/check-services.sh to check status'" || ((windows_added++))
-    
+
     if [ $windows_added -eq 0 ]; then
         echo -e "${GREEN}✅ All windows are present!${NC}"
     else
@@ -116,7 +116,7 @@ if tmux has-session -t $SESSION 2>/dev/null; then
     echo -e "  2. Kill and recreate session"
     echo -e "  3. Fix missing windows in existing session"
     read -p "Enter choice (1-3): " choice
-    
+
     case $choice in
         1)
             echo -e "${GREEN}Attaching to existing session...${NC}"
@@ -253,7 +253,7 @@ echo -e "  🟠 Qdrant (Docker):    http://localhost:6333"
 echo
 echo -e "${CYAN}📋 Application Services:${NC}"
 echo -e "  🔧 Backend API:        http://localhost:8000"
-echo -e "  🌐 BFF API:            http://localhost:8001"  
+echo -e "  🌐 BFF API:            http://localhost:8001"
 echo -e "  🤖 Recommendation API: http://localhost:8002"
 echo -e "  🔐 Auth API:           http://localhost:8003"
 echo -e "  🧠 ML API:             http://localhost:8004"
@@ -264,7 +264,7 @@ echo -e "${CYAN}📊 API Documentation:${NC}"
 echo -e "  📖 Backend API docs:   http://localhost:8000/docs"
 echo -e "  📖 BFF API docs:       http://localhost:8001/docs"
 echo -e "  📖 Recommendation:     http://localhost:8002/docs"
-echo -e "  📖 Auth API docs:      http://localhost:8003/docs" 
+echo -e "  📖 Auth API docs:      http://localhost:8003/docs"
 echo -e "  📖 ML API docs:        http://localhost:8004/docs"
 echo -e "  📖 Search API docs:    http://localhost:8005/docs"
 echo

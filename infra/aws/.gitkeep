@@ -8,7 +8,7 @@ Reorganized the `/infra/aws/` directory from a flat structure to a categorized, 
 ```
 aws/
 ├── deploy-monitoring-to-existing.sh
-├── setup-ssl-monitoring.sh  
+├── setup-ssl-monitoring.sh
 ├── deploy-monitoring-one-click.sh
 ├── check-environment.sh
 ├── fix-grafana-subpath.sh
@@ -52,4 +52,4 @@ Instead of remembering script names, users can now:
 ./aws-helper.sh
 ```
 
-This provides an interactive menu for all AWS operations. 
+This provides an interactive menu for all AWS operations.

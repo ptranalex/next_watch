@@ -5,8 +5,8 @@
 Your metrics configuration is now set up with:
 
 - **URL**: `https://prometheus-prod-37-prod-ap-southeast-1.grafana.net/api/prom/push`
-- **Username**: `2603597`
-- **Password**: `glc_eyJ...` (API key configured)
+- **Username**: `your-metrics-username`
+- **Password**: `glc_eyJ...` (API key)
 
 ***REMOVED******REMOVED*** 📝 **Logs (Loki) - NEEDED**
 
@@ -52,13 +52,13 @@ Even with just metrics configured, you can test:
 cd infra/monitoring/alloy
 
 ***REMOVED*** Test configuration
-docker-compose -f docker-compose.alloy.yml config
+docker compose -f docker-compose.alloy.yml config
 
 ***REMOVED*** Start Alloy
-docker-compose -f docker-compose.alloy.yml up -d
+docker compose -f docker-compose.alloy.yml up -d
 
 ***REMOVED*** Check logs for successful metrics connection
-docker-compose -f docker-compose.alloy.yml logs grafana-alloy
+docker compose -f docker-compose.alloy.yml logs grafana-alloy
 ```
 
 Look for messages like:
@@ -81,7 +81,7 @@ Look for messages like:
 
 ```bash
 ***REMOVED*** Test connection manually
-curl -u "2603597:glc_eyJ..." \
+curl -u "your-metrics-username:glc_eyJ..." \
   "https://prometheus-prod-37-prod-ap-southeast-1.grafana.net/api/prom/push" \
   -X POST \
   --data-raw "***REMOVED*** TYPE test_metric counter

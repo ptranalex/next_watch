@@ -50,17 +50,17 @@ Edit `.env` with your actual credentials:
 ***REMOVED*** Grafana Cloud Metrics (Prometheus)
 GRAFANA_CLOUD_METRICS_URL=https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom/push
 GRAFANA_CLOUD_METRICS_USERNAME=123456
-GRAFANA_CLOUD_METRICS_PASSWORD=glc_eyJrIjoiYWJjZGVmZ2hpamtsbW5vcHF...
+GRAFANA_CLOUD_METRICS_PASSWORD=glc_eyJ...
 
 ***REMOVED*** Grafana Cloud Logs (Loki)
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-6.grafana.net/loki/api/v1/push
 GRAFANA_CLOUD_LOGS_USERNAME=123456
-GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJrIjoieHl6MTIzNDU2Nzg5YWJjZGV...
+GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ...
 
 ***REMOVED*** Optional: Grafana Cloud Traces (Tempo) - for future use
 GRAFANA_CLOUD_TRACES_URL=https://tempo-prod-04-prod-us-east-0.grafana.net:443
 GRAFANA_CLOUD_TRACES_USERNAME=123456
-GRAFANA_CLOUD_TRACES_PASSWORD=glc_eyJrIjoicXdlcnR5dWlvcGFzZGZnaGp...
+GRAFANA_CLOUD_TRACES_PASSWORD=glc_eyJ...
 ```
 
 ***REMOVED******REMOVED******REMOVED*** **Step 4: Secure the Environment File**
@@ -86,13 +86,13 @@ For production servers, set environment variables directly:
 ***REMOVED*** On your production server
 export GRAFANA_CLOUD_METRICS_URL="https://prometheus-prod-XX-XX-X.grafana.net/api/prom/push"
 export GRAFANA_CLOUD_METRICS_USERNAME="123456"
-export GRAFANA_CLOUD_METRICS_PASSWORD="glc_eyJrIjoiYWJjZGVm..."
+export GRAFANA_CLOUD_METRICS_PASSWORD="glc_eyJ..."
 export GRAFANA_CLOUD_LOGS_URL="https://logs-prod-X.grafana.net/loki/api/v1/push"
 export GRAFANA_CLOUD_LOGS_USERNAME="123456"
-export GRAFANA_CLOUD_LOGS_PASSWORD="glc_eyJrIjoieHl6MTIz..."
+export GRAFANA_CLOUD_LOGS_PASSWORD="glc_eyJ..."
 
 ***REMOVED*** Start Alloy
-docker-compose -f docker-compose.alloy.yml up -d
+docker compose -f docker-compose.alloy.yml up -d
 ```
 
 ***REMOVED******REMOVED******REMOVED*** **Method 2: Docker Secrets (Advanced)**

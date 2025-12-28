@@ -4,7 +4,7 @@ This directory contains **two deployment methods** for Grafana Alloy observabili
 
 ***REMOVED******REMOVED*** 🏭 **Method 1: Production Integrated (Recommended)**
 
-**File**: `../../docker-compose.prod.yml`
+**File**: `../../compose/prod.yml`
 **Use Case**: Production deployments via CI/CD
 
 ```bash
@@ -14,7 +14,7 @@ This directory contains **two deployment methods** for Grafana Alloy observabili
 - Run workflow
 
 ***REMOVED*** Or deploy manually with full stack
-docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d
+docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 ```
 
 **✅ Benefits:**
@@ -34,7 +34,7 @@ docker-compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d
 ```bash
 ***REMOVED*** Standalone Alloy deployment
 cd infra/monitoring/alloy
-docker-compose -f docker-compose.alloy.yml up -d
+docker compose -f docker-compose.alloy.yml up -d
 ```
 
 **✅ Benefits:**

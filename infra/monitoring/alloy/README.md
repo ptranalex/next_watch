@@ -43,11 +43,11 @@ Fill in your `.env` file:
 ```bash
 GRAFANA_CLOUD_METRICS_URL=https://prometheus-prod-XX-XX-X.grafana.net/api/prom/push
 GRAFANA_CLOUD_METRICS_USERNAME=123456
-GRAFANA_CLOUD_METRICS_PASSWORD=glc_eyJ0eXAiOiJKV1Q...
+GRAFANA_CLOUD_METRICS_PASSWORD=glc_eyJ...
 
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-XX-XX-X.grafana.net/loki/api/v1/push
 GRAFANA_CLOUD_LOGS_USERNAME=123456
-GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ0eXAiOiJKV1Q...
+GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ...
 ```
 
 ***REMOVED******REMOVED******REMOVED*** 4. Deploy Alloy
@@ -98,16 +98,16 @@ The script will:
 
 ```bash
 ***REMOVED*** View Alloy logs
-docker-compose -f docker-compose.alloy.yml logs -f grafana-alloy
+docker compose -f docker-compose.alloy.yml logs -f grafana-alloy
 
 ***REMOVED*** Restart Alloy
-docker-compose -f docker-compose.alloy.yml restart
+docker compose -f docker-compose.alloy.yml restart
 
 ***REMOVED*** Stop Alloy
-docker-compose -f docker-compose.alloy.yml down
+docker compose -f docker-compose.alloy.yml down
 
 ***REMOVED*** Update configuration (edit config.alloy then)
-docker-compose -f docker-compose.alloy.yml restart grafana-alloy
+docker compose -f docker-compose.alloy.yml restart grafana-alloy
 ```
 
 ***REMOVED******REMOVED*** 📈 Free Tier Usage Monitoring

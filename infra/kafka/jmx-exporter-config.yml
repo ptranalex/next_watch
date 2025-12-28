@@ -1,0 +1,96 @@
+---
+***REMOVED*** JMX Exporter configuration for Kafka metrics
+***REMOVED*** Exports Kafka broker metrics to Prometheus format
+
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+whitelistObjectNames:
+  - kafka.server:type=BrokerTopicMetrics,name=*
+  - kafka.server:type=ReplicaManager,name=*
+  - kafka.server:type=ReplicaFetcherManager,name=*,clientId=*
+  - kafka.server:type=KafkaRequestHandlerPool,name=*
+  - kafka.server:type=SessionExpireListener,name=*
+  - kafka.server:type=controller-channel-metrics,*
+  - kafka.network:type=RequestMetrics,name=*,request=*
+  - kafka.network:type=Processor,name=*,networkProcessor=*
+  - kafka.network:type=RequestChannel,name=*
+  - kafka.log:type=LogFlushStats,name=*
+  - kafka.log:type=Log,name=*,topic=*,partition=*
+  - kafka.controller:type=KafkaController,name=*
+  - kafka.controller:type=ControllerStats,name=*
+  - java.lang:type=OperatingSystem
+  - java.lang:type=Memory
+  - java.lang:type=GarbageCollector,name=*
+  - java.lang:type=Threading
+
+rules:
+  ***REMOVED*** Broker Topic Metrics
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+)><>Count
+    name: kafka_server_broker_topic_metrics_$1_total
+    type: COUNTER
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+)><>OneMinuteRate
+    name: kafka_server_broker_topic_metrics_$1_rate
+    type: GAUGE
+
+  ***REMOVED*** Request Metrics
+  - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>Count
+    name: kafka_network_request_metrics_$1_total
+    labels:
+      request: $2
+    type: COUNTER
+
+  - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>(\d+)thPercentile
+    name: kafka_network_request_metrics_$1_percentile
+    labels:
+      request: $2
+      percentile: $3
+    type: GAUGE
+
+  ***REMOVED*** Replica Manager
+  - pattern: kafka.server<type=ReplicaManager, name=(.+)><>Value
+    name: kafka_server_replica_manager_$1
+    type: GAUGE
+
+  ***REMOVED*** Controller Metrics
+  - pattern: kafka.controller<type=KafkaController, name=(.+)><>Value
+    name: kafka_controller_$1
+    type: GAUGE
+
+  ***REMOVED*** Log Metrics
+  - pattern: kafka.log<type=Log, name=(.+), topic=(.+), partition=(.+)><>Value
+    name: kafka_log_$1
+    labels:
+      topic: $2
+      partition: $3
+    type: GAUGE
+
+  ***REMOVED*** JVM Metrics
+  - pattern: java.lang<type=Memory><HeapMemoryUsage>(.+)
+    name: jvm_memory_heap_$1
+    type: GAUGE
+
+  - pattern: java.lang<type=Memory><NonHeapMemoryUsage>(.+)
+    name: jvm_memory_nonheap_$1
+    type: GAUGE
+
+  - pattern: java.lang<type=GarbageCollector, name=(.+)><>CollectionCount
+    name: jvm_gc_collection_count_total
+    labels:
+      gc: $1
+    type: COUNTER
+
+  - pattern: java.lang<type=GarbageCollector, name=(.+)><>CollectionTime
+    name: jvm_gc_collection_time_ms_total
+    labels:
+      gc: $1
+    type: COUNTER
+
+  - pattern: java.lang<type=Threading><>ThreadCount
+    name: jvm_threads_count
+    type: GAUGE
+
+  - pattern: java.lang<type=OperatingSystem><>SystemLoadAverage
+    name: system_load_average
+    type: GAUGE

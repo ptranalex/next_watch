@@ -70,11 +70,11 @@ echo -e "${YELLOW}========================================${NC}"
 ***REMOVED*** Step 4: Fix Docker socket permissions for log sync
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
-    
+
     echo "🔧 Configuring Docker socket permissions for Promtail..."
     ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'sudo chmod 666 /var/run/docker.sock'
     echo -e "${GREEN}✅ Docker socket permissions configured${NC}"
-    
+
     echo "🔄 Restarting Promtail to apply changes..."
     ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'cd /opt/nextwatch-monitoring && sudo docker-compose -f docker-compose.monitoring.yml restart promtail'
     echo -e "${GREEN}✅ Promtail restarted${NC}"
@@ -88,7 +88,7 @@ echo ""
 ***REMOVED*** Load the environment variables to show final results
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
-    
+
     echo "🌐 Your NextWatch Monitoring Stack is now live:"
     echo ""
     echo "  📊 Grafana Dashboard:   https://alexsandbox.me/grafana/"
@@ -118,4 +118,4 @@ if [ -f /tmp/nextwatch-aws-env.sh ]; then
     echo "  sudo docker-compose -f docker-compose.monitoring.yml ps"
     echo ""
     echo -e "${GREEN}🎊 Happy Monitoring! Your NextWatch observability is now complete.${NC}"
-fi 
+fi

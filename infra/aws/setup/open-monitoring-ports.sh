@@ -31,7 +31,7 @@ echo "Your current IP: $CURRENT_IP"
 ***REMOVED*** Open monitoring ports in security groups
 for sg in $SECURITY_GROUPS; do
     echo -e "${YELLOW}🔒 Configuring security group: $sg${NC}"
-    
+
     ***REMOVED*** Prometheus (9090) - restrict to current IP
     echo "Opening port 9090 (Prometheus) for $CURRENT_IP..."
     aws ec2 authorize-security-group-ingress \
@@ -40,8 +40,8 @@ for sg in $SECURITY_GROUPS; do
         --port 9090 \
         --cidr "$CURRENT_IP/32" \
         --description "Prometheus monitoring access" 2>/dev/null || echo "  Port 9090 already open"
-    
-    ***REMOVED*** Grafana (3001) - restrict to current IP  
+
+    ***REMOVED*** Grafana (3001) - restrict to current IP
     echo "Opening port 3001 (Grafana) for $CURRENT_IP..."
     aws ec2 authorize-security-group-ingress \
         --group-id $sg \
@@ -49,7 +49,7 @@ for sg in $SECURITY_GROUPS; do
         --port 3001 \
         --cidr "$CURRENT_IP/32" \
         --description "Grafana dashboard access" 2>/dev/null || echo "  Port 3001 already open"
-    
+
     ***REMOVED*** AlertManager (9093) - restrict to current IP
     echo "Opening port 9093 (AlertManager) for $CURRENT_IP..."
     aws ec2 authorize-security-group-ingress \
@@ -58,7 +58,7 @@ for sg in $SECURITY_GROUPS; do
         --port 9093 \
         --cidr "$CURRENT_IP/32" \
         --description "AlertManager access" 2>/dev/null || echo "  Port 9093 already open"
-    
+
     ***REMOVED*** Node Exporter (9100) - internal only
     echo "Opening port 9100 (Node Exporter) for internal access..."
     aws ec2 authorize-security-group-ingress \
@@ -86,7 +86,7 @@ if [[ $domain_access =~ ^[Yy]$ ]]; then
     DOMAIN_IP=$(dig +short alexsandbox.me | tail -n1)
     if [ -n "$DOMAIN_IP" ]; then
         echo "Domain IP: $DOMAIN_IP"
-        
+
         for sg in $SECURITY_GROUPS; do
             ***REMOVED*** Open for domain IP
             aws ec2 authorize-security-group-ingress \
@@ -95,7 +95,7 @@ if [[ $domain_access =~ ^[Yy]$ ]]; then
                 --port 9090 \
                 --cidr "$DOMAIN_IP/32" \
                 --description "Prometheus domain access" 2>/dev/null || echo "  Domain access already configured"
-                
+
             aws ec2 authorize-security-group-ingress \
                 --group-id $sg \
                 --protocol tcp \
@@ -122,8 +122,8 @@ echo -e "${GREEN}✅ Monitoring ports configuration complete!${NC}"
 echo ""
 echo "🔓 Opened ports:"
 echo "  - 9090 (Prometheus) for $CURRENT_IP"
-echo "  - 3001 (Grafana) for $CURRENT_IP"  
+echo "  - 3001 (Grafana) for $CURRENT_IP"
 echo "  - 9093 (AlertManager) for $CURRENT_IP"
 echo "  - 9100 (Node Exporter) for internal access"
 echo ""
-echo "🚀 Next step: Run ./scripts/aws/deploy-monitoring-to-existing.sh" 
+echo "🚀 Next step: Run ./scripts/aws/deploy-monitoring-to-existing.sh"

@@ -129,7 +129,7 @@ server {
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
-        
+
         ***REMOVED*** Authentication (optional)
         ***REMOVED*** auth_basic "Monitoring";
         ***REMOVED*** auth_basic_user_file /etc/nginx/.htpasswd;
@@ -143,7 +143,7 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_set_header X-Forwarded-Host \$host;
-        
+
         ***REMOVED*** WebSocket support for Grafana
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
@@ -383,4 +383,4 @@ echo "🎯 Next Steps:"
 echo "  1. Update DNS records to point $MONITORING_DOMAIN to $PUBLIC_IP"
 echo "  2. Test SSL certificate: https://www.ssllabs.com/ssltest/"
 echo "  3. Set up basic authentication (optional)"
-echo "  4. Configure alert notification channels" 
+echo "  4. Configure alert notification channels"

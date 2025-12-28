@@ -60,7 +60,7 @@ if [ -z "$SSH_KEY_PATH" ]; then
                 break
             fi
         done
-        
+
         if [ -z "$SSH_KEY_PATH" ]; then
             echo -e "${RED}❌ SSH key not found automatically in one-click mode.${NC}"
             echo "Looked for: ~/.ssh/aws_next_watch_may_7.pem, ~/.ssh/nextwatch*.pem, ~/.ssh/*aws*.pem"
@@ -285,4 +285,4 @@ echo "  3. Set up SSL/TLS with Let's Encrypt (optional)"
 echo "  4. Configure domain-based access via reverse proxy"
 echo ""
 echo "📋 Quick Health Check:"
-echo "  ssh -i $SSH_KEY_PATH $SSH_USER@$PUBLIC_IP 'cd /opt/nextwatch-monitoring && sudo docker-compose -f docker-compose.monitoring.yml ps'" 
+echo "  ssh -i $SSH_KEY_PATH $SSH_USER@$PUBLIC_IP 'cd /opt/nextwatch-monitoring && sudo docker-compose -f docker-compose.monitoring.yml ps'"

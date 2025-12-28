@@ -51,9 +51,13 @@ if ! docker info > /dev/null 2>&1; then
 fi
 echo -e "${GREEN}✅ Docker is running${NC}"
 
-***REMOVED*** Check if Docker Compose is available
-if ! command -v docker-compose > /dev/null 2>&1; then
-    echo -e "${RED}❌ Docker Compose is not installed. Please install Docker Compose and try again.${NC}"
+***REMOVED*** Check if Docker Compose is available (prefer `docker compose`, fallback to `docker-compose`)
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    echo -e "${RED}❌ Neither 'docker compose' nor 'docker-compose' is installed. Please install Docker Compose and try again.${NC}"
     exit 1
 fi
 echo -e "${GREEN}✅ Docker Compose is available${NC}"
@@ -74,6 +78,13 @@ echo -e "${YELLOW}========================================${NC}"
 
 ***REMOVED*** Create necessary configuration files for local development
 cd "$INFRA_DIR"
+
+***REMOVED*** Use a temp compose file so we don't modify the repo (or symlink targets) in-place
+COMPOSE_SRC="$INFRA_DIR/compose/monitoring.local.yml"
+COMPOSE_TMP="$(mktemp -t nextwatch-monitoring-local.XXXXXX)"
+trap 'rm -f "$COMPOSE_TMP" "$COMPOSE_TMP.bak"' EXIT
+
+cp "$COMPOSE_SRC" "$COMPOSE_TMP"
 
 ***REMOVED*** Create local environment file if it doesn't exist
 if [ ! -f ".env.monitoring.local" ]; then
@@ -487,7 +498,7 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     echo "Creating local Prometheus configuration..."
     ***REMOVED*** Copy the main prometheus.yml and modify for local development
     cp monitoring/prometheus/prometheus.yml monitoring/prometheus/prometheus.local.yml
-    
+
     ***REMOVED*** Replace service hostnames with localhost for local development
     sed -i.bak 's/backend-api:8000/localhost:8000/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/bff-api:8000/localhost:8001/g' monitoring/prometheus/prometheus.local.yml
@@ -495,7 +506,7 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's/search-api:8000/localhost:8003/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/ml-api:8000/localhost:8004/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/recommendation-api:8000/localhost:8005/g' monitoring/prometheus/prometheus.local.yml
-    
+
     ***REMOVED*** Update health check URLs for local development
     sed -i.bak 's|http://backend-api:8000/health|http://localhost:8000/health|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://bff-api:8000/health|http://localhost:8001/health|g' monitoring/prometheus/prometheus.local.yml
@@ -503,7 +514,7 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's|http://search-api:8000/health|http://localhost:8003/health|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://ml-api:8000/health|http://localhost:8004/health|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://recommendation-api:8000/health|http://localhost:8005/health|g' monitoring/prometheus/prometheus.local.yml
-    
+
     ***REMOVED*** Update readiness check URLs
     sed -i.bak 's|http://backend-api:8000/health/ready|http://localhost:8000/health/ready|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://bff-api:8000/health/ready|http://localhost:8001/health/ready|g' monitoring/prometheus/prometheus.local.yml
@@ -511,7 +522,7 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's|http://search-api:8000/health/ready|http://localhost:8003/health/ready|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://ml-api:8000/health/ready|http://localhost:8004/health/ready|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://recommendation-api:8000/health/ready|http://localhost:8005/health/ready|g' monitoring/prometheus/prometheus.local.yml
-    
+
     ***REMOVED*** Update TCP connectivity checks
     sed -i.bak 's/backend-api:8000/localhost:8000/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/bff-api:8000/localhost:8001/g' monitoring/prometheus/prometheus.local.yml
@@ -519,19 +530,19 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's/search-api:8000/localhost:8003/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/ml-api:8000/localhost:8004/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/recommendation-api:8000/localhost:8005/g' monitoring/prometheus/prometheus.local.yml
-    
+
     ***REMOVED*** Update environment label to local
     sed -i.bak 's/production/local/g' monitoring/prometheus/prometheus.local.yml
-    
+
     ***REMOVED*** Clean up backup files
     rm -f monitoring/prometheus/prometheus.local.yml.bak
-    
+
     echo -e "${GREEN}✅ Created local Prometheus configuration${NC}"
 fi
 
 ***REMOVED*** Update the docker-compose to use local prometheus config
-sed -i.bak 's|./monitoring/prometheus/:/etc/prometheus/|./monitoring/prometheus/prometheus.local.yml:/etc/prometheus/prometheus.yml:ro|g' docker-compose.monitoring.local.yml
-rm -f docker-compose.monitoring.local.yml.bak
+sed -i.bak 's|./monitoring/prometheus/:/etc/prometheus/|./monitoring/prometheus/prometheus.local.yml:/etc/prometheus/prometheus.yml:ro|g' "$COMPOSE_TMP"
+rm -f "$COMPOSE_TMP.bak"
 
 echo ""
 echo -e "${YELLOW}========================================${NC}"
@@ -540,7 +551,7 @@ echo -e "${YELLOW}========================================${NC}"
 
 ***REMOVED*** Stop any existing monitoring services
 echo "🛑 Stopping existing monitoring services..."
-docker-compose -f docker-compose.monitoring.local.yml down --remove-orphans 2>/dev/null || true
+$DOCKER_COMPOSE_CMD -f "$COMPOSE_TMP" down --remove-orphans 2>/dev/null || true
 echo -e "${GREEN}✅ Stopped existing services${NC}"
 
 echo ""
@@ -550,7 +561,7 @@ echo -e "${YELLOW}========================================${NC}"
 
 ***REMOVED*** Deploy the monitoring stack
 echo "🚀 Starting monitoring stack..."
-docker-compose -f docker-compose.monitoring.local.yml up -d
+$DOCKER_COMPOSE_CMD -f "$COMPOSE_TMP" up -d
 
 ***REMOVED*** Wait for services to be ready
 echo "⏳ Waiting for services to start..."
@@ -565,7 +576,7 @@ attempt=0
 while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
     attempt=$((attempt + 1))
     echo "  Attempt $attempt/$max_attempts..."
-    
+
     ***REMOVED*** Check Prometheus
     if curl -s http://localhost:9090/-/healthy > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Prometheus is healthy${NC}"
@@ -574,7 +585,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         echo -e "    ${YELLOW}⏳ Prometheus is starting...${NC}"
         prometheus_ready=0
     fi
-    
+
     ***REMOVED*** Check Grafana
     if curl -s http://localhost:3001/api/health > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Grafana is healthy${NC}"
@@ -583,7 +594,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         echo -e "    ${YELLOW}⏳ Grafana is starting...${NC}"
         grafana_ready=0
     fi
-    
+
     ***REMOVED*** Check Loki
     if curl -s http://localhost:3100/ready > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Loki is healthy${NC}"
@@ -592,7 +603,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         echo -e "    ${YELLOW}⏳ Loki is starting...${NC}"
         loki_ready=0
     fi
-    
+
     ***REMOVED*** Check Tempo
     if curl -s http://localhost:3200/ready > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Tempo is healthy${NC}"
@@ -601,7 +612,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         echo -e "    ${YELLOW}⏳ Tempo is starting...${NC}"
         tempo_ready=0
     fi
-    
+
     ***REMOVED*** Check if all services are ready
     if [ $prometheus_ready -eq 1 ] && [ $grafana_ready -eq 1 ] && [ $loki_ready -eq 1 ] && [ $tempo_ready -eq 1 ]; then
         services_ready=1
@@ -659,14 +670,14 @@ echo "  🔹 ML API:             http://localhost:8004"
 echo "  🔹 Recommendation API: http://localhost:8005"
 echo ""
 echo "🔧 Management Commands:"
-echo "  📊 View logs:          docker-compose -f docker-compose.monitoring.local.yml logs -f"
-echo "  🔄 Restart services:   docker-compose -f docker-compose.monitoring.local.yml restart"
-echo "  🛑 Stop monitoring:    docker-compose -f docker-compose.monitoring.local.yml down"
-echo "  🗑️  Clean up:          docker-compose -f docker-compose.monitoring.local.yml down -v"
+echo "  📊 View logs:          $DOCKER_COMPOSE_CMD -f $COMPOSE_SRC logs -f"
+echo "  🔄 Restart services:   $DOCKER_COMPOSE_CMD -f $COMPOSE_SRC restart"
+echo "  🛑 Stop monitoring:    $DOCKER_COMPOSE_CMD -f $COMPOSE_SRC down"
+echo "  🗑️  Clean up:          $DOCKER_COMPOSE_CMD -f $COMPOSE_SRC down -v"
 echo ""
 echo "📈 Your updated Grafana charts should now support:"
 echo "  ✅ Healthy status monitoring"
 echo "  ⚠️  Degraded status monitoring"
 echo "  ❌ Unhealthy status monitoring"
 echo ""
-echo -e "${GREEN}🎊 Happy Local Monitoring! Your NextWatch observability is ready.${NC}" 
+echo -e "${GREEN}🎊 Happy Local Monitoring! Your NextWatch observability is ready.${NC}"
