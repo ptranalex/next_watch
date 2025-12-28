@@ -1,0 +1,184 @@
+***REMOVED*** Pre-commit hooks for next_watch monorepo
+***REMOVED*** Each app has isolated hooks that only run on its own files
+
+default_language_version:
+  python: python3.12
+
+repos:
+  ***REMOVED*** ============================================================================
+  ***REMOVED*** Global hygiene (fast, repo-wide)
+  ***REMOVED*** ============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=512]
+
+  ***REMOVED*** ============================================================================
+  ***REMOVED*** Global Python Linting Tools (used by all apps)
+  ***REMOVED*** ============================================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      ***REMOVED*** Backend API
+      - id: ruff
+        name: Backend API - Ruff Lint
+        args: [--fix, --config, apps/backend-api/pyproject.toml]
+        files: ^apps/backend-api/
+      - id: ruff-format
+        name: Backend API - Ruff Format
+        args: [--config, apps/backend-api/pyproject.toml]
+        files: ^apps/backend-api/
+
+      ***REMOVED*** Auth API
+      - id: ruff
+        name: Auth API - Ruff Lint
+        args: [--fix, --config, apps/auth-api/pyproject.toml]
+        files: ^apps/auth-api/
+      - id: ruff-format
+        name: Auth API - Ruff Format
+        args: [--config, apps/auth-api/pyproject.toml]
+        files: ^apps/auth-api/
+
+      ***REMOVED*** BFF API
+      - id: ruff
+        name: BFF API - Ruff Lint
+        args: [--fix, --config, apps/bff-api/pyproject.toml]
+        files: ^apps/bff-api/
+      - id: ruff-format
+        name: BFF API - Ruff Format
+        args: [--config, apps/bff-api/pyproject.toml]
+        files: ^apps/bff-api/
+
+      ***REMOVED*** Recommendation API
+      - id: ruff
+        name: Recommendation API - Ruff Lint
+        args: [--fix, --config, apps/recommendation-api/pyproject.toml]
+        files: ^apps/recommendation-api/
+      - id: ruff-format
+        name: Recommendation API - Ruff Format
+        args: [--config, apps/recommendation-api/pyproject.toml]
+        files: ^apps/recommendation-api/
+
+      ***REMOVED*** Search API
+      - id: ruff
+        name: Search API - Ruff Lint
+        args: [--fix, --config, apps/search-api/pyproject.toml]
+        files: ^apps/search-api/
+      - id: ruff-format
+        name: Search API - Ruff Format
+        args: [--config, apps/search-api/pyproject.toml]
+        files: ^apps/search-api/
+
+      ***REMOVED*** ML API
+      - id: ruff
+        name: ML API - Ruff Lint
+        args: [--fix, --config, apps/ml-api/pyproject.toml]
+        files: ^apps/ml-api/
+      - id: ruff-format
+        name: ML API - Ruff Format
+        args: [--config, apps/ml-api/pyproject.toml]
+        files: ^apps/ml-api/
+
+      ***REMOVED*** Data Importer
+      - id: ruff
+        name: Data Importer - Ruff Lint
+        args: [--fix, --config, apps/data-importer/pyproject.toml]
+        files: ^apps/data-importer/
+      - id: ruff-format
+        name: Data Importer - Ruff Format
+        args: [--config, apps/data-importer/pyproject.toml]
+        files: ^apps/data-importer/
+
+      ***REMOVED*** Shared Libraries
+      - id: ruff
+        name: Shared Libs - Ruff Lint
+        args: [--fix, --config, pyproject.toml]
+        files: ^libs/
+      - id: ruff-format
+        name: Shared Libs - Ruff Format
+        args: [--config, pyproject.toml]
+        files: ^libs/
+
+  ***REMOVED*** ============================================================================
+  ***REMOVED*** Type Checking with Pyright (run in each app's Hatch environment)
+  ***REMOVED*** ============================================================================
+  - repo: local
+    hooks:
+      - id: auth-api-pyright
+        name: Auth API - Type Check (Pyright)
+        entry: bash -c 'cd apps/auth-api && hatch run pyright -p pyrightconfig.json'
+        language: system
+        files: ^apps/auth-api/
+        types: [python]
+        pass_filenames: false
+
+      - id: backend-api-pyright
+        name: Backend API - Type Check (Pyright)
+        entry: bash -c 'cd apps/backend-api && hatch run pyright -p pyrightconfig.json'
+        language: system
+        files: ^apps/backend-api/
+        types: [python]
+        pass_filenames: false
+
+      - id: bff-api-pyright
+        name: BFF API - Type Check (Pyright)
+        entry: bash -c 'cd apps/bff-api && hatch run pyright -p pyrightconfig.json'
+        language: system
+        files: ^apps/bff-api/
+        types: [python]
+        pass_filenames: false
+
+      - id: recommendation-api-pyright
+        name: Recommendation API - Type Check (Pyright)
+        entry: bash -c 'cd apps/recommendation-api && hatch run pyright -p pyrightconfig.json'
+        language: system
+        files: ^apps/recommendation-api/
+        types: [python]
+        pass_filenames: false
+
+      - id: search-api-pyright
+        name: Search API - Type Check (Pyright)
+        entry: bash -c 'cd apps/search-api && hatch run pyright -p pyrightconfig.json'
+        language: system
+        files: ^apps/search-api/
+        types: [python]
+        pass_filenames: false
+
+      - id: ml-api-pyright
+        name: ML API - Type Check (Pyright)
+        entry: bash -c 'cd apps/ml-api && hatch run pyright -p pyrightconfig.json'
+        language: system
+        files: ^apps/ml-api/
+        types: [python]
+        pass_filenames: false
+
+      - id: data-importer-pyright
+        name: Data Importer - Type Check (Pyright)
+        entry: bash -c 'cd apps/data-importer && hatch run pyright -p pyrightconfig.json'
+        language: system
+        files: ^apps/data-importer/
+        types: [python]
+        pass_filenames: false
+
+  ***REMOVED*** ============================================================================
+  ***REMOVED*** Web Next.js - apps/web-nextjs/
+  ***REMOVED*** ============================================================================
+  - repo: local
+    hooks:
+      - id: web-nextjs-eslint
+        name: Web Next.js - ESLint (staged files)
+        entry: bash -c 'cd apps/web-nextjs && files=(); for f in "$@"; do files+=("${f***REMOVED***apps/web-nextjs/}"); done; pnpm exec eslint --fix "${files[@]}"' --
+        language: system
+        files: ^apps/web-nextjs/
+        types_or: [javascript, jsx, ts, tsx]
+      - id: web-nextjs-prettier
+        name: Web Next.js - Prettier (staged files)
+        entry: bash -c 'cd apps/web-nextjs && files=(); for f in "$@"; do files+=("${f***REMOVED***apps/web-nextjs/}"); done; pnpm exec prettier --write "${files[@]}"' --
+        language: system
+        files: ^apps/web-nextjs/
+        types_or: [javascript, jsx, ts, tsx, json, css, scss]
