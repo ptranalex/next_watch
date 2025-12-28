@@ -300,16 +300,18 @@ jobs:
               echo "ENVIRONMENT=production" >> .env.prod
             fi
 
-            ***REMOVED*** Download docker-compose.prod.yml from the correct path
+            ***REMOVED*** Download the production compose file.
+            ***REMOVED*** NOTE: `infra/docker-compose.prod.yml` is now a pointer; the real file lives at `infra/compose/prod.yml`.
+            mkdir -p compose
             curl -H "Authorization: token ${{ github.token }}" \
                  -H "Accept: application/vnd.github.v3.raw" \
-                 -o docker-compose.prod.yml \
-                 https://api.github.com/repos/${{ github.repository }}/contents/infra/docker-compose.prod.yml
+                 -o compose/prod.yml \
+                 https://api.github.com/repos/${{ github.repository }}/contents/infra/compose/prod.yml
 
             ***REMOVED*** Verify file content
-            echo "Verifying docker-compose.prod.yml content:"
-            ls -la docker-compose.prod.yml
-            head -10 docker-compose.prod.yml
+            echo "Verifying compose/prod.yml content:"
+            ls -la compose/prod.yml
+            head -10 compose/prod.yml
 
             ***REMOVED*** Download Grafana Alloy configuration if observability deployment is requested
             if [ "${{ github.event.inputs.deploy_observability || inputs.deploy_observability }}" = "true" ]; then
@@ -379,8 +381,8 @@ jobs:
               docker_cmd network prune -f || true
 
               ***REMOVED*** Pull and deploy only the specified services
-              compose_cmd -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES
-              compose_cmd -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES
+              compose_cmd -f compose/prod.yml --env-file .env.prod pull $SERVICES
+              compose_cmd -f compose/prod.yml --env-file .env.prod up -d $SERVICES
 
               ***REMOVED*** Wait for services to be healthy
               echo "⏳ Waiting for services to be healthy..."
