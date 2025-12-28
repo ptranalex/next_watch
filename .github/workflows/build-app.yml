@@ -127,10 +127,8 @@ jobs:
           ***REMOVED*** ✅ GitHub Actions optimized caching strategy
           cache-from: |
             type=gha
-            type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache
           cache-to: |
             type=gha,mode=max
-            type=registry,ref=ghcr.io/${{ github.repository }}/${{ inputs.app_name }}:cache,mode=max
           ***REMOVED*** Build optimizations
           provenance: mode=max
           sbom: true
