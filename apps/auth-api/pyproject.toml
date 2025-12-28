@@ -42,31 +42,31 @@ dependencies = [
     "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
     "pydantic>=2.4.2",          ***REMOVED*** Data validation
     "pydantic-settings>=2.0.0", ***REMOVED*** Settings management
-    
+
     ***REMOVED*** Database
     "sqlalchemy>=2.0.23",       ***REMOVED*** SQL ORM
     "sqlmodel>=0.0.8",          ***REMOVED*** SQL Model extension
     "psycopg2-binary>=2.9.10",  ***REMOVED*** PostgreSQL driver
     "alembic>=1.13.1",          ***REMOVED*** Database migrations
-    
+
     ***REMOVED*** Authentication
     "pyjwt>=2.8.0",             ***REMOVED*** JWT token handling
     "passlib[bcrypt]>=1.7.4",   ***REMOVED*** Password hashing
     "bcrypt==3.2.2",            ***REMOVED*** Specific bcrypt version
     "python-multipart>=0.0.20", ***REMOVED*** Form data parsing
     "email-validator>=2.2.0",   ***REMOVED*** Email validation
-    
+
     ***REMOVED*** HTTP client
     "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
-    
+
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework
     "rich>=13.7.0",             ***REMOVED*** Terminal formatting
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
-    
+
     ***REMOVED*** Date/time handling
     "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
-    
+
     ***REMOVED*** Cache (for session management)
     "redis>=6.0.0",             ***REMOVED*** Redis client
     "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
@@ -78,11 +78,11 @@ dev = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
-    
+
     ***REMOVED*** Code quality
     "ruff>=0.8.4",
     "pyright>=1.1.0",
-    
+
     ***REMOVED*** Local NextWatch libraries (for development)
     ***REMOVED*** "cache @ file:../../libs/cache",
     ***REMOVED*** "cli @ file:../../libs/cli",
@@ -203,7 +203,7 @@ select = [
 ignore = [
     "E501", ***REMOVED*** line too long, handled by black
     "B008", ***REMOVED*** do not perform function calls in argument defaults
-] 
+]
 
 ***REMOVED*** Test
 
@@ -227,4 +227,3 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-
