@@ -189,6 +189,7 @@ python_functions = "test_*"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+src = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -204,6 +205,11 @@ ignore = [
     "E501", ***REMOVED*** line too long, handled by black
     "B008", ***REMOVED*** do not perform function calls in argument defaults
 ]
+
+[tool.ruff.lint.isort]
+***REMOVED*** Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
+known-first-party = ["auth_api"]
+known-third-party = ["cache", "cli", "config", "fast_core", "kafka", "movie_storage"]
 
 ***REMOVED*** Test
 

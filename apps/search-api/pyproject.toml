@@ -242,6 +242,7 @@ line_length = 100
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+src = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -262,4 +263,4 @@ ignore = [
 ***REMOVED*** Pre-commit runs Ruff from the monorepo root, so make first/third-party grouping explicit
 ***REMOVED*** to keep import blocks stable regardless of current working directory.
 known-first-party = ["search_api"]
-known-third-party = ["config"]
+known-third-party = ["cache", "cli", "config", "fast_core", "kafka", "movie_storage"]
