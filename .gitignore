@@ -74,6 +74,12 @@ out/
 ***REMOVED*** ------------------------------------------------------------------------------
 coverage/
 htmlcov/
+.coverage
+**/.coverage
+.coverage.*
+**/.coverage.*
+coverage.xml
+**/coverage.xml
 .tox/
 .nox/
 *.cover
