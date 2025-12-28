@@ -35,4 +35,4 @@ next-env.d.ts
 ***REMOVED*** migration tools temp files
 /migration-temp/
 *.bak
-*.migration.temp 
+*.migration.temp
