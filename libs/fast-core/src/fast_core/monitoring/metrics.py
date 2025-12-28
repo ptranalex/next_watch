@@ -5,10 +5,12 @@ including HTTP request metrics, custom business metrics, and health monitoring.
 """
 
 import time
+from collections.abc import Awaitable, Callable, Sequence
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Set, TypeVar, Union, Sequence, Awaitable
+from typing import Any, TypeVar
 
 import structlog
+from fastapi import FastAPI
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     REGISTRY,
@@ -22,7 +24,6 @@ from prometheus_client import (
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
-from fastapi import FastAPI
 
 logger = structlog.get_logger(__name__)
 
@@ -32,7 +33,7 @@ F = TypeVar("F", bound=Callable[..., Any])
 class MetricsRegistry:
     """Central registry for Prometheus metrics."""
 
-    def __init__(self, service_name: str, registry: Optional[CollectorRegistry] = None):
+    def __init__(self, service_name: str, registry: CollectorRegistry | None = None):
         """Initialize metrics registry.
 
         Args:
@@ -41,7 +42,7 @@ class MetricsRegistry:
         """
         self.service_name = service_name
         self.registry = registry or REGISTRY
-        self._metrics: Dict[str, Any] = {}
+        self._metrics: dict[str, Any] = {}
 
         ***REMOVED*** Standard HTTP metrics
         self._setup_http_metrics()
@@ -172,7 +173,7 @@ class MetricsRegistry:
         check_name: str,
         check_category: str,
         is_healthy: bool,
-        duration_seconds: Optional[float] = None,
+        duration_seconds: float | None = None,
     ) -> None:
         """Update individual health check metrics.
 
@@ -206,7 +207,7 @@ class MetricsRegistry:
         self,
         name: str,
         description: str,
-        labels: Optional[List[str]] = None,
+        labels: list[str] | None = None,
     ) -> Counter:
         """Create a counter metric.
 
@@ -230,7 +231,7 @@ class MetricsRegistry:
         self,
         name: str,
         description: str,
-        labels: Optional[List[str]] = None,
+        labels: list[str] | None = None,
     ) -> Gauge:
         """Create a gauge metric.
 
@@ -254,8 +255,8 @@ class MetricsRegistry:
         self,
         name: str,
         description: str,
-        labels: Optional[List[str]] = None,
-        buckets: Optional[Sequence[float]] = None,
+        labels: list[str] | None = None,
+        buckets: Sequence[float] | None = None,
     ) -> Histogram:
         """Create a histogram metric.
 
@@ -282,7 +283,7 @@ class MetricsRegistry:
         self._metrics[name] = histogram
         return histogram
 
-    def get_metric(self, name: str) -> Optional[Any]:
+    def get_metric(self, name: str) -> Any | None:
         """Get a metric by name.
 
         Args:
@@ -301,8 +302,8 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         self,
         app: Any,
         metrics_registry: MetricsRegistry,
-        exclude_paths: Optional[Set[str]] = None,
-        exclude_methods: Optional[Set[str]] = None,
+        exclude_paths: set[str] | None = None,
+        exclude_methods: set[str] | None = None,
     ):
         """Initialize Prometheus middleware.
 
@@ -381,7 +382,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except Exception as e:
+        except Exception:
             ***REMOVED*** Record error metrics
             duration = time.time() - start_time
             endpoint = self._get_route_pattern(request)
@@ -424,7 +425,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 def track_operation(
     metrics_registry: MetricsRegistry,
     operation_name: str,
-    labels: Optional[Dict[str, str]] = None,
+    labels: dict[str, str] | None = None,
 ) -> Callable[[F], F]:
     """Decorator to track custom operation metrics.
 
@@ -592,10 +593,10 @@ def setup_metrics_endpoint(
 
 
 ***REMOVED*** Global metrics registry instance - will be initialized by applications
-_metrics_registry: Optional[MetricsRegistry] = None
+_metrics_registry: MetricsRegistry | None = None
 
 
-def get_metrics_registry() -> Optional[MetricsRegistry]:
+def get_metrics_registry() -> MetricsRegistry | None:
     """Get the global metrics registry."""
     return _metrics_registry
 

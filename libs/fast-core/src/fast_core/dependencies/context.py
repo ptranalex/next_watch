@@ -4,7 +4,6 @@ This module provides FastAPI dependencies that automatically access request cont
 trace information, and provide utilities for trace propagation.
 """
 
-from typing import Any, Dict, Optional
 from fastapi import Depends, Request
 
 from fast_core.middleware.context import (
@@ -16,7 +15,7 @@ from fast_core.middleware.context import (
 )
 
 
-def get_current_request_context() -> Optional[RequestContext]:
+def get_current_request_context() -> RequestContext | None:
     """FastAPI dependency to get current request context.
 
     Returns:
@@ -25,7 +24,7 @@ def get_current_request_context() -> Optional[RequestContext]:
     return get_request_context()
 
 
-def get_current_request_id() -> Optional[str]:
+def get_current_request_id() -> str | None:
     """FastAPI dependency to get current request ID.
 
     Returns:
@@ -34,7 +33,7 @@ def get_current_request_id() -> Optional[str]:
     return get_request_id()
 
 
-def get_current_trace_headers() -> Dict[str, str]:
+def get_current_trace_headers() -> dict[str, str]:
     """FastAPI dependency to get current trace headers.
 
     Returns:
@@ -43,7 +42,7 @@ def get_current_trace_headers() -> Dict[str, str]:
     return get_trace_headers()
 
 
-def get_request_id_from_request(request: Request) -> Optional[str]:
+def get_request_id_from_request(request: Request) -> str | None:
     """FastAPI dependency to get request ID from request state.
 
     Args:
@@ -55,7 +54,7 @@ def get_request_id_from_request(request: Request) -> Optional[str]:
     return getattr(request.state, "request_id", None)
 
 
-def get_context_from_request(request: Request) -> Optional[RequestContext]:
+def get_context_from_request(request: Request) -> RequestContext | None:
     """FastAPI dependency to get request context from request state.
 
     Args:
@@ -102,7 +101,7 @@ def require_request_id() -> str:
 class TraceContextInjector:
     """Utility class for injecting trace context into headers."""
 
-    def __init__(self, context: Optional[RequestContext] = Depends(get_current_request_context)):
+    def __init__(self, context: RequestContext | None = Depends(get_current_request_context)):
         """Initialize with current request context.
 
         Args:
@@ -110,7 +109,7 @@ class TraceContextInjector:
         """
         self.context = context
 
-    def inject_headers(self, headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    def inject_headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Inject trace context into headers.
 
         Args:
@@ -121,7 +120,7 @@ class TraceContextInjector:
         """
         return inject_trace_context(headers or {})
 
-    def get_propagation_headers(self) -> Dict[str, str]:
+    def get_propagation_headers(self) -> dict[str, str]:
         """Get headers for downstream service calls.
 
         Returns:

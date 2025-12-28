@@ -5,17 +5,15 @@ with OpenTelemetry integration and Tempo backend support.
 """
 
 import os
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any
 
 import structlog
-from fastapi import FastAPI, Request
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
+from fastapi import FastAPI
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 ***REMOVED*** SQLAlchemy and Redis instrumentors are imported conditionally when needed
 from opentelemetry.propagate import set_global_textmap
@@ -190,10 +188,10 @@ def _create_sampler(sample_rate: float) -> Any:
         Sampler instance
     """
     from opentelemetry.sdk.trace.sampling import (
-        ParentBased,
-        TraceIdRatioBased,
         ALWAYS_OFF,
         ALWAYS_ON,
+        ParentBased,
+        TraceIdRatioBased,
     )
 
     if sample_rate <= 0:
@@ -236,7 +234,7 @@ def _log_hook(span: Any, record: Any) -> None:
             pass
 
 
-def get_current_trace_id() -> Optional[str]:
+def get_current_trace_id() -> str | None:
     """Get the current trace ID as a hex string.
 
     Returns:
@@ -252,7 +250,7 @@ def get_current_trace_id() -> Optional[str]:
     return None
 
 
-def get_current_span_id() -> Optional[str]:
+def get_current_span_id() -> str | None:
     """Get the current span ID as a hex string.
 
     Returns:

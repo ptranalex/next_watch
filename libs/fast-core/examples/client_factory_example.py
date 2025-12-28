@@ -5,22 +5,20 @@ to create and manage service clients in a FastAPI application.
 """
 
 import asyncio
-from typing import Dict, Any, List
+from typing import Any
 
 import httpx
-from fastapi import FastAPI, Depends, HTTPException
-from pydantic import BaseModel
-
 from fast_core.dependencies.client_factory import (
     BaseServiceClient,
-    ServiceClientConfig,
-    register_service,
-    register_client_type,
     get_service_client,
-    list_services,
     health_check_all_services,
+    list_services,
+    register_client_type,
+    register_service,
     service_client,
 )
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import BaseModel
 
 
 ***REMOVED*** Example 1: Basic Service Registration
@@ -51,28 +49,28 @@ def setup_basic_services():
 class UserServiceClient(BaseServiceClient):
     """Custom client for user service operations."""
 
-    async def get_user(self, user_id: int) -> Dict[str, Any]:
+    async def get_user(self, user_id: int) -> dict[str, Any]:
         """Get user by ID."""
         client = await self._get_client()
         response = await client.get(f"/users/{user_id}")
         response.raise_for_status()
         return response.json()
 
-    async def get_users(self, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_users(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get list of users."""
         client = await self._get_client()
         response = await client.get(f"/users?_limit={limit}")
         response.raise_for_status()
         return response.json()
 
-    async def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_user(self, user_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new user."""
         client = await self._get_client()
         response = await client.post("/users", json=user_data)
         response.raise_for_status()
         return response.json()
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Custom health check for user service."""
         try:
             ***REMOVED*** Check if we can fetch users
@@ -97,9 +95,9 @@ class UserServiceClient(BaseServiceClient):
 class NotificationServiceClient(BaseServiceClient):
     """Notification service client with decorator registration."""
 
-    async def send_notification(self, user_id: int, message: str) -> Dict[str, Any]:
+    async def send_notification(self, user_id: int, message: str) -> dict[str, Any]:
         """Send notification to user."""
-        client = await self._get_client()
+        await self._get_client()
         payload = {"user_id": user_id, "message": message, "timestamp": "2024-01-01T00:00:00Z"}
 
         ***REMOVED*** Simulate API call (this would normally be a real API)
@@ -108,9 +106,10 @@ class NotificationServiceClient(BaseServiceClient):
             "status": "sent",
             "user_id": user_id,
             "message": message,
+            "payload": payload,
         }
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Health check for notification service."""
         return {
             "service": self.name,
@@ -306,7 +305,7 @@ async def demonstrate_health_checks():
             print(f"🔍 {service_name}: {status}")
 
             if status == "healthy":
-                print(f"   ✅ Service is healthy")
+                print("   ✅ Service is healthy")
             else:
                 error = health_result.get("error", "No error details")
                 print(f"   ❌ Service issue: {error}")

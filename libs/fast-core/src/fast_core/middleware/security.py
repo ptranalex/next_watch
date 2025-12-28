@@ -4,7 +4,8 @@ This module provides security middleware for adding security headers
 and protection mechanisms to FastAPI applications.
 """
 
-from typing import Any, Callable, Dict, List, Optional, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 import structlog
 from fastapi import FastAPI, Request, Response
@@ -25,7 +26,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         x_frame_options: str = "DENY",
         x_content_type_options: str = "nosniff",
         referrer_policy: str = "strict-origin-when-cross-origin",
-        custom_headers: Optional[Dict[str, str]] = None,
+        custom_headers: dict[str, str] | None = None,
     ):
         """Initialize security headers middleware.
 
@@ -88,7 +89,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self,
         app: Any,
         requests_per_minute: int = 60,
-        exclude_paths: Optional[List[str]] = None,
+        exclude_paths: list[str] | None = None,
     ):
         """Initialize rate limiting middleware.
 
@@ -100,7 +101,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
         self.exclude_paths = exclude_paths or []
-        self.request_counts: Dict[str, Any] = {}
+        self.request_counts: dict[str, Any] = {}
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Apply rate limiting.
@@ -161,7 +162,7 @@ def setup_security(app: FastAPI, settings: Any) -> None:
         logger.info("Rate limiting middleware configured")
 
 
-def get_security_headers() -> Dict[str, str]:
+def get_security_headers() -> dict[str, str]:
     """Get default security headers.
 
     Returns:

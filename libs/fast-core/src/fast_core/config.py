@@ -4,11 +4,11 @@ This module provides configuration classes and utilities specifically
 designed for FastAPI applications, extending the base config library.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from pydantic import BaseModel, Field, validator
 from config.base.config import ServiceConfig
 from config.services.monitoring import MonitoringConfigMixin
+from pydantic import BaseModel, Field, validator
 
 
 class FastAPIConfigMixin(BaseModel):
@@ -18,13 +18,13 @@ class FastAPIConfigMixin(BaseModel):
     """
 
     ***REMOVED*** API documentation
-    docs_url: Optional[str] = Field(
+    docs_url: str | None = Field(
         default="/docs", description="URL for Swagger UI documentation (None to disable)"
     )
-    redoc_url: Optional[str] = Field(
+    redoc_url: str | None = Field(
         default="/redoc", description="URL for ReDoc documentation (None to disable)"
     )
-    openapi_url: Optional[str] = Field(
+    openapi_url: str | None = Field(
         default="/openapi.json", description="URL for OpenAPI schema (None to disable)"
     )
 
@@ -32,23 +32,23 @@ class FastAPIConfigMixin(BaseModel):
     cors_allow_credentials: bool = Field(
         default=True, description="Allow credentials for CORS requests"
     )
-    cors_allow_methods: List[str] = Field(
+    cors_allow_methods: list[str] = Field(
         default=["*"], description="List of allowed HTTP methods for CORS"
     )
-    cors_allow_headers: List[str] = Field(
+    cors_allow_headers: list[str] = Field(
         default=["*"], description="List of allowed HTTP headers for CORS"
     )
 
     ***REMOVED*** Service client configuration
-    service_urls: Dict[str, str] = Field(
+    service_urls: dict[str, str] = Field(
         default_factory=dict, description="URLs for external services"
     )
-    service_timeouts: Dict[str, int] = Field(
+    service_timeouts: dict[str, int] = Field(
         default_factory=dict, description="Timeout configurations for external services"
     )
 
     ***REMOVED*** Feature flags
-    feature_flags: Dict[str, bool] = Field(default_factory=dict, description="Feature toggle flags")
+    feature_flags: dict[str, bool] = Field(default_factory=dict, description="Feature toggle flags")
 
     ***REMOVED*** Performance
     workers: int = Field(default=1, description="Number of worker processes")
@@ -69,7 +69,7 @@ class BasicFastAPIConfig(ServiceConfig, FastAPIConfigMixin):
     Use this for services that don't need built-in monitoring configuration.
     """
 
-    def get_fastapi_kwargs(self) -> Dict[str, Any]:
+    def get_fastapi_kwargs(self) -> dict[str, Any]:
         """Get keyword arguments for FastAPI constructor.
 
         Returns:
@@ -85,7 +85,7 @@ class BasicFastAPIConfig(ServiceConfig, FastAPIConfigMixin):
             "version": self.version,
         }
 
-    def get_cors_config(self) -> Dict[str, Any]:
+    def get_cors_config(self) -> dict[str, Any]:
         """Get CORS configuration.
 
         Returns:
@@ -98,7 +98,7 @@ class BasicFastAPIConfig(ServiceConfig, FastAPIConfigMixin):
             "allow_headers": self.cors_allow_headers,
         }
 
-    def get_uvicorn_config(self) -> Dict[str, Any]:
+    def get_uvicorn_config(self) -> dict[str, Any]:
         """Get Uvicorn configuration.
 
         Returns:
@@ -113,7 +113,7 @@ class BasicFastAPIConfig(ServiceConfig, FastAPIConfigMixin):
             "timeout_keep_alive": self.keepalive,
         }
 
-    def get_service_url(self, service_name: str) -> Optional[str]:
+    def get_service_url(self, service_name: str) -> str | None:
         """Get service URL for a specific service.
 
         Args:

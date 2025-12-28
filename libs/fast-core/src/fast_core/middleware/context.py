@@ -4,24 +4,24 @@ This module provides centralized request context management with automatic
 trace header extraction, OpenTelemetry integration, and context propagation.
 """
 
-import uuid
-from typing import Any, Awaitable, Callable, Dict, Optional
 import contextvars
+import uuid
+from collections.abc import Awaitable, Callable
+from typing import Any, Optional
 
 import structlog
 from fastapi import Request
+from opentelemetry import propagate, trace
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-from opentelemetry import trace, propagate
-from opentelemetry.trace import Span
 
 logger = structlog.get_logger(__name__)
 
 ***REMOVED*** Context variables for request-scoped data
-_request_id_context: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+_request_id_context: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "request_id", default=None
 )
-_trace_headers_context: contextvars.ContextVar[Dict[str, str]] = contextvars.ContextVar(
+_trace_headers_context: contextvars.ContextVar[dict[str, str]] = contextvars.ContextVar(
     "trace_headers", default={}
 )
 _request_context: contextvars.ContextVar[Optional["RequestContext"]] = contextvars.ContextVar(
@@ -35,12 +35,12 @@ class RequestContext:
     def __init__(
         self,
         request_id: str,
-        trace_id: Optional[str] = None,
-        span_id: Optional[str] = None,
-        parent_span_id: Optional[str] = None,
-        trace_headers: Optional[Dict[str, str]] = None,
-        user_id: Optional[str] = None,
-        service_name: Optional[str] = None,
+        trace_id: str | None = None,
+        span_id: str | None = None,
+        parent_span_id: str | None = None,
+        trace_headers: dict[str, str] | None = None,
+        user_id: str | None = None,
+        service_name: str | None = None,
     ):
         """Initialize request context.
 
@@ -61,7 +61,7 @@ class RequestContext:
         self.user_id = user_id
         self.service_name = service_name
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert context to dictionary for logging."""
         return {
             "request_id": self.request_id,
@@ -72,7 +72,7 @@ class RequestContext:
             "service_name": self.service_name,
         }
 
-    def get_propagation_headers(self) -> Dict[str, str]:
+    def get_propagation_headers(self) -> dict[str, str]:
         """Get headers for downstream service calls."""
         headers = {}
 
@@ -102,7 +102,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: Any,
-        service_name: Optional[str] = None,
+        service_name: str | None = None,
         auto_generate_request_id: bool = True,
         extract_user_id: bool = True,
         trace_propagation: bool = True,
@@ -158,7 +158,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             ctx = propagate.extract(carrier)
 
             ***REMOVED*** Get trace information from OpenTelemetry context
-            trace_id, span_id, parent_span_id = self._get_trace_info()
+            trace_id, span_id, parent_span_id = self._get_trace_info(ctx)
 
         ***REMOVED*** Extract user ID if available (if extraction enabled)
         user_id = None
@@ -199,7 +199,10 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
         try:
             ***REMOVED*** Process request with OpenTelemetry context
-            with trace.use_span(trace.get_current_span(), end_on_exit=False):
+            with trace.use_span(
+                trace.get_current_span(ctx) if self.trace_propagation else trace.get_current_span(),
+                end_on_exit=False,
+            ):
                 response = await call_next(request)
 
             ***REMOVED*** Add trace headers to response
@@ -235,7 +238,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         ***REMOVED*** If auto-generation is disabled, return a default
         return "no-request-id"
 
-    def _extract_trace_headers(self, request: Request) -> Dict[str, str]:
+    def _extract_trace_headers(self, request: Request) -> dict[str, str]:
         """Extract trace propagation headers from request.
 
         Args:
@@ -282,7 +285,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
         return trace_headers
 
-    def _extract_user_id(self, request: Request) -> Optional[str]:
+    def _extract_user_id(self, request: Request) -> str | None:
         """Extract user ID from request headers.
 
         Args:
@@ -298,14 +301,14 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                 return user_id
         return None
 
-    def _get_trace_info(self) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    def _get_trace_info(self, ctx: Any | None = None) -> tuple[str | None, str | None, str | None]:
         """Get trace information from current OpenTelemetry context.
 
         Returns:
             Tuple of (trace_id, span_id, parent_span_id)
         """
         try:
-            span = trace.get_current_span()
+            span = trace.get_current_span(ctx) if ctx is not None else trace.get_current_span()
             if span and span.is_recording():
                 span_context = span.get_span_context()
                 trace_id = format(span_context.trace_id, "032x")
@@ -377,7 +380,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.debug("Failed to add span event", error=str(e), exc_info=True)
 
-    def _get_response_headers(self, context: RequestContext) -> Dict[str, str]:
+    def _get_response_headers(self, context: RequestContext) -> dict[str, str]:
         """Get headers to add to response.
 
         Args:
@@ -400,7 +403,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
 
 ***REMOVED*** Context accessor functions
-def get_request_id() -> Optional[str]:
+def get_request_id() -> str | None:
     """Get request ID from current context.
 
     Returns:
@@ -409,7 +412,7 @@ def get_request_id() -> Optional[str]:
     return _request_id_context.get()
 
 
-def get_trace_headers() -> Dict[str, str]:
+def get_trace_headers() -> dict[str, str]:
     """Get trace headers from current context.
 
     Returns:
@@ -418,7 +421,7 @@ def get_trace_headers() -> Dict[str, str]:
     return _trace_headers_context.get() or {}
 
 
-def get_request_context() -> Optional[RequestContext]:
+def get_request_context() -> RequestContext | None:
     """Get full request context.
 
     Returns:
@@ -427,7 +430,7 @@ def get_request_context() -> Optional[RequestContext]:
     return _request_context.get()
 
 
-def inject_trace_context(headers: Dict[str, str]) -> Dict[str, str]:
+def inject_trace_context(headers: dict[str, str]) -> dict[str, str]:
     """Inject trace context into outgoing headers.
 
     Args:

@@ -1,18 +1,18 @@
 """Tests for singleton dependency management."""
 
-import pytest
-from unittest.mock import Mock, AsyncMock
 from typing import Any
+from unittest.mock import AsyncMock, Mock
 
+import pytest
 from fast_core.dependencies.singleton import (
     SingletonConfig,
     SingletonManager,
-    register_singleton,
-    get_singleton_client,
-    get_singleton,
     cleanup_singletons,
-    list_singletons,
     create_singleton_dependency,
+    get_singleton,
+    get_singleton_client,
+    list_singletons,
+    register_singleton,
 )
 
 
@@ -187,7 +187,7 @@ class TestSingletonManager:
         config = SingletonConfig(name="test", factory=create_mock_client_without_close)
         self.manager.register(config)
 
-        instance = self.manager.get_or_create("test")
+        self.manager.get_or_create("test")
 
         ***REMOVED*** Should not raise error
         await self.manager.cleanup("test")
@@ -207,7 +207,7 @@ class TestSingletonManager:
         config = SingletonConfig(name="test", factory=create_async_client)
         self.manager.register(config)
 
-        instance = self.manager.get_or_create("test")
+        self.manager.get_or_create("test")
         await self.manager.cleanup("test")
 
         async_close_mock.assert_called_once()
@@ -405,7 +405,6 @@ class TestSingletonIntegration:
     async def test_singleton_lifespan_integration(self):
         """Test singleton lifespan integration."""
         from fast_core.dependencies.singleton import singleton_lifespan
-        from unittest.mock import Mock
 
         @get_singleton_client("lifespan-test")
         def create_lifespan_client():

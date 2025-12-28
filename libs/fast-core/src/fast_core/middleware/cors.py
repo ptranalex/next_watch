@@ -4,7 +4,7 @@ This module provides CORS (Cross-Origin Resource Sharing) middleware
 configuration for FastAPI applications.
 """
 
-from typing import Any, List
+from typing import Any
 
 import structlog
 from fastapi import FastAPI
@@ -73,7 +73,7 @@ def get_default_cors_config() -> dict:
 
 def setup_production_cors(
     app: FastAPI,
-    allowed_origins: List[str],
+    allowed_origins: list[str],
     allow_credentials: bool = True,
 ) -> None:
     """Set up CORS for production environment with restricted origins.

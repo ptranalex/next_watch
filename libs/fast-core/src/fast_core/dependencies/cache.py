@@ -4,7 +4,8 @@ This module provides dependency providers for accessing cache services
 and cache managers in FastAPI applications.
 """
 
-from typing import Any, Callable, Optional, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 from config.logging import get_logger
 from fastapi import Depends, Request

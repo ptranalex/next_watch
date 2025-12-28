@@ -5,8 +5,6 @@ using the Fast Core library with all the standard components.
 """
 
 import uvicorn
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
 ***REMOVED*** Import Fast Core components
 from fast_core import (
@@ -14,25 +12,18 @@ from fast_core import (
     AppOptions,
     BaseRouter,
     FastAPIConfig,
-    HealthCheck,
     PaginationParams,
     ResourceNotFoundException,
     ValidationException,
     create_app,
-    create_error_response,
     create_success_response,
     get_pagination_params,
     paginate_results,
     setup_health_checks,
 )
-
-try:
-    from fast_core.dependencies.common import get_request_id, get_settings
-    from fast_core.errors import setup_exception_handlers
-    from fast_core.middleware import setup_middleware
-except ImportError:
-    ***REMOVED*** Fallback if dependencies are not available
-    pass
+from fast_core.dependencies.common import get_request_id
+from fastapi import Depends
+from pydantic import BaseModel
 
 
 ***REMOVED*** Configuration
@@ -117,7 +108,7 @@ async def list_items(
             pagination=pagination,
             total_items=len(items_db),
         )
-    except Exception as e:
+    except Exception:
         raise APIException(
             status_code=500,
             detail="Failed to retrieve items",

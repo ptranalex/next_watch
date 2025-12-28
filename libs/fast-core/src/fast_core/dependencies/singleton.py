@@ -5,13 +5,11 @@ allowing for performance optimization and resource management while maintaining 
 dependency injection patterns.
 """
 
-import asyncio
 import inspect
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union, cast, AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
-from functools import wraps
+from typing import Any, TypeVar
 
-from fastapi import Depends
 from config.logging import get_logger
 
 logger = get_logger(__name__)
@@ -19,9 +17,9 @@ logger = get_logger(__name__)
 T = TypeVar("T")
 
 ***REMOVED*** Global singleton registry
-_singleton_registry: Dict[str, Any] = {}
-_singleton_factories: Dict[str, Callable] = {}
-_singleton_lifecycle_hooks: Dict[str, Dict[str, Callable]] = {}
+_singleton_registry: dict[str, Any] = {}
+_singleton_factories: dict[str, Callable] = {}
+_singleton_lifecycle_hooks: dict[str, dict[str, Callable]] = {}
 
 
 class SingletonConfig:
@@ -33,7 +31,7 @@ class SingletonConfig:
         factory: Callable[..., T],
         lifecycle: str = "app",
         cleanup_on_shutdown: bool = True,
-        dependencies: Optional[list] = None,
+        dependencies: list | None = None,
     ):
         """Initialize singleton configuration.
 
@@ -55,9 +53,9 @@ class SingletonManager:
     """Manages singleton instances and their lifecycle."""
 
     def __init__(self) -> None:
-        self._instances: Dict[str, Any] = {}
-        self._factories: Dict[str, SingletonConfig] = {}
-        self._cleanup_hooks: Dict[str, Callable] = {}
+        self._instances: dict[str, Any] = {}
+        self._factories: dict[str, SingletonConfig] = {}
+        self._cleanup_hooks: dict[str, Callable] = {}
 
     def register(self, config: SingletonConfig) -> None:
         """Register a singleton configuration.
@@ -111,7 +109,7 @@ class SingletonManager:
 
         return self._instances[name]
 
-    async def cleanup(self, name: Optional[str] = None) -> None:
+    async def cleanup(self, name: str | None = None) -> None:
         """Cleanup singleton instances.
 
         Args:
@@ -149,7 +147,7 @@ class SingletonManager:
             if name in self._cleanup_hooks:
                 del self._cleanup_hooks[name]
 
-    def list_singletons(self) -> Dict[str, str]:
+    def list_singletons(self) -> dict[str, str]:
         """List all registered singletons and their status.
 
         Returns:
@@ -171,7 +169,7 @@ def register_singleton(
     factory: Callable[..., T],
     lifecycle: str = "app",
     cleanup_on_shutdown: bool = True,
-    dependencies: Optional[list] = None,
+    dependencies: list | None = None,
 ) -> None:
     """Register a singleton factory function.
 
@@ -196,7 +194,7 @@ def get_singleton_client(
     name: str,
     lifecycle: str = "app",
     cleanup_on_shutdown: bool = True,
-    dependencies: Optional[list] = None,
+    dependencies: list | None = None,
 ) -> Callable[[Callable[..., T]], Callable[[], Any]]:
     """Decorator to register a singleton client factory.
 
@@ -252,7 +250,7 @@ def get_singleton(name: str) -> Callable[[], Any]:
     return dependency
 
 
-async def cleanup_singletons(name: Optional[str] = None) -> None:
+async def cleanup_singletons(name: str | None = None) -> None:
     """Cleanup singleton instances.
 
     Args:
@@ -261,7 +259,7 @@ async def cleanup_singletons(name: Optional[str] = None) -> None:
     await _singleton_manager.cleanup(name)
 
 
-def list_singletons() -> Dict[str, str]:
+def list_singletons() -> dict[str, str]:
     """List all registered singletons and their status.
 
     Returns:
@@ -290,7 +288,7 @@ async def singleton_lifespan(app: Any) -> AsyncGenerator[None, None]:
 def create_singleton_dependency(
     name: str,
     factory: Callable[..., T],
-    dependencies: Optional[list] = None,
+    dependencies: list | None = None,
 ) -> Callable[[], T]:
     """Create a singleton dependency function.
 

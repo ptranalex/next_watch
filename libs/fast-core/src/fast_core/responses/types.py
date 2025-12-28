@@ -4,7 +4,7 @@ This module defines the structure of different response types using TypedDict
 for better type safety and IDE support.
 """
 
-from typing import Any, Dict, List, Optional, TypedDict, Union
+from typing import Any, TypedDict
 
 
 class PaginationInfo(TypedDict, total=False):
@@ -21,42 +21,42 @@ class PaginationInfo(TypedDict, total=False):
 class PaginatedResponse(TypedDict, total=False):
     """Response structure for paginated data."""
 
-    results: List[Any]
+    results: list[Any]
     pagination: PaginationInfo
-    metadata: Optional[Dict[str, Any]]
+    metadata: dict[str, Any] | None
 
 
 class DetailResponse(TypedDict, total=False):
     """Response structure for single item details."""
 
     data: Any
-    related: Optional[Dict[str, Any]]
-    context: Optional[Dict[str, Any]]
-    metadata: Optional[Dict[str, Any]]
+    related: dict[str, Any] | None
+    context: dict[str, Any] | None
+    metadata: dict[str, Any] | None
 
 
 class CollectionResponse(TypedDict, total=False):
     """Response structure for grouped collections."""
 
-    collections: Dict[str, List[Any]]
-    metadata: Optional[Dict[str, Any]]
+    collections: dict[str, list[Any]]
+    metadata: dict[str, Any] | None
 
 
 class SearchFacet(TypedDict, total=False):
     """Search facet information."""
 
     name: str
-    values: List[Dict[str, Union[str, int]]]
+    values: list[dict[str, str | int]]
 
 
 class SearchResponse(TypedDict, total=False):
     """Response structure for search results."""
 
     query: str
-    results: List[Any]
-    facets: Optional[Dict[str, SearchFacet]]
-    suggestions: Optional[List[str]]
-    metadata: Optional[Dict[str, Any]]
+    results: list[Any]
+    facets: dict[str, SearchFacet] | None
+    suggestions: list[str] | None
+    metadata: dict[str, Any] | None
 
 
 class ActionResponse(TypedDict, total=False):
@@ -64,18 +64,18 @@ class ActionResponse(TypedDict, total=False):
 
     success: bool
     action: str
-    data: Optional[Any]
-    message: Optional[str]
-    metadata: Optional[Dict[str, Any]]
+    data: Any | None
+    message: str | None
+    metadata: dict[str, Any] | None
 
 
 class ErrorDetail(TypedDict, total=False):
     """Error detail information."""
 
-    field: Optional[str]
+    field: str | None
     code: str
     message: str
-    value: Optional[Any]
+    value: Any | None
 
 
 class ErrorInfo(TypedDict, total=False):
@@ -83,12 +83,12 @@ class ErrorInfo(TypedDict, total=False):
 
     code: str
     message: str
-    details: Optional[List[ErrorDetail]]
-    suggestions: Optional[List[str]]
+    details: list[ErrorDetail] | None
+    suggestions: list[str] | None
 
 
 class ErrorResponse(TypedDict, total=False):
     """Response structure for errors."""
 
     error: ErrorInfo
-    metadata: Optional[Dict[str, Any]]
+    metadata: dict[str, Any] | None

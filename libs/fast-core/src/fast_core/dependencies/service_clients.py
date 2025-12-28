@@ -4,10 +4,12 @@ This module provides dependency injection utilities for HTTP service clients,
 enabling clean service-to-service communication patterns.
 """
 
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
+
 import httpx
-from fastapi import Depends, HTTPException, Request
 from config.logging import get_logger
+from fastapi import Depends, HTTPException, Request
 
 logger = get_logger(__name__)
 

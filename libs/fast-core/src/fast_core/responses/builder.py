@@ -5,7 +5,7 @@ API responses using generic patterns that work across any domain.
 """
 
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .types import (
     ActionResponse,
@@ -26,7 +26,7 @@ class ResponseBuilder:
     and work across any domain or service.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         """Initialize response builder with optional configuration.
 
         Args:
@@ -35,7 +35,7 @@ class ResponseBuilder:
         self.config = config or {}
 
         ***REMOVED*** Default configuration
-        self._defaults: Dict[str, Dict[str, Any]] = {
+        self._defaults: dict[str, dict[str, Any]] = {
             "pagination": {
                 "default_limit": 20,
                 "max_limit": 100,
@@ -58,12 +58,12 @@ class ResponseBuilder:
 
     def paginated(
         self,
-        items: List[Any],
+        items: list[Any],
         page: int,
         limit: int,
         total: int,
-        metadata: Optional[Dict[str, Any]] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> PaginatedResponse:
         """Create a paginated response.
 
@@ -118,10 +118,10 @@ class ResponseBuilder:
     def detail(
         self,
         item: Any,
-        related: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        related: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> DetailResponse:
         """Create a detail response for a single item.
 
@@ -152,9 +152,9 @@ class ResponseBuilder:
 
     def collection(
         self,
-        groups: Dict[str, List[Any]],
-        metadata: Optional[Dict[str, Any]] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        groups: dict[str, list[Any]],
+        metadata: dict[str, Any] | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> CollectionResponse:
         """Create a collection response with grouped items.
 
@@ -178,11 +178,11 @@ class ResponseBuilder:
     def search(
         self,
         query: str,
-        results: List[Any],
-        facets: Optional[Dict[str, Any]] = None,
-        suggestions: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        results: list[Any],
+        facets: dict[str, Any] | None = None,
+        suggestions: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> SearchResponse:
         """Create a search response.
 
@@ -225,10 +225,10 @@ class ResponseBuilder:
         self,
         success: bool,
         action: str,
-        data: Optional[Any] = None,
-        message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        data: Any | None = None,
+        message: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> ActionResponse:
         """Create an action response (for POST/PUT/DELETE operations).
 
@@ -263,10 +263,10 @@ class ResponseBuilder:
         self,
         code: str,
         message: str,
-        details: Optional[List[Dict[str, Any]]] = None,
-        suggestions: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        details: list[dict[str, Any]] | None = None,
+        suggestions: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> ErrorResponse:
         """Create an error response.
 
@@ -289,7 +289,7 @@ class ResponseBuilder:
         if config_override:
             error_config.update(config_override)
 
-        error_info: Dict[str, Any] = {
+        error_info: dict[str, Any] = {
             "code": code,
             "message": message,
         }
@@ -312,9 +312,9 @@ class ResponseBuilder:
     def success(
         self,
         data: Any,
-        message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        message: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Create a simple success response.
 
         Args:

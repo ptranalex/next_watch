@@ -4,7 +4,8 @@ This module provides authentication-related dependency providers including
 API key validation and user authentication.
 """
 
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from config.logging import get_logger
 from fastapi import Depends, HTTPException, Request, status
@@ -52,7 +53,7 @@ def get_api_key() -> Any:
 
 
 def get_current_user(
-    verify_user_func: Optional[Callable[[str], Any]] = None,
+    verify_user_func: Callable[[str], Any] | None = None,
 ) -> Any:
     """Get current authenticated user.
 
@@ -67,7 +68,7 @@ def get_current_user(
     """
 
     def _get_current_user(
-        credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+        credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     ) -> Any:
         if not credentials:
             raise HTTPException(
@@ -104,8 +105,8 @@ def get_current_user(
 
 
 def require_auth(
-    required_roles: Optional[list] = None,
-    verify_user_func: Optional[Callable[[str], Any]] = None,
+    required_roles: list | None = None,
+    verify_user_func: Callable[[str], Any] | None = None,
 ) -> Any:
     """Require authentication with optional role checking.
 
@@ -141,7 +142,7 @@ def require_auth(
 
 
 def get_optional_user(
-    verify_user_func: Optional[Callable[[str], Any]] = None,
+    verify_user_func: Callable[[str], Any] | None = None,
 ) -> Any:
     """Get current user if authenticated, None otherwise.
 
@@ -153,8 +154,8 @@ def get_optional_user(
     """
 
     def _get_optional_user(
-        credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
-    ) -> Optional[Any]:
+        credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    ) -> Any | None:
         if not credentials:
             return None
 

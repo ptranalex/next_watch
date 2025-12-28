@@ -4,7 +4,7 @@ This module provides pagination utilities and helpers for FastAPI routes
 to standardize pagination across the application.
 """
 
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, TypeVar
 
 from fastapi import Query
 from pydantic import BaseModel, Field
@@ -50,7 +50,7 @@ class PaginationMeta(BaseModel):
 class PaginatedResult(BaseModel):
     """Paginated result model."""
 
-    data: List[Any] = Field(..., description="List of items")
+    data: list[Any] = Field(..., description="List of items")
     pagination: PaginationMeta = Field(..., description="Pagination metadata")
 
 
@@ -71,10 +71,10 @@ def get_pagination_params(
 
 
 def paginate_results(
-    data: List[Any],
+    data: list[Any],
     pagination: PaginationParams,
     total_items: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Paginate results and create response.
 
     Args:
@@ -137,8 +137,8 @@ class Paginator:
 
     def get_params(
         self,
-        page: Optional[int] = None,
-        limit: Optional[int] = None,
+        page: int | None = None,
+        limit: int | None = None,
     ) -> PaginationParams:
         """Get pagination parameters with validation.
 
@@ -156,7 +156,7 @@ class Paginator:
 
     def paginate(
         self,
-        data: List[Any],
+        data: list[Any],
         total_items: int,
         pagination: PaginationParams,
     ) -> PaginatedResult:
@@ -187,7 +187,7 @@ def get_page_links(
     base_url: str,
     pagination: PaginationParams,
     total_items: int,
-) -> Dict[str, Optional[str]]:
+) -> dict[str, str | None]:
     """Generate pagination links.
 
     Args:

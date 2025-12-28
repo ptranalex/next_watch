@@ -5,14 +5,13 @@ and authorization in FastAPI applications.
 """
 
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import jwt
+from config.logging import get_logger
 from jwt import PyJWTError
 from pydantic import BaseModel, Field
-
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -24,8 +23,8 @@ class JWTConfig(BaseModel):
     algorithm: str = Field("HS256", description="JWT signing algorithm")
     access_token_expire_minutes: int = Field(30, description="Access token expiration in minutes")
     refresh_token_expire_days: int = Field(7, description="Refresh token expiration in days")
-    issuer: Optional[str] = Field(None, description="JWT issuer")
-    audience: Optional[str] = Field(None, description="JWT audience")
+    issuer: str | None = Field(None, description="JWT issuer")
+    audience: str | None = Field(None, description="JWT audience")
 
 
 class TokenData(BaseModel):
@@ -34,11 +33,11 @@ class TokenData(BaseModel):
     sub: str = Field(..., description="Subject (user ID)")
     exp: int = Field(..., description="Expiration timestamp")
     iat: int = Field(..., description="Issued at timestamp")
-    iss: Optional[str] = Field(None, description="Issuer")
-    aud: Optional[str] = Field(None, description="Audience")
-    jti: Optional[str] = Field(None, description="JWT ID")
+    iss: str | None = Field(None, description="Issuer")
+    aud: str | None = Field(None, description="Audience")
+    jti: str | None = Field(None, description="JWT ID")
     type: str = Field("access", description="Token type (access/refresh)")
-    scope: Optional[str] = Field(None, description="Token scope")
+    scope: str | None = Field(None, description="Token scope")
 
 
 class JWTManager:
@@ -55,9 +54,9 @@ class JWTManager:
     def create_access_token(
         self,
         subject: str,
-        expires_delta: Optional[timedelta] = None,
-        scope: Optional[str] = None,
-        additional_claims: Optional[Dict[str, Any]] = None,
+        expires_delta: timedelta | None = None,
+        scope: str | None = None,
+        additional_claims: dict[str, Any] | None = None,
     ) -> str:
         """Create access token.
 
@@ -71,13 +70,11 @@ class JWTManager:
             Encoded JWT token string
         """
         if expires_delta:
-            expire = datetime.now(timezone.utc) + expires_delta
+            expire = datetime.now(UTC) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + timedelta(
-                minutes=self.config.access_token_expire_minutes
-            )
+            expire = datetime.now(UTC) + timedelta(minutes=self.config.access_token_expire_minutes)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "sub": subject,
             "exp": int(expire.timestamp()),
@@ -102,8 +99,8 @@ class JWTManager:
     def create_refresh_token(
         self,
         subject: str,
-        expires_delta: Optional[timedelta] = None,
-        additional_claims: Optional[Dict[str, Any]] = None,
+        expires_delta: timedelta | None = None,
+        additional_claims: dict[str, Any] | None = None,
     ) -> str:
         """Create refresh token.
 
@@ -116,13 +113,11 @@ class JWTManager:
             Encoded JWT refresh token string
         """
         if expires_delta:
-            expire = datetime.now(timezone.utc) + expires_delta
+            expire = datetime.now(UTC) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + timedelta(
-                days=self.config.refresh_token_expire_days
-            )
+            expire = datetime.now(UTC) + timedelta(days=self.config.refresh_token_expire_days)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "sub": subject,
             "exp": int(expire.timestamp()),
@@ -182,7 +177,7 @@ class JWTManager:
     def refresh_access_token(
         self,
         refresh_token: str,
-        new_scope: Optional[str] = None,
+        new_scope: str | None = None,
     ) -> str:
         """Create new access token from refresh token.
 
@@ -234,11 +229,11 @@ class JWTManager:
             exp = payload.get("exp")
             if not exp:
                 return True
-            return datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc)
+            return datetime.fromtimestamp(exp, tz=UTC) < datetime.now(UTC)
         except Exception:
             return True
 
-    def decode_token_payload(self, token: str) -> Dict[str, Any]:
+    def decode_token_payload(self, token: str) -> dict[str, Any]:
         """Decode token payload without verification.
 
         Args:
@@ -264,12 +259,12 @@ def generate_secret_key() -> str:
 
 
 def create_jwt_manager(
-    secret_key: Optional[str] = None,
+    secret_key: str | None = None,
     algorithm: str = "HS256",
     access_token_expire_minutes: int = 30,
     refresh_token_expire_days: int = 7,
-    issuer: Optional[str] = None,
-    audience: Optional[str] = None,
+    issuer: str | None = None,
+    audience: str | None = None,
 ) -> JWTManager:
     """Create JWT manager with configuration.
 

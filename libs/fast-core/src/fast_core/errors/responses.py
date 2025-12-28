@@ -4,7 +4,7 @@ This module provides standard error response models and utilities
 for consistent error responses across FastAPI applications.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -13,37 +13,33 @@ class ErrorDetail(BaseModel):
     """Standard error detail model."""
 
     detail: str = Field(..., description="Error detail message")
-    error_code: Optional[str] = Field(None, description="Application-specific error code")
-    context: Optional[Dict[str, Any]] = Field(None, description="Additional error context")
+    error_code: str | None = Field(None, description="Application-specific error code")
+    context: dict[str, Any] | None = Field(None, description="Additional error context")
 
 
 class ValidationErrorDetail(ErrorDetail):
     """Validation error detail model."""
 
-    field_errors: Optional[Dict[str, str]] = Field(
-        None, description="Field-specific error messages"
-    )
+    field_errors: dict[str, str] | None = Field(None, description="Field-specific error messages")
 
 
 class AuthorizationErrorDetail(ErrorDetail):
     """Authorization error detail model."""
 
-    required_permissions: Optional[List[str]] = Field(
-        None, description="List of required permissions"
-    )
+    required_permissions: list[str] | None = Field(None, description="List of required permissions")
 
 
 class ResourceNotFoundErrorDetail(ErrorDetail):
     """Resource not found error detail model."""
 
-    resource_type: Optional[str] = Field(None, description="Type of resource not found")
-    resource_id: Optional[str] = Field(None, description="ID of resource not found")
+    resource_type: str | None = Field(None, description="Type of resource not found")
+    resource_id: str | None = Field(None, description="ID of resource not found")
 
 
 class ConflictErrorDetail(ErrorDetail):
     """Conflict error detail model."""
 
-    conflicting_resource: Optional[str] = Field(
+    conflicting_resource: str | None = Field(
         None, description="Information about conflicting resource"
     )
 
@@ -51,20 +47,20 @@ class ConflictErrorDetail(ErrorDetail):
 class RateLimitErrorDetail(ErrorDetail):
     """Rate limit error detail model."""
 
-    retry_after: Optional[int] = Field(None, description="Seconds to wait before retrying")
+    retry_after: int | None = Field(None, description="Seconds to wait before retrying")
 
 
 class ServiceUnavailableErrorDetail(ErrorDetail):
     """Service unavailable error detail model."""
 
-    service_name: Optional[str] = Field(None, description="Name of unavailable service")
+    service_name: str | None = Field(None, description="Name of unavailable service")
 
 
 class ExternalServiceErrorDetail(ErrorDetail):
     """External service error detail model."""
 
-    service_name: Optional[str] = Field(None, description="Name of external service")
-    upstream_status: Optional[int] = Field(None, description="Status code from upstream service")
+    service_name: str | None = Field(None, description="Name of external service")
+    upstream_status: int | None = Field(None, description="Status code from upstream service")
 
 
 class PaginationInfo(BaseModel):
@@ -82,22 +78,22 @@ class SuccessResponse(BaseModel):
     """Standard success response model."""
 
     message: str = Field(..., description="Success message")
-    data: Optional[Any] = Field(None, description="Response data")
+    data: Any | None = Field(None, description="Response data")
 
 
 class PaginatedResponse(BaseModel):
     """Paginated response model."""
 
-    data: List[Any] = Field(..., description="List of items")
+    data: list[Any] = Field(..., description="List of items")
     pagination: PaginationInfo = Field(..., description="Pagination information")
 
 
 def create_error_response(
     detail: str,
-    error_code: Optional[str] = None,
-    context: Optional[Dict[str, Any]] = None,
+    error_code: str | None = None,
+    context: dict[str, Any] | None = None,
     **kwargs: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a standard error response.
 
     Args:
@@ -109,7 +105,7 @@ def create_error_response(
     Returns:
         Dictionary containing error response
     """
-    response: Dict[str, Any] = {
+    response: dict[str, Any] = {
         "detail": detail,
     }
 
@@ -127,9 +123,9 @@ def create_error_response(
 
 def create_validation_error_response(
     detail: str = "Validation error",
-    field_errors: Optional[Dict[str, str]] = None,
+    field_errors: dict[str, str] | None = None,
     **kwargs: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a validation error response.
 
     Args:
@@ -154,8 +150,8 @@ def create_validation_error_response(
 
 def create_success_response(
     message: str,
-    data: Optional[Any] = None,
-) -> Dict[str, Any]:
+    data: Any | None = None,
+) -> dict[str, Any]:
     """Create a standard success response.
 
     Args:
@@ -174,11 +170,11 @@ def create_success_response(
 
 
 def create_paginated_response(
-    data: List[Any],
+    data: list[Any],
     page: int,
     page_size: int,
     total_items: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a paginated response.
 
     Args:

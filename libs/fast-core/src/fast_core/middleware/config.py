@@ -5,7 +5,6 @@ This module provides configuration classes for different types of middleware
 using a builder pattern for flexible and granular control.
 """
 
-from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field
 
 from config.logging import get_logger
@@ -25,11 +24,11 @@ class CORSConfig:
     """Configuration for CORS middleware."""
 
     enabled: bool = True
-    origins: List[str] = field(default_factory=lambda: ["*"])
-    methods: List[str] = field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-    headers: List[str] = field(default_factory=lambda: ["*"])
+    origins: list[str] = field(default_factory=lambda: ["*"])
+    methods: list[str] = field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    headers: list[str] = field(default_factory=lambda: ["*"])
     credentials: bool = False
-    expose_headers: List[str] = field(default_factory=list)
+    expose_headers: list[str] = field(default_factory=list)
     max_age: int = 600
 
 
@@ -44,9 +43,9 @@ class SecurityConfig:
     frame_options: str = "DENY"  ***REMOVED*** DENY, SAMEORIGIN, or ALLOW-FROM
     content_type_options: bool = True
     xss_protection: bool = True
-    csp: Optional[str] = None
+    csp: str | None = None
     referrer_policy: str = "strict-origin-when-cross-origin"
-    trusted_hosts: List[str] = field(default_factory=list)
+    trusted_hosts: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -58,9 +57,9 @@ class LoggingConfig:
     include_request_body: bool = False
     include_response_body: bool = False
     max_body_size: int = 1024  ***REMOVED*** bytes
-    exclude_paths: List[str] = field(default_factory=lambda: ["/health", "/metrics"])
+    exclude_paths: list[str] = field(default_factory=lambda: ["/health", "/metrics"])
     include_headers: bool = True
-    exclude_headers: List[str] = field(default_factory=lambda: ["authorization", "cookie"])
+    exclude_headers: list[str] = field(default_factory=lambda: ["authorization", "cookie"])
     log_timing: bool = True
     log_user_agent: bool = True
 
@@ -71,10 +70,10 @@ class RateLimitConfig:
 
     enabled: bool = True
     default_limit: str = "100/minute"  ***REMOVED*** Format: "requests/period"
-    storage_url: Optional[str] = None  ***REMOVED*** Redis URL for distributed rate limiting
-    key_func: Optional[str] = "ip"  ***REMOVED*** "ip", "user", or custom function name
-    endpoints: Dict[str, str] = field(default_factory=dict)  ***REMOVED*** endpoint -> limit mapping
-    exempt_ips: List[str] = field(default_factory=list)
+    storage_url: str | None = None  ***REMOVED*** Redis URL for distributed rate limiting
+    key_func: str | None = "ip"  ***REMOVED*** "ip", "user", or custom function name
+    endpoints: dict[str, str] = field(default_factory=dict)  ***REMOVED*** endpoint -> limit mapping
+    exempt_ips: list[str] = field(default_factory=list)
     headers: bool = True  ***REMOVED*** Include rate limit headers in response
 
 
@@ -98,7 +97,7 @@ class ContextConfig:
     """Configuration for request context middleware."""
 
     enabled: bool = True
-    service_name: Optional[str] = None
+    service_name: str | None = None
     auto_generate_request_id: bool = True
     extract_user_id: bool = True
     trace_propagation: bool = True
@@ -114,11 +113,11 @@ class MetricsConfig:
     enabled: bool = True
     endpoint_path: str = "/metrics"
     include_endpoint: bool = True  ***REMOVED*** Whether to add the /metrics endpoint
-    exclude_paths: List[str] = field(
+    exclude_paths: list[str] = field(
         default_factory=lambda: ["/metrics", "/health", "/docs", "/openapi.json"]
     )
-    exclude_methods: List[str] = field(default_factory=lambda: ["OPTIONS"])
-    custom_buckets: Optional[List[float]] = None  ***REMOVED*** Custom histogram buckets
+    exclude_methods: list[str] = field(default_factory=lambda: ["OPTIONS"])
+    custom_buckets: list[float] | None = None  ***REMOVED*** Custom histogram buckets
     track_request_size: bool = True
     track_response_size: bool = True
 
@@ -147,21 +146,21 @@ class MiddlewareConfig:
     """
 
     def __init__(self) -> None:
-        self._cors: Optional[CORSConfig] = None
-        self._security: Optional[SecurityConfig] = None
-        self._logging: Optional[LoggingConfig] = None
-        self._rate_limit: Optional[RateLimitConfig] = None
-        self._request: Optional[RequestConfig] = None
-        self._metrics: Optional[MetricsConfig] = None
-        self._context: Optional[ContextConfig] = None
+        self._cors: CORSConfig | None = None
+        self._security: SecurityConfig | None = None
+        self._logging: LoggingConfig | None = None
+        self._rate_limit: RateLimitConfig | None = None
+        self._request: RequestConfig | None = None
+        self._metrics: MetricsConfig | None = None
+        self._context: ContextConfig | None = None
 
     def cors(
         self,
-        origins: Optional[List[str]] = None,
-        methods: Optional[List[str]] = None,
-        headers: Optional[List[str]] = None,
+        origins: list[str] | None = None,
+        methods: list[str] | None = None,
+        headers: list[str] | None = None,
         credentials: bool = False,
-        expose_headers: Optional[List[str]] = None,
+        expose_headers: list[str] | None = None,
         max_age: int = 600,
         enabled: bool = True,
     ) -> "MiddlewareConfig":
@@ -198,9 +197,9 @@ class MiddlewareConfig:
         frame_options: str = "DENY",
         content_type_options: bool = True,
         xss_protection: bool = True,
-        csp: Optional[str] = None,
+        csp: str | None = None,
         referrer_policy: str = "strict-origin-when-cross-origin",
-        trusted_hosts: Optional[List[str]] = None,
+        trusted_hosts: list[str] | None = None,
         enabled: bool = True,
     ) -> "MiddlewareConfig":
         """Configure security headers middleware.
@@ -240,10 +239,10 @@ class MiddlewareConfig:
         include_request_body: bool = False,
         include_response_body: bool = False,
         max_body_size: int = 1024,
-        exclude_paths: Optional[List[str]] = None,
-        exclude_additional: Optional[List[str]] = None,
+        exclude_paths: list[str] | None = None,
+        exclude_additional: list[str] | None = None,
         include_headers: bool = True,
-        exclude_headers: Optional[List[str]] = None,
+        exclude_headers: list[str] | None = None,
         log_timing: bool = True,
         log_user_agent: bool = True,
         enabled: bool = True,
@@ -292,10 +291,10 @@ class MiddlewareConfig:
     def rate_limiting(
         self,
         default_limit: str = "100/minute",
-        storage_url: Optional[str] = None,
+        storage_url: str | None = None,
         key_func: str = "ip",
-        endpoints: Optional[Dict[str, str]] = None,
-        exempt_ips: Optional[List[str]] = None,
+        endpoints: dict[str, str] | None = None,
+        exempt_ips: list[str] | None = None,
         headers: bool = True,
         enabled: bool = True,
     ) -> "MiddlewareConfig":
@@ -369,10 +368,10 @@ class MiddlewareConfig:
         self,
         endpoint_path: str = "/metrics",
         include_endpoint: bool = True,
-        exclude_paths: Optional[List[str]] = None,
-        exclude_additional: Optional[List[str]] = None,
-        exclude_methods: Optional[List[str]] = None,
-        custom_buckets: Optional[List[float]] = None,
+        exclude_paths: list[str] | None = None,
+        exclude_additional: list[str] | None = None,
+        exclude_methods: list[str] | None = None,
+        custom_buckets: list[float] | None = None,
         track_request_size: bool = True,
         track_response_size: bool = True,
         enabled: bool = True,
@@ -416,7 +415,7 @@ class MiddlewareConfig:
 
     def context(
         self,
-        service_name: Optional[str] = None,
+        service_name: str | None = None,
         auto_generate_request_id: bool = True,
         extract_user_id: bool = True,
         trace_propagation: bool = True,
@@ -454,37 +453,37 @@ class MiddlewareConfig:
 
     ***REMOVED*** Property accessors for the setup module
     @property
-    def cors_config(self) -> Optional[CORSConfig]:
+    def cors_config(self) -> CORSConfig | None:
         """Get CORS configuration."""
         return self._cors
 
     @property
-    def security_config(self) -> Optional[SecurityConfig]:
+    def security_config(self) -> SecurityConfig | None:
         """Get security configuration."""
         return self._security
 
     @property
-    def logging_config(self) -> Optional[LoggingConfig]:
+    def logging_config(self) -> LoggingConfig | None:
         """Get logging configuration."""
         return self._logging
 
     @property
-    def rate_limit_config(self) -> Optional[RateLimitConfig]:
+    def rate_limit_config(self) -> RateLimitConfig | None:
         """Get rate limiting configuration."""
         return self._rate_limit
 
     @property
-    def request_config(self) -> Optional[RequestConfig]:
+    def request_config(self) -> RequestConfig | None:
         """Get request processing configuration."""
         return self._request
 
     @property
-    def metrics_config(self) -> Optional[MetricsConfig]:
+    def metrics_config(self) -> MetricsConfig | None:
         """Get metrics configuration."""
         return self._metrics
 
     @property
-    def context_config(self) -> Optional[ContextConfig]:
+    def context_config(self) -> ContextConfig | None:
         """Get context configuration."""
         return self._context
 
@@ -516,9 +515,7 @@ if __name__ == "__main__":
         hsts=True, csp="default-src 'self'"
     ).rate_limiting(default_limit="100/minute", endpoints={"/api/auth/login": "5/minute"}).logging(
         level="DEBUG", include_request_body=True
-    ).request_processing(
-        include_request_id=True, gzip_compression=True
-    )
+    ).request_processing(include_request_id=True, gzip_compression=True)
 
     ***REMOVED*** Verify configuration
     assert config.has_any_middleware(), "Should have middleware configured"

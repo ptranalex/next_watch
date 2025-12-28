@@ -4,11 +4,11 @@ This module provides utilities for handling API versioning in FastAPI applicatio
 supporting both URL path and header-based versioning strategies.
 """
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Request, status
-from fastapi.routing import APIRoute
 
 
 class VersioningStrategy(str, Enum):
@@ -28,7 +28,7 @@ class APIVersion:
         major: int,
         minor: int = 0,
         patch: int = 0,
-        label: Optional[str] = None,
+        label: str | None = None,
     ):
         """Initialize API version.
 
@@ -134,7 +134,7 @@ class VersionedRouter:
         strategy: VersioningStrategy = VersioningStrategy.URL_PATH,
         header_name: str = "API-Version",
         query_param_name: str = "version",
-        default_version: Optional[APIVersion] = None,
+        default_version: APIVersion | None = None,
     ):
         """Initialize versioned router.
 
@@ -148,9 +148,9 @@ class VersionedRouter:
         self.header_name = header_name
         self.query_param_name = query_param_name
         self.default_version = default_version or APIVersion(1, 0, 0)
-        self.routers: Dict[str, APIRouter] = {}
+        self.routers: dict[str, APIRouter] = {}
 
-    def get_router(self, version: Union[str, APIVersion]) -> APIRouter:
+    def get_router(self, version: str | APIVersion) -> APIRouter:
         """Get or create router for specific version.
 
         Args:
@@ -178,7 +178,7 @@ class VersionedRouter:
     def include_versioned_router(
         self,
         app_router: APIRouter,
-        version: Union[str, APIVersion],
+        version: str | APIVersion,
         router: APIRouter,
     ) -> None:
         """Include a versioned router in the main app router.
@@ -303,7 +303,7 @@ def version_header_dependency(
         Dependency function that extracts version from header
     """
 
-    def get_version(version_header: Optional[str] = Header(None, alias=header_name)) -> APIVersion:
+    def get_version(version_header: str | None = Header(None, alias=header_name)) -> APIVersion:
         if not version_header:
             return APIVersion.from_string(default_version)
         try:
@@ -318,8 +318,8 @@ def version_header_dependency(
 
 
 def deprecation_warning_middleware(
-    deprecated_versions: List[str],
-    sunset_date: Optional[str] = None,
+    deprecated_versions: list[str],
+    sunset_date: str | None = None,
 ) -> Callable:
     """Create middleware to add deprecation warnings.
 

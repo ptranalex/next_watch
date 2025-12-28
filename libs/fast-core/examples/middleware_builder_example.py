@@ -5,17 +5,17 @@ This example demonstrates how to use the new MiddlewareConfig system
 for granular middleware configuration in FastAPI applications.
 """
 
-from typing import Dict, Any, cast
+import os
 
 ***REMOVED*** Import from the local fast_core package
 import sys
-import os
+from typing import Any, cast
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from fast_core.app import create_app  ***REMOVED*** type: ignore
 from fast_core.middleware import MiddlewareConfig  ***REMOVED*** type: ignore
-from fastapi import APIRouter, Request, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 
 
 ***REMOVED*** Example settings class
@@ -32,7 +32,7 @@ api_router = APIRouter(prefix="/api/v1")
 
 
 @api_router.get("/hello")
-async def hello(request: Request) -> Dict[str, Any]:
+async def hello(request: Request) -> dict[str, Any]:
     """Example endpoint that shows middleware features."""
     return {
         "message": "Hello, World!",
@@ -42,7 +42,7 @@ async def hello(request: Request) -> Dict[str, Any]:
 
 
 @api_router.get("/slow")
-async def slow_endpoint() -> Dict[str, str]:
+async def slow_endpoint() -> dict[str, str]:
     """Endpoint that takes time to demonstrate process time headers."""
     import asyncio
 
@@ -51,7 +51,7 @@ async def slow_endpoint() -> Dict[str, str]:
 
 
 @api_router.post("/data")
-async def post_data(data: dict) -> Dict[str, Any]:
+async def post_data(data: dict) -> dict[str, Any]:
     """Endpoint for testing request body logging."""
     return {"received": data}
 
@@ -170,7 +170,8 @@ def create_minimal_app() -> FastAPI:
     """Create an app with minimal middleware (only what's needed)."""
     middleware = MiddlewareConfig()
     middleware.cors(origins=["http://localhost:3000"], credentials=False).request_processing(
-        include_request_id=True, gzip_compression=False  ***REMOVED*** Disable compression for minimal setup
+        include_request_id=True,
+        gzip_compression=False,  ***REMOVED*** Disable compression for minimal setup
     )
 
     app = create_app(settings=settings, middleware=middleware, routers=[api_router])

@@ -4,8 +4,9 @@ This module provides dependency providers for database sessions and
 transaction management in FastAPI applications.
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, cast
+from typing import Any, cast
 
 from config.logging import get_logger
 from fastapi import Depends, Request
@@ -153,7 +154,7 @@ class DatabaseService:
         """
         self.session = session
 
-    async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    async def execute(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query.
 
         Args:
@@ -175,7 +176,7 @@ class DatabaseService:
             logger.error(f"Database execute error: {e}")
             raise
 
-    async def fetch_one(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    async def fetch_one(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Fetch one row from query.
 
         Args:
@@ -193,7 +194,7 @@ class DatabaseService:
         else:
             return result
 
-    async def fetch_all(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Any]:
+    async def fetch_all(self, query: str, params: dict[str, Any] | None = None) -> list[Any]:
         """Fetch all rows from query.
 
         Args:
@@ -206,10 +207,10 @@ class DatabaseService:
         result = await self.execute(query, params)
         if hasattr(result, "fetchall"):
             fetchall_result = await result.fetchall()
-            return cast(List[Any], fetchall_result)
+            return cast(list[Any], fetchall_result)
         elif hasattr(result, "all"):
             all_result = result.all()
-            return cast(List[Any], all_result)
+            return cast(list[Any], all_result)
         else:
             return [result] if result else []
 

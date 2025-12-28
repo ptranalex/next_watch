@@ -7,10 +7,11 @@ the configuration classes defined in the config module.
 
 import time
 import uuid
-from typing import Any, Callable, Optional, Dict, Deque, Union
 from collections import defaultdict, deque
-import structlog
+from collections.abc import Callable
+from typing import Any
 
+import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -19,14 +20,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from .config import (
-    MiddlewareConfig,
+    ContextConfig,
     CORSConfig,
-    SecurityConfig,
     LoggingConfig,
+    MetricsConfig,
+    MiddlewareConfig,
     RateLimitConfig,
     RequestConfig,
-    MetricsConfig,
-    ContextConfig,
+    SecurityConfig,
 )
 
 logger = structlog.get_logger(__name__)
@@ -206,7 +207,7 @@ def _setup_rate_limiting_middleware(app: FastAPI, config: RateLimitConfig) -> No
     ***REMOVED*** In production, you'd want to use Redis or similar for distributed rate limiting
 
     ***REMOVED*** Simple in-memory rate limiter
-    request_counts: Dict[str, Deque[float]] = defaultdict(deque)
+    request_counts: dict[str, deque[float]] = defaultdict(deque)
 
     def parse_limit(limit_str: str) -> tuple[int, int]:
         """Parse limit string like '100/minute' into (requests, seconds)."""
@@ -219,9 +220,7 @@ def _setup_rate_limiting_middleware(app: FastAPI, config: RateLimitConfig) -> No
             "minute": 60,
             "hour": 3600,
             "day": 86400,
-        }.get(
-            period, 60
-        )  ***REMOVED*** Default to minute
+        }.get(period, 60)  ***REMOVED*** Default to minute
 
         return num_requests, period_seconds
 
@@ -318,10 +317,9 @@ def _setup_metrics_middleware(app: FastAPI, config: MetricsConfig) -> None:
     """Set up Prometheus metrics middleware."""
     try:
         from fast_core.monitoring.metrics import (
-            MetricsRegistry,
             PrometheusMiddleware,
-            setup_metrics_endpoint,
             initialize_metrics,
+            setup_metrics_endpoint,
         )
 
         ***REMOVED*** Get or create metrics registry

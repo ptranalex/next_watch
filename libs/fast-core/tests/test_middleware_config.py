@@ -2,14 +2,13 @@
 Tests for the Fast Core Middleware Configuration System
 """
 
-import pytest
 from fast_core.middleware import (
-    MiddlewareConfig,
     CORSConfig,
-    SecurityConfig,
     LoggingConfig,
+    MiddlewareConfig,
     RateLimitConfig,
     RequestConfig,
+    SecurityConfig,
 )
 
 

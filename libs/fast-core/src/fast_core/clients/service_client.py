@@ -2,7 +2,7 @@
 
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 
@@ -20,10 +20,10 @@ class ServiceConfig:
     """
 
     base_url: str
-    version: Optional[str] = "v1"
+    version: str | None = "v1"
     api_prefix: str = "api"
     timeout: float = 30.0
-    headers: Optional[Dict[str, str]] = None
+    headers: dict[str, str] | None = None
 
     def __post_init__(self) -> None:
         """Validate configuration after initialization."""

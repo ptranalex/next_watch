@@ -6,7 +6,8 @@ with configurable detail levels and structured logging support.
 
 import time
 import uuid
-from typing import Any, Callable, List, Optional, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 import structlog
 from fastapi import FastAPI, Request, Response
@@ -27,7 +28,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         include_headers: bool = False,
         include_body: bool = False,
         max_body_size: int = 1024,
-        exclude_paths: Optional[List[str]] = None,
+        exclude_paths: list[str] | None = None,
         level: str = "INFO",
     ):
         """Initialize logging middleware.

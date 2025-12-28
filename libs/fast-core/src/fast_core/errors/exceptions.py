@@ -4,7 +4,7 @@ This module provides custom exception classes that can be raised in
 FastAPI applications and handled by the error handlers.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import HTTPException
 
@@ -19,9 +19,9 @@ class APIException(HTTPException):
         self,
         status_code: int,
         detail: str,
-        error_code: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        error_code: str | None = None,
+        context: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ):
         """Initialize API exception.
 
@@ -43,9 +43,9 @@ class ValidationException(APIException):
     def __init__(
         self,
         detail: str = "Validation error",
-        field_errors: Optional[List[Dict[str, Any]]] = None,
+        field_errors: list[dict[str, Any]] | None = None,
         error_code: str = "VALIDATION_ERROR",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize validation exception.
 
@@ -71,8 +71,8 @@ class AuthenticationException(APIException):
         self,
         detail: str = "Authentication required",
         error_code: str = "AUTHENTICATION_REQUIRED",
-        context: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        context: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ):
         """Initialize authentication exception.
 
@@ -101,9 +101,9 @@ class AuthorizationException(APIException):
     def __init__(
         self,
         detail: str = "Insufficient permissions",
-        required_permissions: Optional[List[str]] = None,
+        required_permissions: list[str] | None = None,
         error_code: str = "INSUFFICIENT_PERMISSIONS",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize authorization exception.
 
@@ -128,10 +128,10 @@ class ResourceNotFoundException(APIException):
     def __init__(
         self,
         detail: str = "Resource not found",
-        resource_type: Optional[str] = None,
-        resource_id: Optional[str] = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
         error_code: str = "RESOURCE_NOT_FOUND",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize resource not found exception.
 
@@ -158,9 +158,9 @@ class ConflictException(APIException):
     def __init__(
         self,
         detail: str = "Resource conflict",
-        conflicting_resource: Optional[Dict[str, Any]] = None,
+        conflicting_resource: dict[str, Any] | None = None,
         error_code: str = "RESOURCE_CONFLICT",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize conflict exception.
 
@@ -185,9 +185,9 @@ class RateLimitException(APIException):
     def __init__(
         self,
         detail: str = "Rate limit exceeded",
-        retry_after: Optional[int] = None,
+        retry_after: int | None = None,
         error_code: str = "RATE_LIMIT_EXCEEDED",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize rate limit exception.
 
@@ -217,10 +217,10 @@ class ServiceUnavailableException(APIException):
     def __init__(
         self,
         detail: str = "Service temporarily unavailable",
-        service_name: Optional[str] = None,
-        retry_after: Optional[int] = None,
+        service_name: str | None = None,
+        retry_after: int | None = None,
         error_code: str = "SERVICE_UNAVAILABLE",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize service unavailable exception.
 
@@ -252,7 +252,7 @@ class BusinessLogicException(APIException):
         self,
         detail: str,
         error_code: str = "BUSINESS_LOGIC_ERROR",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize business logic exception.
 
@@ -275,10 +275,10 @@ class ExternalServiceException(APIException):
     def __init__(
         self,
         detail: str = "External service error",
-        service_name: Optional[str] = None,
-        upstream_status: Optional[int] = None,
+        service_name: str | None = None,
+        upstream_status: int | None = None,
         error_code: str = "EXTERNAL_SERVICE_ERROR",
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """Initialize external service exception.
 

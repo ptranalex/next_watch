@@ -5,10 +5,9 @@ and basic components of the Fast Core library.
 """
 
 import pytest
+from fast_core import AppOptions, FastAPIConfig, create_app
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
-from fast_core import AppOptions, FastAPIConfig, create_app
 
 
 class TestConfig(FastAPIConfig):

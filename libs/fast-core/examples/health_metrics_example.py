@@ -6,15 +6,13 @@ with the health check system to provide Prometheus metrics for monitoring.
 
 import asyncio
 import time
-from typing import Dict, Any
 
 from fast_core.monitoring import (
-    HealthCheckRegistry,
-    HealthCheckDefinition,
-    HealthCheckResult,
     HealthCheckCategory,
+    HealthCheckDefinition,
+    HealthCheckRegistry,
+    HealthCheckResult,
     HealthCheckType,
-    MetricsRegistry,
     initialize_metrics,
 )
 

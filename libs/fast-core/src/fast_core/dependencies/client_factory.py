@@ -5,19 +5,18 @@ service clients with support for custom client types, singleton patterns,
 and automatic configuration.
 """
 
-import inspect
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union, get_type_hints
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 import httpx
-from fastapi import Depends
 from config.logging import get_logger
 
-from .singleton import get_singleton_client, register_singleton, get_singleton
+from .singleton import get_singleton, register_singleton
 
 ***REMOVED*** Import tracing functionality
 try:
-    from fast_core.middleware.context import get_request_context, inject_trace_context
+    from fast_core.middleware.context import get_request_context
 
     TRACING_AVAILABLE = True
 except ImportError:
@@ -36,12 +35,12 @@ class ServiceClientConfig:
         name: str,
         base_url: str,
         timeout: int = 30,
-        headers: Optional[Dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
         singleton: bool = False,
-        client_class: Optional[Type] = None,
-        client_kwargs: Optional[Dict[str, Any]] = None,
+        client_class: type | None = None,
+        client_kwargs: dict[str, Any] | None = None,
         enable_tracing: bool = True,
-        trace_service_name: Optional[str] = None,
+        trace_service_name: str | None = None,
     ):
         """Initialize service client configuration.
 
@@ -79,7 +78,7 @@ class BaseServiceClient(ABC):
         self.config = config
         self.name = config.name
         self.base_url = config.base_url
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client."""
@@ -93,8 +92,8 @@ class BaseServiceClient(ABC):
         return self._client
 
     def _get_request_headers(
-        self, additional_headers: Optional[Dict[str, str]] = None
-    ) -> Dict[str, str]:
+        self, additional_headers: dict[str, str] | None = None
+    ) -> dict[str, str]:
         """Get headers for current request with automatic trace injection.
 
         Args:
@@ -140,15 +139,14 @@ class BaseServiceClient(ABC):
             self._client = None
 
     @abstractmethod
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check for the service."""
-        pass
 
 
 class GenericServiceClient(BaseServiceClient):
     """Generic service client for simple HTTP operations."""
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check."""
         try:
             client = await self._get_client()
@@ -206,21 +204,21 @@ class ServiceClientFactory:
 
     def __init__(self) -> None:
         """Initialize service client factory."""
-        self._configs: Dict[str, ServiceClientConfig] = {}
-        self._client_types: Dict[str, Type[BaseServiceClient]] = {}
-        self._instances: Dict[str, Any] = {}
+        self._configs: dict[str, ServiceClientConfig] = {}
+        self._client_types: dict[str, type[BaseServiceClient]] = {}
+        self._instances: dict[str, Any] = {}
 
     def register_service(
         self,
         name: str,
         base_url: str,
         timeout: int = 30,
-        headers: Optional[Dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
         singleton: bool = False,
-        client_class: Optional[Type] = None,
-        client_kwargs: Optional[Dict[str, Any]] = None,
+        client_class: type | None = None,
+        client_kwargs: dict[str, Any] | None = None,
         enable_tracing: bool = True,
-        trace_service_name: Optional[str] = None,
+        trace_service_name: str | None = None,
     ) -> None:
         """Register a service configuration.
 
@@ -254,7 +252,7 @@ class ServiceClientFactory:
     def register_client_type(
         self,
         service_name: str,
-        client_class: Type[BaseServiceClient],
+        client_class: type[BaseServiceClient],
         singleton: bool = True,
     ) -> None:
         """Register a custom client type for a service.
@@ -344,7 +342,7 @@ class ServiceClientFactory:
             dependency.__doc__ = f"Get {service_name} client instance"
             return dependency
 
-    def list_services(self) -> Dict[str, Dict[str, Any]]:
+    def list_services(self) -> dict[str, dict[str, Any]]:
         """List all registered services and their configurations.
 
         Returns:
@@ -361,7 +359,7 @@ class ServiceClientFactory:
             }
         return result
 
-    async def health_check_all(self) -> Dict[str, Dict[str, Any]]:
+    async def health_check_all(self) -> dict[str, dict[str, Any]]:
         """Perform health checks for all registered services.
 
         Returns:
@@ -386,7 +384,7 @@ class ServiceClientFactory:
                 }
         return results
 
-    async def _basic_health_check(self, service_name: str, client: Any) -> Dict[str, Any]:
+    async def _basic_health_check(self, service_name: str, client: Any) -> dict[str, Any]:
         """Basic health check for generic HTTP clients.
 
         Args:
@@ -426,12 +424,12 @@ def register_service(
     name: str,
     base_url: str,
     timeout: int = 30,
-    headers: Optional[Dict[str, str]] = None,
+    headers: dict[str, str] | None = None,
     singleton: bool = False,
-    client_class: Optional[Type] = None,
-    client_kwargs: Optional[Dict[str, Any]] = None,
+    client_class: type | None = None,
+    client_kwargs: dict[str, Any] | None = None,
     enable_tracing: bool = True,
-    trace_service_name: Optional[str] = None,
+    trace_service_name: str | None = None,
 ) -> None:
     """Register a service with the global factory.
 
@@ -461,7 +459,7 @@ def register_service(
 
 def register_client_type(
     service_name: str,
-    client_class: Type[BaseServiceClient],
+    client_class: type[BaseServiceClient],
     singleton: bool = True,
 ) -> None:
     """Register a custom client type with the global factory.
@@ -499,7 +497,7 @@ def create_service_client(service_name: str, **kwargs: Any) -> Any:
     return _service_factory.create_client(service_name, **kwargs)
 
 
-def list_services() -> Dict[str, Dict[str, Any]]:
+def list_services() -> dict[str, dict[str, Any]]:
     """List all registered services.
 
     Returns:
@@ -508,7 +506,7 @@ def list_services() -> Dict[str, Dict[str, Any]]:
     return _service_factory.list_services()
 
 
-async def health_check_all_services() -> Dict[str, Dict[str, Any]]:
+async def health_check_all_services() -> dict[str, dict[str, Any]]:
     """Perform health checks for all services.
 
     Returns:
@@ -530,7 +528,7 @@ def get_service_factory() -> ServiceClientFactory:
 def service_client(
     service_name: str,
     singleton: bool = True,
-) -> Callable[[Type[BaseServiceClient]], Type[BaseServiceClient]]:
+) -> Callable[[type[BaseServiceClient]], type[BaseServiceClient]]:
     """Decorator to register a custom service client class.
 
     Args:
@@ -541,7 +539,7 @@ def service_client(
         Decorator function
     """
 
-    def decorator(client_class: Type[BaseServiceClient]) -> Type[BaseServiceClient]:
+    def decorator(client_class: type[BaseServiceClient]) -> type[BaseServiceClient]:
         register_client_type(service_name, client_class, singleton)
         return client_class
 
@@ -550,16 +548,16 @@ def service_client(
 
 ***REMOVED*** Export all public functions
 __all__ = [
-    "ServiceClientConfig",
     "BaseServiceClient",
     "GenericServiceClient",
+    "ServiceClientConfig",
     "ServiceClientFactory",
-    "register_service",
-    "register_client_type",
-    "get_service_client",
     "create_service_client",
-    "list_services",
-    "health_check_all_services",
+    "get_service_client",
     "get_service_factory",
+    "health_check_all_services",
+    "list_services",
+    "register_client_type",
+    "register_service",
     "service_client",
 ]

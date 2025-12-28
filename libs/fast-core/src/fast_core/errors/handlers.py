@@ -2,24 +2,26 @@
 
 import functools
 import inspect
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, Type
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 import httpx
 from fastapi import HTTPException
+
 from fast_core.errors.exceptions import (
-    ExternalServiceException,
-    ResourceNotFoundException,
     AuthenticationException,
     AuthorizationException,
-    ValidationException,
+    ExternalServiceException,
+    ResourceNotFoundException,
     ServiceUnavailableException,
+    ValidationException,
 )
 
 F = TypeVar("F", bound=Callable[..., Any])
 
 ***REMOVED*** Type alias for error mappers
 ErrorMapper = Callable[[Exception], Any]
-ErrorMapping = Dict[Union[Type[Exception], int, str], ErrorMapper]
+ErrorMapping = dict[type[Exception] | int | str, ErrorMapper]
 
 
 def _is_expected_client_error(e: Exception) -> bool:
@@ -70,7 +72,7 @@ def handle_service_error(
     service_name: str,
     logger: Any,
     preserve_semantics: bool = True,
-    error_mapping: Optional[ErrorMapping] = None,
+    error_mapping: ErrorMapping | None = None,
     graceful_degradation: bool = False,
     fallback_value: Any = None,
     **context: Any,
@@ -288,7 +290,7 @@ def handle_service_error(
 
 def _apply_error_mapping(
     e: Exception, error_mapping: ErrorMapping, service_name: str
-) -> Optional[Any]:
+) -> Any | None:
     """Apply custom error mapping to an exception."""
 
     ***REMOVED*** Check by exception type
@@ -363,7 +365,7 @@ def _handle_http_status_error(
     )
 
 
-def _handle_custom_client_errors(e: Exception, service_name: str) -> Optional[Exception]:
+def _handle_custom_client_errors(e: Exception, service_name: str) -> Exception | None:
     """Handle custom client errors like BackendClientPermanentError."""
     exception_name = type(e).__name__
     error_str = str(e)
@@ -390,7 +392,7 @@ def _handle_custom_client_errors(e: Exception, service_name: str) -> Optional[Ex
     return None
 
 
-def _handle_known_exceptions(e: Exception, service_name: str) -> Optional[Exception]:
+def _handle_known_exceptions(e: Exception, service_name: str) -> Exception | None:
     """Handle known exception types by preserving or enhancing them."""
 
     ***REMOVED*** Already semantic exceptions - enhance with service context
@@ -413,9 +415,9 @@ def _handle_known_exceptions(e: Exception, service_name: str) -> Optional[Except
 def service_error_handler(
     service_name: str,
     logger: Any,
-    operation_name: Optional[str] = None,
+    operation_name: str | None = None,
     preserve_semantics: bool = True,
-    error_mapping: Optional[ErrorMapping] = None,
+    error_mapping: ErrorMapping | None = None,
     graceful_degradation: bool = False,
     fallback_value: Any = None,
     critical: bool = True,
@@ -590,9 +592,9 @@ def create_error_response(
     page: int,
     limit: int,
     collection_type: str,
-    service_names: Optional[List[str]] = None,
+    service_names: list[str] | None = None,
     error_message: str = "Service unavailable",
-    user_id: Optional[int] = None,
+    user_id: int | None = None,
     **metadata_extras: Any,
 ) -> Any:
     """Create a consistent paginated error response.

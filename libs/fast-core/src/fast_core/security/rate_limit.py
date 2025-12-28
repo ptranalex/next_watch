@@ -6,8 +6,9 @@ including in-memory and Redis-based rate limiters.
 
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any
 
 from config.logging import get_logger
 from fastapi import HTTPException, Request
@@ -71,7 +72,7 @@ class MemoryRateLimiter(RateLimiter):
         """
         self.requests_per_minute = requests_per_minute
         self.window_size = window_size
-        self.requests: Dict[str, list] = {}
+        self.requests: dict[str, list] = {}
 
     async def is_rate_limited(self, key: str, identifier: str) -> bool:
         """Check if request is rate limited."""
@@ -263,8 +264,8 @@ async def check_rate_limit(
 def rate_limit(
     requests: int = 60,
     window: int = 60,
-    key: Optional[str] = None,
-    rate_limiter: Optional[RateLimiter] = None,
+    key: str | None = None,
+    rate_limiter: RateLimiter | None = None,
 ) -> Callable[[Callable[..., Awaitable[Any]]], Callable[..., Awaitable[Any]]]:
     """Decorator for rate limiting endpoints.
 

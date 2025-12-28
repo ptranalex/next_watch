@@ -4,21 +4,15 @@ This module provides a standardized way to create FastAPI applications
 with consistent configuration, middleware, and error handling.
 """
 
-import structlog
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from typing import (
-    Any,
-    AsyncGenerator,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    Union,
     TYPE_CHECKING,
+    Any,
+    Optional,
 )
 
+import structlog
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -38,9 +32,9 @@ class AppOptions:
         health_checks: bool = True,
         docs: bool = True,
         meta_endpoints: bool = True,
-        meta_features: Optional[List[str]] = None,
-        meta_endpoints_map: Optional[Dict[str, str]] = None,
-        meta_debug_provider: Optional[Callable] = None,
+        meta_features: list[str] | None = None,
+        meta_endpoints_map: dict[str, str] | None = None,
+        meta_debug_provider: Callable | None = None,
     ):
         self.exception_handlers = exception_handlers
         self.health_checks = health_checks
@@ -95,15 +89,15 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 def create_app(
     settings: Any,
-    title: Optional[str] = None,
-    description: Optional[str] = None,
+    title: str | None = None,
+    description: str | None = None,
     version: str = "0.1.0",
-    options: Optional[AppOptions] = None,
+    options: AppOptions | None = None,
     middleware: Optional["MiddlewareConfig"] = None,
-    routers: Optional[List[APIRouter]] = None,
-    lifespan: Optional[Callable] = None,
-    on_startup: Optional[List[Callable]] = None,
-    on_shutdown: Optional[List[Callable]] = None,
+    routers: list[APIRouter] | None = None,
+    lifespan: Callable | None = None,
+    on_startup: list[Callable] | None = None,
+    on_shutdown: list[Callable] | None = None,
 ) -> FastAPI:
     """Create a FastAPI application with standard configuration.
 

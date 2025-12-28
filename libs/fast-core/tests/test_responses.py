@@ -1,8 +1,5 @@
 """Tests for response builder functionality."""
 
-import pytest
-from typing import Any, Dict, List
-
 from fast_core.responses import ResponseBuilder
 
 

@@ -4,10 +4,11 @@ This module provides a BaseRouter class that extends FastAPI's APIRouter
 with additional functionality and standardized patterns.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter
 from fastapi.routing import APIRoute
 
 logger = get_logger(__name__)
@@ -27,10 +28,10 @@ class BaseRouter(APIRouter):
         self,
         *,
         prefix: str = "",
-        tags: Optional[List[str]] = None,
-        dependencies: Optional[Sequence[Any]] = None,
-        responses: Optional[Dict[int, Dict[str, Any]]] = None,
-        route_class: Type[APIRoute] = APIRoute,
+        tags: list[str] | None = None,
+        dependencies: Sequence[Any] | None = None,
+        responses: dict[int, dict[str, Any]] | None = None,
+        route_class: type[APIRoute] = APIRoute,
         **kwargs: Any,
     ) -> None:
         """Initialize the router with enhanced defaults.
@@ -44,7 +45,7 @@ class BaseRouter(APIRouter):
             **kwargs: Additional arguments for APIRouter
         """
         ***REMOVED*** Add standard responses for common status codes
-        standard_responses: Dict[Union[int, str], Dict[str, Any]] = {
+        standard_responses: dict[int | str, dict[str, Any]] = {
             400: {"description": "Bad Request", "model": None},
             401: {"description": "Unauthorized", "model": None},
             403: {"description": "Forbidden", "model": None},
@@ -74,7 +75,7 @@ class BaseRouter(APIRouter):
         self,
         router: APIRouter,
         prefix: str,
-        version: Union[int, str] = 1,
+        version: int | str = 1,
     ) -> None:
         """Include routes with version prefix.
 
@@ -89,7 +90,7 @@ class BaseRouter(APIRouter):
         self.include_router(router, prefix=versioned_prefix)
         logger.debug(f"Included versioned router at: {versioned_prefix}")
 
-    def add_error_handler(self, exc_class: Type[Exception], handler: Callable) -> None:
+    def add_error_handler(self, exc_class: type[Exception], handler: Callable) -> None:
         """Add an error handler for a specific exception.
 
         This is a convenience method that adds the handler to the parent app

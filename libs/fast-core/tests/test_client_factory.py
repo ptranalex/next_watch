@@ -1,26 +1,25 @@
 """Tests for service client factory system."""
 
-import pytest
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
-from typing import Dict, Any
 
 import httpx
-from fastapi import FastAPI, Depends
-
+import pytest
 from fast_core.dependencies.client_factory import (
-    ServiceClientConfig,
     BaseServiceClient,
     GenericServiceClient,
+    ServiceClientConfig,
     ServiceClientFactory,
-    register_service,
-    register_client_type,
-    get_service_client,
     create_service_client,
-    list_services,
-    health_check_all_services,
+    get_service_client,
     get_service_factory,
+    health_check_all_services,
+    list_services,
+    register_client_type,
+    register_service,
     service_client,
 )
+from fastapi import Depends, FastAPI
 
 
 class TestServiceClientConfig:
@@ -67,7 +66,7 @@ class MockServiceClient(BaseServiceClient):
         super().__init__(config)
         self.custom_kwargs = kwargs
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Mock health check."""
         return {
             "service": self.name,
@@ -116,7 +115,7 @@ class TestBaseServiceClient:
         client = MockServiceClient(config)
 
         ***REMOVED*** Create client
-        http_client = await client._get_client()
+        await client._get_client()
         assert client._client is not None
 
         ***REMOVED*** Close client
@@ -414,7 +413,7 @@ class TestGlobalFunctions:
 
         @service_client("decorated-service", singleton=True)
         class DecoratedClient(BaseServiceClient):
-            async def health_check(self) -> Dict[str, Any]:
+            async def health_check(self) -> dict[str, Any]:
                 return {"service": self.name, "status": "decorated"}
 
         client = create_service_client("decorated-service")

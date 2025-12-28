@@ -5,7 +5,7 @@ across FastAPI applications.
 """
 
 import uuid
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 from config.logging import get_logger
 from fastapi import Depends, Query, Request
@@ -106,10 +106,10 @@ def get_pagination(
 
 
 def get_search_params(
-    query: Optional[str] = Query(None, description="Search query"),
-    sort_by: Optional[str] = Query(None, description="Field to sort by"),
+    query: str | None = Query(None, description="Search query"),
+    sort_by: str | None = Query(None, description="Field to sort by"),
     sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order"),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get search and sorting parameters.
 
     Args:

@@ -5,10 +5,6 @@ and error response utilities.
 """
 
 import pytest
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.testclient import TestClient
-
 from fast_core.errors.exceptions import (
     APIException,
     AuthenticationException,
@@ -25,13 +21,8 @@ from fast_core.errors.handlers import (
     api_exception_handler,
     authentication_exception_handler,
     authorization_exception_handler,
-    business_logic_exception_handler,
-    conflict_exception_handler,
-    external_service_exception_handler,
     get_exception_handlers,
     not_found_exception_handler,
-    rate_limit_exception_handler,
-    service_unavailable_exception_handler,
     validation_exception_handler,
 )
 from fast_core.errors.responses import (
@@ -43,6 +34,7 @@ from fast_core.errors.responses import (
     create_success_response,
     create_validation_error_response,
 )
+from fastapi.responses import JSONResponse
 
 
 class TestAPIException:

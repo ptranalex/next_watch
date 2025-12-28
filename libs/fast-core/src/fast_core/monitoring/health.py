@@ -15,15 +15,15 @@ Key Features:
 """
 
 import asyncio
-import logging
 import time
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
-from dataclasses import dataclass
+from typing import Any
 
 import structlog
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 
 logger = structlog.get_logger(__name__)
@@ -64,11 +64,11 @@ class HealthCheckResult:
 
     is_healthy: bool
     status: str
-    response_time_ms: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    response_time_ms: float | None = None
+    details: dict[str, Any] | None = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         result = {
             "healthy": self.is_healthy,
@@ -95,7 +95,7 @@ class HealthCheckDefinition:
     check_func: Callable[[], Awaitable[HealthCheckResult]]
     category: HealthCheckCategory  ***REMOVED*** Category automatically determines endpoint inclusion
     timeout_seconds: float = 5.0
-    cache_ttl_seconds: Optional[int] = None
+    cache_ttl_seconds: int | None = None
 
 
 class HealthCheckRegistry:
@@ -103,8 +103,8 @@ class HealthCheckRegistry:
 
     def __init__(self) -> None:
         """Initialize the health check registry."""
-        self._checks: Dict[str, HealthCheckDefinition] = {}
-        self._cache: Dict[str, tuple[HealthCheckResult, float]] = {}  ***REMOVED*** (result, timestamp)
+        self._checks: dict[str, HealthCheckDefinition] = {}
+        self._cache: dict[str, tuple[HealthCheckResult, float]] = {}  ***REMOVED*** (result, timestamp)
 
     def add_check(self, definition: HealthCheckDefinition) -> None:
         """Add a health check to the registry.
@@ -173,7 +173,7 @@ class HealthCheckRegistry:
             ***REMOVED*** Don't let metrics failures affect health checks
             logger.warning(f"Failed to update overall health metrics: {e}")
 
-    def get_checks_by_type(self, check_type: HealthCheckType) -> List[HealthCheckDefinition]:
+    def get_checks_by_type(self, check_type: HealthCheckType) -> list[HealthCheckDefinition]:
         """Get all health checks that should run for a specific endpoint type.
 
         Uses category-driven mapping to determine which checks belong to which endpoints.
@@ -197,7 +197,7 @@ class HealthCheckRegistry:
 
         return matching_checks
 
-    def get_check_category(self, check_name: str) -> Optional[HealthCheckCategory]:
+    def get_check_category(self, check_name: str) -> HealthCheckCategory | None:
         """Get the category of a specific health check.
 
         Args:
@@ -209,7 +209,7 @@ class HealthCheckRegistry:
         check = self._checks.get(check_name)
         return check.category if check else None
 
-    async def run_checks_for_type(self, check_type: HealthCheckType) -> Dict[str, Any]:
+    async def run_checks_for_type(self, check_type: HealthCheckType) -> dict[str, Any]:
         """Run all health checks for a specific endpoint type.
 
         Args:
@@ -258,7 +258,7 @@ class HealthCheckRegistry:
                         if result.is_healthy:
                             non_critical_healthy += 1
 
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.warning(f"Health check timeout: {check_name}")
                     results[check_name] = HealthCheckResult(
                         is_healthy=False, status="timeout", error="Health check timed out"
@@ -347,7 +347,7 @@ class HealthCheckRegistry:
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             response_time = (time.time() - start_time) * 1000
             result = HealthCheckResult(
                 is_healthy=False,
@@ -374,7 +374,7 @@ class HealthCheckRegistry:
 
             return result
 
-    def _get_cached_result(self, check_name: str, ttl_seconds: int) -> Optional[HealthCheckResult]:
+    def _get_cached_result(self, check_name: str, ttl_seconds: int) -> HealthCheckResult | None:
         """Get cached result if still valid.
 
         Args:
@@ -426,7 +426,7 @@ def setup_kubernetes_health_checks(
 
     ***REMOVED*** Liveness endpoint - basic process health
     @app.get(f"{base_path}/live", tags=["Health"])
-    async def liveness_probe() -> Dict[str, Any]:
+    async def liveness_probe() -> dict[str, Any]:
         """Liveness probe for Kubernetes/Docker.
 
         Simple endpoint that always returns 200 if the service is running.
@@ -528,7 +528,7 @@ def setup_kubernetes_health_checks(
                     if result.is_healthy:
                         info_healthy += 1
 
-            except (asyncio.TimeoutError, Exception) as e:
+            except (TimeoutError, Exception) as e:
                 error_msg = "timeout" if isinstance(e, asyncio.TimeoutError) else str(e)
                 results[check_name] = HealthCheckResult(
                     is_healthy=False, status="error", error=error_msg

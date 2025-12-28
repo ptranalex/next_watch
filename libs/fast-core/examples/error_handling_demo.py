@@ -12,15 +12,15 @@ This script demonstrates the new intelligent error handling capabilities:
 
 import asyncio
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
 from fast_core.errors import (
-    optional_service_handler,
-    critical_service_handler,
-    service_error_handler,
     ResourceNotFoundException,
     ValidationException,
+    critical_service_handler,
+    optional_service_handler,
+    service_error_handler,
 )
 
 ***REMOVED*** Configure logging
@@ -35,7 +35,7 @@ class DemoService:
         self.client = httpx.AsyncClient()
 
     @critical_service_handler("user-api", logger)
-    async def get_user_profile(self, user_id: int) -> Dict[str, Any]:
+    async def get_user_profile(self, user_id: int) -> dict[str, Any]:
         """Critical operation - user profile must be available."""
         if user_id <= 0:
             raise ValidationException("Invalid user ID")
@@ -46,7 +46,7 @@ class DemoService:
         return response.json()  ***REMOVED*** type: ignore
 
     @optional_service_handler(service_name="recommendation-api", logger=logger, fallback_value=[])
-    async def get_recommendations(self, user_id: int) -> List[Dict[str, Any]]:
+    async def get_recommendations(self, user_id: int) -> list[dict[str, Any]]:
         """Optional operation - gracefully degrades if service unavailable."""
         ***REMOVED*** Simulate a service that might be down
         response = await self.client.get(f"https://nonexistent-service.com/users/{user_id}/recs")
@@ -61,7 +61,7 @@ class DemoService:
             "rate_limit": lambda e: ValidationException("Analytics rate limit exceeded"),
         },
     )
-    async def track_event(self, event: str) -> Dict[str, Any]:
+    async def track_event(self, event: str) -> dict[str, Any]:
         """Custom error mapping for specific business logic."""
         if event == "payment_failed":
             ***REMOVED*** Simulate 402 Payment Required
@@ -83,7 +83,7 @@ class DemoService:
         graceful_degradation=True,
         fallback_value={"content": "Default content", "source": "fallback"},
     )
-    async def get_content(self, content_id: int) -> Dict[str, Any]:
+    async def get_content(self, content_id: int) -> dict[str, Any]:
         """Semantic preservation with graceful fallback."""
         if content_id == 404:
             ***REMOVED*** Simulate 404 Not Found

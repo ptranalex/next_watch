@@ -4,9 +4,8 @@ This example shows how to use the ResponseBuilder to create consistent,
 well-structured API responses across different patterns.
 """
 
-import sys
 import os
-from typing import Any, Dict, List
+import sys
 
 ***REMOVED*** Add the src directory to Python path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -308,7 +307,7 @@ def demo_custom_configuration():
 
     print("Custom Pagination (minimal):")
     print(f"  📊 Fields: {list(paginated['pagination'].keys())}")
-    print(f"  🚫 Missing: total_pages, has_next, has_prev")
+    print("  🚫 Missing: total_pages, has_next, has_prev")
 
     ***REMOVED*** Test search with custom config
     search = builder.search(

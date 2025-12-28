@@ -13,11 +13,8 @@ This example demonstrates advanced features of the Fast Core library including:
 
 import asyncio
 import time
-from typing import Optional
 
 import uvicorn
-from fastapi import Depends, Query
-from pydantic import BaseModel, Field
 
 ***REMOVED*** Import Fast Core components
 from fast_core import (  ***REMOVED*** Exceptions; Responses; Health checks; Security
@@ -26,7 +23,6 @@ from fast_core import (  ***REMOVED*** Exceptions; Responses; Health checks; Sec
     AppOptions,
     AuthenticationException,
     AuthorizationException,
-    BaseRouter,
     BusinessLogicException,
     ConflictException,
     FastAPIConfig,
@@ -35,30 +31,21 @@ from fast_core import (  ***REMOVED*** Exceptions; Responses; Health checks; Sec
     JWTManager,
     MemoryRateLimiter,
     PaginationParams,
-    RateLimiter,
     RateLimitException,
     ResourceNotFoundException,
     TokenData,
-    ValidationException,
     VersionedRouter,
     create_app,
-    create_error_response,
     create_paginated_response,
     create_success_response,
     get_pagination_params,
-    paginate_results,
     rate_limit,
     setup_health_checks,
 )
-
-try:
-    from fast_core.dependencies.auth import get_current_user, require_auth
-    from fast_core.dependencies.cache import get_cache_service
-    from fast_core.dependencies.common import get_request_id, get_settings
-    from fast_core.errors import setup_exception_handlers
-    from fast_core.middleware import setup_middleware
-except ImportError as e:
-    print(f"Some dependencies not available: {e}")
+from fast_core.dependencies.auth import require_auth
+from fast_core.dependencies.common import get_settings
+from fastapi import Depends, Query
+from pydantic import BaseModel, Field
 
 
 ***REMOVED*** Configuration
@@ -136,7 +123,7 @@ class Product(BaseModel):
     price: float
     category: str
     in_stock: bool = True
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
 
 class ProductCreate(BaseModel):
@@ -208,7 +195,7 @@ rate_limiter = MemoryRateLimiter(requests_per_minute=100)
 
 
 ***REMOVED*** Authentication functions
-async def authenticate_user(username: str, password: str) -> Optional[User]:
+async def authenticate_user(username: str, password: str) -> User | None:
     """Authenticate user credentials."""
     user = next((u for u in users_db if u.username == username), None)
     if not user or not user.is_active:
@@ -221,7 +208,7 @@ async def authenticate_user(username: str, password: str) -> Optional[User]:
     return user
 
 
-async def get_user_by_username(username: str) -> Optional[User]:
+async def get_user_by_username(username: str) -> User | None:
     """Get user by username."""
     return next((u for u in users_db if u.username == username), None)
 
@@ -324,9 +311,9 @@ async def get_current_user_info(
 @rate_limit(requests=50, window=60)  ***REMOVED*** 50 requests per minute
 async def list_products(
     pagination: PaginationParams = Depends(get_pagination_params),
-    category: Optional[str] = Query(None, description="Filter by category"),
-    in_stock: Optional[bool] = Query(None, description="Filter by stock status"),
-    search: Optional[str] = Query(None, description="Search in name and description"),
+    category: str | None = Query(None, description="Filter by category"),
+    in_stock: bool | None = Query(None, description="Filter by stock status"),
+    search: str | None = Query(None, description="Search in name and description"),
 ):
     """List products with filtering and pagination."""
     try:

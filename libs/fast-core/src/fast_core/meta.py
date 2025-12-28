@@ -8,19 +8,20 @@ for service discovery, debugging, and operational monitoring.
 import datetime
 import os
 import platform
-from typing import Any, Dict, List, Optional, Callable, Union, Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Any
+
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
 
 try:
-    from fast_core.routing.versioning import APIVersion, VersionedRouter
+    from fast_core.routing.versioning import APIVersion
 
     VERSIONING_AVAILABLE = True
 except ImportError:
     VERSIONING_AVAILABLE = False
 
 try:
-    from fast_core.monitoring.health import HealthCheckRegistry, HealthCheckResult
+    from fast_core.monitoring.health import HealthCheckRegistry
 
     HEALTH_MONITORING_AVAILABLE = True
 except ImportError:
@@ -28,7 +29,7 @@ except ImportError:
 
 
 async def _determine_service_status(
-    request: Request, health_check_provider: Optional[Callable] = None
+    request: Request, health_check_provider: Callable | None = None
 ) -> str:
     """Determine dynamic service status based on health registry.
 
@@ -61,7 +62,7 @@ async def _determine_service_status(
 
 async def _get_status_from_registry(registry: "HealthCheckRegistry") -> str:
     """Get status from health registry with CRITICAL flag support."""
-    from fast_core.monitoring.health import HealthCheckType, HealthCheckCategory
+    from fast_core.monitoring.health import HealthCheckCategory, HealthCheckType
 
     ***REMOVED*** Get comprehensive health status (CRITICAL + IMPORTANT services)
     ***REMOVED*** This matches the logic used by the /health endpoint for consistent status
@@ -136,12 +137,10 @@ def create_meta_router(
     service_name: str,
     service_description: str,
     version: str = "0.1.0",
-    features: Optional[List[str]] = None,
-    endpoints: Optional[Dict[str, str]] = None,
-    debug_info_provider: Optional[Callable[[Request], Dict[str, Any]]] = None,
-    health_check_provider: Optional[
-        Callable[[Request], Awaitable[Union[str, Dict[str, Any]]]]
-    ] = None,
+    features: list[str] | None = None,
+    endpoints: dict[str, str] | None = None,
+    debug_info_provider: Callable[[Request], dict[str, Any]] | None = None,
+    health_check_provider: Callable[[Request], Awaitable[str | dict[str, Any]]] | None = None,
     is_production: bool = False,
 ) -> APIRouter:
     """Create standardized meta endpoints router.
@@ -161,8 +160,8 @@ def create_meta_router(
     """
     router = APIRouter()
 
-    @router.get("/", response_model=Dict[str, Any])
-    async def service_info(request: Request) -> Dict[str, Any]:
+    @router.get("/", response_model=dict[str, Any])
+    async def service_info(request: Request) -> dict[str, Any]:
         """Service discovery endpoint with basic service information.
 
         Returns essential information for service registries and discovery mechanisms.
@@ -218,8 +217,8 @@ def create_meta_router(
 
         return meta_info
 
-    @router.get("/info", response_model=Dict[str, Any])
-    async def service_metadata() -> Dict[str, Any]:
+    @router.get("/info", response_model=dict[str, Any])
+    async def service_metadata() -> dict[str, Any]:
         """Detailed service metadata endpoint.
 
         Provides comprehensive service information for operational monitoring.
@@ -244,8 +243,8 @@ def create_meta_router(
             },
         }
 
-    @router.get("/version", response_model=Dict[str, str])
-    async def service_version() -> Dict[str, str]:
+    @router.get("/version", response_model=dict[str, str])
+    async def service_version() -> dict[str, str]:
         """Simple version endpoint for quick checks."""
         return {
             "service": service_name,
@@ -255,8 +254,8 @@ def create_meta_router(
 
     if not is_production:
 
-        @router.get("/debug", response_model=Dict[str, Any])
-        async def debug_info(request: Request) -> Dict[str, Any]:
+        @router.get("/debug", response_model=dict[str, Any])
+        async def debug_info(request: Request) -> dict[str, Any]:
             """Development debugging information endpoint.
 
             Only available in non-production environments for security.
@@ -294,7 +293,7 @@ def create_meta_router(
     return router
 
 
-def _get_uptime_seconds() -> Optional[int]:
+def _get_uptime_seconds() -> int | None:
     """Get process uptime in seconds.
 
     Returns None if psutil is not available.
@@ -309,7 +308,7 @@ def _get_uptime_seconds() -> Optional[int]:
         return None
 
 
-def _get_memory_info() -> Optional[Dict[str, Any]]:
+def _get_memory_info() -> dict[str, Any] | None:
     """Get process memory information.
 
     Returns None if psutil is not available.
@@ -333,12 +332,10 @@ def setup_meta_endpoints(
     app: Any,
     settings: Any,
     service_description: str,
-    features: Optional[List[str]] = None,
-    endpoints: Optional[Dict[str, str]] = None,
-    debug_info_provider: Optional[Callable[[Request], Dict[str, Any]]] = None,
-    health_check_provider: Optional[
-        Callable[[Request], Awaitable[Union[str, Dict[str, Any]]]]
-    ] = None,
+    features: list[str] | None = None,
+    endpoints: dict[str, str] | None = None,
+    debug_info_provider: Callable[[Request], dict[str, Any]] | None = None,
+    health_check_provider: Callable[[Request], Awaitable[str | dict[str, Any]]] | None = None,
 ) -> None:
     """Setup meta endpoints for a FastAPI application.
 

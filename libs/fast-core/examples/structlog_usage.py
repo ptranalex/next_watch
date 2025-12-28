@@ -7,15 +7,16 @@ environments with proper filtering and formatting.
 
 ***REMOVED*** mypy: ignore-errors
 
-import structlog
 import os
-from typing import Any, Dict, List
-from fastapi import FastAPI, Request
+from typing import Any
+
+import structlog
+from fastapi import Request
 
 ***REMOVED*** Note: In a real application, these imports would work normally
 ***REMOVED*** These are example imports for demonstration purposes
 try:
-    from fast_core import create_app, AppOptions
+    from fast_core import AppOptions, create_app
     from fast_core.middleware import MiddlewareConfig
     from fast_core.middleware.logging import get_request_logger
 except ImportError:
@@ -28,7 +29,7 @@ def configure_structlog_for_environment(environment: str = "development") -> Non
 
     if environment == "production":
         ***REMOVED*** Production: JSON logs for machine parsing
-        processors: List[Any] = [
+        processors: list[Any] = [
             structlog.stdlib.filter_by_level,
             structlog.stdlib.add_logger_name,
             structlog.stdlib.add_log_level,
@@ -115,13 +116,13 @@ def create_example_app() -> Any:  ***REMOVED*** Using Any to avoid FastAPI impor
         app = FastAPI(title="Structlog Example (Fallback)")
 
     @app.get("/")  ***REMOVED*** type: ignore[misc]
-    async def root() -> Dict[str, Any]:
+    async def root() -> dict[str, Any]:
         """Root endpoint with structured logging."""
         logger.info("Root endpoint accessed", endpoint="/", action="get_root")
         return {"message": "Hello from structlog!", "environment": environment}
 
     @app.get("/api/users/{user_id}")  ***REMOVED*** type: ignore[misc]
-    async def get_user(user_id: int, request: Request) -> Dict[str, Any]:
+    async def get_user(user_id: int, request: Request) -> dict[str, Any]:
         """Example endpoint demonstrating request-scoped logging with correlation."""
         ***REMOVED*** Get request-scoped logger with automatic request ID
         try:
@@ -162,7 +163,7 @@ def create_example_app() -> Any:  ***REMOVED*** Using Any to avoid FastAPI impor
         return user_data
 
     @app.post("/api/users")  ***REMOVED*** type: ignore[misc]
-    async def create_user(request: Request) -> Dict[str, Any]:
+    async def create_user(request: Request) -> dict[str, Any]:
         """Example endpoint showing structured logging for mutations."""
         try:
             request_logger = get_request_logger(request)
@@ -187,7 +188,7 @@ def create_example_app() -> Any:  ***REMOVED*** Using Any to avoid FastAPI impor
         return {"user_id": new_user_id, "status": "created"}
 
     @app.get("/api/error")  ***REMOVED*** type: ignore[misc]
-    async def error_endpoint() -> Dict[str, Any]:
+    async def error_endpoint() -> dict[str, Any]:
         """Endpoint demonstrating error logging best practices."""
         try:
             ***REMOVED*** Simulate a business error
@@ -225,5 +226,8 @@ if __name__ == "__main__":
     )
 
     uvicorn.run(
-        app, host="0.0.0.0", port=8000, log_config=None  ***REMOVED*** Disable uvicorn's logging, use structlog
+        app,
+        host="0.0.0.0",
+        port=8000,
+        log_config=None,  ***REMOVED*** Disable uvicorn's logging, use structlog
     )
