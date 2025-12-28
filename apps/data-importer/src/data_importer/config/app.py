@@ -4,13 +4,12 @@ This module provides centralized configuration for the data-importer application
 loading settings from environment variables with sensible defaults.
 """
 
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
 
 ***REMOVED*** Load environment variables from .env files
-from .env import get_env_var, get_env_bool, get_env_int
+from .env import get_env_bool, get_env_int, get_env_var
 
 ***REMOVED*** ------------------------------------------------------------------------------
 ***REMOVED*** DEFAULT PATHS AND DIRECTORIES

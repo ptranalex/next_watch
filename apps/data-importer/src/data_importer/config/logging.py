@@ -9,7 +9,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 ***REMOVED*** Type variable for function decoration
 F = TypeVar("F", bound=Callable[..., Any])

@@ -5,9 +5,13 @@ operations, handling the conversion of API responses to database models.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from movie_storage.db.operations import get_movie_by_id, get_movie_by_tmdb_id, update_movie
+from movie_storage.db.operations import (
+    get_movie_by_id,
+    get_movie_by_tmdb_id,
+    update_movie,
+)
 from movie_storage.db.operations.movie import create_movie_from_tmdb_details
 from sqlmodel import Session
 

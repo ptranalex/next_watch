@@ -11,7 +11,10 @@ from rich import pretty, print_json
 from rich.console import Console
 from rich.pretty import pprint
 
-from data_importer.cli.commands.shell.help import create_shell_help_function, get_banner_text
+from data_importer.cli.commands.shell.help import (
+    create_shell_help_function,
+    get_banner_text,
+)
 from data_importer.cli.commands.shell.helpers import async_run, create_loading_functions
 from data_importer.cli.commands.shell.repl import configure_repl
 from data_importer.cli.utils import get_api_key, print_config, print_plain
@@ -119,7 +122,11 @@ def shell(
 
         ***REMOVED*** Ensure API keys are available
         tmdb_access_token = get_api_key(
-            tmdb_access_token, "TMDB_ACCESS_TOKEN", "TMDB access token", console, required=False
+            tmdb_access_token,
+            "TMDB_ACCESS_TOKEN",
+            "TMDB access token",
+            console,
+            required=False,
         )
         imdb_api_key = get_api_key(
             imdb_api_key, "IMDB_API_KEY", "IMDb API key", console, required=False
@@ -211,6 +218,7 @@ def shell(
 
         ***REMOVED*** Get the banner text
         theme_text = "plain (no highlighting)" if plain else theme
+        console.print(f"[dim]Theme: {theme_text}[/dim]")
 
         ***REMOVED*** Launch ptpython with configuration
         embed(
@@ -224,8 +232,8 @@ def shell(
         try:
             asyncio.run(tmdb_client.close())
             asyncio.run(omdb_client.close())
-        except:
-            pass
+        except Exception:
+            logger.debug("Failed to close one or more clients", exc_info=True)
 
     except Exception as e:
         logger.exception(f"Error in shell session: {str(e)}")

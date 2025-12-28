@@ -1,8 +1,5 @@
-import asyncio
 import logging
-import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, cast
 
 import aiohttp
 

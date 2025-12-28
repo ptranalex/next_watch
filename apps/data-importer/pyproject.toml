@@ -22,23 +22,23 @@ dependencies = [
     "requests>=2.31.0",          ***REMOVED*** HTTP client
     "pydantic>=2.4.2",           ***REMOVED*** Data validation
     "python-dotenv>=1.0.0",      ***REMOVED*** Environment variable loading
-    
+
     ***REMOVED*** CLI and utilities
     "click>=8.1.7",              ***REMOVED*** CLI framework (legacy)
     "typer>=0.15.2",             ***REMOVED*** Modern CLI framework
     "rich>=14.0.0,<15.0.0",      ***REMOVED*** Terminal formatting
     "ptpython>=3.0.23",          ***REMOVED*** Enhanced Python REPL
-    
+
     ***REMOVED*** Async HTTP
     "aiohttp>=3.8.5",            ***REMOVED*** Async HTTP client
-    
+
     ***REMOVED*** Database
     "sqlmodel>=0.0.24",          ***REMOVED*** SQL ORM
     "psycopg2-binary>=2.9.10",   ***REMOVED*** PostgreSQL adapter
-    
+
     ***REMOVED*** Security
     "passlib>=1.7.4",            ***REMOVED*** Password hashing
-    
+
     ***REMOVED*** Local dependencies - movie-storage installed separately
     ***REMOVED*** "movie-storage @ file://../../../libs/movie-storage",  ***REMOVED*** Local movie storage library
 ]
@@ -51,6 +51,7 @@ dev = [
     "isort>=5.12.0",
     "flake8>=6.1.0",
     "mypy>=1.7.0",
+    "pyright>=1.1.0",
     ***REMOVED*** Type stubs for better type checking
     "types-requests>=2.31.0",
     "types-python-dateutil>=2.8.19",
@@ -82,6 +83,22 @@ target-version = ["py312"]
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = [
+    "E501", ***REMOVED*** line too long, formatter handles this
+]
+
+[tool.ruff.lint.isort]
+***REMOVED*** Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
+known-first-party = ["data_importer"]
+known-third-party = ["cache", "cli", "config", "fast_core", "kafka", "movie_storage"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -144,3 +161,15 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+
+***REMOVED*** Hatch configuration (align with other apps in the monorepo)
+[tool.hatch.envs.default]
+type = "virtual"
+path = ".venv"
+features = ["dev"]
+
+[tool.hatch.envs.default.env-vars]
+PYTHONPATH = "src"
+
+[tool.hatch.envs.default.scripts]
+typecheck = "pyright -p pyrightconfig.json"

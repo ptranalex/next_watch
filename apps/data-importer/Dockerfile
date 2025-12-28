@@ -82,4 +82,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ENTRYPOINT ["/sbin/tini", "--"]
 
 ***REMOVED*** Default command - use the installed CLI
-CMD ["data-importer", "sync", "movies", "--help"] 
+CMD ["data-importer", "sync", "movies", "--help"]

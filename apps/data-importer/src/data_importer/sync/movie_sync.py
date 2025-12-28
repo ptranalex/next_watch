@@ -1,20 +1,16 @@
 """Functions for syncing movie data from various sources."""
 
-import asyncio
-import json
 import logging
 from datetime import date, datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict
 
-from movie_storage.db.operations import genre as genre_ops
 from movie_storage.db.operations import movie as movie_ops
 
 ***REMOVED*** Import database models and storage operations
 from movie_storage.models import Movie
 from rich.console import Console
 from rich.progress import Progress, TaskID
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from data_importer.config.app import Config
 from data_importer.services.data_adapter import MovieDataAdapter
@@ -164,7 +160,7 @@ async def sync_movies_by_year_range(
 
     ***REMOVED*** Log configuration being used (only if verbose)
     if verbose:
-        logger.info(f"Starting movie sync with configuration:")
+        logger.info("Starting movie sync with configuration:")
         logger.info(f"  Years: {start_year} to {end_year}")
         logger.info(f"  Limit per year: {limit_per_year}")
         logger.info(f"  Sort by: {sort_by}")
@@ -194,7 +190,6 @@ async def sync_movies_by_year_range(
     ***REMOVED*** Create movie data adapter that combines TMDB and OMDB
     data_adapter = MovieDataAdapter(tmdb_client, omdb_client)
 
-    total_movies = 0
     tmdb_movies = []
     movie_models = []
     movie_dicts = []
@@ -226,6 +221,7 @@ async def sync_movies_by_year_range(
     ***REMOVED*** Set up progress tracking
     progress = None
     task_ids = {}
+    main_task: TaskID | None = None
 
     if show_progress:
         progress = Progress()
@@ -315,7 +311,11 @@ async def sync_movies_by_year_range(
                                 ***REMOVED*** Import movie using combined adapter with OMDB enrichment
                                 language = "en-US"  ***REMOVED*** Default language
                                 result = await data_adapter.import_movie_with_enrichment(
-                                    db_session, tmdb_id, language, include_credits, include_videos
+                                    db_session,
+                                    tmdb_id,
+                                    language,
+                                    include_credits,
+                                    include_videos,
                                 )
 
                                 if not result:
@@ -505,7 +505,7 @@ async def sync_movies_by_year_range(
                             progress.update(
                                 task_ids[year],
                                 completed=i + 1,
-                                description=f"[green]Year {year}: {i+1}/{len(year_movies)} movies",
+                                description=f"[green]Year {year}: {i + 1}/{len(year_movies)} movies",
                             )
 
                     except Exception as e:
@@ -529,7 +529,7 @@ async def sync_movies_by_year_range(
                 )
 
                 ***REMOVED*** Update main progress bar
-                if show_progress and progress is not None:
+                if show_progress and progress is not None and main_task is not None:
                     progress.update(main_task, advance=1)
 
             except Exception as e:
@@ -545,7 +545,7 @@ async def sync_movies_by_year_range(
                     )
 
         ***REMOVED*** Complete the progress
-        if show_progress and progress is not None:
+        if show_progress and progress is not None and main_task is not None:
             progress.update(
                 main_task,
                 completed=len(years),

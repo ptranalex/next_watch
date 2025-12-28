@@ -3,11 +3,10 @@
 import asyncio
 import inspect
 import logging
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Dict, Optional, cast
 
 from rich.console import Console
 
-from data_importer.cli.utils import format_config_table
 from data_importer.cli.utils import print_config as print_config_util
 
 logger = logging.getLogger("data_importer.cli.shell.helpers")

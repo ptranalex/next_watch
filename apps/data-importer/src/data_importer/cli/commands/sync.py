@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import os
 from datetime import datetime
 from typing import Optional
 
@@ -12,7 +11,11 @@ from rich.console import Console
 from sqlmodel import Session
 
 from data_importer.cli.utils import get_api_key
-from data_importer.config.app import DEFAULT_OMDB_API_KEY, DEFAULT_TMDB_ACCESS_TOKEN, Config
+from data_importer.config.app import (
+    DEFAULT_OMDB_API_KEY,
+    DEFAULT_TMDB_ACCESS_TOKEN,
+    Config,
+)
 from data_importer.config.logging import with_logging
 from data_importer.services.omdb import OMDBClient
 from data_importer.services.tmdb import TMDBClient
@@ -27,10 +30,16 @@ app = typer.Typer(name="sync", help="Sync movie and TV data from external source
 @app.command(name="movies")
 def sync_movies(
     start_year: Optional[int] = typer.Option(
-        None, "--start-year", "-s", help="Starting year (inclusive), defaults to config value"
+        None,
+        "--start-year",
+        "-s",
+        help="Starting year (inclusive), defaults to config value",
     ),
     end_year: Optional[int] = typer.Option(
-        None, "--end-year", "-e", help="Ending year (inclusive), defaults to config value"
+        None,
+        "--end-year",
+        "-e",
+        help="Ending year (inclusive), defaults to config value",
     ),
     limit_per_year: Optional[int] = typer.Option(
         None, "--limit", "-l", help="Maximum movies per year, defaults to config value"
@@ -48,7 +57,9 @@ def sync_movies(
         help="OMDB API key (or set OMDB_API_KEY environment variable)",
     ),
     save_to_db: Optional[bool] = typer.Option(
-        None, "--save/--no-save", help="Save movies to database, defaults to config value"
+        None,
+        "--save/--no-save",
+        help="Save movies to database, defaults to config value",
     ),
     include_credits: Optional[bool] = typer.Option(
         None,
@@ -131,7 +142,11 @@ def sync_movies(
 
         ***REMOVED*** Get API keys using the standardized utility
         actual_tmdb_access_token = get_api_key(
-            tmdb_access_token, "TMDB_ACCESS_TOKEN", "TMDB access token", console, required=True
+            tmdb_access_token,
+            "TMDB_ACCESS_TOKEN",
+            "TMDB access token",
+            console,
+            required=True,
         )
         actual_omdb_api_key = get_api_key(
             omdb_api_key, "OMDB_API_KEY", "OMDB API key", console, required=True

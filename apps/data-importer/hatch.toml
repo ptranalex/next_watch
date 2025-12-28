@@ -36,20 +36,20 @@ dependencies = [
   "requests>=2.31.0",
   "pydantic>=2.4.2",
   "python-dotenv>=1.0.0",
-  
+
   ***REMOVED*** CLI and utilities
   "click>=8.1.7",
   "typer>=0.15.2",
   "rich>=14.0.0,<15.0.0",
   "ptpython>=3.0.23",
-  
+
   ***REMOVED*** Async HTTP
   "aiohttp>=3.8.5",
-  
+
   ***REMOVED*** Database
   "sqlmodel>=0.0.24",
   "psycopg2-binary>=2.9.10",
-  
+
   ***REMOVED*** Security
   "passlib>=1.7.4",
 ]
@@ -106,4 +106,4 @@ dependencies = [
 [envs.data.scripts]
 notebook = "jupyter notebook"
 lab = "jupyter lab"
-analyze = "python -m data_importer.analysis" 
+analyze = "python -m data_importer.analysis"

@@ -1,7 +1,6 @@
 """Command for launching an interactive interface for data import operations."""
 
 import logging
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -18,8 +17,6 @@ from data_importer.config.app import (
     Config,
 )
 from data_importer.config.logging import configure_logging
-from data_importer.services.omdb import OMDBClient
-from data_importer.services.tmdb import TMDBClient
 
 logger = logging.getLogger("data_importer.cli.commands.interactive")
 console = Console()
@@ -89,7 +86,11 @@ def interactive(
 
         ***REMOVED*** Get API keys
         tmdb_access_token = get_api_key(
-            tmdb_access_token, "TMDB_ACCESS_TOKEN", "TMDB access token", console, required=False
+            tmdb_access_token,
+            "TMDB_ACCESS_TOKEN",
+            "TMDB access token",
+            console,
+            required=False,
         )
         omdb_api_key = get_api_key(
             omdb_api_key, "OMDB_API_KEY", "OMDB API key", console, required=False
@@ -108,18 +109,16 @@ def interactive(
         ***REMOVED*** Display the config
         print_config(config, title="Interactive Mode Configuration", console=console)
 
-        ***REMOVED*** Initialize movie data clients if keys are provided
+        ***REMOVED*** Validate that credentials were provided (interactive mode is not implemented yet)
         if tmdb_access_token:
-            tmdb_client = TMDBClient(access_token=tmdb_access_token)
-            console.print("[green]TMDB client initialized successfully[/green]")
+            console.print("[green]TMDB access token set[/green]")
         else:
-            console.print("[yellow]TMDB client not initialized (no API key)[/yellow]")
+            console.print("[yellow]TMDB access token not set[/yellow]")
 
         if omdb_api_key:
-            omdb_client = OMDBClient(api_key=omdb_api_key)
-            console.print("[green]OMDB client initialized successfully[/green]")
+            console.print("[green]OMDB API key set[/green]")
         else:
-            console.print("[yellow]OMDB client not initialized (no API key)[/yellow]")
+            console.print("[yellow]OMDB API key not set[/yellow]")
 
         ***REMOVED*** Display experimental notice
         console.print("\n[bold yellow]EXPERIMENTAL FEATURE[/bold yellow]")

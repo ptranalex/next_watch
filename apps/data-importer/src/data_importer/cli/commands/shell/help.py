@@ -148,7 +148,7 @@ Search for a movie:
 
 Import movies with credits and trailers:
   sync_movies(2020, 2023, include_credits=True, include_videos=True, save_to_db=True)
-  
+
 Import a single movie with all data:
   sync_movie_by_id(550, include_credits=True, include_videos=True)  ***REMOVED*** Import Fight Club
   last_synced_movie  ***REMOVED*** Access the imported movie

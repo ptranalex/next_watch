@@ -4,7 +4,6 @@ import logging
 import sys
 
 import typer
-from rich.console import Console
 from rich.traceback import install
 
 from data_importer.cli.commands import sync

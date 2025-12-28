@@ -1,14 +1,11 @@
 """Utility functions for the CLI interface."""
 
-import inspect
 import logging
 import os
-import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional
 
 import typer
 from rich.console import Console
-from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
 logger = logging.getLogger(__name__)
@@ -103,9 +100,6 @@ def get_api_key(
     Raises:
         typer.Exit: If the key is required but not found
     """
-    import os
-
-    import typer
 
     key = provided_key or os.environ.get(env_var_name) or ""
 
