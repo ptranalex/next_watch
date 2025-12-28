@@ -52,6 +52,7 @@ pip-wheel-metadata/
 ***REMOVED*** Production and sensitive configurations
 **/production.yml
 **/prod.yml
+!infra/compose/prod.yml
 **/.env.prod
 **/.env.production
 **/.env.observability.*
