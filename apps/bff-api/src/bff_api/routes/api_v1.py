@@ -4,6 +4,9 @@ BFF API v1 router - aggregates and organizes all v1 API endpoints.
 
 from fastapi import APIRouter
 
+***REMOVED*** Import admin routes (secured, internal-only)
+from bff_api.routes.admin import admin_router
+
 ***REMOVED*** Import v1 route modules from v1 package
 from bff_api.routes.v1 import (
     actors,
@@ -19,9 +22,6 @@ from bff_api.routes.v1 import (
     watched,
     watchlist,
 )
-
-***REMOVED*** Import admin routes (secured, internal-only)
-from bff_api.routes.admin import admin_router
 
 ***REMOVED*** Create the v1 API router
 api_v1_router = APIRouter(prefix="/bff/v1")

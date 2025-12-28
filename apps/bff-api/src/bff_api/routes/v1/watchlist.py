@@ -1,17 +1,16 @@
 """Watchlist movies-related routes for BFF API."""
 
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 
-import httpx
 from config.logging import get_logger
+from fast_core.errors import ExternalServiceException
+from fast_core.responses import ResponseBuilder
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from bff_api.dependencies.auth import get_current_user_id_and_token
-from bff_api.dependencies import get_backend_client
-from bff_api.services.clients import BackendClient
-from fast_core.responses import ResponseBuilder
-from fast_core.errors import ExternalServiceException
 from bff_api.core.metrics import get_bff_metrics
+from bff_api.dependencies import get_backend_client
+from bff_api.dependencies.auth import get_current_user_id_and_token
+from bff_api.services.clients import BackendClient
 
 logger = get_logger(__name__)
 
@@ -34,7 +33,7 @@ async def _get_user_watchlist(
     jwt_token: str,
     limit: int,
     page: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get user's watchlist interactions from backend.
 
     Args:
@@ -60,11 +59,11 @@ async def _get_user_watchlist(
 
 async def _get_movies_bulk(
     backend: BackendClient,
-    movie_ids: List[int],
+    movie_ids: list[int],
     user_id: int,
     page: int = 1,
     limit: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get movie details in bulk from backend.
 
     Args:
@@ -93,14 +92,16 @@ async def get_user_watchlist(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     ***REMOVED*** Filter parameters
-    imdb_rating: Optional[float] = Query(None, ge=0, le=10, description="Minimum IMDb rating"),
-    rotten_tomatoes_rating: Optional[float] = Query(
+    imdb_rating: float | None = Query(
+        None, ge=0, le=10, description="Minimum IMDb rating"
+    ),
+    rotten_tomatoes_rating: float | None = Query(
         None, ge=0, le=100, description="Minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[float] = Query(
+    metacritic_rating: float | None = Query(
         None, ge=0, le=100, description="Minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, ge=1900, le=2030, description="Release year"),
+    year: int | None = Query(None, ge=1900, le=2030, description="Release year"),
     sort_by: str = Query(
         "title",
         description="Sort field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
@@ -108,7 +109,7 @@ async def get_user_watchlist(
     sort_desc: bool = Query(False, description="Sort in descending order"),
     user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get user's watchlist movies with full movie details.
 
     Provides a paginated list of movies that the authenticated user has added
@@ -141,7 +142,9 @@ async def get_user_watchlist(
 
     user_id, jwt_token = user_data
 
-    logger.debug(f"📋 Fetching watchlist for user {user_id} (page {page}, limit {limit})")
+    logger.debug(
+        f"📋 Fetching watchlist for user {user_id} (page {page}, limit {limit})"
+    )
 
     try:
         ***REMOVED*** Get watchlist interactions from backend using new collection API
@@ -155,7 +158,9 @@ async def get_user_watchlist(
 
         ***REMOVED*** The new backend returns fast-core ResponseBuilder format with results array
         ***REMOVED*** Extract the collection items from the response
-        collection_items: List[Dict[str, Any]] = watchlist_interactions_response.get("results", [])
+        collection_items: list[dict[str, Any]] = watchlist_interactions_response.get(
+            "results", []
+        )
 
         ***REMOVED*** Convert collection items to interaction format for compatibility
         ***REMOVED*** Collection items have: {movie_id, user_id, added_at}
@@ -200,18 +205,22 @@ async def get_user_watchlist(
                     "user_context": {"user_id": user_id},
                 },
             )
-            return cast(Dict[str, Any], response)
+            return cast(dict[str, Any], response)
 
         ***REMOVED*** Extract movie IDs for bulk fetching - filter out None values first and then convert to int
         valid_movie_ids = [
             mid
-            for mid in [interaction.get("movie_id") for interaction in actually_watchlisted]
+            for mid in [
+                interaction.get("movie_id") for interaction in actually_watchlisted
+            ]
             if mid is not None
         ]
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
         if not movie_ids:
-            logger.debug(f"No valid movie IDs found in watchlist interactions for user {user_id}")
+            logger.debug(
+                f"No valid movie IDs found in watchlist interactions for user {user_id}"
+            )
             response = responses.paginated(
                 items=[],
                 page=page,
@@ -238,7 +247,7 @@ async def get_user_watchlist(
                     "error": "No valid movie IDs found",
                 },
             )
-            return cast(Dict[str, Any], response)
+            return cast(dict[str, Any], response)
 
         ***REMOVED*** Fetch movie details in bulk
         try:
@@ -265,7 +274,7 @@ async def get_user_watchlist(
         }
 
         ***REMOVED*** Merge movie details with interaction data
-        enriched_movies: List[Dict[str, Any]] = []
+        enriched_movies: list[dict[str, Any]] = []
         for movie in movies_data:
             movie_id = movie.get("id")
             if movie_id and movie_id in interaction_map:
@@ -300,14 +309,16 @@ async def get_user_watchlist(
                 enriched_movies = [
                     m
                     for m in enriched_movies
-                    if m.get("imdb_rating") and cast(float, m.get("imdb_rating")) >= imdb_rating
+                    if m.get("imdb_rating")
+                    and cast(float, m.get("imdb_rating")) >= imdb_rating
                 ]
             if rotten_tomatoes_rating is not None:
                 enriched_movies = [
                     m
                     for m in enriched_movies
                     if m.get("rotten_tomatoes_rating")
-                    and cast(float, m.get("rotten_tomatoes_rating")) >= rotten_tomatoes_rating
+                    and cast(float, m.get("rotten_tomatoes_rating"))
+                    >= rotten_tomatoes_rating
                 ]
             if metacritic_rating is not None:
                 enriched_movies = [
@@ -327,24 +338,32 @@ async def get_user_watchlist(
             ***REMOVED*** Apply sorting
             reverse = sort_desc
             if sort_by == "title":
-                enriched_movies.sort(key=lambda x: (x.get("title") or "").lower(), reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: (x.get("title") or "").lower(), reverse=reverse
+                )
             elif sort_by == "release_date":
                 enriched_movies.sort(
                     key=lambda x: x.get("release_date") or "1900-01-01", reverse=reverse
                 )
             elif sort_by == "imdb_rating":
-                enriched_movies.sort(key=lambda x: x.get("imdb_rating") or 0, reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: x.get("imdb_rating") or 0, reverse=reverse
+                )
             elif sort_by == "rotten_tomatoes_rating":
                 enriched_movies.sort(
                     key=lambda x: x.get("rotten_tomatoes_rating") or 0, reverse=reverse
                 )
             elif sort_by == "metacritic_rating":
-                enriched_movies.sort(key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse
+                )
 
         ***REMOVED*** Calculate pagination metadata using backend response pagination data
         backend_pagination = watchlist_interactions_response.get("pagination", {})
         total_count = backend_pagination.get("total", len(enriched_movies))
-        has_next = backend_pagination.get("has_next", len(actually_watchlisted) == limit)
+        has_next = backend_pagination.get(
+            "has_next", len(actually_watchlisted) == limit
+        )
         has_prev = backend_pagination.get("has_prev", page > 1)
         total_pages = backend_pagination.get("total_pages", 1)
 
@@ -391,7 +410,7 @@ async def get_user_watchlist(
                     "total_pages": total_pages,
                 }
             )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except ExternalServiceException as e:
         logger.error(

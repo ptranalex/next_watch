@@ -15,28 +15,26 @@ Access should be restricted via:
 """
 
 import datetime
-from datetime import time
-from typing import Dict, Any, cast
 
-from fastapi import APIRouter, HTTPException, Depends, Header
-from fastapi.responses import JSONResponse
 from cache import get_global_collector
 from config.logging import get_logger
+from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import JSONResponse
 
+from bff_api.config.app import settings
 from bff_api.services.cache_service import (
-    get_cache,
     check_cache_health,
     get_bff_warming_service,
+    get_cache,
 )
 from bff_api.services.smart_warming import get_bff_smart_warming
-from bff_api.config.app import settings
 
 logger = get_logger(__name__)
 router = APIRouter()
 
 
 async def verify_admin_access(
-    x_admin_key: str = Header(None, description="Admin API key for internal access")
+    x_admin_key: str = Header(None, description="Admin API key for internal access"),
 ) -> bool:
     """Verify admin access for internal endpoints.
 
@@ -73,7 +71,9 @@ async def verify_admin_access(
             service="bff",
             component="admin_auth",
         )
-        raise HTTPException(status_code=503, detail="Admin endpoints not properly configured")
+        raise HTTPException(
+            status_code=503, detail="Admin endpoints not properly configured"
+        )
 
     if not x_admin_key or x_admin_key != expected_admin_key:
         logger.warning(
@@ -82,7 +82,9 @@ async def verify_admin_access(
             service="bff",
             component="admin_auth",
         )
-        raise HTTPException(status_code=403, detail="Admin access denied - invalid credentials")
+        raise HTTPException(
+            status_code=403, detail="Admin access denied - invalid credentials"
+        )
 
     return True
 
@@ -225,7 +227,8 @@ async def get_function_cache_metrics(
 
         if not function_metrics:
             raise HTTPException(
-                status_code=404, detail=f"No metrics found for function: {function_name}"
+                status_code=404,
+                detail=f"No metrics found for function: {function_name}",
             )
 
         response_data = {
@@ -258,7 +261,9 @@ async def get_function_cache_metrics(
 
 
 @router.get("/warming/stats")
-async def get_warming_statistics(_: bool = Depends(verify_admin_access)) -> JSONResponse:
+async def get_warming_statistics(
+    _: bool = Depends(verify_admin_access),
+) -> JSONResponse:
     """[ADMIN] Get detailed warming statistics and recent activity.
 
     ⚠️  INTERNAL USE ONLY - Contains operational details
@@ -278,7 +283,9 @@ async def get_warming_statistics(_: bool = Depends(verify_admin_access)) -> JSON
             "warming_engine": {
                 "initialized": warming_engine is not None,
                 "registered_functions": (
-                    list(warming_engine._warming_functions.keys()) if warming_engine else []
+                    list(warming_engine._warming_functions.keys())
+                    if warming_engine
+                    else []
                 ),
                 "strategies": (
                     [strategy.value for strategy in warming_engine._strategies.keys()]
@@ -293,7 +300,9 @@ async def get_warming_statistics(_: bool = Depends(verify_admin_access)) -> JSON
                             else None
                         ),
                         "max_items_per_strategy": (
-                            warming_engine.config.max_items_per_strategy if warming_engine else None
+                            warming_engine.config.max_items_per_strategy
+                            if warming_engine
+                            else None
                         ),
                     }
                     if warming_engine
@@ -342,7 +351,9 @@ async def get_warming_statistics(_: bool = Depends(verify_admin_access)) -> JSON
 
 
 @router.get("/smart-warming/stats")
-async def get_smart_warming_statistics(_: bool = Depends(verify_admin_access)) -> JSONResponse:
+async def get_smart_warming_statistics(
+    _: bool = Depends(verify_admin_access),
+) -> JSONResponse:
     """[ADMIN] Get detailed smart warming statistics and performance metrics.
 
     ⚠️  INTERNAL USE ONLY - Contains sensitive operational data
@@ -363,14 +374,22 @@ async def get_smart_warming_statistics(_: bool = Depends(verify_admin_access)) -
         failed_operations = stats.get("operations_failed", 0)
 
         success_rate = (
-            (successful_operations / total_operations * 100) if total_operations > 0 else 0.0
+            (successful_operations / total_operations * 100)
+            if total_operations > 0
+            else 0.0
         )
 
         rate_limit_rate = (
-            (rate_limited_operations / total_operations * 100) if total_operations > 0 else 0.0
+            (rate_limited_operations / total_operations * 100)
+            if total_operations > 0
+            else 0.0
         )
 
-        failure_rate = (failed_operations / total_operations * 100) if total_operations > 0 else 0.0
+        failure_rate = (
+            (failed_operations / total_operations * 100)
+            if total_operations > 0
+            else 0.0
+        )
 
         response_data = {
             "smart_warming": {
@@ -411,7 +430,9 @@ async def get_smart_warming_statistics(_: bool = Depends(verify_admin_access)) -
             endpoint="admin_smart_warming_stats",
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail="Failed to get smart warming statistics")
+        raise HTTPException(
+            status_code=500, detail="Failed to get smart warming statistics"
+        )
 
 
 ***REMOVED*** REMOVED: Strategy listing endpoint no longer needed

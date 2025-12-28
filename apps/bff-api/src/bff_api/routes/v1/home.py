@@ -1,16 +1,15 @@
 """Home screen routes for BFF API."""
 
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any
 
-import httpx
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, Query
 from fast_core.errors.exceptions import ExternalServiceException
+from fastapi import APIRouter, Depends, Query
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client
 from bff_api.schemas.screen_schemas import HomeScreenData
 from bff_api.services.clients.facade import BackendClient
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["home"])
@@ -20,11 +19,11 @@ async def _get_movies(
     backend: BackendClient,
     page: int = 1,
     limit: int = 20,
-    featured: Optional[bool] = None,
-    sort: Optional[str] = None,
-    recommended_for: Optional[int] = None,
-    user_id: Optional[int] = None,
-) -> Dict[str, Any]:
+    featured: bool | None = None,
+    sort: str | None = None,
+    recommended_for: int | None = None,
+    user_id: int | None = None,
+) -> dict[str, Any]:
     """Get movies from backend with various filters.
 
     Args:
@@ -53,7 +52,7 @@ async def _get_movies(
     )
 
 
-async def _get_genres(backend: BackendClient) -> List[Dict[str, Any]]:
+async def _get_genres(backend: BackendClient) -> list[dict[str, Any]]:
     """Get genres from backend.
 
     Args:
@@ -71,7 +70,7 @@ async def _get_genres(backend: BackendClient) -> List[Dict[str, Any]]:
 
 @router.get("/home", response_model=HomeScreenData)
 async def get_home_screen(
-    user_id: Optional[int] = Query(None, description="User ID for personalized content"),
+    user_id: int | None = Query(None, description="User ID for personalized content"),
     backend: BackendClient = Depends(get_backend_client),
 ) -> HomeScreenData:
     """Get aggregated data for home screen.

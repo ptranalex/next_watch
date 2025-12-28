@@ -1,30 +1,25 @@
 """Sidebar-related routes for BFF API."""
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any
 
-import httpx
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key
 from config.logging import get_logger
+from fast_core.errors.exceptions import ExternalServiceException
 from fastapi import APIRouter, Depends, Query
-from fast_core.errors.exceptions import ExternalServiceException, APIException
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client
-from bff_api.services.clients.facade import BackendClient
 from bff_api.schemas.screen_schemas import (
     SidebarData,
-    SidebarFilters,
-    SidebarGenre,
-    SidebarLinkData,
-    SidebarMetadata,
 )
-from bff_api.core.metrics import get_bff_metrics
+from bff_api.services.clients.facade import BackendClient
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["sidebar"])
 
 
-async def _get_genres(backend: BackendClient) -> List[Dict[str, Any]]:
+async def _get_genres(backend: BackendClient) -> list[dict[str, Any]]:
     """Get genres from backend.
 
     Args:
@@ -47,9 +42,9 @@ async def _get_genres(backend: BackendClient) -> List[Dict[str, Any]]:
     ),
 )
 async def _get_sidebar_content_data(
-    user_id: Optional[int],
+    user_id: int | None,
     backend: BackendClient,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Internal cached function for sidebar content aggregation."""
     logger.debug(
         "Building sidebar content data",
@@ -207,7 +202,9 @@ async def _get_sidebar_content_data(
 
 @router.get("/sidebar", response_model=SidebarData)
 async def get_sidebar_content(
-    user_id: Optional[int] = Query(None, description="User ID for personalized sidebar content"),
+    user_id: int | None = Query(
+        None, description="User ID for personalized sidebar content"
+    ),
     backend: BackendClient = Depends(get_backend_client),
 ) -> SidebarData:
     """Get dynamic sidebar content configuration.

@@ -1,15 +1,14 @@
 """Authentication routes for BFF API."""
 
-from typing import Any, Dict
-
 from config.logging import get_logger
 from fastapi import APIRouter, Depends, Form, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_auth_client
 from bff_api.schemas.auth_schemas import (
-    RegisterRequest,
     RefreshTokenRequest,
+    RegisterRequest,
     TokenResponse,
     TokenVerificationResponse,
     UserResponse,
@@ -17,10 +16,7 @@ from bff_api.schemas.auth_schemas import (
 from bff_api.services.auth_client import (
     AuthClient,
     AuthClientError,
-    AuthClientPermanentError,
-    AuthClientTransientError,
 )
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["authentication"])
@@ -121,7 +117,9 @@ async def get_user_profile(
     except AuthClientError as e:
         if "401" in str(e):
             ***REMOVED*** Token validation failures are normal - log as info
-            logger.debug("Token validation failed", service="bff", endpoint="get_user_profile")
+            logger.debug(
+                "Token validation failed", service="bff", endpoint="get_user_profile"
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired token",
@@ -248,7 +246,10 @@ async def update_token(
         else:
             ***REMOVED*** Service errors are actual problems - log as error
             logger.error(
-                "Token refresh service error", error=str(e), service="bff", endpoint="update_token"
+                "Token refresh service error",
+                error=str(e),
+                service="bff",
+                endpoint="update_token",
             )
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,

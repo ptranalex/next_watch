@@ -4,21 +4,24 @@ This module provides standardized response formats for BFF API endpoints
 using fast-core response utilities for consistency across all routes.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fast_core.errors.responses import create_success_response, create_paginated_response
 from config.logging import get_logger
+from fast_core.errors.responses import (
+    create_paginated_response,
+    create_success_response,
+)
 
 logger = get_logger(__name__)
 
 
 def create_movie_list_response(
-    movies: List[Dict[str, Any]],
+    movies: list[dict[str, Any]],
     total: int,
     page: int,
     per_page: int,
-    message: Optional[str] = None,
-) -> Dict[str, Any]:
+    message: str | None = None,
+) -> dict[str, Any]:
     """Create standardized movie list response.
 
     Args:
@@ -43,9 +46,9 @@ def create_movie_list_response(
 
 
 def create_movie_detail_response(
-    movie: Dict[str, Any],
-    message: Optional[str] = None,
-) -> Dict[str, Any]:
+    movie: dict[str, Any],
+    message: str | None = None,
+) -> dict[str, Any]:
     """Create standardized movie detail response.
 
     Args:
@@ -61,13 +64,13 @@ def create_movie_detail_response(
 
 
 def create_search_response(
-    results: List[Dict[str, Any]],
+    results: list[dict[str, Any]],
     query: str,
     total: int,
     page: int,
     has_next: bool = False,
-    message: Optional[str] = None,
-) -> Dict[str, Any]:
+    message: str | None = None,
+) -> dict[str, Any]:
     """Create standardized search response.
 
     Args:
@@ -94,13 +97,13 @@ def create_search_response(
 
 
 def create_home_screen_response(
-    featured_movies: List[Dict[str, Any]],
-    popular_movies: List[Dict[str, Any]],
-    recent_releases: List[Dict[str, Any]],
-    user_recommendations: List[Dict[str, Any]],
-    genres: List[Dict[str, Any]],
-    message: Optional[str] = None,
-) -> Dict[str, Any]:
+    featured_movies: list[dict[str, Any]],
+    popular_movies: list[dict[str, Any]],
+    recent_releases: list[dict[str, Any]],
+    user_recommendations: list[dict[str, Any]],
+    genres: list[dict[str, Any]],
+    message: str | None = None,
+) -> dict[str, Any]:
     """Create standardized home screen response.
 
     Args:
@@ -127,10 +130,10 @@ def create_home_screen_response(
 
 
 def create_suggestions_response(
-    suggestions: List[Dict[str, Any]],
+    suggestions: list[dict[str, Any]],
     query: str,
-    message: Optional[str] = None,
-) -> Dict[str, Any]:
+    message: str | None = None,
+) -> dict[str, Any]:
     """Create standardized suggestions response.
 
     Args:

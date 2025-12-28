@@ -4,11 +4,15 @@ This module provides custom metrics for the BFF API service,
 including business logic metrics and service health tracking.
 """
 
-import re
-from typing import Dict, Optional, Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
-from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
 from config.logging import get_logger
+from fast_core.monitoring.metrics import (
+    MetricsRegistry,
+    get_metrics_registry,
+    track_operation,
+)
 
 ***REMOVED*** Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
@@ -54,7 +58,7 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
 class BFFMetrics:
     """BFF-specific metrics collection."""
 
-    def __init__(self, metrics_registry: Optional[MetricsRegistry] = None):
+    def __init__(self, metrics_registry: MetricsRegistry | None = None):
         """Initialize BFF metrics.
 
         Args:
@@ -163,7 +167,9 @@ class BFFMetrics:
         }
         self.service_response_time.labels(**time_labels).observe(response_time)
 
-    def record_cache_operation(self, operation: str, cache_name: str, status: str) -> None:
+    def record_cache_operation(
+        self, operation: str, cache_name: str, status: str
+    ) -> None:
         """Record a cache operation.
 
         Args:
@@ -205,7 +211,11 @@ class BFFMetrics:
         if not self.registry:
             return
 
-        labels = {"operation": operation, "status": status, "service": self.registry.service_name}
+        labels = {
+            "operation": operation,
+            "status": status,
+            "service": self.registry.service_name,
+        }
         self.movie_requests.labels(**labels).inc()
 
     def record_search_request(self, search_type: str, status: str) -> None:
@@ -276,15 +286,15 @@ class BFFMetrics:
 
 
 ***REMOVED*** Global BFF metrics instance
-_bff_metrics: Optional[BFFMetrics] = None
+_bff_metrics: BFFMetrics | None = None
 
 
-def get_bff_metrics() -> Optional[BFFMetrics]:
+def get_bff_metrics() -> BFFMetrics | None:
     """Get the global BFF metrics instance."""
     return _bff_metrics
 
 
-def initialize_bff_metrics() -> Optional[BFFMetrics]:
+def initialize_bff_metrics() -> BFFMetrics | None:
     """Initialize global BFF metrics instance.
 
     This function implements a singleton pattern to ensure only one
@@ -308,7 +318,9 @@ def initialize_bff_metrics() -> Optional[BFFMetrics]:
         ***REMOVED*** Return None if the metrics instance couldn't initialize properly
         if _bff_metrics and not _bff_metrics.registry:
             _bff_metrics = None
-            logger.warning("Failed to initialize BFF metrics - no metrics registry available")
+            logger.warning(
+                "Failed to initialize BFF metrics - no metrics registry available"
+            )
         else:
             logger.info("BFF metrics initialized successfully")
 
@@ -321,7 +333,7 @@ def initialize_bff_metrics() -> Optional[BFFMetrics]:
 
 ***REMOVED*** Decorator for tracking BFF operations
 def track_bff_operation(
-    operation_name: str, labels: Optional[Dict[str, str]] = None
+    operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:
     """Decorator to track BFF-specific operations.
 
@@ -344,21 +356,21 @@ def track_bff_operation(
 
 
 ***REMOVED*** Example usage decorators for common BFF operations
-def track_movie_operation(func: F) -> F:
+def track_movie_operation[FuncT: Callable[..., Any]](func: FuncT) -> FuncT:
     """Track movie-related operations."""
     return track_bff_operation("movie_operation")(func)
 
 
-def track_search_operation(func: F) -> F:
+def track_search_operation[FuncT: Callable[..., Any]](func: FuncT) -> FuncT:
     """Track search operations."""
     return track_bff_operation("search_operation")(func)
 
 
-def track_aggregation_operation(func: F) -> F:
+def track_aggregation_operation[FuncT: Callable[..., Any]](func: FuncT) -> FuncT:
     """Track data aggregation operations."""
     return track_bff_operation("aggregation_operation")(func)
 
 
-def track_cache_operation(func: F) -> F:
+def track_cache_operation[FuncT: Callable[..., Any]](func: FuncT) -> FuncT:
     """Track cache operations."""
     return track_bff_operation("cache_operation")(func)

@@ -1,13 +1,9 @@
 """Main CLI application for BFF service."""
 
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 import typer
-from rich.traceback import install
-
-***REMOVED*** BFF-specific cache commands (consolidated)
-from bff_api.cli.commands.cache_warming import cache_app as cache_cli
 
 ***REMOVED*** CLI framework utilities and command generators
 from cli import (
@@ -17,13 +13,16 @@ from cli import (
     create_serve_app,
     create_version_command,
 )
+from rich.traceback import install
+
+***REMOVED*** BFF-specific cache commands (consolidated)
+from bff_api.cli.commands.cache_warming import cache_app as cache_cli
 
 ***REMOVED*** Local BFF imports
 from bff_api.config.app import settings
-from bff_api.services.health_service import get_health_service
 
 ***REMOVED*** Import BFF warming service to ensure auto-configuration
-from bff_api.services.cache_service.warming import get_bff_warming_service
+from bff_api.services.health_service import get_health_service
 
 ***REMOVED*** Constants
 DEFAULT_VERSION = "0.1.0"  ***REMOVED*** Should match pyproject.toml
@@ -56,6 +55,7 @@ def get_settings() -> Any:
 async def _get_redis_client() -> Any:
     """Get Redis client for cache commands."""
     from cache.providers.redis import RedisProvider
+
     from bff_api.services.cache_service import get_cache_service
 
     cache_manager = get_cache_service()  ***REMOVED*** This returns CacheManager directly
@@ -92,7 +92,7 @@ def _configure_logging(verbose: bool, http_verbose: bool) -> None:
     from config.logging import configure_logging
 
     ***REMOVED*** Component-specific log levels based on context
-    component_levels: Dict[str, str] = {}
+    component_levels: dict[str, str] = {}
     if verbose:
         ***REMOVED*** In verbose mode, show more health service details but keep cache quiet
         component_levels = {

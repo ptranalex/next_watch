@@ -1,18 +1,17 @@
 """Search-related routes for BFF API."""
 
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 
-import httpx
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, Query
 from fast_core.errors.exceptions import ExternalServiceException
 from fast_core.responses import ResponseBuilder
 from fast_core.security.rate_limit import rate_limit
+from fastapi import APIRouter, Depends, Query
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client, get_search_client
 from bff_api.services.clients.facade import BackendClient
 from bff_api.services.clients.search import SearchAPIClient
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["search"])
@@ -55,7 +54,11 @@ async def _handle_backend_error(e: Exception, operation: str, **context: Any) ->
         **context: Additional context for logging
     """
     logger.error(
-        f"Backend error for {operation}", error=str(e), service="bff", endpoint=operation, **context
+        f"Backend error for {operation}",
+        error=str(e),
+        service="bff",
+        endpoint=operation,
+        **context,
     )
     raise ExternalServiceException(
         detail="Backend service unavailable",
@@ -70,9 +73,9 @@ async def search_screen(
     q: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    user_id: Optional[int] = Query(None, description="User ID for personalized content"),
+    user_id: int | None = Query(None, description="User ID for personalized content"),
     backend: BackendClient = Depends(get_backend_client),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get search results for search screen.
 
     Performs search across movies and returns paginated results with
@@ -130,7 +133,7 @@ async def search_screen(
                 "search_context": {"search_type": "movies"},
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except Exception as e:
         ***REMOVED*** Record error metrics
@@ -141,13 +144,17 @@ async def search_screen(
         return {}
 
 
-@rate_limit(requests=100, window=60)  ***REMOVED*** 100 suggestions per minute (higher for typeahead)
+@rate_limit(
+    requests=100, window=60
+)  ***REMOVED*** 100 suggestions per minute (higher for typeahead)
 @router.get("/search/suggestions")
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
-    limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
+    limit: int = Query(
+        10, ge=1, le=20, description="Max number of suggestions to return"
+    ),
     search_client: SearchAPIClient = Depends(get_search_client),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get basic search suggestions.
 
     Returns a small set of search suggestions to power typeahead features.
@@ -165,7 +172,9 @@ async def get_search_suggestions(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.debug(f"Basic suggestions request via Search API", query=query, limit=limit)
+        logger.debug(
+            "Basic suggestions request via Search API", query=query, limit=limit
+        )
 
         result = await search_client.get_suggestions(
             query=query,
@@ -173,7 +182,7 @@ async def get_search_suggestions(
         )
 
         logger.debug(
-            f"Basic suggestions completed successfully",
+            "Basic suggestions completed successfully",
             total=result.get("metadata", {}).get("total", 0),
             query=query,
         )
@@ -196,7 +205,7 @@ async def get_search_suggestions(
                 },
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except Exception as e:
         await _handle_backend_error(e, "search_suggestions", query=query)
@@ -209,7 +218,7 @@ async def get_text_suggestions(
     query: str = Query(..., min_length=1, description="Search query prefix"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of suggestions"),
     search_client: SearchAPIClient = Depends(get_search_client),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get text-based search suggestions with rich metadata.
 
     This endpoint provides rich suggestions for movies, actors, and directors
@@ -230,7 +239,9 @@ async def get_text_suggestions(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.debug(f"Text suggestions request via Search API", query=query, limit=limit)
+        logger.debug(
+            "Text suggestions request via Search API", query=query, limit=limit
+        )
 
         result = await search_client.get_text_suggestions(
             query=query,
@@ -238,7 +249,7 @@ async def get_text_suggestions(
         )
 
         logger.debug(
-            f"Text suggestions completed successfully",
+            "Text suggestions completed successfully",
             total=result.get("metadata", {}).get("total", 0),
             query=query,
         )
@@ -261,7 +272,7 @@ async def get_text_suggestions(
                 },
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except Exception as e:
         await _handle_backend_error(e, "text_suggestions", query=query)
@@ -274,9 +285,11 @@ async def search_all_entities(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of results per page"),
-    types: Optional[List[str]] = Query(None, description="Entity types to include in results"),
+    types: list[str] | None = Query(
+        None, description="Entity types to include in results"
+    ),
     search_client: SearchAPIClient = Depends(get_search_client),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Search across all entities (movies, actors, genres).
 
     Returns paginated search results that can be filtered by entity type.
@@ -296,7 +309,9 @@ async def search_all_entities(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.debug(f"Multi-entity search request via Search API", query=query, types=types)
+        logger.debug(
+            "Multi-entity search request via Search API", query=query, types=types
+        )
 
         result = await search_client.search_all_entities(
             query=query,
@@ -306,7 +321,7 @@ async def search_all_entities(
         )
 
         logger.debug(
-            f"Multi-entity search completed successfully",
+            "Multi-entity search completed successfully",
             total=result.get("pagination", {}).get("total", 0),
             page=page,
             query=query,
@@ -336,7 +351,7 @@ async def search_all_entities(
                 },
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except Exception as e:
         await _handle_backend_error(e, "search_all", query=query)

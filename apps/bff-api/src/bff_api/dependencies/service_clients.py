@@ -5,22 +5,22 @@ Service Client Factory system for better performance, health checking, and
 lifecycle management.
 """
 
-from typing import Any, Dict
-from fastapi import Depends
+from typing import Any
 
 from fast_core.dependencies.client_factory import (
-    register_service,
-    register_client_type,
     get_service_client,
     health_check_all_services,
+    register_client_type,
+    register_service,
 )
 from fast_core.dependencies.singleton import cleanup_singletons
+from fastapi import Depends
 
 from bff_api.config.app import BFFAPIConfig, settings
+from bff_api.services.auth_client import AuthClient
 from bff_api.services.clients.facade import BackendClient
 from bff_api.services.clients.recommendation import RecommendationClient
 from bff_api.services.clients.search import SearchAPIClient
-from bff_api.services.auth_client import AuthClient
 
 
 def _register_all_services(config: BFFAPIConfig) -> None:
@@ -132,7 +132,7 @@ def get_ml_client(
     return get_service_client("ml")()
 
 
-async def get_all_services_health() -> Dict[str, Any]:
+async def get_all_services_health() -> dict[str, Any]:
     """Get health status for all registered service clients.
 
     Returns:

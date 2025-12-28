@@ -1,15 +1,19 @@
 """Base HTTP client for backend API communication."""
 
 import time
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 
 import httpx
 from config.logging import get_logger
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from fast_core.dependencies.client_factory import BaseServiceClient, ServiceClientConfig
 from fast_core.errors import (
-    handle_service_error,
     service_error_handler,
+)
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
 )
 
 from bff_api.config.app import BFFAPIConfig, settings
@@ -44,7 +48,7 @@ class BaseBackendClient(BaseServiceClient):
     """
 
     def __init__(
-        self, config: ServiceClientConfig, bff_config: Optional[BFFAPIConfig] = None
+        self, config: ServiceClientConfig, bff_config: BFFAPIConfig | None = None
     ) -> None:
         """Initialize backend client.
 
@@ -83,10 +87,10 @@ class BaseBackendClient(BaseServiceClient):
         self,
         method: str,
         path: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Make HTTP request with retry logic and Fast Core error handling.
 
         Args:
@@ -135,7 +139,7 @@ class BaseBackendClient(BaseServiceClient):
                 ***REMOVED*** If the response is a list, wrap it in a dict for consistency
                 if isinstance(json_response, list):
                     return {"data": json_response}
-                return cast(Dict[str, Any], json_response)
+                return cast(dict[str, Any], json_response)
             else:
                 return {"data": response.text}
 
@@ -177,22 +181,35 @@ class BaseBackendClient(BaseServiceClient):
                         service=self.service_name,
                     )
                 ***REMOVED*** Treat 429 as transient error for retry
-                raise BackendClientTransientError(f"Rate limited by service: {status_code}")
+                raise BackendClientTransientError(
+                    f"Rate limited by service: {status_code}"
+                )
 
             ***REMOVED*** Other 4xx errors are permanent (don't retry)
             elif 400 <= status_code < 500:
                 ***REMOVED*** Log 4xx as appropriate levels
                 if status_code == 401:
-                    logger.debug(f"Authentication failed for {method} {path}: {status_code}")
+                    logger.debug(
+                        f"Authentication failed for {method} {path}: {status_code}"
+                    )
                 elif status_code == 404:
-                    logger.debug(f"Resource not found for {method} {path}: {status_code}")
+                    logger.debug(
+                        f"Resource not found for {method} {path}: {status_code}"
+                    )
                 else:
                     logger.warning(f"Client error {status_code} for {method} {path}")
-                raise BackendClientPermanentError(f"Backend service error: {status_code}")
+                raise BackendClientPermanentError(
+                    f"Backend service error: {status_code}"
+                )
             ***REMOVED*** 5xx errors are transient (can retry)
             else:
-                logger.error(f"Server error {status_code} for {method} {path}: {e}", exc_info=True)
-                raise BackendClientTransientError(f"Backend service error: {status_code}")
+                logger.error(
+                    f"Server error {status_code} for {method} {path}: {e}",
+                    exc_info=True,
+                )
+                raise BackendClientTransientError(
+                    f"Backend service error: {status_code}"
+                )
 
         except httpx.RequestError as e:
             response_time = time.time() - start_time
@@ -206,7 +223,9 @@ class BaseBackendClient(BaseServiceClient):
                     status=error_type,
                     response_time=response_time,
                 )
-                metrics.record_service_error(service_name=self.service_name, error_type=error_type)
+                metrics.record_service_error(
+                    service_name=self.service_name, error_type=error_type
+                )
 
             logger.error(f"Request error for {method} {path}: {e}", exc_info=True)
             ***REMOVED*** Network errors are transient (can retry)
@@ -230,7 +249,7 @@ class BaseBackendClient(BaseServiceClient):
             ***REMOVED*** Unexpected errors are treated as permanent
             raise BackendClientPermanentError(f"Unexpected backend error: {e}")
 
-    def _get_auth_headers(self, user_id: int) -> Dict[str, str]:
+    def _get_auth_headers(self, user_id: int) -> dict[str, str]:
         """Get service-to-service authentication headers.
 
         Args:
@@ -250,7 +269,9 @@ class BaseBackendClient(BaseServiceClient):
             headers["Authorization"] = auth_header
             ***REMOVED*** Mask the token for security but show first/last few chars for debugging
             masked_auth = (
-                f"{auth_header[:12]}...{auth_header[-4:]}" if len(auth_header) > 16 else "***"
+                f"{auth_header[:12]}...{auth_header[-4:]}"
+                if len(auth_header) > 16
+                else "***"
             )
             logger.debug(f"Using Authorization header: {masked_auth}")
         else:
@@ -259,7 +280,7 @@ class BaseBackendClient(BaseServiceClient):
 
         return headers
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check against backend API.
 
         Returns:

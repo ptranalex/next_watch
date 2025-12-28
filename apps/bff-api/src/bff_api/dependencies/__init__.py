@@ -5,17 +5,21 @@ Now uses the new Service Client Factory for better performance and lifecycle man
 """
 
 ***REMOVED*** Import auth dependencies (still custom for now)
-from .auth import get_current_user_id, get_current_user_id_and_token, get_optional_user_id
+from .auth import (
+    get_current_user_id,
+    get_current_user_id_and_token,
+    get_optional_user_id,
+)
 
 ***REMOVED*** Import service client dependencies from the new Service Client Factory module
 from .service_clients import (
-    get_backend_client,
+    cleanup_service_clients,
+    get_all_services_health,
     get_auth_client,
+    get_backend_client,
+    get_ml_client,
     get_recommendation_client,
     get_search_client,
-    get_ml_client,
-    get_all_services_health,
-    cleanup_service_clients,
 )
 
 __all__ = [

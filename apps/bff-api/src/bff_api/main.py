@@ -1,7 +1,5 @@
 """Main FastAPI application for BFF service."""
 
-import os
-from typing import Optional
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -52,6 +50,22 @@ def create_app() -> FastAPI:
     logger.info("BFF Service initialized successfully", service="bff-api")
 
     return app
+
+
+***REMOVED*** Cached app instance for test/runtime convenience
+_app: FastAPI | None = None
+
+
+def get_app() -> FastAPI:
+    """Return a cached FastAPI app instance.
+
+    This keeps backwards compatibility with older code/tests that used
+    `get_app()` instead of the factory-style `create_app()`.
+    """
+    global _app
+    if _app is None:
+        _app = create_app()
+    return _app
 
 
 if __name__ == "__main__":

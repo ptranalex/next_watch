@@ -1,21 +1,21 @@
 """Genre-related routes for BFF API."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cache.decorators import redis_cache
 from cache.keys import build_filtered_key
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fast_core.dependencies import get_pagination
 from fast_core.dependencies.common import PaginationParams
 from fast_core.errors import ExternalServiceException
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client
 from bff_api.schemas.screen_schemas import GenreScreenData
 from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["genres"])
@@ -28,18 +28,18 @@ def _build_genre_screen_cache_key(
     genre_id: int,
     page: int,
     limit: int,
-    actor_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
-    user_id: Optional[int],
+    actor_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
+    credentials: HTTPAuthorizationCredentials | None = None,
 ) -> str:
     """Build cache key for genre screen with all parameters using cache library utilities."""
     filters = {
@@ -55,27 +55,31 @@ def _build_genre_screen_cache_key(
         "start_year": start_year,
         "end_year": end_year,
     }
-    return build_filtered_key("screen:genre", str(genre_id), filters, user_id=user_id, prefix="")
+    return build_filtered_key(
+        "screen:genre", str(genre_id), filters, user_id=user_id, prefix=""
+    )
 
 
-@redis_cache(ttl=900, key_builder=_build_genre_screen_cache_key)  ***REMOVED*** 15 minutes for genre movie lists
+@redis_cache(
+    ttl=900, key_builder=_build_genre_screen_cache_key
+)  ***REMOVED*** 15 minutes for genre movie lists
 async def _get_genre_screen_data(
     genre_id: int,
     page: int,
     limit: int,
-    actor_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
-    user_id: Optional[int],
+    actor_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> dict[str, Any]:
     """Internal cached function for genre screen aggregation."""
     logger.debug(
         "Building genre screen data",
@@ -110,7 +114,7 @@ async def _get_genre_screen_data(
         raise HTTPException(status_code=502, detail="Backend service unavailable")
 
     ***REMOVED*** Get movies for this genre with filters
-    kwargs: Dict[str, Any] = {"genre_id": genre_id}
+    kwargs: dict[str, Any] = {"genre_id": genre_id}
     if actor_id is not None:
         kwargs["actor_id"] = actor_id
     if sort_by is not None:
@@ -192,27 +196,29 @@ async def _get_genre_screen_data(
 async def get_genre_screen(
     genre_id: int = Path(..., description="Genre ID"),
     pagination: PaginationParams = get_pagination(max_page_size=100),
-    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
-    sort_by: Optional[str] = Query(
+    actor_id: int | None = Query(None, description="Filter by actor TMDB ID"),
+    sort_by: str | None = Query(
         None,
         description="Sort by field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
-    sort_desc: Optional[bool] = Query(True, description="Sort in descending order"),
-    imdb_rating: Optional[float] = Query(
+    sort_desc: bool | None = Query(True, description="Sort in descending order"),
+    imdb_rating: float | None = Query(
         None, ge=0, le=10, description="Filter by minimum IMDb rating"
     ),
-    rotten_tomatoes_rating: Optional[int] = Query(
+    rotten_tomatoes_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[int] = Query(
+    metacritic_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
-    end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
-    user_id: Optional[int] = Query(None, description="User ID for personalized content"),
+    year: int | None = Query(None, description="Filter by release year"),
+    start_year: int | None = Query(
+        None, description="Filter by start year (inclusive)"
+    ),
+    end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
+    user_id: int | None = Query(None, description="User ID for personalized content"),
     backend: BackendClient = Depends(get_backend_client),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> GenreScreenData:
     """Get aggregated data for genre screen.
 
@@ -319,12 +325,18 @@ async def get_genre_screen(
                             ***REMOVED*** Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
+                            movie["in_watchlist"] = interaction_data.get(
+                                "in_watchlist", False
+                            )
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get("in_watchlist", False),
+                                "in_watchlist": interaction_data.get(
+                                    "in_watchlist", False
+                                ),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get("watch_progress", 0),
+                                "watch_progress": interaction_data.get(
+                                    "watch_progress", 0
+                                ),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:

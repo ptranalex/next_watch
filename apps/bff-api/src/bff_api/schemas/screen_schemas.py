@@ -1,6 +1,6 @@
 """Pydantic schemas for screen-oriented API responses."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -11,11 +11,11 @@ class NavbarLinkData(BaseModel):
     id: str
     label: str
     href: str
-    icon: Optional[str] = None
+    icon: str | None = None
     order: int
     is_active: bool = False
-    badge_count: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
+    badge_count: int | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class NavbarData(BaseModel):
@@ -25,12 +25,12 @@ class NavbarData(BaseModel):
     from the backend for different app sections and user states.
     """
 
-    brand: Dict[str, Any]
-    primary_links: List[NavbarLinkData]
-    secondary_links: List[NavbarLinkData]
-    user_links: List[NavbarLinkData]
-    mobile_menu: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    brand: dict[str, Any]
+    primary_links: list[NavbarLinkData]
+    secondary_links: list[NavbarLinkData]
+    user_links: list[NavbarLinkData]
+    mobile_menu: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class HomeScreenData(BaseModel):
@@ -40,11 +40,11 @@ class HomeScreenData(BaseModel):
     featured content, popular movies, recent releases, and personalized recommendations.
     """
 
-    featured_movies: List[Dict[str, Any]]
-    popular_movies: List[Dict[str, Any]]
-    recent_releases: List[Dict[str, Any]]
-    user_recommendations: List[Dict[str, Any]]
-    genres: List[Dict[str, Any]]
+    featured_movies: list[dict[str, Any]]
+    popular_movies: list[dict[str, Any]]
+    recent_releases: list[dict[str, Any]]
+    user_recommendations: list[dict[str, Any]]
+    genres: list[dict[str, Any]]
 
 
 class UserInteractions(BaseModel):
@@ -53,10 +53,18 @@ class UserInteractions(BaseModel):
     in_watchlist: bool = Field(
         default=False, description="Whether the movie is in user's watchlist"
     )
-    is_favorite: bool = Field(default=False, description="Whether the movie is marked as favorite")
-    user_rating: Optional[float] = Field(default=None, description="User's rating for the movie")
-    watch_progress: float = Field(default=0, description="User's watch progress (0-100)")
-    is_watched: bool = Field(default=False, description="Whether the movie has been watched")
+    is_favorite: bool = Field(
+        default=False, description="Whether the movie is marked as favorite"
+    )
+    user_rating: float | None = Field(
+        default=None, description="User's rating for the movie"
+    )
+    watch_progress: float = Field(
+        default=0, description="User's watch progress (0-100)"
+    )
+    is_watched: bool = Field(
+        default=False, description="Whether the movie has been watched"
+    )
 
 
 class MovieListData(BaseModel):
@@ -68,7 +76,7 @@ class MovieListData(BaseModel):
     total_pages: int = Field(..., description="Total number of pages")
     has_next: bool = Field(..., description="Whether there is a next page")
     has_prev: bool = Field(..., description="Whether there is a previous page")
-    results: List[Dict[str, Any]] = Field(..., description="List of movies")
+    results: list[dict[str, Any]] = Field(..., description="List of movies")
 
 
 class GenreScreenData(BaseModel):
@@ -77,14 +85,14 @@ class GenreScreenData(BaseModel):
     Shows movies filtered by specific genre with pagination support.
     """
 
-    genre: Dict[str, Any]
+    genre: dict[str, Any]
     total: int
     page: int
     per_page: int
     total_pages: int
     has_next: bool
     has_prev: bool
-    results: List[Dict[str, Any]]
+    results: list[dict[str, Any]]
 
 
 class SidebarLinkData(BaseModel):
@@ -93,18 +101,18 @@ class SidebarLinkData(BaseModel):
     id: str = Field(..., description="Unique identifier for the link")
     label: str = Field(..., description="Display text for the link")
     href: str = Field(..., description="URL path for the link")
-    icon: Optional[str] = Field(None, description="Icon identifier for the link")
+    icon: str | None = Field(None, description="Icon identifier for the link")
 
 
 class SidebarFilters(BaseModel):
     """Schema for sidebar filter configuration."""
 
     show: bool = Field(True, description="Whether to show the filter section")
-    defaults: Dict[str, Any] = Field(
+    defaults: dict[str, Any] = Field(
         default_factory=dict,
         description="Default filter values",
     )
-    locked: List[str] = Field(
+    locked: list[str] = Field(
         default_factory=list,
         description="List of filter keys that cannot be changed",
     )
@@ -129,15 +137,15 @@ class SidebarMetadata(BaseModel):
 class SidebarData(BaseModel):
     """Schema for complete sidebar data."""
 
-    home: Dict[str, str] = Field(
+    home: dict[str, str] = Field(
         ...,
         description="Home link configuration",
     )
-    user_links: List[SidebarLinkData] = Field(
+    user_links: list[SidebarLinkData] = Field(
         default_factory=list,
         description="User-specific navigation links",
     )
-    top_links: List[SidebarLinkData] = Field(
+    top_links: list[SidebarLinkData] = Field(
         ...,
         description="Top movies navigation links",
     )
@@ -145,7 +153,7 @@ class SidebarData(BaseModel):
         ...,
         description="Filter configuration",
     )
-    genres: List[SidebarGenre] = Field(
+    genres: list[SidebarGenre] = Field(
         ...,
         description="Genre navigation links",
     )
@@ -158,5 +166,5 @@ class SidebarData(BaseModel):
 class ActorScreenData(BaseModel):
     """Aggregated data for actor detail screen."""
 
-    actor: Dict[str, Any] = Field(..., description="Actor details")
+    actor: dict[str, Any] = Field(..., description="Actor details")
     movies: MovieListData = Field(..., description="Actor's movies with pagination")

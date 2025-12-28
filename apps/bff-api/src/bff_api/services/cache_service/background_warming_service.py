@@ -5,9 +5,8 @@ It integrates with the FastAPI application lifecycle to start and stop warming t
 """
 
 import asyncio
-import logging
 from datetime import datetime, time
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 from config.logging import get_logger
 
@@ -24,7 +23,7 @@ class BackgroundWarmingService:
         """Initialize the background warming service."""
         self.settings = settings
         self.warming_service = get_bff_warming_service()
-        self._running_tasks: Set[asyncio.Task[Any]] = set()
+        self._running_tasks: set[asyncio.Task[Any]] = set()
         self._should_stop = False
 
         ***REMOVED*** Warming schedule configuration - DISABLED for cron-based warming
@@ -59,7 +58,9 @@ class BackgroundWarmingService:
     async def start(self) -> None:
         """Start background warming tasks."""
         logger.info(
-            "Starting background warming service", service="bff", component="background_warming"
+            "Starting background warming service",
+            service="bff",
+            component="background_warming",
         )
 
         self._should_stop = False
@@ -72,7 +73,8 @@ class BackgroundWarmingService:
             if schedule_name == "continuous_metrics":
                 ***REMOVED*** Start continuous task
                 task = asyncio.create_task(
-                    self._run_continuous_warming(config), name=f"warming_{schedule_name}"
+                    self._run_continuous_warming(config),
+                    name=f"warming_{schedule_name}",
                 )
             else:
                 ***REMOVED*** Start scheduled task
@@ -100,7 +102,9 @@ class BackgroundWarmingService:
     async def stop(self) -> None:
         """Stop all background warming tasks."""
         logger.info(
-            "Stopping background warming service", service="bff", component="background_warming"
+            "Stopping background warming service",
+            service="bff",
+            component="background_warming",
         )
 
         self._should_stop = True
@@ -117,10 +121,14 @@ class BackgroundWarmingService:
         self._running_tasks.clear()
 
         logger.info(
-            "Background warming service stopped", service="bff", component="background_warming"
+            "Background warming service stopped",
+            service="bff",
+            component="background_warming",
         )
 
-    async def _run_scheduled_warming(self, schedule_name: str, config: Dict[str, Any]) -> None:
+    async def _run_scheduled_warming(
+        self, schedule_name: str, config: dict[str, Any]
+    ) -> None:
         """Run a scheduled warming task that triggers at specific times."""
         target_time = config["time"]
         strategy = config["strategy"]
@@ -216,7 +224,7 @@ class BackgroundWarmingService:
                 component="background_warming",
             )
 
-    async def _run_continuous_warming(self, config: Dict[str, Any]) -> None:
+    async def _run_continuous_warming(self, config: dict[str, Any]) -> None:
         """Run continuous warming that triggers at regular intervals."""
         interval_minutes = config.get("interval_minutes", 10)
         strategy = config["strategy"]
@@ -286,7 +294,9 @@ class BackgroundWarmingService:
 
         except asyncio.CancelledError:
             logger.info(
-                "Continuous warming task cancelled", service="bff", component="background_warming"
+                "Continuous warming task cancelled",
+                service="bff",
+                component="background_warming",
             )
         except Exception as e:
             logger.error(
@@ -304,7 +314,7 @@ class BackgroundWarmingService:
         ***REMOVED*** Allow 1 minute window
         return abs(current_minutes - target_minutes) <= 1
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Check the health of background warming service."""
         return {
             "service": "background_warming",
@@ -321,14 +331,16 @@ class BackgroundWarmingService:
             },
         }
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get detailed status of the background warming service."""
         task_statuses = {}
         for task in self._running_tasks:
             task_statuses[task.get_name() or "unnamed"] = {
                 "done": task.done(),
                 "cancelled": task.cancelled(),
-                "exception": str(task.exception()) if task.done() and task.exception() else None,
+                "exception": str(task.exception())
+                if task.done() and task.exception()
+                else None,
             }
 
         return {
@@ -341,7 +353,7 @@ class BackgroundWarmingService:
 
 
 ***REMOVED*** Global instance
-_background_warming_service: Optional[BackgroundWarmingService] = None
+_background_warming_service: BackgroundWarmingService | None = None
 
 
 def get_background_warming_service() -> BackgroundWarmingService:

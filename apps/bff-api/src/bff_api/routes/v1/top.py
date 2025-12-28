@@ -1,18 +1,17 @@
 """Top movies routes for BFF API."""
 
 import logging
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, cast
 
-import httpx
 from config.logging import get_logger
 from fast_core.responses import ResponseBuilder
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client
 from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["top"])
@@ -36,7 +35,7 @@ async def _get_movies(
     page: int = 1,
     limit: int = 20,
     **filters: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get movies from backend with filters.
 
     Args:
@@ -63,7 +62,7 @@ async def _get_user_movie_interaction(
     user_id: int,
     movie_id: int,
     jwt_token: str,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Get user's interaction with a specific movie.
 
     Args:
@@ -92,28 +91,30 @@ async def _get_user_movie_interaction(
 async def get_top_movies(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
-    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
-    sort_by: Optional[str] = Query(
+    genre_id: int | None = Query(None, description="Filter by genre ID"),
+    actor_id: int | None = Query(None, description="Filter by actor TMDB ID"),
+    sort_by: str | None = Query(
         "imdb_rating",
         description="Sort by field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
-    sort_desc: Optional[bool] = Query(True, description="Sort in descending order"),
-    imdb_rating: Optional[float] = Query(
+    sort_desc: bool | None = Query(True, description="Sort in descending order"),
+    imdb_rating: float | None = Query(
         None, ge=0, le=10, description="Filter by minimum IMDb rating"
     ),
-    rotten_tomatoes_rating: Optional[int] = Query(
+    rotten_tomatoes_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[int] = Query(
+    metacritic_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
-    end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
+    year: int | None = Query(None, description="Filter by release year"),
+    start_year: int | None = Query(
+        None, description="Filter by start year (inclusive)"
+    ),
+    end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict[str, Any]:
     """Get top-rated movies with filters.
 
     Provides a curated list of top movies with default high-quality filters
@@ -152,7 +153,7 @@ async def get_top_movies(
 
     ***REMOVED*** Extract user ID from JWT token if provided
     user_id = None
-    logger.debug(f"🔍 Debugging token extraction for top movies")
+    logger.debug("🔍 Debugging token extraction for top movies")
     logger.debug(f"📋 Credentials present: {bool(credentials)}")
 
     if credentials and credentials.credentials:
@@ -175,7 +176,7 @@ async def get_top_movies(
 
     try:
         ***REMOVED*** Build filter parameters for top movies
-        filters: Dict[str, Any] = {}
+        filters: dict[str, Any] = {}
         if genre_id is not None:
             filters["genre_id"] = genre_id
         if actor_id is not None:
@@ -208,8 +209,6 @@ async def get_top_movies(
         current_page = movies_response.get("page", page)
         per_page = movies_response.get("per_page", limit)
         total_pages = movies_response.get("total_pages", 0)
-        has_next = movies_response.get("has_next", False)
-        has_prev = movies_response.get("has_prev", False)
 
         ***REMOVED*** If user is authenticated, fetch user interactions for each movie
         if user_id and credentials:
@@ -219,21 +218,30 @@ async def get_top_movies(
                 if movie_id:
                     try:
                         interaction_data = await _get_user_movie_interaction(
-                            backend, user_id, movie_id, jwt_token=credentials.credentials
+                            backend,
+                            user_id,
+                            movie_id,
+                            jwt_token=credentials.credentials,
                         )
                         if interaction_data:
                             ***REMOVED*** Map user interaction data directly to movie fields
                             ***REMOVED*** for frontend compatibility
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
+                            movie["in_watchlist"] = interaction_data.get(
+                                "in_watchlist", False
+                            )
 
                             ***REMOVED*** Also include complete user_interactions object for reference
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get("in_watchlist", False),
+                                "in_watchlist": interaction_data.get(
+                                    "in_watchlist", False
+                                ),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get("watch_progress", 0),
+                                "watch_progress": interaction_data.get(
+                                    "watch_progress", 0
+                                ),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
@@ -282,7 +290,9 @@ async def get_top_movies(
                     "is_watched": False,
                 }
 
-        logger.debug(f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})")
+        logger.debug(
+            f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})"
+        )
 
         ***REMOVED*** Record successful movie request metrics
         if metrics:
@@ -306,7 +316,7 @@ async def get_top_movies(
                 "collection_type": "top_movies",
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except Exception as e:
         ***REMOVED*** Record error metrics
@@ -314,6 +324,9 @@ async def get_top_movies(
             metrics.record_movie_request("top", "error")
 
         logger.error(
-            "Backend error for top_movies", error=str(e), service="bff", endpoint="top_movies"
+            "Backend error for top_movies",
+            error=str(e),
+            service="bff",
+            endpoint="top_movies",
         )
         raise HTTPException(status_code=502, detail="Backend service unavailable")

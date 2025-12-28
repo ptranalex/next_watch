@@ -1,16 +1,16 @@
 """Liked movies-related routes for BFF API."""
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fast_core.errors import service_error_handler, ExternalServiceException
+from fast_core.errors import ExternalServiceException, service_error_handler
 from fast_core.responses import ResponseBuilder
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from bff_api.dependencies.auth import get_current_user_id_and_token
-from bff_api.dependencies import get_backend_client
-from bff_api.services.clients import BackendClient
 from bff_api.core.metrics import get_bff_metrics
+from bff_api.dependencies import get_backend_client
+from bff_api.dependencies.auth import get_current_user_id_and_token
+from bff_api.services.clients import BackendClient
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["liked"])
@@ -33,7 +33,7 @@ async def _get_user_liked_movies(
     jwt_token: str,
     limit: int,
     page: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get user's liked movie interactions from backend.
 
     Args:
@@ -60,11 +60,11 @@ async def _get_user_liked_movies(
 @service_error_handler("backend-api", logger, "get_movies_bulk")
 async def _get_movies_bulk(
     backend: BackendClient,
-    movie_ids: List[int],
+    movie_ids: list[int],
     user_id: int,
     page: int = 1,
     limit: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get movie details in bulk from backend.
 
     Args:
@@ -93,14 +93,16 @@ async def get_user_liked_movies(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     ***REMOVED*** Filter parameters
-    imdb_rating: Optional[float] = Query(None, ge=0, le=10, description="Minimum IMDb rating"),
-    rotten_tomatoes_rating: Optional[float] = Query(
+    imdb_rating: float | None = Query(
+        None, ge=0, le=10, description="Minimum IMDb rating"
+    ),
+    rotten_tomatoes_rating: float | None = Query(
         None, ge=0, le=100, description="Minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[float] = Query(
+    metacritic_rating: float | None = Query(
         None, ge=0, le=100, description="Minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, ge=1900, le=2030, description="Release year"),
+    year: int | None = Query(None, ge=1900, le=2030, description="Release year"),
     sort_by: str = Query(
         "title",
         description="Sort field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
@@ -108,7 +110,7 @@ async def get_user_liked_movies(
     sort_desc: bool = Query(False, description="Sort in descending order"),
     user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get user's liked movies with full movie details.
 
     Provides a paginated list of movies that the authenticated user has liked,
@@ -164,7 +166,7 @@ async def get_user_liked_movies(
 
         ***REMOVED*** The backend client now returns fast-core format with {"results": [...]} format
         ***REMOVED*** Extract the collection items from the liked-movies collection endpoint
-        liked_collection_items: List[Dict[str, Any]] = liked_interactions_response.get(
+        liked_collection_items: list[dict[str, Any]] = liked_interactions_response.get(
             "results", []
         )
 
@@ -204,11 +206,13 @@ async def get_user_liked_movies(
                     "user_context": {"user_id": user_id},
                 },
             )
-            return cast(Dict[str, Any], response)
+            return cast(dict[str, Any], response)
 
         ***REMOVED*** Extract movie IDs for bulk fetching - collection items have movie_id directly
         valid_movie_ids = [
-            item["movie_id"] for item in actually_liked if item.get("movie_id") is not None
+            item["movie_id"]
+            for item in actually_liked
+            if item.get("movie_id") is not None
         ]
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
@@ -245,7 +249,7 @@ async def get_user_liked_movies(
                     "error": "No valid movie IDs found",
                 },
             )
-            return cast(Dict[str, Any], response)
+            return cast(dict[str, Any], response)
 
         ***REMOVED*** Fetch movie details in bulk
         ***REMOVED*** Decorator handles errors automatically, but we can still catch for graceful fallback
@@ -268,7 +272,7 @@ async def get_user_liked_movies(
         }
 
         ***REMOVED*** Merge movie details with collection item data
-        enriched_movies: List[Dict[str, Any]] = []
+        enriched_movies: list[dict[str, Any]] = []
         for movie in movies_data:
             movie_id = movie.get("id")
             if movie_id and movie_id in collection_item_map:
@@ -281,7 +285,9 @@ async def get_user_liked_movies(
                 enriched_movie["watched"] = (
                     False  ***REMOVED*** Unknown from collection data, would need separate lookup
                 )
-                enriched_movie["liked"] = True  ***REMOVED*** Always true since this is from liked collection
+                enriched_movie["liked"] = (
+                    True  ***REMOVED*** Always true since this is from liked collection
+                )
                 enriched_movie["in_watchlist"] = (
                     False  ***REMOVED*** Unknown from collection data, would need separate lookup
                 )
@@ -293,7 +299,9 @@ async def get_user_liked_movies(
                     "user_rating": None,  ***REMOVED*** Unknown from collection data
                     "watch_progress": 0,  ***REMOVED*** Unknown from collection data
                     "is_watched": False,  ***REMOVED*** Unknown from collection data
-                    "liked_at": collection_item.get("added_at"),  ***REMOVED*** Use added_at as liked_at
+                    "liked_at": collection_item.get(
+                        "added_at"
+                    ),  ***REMOVED*** Use added_at as liked_at
                 }
 
                 enriched_movies.append(enriched_movie)
@@ -304,14 +312,16 @@ async def get_user_liked_movies(
                 enriched_movies = [
                     m
                     for m in enriched_movies
-                    if m.get("imdb_rating") and cast(float, m.get("imdb_rating")) >= imdb_rating
+                    if m.get("imdb_rating")
+                    and cast(float, m.get("imdb_rating")) >= imdb_rating
                 ]
             if rotten_tomatoes_rating is not None:
                 enriched_movies = [
                     m
                     for m in enriched_movies
                     if m.get("rotten_tomatoes_rating")
-                    and cast(float, m.get("rotten_tomatoes_rating")) >= rotten_tomatoes_rating
+                    and cast(float, m.get("rotten_tomatoes_rating"))
+                    >= rotten_tomatoes_rating
                 ]
             if metacritic_rating is not None:
                 enriched_movies = [
@@ -331,19 +341,25 @@ async def get_user_liked_movies(
             ***REMOVED*** Apply sorting
             reverse = sort_desc
             if sort_by == "title":
-                enriched_movies.sort(key=lambda x: (x.get("title") or "").lower(), reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: (x.get("title") or "").lower(), reverse=reverse
+                )
             elif sort_by == "release_date":
                 enriched_movies.sort(
                     key=lambda x: x.get("release_date") or "1900-01-01", reverse=reverse
                 )
             elif sort_by == "imdb_rating":
-                enriched_movies.sort(key=lambda x: x.get("imdb_rating") or 0, reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: x.get("imdb_rating") or 0, reverse=reverse
+                )
             elif sort_by == "rotten_tomatoes_rating":
                 enriched_movies.sort(
                     key=lambda x: x.get("rotten_tomatoes_rating") or 0, reverse=reverse
                 )
             elif sort_by == "metacritic_rating":
-                enriched_movies.sort(key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse)
+                enriched_movies.sort(
+                    key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse
+                )
 
         ***REMOVED*** Calculate pagination metadata using backend response pagination data
         backend_pagination = liked_interactions_response.get("pagination", {})
@@ -404,7 +420,7 @@ async def get_user_liked_movies(
                     "total_pages": total_pages,
                 }
             )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except ExternalServiceException as e:
         logger.error(

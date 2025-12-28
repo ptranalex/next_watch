@@ -1,19 +1,21 @@
 """Utility functions for the BFF API CLI interface."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from bff_api.config.app import BFFAPIConfig, settings
+from bff_api.config.app import BFFAPIConfig
 
 logger = logging.getLogger(__name__)
 
 
-def format_config_table(config: BFFAPIConfig, title: str = "BFF Configuration") -> Table:
+def format_config_table(
+    config: BFFAPIConfig, title: str = "BFF Configuration"
+) -> Table:
     """Format configuration settings as a Rich table.
 
     Args:
@@ -40,11 +42,11 @@ def format_config_table(config: BFFAPIConfig, title: str = "BFF Configuration") 
         ("Backend API Timeout", f"{config.backend_api_timeout}s", "ENV/DEFAULT"),
         ("Auth API URL", config.auth_api_url, "ENV/DEFAULT"),
         ("Redis URL", _mask_redis_url(config.redis_url), "ENV/DEFAULT"),
-        ("Cache TTL Movie Data", f"{config.cache_ttl_movie_data}s", "ENV/DEFAULT"),
+        ("Cache TTL Default", f"{config.cache_ttl_default}s", "ENV/DEFAULT"),
         ("CORS Origins", ", ".join(config.cors_origins), "ENV/DEFAULT"),
         (
             "Performance Metrics",
-            _format_boolean(config.bff_performance_metrics),
+            _format_boolean(config.enable_performance_metrics),
             "ENV/DEFAULT",
         ),
     ]
@@ -65,7 +67,7 @@ def format_config_table(config: BFFAPIConfig, title: str = "BFF Configuration") 
 def print_config(
     config: BFFAPIConfig,
     title: str = "BFF Configuration",
-    console: Optional[Console] = None,
+    console: Console | None = None,
     show_secrets: bool = False,
 ) -> None:
     """Print configuration settings in a readable format.
@@ -112,7 +114,7 @@ def print_config(
 
 
 async def check_service_health(
-    url: str, service_name: str, timeout: int = 5, console: Optional[Console] = None
+    url: str, service_name: str, timeout: int = 5, console: Console | None = None
 ) -> bool:
     """Check the health of a service endpoint.
 
@@ -137,14 +139,16 @@ async def check_service_health(
             console=console,
             transient=True,
         ) as progress:
-            task = progress.add_task(f"Checking {service_name}...", total=None)
+            progress.add_task(f"Checking {service_name}...", total=None)
 
             async with httpx.AsyncClient() as client:
                 response = await client.get(health_url, timeout=timeout)
                 response.raise_for_status()
 
                 data = response.json()
-                console.print(f"✅ {service_name} is healthy: {data.get('status', 'OK')}")
+                console.print(
+                    f"✅ {service_name} is healthy: {data.get('status', 'OK')}"
+                )
 
                 if data.get("details"):
                     for key, value in data["details"].items():
@@ -157,8 +161,12 @@ async def check_service_health(
         logger.error(f"Health check failed for {service_name}: {e}")
         return False
     except httpx.HTTPStatusError as e:
-        console.print(f"❌ {service_name} returned error: HTTP {e.response.status_code}")
-        logger.error(f"Health check failed for {service_name}: HTTP {e.response.status_code}")
+        console.print(
+            f"❌ {service_name} returned error: HTTP {e.response.status_code}"
+        )
+        logger.error(
+            f"Health check failed for {service_name}: HTTP {e.response.status_code}"
+        )
         return False
     except Exception as e:
         console.print(f"❌ Unexpected error checking {service_name}: {e}")
@@ -171,7 +179,7 @@ def _format_boolean(value: bool) -> str:
     return "[green]Enabled[/green]" if value else "[grey]Disabled[/grey]"
 
 
-def _mask_sensitive_value(value: Optional[str]) -> str:
+def _mask_sensitive_value(value: str | None) -> str:
     """Mask sensitive configuration values."""
     if not value:
         return "[red]Not Set[/red]"
@@ -202,7 +210,7 @@ def _mask_redis_url(redis_url: str) -> str:
 
 
 def display_service_status(
-    services: Dict[str, Dict[str, Any]], console: Optional[Console] = None
+    services: dict[str, dict[str, Any]], console: Console | None = None
 ) -> None:
     """Display status of multiple services in a table.
 
@@ -213,7 +221,9 @@ def display_service_status(
     if console is None:
         console = Console()
 
-    table = Table(title="Service Health Status", show_header=True, header_style="bold blue")
+    table = Table(
+        title="Service Health Status", show_header=True, header_style="bold blue"
+    )
     table.add_column("Service", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
     table.add_column("URL", style="dim")

@@ -1,15 +1,13 @@
 """Movie-related operations for backend API."""
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
-import httpx
 from config.logging import get_logger
 from fast_core.errors import (
     ResourceNotFoundException,
     ValidationException,
     critical_service_handler,
     optional_service_handler,
-    service_error_handler,
 )
 
 from bff_api.services.clients.base import BaseBackendClient
@@ -21,7 +19,9 @@ class MoviesClient(BaseBackendClient):
     """Client for movie-related operations."""
 
     @critical_service_handler("backend-api", logger)
-    async def get_movie(self, movie_id: int, user_id: Optional[int] = None) -> Dict[str, Any]:
+    async def get_movie(
+        self, movie_id: int, user_id: int | None = None
+    ) -> dict[str, Any]:
         """Get movie details with user-specific data.
 
         This is a CRITICAL operation - movie detail pages must work.
@@ -63,10 +63,10 @@ class MoviesClient(BaseBackendClient):
         self,
         page: int = 1,
         limit: int = 20,
-        genre_id: Optional[int] = None,
-        user_id: Optional[int] = None,
+        genre_id: int | None = None,
+        user_id: int | None = None,
         **filters: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get movies list with filters and user data.
 
         This is a CRITICAL operation - main movie listings must work.
@@ -101,7 +101,9 @@ class MoviesClient(BaseBackendClient):
                 raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
-        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
+        return await self._make_request(
+            "GET", self._build_api_path("/movies"), params=params
+        )
 
     @critical_service_handler("backend-api", logger)
     async def search_movies(
@@ -109,8 +111,8 @@ class MoviesClient(BaseBackendClient):
         query: str,
         page: int = 1,
         limit: int = 20,
-        user_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        user_id: int | None = None,
+    ) -> dict[str, Any]:
         """Search movies.
 
         This is a CRITICAL operation - search functionality must work.
@@ -167,8 +169,8 @@ class MoviesClient(BaseBackendClient):
         self,
         page: int = 1,
         limit: int = 20,
-        user_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        user_id: int | None = None,
+    ) -> dict[str, Any]:
         """Get trending movies.
 
         This is an OPTIONAL operation - trending movies are nice-to-have.
@@ -195,7 +197,9 @@ class MoviesClient(BaseBackendClient):
                 raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
-        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
+        return await self._make_request(
+            "GET", self._build_api_path("/movies"), params=params
+        )
 
     @optional_service_handler(
         service_name="backend-api",
@@ -214,8 +218,8 @@ class MoviesClient(BaseBackendClient):
         self,
         page: int = 1,
         limit: int = 20,
-        user_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        user_id: int | None = None,
+    ) -> dict[str, Any]:
         """Get popular movies.
 
         This is an OPTIONAL operation - popular movies are nice-to-have.
@@ -242,10 +246,14 @@ class MoviesClient(BaseBackendClient):
                 raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
-        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
+        return await self._make_request(
+            "GET", self._build_api_path("/movies"), params=params
+        )
 
-    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
-    async def get_movie_cast(self, movie_id: int) -> List[Dict[str, Any]]:
+    @optional_service_handler(
+        service_name="backend-api", logger=logger, fallback_value=[]
+    )
+    async def get_movie_cast(self, movie_id: int) -> list[dict[str, Any]]:
         """Get movie cast and crew information.
 
         This is an OPTIONAL operation - cast data is enhancement information.
@@ -267,7 +275,7 @@ class MoviesClient(BaseBackendClient):
             response = await self._make_request(
                 "GET", self._build_api_path(f"/movies/{movie_id}/cast")
             )
-            return cast(List[Dict[str, Any]], response.get("cast", []))
+            return cast(list[dict[str, Any]], response.get("cast", []))
         except ResourceNotFoundException:
             ***REMOVED*** Re-raise with more specific message but let the decorator handle graceful degradation
             raise ResourceNotFoundException(
@@ -276,8 +284,10 @@ class MoviesClient(BaseBackendClient):
                 resource_id=str(movie_id),
             )
 
-    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
-    async def get_movie_trailers(self, movie_id: int) -> List[Dict[str, Any]]:
+    @optional_service_handler(
+        service_name="backend-api", logger=logger, fallback_value=[]
+    )
+    async def get_movie_trailers(self, movie_id: int) -> list[dict[str, Any]]:
         """Get movie trailers.
 
         This is an OPTIONAL operation - trailers are enhancement information.
@@ -301,8 +311,8 @@ class MoviesClient(BaseBackendClient):
             )
             ***REMOVED*** Handle both dict responses with trailers key and wrapped list responses
             if "trailers" in response:
-                return cast(List[Dict[str, Any]], response["trailers"])
-            return cast(List[Dict[str, Any]], response.get("data", []))
+                return cast(list[dict[str, Any]], response["trailers"])
+            return cast(list[dict[str, Any]], response.get("data", []))
         except ResourceNotFoundException:
             ***REMOVED*** Re-raise with more specific message but let the decorator handle graceful degradation
             raise ResourceNotFoundException(
@@ -314,11 +324,11 @@ class MoviesClient(BaseBackendClient):
     @critical_service_handler("backend-api", logger)
     async def get_movies_bulk(
         self,
-        movie_ids: List[int],
-        user_id: Optional[int] = None,
+        movie_ids: list[int],
+        user_id: int | None = None,
         page: int = 1,
         limit: int = 100,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get multiple movies by their IDs using bulk endpoint.
 
         This is a CRITICAL operation - bulk movie fetching is essential for performance.
@@ -355,4 +365,6 @@ class MoviesClient(BaseBackendClient):
             "limit": limit,
         }
 
-        return await self._make_request("GET", self._build_api_path("/movies/bulk"), params=params)
+        return await self._make_request(
+            "GET", self._build_api_path("/movies/bulk"), params=params
+        )

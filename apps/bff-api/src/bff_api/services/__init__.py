@@ -1,41 +1,50 @@
-"""Services package for BFF API application.
+"""Services package for BFF API.
 
-This package provides client implementations for communicating with backend
-services. These clients encapsulate the HTTP communication, error handling,
-retries, and response processing for all backend service interactions.
+Important: keep this package import side-effect free.
 
-Key components:
-- BackendClient: Client for the main Backend API service
-- AuthClient: Client for the authentication service
-- HealthService: Health monitoring for all external dependencies
+Tests and app code often import submodules like `bff_api.services.backend_client`.
+If we eagerly import clients here, we can easily create circular imports during
+FastAPI app construction and dependency wiring.
 
-The clients implement resilient communication with:
-- Automatic retries with exponential backoff
-- Consistent error handling
-- Async communication for optimal performance
-- Comprehensive logging
-
-See the README.md file in this directory for detailed documentation.
+Use explicit imports from concrete modules when possible.
 """
 
-from bff_api.services.auth_client import AuthClient
-from bff_api.services.clients.facade import BackendClient
-from bff_api.services.health_service import HealthService, close_health_service, get_health_service
-from bff_api.services.cache_service import (
-    BFFWarmingService,
-    configure_bff_warming,
-    get_bff_warming_config,
-    get_bff_warming_service,
-)
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    ***REMOVED*** Only for type checkers; avoid runtime import cycles.
+    from bff_api.services.auth_client import AuthClient
+    from bff_api.services.cache_service.warming.service import BFFWarmingService
+    from bff_api.services.clients.facade import BackendClient
+    from bff_api.services.health_service import HealthService
+
 
 __all__ = [
     "BackendClient",
     "AuthClient",
     "HealthService",
-    "get_health_service",
-    "close_health_service",
     "BFFWarmingService",
-    "get_bff_warming_service",
-    "configure_bff_warming",
-    "get_bff_warming_config",
 ]
+
+
+def __getattr__(name: str) -> Any:  ***REMOVED*** pragma: no cover
+    if name == "BackendClient":
+        from bff_api.services.clients.facade import BackendClient
+
+        return BackendClient
+    if name == "AuthClient":
+        from bff_api.services.auth_client import AuthClient
+
+        return AuthClient
+    if name == "HealthService":
+        from bff_api.services.health_service import HealthService
+
+        return HealthService
+    if name == "BFFWarmingService":
+        from bff_api.services.cache_service.warming.service import BFFWarmingService
+
+        return BFFWarmingService
+
+    raise AttributeError(name)

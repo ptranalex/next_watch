@@ -4,18 +4,19 @@ This module creates a FastAPI application using the fast-core library
 with BFF-specific configuration and dependencies.
 """
 
-from typing import Dict, List, Optional, AsyncGenerator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fast_core import create_app, AppOptions
+from config.logging import get_logger
+from fast_core import AppOptions, create_app
 from fast_core.middleware import MiddlewareConfig
+from fastapi import FastAPI
 
 from bff_api.config.app import BFFAPIConfig
 from bff_api.config.fast_core_config import create_fast_core_config
 from bff_api.dependencies import cleanup_service_clients, get_all_services_health
-from bff_api.services.health_service import get_health_service, close_health_service
-from config.logging import get_logger
+from bff_api.routes.api_v1 import api_v1_router
+from bff_api.services.health_service import close_health_service
 
 ***REMOVED*** Add BFF meta configuration constants after imports
 BFF_FEATURES = [
@@ -42,10 +43,6 @@ BFF_ENDPOINTS = {
     "/bff/v1/notifications": "Real-time user notifications",
 }
 
-***REMOVED*** Import BFF routes
-from bff_api.routes.health import router as health_router  ***REMOVED*** Will remove this
-
-from bff_api.routes.api_v1 import api_v1_router
 
 logger = get_logger(__name__)
 
@@ -71,6 +68,7 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ***REMOVED*** Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
+
         from bff_api.services.health_service import setup_bff_health_checks
 
         registry = setup_kubernetes_health_checks(app, settings)
@@ -83,11 +81,12 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         ***REMOVED*** First initialize the global metrics registry
         from fast_core.monitoring.metrics import initialize_metrics
+
         from bff_api.core.metrics import initialize_bff_metrics
 
         ***REMOVED*** Initialize global metrics registry with service name
-        global_registry = initialize_metrics("bff-api")
-        logger.info(f"Global metrics registry initialized for service: bff-api")
+        initialize_metrics("bff-api")
+        logger.info("Global metrics registry initialized for service: bff-api")
 
         ***REMOVED*** Now initialize BFF-specific metrics
         metrics_instance = initialize_bff_metrics()
@@ -100,7 +99,9 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             )
     except ImportError as e:
         logger.error(f"Metrics dependencies not installed: {e}")
-        logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
+        logger.info(
+            "Install prometheus-client to enable metrics: pip install prometheus-client"
+        )
     except Exception as e:
         logger.error(f"Failed to initialize BFF metrics: {e}", exc_info=True)
         if bff_config.is_production:
@@ -210,7 +211,11 @@ def create_bff_middleware_config(config: BFFAPIConfig) -> MiddlewareConfig:
         default_limit="500/hour" if config.is_production else "1000/hour",
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
-        + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
+        + (
+            ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+            if not config.is_production
+            else []
+        ),
         headers=True,  ***REMOVED*** Include rate limit headers for debugging
         key_func="ip",  ***REMOVED*** Rate limit by IP address
     )
@@ -256,7 +261,7 @@ def create_bff_middleware_config(config: BFFAPIConfig) -> MiddlewareConfig:
     return middleware
 
 
-def create_bff_app(config: Optional[BFFAPIConfig] = None) -> FastAPI:
+def create_bff_app(config: BFFAPIConfig | None = None) -> FastAPI:
     """Create BFF API application using fast-core with enhanced middleware.
 
     Args:
@@ -327,4 +332,9 @@ def get_bff_app() -> FastAPI:
 
 
 ***REMOVED*** Export the main functions
-__all__ = ["create_bff_app", "get_bff_app", "bff_lifespan", "create_bff_middleware_config"]
+__all__ = [
+    "create_bff_app",
+    "get_bff_app",
+    "bff_lifespan",
+    "create_bff_middleware_config",
+]

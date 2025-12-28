@@ -1,7 +1,5 @@
 """Authentication schemas for BFF API."""
 
-from typing import Optional
-
 from pydantic import BaseModel, EmailStr
 
 
@@ -17,7 +15,7 @@ class RegisterRequest(BaseModel):
 
     email: EmailStr
     password: str
-    name: Optional[str] = None
+    name: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -40,7 +38,7 @@ class UserResponse(BaseModel):
 
     id: int
     email: str
-    name: Optional[str] = None
+    name: str | None = None
     is_active: bool
     created_at: str
 
@@ -56,6 +54,6 @@ class TokenVerificationResponse(BaseModel):
     """Token verification response model."""
 
     valid: bool
-    user_id: Optional[int] = None
-    email: Optional[str] = None
-    message: Optional[str] = None
+    user_id: int | None = None
+    email: str | None = None
+    message: str | None = None

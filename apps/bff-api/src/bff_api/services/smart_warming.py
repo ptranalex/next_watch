@@ -5,16 +5,17 @@ to provide intelligent, event-driven cache warming based on user behavior.
 Includes performance optimizations to prevent backend overload.
 """
 
-from typing import Dict, Any, Optional, List, Callable, Awaitable
-from fastapi import BackgroundTasks
 import asyncio
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
-from cache.smart_warming import get_smart_warming_service, SmartWarmingService
+from cache.smart_warming import get_smart_warming_service
 from config.logging import get_logger
+from fastapi import BackgroundTasks
 
 logger = get_logger(__name__)
 
@@ -27,7 +28,7 @@ class ConnectionPoolStats:
     total_requests: int = 0
     failed_requests: int = 0
     avg_response_time_ms: float = 0.0
-    last_reset: Optional[datetime] = None
+    last_reset: datetime | None = None
 
     def __post_init__(self) -> None:
         if self.last_reset is None:
@@ -47,11 +48,11 @@ class BackendConnectionManager:
         self.max_connections = max_connections
         self.request_timeout = request_timeout
         self._semaphore = asyncio.Semaphore(max_connections)
-        self._shared_client: Optional[Any] = None
+        self._shared_client: Any | None = None
         self._client_lock = asyncio.Lock()
         self._stats = ConnectionPoolStats()
         self._circuit_breaker_failures = 0
-        self._circuit_breaker_opened_at: Optional[datetime] = None
+        self._circuit_breaker_opened_at: datetime | None = None
         self._circuit_breaker_threshold = 5  ***REMOVED*** failures before opening
         self._circuit_breaker_timeout = 60  ***REMOVED*** seconds before trying again
 
@@ -59,12 +60,15 @@ class BackendConnectionManager:
         """Get a shared backend client with connection pooling."""
         async with self._client_lock:
             if self._shared_client is None:
-                from bff_api.services.clients import BackendClient
                 from fast_core.dependencies.client_factory import ServiceClientConfig
+
                 from bff_api.config.app import settings
+                from bff_api.services.clients import BackendClient
 
                 backend_config = ServiceClientConfig(
-                    name="backend", base_url=settings.backend_api_url, timeout=self.request_timeout
+                    name="backend",
+                    base_url=settings.backend_api_url,
+                    timeout=self.request_timeout,
                 )
                 self._shared_client = BackendClient(backend_config, settings)
 
@@ -105,7 +109,7 @@ class BackendConnectionManager:
         self._stats.total_requests += 1
 
     @asynccontextmanager
-    async def get_connection(self) -> Any:
+    async def get_connection(self) -> AsyncIterator[Any]:
         """Get a rate-limited backend connection with circuit breaker."""
         if self._is_circuit_breaker_open():
             raise Exception("Backend circuit breaker is open")
@@ -140,7 +144,7 @@ class BackendConnectionManager:
             finally:
                 self._stats.active_connections -= 1
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get connection pool statistics."""
         return {
             "active_connections": self._stats.active_connections,
@@ -169,7 +173,7 @@ class BackendConnectionManager:
 
 
 ***REMOVED*** Global connection manager
-_backend_connection_manager: Optional[BackendConnectionManager] = None
+_backend_connection_manager: BackendConnectionManager | None = None
 
 
 def get_backend_connection_manager() -> BackendConnectionManager:
@@ -201,12 +205,14 @@ class VersionAwareWarming:
 
     def __init__(self) -> None:
         """Initialize version-aware warming."""
-        self._version_cache: Dict[str, str] = {}  ***REMOVED*** Cache of known versions
-        self._warming_in_progress: Dict[str, asyncio.Event] = {}  ***REMOVED*** Prevent duplicate warming
+        self._version_cache: dict[str, str] = {}  ***REMOVED*** Cache of known versions
+        self._warming_in_progress: dict[
+            str, asyncio.Event
+        ] = {}  ***REMOVED*** Prevent duplicate warming
         self._warming_lock = asyncio.Lock()
 
     async def check_version_needs_warming(
-        self, resource_id: int, resource_type: str, current_version: Optional[str] = None
+        self, resource_id: int, resource_type: str, current_version: str | None = None
     ) -> bool:
         """Check if a resource needs warming based on version.
 
@@ -247,10 +253,10 @@ class VersionAwareWarming:
         self,
         resource_id: int,
         resource_type: str,
-        warming_func: Callable[[], Awaitable[Dict[str, Any]]],
-        version_getter: Optional[Callable[[int], Awaitable[Optional[str]]]] = None,
+        warming_func: Callable[[], Awaitable[dict[str, Any]]],
+        version_getter: Callable[[int], Awaitable[str | None]] | None = None,
         force: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Warm a resource only if its version has changed.
 
         Args:
@@ -379,13 +385,13 @@ class BFFSmartWarming:
 
     def __init__(self) -> None:
         """Initialize BFF smart warming integration."""
-        from bff_api.services.cache_service.warming.config import get_bff_warming_config
         from bff_api.config.app import get_bff_settings
+        from bff_api.services.cache_service.warming.config import get_bff_warming_config
 
         self.smart_warmer = get_smart_warming_service()
         self.version_warmer = VersionAwareWarming()
         self.connection_manager = get_backend_connection_manager()
-        self._warming_throttle: Dict[str, datetime] = {}  ***REMOVED*** Throttle warming requests
+        self._warming_throttle: dict[str, datetime] = {}  ***REMOVED*** Throttle warming requests
         self._throttle_window = timedelta(seconds=30)  ***REMOVED*** Minimum time between warmings
 
         ***REMOVED*** Log warming configuration for debugging
@@ -396,8 +402,12 @@ class BFFSmartWarming:
             "WARMING_MAX_CONNECTIONS": getattr(settings, "warming_max_connections", 4),
             "WARMING_REQUEST_TIMEOUT": getattr(settings, "warming_request_timeout", 3),
             "WARMING_MAX_CONCURRENT": getattr(settings, "warming_max_concurrent", 3),
-            "WARMING_OPERATION_TIMEOUT": getattr(settings, "warming_operation_timeout", 120),
-            "WARMING_REQUESTS_PER_SECOND": getattr(settings, "warming_requests_per_second", 2),
+            "WARMING_OPERATION_TIMEOUT": getattr(
+                settings, "warming_operation_timeout", 120
+            ),
+            "WARMING_REQUESTS_PER_SECOND": getattr(
+                settings, "warming_requests_per_second", 2
+            ),
             "WARMING_BURST_SIZE": getattr(settings, "warming_burst_size", 5),
             "WARMING_MAX_ITEMS_PER_STRATEGY": getattr(
                 settings, "warming_max_items_per_strategy", 10000
@@ -445,7 +455,7 @@ class BFFSmartWarming:
         self,
         background_tasks: BackgroundTasks,
         movie_id: int,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         interaction_type: str = "viewed",
         **context: Any,
     ) -> None:
@@ -473,15 +483,19 @@ class BFFSmartWarming:
             """Background task to warm movie-related content."""
             try:
                 ***REMOVED*** Import here to avoid circular imports
-                from bff_api.services.cache_service.warming.functions import WarmingFunctions
                 from bff_api.config.app import settings
+                from bff_api.services.cache_service.warming.functions import (
+                    WarmingFunctions,
+                )
 
                 async def warming_func() -> None:
                     """Execute the actual movie warming."""
                     warming_funcs = WarmingFunctions(settings)
                     await warming_funcs.warm_movie_screen(movie_id)
                     ***REMOVED*** Reduce cascade warming - only warm genre if explicitly requested
-                    if context.get("warm_genre", False) and (genre_id := context.get("genre_id")):
+                    if context.get("warm_genre", False) and (
+                        genre_id := context.get("genre_id")
+                    ):
                         await warming_funcs.warm_genre_screen(genre_id)
 
                 await self.smart_warmer.warm_from_trigger(
@@ -529,16 +543,19 @@ class BFFSmartWarming:
 
         async def _version_aware_movie_warming() -> None:
             """Background task for version-aware movie warming."""
-            from bff_api.services.cache_service.warming.functions import WarmingFunctions
-            from bff_api.config.app import settings
-            from bff_api.services.clients import BackendClient
-            from fast_core.dependencies.client_factory import ServiceClientConfig
 
-            async def get_movie_version(movie_id: int) -> Optional[str]:
+            from bff_api.config.app import settings
+            from bff_api.services.cache_service.warming.functions import (
+                WarmingFunctions,
+            )
+
+            async def get_movie_version(movie_id: int) -> str | None:
                 """Get current movie version from backend using connection manager."""
                 try:
                     ***REMOVED*** Use shared connection manager to prevent overload
-                    async with self.connection_manager.get_connection() as backend_client:
+                    async with (
+                        self.connection_manager.get_connection() as backend_client
+                    ):
                         ***REMOVED*** Get basic movie data to extract version
                         movie_data = await backend_client.get_movie(movie_id)
 
@@ -554,7 +571,7 @@ class BFFSmartWarming:
                     )
                     return None
 
-            async def movie_warming_func() -> Dict[str, Any]:
+            async def movie_warming_func() -> dict[str, Any]:
                 """Execute the actual movie warming."""
                 warming_funcs = WarmingFunctions(settings)
                 return await warming_funcs.warm_movie_screen(movie_id)
@@ -586,7 +603,7 @@ class BFFSmartWarming:
         self,
         background_tasks: BackgroundTasks,
         priority_tier: int = 1,
-        max_movies: Optional[int] = None,  ***REMOVED*** Now optional for unlimited warming by default
+        max_movies: int | None = None,  ***REMOVED*** Now optional for unlimited warming by default
         force: bool = False,
         **context: Any,
     ) -> None:
@@ -606,8 +623,10 @@ class BFFSmartWarming:
 
         async def _priority_warming() -> None:
             """Background task for priority-based warming."""
-            from bff_api.services.cache_service.warming.functions import WarmingFunctions
             from bff_api.config.app import settings
+            from bff_api.services.cache_service.warming.functions import (
+                WarmingFunctions,
+            )
 
             warming_funcs = WarmingFunctions(settings)
 
@@ -644,7 +663,7 @@ class BFFSmartWarming:
                 ***REMOVED*** Warm movies with version checking to avoid redundant work
                 semaphore = asyncio.Semaphore(max_concurrent)
 
-                async def _warm_with_concurrency_limit(movie_id: int) -> Dict[str, Any]:
+                async def _warm_with_concurrency_limit(movie_id: int) -> dict[str, Any]:
                     """Wrap warming with concurrency control."""
                     async with semaphore:
                         result = await self._warm_single_movie_with_version(
@@ -654,16 +673,22 @@ class BFFSmartWarming:
                         await asyncio.sleep(0.1)
                         return result
 
-                warming_tasks = [_warm_with_concurrency_limit(movie_id) for movie_id in movie_ids]
+                warming_tasks = [
+                    _warm_with_concurrency_limit(movie_id) for movie_id in movie_ids
+                ]
 
                 ***REMOVED*** Execute warming tasks with bounded concurrency
                 results = await asyncio.gather(*warming_tasks, return_exceptions=True)
 
                 success_count = sum(
-                    1 for r in results if isinstance(r, dict) and r.get("status") == "completed"
+                    1
+                    for r in results
+                    if isinstance(r, dict) and r.get("status") == "completed"
                 )
                 skip_count = sum(
-                    1 for r in results if isinstance(r, dict) and r.get("status") == "skipped"
+                    1
+                    for r in results
+                    if isinstance(r, dict) and r.get("status") == "skipped"
                 )
                 error_count = len(results) - success_count - skip_count
 
@@ -691,7 +716,9 @@ class BFFSmartWarming:
             tier=priority_tier,
         )
 
-    async def _get_tier_movie_ids(self, priority_tier: int, max_movies: Optional[int]) -> List[int]:
+    async def _get_tier_movie_ids(
+        self, priority_tier: int, max_movies: int | None
+    ) -> list[int]:
         """Get movie IDs for a specific tier based on filtering criteria.
 
         Args:
@@ -715,8 +742,12 @@ class BFFSmartWarming:
                     )
                     return await self._get_new_and_trending_movies(max_movies)
                 else:
-                    logger.info("Fetching Tier 1: new releases and trending movies (ALL available)")
-                    return await self._get_new_and_trending_movies(None)  ***REMOVED*** None = no limit
+                    logger.info(
+                        "Fetching Tier 1: new releases and trending movies (ALL available)"
+                    )
+                    return await self._get_new_and_trending_movies(
+                        None
+                    )  ***REMOVED*** None = no limit
 
             elif priority_tier == 2:
                 ***REMOVED*** Tier 2: Popular movies + user favorites
@@ -740,9 +771,13 @@ class BFFSmartWarming:
                     discovery_ids = await self._get_all_available_movies()
                     return discovery_ids[:max_movies]  ***REMOVED*** Apply debug limit
                 else:
-                    logger.info("Fetching Tier 3: full catalog for discovery (ALL movies)")
+                    logger.info(
+                        "Fetching Tier 3: full catalog for discovery (ALL movies)"
+                    )
                     discovery_ids = await self._get_all_available_movies()
-                    logger.info(f"Tier 3 retrieved {len(discovery_ids)} total movies from database")
+                    logger.info(
+                        f"Tier 3 retrieved {len(discovery_ids)} total movies from database"
+                    )
                     return discovery_ids
 
             else:
@@ -751,11 +786,14 @@ class BFFSmartWarming:
 
         except Exception as e:
             logger.error(
-                "Failed to fetch tier movie IDs", tier=priority_tier, error=str(e), exc_info=True
+                "Failed to fetch tier movie IDs",
+                tier=priority_tier,
+                error=str(e),
+                exc_info=True,
             )
             return []
 
-    async def _get_new_and_trending_movies(self, max_movies: Optional[int]) -> List[int]:
+    async def _get_new_and_trending_movies(self, max_movies: int | None) -> list[int]:
         """Get new releases and trending movies for Tier 1."""
         try:
             ***REMOVED*** Get actual movie IDs from backend instead of fake ranges
@@ -764,22 +802,29 @@ class BFFSmartWarming:
                 if max_movies is None:
                     ***REMOVED*** No limit - get all available movies and return the recent ones
                     all_movies = await self._get_all_available_movies()
-                    logger.info(f"Retrieved {len(all_movies)} total movies for Tier 1 filtering")
-                    return (
-                        all_movies  ***REMOVED*** For Tier 1, return all (could add date filtering logic here)
+                    logger.info(
+                        f"Retrieved {len(all_movies)} total movies for Tier 1 filtering"
                     )
+                    return all_movies  ***REMOVED*** For Tier 1, return all (could add date filtering logic here)
                 else:
                     ***REMOVED*** Limited fetch for debugging
                     movies_response = None
                     try:
                         ***REMOVED*** Try with sorting first
                         movies_response = await backend_client.get_movies(
-                            page=1, limit=max_movies, sort_by="release_date", sort_order="desc"
+                            page=1,
+                            limit=max_movies,
+                            sort_by="release_date",
+                            sort_order="desc",
                         )
                     except Exception as sort_error:
-                        logger.debug(f"Sorting not supported, trying basic call: {sort_error}")
+                        logger.debug(
+                            f"Sorting not supported, trying basic call: {sort_error}"
+                        )
                         ***REMOVED*** Fallback to basic call without sorting
-                        movies_response = await backend_client.get_movies(page=1, limit=max_movies)
+                        movies_response = await backend_client.get_movies(
+                            page=1, limit=max_movies
+                        )
 
                 movie_ids = []
                 if movies_response and "results" in movies_response:
@@ -799,9 +844,11 @@ class BFFSmartWarming:
                 max_movies=max_movies,
             )
             ***REMOVED*** Fallback: Get a smaller sample of existing movies
-            return await self._get_fallback_movie_ids(min(max_movies, 100) if max_movies else 100)
+            return await self._get_fallback_movie_ids(
+                min(max_movies, 100) if max_movies else 100
+            )
 
-    async def _get_popular_movies(self, max_movies: Optional[int]) -> List[int]:
+    async def _get_popular_movies(self, max_movies: int | None) -> list[int]:
         """Get popular movies and user favorites for Tier 2."""
         try:
             ***REMOVED*** Get actual popular movies from backend
@@ -818,14 +865,19 @@ class BFFSmartWarming:
                     try:
                         ***REMOVED*** Try with rating sorting first
                         movies_response = await backend_client.get_movies(
-                            page=1, limit=max_movies, sort_by="rating", sort_order="desc"
+                            page=1,
+                            limit=max_movies,
+                            sort_by="rating",
+                            sort_order="desc",
                         )
                     except Exception as sort_error:
                         logger.debug(
                             f"Rating sorting not supported, trying basic call: {sort_error}"
                         )
                         ***REMOVED*** Fallback to basic call without sorting
-                        movies_response = await backend_client.get_movies(page=1, limit=max_movies)
+                        movies_response = await backend_client.get_movies(
+                            page=1, limit=max_movies
+                        )
 
                 movie_ids = []
                 if movies_response and "results" in movies_response:
@@ -845,16 +897,18 @@ class BFFSmartWarming:
                 max_movies=max_movies,
             )
             ***REMOVED*** Fallback: Get a sample of existing movies
-            return await self._get_fallback_movie_ids(min(max_movies, 200) if max_movies else 200)
+            return await self._get_fallback_movie_ids(
+                min(max_movies, 200) if max_movies else 200
+            )
 
-    async def _get_discovery_movies(self, max_movies: int) -> List[int]:
+    async def _get_discovery_movies(self, max_movies: int) -> list[int]:
         """Get full catalog movies for Tier 3 discovery."""
         try:
             ***REMOVED*** Get the full movie catalog from backend for discovery
             async with self.connection_manager.get_connection() as backend_client:
                 ***REMOVED*** For discovery, get a diverse set - could be random or by various criteria
                 ***REMOVED*** We'll paginate through movies to get up to max_movies
-                all_movie_ids: List[int] = []
+                all_movie_ids: list[int] = []
                 page = 1
                 page_size = min(100, max_movies)  ***REMOVED*** Backend API limit is 100 per request
 
@@ -864,7 +918,9 @@ class BFFSmartWarming:
 
                     ***REMOVED*** Try basic get_movies call (without sorting to avoid 400 errors)
                     try:
-                        logger.debug(f"Requesting page {page} with limit {current_limit}")
+                        logger.debug(
+                            f"Requesting page {page} with limit {current_limit}"
+                        )
                         movies_response = await backend_client.get_movies(
                             page=page, limit=current_limit
                         )
@@ -917,7 +973,7 @@ class BFFSmartWarming:
                         break
 
                 logger.info(
-                    f"Retrieved {len(all_movie_ids)} discovery movies from backend (requested: {max_movies}, pages_fetched: {page-1})"
+                    f"Retrieved {len(all_movie_ids)} discovery movies from backend (requested: {max_movies}, pages_fetched: {page - 1})"
                 )
 
                 if len(all_movie_ids) < max_movies:
@@ -937,20 +993,23 @@ class BFFSmartWarming:
             ***REMOVED*** Fallback: Get whatever movies we can find
             return await self._get_fallback_movie_ids(min(max_movies, 500))
 
-    async def _get_bulk_movie_ids(self, max_movies: int) -> List[int]:
+    async def _get_bulk_movie_ids(self, max_movies: int) -> list[int]:
         """Alternative method to get movie IDs using bulk endpoint approach."""
         try:
             async with self.connection_manager.get_connection() as backend_client:
                 ***REMOVED*** Try using bulk endpoint with sequential ID ranges
-                all_movie_ids: List[int] = []
+                all_movie_ids: list[int] = []
 
                 ***REMOVED*** Start with a reasonable ID range (most movie DBs start at 1)
                 start_id = 1
                 batch_size = 100
 
-                while len(all_movie_ids) < max_movies and start_id < 10000:  ***REMOVED*** Safety limit
+                while (
+                    len(all_movie_ids) < max_movies and start_id < 10000
+                ):  ***REMOVED*** Safety limit
                     end_id = min(
-                        start_id + batch_size - 1, start_id + (max_movies - len(all_movie_ids))
+                        start_id + batch_size - 1,
+                        start_id + (max_movies - len(all_movie_ids)),
                     )
                     id_range = list(range(start_id, end_id + 1))
 
@@ -979,7 +1038,9 @@ class BFFSmartWarming:
 
                     ***REMOVED*** If we got fewer results than expected, we might be at the end
                     if response and len(response.get("results", [])) < batch_size:
-                        logger.debug(f"Got fewer results than batch size, likely at end of data")
+                        logger.debug(
+                            "Got fewer results than batch size, likely at end of data"
+                        )
                         break
 
                 logger.info(f"Bulk method retrieved {len(all_movie_ids)} movie IDs")
@@ -989,11 +1050,11 @@ class BFFSmartWarming:
             logger.warning(f"Bulk movie ID fetch failed: {e}")
             return []
 
-    async def _get_all_available_movies(self) -> List[int]:
+    async def _get_all_available_movies(self) -> list[int]:
         """Get ALL available movies from the backend database (no limits for Tier 3)."""
         try:
             async with self.connection_manager.get_connection() as backend_client:
-                all_movie_ids: List[int] = []
+                all_movie_ids: list[int] = []
                 page = 1
                 page_size = 100  ***REMOVED*** Backend API limit is 100 per request
                 total_pages_expected = None
@@ -1011,15 +1072,23 @@ class BFFSmartWarming:
                         if movies_response:
                             results_count = len(movies_response.get("results", []))
                             total_reported = movies_response.get("total", "unknown")
-                            per_page_reported = movies_response.get("per_page", "unknown")
+                            per_page_reported = movies_response.get(
+                                "per_page", "unknown"
+                            )
                             logger.debug(
                                 f"API Response: got {results_count} results, total={total_reported}, per_page={per_page_reported}, requested_limit={page_size}"
                             )
 
                         ***REMOVED*** Log total pages on first response
-                        if page == 1 and movies_response and isinstance(movies_response, dict):
+                        if (
+                            page == 1
+                            and movies_response
+                            and isinstance(movies_response, dict)
+                        ):
                             total_in_response = movies_response.get("total", "unknown")
-                            total_pages_in_response = movies_response.get("total_pages", "unknown")
+                            total_pages_in_response = movies_response.get(
+                                "total_pages", "unknown"
+                            )
                             logger.info(
                                 f"Backend reports {total_in_response} total movies across {total_pages_in_response} pages"
                             )
@@ -1062,12 +1131,12 @@ class BFFSmartWarming:
                         break
 
                 logger.info(
-                    f"Unlimited fetch completed: {len(all_movie_ids)} movies from {page-1} pages"
+                    f"Unlimited fetch completed: {len(all_movie_ids)} movies from {page - 1} pages"
                 )
 
                 if total_pages_expected and page - 1 < total_pages_expected:
                     logger.warning(
-                        f"Expected {total_pages_expected} pages but only got {page-1} pages"
+                        f"Expected {total_pages_expected} pages but only got {page - 1} pages"
                     )
 
                 return all_movie_ids
@@ -1078,7 +1147,7 @@ class BFFSmartWarming:
             logger.info("Falling back to discovery method with high limit")
             return await self._get_discovery_movies(10000)
 
-    async def _get_fallback_movie_ids(self, max_movies: int) -> List[int]:
+    async def _get_fallback_movie_ids(self, max_movies: int) -> list[int]:
         """Fallback method to get existing movie IDs safely.
 
         This method gets actual movie IDs from the backend when the tier-specific
@@ -1087,7 +1156,7 @@ class BFFSmartWarming:
         try:
             async with self.connection_manager.get_connection() as backend_client:
                 ***REMOVED*** Get movies in small pages to find existing IDs
-                all_movie_ids: List[int] = []
+                all_movie_ids: list[int] = []
                 page = 1
                 page_size = 50  ***REMOVED*** Small pages for safety
 
@@ -1125,14 +1194,20 @@ class BFFSmartWarming:
                         ***REMOVED*** Safety break (increased for large datasets)
                         max_fallback_pages = (max_movies // page_size) + 5
                         if page > max_fallback_pages:
-                            logger.warning(f"Reached fallback pagination limit at page {page}")
+                            logger.warning(
+                                f"Reached fallback pagination limit at page {page}"
+                            )
                             break
 
                     except Exception as e:
-                        logger.warning(f"Failed to get page {page} in fallback", error=str(e))
+                        logger.warning(
+                            f"Failed to get page {page} in fallback", error=str(e)
+                        )
                         break
 
-                logger.info(f"Fallback retrieved {len(all_movie_ids)} existing movie IDs")
+                logger.info(
+                    f"Fallback retrieved {len(all_movie_ids)} existing movie IDs"
+                )
                 return all_movie_ids
 
         except Exception as e:
@@ -1148,7 +1223,9 @@ class BFFSmartWarming:
                             if isinstance(movie, dict) and "id" in movie:
                                 movie_ids.append(movie["id"])
                         if movie_ids:
-                            logger.info(f"Emergency fallback got {len(movie_ids)} movies")
+                            logger.info(
+                                f"Emergency fallback got {len(movie_ids)} movies"
+                            )
                             return movie_ids
             except Exception as emergency_error:
                 logger.error(f"Emergency fallback failed: {emergency_error}")
@@ -1159,13 +1236,10 @@ class BFFSmartWarming:
 
     async def _warm_single_movie_with_version(
         self, movie_id: int, warming_funcs: Any, force: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Warm a single movie with version checking."""
-        from bff_api.services.clients import BackendClient
-        from fast_core.dependencies.client_factory import ServiceClientConfig
-        from bff_api.config.app import settings
 
-        async def get_movie_version(movie_id: int) -> Optional[str]:
+        async def get_movie_version(movie_id: int) -> str | None:
             """Get movie version for warming decision using connection manager."""
             try:
                 ***REMOVED*** Use shared connection manager for version checks
@@ -1178,7 +1252,7 @@ class BFFSmartWarming:
             except Exception:
                 return None
 
-        async def movie_warming_func() -> Dict[str, Any]:
+        async def movie_warming_func() -> dict[str, Any]:
             """Execute movie warming."""
             result = await warming_funcs.warm_movie_screen(movie_id)
             return result if isinstance(result, dict) else {"result": result}
@@ -1195,7 +1269,7 @@ class BFFSmartWarming:
         self,
         background_tasks: BackgroundTasks,
         genre_id: int,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         **context: Any,
     ) -> None:
         """Warm content based on genre interaction.
@@ -1210,8 +1284,10 @@ class BFFSmartWarming:
         async def _warm_genre_content() -> None:
             """Background task to warm genre-related content."""
             ***REMOVED*** Import here to avoid circular imports
-            from bff_api.services.cache_service.warming.functions import WarmingFunctions
             from bff_api.config.app import settings
+            from bff_api.services.cache_service.warming.functions import (
+                WarmingFunctions,
+            )
 
             async def warming_func() -> None:
                 """Execute the actual genre warming."""
@@ -1238,7 +1314,7 @@ class BFFSmartWarming:
         self,
         background_tasks: BackgroundTasks,
         query: str,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         results_count: int = 0,
         **context: Any,
     ) -> None:
@@ -1316,8 +1392,8 @@ class BFFSmartWarming:
         background_tasks: BackgroundTasks,
         cache_key: str,
         resource_type: str,
-        resource_id: Optional[int] = None,
-        user_id: Optional[int] = None,
+        resource_id: int | None = None,
+        user_id: int | None = None,
         **context: Any,
     ) -> None:
         """Warm content when cache miss is detected.
@@ -1362,7 +1438,7 @@ class BFFSmartWarming:
             resource_id=resource_id,
         )
 
-    def get_warming_stats(self) -> Dict[str, Any]:
+    def get_warming_stats(self) -> dict[str, Any]:
         """Get smart warming statistics including connection pool stats.
 
         Returns:
@@ -1391,11 +1467,13 @@ class BFFSmartWarming:
             self._warming_throttle.clear()
             logger.info("BFF smart warming cleanup completed")
         except Exception as e:
-            logger.error("Error during BFF smart warming cleanup", error=str(e), exc_info=True)
+            logger.error(
+                "Error during BFF smart warming cleanup", error=str(e), exc_info=True
+            )
 
 
 ***REMOVED*** Global BFF smart warming instance
-_bff_smart_warming: Optional[BFFSmartWarming] = None
+_bff_smart_warming: BFFSmartWarming | None = None
 
 
 def get_bff_smart_warming() -> BFFSmartWarming:

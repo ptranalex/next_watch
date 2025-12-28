@@ -5,10 +5,9 @@ including configuration, functions, providers, and factories.
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cache import (
-    CacheManager,
     WarmingEngine,
     WarmingStrategy,
     get_global_collector,
@@ -17,11 +16,11 @@ from cache.warming import set_global_warming_engine
 from cache.warming.strategies import PopularContentStrategy
 from config.logging import get_logger
 
+from bff_api.config.app import settings
 from bff_api.services.cache_service.cache_service import get_cache
 from bff_api.services.cache_service.warming.config import get_bff_warming_config
 from bff_api.services.cache_service.warming.factories import BFFTargetFactories
 from bff_api.services.cache_service.warming.functions import WarmingFunctions
-from bff_api.config.app import settings
 from bff_api.services.cache_service.warming.providers import BFFDataProviders
 
 logger = get_logger(__name__)
@@ -85,7 +84,9 @@ class BFFWarmingService:
 
         ***REMOVED*** Set up user data providers
         self.engine.set_user_data_provider(self.data_providers.get_user_data)
-        self.engine.set_recommendation_provider(self.data_providers.get_user_recommendations)
+        self.engine.set_recommendation_provider(
+            self.data_providers.get_user_recommendations
+        )
 
         logger.info("Configured BFF data providers for warming strategies")
 
@@ -126,7 +127,7 @@ class BFFWarmingService:
 
     async def test_warming_function(
         self, function_name: str = "movie_screen", **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Test a specific warming function to verify it works correctly.
 
         This is useful for development and testing to ensure warming functions
@@ -180,7 +181,9 @@ class BFFWarmingService:
             logger.info(
                 "Successfully tested warming function",
                 function_name=function_name,
-                result_keys=list(result.keys()) if isinstance(result, dict) else "non-dict",
+                result_keys=list(result.keys())
+                if isinstance(result, dict)
+                else "non-dict",
                 service="bff",
                 component="warming_service",
             )
@@ -221,7 +224,7 @@ class BFFWarmingService:
 
 
 ***REMOVED*** Global BFF warming service instance
-_bff_warming_service: Optional[BFFWarmingService] = None
+_bff_warming_service: BFFWarmingService | None = None
 
 
 def get_bff_warming_service() -> BFFWarmingService:
@@ -244,7 +247,7 @@ def configure_bff_warming() -> None:
     """
     try:
         ***REMOVED*** Initialize BFF warming service which configures the cache library
-        service = get_bff_warming_service()
+        get_bff_warming_service()
         logger.info("✅ BFF warming configuration applied")
 
     except Exception as e:

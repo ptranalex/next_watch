@@ -4,7 +4,7 @@ This module provides target factory implementations for creating warming targets
 from popularity data for different content types (movies, actors, genres).
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from cache.warming.types import WarmingStrategy, WarmingTarget
 from config.logging import get_logger
@@ -19,7 +19,7 @@ class BFFTargetFactories:
         """Initialize the target factories."""
         pass
 
-    def create_movie_targets(self, movie_item: Dict[str, Any]) -> List[WarmingTarget]:
+    def create_movie_targets(self, movie_item: dict[str, Any]) -> list[WarmingTarget]:
         """Create warming targets for a popular movie item.
 
         Args:
@@ -28,7 +28,7 @@ class BFFTargetFactories:
         Returns:
             List of warming targets for this movie
         """
-        targets: List[WarmingTarget] = []
+        targets: list[WarmingTarget] = []
         movie_id = movie_item.get("id")
         popularity_score = movie_item.get("popularity_score", 1.0)
         view_count = movie_item.get("view_count", 0)
@@ -37,7 +37,9 @@ class BFFTargetFactories:
             return targets
 
         ***REMOVED*** Calculate base priority
-        base_priority = self._calculate_priority_for_item(popularity_score, view_count, "movie")
+        base_priority = self._calculate_priority_for_item(
+            popularity_score, view_count, "movie"
+        )
 
         ***REMOVED*** Movie detail screen for anonymous users
         ***REMOVED*** This is the most valuable warming target since:
@@ -63,7 +65,7 @@ class BFFTargetFactories:
 
         return targets
 
-    def create_actor_targets(self, actor_item: Dict[str, Any]) -> List[WarmingTarget]:
+    def create_actor_targets(self, actor_item: dict[str, Any]) -> list[WarmingTarget]:
         """Create warming targets for a popular actor item.
 
         Args:
@@ -72,7 +74,7 @@ class BFFTargetFactories:
         Returns:
             List of warming targets for this actor
         """
-        targets: List[WarmingTarget] = []
+        targets: list[WarmingTarget] = []
         actor_id = actor_item.get("id")
         popularity_score = actor_item.get("popularity_score", 1.0)
         view_count = actor_item.get("view_count", 0)
@@ -81,7 +83,9 @@ class BFFTargetFactories:
             return targets
 
         ***REMOVED*** Calculate base priority
-        base_priority = self._calculate_priority_for_item(popularity_score, view_count, "actor")
+        base_priority = self._calculate_priority_for_item(
+            popularity_score, view_count, "actor"
+        )
 
         ***REMOVED*** Actor profile screen
         targets.append(
@@ -96,7 +100,7 @@ class BFFTargetFactories:
 
         return targets
 
-    def create_genre_targets(self, genre_item: Dict[str, Any]) -> List[WarmingTarget]:
+    def create_genre_targets(self, genre_item: dict[str, Any]) -> list[WarmingTarget]:
         """Create warming targets for a popular genre item.
 
         Args:
@@ -105,7 +109,7 @@ class BFFTargetFactories:
         Returns:
             List of warming targets for this genre
         """
-        targets: List[WarmingTarget] = []
+        targets: list[WarmingTarget] = []
         genre_id = genre_item.get("id")
         popularity_score = genre_item.get("popularity_score", 1.0)
         view_count = genre_item.get("view_count", 0)
@@ -114,7 +118,9 @@ class BFFTargetFactories:
             return targets
 
         ***REMOVED*** Calculate base priority
-        base_priority = self._calculate_priority_for_item(popularity_score, view_count, "genre")
+        base_priority = self._calculate_priority_for_item(
+            popularity_score, view_count, "genre"
+        )
 
         ***REMOVED*** Genre screen with default sorting
         targets.append(

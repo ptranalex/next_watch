@@ -1,13 +1,12 @@
 """Main entry point for running the BFF API server."""
 
-import logging
 import os
 import sys
 
 import uvicorn
+from config.logging import get_logger
 
 from bff_api.config.app import settings
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -25,7 +24,9 @@ def main() -> None:
 
     try:
         ***REMOVED*** Log that we're starting the server
-        logger.info(f"Starting BFF API server on http://{settings.host}:{settings.port}")
+        logger.info(
+            f"Starting BFF API server on http://{settings.host}:{settings.port}"
+        )
         logger.info(f"Debug mode: {settings.debug}")
 
         if not settings.debug:

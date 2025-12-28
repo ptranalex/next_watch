@@ -5,24 +5,24 @@ This module implements the actual warming functions that call the cached BFF end
 
 import asyncio
 import random
-from typing import Dict, Any, List, Optional, Callable, Awaitable
-from datetime import datetime, time
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from config.logging import get_logger
 from fast_core.dependencies.client_factory import ServiceClientConfig
 
-from bff_api.services.clients.facade import BackendClient
-from bff_api.services.clients.recommendation import RecommendationClient
+from bff_api.config.app import BFFAPIConfig
 from bff_api.services.cache_service.warming.config import (
     WarmingRateLimiter,
     get_warming_rate_limits,
 )
-from bff_api.config.app import settings, BFFAPIConfig
+from bff_api.services.clients.facade import BackendClient
+from bff_api.services.clients.recommendation import RecommendationClient
 
 logger = get_logger(__name__)
 
 ***REMOVED*** Global rate limiter for warming operations
-_global_warming_rate_limiter: Optional[WarmingRateLimiter] = None
+_global_warming_rate_limiter: WarmingRateLimiter | None = None
 
 
 def get_warming_rate_limiter() -> WarmingRateLimiter:
@@ -38,8 +38,8 @@ def get_warming_rate_limiter() -> WarmingRateLimiter:
 
 
 async def _rate_limited_operation(
-    operation_name: str, operation_func: Callable[[], Awaitable[Dict[str, Any]]]
-) -> Dict[str, Any]:
+    operation_name: str, operation_func: Callable[[], Awaitable[dict[str, Any]]]
+) -> dict[str, Any]:
     """Execute an operation with rate limiting and backoff.
 
     Args:
@@ -65,7 +65,7 @@ async def _rate_limited_operation(
             await rate_limiter.acquire()
 
             logger.debug(
-                f"Executing rate-limited warming operation",
+                "Executing rate-limited warming operation",
                 operation=operation_name,
                 attempt=attempt + 1,
                 max_retries=max_retries + 1,
@@ -76,7 +76,7 @@ async def _rate_limited_operation(
 
             if attempt > 0:
                 logger.info(
-                    f"Rate-limited operation succeeded after retries",
+                    "Rate-limited operation succeeded after retries",
                     operation=operation_name,
                     attempts=attempt + 1,
                 )
@@ -94,7 +94,7 @@ async def _rate_limited_operation(
                     delay *= 0.5 + random.random() * 0.5  ***REMOVED*** Add 0-50% jitter
 
                 logger.warning(
-                    f"Rate limited during warming operation, retrying",
+                    "Rate limited during warming operation, retrying",
                     operation=operation_name,
                     attempt=attempt + 1,
                     max_retries=max_retries + 1,
@@ -108,14 +108,14 @@ async def _rate_limited_operation(
                 ***REMOVED*** Non-rate-limit error or final attempt
                 if is_last_attempt:
                     logger.error(
-                        f"Warming operation failed after all retries",
+                        "Warming operation failed after all retries",
                         operation=operation_name,
                         attempts=attempt + 1,
                         error=str(e),
                     )
                 else:
                     logger.error(
-                        f"Warming operation failed with non-retryable error",
+                        "Warming operation failed with non-retryable error",
                         operation=operation_name,
                         attempt=attempt + 1,
                         error=str(e),
@@ -123,7 +123,9 @@ async def _rate_limited_operation(
                 raise
 
     ***REMOVED*** This should never be reached, but add for type safety
-    raise Exception(f"Rate-limited operation {operation_name} failed after all attempts")
+    raise Exception(
+        f"Rate-limited operation {operation_name} failed after all attempts"
+    )
 
 
 class WarmingFunctions:
@@ -134,8 +136,8 @@ class WarmingFunctions:
         self.settings = settings
 
     async def warm_movie_screen(
-        self, movie_id: int, user_id: Optional[int] = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+        self, movie_id: int, user_id: int | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
         """Warm the movie screen data cache.
 
         Args:
@@ -147,7 +149,7 @@ class WarmingFunctions:
             Dictionary containing warming results
         """
 
-        async def _warm_operation() -> Dict[str, Any]:
+        async def _warm_operation() -> dict[str, Any]:
             ***REMOVED*** Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.movies import _get_movie_screen_data
 
@@ -161,7 +163,9 @@ class WarmingFunctions:
 
             ***REMOVED*** Create client instances
             backend_client = BackendClient(backend_config, self.settings)
-            recommendation_client = RecommendationClient(recommendation_config, self.settings)
+            recommendation_client = RecommendationClient(
+                recommendation_config, self.settings
+            )
 
             ***REMOVED*** Warm the movie screen data (this will populate the cache)
             warmed_data = await _get_movie_screen_data(
@@ -179,16 +183,18 @@ class WarmingFunctions:
                 "data_size": len(str(warmed_data)) if warmed_data else 0,
             }
 
-        result = await _rate_limited_operation(f"warm_movie_screen_{movie_id}", _warm_operation)
+        result = await _rate_limited_operation(
+            f"warm_movie_screen_{movie_id}", _warm_operation
+        )
         return result
 
     async def warm_movies_list(
         self,
-        genre_id: Optional[int] = None,
-        user_id: Optional[int] = None,
+        genre_id: int | None = None,
+        user_id: int | None = None,
         limit: int = 20,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Warm the movies list cache.
 
         Args:
@@ -201,7 +207,7 @@ class WarmingFunctions:
             Dictionary containing warming results
         """
 
-        async def _warm_operation() -> Dict[str, Any]:
+        async def _warm_operation() -> dict[str, Any]:
             ***REMOVED*** Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.movies import _get_movies_list_data
 
@@ -237,7 +243,9 @@ class WarmingFunctions:
                 "user_id": user_id,
                 "limit": limit,
                 "cache_populated": True,
-                "movies_count": len(warmed_data.get("results", [])) if warmed_data else 0,
+                "movies_count": len(warmed_data.get("results", []))
+                if warmed_data
+                else 0,
             }
 
         return await _rate_limited_operation(
@@ -245,8 +253,8 @@ class WarmingFunctions:
         )
 
     async def warm_actor_screen(
-        self, actor_id: int, user_id: Optional[int] = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+        self, actor_id: int, user_id: int | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
         """Warm the actor screen data cache.
 
         Args:
@@ -258,7 +266,7 @@ class WarmingFunctions:
             Dictionary containing warming results
         """
 
-        async def _warm_operation() -> Dict[str, Any]:
+        async def _warm_operation() -> dict[str, Any]:
             ***REMOVED*** Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.actors import _get_actor_screen_data
 
@@ -286,11 +294,13 @@ class WarmingFunctions:
                 "data_size": len(str(warmed_data)) if warmed_data else 0,
             }
 
-        return await _rate_limited_operation(f"warm_actor_screen_{actor_id}", _warm_operation)
+        return await _rate_limited_operation(
+            f"warm_actor_screen_{actor_id}", _warm_operation
+        )
 
     async def warm_genre_screen(
-        self, genre_id: int, user_id: Optional[int] = None, limit: int = 20, **kwargs: Any
-    ) -> Dict[str, Any]:
+        self, genre_id: int, user_id: int | None = None, limit: int = 20, **kwargs: Any
+    ) -> dict[str, Any]:
         """Warm the genre screen data cache.
 
         Args:
@@ -303,7 +313,7 @@ class WarmingFunctions:
             Dictionary containing warming results
         """
 
-        async def _warm_operation() -> Dict[str, Any]:
+        async def _warm_operation() -> dict[str, Any]:
             ***REMOVED*** Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.genres import _get_genre_screen_data
 
@@ -340,7 +350,9 @@ class WarmingFunctions:
                 "limit": limit,
                 "cache_populated": True,
                 "movies_count": (
-                    len(warmed_data.get("movies", {}).get("results", [])) if warmed_data else 0
+                    len(warmed_data.get("movies", {}).get("results", []))
+                    if warmed_data
+                    else 0
                 ),
             }
 

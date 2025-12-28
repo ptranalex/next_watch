@@ -5,10 +5,9 @@ popularity data, user data, and recommendations.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from config.logging import get_logger
-from fast_core.dependencies.client_factory import get_service_client
 
 from bff_api.config.app import settings
 
@@ -22,7 +21,7 @@ class BFFDataProviders:
         """Initialize the data providers."""
         self.settings = settings
 
-    async def get_popularity_data(self) -> Dict[str, Any]:
+    async def get_popularity_data(self) -> dict[str, Any]:
         """Get BFF-specific popularity data for warming.
 
         Returns:
@@ -75,7 +74,7 @@ class BFFDataProviders:
             )
             return {"movies": [], "actors": [], "genres": []}
 
-    async def _fetch_all_movies(self, backend_client: Any) -> List[Dict[str, Any]]:
+    async def _fetch_all_movies(self, backend_client: Any) -> list[dict[str, Any]]:
         """Fetch all movies from backend API through pagination."""
         all_movies = []
         page = 1
@@ -155,7 +154,7 @@ class BFFDataProviders:
 
         return all_movies
 
-    def _calculate_movie_popularity_score(self, movie: Dict[str, Any]) -> float:
+    def _calculate_movie_popularity_score(self, movie: dict[str, Any]) -> float:
         """Calculate popularity score for a movie based on available data."""
         try:
             score = 1.0
@@ -173,11 +172,13 @@ class BFFDataProviders:
             release_date = movie.get("release_date")
             if release_date:
                 try:
-                    release_year = datetime.fromisoformat(release_date.replace("Z", "+00:00")).year
+                    release_year = datetime.fromisoformat(
+                        release_date.replace("Z", "+00:00")
+                    ).year
                     current_year = datetime.now().year
                     if current_year - release_year <= 5:
                         score += 0.5
-                except:
+                except (ValueError, TypeError):
                     pass
 
             ***REMOVED*** Boost movies with higher vote counts
@@ -190,7 +191,7 @@ class BFFDataProviders:
         except Exception:
             return 1.0
 
-    def _estimate_movie_view_count(self, movie: Dict[str, Any]) -> int:
+    def _estimate_movie_view_count(self, movie: dict[str, Any]) -> int:
         """Estimate view count based on available movie data."""
         try:
             views = 100
@@ -208,7 +209,9 @@ class BFFDataProviders:
         except Exception:
             return 100
 
-    async def _get_popular_actors_data(self, backend_client: Any) -> List[Dict[str, Any]]:
+    async def _get_popular_actors_data(
+        self, backend_client: Any
+    ) -> list[dict[str, Any]]:
         """Get popular actors data for warming."""
         try:
             popular_actors = [
@@ -237,7 +240,9 @@ class BFFDataProviders:
             )
             return []
 
-    async def _get_popular_genres_data(self, backend_client: Any) -> List[Dict[str, Any]]:
+    async def _get_popular_genres_data(
+        self, backend_client: Any
+    ) -> list[dict[str, Any]]:
         """Get all genres data for warming."""
         try:
             ***REMOVED*** Fetch all genres from backend API
@@ -288,7 +293,7 @@ class BFFDataProviders:
             )
             return []
 
-    async def get_user_data(self, user_id: int) -> Dict[str, Any]:
+    async def get_user_data(self, user_id: int) -> dict[str, Any]:
         """Get BFF-specific user profile data.
 
         Args:
@@ -310,7 +315,7 @@ class BFFDataProviders:
             logger.error(f"Error getting BFF user data for {user_id}: {e}")
             return {}
 
-    async def get_user_recommendations(self, user_id: int) -> List[Dict[str, Any]]:
+    async def get_user_recommendations(self, user_id: int) -> list[dict[str, Any]]:
         """Get BFF-specific user recommendations.
 
         Args:

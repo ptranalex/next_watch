@@ -5,18 +5,16 @@ Both BFF config and cache library read from the same environment variables,
 eliminating any configuration translation or duplication.
 """
 
-from typing import Optional
-
-from cache import CacheManager, get_global_collector, set_metrics_enabled
+from cache import CacheManager, set_metrics_enabled
 from config.logging import get_logger
 
-from bff_api.config.app import settings, get_cache_settings
+from bff_api.config.app import get_cache_settings, settings
 from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 
 ***REMOVED*** Global cache manager instance
-_cache_manager: Optional[CacheManager] = None
+_cache_manager: CacheManager | None = None
 
 
 def get_cache() -> CacheManager:
@@ -35,7 +33,10 @@ def get_cache() -> CacheManager:
             _cache_manager = CacheManager.from_settings(cache_settings)
 
             ***REMOVED*** Enable metrics if configured
-            if hasattr(settings, "cache_enable_metrics") and settings.cache_enable_metrics:
+            if (
+                hasattr(settings, "cache_enable_metrics")
+                and settings.cache_enable_metrics
+            ):
                 set_metrics_enabled(True)
                 logger.info("Cache metrics enabled")
 

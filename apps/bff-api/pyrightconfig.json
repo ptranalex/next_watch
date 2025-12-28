@@ -1,0 +1,31 @@
+{
+  "include": ["src"],
+  "exclude": ["**/__pycache__", ".venv", "dist", "build"],
+  "venvPath": ".",
+  "venv": ".venv",
+  "extraPaths": [
+    "src",
+    "../../libs/config/src",
+    "../../libs/fast-core/src",
+    "../../libs/kafka/src",
+    "../../libs/cache/src",
+    "../../libs/movie-storage/src",
+    "../../libs/cli/src"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "src",
+      "pythonVersion": "3.12",
+      "extraPaths": [
+        "../../libs/config/src",
+        "../../libs/fast-core/src",
+        "../../libs/kafka/src",
+        "../../libs/cache/src",
+        "../../libs/movie-storage/src",
+        "../../libs/cli/src"
+      ]
+    }
+  ]
+}
+
+

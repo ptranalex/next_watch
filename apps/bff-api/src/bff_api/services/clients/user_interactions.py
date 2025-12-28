@@ -1,10 +1,9 @@
 """User interaction operations for backend API."""
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
 from config.logging import get_logger
 from fast_core.errors import (
-    ExternalServiceException,
     ResourceNotFoundException,
     critical_service_handler,
     optional_service_handler,
@@ -20,8 +19,8 @@ class UserInteractionsClient(BaseBackendClient):
 
     @critical_service_handler("backend-api", logger)
     async def get_user_movie_interaction(
-        self, user_id: int, movie_id: int, jwt_token: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, user_id: int, movie_id: int, jwt_token: str | None = None
+    ) -> dict[str, Any] | None:
         """Get a user's interaction with a movie.
 
         This is a CRITICAL operation - user interaction data is essential for personalization.
@@ -50,8 +49,8 @@ class UserInteractionsClient(BaseBackendClient):
 
     @critical_service_handler("backend-api", logger)
     async def get_user_movie_interactions_batch(
-        self, user_id: int, movie_ids: List[int], jwt_token: Optional[str] = None
-    ) -> Dict[int, Optional[Dict[str, Any]]]:
+        self, user_id: int, movie_ids: list[int], jwt_token: str | None = None
+    ) -> dict[int, dict[str, Any] | None]:
         """Get a user's interactions with multiple movies in a single request.
 
         This is a CRITICAL operation - batch user interactions are essential for performance.
@@ -89,7 +88,7 @@ class UserInteractionsClient(BaseBackendClient):
 
             ***REMOVED*** Convert string keys back to integers and handle the response format
             interactions_dict = response.get("interactions", {})
-            result: Dict[int, Optional[Dict[str, Any]]] = {}
+            result: dict[int, dict[str, Any] | None] = {}
 
             for movie_id in unique_movie_ids:
                 interaction_data = interactions_dict.get(str(movie_id))
@@ -131,7 +130,7 @@ class UserInteractionsClient(BaseBackendClient):
         jwt_token: str,
         page: int = 1,
         limit: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get user's watchlist using new collection endpoint.
 
         This is a CRITICAL operation - watchlist is core user functionality.
@@ -161,7 +160,7 @@ class UserInteractionsClient(BaseBackendClient):
     @critical_service_handler("backend-api", logger)
     async def set_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Add a movie to a user's watchlist using new collection endpoint.
 
         This is a CRITICAL operation - watchlist modifications must work.
@@ -190,7 +189,7 @@ class UserInteractionsClient(BaseBackendClient):
     @critical_service_handler("backend-api", logger)
     async def unset_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Remove movie from user's watchlist using new collection endpoint.
 
         This is a CRITICAL operation - watchlist modifications must work.
@@ -213,7 +212,7 @@ class UserInteractionsClient(BaseBackendClient):
     @critical_service_handler("backend-api", logger)
     async def toggle_user_movie_watchlist(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Toggle movie in user's watchlist. (DEPRECATED)
 
         This is a CRITICAL operation - watchlist modifications must work.
@@ -233,7 +232,9 @@ class UserInteractionsClient(BaseBackendClient):
             ExternalServiceException: If request fails
         """
         ***REMOVED*** Check current interaction status
-        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
+        interaction = await self.get_user_movie_interaction(
+            user_id, movie_id, jwt_token
+        )
 
         if interaction and interaction.get("in_watchlist", False):
             ***REMOVED*** Remove from watchlist
@@ -265,7 +266,7 @@ class UserInteractionsClient(BaseBackendClient):
         jwt_token: str,
         page: int = 1,
         limit: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get user's watched movies using new collection endpoint.
 
         This is an OPTIONAL operation - watched history is nice-to-have.
@@ -300,7 +301,7 @@ class UserInteractionsClient(BaseBackendClient):
     )
     async def set_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Set a movie as watched by a user using new collection endpoint.
 
         This is an OPTIONAL operation - watched tracking is nice-to-have.
@@ -331,7 +332,7 @@ class UserInteractionsClient(BaseBackendClient):
     )
     async def unset_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Unset a movie as watched by a user using new collection endpoint.
 
         This is an OPTIONAL operation - watched tracking is nice-to-have.
@@ -359,7 +360,7 @@ class UserInteractionsClient(BaseBackendClient):
     )
     async def toggle_user_movie_watched(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Toggle movie as watched for user. (DEPRECATED)
 
         This is an OPTIONAL operation - watched tracking is nice-to-have.
@@ -377,7 +378,9 @@ class UserInteractionsClient(BaseBackendClient):
             Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         ***REMOVED*** Check current interaction status
-        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
+        interaction = await self.get_user_movie_interaction(
+            user_id, movie_id, jwt_token
+        )
 
         if interaction and interaction.get("watched", False):
             ***REMOVED*** Remove from watched
@@ -409,7 +412,7 @@ class UserInteractionsClient(BaseBackendClient):
         jwt_token: str,
         page: int = 1,
         limit: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get user's liked movies using new collection endpoint.
 
         This is an OPTIONAL operation - liked movies are social features.
@@ -444,7 +447,7 @@ class UserInteractionsClient(BaseBackendClient):
     )
     async def set_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Set a movie as liked by a user using new collection endpoint.
 
         This is an OPTIONAL operation - liked movies are social features.
@@ -475,7 +478,7 @@ class UserInteractionsClient(BaseBackendClient):
     )
     async def unset_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Unset a movie as liked by a user using new collection endpoint.
 
         This is an OPTIONAL operation - liked movies are social features.
@@ -503,7 +506,7 @@ class UserInteractionsClient(BaseBackendClient):
     )
     async def toggle_user_movie_liked(
         self, user_id: int, movie_id: int, jwt_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Toggle movie as liked for user. (DEPRECATED)
 
         This is an OPTIONAL operation - liked movies are social features.
@@ -521,7 +524,9 @@ class UserInteractionsClient(BaseBackendClient):
             Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         ***REMOVED*** Check current interaction status
-        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
+        interaction = await self.get_user_movie_interaction(
+            user_id, movie_id, jwt_token
+        )
 
         if interaction and interaction.get("liked", False):
             ***REMOVED*** Remove like
@@ -534,8 +539,10 @@ class UserInteractionsClient(BaseBackendClient):
     ***REMOVED*** User Details & Category Operations (OPTIONAL - Profile features)
     ***REMOVED*** ============================================================================
 
-    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
-    async def get_user_favorites(self, user_id: int) -> List[Dict[str, Any]]:
+    @optional_service_handler(
+        service_name="backend-api", logger=logger, fallback_value=[]
+    )
+    async def get_user_favorites(self, user_id: int) -> list[dict[str, Any]]:
         """Get user's favorite movies.
 
         This is an OPTIONAL operation - favorites are profile features.
@@ -550,7 +557,7 @@ class UserInteractionsClient(BaseBackendClient):
         response = await self._make_request(
             "GET", self._build_api_path(f"/users/{user_id}/favorites")
         )
-        return cast(List[Dict[str, Any]], response.get("data", []))
+        return cast(list[dict[str, Any]], response.get("data", []))
 
     @optional_service_handler(
         service_name="backend-api",
@@ -573,7 +580,7 @@ class UserInteractionsClient(BaseBackendClient):
         page: int = 1,
         limit: int = 20,
         **filters: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get user's movie details by category using new collection endpoints.
 
         This is an OPTIONAL operation - category browsing is a profile feature.

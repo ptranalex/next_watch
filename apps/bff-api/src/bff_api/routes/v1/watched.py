@@ -1,17 +1,16 @@
 """Watched movies-related routes for BFF API."""
 
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 
-import httpx
 from config.logging import get_logger
+from fast_core.errors import ExternalServiceException
+from fast_core.responses import ResponseBuilder
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from bff_api.dependencies.auth import get_current_user_id_and_token
-from bff_api.dependencies import get_backend_client
-from bff_api.services.clients import BackendClient
-from fast_core.responses import ResponseBuilder
-from fast_core.errors import ExternalServiceException
 from bff_api.core.metrics import get_bff_metrics
+from bff_api.dependencies import get_backend_client
+from bff_api.dependencies.auth import get_current_user_id_and_token
+from bff_api.services.clients import BackendClient
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["watched"])
@@ -33,7 +32,7 @@ async def _get_user_watched_movies(
     jwt_token: str,
     limit: int,
     page: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get user's watched movie interactions from backend.
 
     Args:
@@ -59,11 +58,11 @@ async def _get_user_watched_movies(
 
 async def _get_movies_bulk(
     backend: BackendClient,
-    movie_ids: List[int],
+    movie_ids: list[int],
     user_id: int,
     page: int = 1,
     limit: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get movie details in bulk from backend.
 
     Args:
@@ -93,7 +92,7 @@ async def get_watched_movies(
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get user's watched movies.
 
     Provides a paginated list of movies that the authenticated user has marked
@@ -121,7 +120,9 @@ async def get_watched_movies(
 
     user_id, jwt_token = user_data
 
-    logger.debug(f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})")
+    logger.debug(
+        f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})"
+    )
 
     try:
         ***REMOVED*** Get watched movies interactions from backend
@@ -135,8 +136,8 @@ async def get_watched_movies(
 
         ***REMOVED*** The backend client now returns fast-core format with {"results": [...]} format
         ***REMOVED*** Extract the collection items from the watched-movies collection endpoint
-        watched_collection_items: List[Dict[str, Any]] = watched_interactions_response.get(
-            "results", []
+        watched_collection_items: list[dict[str, Any]] = (
+            watched_interactions_response.get("results", [])
         )
 
         ***REMOVED*** All items from the watched-movies collection are watched by definition
@@ -162,16 +163,20 @@ async def get_watched_movies(
                     "user_context": {"user_id": user_id},
                 },
             )
-            return cast(Dict[str, Any], response)
+            return cast(dict[str, Any], response)
 
         ***REMOVED*** Extract movie IDs for bulk fetching - collection items have movie_id directly
         valid_movie_ids = [
-            item["movie_id"] for item in actually_watched if item.get("movie_id") is not None
+            item["movie_id"]
+            for item in actually_watched
+            if item.get("movie_id") is not None
         ]
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
         if not movie_ids:
-            logger.debug(f"No valid movie IDs found in watched interactions for user {user_id}")
+            logger.debug(
+                f"No valid movie IDs found in watched interactions for user {user_id}"
+            )
             response = responses.paginated(
                 items=[],
                 page=page,
@@ -190,7 +195,7 @@ async def get_watched_movies(
                     "error": "No valid movie IDs found",
                 },
             )
-            return cast(Dict[str, Any], response)
+            return cast(dict[str, Any], response)
 
         ***REMOVED*** Fetch movie details in bulk
         try:
@@ -215,7 +220,7 @@ async def get_watched_movies(
         }
 
         ***REMOVED*** Merge movie details with collection item data
-        enriched_movies: List[Dict[str, Any]] = []
+        enriched_movies: list[dict[str, Any]] = []
         for movie in movies_data:
             movie_id = movie.get("id")
             if movie_id and movie_id in collection_item_map:
@@ -242,7 +247,9 @@ async def get_watched_movies(
                     "user_rating": None,  ***REMOVED*** Unknown from collection data
                     "watch_progress": 100,  ***REMOVED*** Assume 100% for watched movies
                     "is_watched": True,  ***REMOVED*** Always true for watched movies
-                    "watched_at": collection_item.get("added_at"),  ***REMOVED*** Use added_at as watched_at
+                    "watched_at": collection_item.get(
+                        "added_at"
+                    ),  ***REMOVED*** Use added_at as watched_at
                 }
 
                 enriched_movies.append(enriched_movie)
@@ -293,7 +300,7 @@ async def get_watched_movies(
                     "total_pages": total_pages,
                 }
             )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except ExternalServiceException as e:
         logger.error(

@@ -4,8 +4,10 @@ This module handles all configuration settings and setup for the BFF cache warmi
 """
 
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Any
+
 from cache.warming import WarmingConfig
+
 from bff_api.config.app import get_bff_settings
 
 
@@ -48,14 +50,22 @@ def get_bff_warming_config() -> WarmingConfig:
     )
 
 
-def get_warming_rate_limits() -> Dict[str, Any]:
+def get_warming_rate_limits() -> dict[str, Any]:
     """Get rate limiting configuration for warming operations."""
     settings = get_bff_settings()
     return {
-        "requests_per_second": getattr(settings, "warming_requests_per_second", 2),  ***REMOVED*** 2 RPS max
-        "burst_size": getattr(settings, "warming_burst_size", 5),  ***REMOVED*** Allow 5 request burst
-        "backoff_base": getattr(settings, "warming_backoff_base", 2.0),  ***REMOVED*** Exponential backoff base
-        "backoff_max": getattr(settings, "warming_backoff_max", 30.0),  ***REMOVED*** Max backoff 30s
+        "requests_per_second": getattr(
+            settings, "warming_requests_per_second", 2
+        ),  ***REMOVED*** 2 RPS max
+        "burst_size": getattr(
+            settings, "warming_burst_size", 5
+        ),  ***REMOVED*** Allow 5 request burst
+        "backoff_base": getattr(
+            settings, "warming_backoff_base", 2.0
+        ),  ***REMOVED*** Exponential backoff base
+        "backoff_max": getattr(
+            settings, "warming_backoff_max", 30.0
+        ),  ***REMOVED*** Max backoff 30s
         "jitter": getattr(settings, "warming_jitter", True),  ***REMOVED*** Add jitter to backoff
     }
 
@@ -84,7 +94,8 @@ class WarmingRateLimiter:
             ***REMOVED*** Add tokens based on time elapsed
             time_passed = now - self.last_update
             self.tokens = min(
-                float(self.burst_size), self.tokens + time_passed * self.requests_per_second
+                float(self.burst_size),
+                self.tokens + time_passed * self.requests_per_second,
             )
             self.last_update = now
 
@@ -98,7 +109,7 @@ class WarmingRateLimiter:
 
 
 ***REMOVED*** Global rate limiter instance
-_global_warming_rate_limiter: Optional[WarmingRateLimiter] = None
+_global_warming_rate_limiter: WarmingRateLimiter | None = None
 
 
 def get_warming_rate_limiter() -> WarmingRateLimiter:
@@ -117,7 +128,7 @@ def get_warming_rate_limiter() -> WarmingRateLimiter:
     return _global_warming_rate_limiter
 
 
-def get_bff_warming_settings() -> Dict[str, Any]:
+def get_bff_warming_settings() -> dict[str, Any]:
     """Get dict representation of BFF warming settings for JSON responses.
 
     Returns:
@@ -127,11 +138,17 @@ def get_bff_warming_settings() -> Dict[str, Any]:
 
     return {
         "max_concurrent_operations": getattr(
-            settings, "warming_max_concurrent", 3  ***REMOVED*** Reduced for rate limiting
+            settings,
+            "warming_max_concurrent",
+            3,  ***REMOVED*** Reduced for rate limiting
         ),
-        "max_items_per_strategy": getattr(settings, "warming_max_items_per_strategy", 10000),
+        "max_items_per_strategy": getattr(
+            settings, "warming_max_items_per_strategy", 10000
+        ),
         "operation_timeout_seconds": getattr(
-            settings, "warming_operation_timeout", 120  ***REMOVED*** Increased timeout
+            settings,
+            "warming_operation_timeout",
+            120,  ***REMOVED*** Increased timeout
         ),
         "enable_popular_content": True,
         "enable_user_specific": True,

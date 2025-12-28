@@ -1,16 +1,14 @@
 """Authentication utilities for BFF API."""
 
-from typing import Optional
-
 import jwt
+from config.logging import get_logger
 
 from bff_api.config.app import settings
-from config.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> Optional[int]:
+def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> int | None:
     """Extract user ID from JWT token.
 
     Args:
@@ -83,7 +81,9 @@ def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> Opt
             )
         return None
     except jwt.InvalidTokenError as e:
-        logger.warning("Invalid JWT token", error=str(e), service="bff", component="auth")
+        logger.warning(
+            "Invalid JWT token", error=str(e), service="bff", component="auth"
+        )
         if raise_on_invalid:
             from fast_core.errors.exceptions import AuthenticationException
 
@@ -94,7 +94,10 @@ def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> Opt
         return None
     except (ValueError, Exception) as e:
         logger.warning(
-            "Failed to extract user ID from token", error=str(e), service="bff", component="auth"
+            "Failed to extract user ID from token",
+            error=str(e),
+            service="bff",
+            component="auth",
         )
         if raise_on_invalid:
             from fast_core.errors.exceptions import AuthenticationException
@@ -106,7 +109,7 @@ def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> Opt
         return None
 
 
-def extract_user_id_from_token_lenient(token: str) -> Optional[int]:
+def extract_user_id_from_token_lenient(token: str) -> int | None:
     """Extract user ID from JWT token with lenient error handling.
 
     This function silently fails and returns None for invalid tokens.

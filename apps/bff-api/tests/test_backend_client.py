@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock
 
-import pytest
-
 from bff_api.services.backend_client import BackendClient
 
 
@@ -31,7 +29,9 @@ class TestBackendClient:
 
         for input_path, expected_output in test_cases:
             result = client._build_api_path(input_path)
-            assert result == expected_output, f"Expected {expected_output}, got {result}"
+            assert (
+                result == expected_output
+            ), f"Expected {expected_output}, got {result}"
 
     def test_build_api_path_handles_empty_path(self):
         """Test that _build_api_path handles empty path."""

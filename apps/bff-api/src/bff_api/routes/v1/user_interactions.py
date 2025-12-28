@@ -1,13 +1,12 @@
 """User interaction routes for BFF API - Resource-Oriented Design."""
 
-from typing import List, Tuple
-
 from config.logging import get_logger
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
 from fast_core.errors import ExternalServiceException
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 
-from bff_api.dependencies.auth import get_current_user_id_and_token
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client
+from bff_api.dependencies.auth import get_current_user_id_and_token
 from bff_api.schemas.user_interaction_schemas import (
     AddToCollectionRequest,
     CollectionOperationResponse,
@@ -16,7 +15,6 @@ from bff_api.schemas.user_interaction_schemas import (
     UserMovieInteractionResponse,
 )
 from bff_api.services.clients import BackendClient
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 
@@ -34,7 +32,7 @@ router = APIRouter(tags=["user-interactions"])
     summary="Get user's watchlist",
 )
 async def get_watchlist(
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> MovieCollectionResponse:
     """Get all movies in user's watchlist.
@@ -96,7 +94,7 @@ async def get_watchlist(
 )
 async def add_to_watchlist(
     request: AddToCollectionRequest,
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> CollectionOperationResponse:
     """Add a movie to user's watchlist.
@@ -136,10 +134,10 @@ async def add_to_watchlist(
             collection_type="watchlist",
         )
 
-    except HTTPException:
-        raise
     except ExternalServiceException as e:
-        logger.error(f"Backend error adding movie {movie_id} to watchlist for user {user_id}: {e}")
+        logger.error(
+            f"Backend error adding movie {movie_id} to watchlist for user {user_id}: {e}"
+        )
         if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -155,6 +153,8 @@ async def add_to_watchlist(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
             )
+    except HTTPException:
+        raise
 
 
 @router.delete(
@@ -164,7 +164,7 @@ async def add_to_watchlist(
 )
 async def remove_from_watchlist(
     movie_id: int = Path(..., description="Movie ID to remove", ge=1),
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> CollectionOperationResponse:
     """Remove a movie from user's watchlist.
@@ -199,8 +199,6 @@ async def remove_from_watchlist(
             collection_type="watchlist",
         )
 
-    except HTTPException:
-        raise
     except ExternalServiceException as e:
         logger.error(
             f"Backend error removing movie {movie_id} from watchlist for user {user_id}: {e}"
@@ -215,6 +213,8 @@ async def remove_from_watchlist(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
             )
+    except HTTPException:
+        raise
 
 
 ***REMOVED*** ============================================================================
@@ -228,7 +228,7 @@ async def remove_from_watchlist(
     summary="Get user's watched movies",
 )
 async def get_watched_movies(
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> MovieCollectionResponse:
     """Get all movies the user has watched.
@@ -285,7 +285,7 @@ async def get_watched_movies(
 )
 async def mark_movie_watched(
     request: AddToCollectionRequest,
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> CollectionOperationResponse:
     """Mark a movie as watched.
@@ -321,10 +321,10 @@ async def mark_movie_watched(
             collection_type="watched_movies",
         )
 
-    except HTTPException:
-        raise
     except ExternalServiceException as e:
-        logger.error(f"Backend error marking movie {movie_id} as watched for user {user_id}: {e}")
+        logger.error(
+            f"Backend error marking movie {movie_id} as watched for user {user_id}: {e}"
+        )
         if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -340,6 +340,8 @@ async def mark_movie_watched(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
             )
+    except HTTPException:
+        raise
 
 
 @router.delete(
@@ -349,7 +351,7 @@ async def mark_movie_watched(
 )
 async def unmark_movie_watched(
     movie_id: int = Path(..., description="Movie ID to unmark as watched", ge=1),
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> CollectionOperationResponse:
     """Unmark a movie as watched.
@@ -384,10 +386,10 @@ async def unmark_movie_watched(
             collection_type="watched_movies",
         )
 
-    except HTTPException:
-        raise
     except ExternalServiceException as e:
-        logger.error(f"Backend error unmarking movie {movie_id} as watched for user {user_id}: {e}")
+        logger.error(
+            f"Backend error unmarking movie {movie_id} as watched for user {user_id}: {e}"
+        )
         if e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -398,6 +400,8 @@ async def unmark_movie_watched(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
             )
+    except HTTPException:
+        raise
 
 
 ***REMOVED*** ============================================================================
@@ -411,7 +415,7 @@ async def unmark_movie_watched(
     summary="Get user's liked movies",
 )
 async def get_liked_movies(
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> MovieCollectionResponse:
     """Get all movies the user has liked.
@@ -468,7 +472,7 @@ async def get_liked_movies(
 )
 async def like_movie(
     request: AddToCollectionRequest,
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> CollectionOperationResponse:
     """Like a movie.
@@ -504,8 +508,6 @@ async def like_movie(
             collection_type="liked_movies",
         )
 
-    except HTTPException:
-        raise
     except ExternalServiceException as e:
         logger.error(f"Backend error liking movie {movie_id} for user {user_id}: {e}")
         if e.status_code == 404:
@@ -523,6 +525,8 @@ async def like_movie(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
             )
+    except HTTPException:
+        raise
 
 
 @router.delete(
@@ -532,7 +536,7 @@ async def like_movie(
 )
 async def unlike_movie(
     movie_id: int = Path(..., description="Movie ID to unlike", ge=1),
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> CollectionOperationResponse:
     """Unlike a movie.
@@ -567,8 +571,6 @@ async def unlike_movie(
             collection_type="liked_movies",
         )
 
-    except HTTPException:
-        raise
     except ExternalServiceException as e:
         logger.error(f"Backend error unliking movie {movie_id} for user {user_id}: {e}")
         if e.status_code == 401:
@@ -581,6 +583,8 @@ async def unlike_movie(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
             )
+    except HTTPException:
+        raise
 
 
 ***REMOVED*** ============================================================================
@@ -595,7 +599,7 @@ async def unlike_movie(
 )
 async def get_movie_interaction(
     movie_id: int = Path(..., description="Movie ID", ge=1),
-    user_data: Tuple[int, str] = Depends(get_current_user_id_and_token),
+    user_data: tuple[int, str] = Depends(get_current_user_id_and_token),
     backend: BackendClient = Depends(get_backend_client),
 ) -> UserMovieInteractionResponse:
     """Get user's interaction status for a specific movie.
@@ -618,7 +622,9 @@ async def get_movie_interaction(
     logger.debug(f"Getting interaction for user {user_id}, movie {movie_id}")
 
     try:
-        interaction = await backend.get_user_movie_interaction(user_id, movie_id, jwt_token)
+        interaction = await backend.get_user_movie_interaction(
+            user_id, movie_id, jwt_token
+        )
 
         if not interaction:
             ***REMOVED*** Return default interaction (all false)
@@ -638,7 +644,9 @@ async def get_movie_interaction(
         return UserMovieInteractionResponse(**interaction)
 
     except ExternalServiceException as e:
-        logger.error(f"Backend error getting interaction for user {user_id}, movie {movie_id}: {e}")
+        logger.error(
+            f"Backend error getting interaction for user {user_id}, movie {movie_id}: {e}"
+        )
         if e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

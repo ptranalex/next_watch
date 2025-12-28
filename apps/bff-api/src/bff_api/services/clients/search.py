@@ -4,19 +4,22 @@ This client handles communication with the dedicated Search API service
 for search suggestions and related operations.
 """
 
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any
 
 from config.logging import get_logger
 from fast_core.dependencies.client_factory import ServiceClientConfig
 from fast_core.errors import (
-    ExternalServiceException,
     ValidationException,
     service_error_handler,
 )
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-import httpx
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
-from .base import BaseBackendClient, BackendClientTransientError, BackendClientPermanentError
+from .base import BackendClientTransientError, BaseBackendClient
 
 logger = get_logger(__name__)
 
@@ -27,7 +30,9 @@ class SearchAPIClient(BaseBackendClient):
     Extends BaseBackendClient with Search API-specific methods and configurations.
     """
 
-    def __init__(self, config: ServiceClientConfig, bff_config: Optional[Any] = None) -> None:
+    def __init__(
+        self, config: ServiceClientConfig, bff_config: Any | None = None
+    ) -> None:
         """Initialize Search API client."""
         super().__init__(config, bff_config)
         ***REMOVED*** Override service name for proper error attribution
@@ -43,10 +48,10 @@ class SearchAPIClient(BaseBackendClient):
         self,
         method: str,
         path: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Make HTTP request with Search API-specific error handling.
 
         This method is needed because @service_error_handler uses hardcoded service names.
@@ -60,7 +65,7 @@ class SearchAPIClient(BaseBackendClient):
         self,
         query: str,
         limit: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get basic search suggestions from Search API.
 
         Args:
@@ -112,7 +117,7 @@ class SearchAPIClient(BaseBackendClient):
         self,
         query: str,
         limit: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get enhanced text-based suggestions from Search API.
 
         Args:
@@ -165,8 +170,8 @@ class SearchAPIClient(BaseBackendClient):
         query: str,
         page: int = 1,
         limit: int = 20,
-        types: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        types: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Search across all entity types through Search API.
 
         Args:
@@ -200,7 +205,7 @@ class SearchAPIClient(BaseBackendClient):
             component="search_client",
         )
 
-        params: Dict[str, Union[str, int, List[str]]] = {
+        params: dict[str, str | int | list[str]] = {
             "query": query.strip(),
             "page": page,
             "limit": limit,
@@ -226,7 +231,7 @@ class SearchAPIClient(BaseBackendClient):
 
         return response
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Check the health of the Search API service.
 
         Returns:
@@ -253,7 +258,12 @@ class SearchAPIClient(BaseBackendClient):
             )
 
             ***REMOVED*** Return response with URL included for consistency with fast-core health checks
-            return {"service": self.name, "status": "healthy", "url": self.base_url, **response}
+            return {
+                "service": self.name,
+                "status": "healthy",
+                "url": self.base_url,
+                **response,
+            }
 
         except Exception as e:
             logger.error(

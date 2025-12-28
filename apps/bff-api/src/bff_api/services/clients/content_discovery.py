@@ -1,15 +1,15 @@
 """Content discovery operations for backend API."""
 
-from typing import Any, Dict, List, Optional, cast
-from config.logging import get_logger
+from typing import Any, cast
 
+from config.logging import get_logger
 from fast_core.errors import (
-    ExternalServiceException,
     ResourceNotFoundException,
     ValidationException,
     critical_service_handler,
     optional_service_handler,
 )
+
 from bff_api.services.clients.base import BaseBackendClient
 
 logger = get_logger(__name__)
@@ -19,7 +19,7 @@ class ContentDiscoveryClient(BaseBackendClient):
     """Client for content discovery operations."""
 
     @critical_service_handler("backend-api", logger)
-    async def get_genre(self, genre_id: int) -> Dict[str, Any]:
+    async def get_genre(self, genre_id: int) -> dict[str, Any]:
         """Get a specific genre by ID.
 
         This is a CRITICAL operation - individual genre details are essential for genre pages.
@@ -46,7 +46,9 @@ class ContentDiscoveryClient(BaseBackendClient):
         )
 
         try:
-            response = await self._make_request("GET", self._build_api_path(f"/genres/{genre_id}"))
+            response = await self._make_request(
+                "GET", self._build_api_path(f"/genres/{genre_id}")
+            )
             logger.debug(
                 "Successfully fetched genre details",
                 genre_id=genre_id,
@@ -65,7 +67,7 @@ class ContentDiscoveryClient(BaseBackendClient):
             )
 
     @critical_service_handler("backend-api", logger)
-    async def get_genres(self) -> List[Dict[str, Any]]:
+    async def get_genres(self) -> list[dict[str, Any]]:
         """Get all genres.
 
         This is a CRITICAL operation - genres are essential for movie browsing and filtering.
@@ -86,9 +88,9 @@ class ContentDiscoveryClient(BaseBackendClient):
 
         ***REMOVED*** Handle response with genres key
         if "genres" in response:
-            genres = cast(List[Dict[str, Any]], response["genres"])
+            genres = cast(list[dict[str, Any]], response["genres"])
         else:
-            genres = cast(List[Dict[str, Any]], response.get("data", []))
+            genres = cast(list[dict[str, Any]], response.get("data", []))
 
         logger.debug(
             "Successfully fetched genres",
@@ -99,8 +101,10 @@ class ContentDiscoveryClient(BaseBackendClient):
         )
         return genres
 
-    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
-    async def get_trending_genres(self) -> List[Dict[str, Any]]:
+    @optional_service_handler(
+        service_name="backend-api", logger=logger, fallback_value=[]
+    )
+    async def get_trending_genres(self) -> list[dict[str, Any]]:
         """Get trending genres.
 
         This is an OPTIONAL operation - trending genres are discovery enhancements.
@@ -121,9 +125,9 @@ class ContentDiscoveryClient(BaseBackendClient):
 
         ***REMOVED*** Handle response with genres key
         if "genres" in response:
-            genres = cast(List[Dict[str, Any]], response["genres"])
+            genres = cast(list[dict[str, Any]], response["genres"])
         else:
-            genres = cast(List[Dict[str, Any]], response.get("data", []))
+            genres = cast(list[dict[str, Any]], response.get("data", []))
 
         logger.debug(
             "Successfully fetched trending genres",
@@ -135,7 +139,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         return genres
 
     @critical_service_handler("backend-api", logger)
-    async def get_actor(self, actor_id: int) -> Dict[str, Any]:
+    async def get_actor(self, actor_id: int) -> dict[str, Any]:
         """Get actor details.
 
         This is a CRITICAL operation - actor detail pages must work.
@@ -162,7 +166,9 @@ class ContentDiscoveryClient(BaseBackendClient):
         )
 
         try:
-            response = await self._make_request("GET", self._build_api_path(f"/actors/{actor_id}"))
+            response = await self._make_request(
+                "GET", self._build_api_path(f"/actors/{actor_id}")
+            )
             logger.debug(
                 "Successfully fetched actor details",
                 actor_id=actor_id,
@@ -179,8 +185,12 @@ class ContentDiscoveryClient(BaseBackendClient):
                 resource_id=str(actor_id),
             )
 
-    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
-    async def get_popular_actors(self, page: int = 1, limit: int = 20) -> List[Dict[str, Any]]:
+    @optional_service_handler(
+        service_name="backend-api", logger=logger, fallback_value=[]
+    )
+    async def get_popular_actors(
+        self, page: int = 1, limit: int = 20
+    ) -> list[dict[str, Any]]:
         """Get popular actors.
 
         This is an OPTIONAL operation - popular actors are discovery enhancements.
@@ -216,9 +226,9 @@ class ContentDiscoveryClient(BaseBackendClient):
 
         ***REMOVED*** Handle response with actors key
         if "actors" in response:
-            actors = cast(List[Dict[str, Any]], response["actors"])
+            actors = cast(list[dict[str, Any]], response["actors"])
         else:
-            actors = cast(List[Dict[str, Any]], response.get("data", []))
+            actors = cast(list[dict[str, Any]], response.get("data", []))
 
         logger.debug(
             "Successfully fetched popular actors",
@@ -231,7 +241,9 @@ class ContentDiscoveryClient(BaseBackendClient):
         return actors
 
     @critical_service_handler("backend-api", logger)
-    async def search_actors(self, query: str, page: int = 1, limit: int = 20) -> Dict[str, Any]:
+    async def search_actors(
+        self, query: str, page: int = 1, limit: int = 20
+    ) -> dict[str, Any]:
         """Search actors.
 
         This is a CRITICAL operation - search functionality must work.

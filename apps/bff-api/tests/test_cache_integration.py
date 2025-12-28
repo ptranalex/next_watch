@@ -2,12 +2,11 @@
 
 """Tests for BFF cache integration."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
+from bff_api.services.cache_service import check_cache_health, get_cache
 from cache import CacheManager
-
-from bff_api.services.cache_service import get_cache, check_cache_health
 
 
 class TestBFFCacheIntegration:
@@ -30,7 +29,6 @@ class TestBFFCacheIntegration:
             patch.object(cache, "set_json_safe", return_value=True) as mock_set,
             patch.object(cache, "get_dict", return_value=None) as mock_get,
         ):
-
             ***REMOVED*** Test setting movie data
             movie_data = {"id": 123, "title": "Test Movie", "year": 2023}
             key = "movie:123"
@@ -52,9 +50,11 @@ class TestBFFCacheIntegration:
             patch.object(cache, "set_json_safe", return_value=True) as mock_set,
             patch.object(cache, "get_dict", return_value=None) as mock_get,
         ):
-
             ***REMOVED*** Test setting trending data
-            trending_data = {"results": [{"id": 1, "title": "Trending Movie"}], "page": 1}
+            trending_data = {
+                "results": [{"id": 1, "title": "Trending Movie"}],
+                "page": 1,
+            }
             key = "trending:movies:page:1"
             result = await cache.set_json_safe(key, trending_data)
             assert result is True
@@ -75,9 +75,11 @@ class TestBFFCacheIntegration:
             patch.object(cache, "get_list", return_value=None) as mock_get,
             patch.object(cache, "delete_key_safe", return_value=True) as mock_delete,
         ):
-
             ***REMOVED*** Test setting watchlist data
-            watchlist_data = [{"id": 1, "title": "Movie 1"}, {"id": 2, "title": "Movie 2"}]
+            watchlist_data = [
+                {"id": 1, "title": "Movie 1"},
+                {"id": 2, "title": "Movie 2"},
+            ]
             key = "user:user123:watchlist"
             result = await cache.set_json_safe(key, watchlist_data)
             assert result is True
@@ -102,9 +104,11 @@ class TestBFFCacheIntegration:
             patch.object(cache, "set_json_safe", return_value=True) as mock_set,
             patch.object(cache, "get_dict", return_value=None) as mock_get,
         ):
-
             ***REMOVED*** Test setting search results
-            search_data = {"results": [{"id": 1, "title": "Search Result"}], "query": "test"}
+            search_data = {
+                "results": [{"id": 1, "title": "Search Result"}],
+                "query": "test",
+            }
             key = "search:test query:page:1"
             result = await cache.set_json_safe(key, search_data)
             assert result is True

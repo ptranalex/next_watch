@@ -1,14 +1,17 @@
 """Authentication client for communicating with auth service."""
 
-from typing import Any, Dict, Optional, TypeVar, cast
+from typing import Any, cast
 
 import httpx
 from config.logging import get_logger
 from fast_core.dependencies.client_factory import ServiceClientConfig
 from fast_core.errors import service_error_handler
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
-
-from bff_api.config.app import BFFAPIConfig
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 ***REMOVED*** Import BaseBackendClient for inheritance instead of BaseServiceClient
 from bff_api.services.clients.base import (
@@ -82,11 +85,11 @@ class AuthClient(BaseBackendClient):
         self,
         method: str,
         path: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        form_data: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        form_data: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """Make HTTP request with auth-specific handling.
 
         This method is needed because:
@@ -109,8 +112,10 @@ class AuthClient(BaseBackendClient):
                 )
                 response.raise_for_status()
 
-                if response.headers.get("content-type", "").startswith("application/json"):
-                    return cast(Dict[str, Any], response.json())
+                if response.headers.get("content-type", "").startswith(
+                    "application/json"
+                ):
+                    return cast(dict[str, Any], response.json())
                 else:
                     return {"data": response.text}
 
@@ -118,9 +123,13 @@ class AuthClient(BaseBackendClient):
                 status_code = e.response.status_code
                 if 400 <= status_code < 500:
                     if status_code == 401:
-                        logger.debug(f"Authentication failed for {method} {path}: {status_code}")
+                        logger.debug(
+                            f"Authentication failed for {method} {path}: {status_code}"
+                        )
                     elif status_code == 404:
-                        logger.debug(f"Resource not found for {method} {path}: {status_code}")
+                        logger.debug(
+                            f"Resource not found for {method} {path}: {status_code}"
+                        )
                     else:
                         logger.info(f"Client error {status_code} for {method} {path}")
                     raise AuthClientPermanentError(f"Auth service error: {status_code}")
@@ -138,7 +147,7 @@ class AuthClient(BaseBackendClient):
             ***REMOVED*** Delegate standard JSON requests to parent implementation
             return await super()._make_request(method, path, params, data, headers)
 
-    async def login(self, email: str, password: str) -> Dict[str, Any]:
+    async def login(self, email: str, password: str) -> dict[str, Any]:
         """Authenticate user with email and password.
 
         Args:
@@ -159,8 +168,8 @@ class AuthClient(BaseBackendClient):
         )
 
     async def register(
-        self, email: str, password: str, username: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, email: str, password: str, username: str | None = None
+    ) -> dict[str, Any]:
         """Register a new user.
 
         Args:
@@ -182,9 +191,11 @@ class AuthClient(BaseBackendClient):
         if username:
             user_data["username"] = username
 
-        return await self._make_request("POST", self._build_api_path("/users"), data=user_data)
+        return await self._make_request(
+            "POST", self._build_api_path("/users"), data=user_data
+        )
 
-    async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
+    async def refresh_token(self, refresh_token: str) -> dict[str, Any]:
         """Refresh access token using refresh token.
 
         Args:
@@ -197,10 +208,12 @@ class AuthClient(BaseBackendClient):
             AuthClientError: If token refresh fails
         """
         return await self._make_request(
-            "PUT", self._build_api_path("/tokens"), data={"refresh_token": refresh_token}
+            "PUT",
+            self._build_api_path("/tokens"),
+            data={"refresh_token": refresh_token},
         )
 
-    async def verify_token(self, token: str) -> Dict[str, Any]:
+    async def verify_token(self, token: str) -> dict[str, Any]:
         """Verify and decode JWT token.
 
         Args:
@@ -216,7 +229,7 @@ class AuthClient(BaseBackendClient):
             "POST", self._build_api_path("/tokens/verify"), data={"token": token}
         )
 
-    async def get_current_user(self, token: str) -> Dict[str, Any]:
+    async def get_current_user(self, token: str) -> dict[str, Any]:
         """Get current user information.
 
         Args:
@@ -229,5 +242,7 @@ class AuthClient(BaseBackendClient):
             AuthClientError: If user info retrieval fails
         """
         return await self._make_request(
-            "GET", self._build_api_path("/users/me"), headers={"Authorization": f"Bearer {token}"}
+            "GET",
+            self._build_api_path("/users/me"),
+            headers={"Authorization": f"Bearer {token}"},
         )

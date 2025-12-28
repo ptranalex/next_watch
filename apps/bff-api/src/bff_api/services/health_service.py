@@ -10,11 +10,11 @@ This service provides health checks for all external dependencies:
 import asyncio
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from config.logging import get_logger
-from httpx import HTTPStatusError, RequestError
+from httpx import RequestError
 
 from bff_api.config.app import settings
 from bff_api.services.cache_service import get_cache_service
@@ -31,9 +31,9 @@ class HealthCheckResult:
 
     is_healthy: bool
     status: str
-    response_time_ms: Optional[float] = None
-    details: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    response_time_ms: float | None = None
+    details: dict[str, Any] | None = None
+    error: str | None = None
 
 
 class HealthService:
@@ -41,7 +41,7 @@ class HealthService:
 
     def __init__(self) -> None:
         """Initialize the health service."""
-        self._http_client: Optional[httpx.AsyncClient] = None
+        self._http_client: httpx.AsyncClient | None = None
 
     async def _get_http_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client for health checks.
@@ -56,7 +56,7 @@ class HealthService:
             )
         return self._http_client
 
-    async def check_all(self) -> Dict[str, HealthCheckResult]:
+    async def check_all(self) -> dict[str, HealthCheckResult]:
         """Check health of all external services.
 
         Returns:
@@ -74,7 +74,7 @@ class HealthService:
         )
 
         ***REMOVED*** Handle any exceptions and build results
-        results: Dict[str, HealthCheckResult] = {}
+        results: dict[str, HealthCheckResult] = {}
 
         ***REMOVED*** Process backend API result
         if isinstance(backend_result, Exception):
@@ -336,7 +336,9 @@ class HealthService:
                             "status_code": response.status_code,
                             "service_status": service_status,
                             "auth_checks": health_data.get("checks", {}),
-                            "note": "Service responding" if response.status_code == 503 else None,
+                            "note": "Service responding"
+                            if response.status_code == 503
+                            else None,
                         },
                     )
                 except Exception:
@@ -391,7 +393,7 @@ class HealthService:
 
 
 ***REMOVED*** Global health service instance
-_health_service: Optional[HealthService] = None
+_health_service: HealthService | None = None
 
 
 def get_health_service() -> HealthService:
@@ -434,7 +436,6 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckCategory,
         HealthCheckDefinition,
         HealthCheckResult,
-        HealthCheckType,
     )
 
     ***REMOVED*** Backend API - CRITICAL dependency
@@ -525,7 +526,8 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 response_time = (time.time() - start_time) * 1000
 
                 return HealthCheckResult(
-                    is_healthy=response.status_code in [200, 503],  ***REMOVED*** 503 = degraded but reachable
+                    is_healthy=response.status_code
+                    in [200, 503],  ***REMOVED*** 503 = degraded but reachable
                     status="healthy" if response.status_code == 200 else "degraded",
                     response_time_ms=round(response_time, 2),
                     details={
@@ -632,9 +634,6 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Check cache service metrics if available
-            cache_service = get_cache_service()
-
             response_time = (time.time() - start_time) * 1000
 
             return HealthCheckResult(

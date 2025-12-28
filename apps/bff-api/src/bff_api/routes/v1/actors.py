@@ -1,20 +1,19 @@
 """Actor-related routes for BFF API."""
 
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 from cache.decorators import redis_cache
-from cache.keys import build_cache_key, build_filtered_key, build_paginated_key
+from cache.keys import build_filtered_key, build_paginated_key
 from config.logging import get_logger
+from fast_core.errors import ExternalServiceException
+from fast_core.responses import ResponseBuilder
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client
-
-from fast_core.responses import ResponseBuilder
-from fast_core.errors import ExternalServiceException
 from bff_api.services.clients import BackendClient
 from bff_api.utils.auth import extract_user_id_from_token
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["actors"])
@@ -35,7 +34,11 @@ security = HTTPBearer(auto_error=False)
 
 @redis_cache(
     ttl=1800,  ***REMOVED*** 30 minutes - actor data changes infrequently
-    key_builder=lambda actor_id, page, limit, backend, credentials=None: build_paginated_key(
+    key_builder=lambda actor_id,
+    page,
+    limit,
+    backend,
+    credentials=None: build_paginated_key(
         "screen:actor", [actor_id], page, limit, prefix=""
     ),
 )
@@ -44,8 +47,8 @@ async def _get_actor_screen_data(
     page: int,
     limit: int,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> dict[str, Any]:
     """Internal cached function for actor screen aggregation."""
     logger.debug(
         "Building actor screen data",
@@ -62,7 +65,9 @@ async def _get_actor_screen_data(
         raise HTTPException(status_code=404, detail="Actor not found")
 
     ***REMOVED*** Get actor's movies with pagination support
-    movies_response = await backend.get_movies(page=page, limit=limit, actor_id=actor_id)
+    movies_response = await backend.get_movies(
+        page=page, limit=limit, actor_id=actor_id
+    )
 
     ***REMOVED*** Extract pagination data
     movies = movies_response.get("results", [])
@@ -121,18 +126,18 @@ def _build_actor_movies_cache_key(
     actor_id: int,
     page: int,
     limit: int,
-    genre_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
-    user_id: Optional[int],
+    genre_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
+    credentials: HTTPAuthorizationCredentials | None = None,
 ) -> str:
     """Build cache key for actor movies list with all parameters using cache library utilities."""
     filters = {
@@ -154,25 +159,26 @@ def _build_actor_movies_cache_key(
 
 
 @redis_cache(
-    ttl=900, key_builder=_build_actor_movies_cache_key  ***REMOVED*** 15 minutes for filtered movie lists
+    ttl=900,
+    key_builder=_build_actor_movies_cache_key,  ***REMOVED*** 15 minutes for filtered movie lists
 )
 async def _get_actor_movies_data(
     actor_id: int,
     page: int,
     limit: int,
-    genre_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
-    user_id: Optional[int],
+    genre_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> dict[str, Any]:
     """Internal cached function for actor movies list aggregation."""
     logger.debug(
         "Building actor movies data",
@@ -185,7 +191,7 @@ async def _get_actor_movies_data(
     )
 
     ***REMOVED*** Build filter parameters
-    filters: Dict[str, Any] = {"actor_id": actor_id}  ***REMOVED*** Always include actor_id filter
+    filters: dict[str, Any] = {"actor_id": actor_id}  ***REMOVED*** Always include actor_id filter
     if genre_id is not None:
         filters["genre_id"] = genre_id
     if sort_by:
@@ -264,8 +270,8 @@ async def get_actor_screen(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     backend: BackendClient = Depends(get_backend_client),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict[str, Any]:
     """Get aggregated data for actor detail screen.
 
     Fetches complete actor information including their movies and metadata.
@@ -343,12 +349,18 @@ async def get_actor_screen(
                             ***REMOVED*** Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
+                            movie["in_watchlist"] = interaction_data.get(
+                                "in_watchlist", False
+                            )
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get("in_watchlist", False),
+                                "in_watchlist": interaction_data.get(
+                                    "in_watchlist", False
+                                ),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get("watch_progress", 0),
+                                "watch_progress": interaction_data.get(
+                                    "watch_progress", 0
+                                ),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
@@ -415,7 +427,7 @@ async def get_actor_screen(
                 },
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except ExternalServiceException as e:
         ***REMOVED*** Record error metrics
@@ -433,27 +445,29 @@ async def get_actor_movies(
     actor_id: int = Path(..., description="Actor ID"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
-    sort_by: Optional[str] = Query(
+    genre_id: int | None = Query(None, description="Filter by genre ID"),
+    sort_by: str | None = Query(
         None,
         description="Sort by field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
-    sort_desc: Optional[bool] = Query(True, description="Sort in descending order"),
-    imdb_rating: Optional[float] = Query(
+    sort_desc: bool | None = Query(True, description="Sort in descending order"),
+    imdb_rating: float | None = Query(
         None, ge=0, le=10, description="Filter by minimum IMDb rating"
     ),
-    rotten_tomatoes_rating: Optional[int] = Query(
+    rotten_tomatoes_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[int] = Query(
+    metacritic_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
-    end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
+    year: int | None = Query(None, description="Filter by release year"),
+    start_year: int | None = Query(
+        None, description="Filter by start year (inclusive)"
+    ),
+    end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict[str, Any]:
     """Get paginated list of movies for a specific actor with filters.
 
     Provides paginated movie listings for an actor with support for filtering by genre,
@@ -543,12 +557,18 @@ async def get_actor_movies(
                             ***REMOVED*** Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
+                            movie["in_watchlist"] = interaction_data.get(
+                                "in_watchlist", False
+                            )
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get("in_watchlist", False),
+                                "in_watchlist": interaction_data.get(
+                                    "in_watchlist", False
+                                ),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get("watch_progress", 0),
+                                "watch_progress": interaction_data.get(
+                                    "watch_progress", 0
+                                ),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
@@ -564,7 +584,9 @@ async def get_actor_movies(
                                 "is_watched": False,
                             }
                     except Exception as e:
-                        logger.warning(f"Failed to get user interaction for movie {movie_id}: {e}")
+                        logger.warning(
+                            f"Failed to get user interaction for movie {movie_id}: {e}"
+                        )
                         ***REMOVED*** Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False
@@ -611,7 +633,7 @@ async def get_actor_movies(
                 },
             },
         )
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except ExternalServiceException as e:
         logger.error(f"Backend error for actor {actor_id} movies: {e}")

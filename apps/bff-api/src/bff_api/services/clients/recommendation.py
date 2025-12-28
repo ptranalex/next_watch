@@ -1,13 +1,10 @@
 """Recommendation-related operations for recommendation API."""
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
-import httpx
 from config.logging import get_logger
 from fast_core.errors import (
-    ExternalServiceException,
     ResourceNotFoundException,
-    ServiceUnavailableException,
     ValidationException,
     optional_service_handler,
 )
@@ -24,10 +21,10 @@ class RecommendationClient(BaseBackendClient):
         self,
         method: str,
         path: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Override _make_request to handle 404s specifically for recommendations."""
         try:
             return await super()._make_request(method, path, params, data, headers)
@@ -44,7 +41,7 @@ class RecommendationClient(BaseBackendClient):
                         pass
 
                 raise ResourceNotFoundException(
-                    detail=f"Movie not found in recommendation service",
+                    detail="Movie not found in recommendation service",
                     resource_type="Movie",
                     resource_id=movie_id,
                 )
@@ -62,7 +59,7 @@ class RecommendationClient(BaseBackendClient):
         movie_id: int,
         limit: int = 20,
         min_score: float = 0.01,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get similar movies from recommendation API.
 
         Args:
@@ -105,5 +102,7 @@ class RecommendationClient(BaseBackendClient):
         ***REMOVED*** Extract just the recommendation movie objects from the response
         recommendations = response_data.get("recommendations", [])
 
-        logger.debug(f"Fetched {len(recommendations)} similar movies for movie {movie_id}")
-        return cast(List[Dict[str, Any]], recommendations)
+        logger.debug(
+            f"Fetched {len(recommendations)} similar movies for movie {movie_id}"
+        )
+        return cast(list[dict[str, Any]], recommendations)

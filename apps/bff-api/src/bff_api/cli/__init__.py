@@ -17,6 +17,7 @@ For usage information, run:
 See the README.md file in this directory for detailed documentation.
 """
 
+from . import utils
 from .main import app, main
 
 __all__ = ["main", "app", "utils"]

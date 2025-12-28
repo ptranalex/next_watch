@@ -1,15 +1,15 @@
 """Health check routes for BFF service."""
 
 import datetime
-from typing import Dict, List, Any
+from typing import Any
 
+from config.logging import get_logger
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from bff_api.config.app import settings
 from bff_api.dependencies import get_all_services_health
-from config.logging import get_logger
 from bff_api.services.cache_service.background_warming_service import (
     get_background_warming_service,
 )
@@ -48,7 +48,9 @@ async def service_clients_health() -> JSONResponse:
         health_status = await get_all_services_health()
 
         ***REMOVED*** Determine overall status
-        all_healthy = all(status.get("status") == "healthy" for status in health_status.values())
+        all_healthy = all(
+            status.get("status") == "healthy" for status in health_status.values()
+        )
         overall_status = "healthy" if all_healthy else "degraded"
         status_code = 200 if all_healthy else 503
 
@@ -83,12 +85,18 @@ async def service_clients_health() -> JSONResponse:
                 },
                 "summary": {
                     "healthy": sum(
-                        1 for s in health_status.values() if s.get("status") == "healthy"
+                        1
+                        for s in health_status.values()
+                        if s.get("status") == "healthy"
                     ),
                     "unhealthy": sum(
-                        1 for s in health_status.values() if s.get("status") == "unhealthy"
+                        1
+                        for s in health_status.values()
+                        if s.get("status") == "unhealthy"
                     ),
-                    "error": sum(1 for s in health_status.values() if s.get("status") == "error"),
+                    "error": sum(
+                        1 for s in health_status.values() if s.get("status") == "error"
+                    ),
                     "total": len(health_status),
                 },
             },
@@ -301,7 +309,7 @@ async def readiness_check(request: Request) -> JSONResponse:
 
 
 @router.get("/health/live")
-async def liveness_check() -> Dict[str, str]:
+async def liveness_check() -> dict[str, str]:
     """Liveness check for Kubernetes/Docker.
 
     Simple endpoint that always returns 200 if the BFF service is running.
@@ -462,16 +470,25 @@ async def smart_warming_health() -> JSONResponse:
                     "backend_connections": {
                         "active": active_connections,
                         "max": max_connections,
-                        "utilization_percent": (active_connections / max(1, max_connections)) * 100,
+                        "utilization_percent": (
+                            active_connections / max(1, max_connections)
+                        )
+                        * 100,
                         "circuit_breaker_open": circuit_breaker_open,
                         "success_rate_percent": success_rate,
-                        "avg_response_time_ms": backend_connections.get("avg_response_time_ms", 0),
+                        "avg_response_time_ms": backend_connections.get(
+                            "avg_response_time_ms", 0
+                        ),
                         "total_requests": backend_connections.get("total_requests", 0),
-                        "failed_requests": backend_connections.get("failed_requests", 0),
+                        "failed_requests": backend_connections.get(
+                            "failed_requests", 0
+                        ),
                     },
                     "warming_throttling": {
                         "active_throttles": stats.get("warming_throttle_entries", 0),
-                        "throttle_window_seconds": stats.get("throttle_window_seconds", 30),
+                        "throttle_window_seconds": stats.get(
+                            "throttle_window_seconds", 30
+                        ),
                     },
                     "smart_warming": {
                         key: value
@@ -489,7 +506,9 @@ async def smart_warming_health() -> JSONResponse:
         )
 
     except Exception as e:
-        logger.error("Failed to get smart warming health status", error=str(e), exc_info=True)
+        logger.error(
+            "Failed to get smart warming health status", error=str(e), exc_info=True
+        )
         return JSONResponse(
             status_code=503,
             content={
@@ -501,7 +520,7 @@ async def smart_warming_health() -> JSONResponse:
         )
 
 
-def _get_warming_recommendations(stats: Dict[str, Any]) -> List[Dict[str, str]]:
+def _get_warming_recommendations(stats: dict[str, Any]) -> list[dict[str, str]]:
     """Get performance recommendations based on warming statistics."""
     recommendations = []
 

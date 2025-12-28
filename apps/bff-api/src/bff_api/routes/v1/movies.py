@@ -1,33 +1,31 @@
 """Movie-related routes for BFF API."""
 
 import asyncio
-import json
 import time
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 
 from cache.decorators import redis_cache
 from cache.keys import build_cache_key, build_filtered_key
 from config.logging import get_logger
-from fastapi import APIRouter, Depends, Path, Query, HTTPException, BackgroundTasks
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fast_core.errors.exceptions import (
-    ExternalServiceException,
-    ResourceNotFoundException,
-    APIException,
-)
 from fast_core.dependencies import get_pagination
 from fast_core.dependencies.common import PaginationParams
+from fast_core.errors.exceptions import (
+    APIException,
+    ExternalServiceException,
+    ResourceNotFoundException,
+)
 from fast_core.responses import ResponseBuilder
 from fast_core.security.rate_limit import rate_limit
+from fastapi import APIRouter, BackgroundTasks, Depends, Path, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from bff_api.core.metrics import get_bff_metrics
 from bff_api.dependencies import get_backend_client
 from bff_api.dependencies.service_clients import get_recommendation_client
-from fast_core.errors import ExternalServiceException
 from bff_api.services.clients import BackendClient
 from bff_api.services.clients.recommendation import RecommendationClient
+from bff_api.services.smart_warming import BFFSmartWarming, get_smart_warming_dependency
 from bff_api.utils.auth import extract_user_id_from_token
-from bff_api.services.smart_warming import get_smart_warming_dependency, BFFSmartWarming
-from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["movies"])
@@ -52,19 +50,19 @@ responses = ResponseBuilder(
 def _build_movies_list_cache_key(
     page: int,
     limit: int,
-    genre_id: Optional[int],
-    actor_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
-    user_id: Optional[int],
+    genre_id: int | None,
+    actor_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
+    credentials: HTTPAuthorizationCredentials | None = None,
 ) -> str:
     """Build cache key for movies list with all parameters using cache library utilities."""
     filters = {
@@ -81,10 +79,12 @@ def _build_movies_list_cache_key(
         "start_year": start_year,
         "end_year": end_year,
     }
-    return build_filtered_key("screen:movies", "list", filters, user_id=user_id, prefix="")
+    return build_filtered_key(
+        "screen:movies", "list", filters, user_id=user_id, prefix=""
+    )
 
 
-def _build_static_movie_cache_key(movie_id: int, version: Optional[str] = None) -> str:
+def _build_static_movie_cache_key(movie_id: int, version: str | None = None) -> str:
     """Build cache key for static movie data with optional versioning.
 
     Args:
@@ -101,7 +101,7 @@ def _build_static_movie_cache_key(movie_id: int, version: Optional[str] = None) 
         return build_cache_key("screen:movie:static", [movie_id], prefix="")
 
 
-def _extract_movie_version(movie_data: Dict[str, Any]) -> Optional[str]:
+def _extract_movie_version(movie_data: dict[str, Any]) -> str | None:
     """Extract version information from movie data for cache versioning.
 
     Tries multiple version strategies in order of preference:
@@ -158,7 +158,7 @@ def _extract_movie_version(movie_data: Dict[str, Any]) -> Optional[str]:
     return str(int(time.time()))
 
 
-def _build_user_movie_interactions_cache_key(movie_id: int, user_id: Optional[int]) -> str:
+def _build_user_movie_interactions_cache_key(movie_id: int, user_id: int | None) -> str:
     """Build cache key for user-specific movie interactions."""
     user_part = str(user_id) if user_id is not None else "anon"
     return f"screen:movie:user:{movie_id}:user:{user_part}"
@@ -167,17 +167,17 @@ def _build_user_movie_interactions_cache_key(movie_id: int, user_id: Optional[in
 def _build_static_movies_list_cache_key(
     page: int,
     limit: int,
-    genre_id: Optional[int],
-    actor_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
-    version: Optional[str] = None,
+    genre_id: int | None,
+    actor_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
+    version: str | None = None,
 ) -> str:
     """Build cache key for static movies list data with optional versioning."""
     if version:
@@ -221,7 +221,9 @@ def _build_static_movies_list_cache_key(
         return build_filtered_key("screen:movies:static", "list", filters, prefix="")
 
 
-def _build_user_movies_batch_cache_key(movie_ids: List[int], user_id: Optional[int]) -> str:
+def _build_user_movies_batch_cache_key(
+    movie_ids: list[int], user_id: int | None
+) -> str:
     """Build cache key for user interactions with a batch of movies."""
     ***REMOVED*** Use a simple string-based approach instead of build_cache_key
     user_part = str(user_id) if user_id is not None else "anon"
@@ -231,16 +233,17 @@ def _build_user_movies_batch_cache_key(movie_ids: List[int], user_id: Optional[i
 
 @redis_cache(
     ttl=30 * 24 * 3600,  ***REMOVED*** 30 days for static content - "cache forever" approach
-    key_builder=lambda movie_id, backend, recommendation_client, version=None: _build_static_movie_cache_key(
-        movie_id, version
-    ),
+    key_builder=lambda movie_id,
+    backend,
+    recommendation_client,
+    version=None: _build_static_movie_cache_key(movie_id, version),
 )
 async def _get_static_movie_data(
     movie_id: int,
     backend: BackendClient,
     recommendation_client: RecommendationClient,
-    version: Optional[str] = None,
-) -> Dict[str, Any]:
+    version: str | None = None,
+) -> dict[str, Any]:
     """Internal cached function for static movie data."""
     logger.debug(
         "Building static movie data",
@@ -269,21 +272,31 @@ async def _get_static_movie_data(
 
     ***REMOVED*** Wait for all calls to complete
     movie, movie_cast, trailers, similar_movies = await asyncio.gather(
-        movie_task, movie_cast_task, trailers_task, similar_movies_task, return_exceptions=True
+        movie_task,
+        movie_cast_task,
+        trailers_task,
+        similar_movies_task,
+        return_exceptions=True,
     )
 
     ***REMOVED*** Handle any exceptions from parallel calls
-    if isinstance(movie, Exception):
+    if isinstance(movie, BaseException):
         logger.error("Failed to get movie data", movie_id=movie_id, error=str(movie))
         raise movie
-    if isinstance(movie_cast, Exception):
-        logger.warning("Failed to get movie cast", movie_id=movie_id, error=str(movie_cast))
+    if isinstance(movie_cast, BaseException):
+        logger.warning(
+            "Failed to get movie cast", movie_id=movie_id, error=str(movie_cast)
+        )
         movie_cast = []  ***REMOVED*** Fallback to empty cast
-    if isinstance(trailers, Exception):
-        logger.warning("Failed to get movie trailers", movie_id=movie_id, error=str(trailers))
+    if isinstance(trailers, BaseException):
+        logger.warning(
+            "Failed to get movie trailers", movie_id=movie_id, error=str(trailers)
+        )
         trailers = []  ***REMOVED*** Fallback to empty trailers
-    if isinstance(similar_movies, Exception):
-        logger.warning("Failed to get similar movies", movie_id=movie_id, error=str(similar_movies))
+    if isinstance(similar_movies, BaseException):
+        logger.warning(
+            "Failed to get similar movies", movie_id=movie_id, error=str(similar_movies)
+        )
         similar_movies = []  ***REMOVED*** Fallback to empty similar movies
 
     logger.debug(
@@ -295,7 +308,7 @@ async def _get_static_movie_data(
 
     ***REMOVED*** Enrich similar movies with basic details (no user data)
     if similar_movies:
-        similar_movie_ids: List[int] = []
+        similar_movie_ids: list[int] = []
         for similar_item in similar_movies:
             movie_id_value = similar_item.get("id")
             if movie_id_value is not None and isinstance(movie_id_value, (int, str)):
@@ -348,7 +361,7 @@ async def _get_versioned_static_movie_data(
     movie_id: int,
     backend: BackendClient,
     recommendation_client: RecommendationClient,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get static movie data with automatic version detection.
 
     This function implements the "cache forever" strategy by:
@@ -399,21 +412,24 @@ async def _get_versioned_static_movie_data(
         )
 
         ***REMOVED*** Fallback to non-versioned caching
-        return await _get_static_movie_data(movie_id, backend, recommendation_client, version=None)
+        return await _get_static_movie_data(
+            movie_id, backend, recommendation_client, version=None
+        )
 
 
 @redis_cache(
     ttl=300,  ***REMOVED*** 5 minutes for user interactions (watchlist/favorites) - balance freshness vs performance
-    key_builder=lambda movie_id, user_id, backend, credentials: _build_user_movie_interactions_cache_key(
-        movie_id, user_id
-    ),
+    key_builder=lambda movie_id,
+    user_id,
+    backend,
+    credentials: _build_user_movie_interactions_cache_key(movie_id, user_id),
 )
 async def _get_user_movie_interactions(
     movie_id: int,
-    user_id: Optional[int],
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> dict[str, Any]:
     """Internal cached function for user-specific movie interactions."""
     logger.debug(
         "Fetching user movie interactions",
@@ -424,7 +440,7 @@ async def _get_user_movie_interactions(
     )
 
     ***REMOVED*** Default user interactions
-    user_interactions_dict: Dict[str, Any] = {
+    user_interactions_dict: dict[str, Any] = {
         "in_watchlist": False,
         "is_favorite": False,
         "user_rating": None,
@@ -459,11 +475,11 @@ async def _get_user_movie_interactions(
 
 
 async def _enrich_similar_movies_with_user_data(
-    similar_movies: List[Dict[str, Any]],
-    user_id: Optional[int],
+    similar_movies: list[dict[str, Any]],
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> List[Dict[str, Any]]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> list[dict[str, Any]]:
     """Enrich similar movies with user interaction data."""
     if not user_id or not credentials or not similar_movies:
         ***REMOVED*** For anonymous users, set default interaction values
@@ -481,7 +497,9 @@ async def _enrich_similar_movies_with_user_data(
         return similar_movies
 
         ***REMOVED*** Extract movie IDs from similar movies
-    movie_ids = [movie.get("id") for movie in similar_movies if movie.get("id") is not None]
+    movie_ids = [
+        movie.get("id") for movie in similar_movies if movie.get("id") is not None
+    ]
     ***REMOVED*** Filter to ensure we only have valid integers
     valid_movie_ids = [mid for mid in movie_ids if isinstance(mid, int)]
 
@@ -572,11 +590,11 @@ async def _enrich_similar_movies_with_user_data(
 
 async def _get_movie_screen_data(
     movie_id: int,
-    user_id: Optional[int],
+    user_id: int | None,
     backend: BackendClient,
     recommendation_client: RecommendationClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> dict[str, Any]:
     """Compose movie screen data from separate cached components."""
     logger.debug(
         "Composing movie screen data",
@@ -587,10 +605,14 @@ async def _get_movie_screen_data(
     )
 
     ***REMOVED*** Get static data with versioned caching (30-day TTL - "cache forever" approach)
-    static_data = await _get_versioned_static_movie_data(movie_id, backend, recommendation_client)
+    static_data = await _get_versioned_static_movie_data(
+        movie_id, backend, recommendation_client
+    )
 
     ***REMOVED*** Get user interactions (cached separately with shorter TTL)
-    user_interactions = await _get_user_movie_interactions(movie_id, user_id, backend, credentials)
+    user_interactions = await _get_user_movie_interactions(
+        movie_id, user_id, backend, credentials
+    )
 
     ***REMOVED*** Enrich similar movies with user data if authenticated
     similar_movies = await _enrich_similar_movies_with_user_data(
@@ -627,8 +649,8 @@ async def get_movie_screen(
     backend: BackendClient = Depends(get_backend_client),
     recommendation_client: RecommendationClient = Depends(get_recommendation_client),
     smart_warming: BFFSmartWarming = Depends(get_smart_warming_dependency),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict[str, Any]:
     """Get aggregated data for movie detail screen.
 
     Fetches complete movie information including cast, similar movies,
@@ -732,7 +754,7 @@ async def get_movie_screen(
             has_similar_movies=len(screen_data_dict.get("similar_movies", [])) > 0,
         )
 
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except ResourceNotFoundException as e:
         ***REMOVED*** Record error metrics
@@ -765,7 +787,9 @@ async def get_movie_screen(
         )
         if "404" in str(e):
             raise ResourceNotFoundException(
-                detail="Movie not found", resource_id=str(movie_id), resource_type="movie"
+                detail="Movie not found",
+                resource_id=str(movie_id),
+                resource_type="movie",
             )
         raise ExternalServiceException(
             detail="Backend service unavailable",
@@ -793,7 +817,20 @@ async def get_movie_screen(
     ttl=7
     * 24
     * 3600,  ***REMOVED*** 7 days for static movies list - shorter than individual movies due to list dynamics
-    key_builder=lambda page, limit, genre_id, actor_id, sort_by, sort_desc, imdb_rating, rotten_tomatoes_rating, metacritic_rating, year, start_year, end_year, backend, version=None: _build_static_movies_list_cache_key(
+    key_builder=lambda page,
+    limit,
+    genre_id,
+    actor_id,
+    sort_by,
+    sort_desc,
+    imdb_rating,
+    rotten_tomatoes_rating,
+    metacritic_rating,
+    year,
+    start_year,
+    end_year,
+    backend,
+    version=None: _build_static_movies_list_cache_key(
         page,
         limit,
         genre_id,
@@ -812,19 +849,19 @@ async def get_movie_screen(
 async def _get_static_movies_list_data(
     page: int,
     limit: int,
-    genre_id: Optional[int],
-    actor_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
+    genre_id: int | None,
+    actor_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
     backend: BackendClient,
-    version: Optional[str] = None,
-) -> Dict[str, Any]:
+    version: str | None = None,
+) -> dict[str, Any]:
     """Internal cached function for static movies list data."""
     logger.debug(
         "Building static movies list data",
@@ -836,7 +873,7 @@ async def _get_static_movies_list_data(
     )
 
     ***REMOVED*** Build filter parameters
-    kwargs: Dict[str, Any] = {"page": page, "limit": limit}
+    kwargs: dict[str, Any] = {"page": page, "limit": limit}
 
     ***REMOVED*** Add optional filters
     if genre_id is not None:
@@ -897,16 +934,17 @@ async def _get_static_movies_list_data(
 
 @redis_cache(
     ttl=180,  ***REMOVED*** 3 minutes for batch user interactions - slightly shorter for list consistency
-    key_builder=lambda movie_ids, user_id, backend, credentials: _build_user_movies_batch_cache_key(
-        movie_ids, user_id
-    ),
+    key_builder=lambda movie_ids,
+    user_id,
+    backend,
+    credentials: _build_user_movies_batch_cache_key(movie_ids, user_id),
 )
 async def _get_user_movies_batch_interactions(
-    movie_ids: List[int],
-    user_id: Optional[int],
+    movie_ids: list[int],
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> Dict[int, Dict[str, Any]]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> dict[int, dict[str, Any]]:
     """Internal cached function for user interactions with a batch of movies."""
     logger.debug(
         "Fetching user interactions for movie batch",
@@ -917,7 +955,7 @@ async def _get_user_movies_batch_interactions(
     )
 
     ***REMOVED*** Initialize empty result dict
-    interactions_by_movie_id: Dict[int, Dict[str, Any]] = {}
+    interactions_by_movie_id: dict[int, dict[str, Any]] = {}
 
     ***REMOVED*** Default interaction values
     default_interaction = {
@@ -928,7 +966,6 @@ async def _get_user_movies_batch_interactions(
         "is_watched": False,
         "liked": False,
         "watched": False,
-        "in_watchlist": False,
     }
 
     ***REMOVED*** For anonymous users, return default values for all movies
@@ -956,7 +993,6 @@ async def _get_user_movies_batch_interactions(
                     "is_watched": interaction_data.get("watched", False),
                     "liked": interaction_data.get("liked", False),
                     "watched": interaction_data.get("watched", False),
-                    "in_watchlist": interaction_data.get("in_watchlist", False),
                 }
             else:
                 interactions_by_movie_id[movie_id] = default_interaction.copy()
@@ -980,20 +1016,20 @@ async def _get_user_movies_batch_interactions(
 async def _get_movies_list_data(
     page: int,
     limit: int,
-    genre_id: Optional[int],
-    actor_id: Optional[int],
-    sort_by: Optional[str],
-    sort_desc: Optional[bool],
-    imdb_rating: Optional[float],
-    rotten_tomatoes_rating: Optional[int],
-    metacritic_rating: Optional[int],
-    year: Optional[int],
-    start_year: Optional[int],
-    end_year: Optional[int],
-    user_id: Optional[int],
+    genre_id: int | None,
+    actor_id: int | None,
+    sort_by: str | None,
+    sort_desc: bool | None,
+    imdb_rating: float | None,
+    rotten_tomatoes_rating: int | None,
+    metacritic_rating: int | None,
+    year: int | None,
+    start_year: int | None,
+    end_year: int | None,
+    user_id: int | None,
     backend: BackendClient,
-    credentials: Optional[HTTPAuthorizationCredentials] = None,
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = None,
+) -> dict[str, Any]:
     """Compose movies list data from separate cached components."""
     logger.debug(
         "Composing movies list data",
@@ -1083,28 +1119,30 @@ async def _get_movies_list_data(
 @router.get("/movies")
 async def get_movies_list(
     pagination: PaginationParams = get_pagination(max_page_size=100),
-    genre_id: Optional[int] = Query(None, description="Filter by genre ID"),
-    actor_id: Optional[int] = Query(None, description="Filter by actor TMDB ID"),
-    sort_by: Optional[str] = Query(
+    genre_id: int | None = Query(None, description="Filter by genre ID"),
+    actor_id: int | None = Query(None, description="Filter by actor TMDB ID"),
+    sort_by: str | None = Query(
         None,
         description="Sort by field (title, release_date, imdb_rating, rotten_tomatoes_rating, metacritic_rating)",
     ),
-    sort_desc: Optional[bool] = Query(True, description="Sort in descending order"),
-    imdb_rating: Optional[float] = Query(
+    sort_desc: bool | None = Query(True, description="Sort in descending order"),
+    imdb_rating: float | None = Query(
         None, ge=0, le=10, description="Filter by minimum IMDb rating"
     ),
-    rotten_tomatoes_rating: Optional[int] = Query(
+    rotten_tomatoes_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Rotten Tomatoes rating"
     ),
-    metacritic_rating: Optional[int] = Query(
+    metacritic_rating: int | None = Query(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
-    year: Optional[int] = Query(None, description="Filter by release year"),
-    start_year: Optional[int] = Query(None, description="Filter by start year (inclusive)"),
-    end_year: Optional[int] = Query(None, description="Filter by end year (inclusive)"),
+    year: int | None = Query(None, description="Filter by release year"),
+    start_year: int | None = Query(
+        None, description="Filter by start year (inclusive)"
+    ),
+    end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Dict[str, Any]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict[str, Any]:
     """Get paginated list of movies with filters.
 
     Provides paginated movie listings with support for filtering by genre,
@@ -1157,7 +1195,11 @@ async def get_movies_list(
             endpoint="movies_list",
         )
     else:
-        logger.debug("Anonymous user accessing movies list", service="bff", endpoint="movies_list")
+        logger.debug(
+            "Anonymous user accessing movies list",
+            service="bff",
+            endpoint="movies_list",
+        )
 
     try:
         ***REMOVED*** Compose movies list data from separate cached components
@@ -1212,7 +1254,7 @@ async def get_movies_list(
         if metrics:
             metrics.record_movie_request("list", "success")
 
-        return cast(Dict[str, Any], response)
+        return cast(dict[str, Any], response)
 
     except ExternalServiceException as e:
         ***REMOVED*** Record error metrics
@@ -1262,22 +1304,22 @@ async def update_movie_interaction(
     user_id = extract_user_id_from_token(credentials.credentials)
     if not user_id:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     try:
         ***REMOVED*** Update interaction in backend
         updated_interaction = await backend.update_interaction(
-            user_id, movie_id, interaction_data, 
+            user_id, movie_id, interaction_data,
             jwt_token=credentials.credentials
         )
-        
+
         ***REMOVED*** Invalidate user-specific cache for this movie
         await invalidate_user_movie_cache(movie_id, user_id)
-        
+
         return {
             "status": "success",
             "interaction": updated_interaction
         }
-        
+
     except Exception as e:
         logger.error("Error updating interaction", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")

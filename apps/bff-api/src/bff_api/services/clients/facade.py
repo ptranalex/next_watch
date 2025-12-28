@@ -1,11 +1,9 @@
 """Facade client that combines all specialized backend clients."""
 
-from typing import Any, Dict, List, Optional
-
 from config.logging import get_logger
 from fast_core.dependencies.client_factory import ServiceClientConfig
 
-from bff_api.config.app import BFFAPIConfig, settings
+from bff_api.config.app import BFFAPIConfig
 from bff_api.services.clients.content_discovery import ContentDiscoveryClient
 from bff_api.services.clients.movies import MoviesClient
 from bff_api.services.clients.user_interactions import UserInteractionsClient
@@ -28,7 +26,7 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
     """
 
     def __init__(
-        self, config: ServiceClientConfig, bff_config: Optional[BFFAPIConfig] = None
+        self, config: ServiceClientConfig, bff_config: BFFAPIConfig | None = None
     ) -> None:
         """Initialize the unified backend client.
 

@@ -1,8 +1,5 @@
 """User interaction schemas for BFF API."""
 
-from datetime import datetime
-from typing import List, Optional
-
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -23,9 +20,9 @@ class UserMovieInteractionResponse(BaseModel):
 class UserMovieInteractionUpdate(BaseModel):
     """Update model for user movie interactions."""
 
-    watched: Optional[bool] = None
-    liked: Optional[bool] = None
-    in_watchlist: Optional[bool] = None
+    watched: bool | None = None
+    liked: bool | None = None
+    in_watchlist: bool | None = None
 
 
 class ToggleInteractionRequest(BaseModel):
@@ -71,7 +68,7 @@ class MovieCollectionItem(BaseModel):
 class MovieCollectionResponse(BaseModel):
     """Response model for movie collections (watchlist, liked movies, watched movies)."""
 
-    items: List[MovieCollectionItem]
+    items: list[MovieCollectionItem]
     total_count: int
 
     model_config = ConfigDict(from_attributes=True)

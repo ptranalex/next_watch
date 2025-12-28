@@ -1,6 +1,6 @@
 """BFF-specific error handling utilities built on Fast Core."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from config.logging import get_logger
 from fast_core.errors import (
@@ -39,7 +39,7 @@ def create_bff_error_response(
     limit: int,
     collection_type: str,
     error_message: str = "Backend service unavailable",
-    user_id: Optional[int] = None,
+    user_id: int | None = None,
     **metadata_extras: Any,
 ) -> Any:
     """Create BFF-specific error response.
@@ -75,4 +75,6 @@ class BackendErrorContext(ServiceErrorContext):
     """Context manager for backend service errors."""
 
     def __init__(self, operation: str, **context: Any):
-        super().__init__(service_name="backend-api", operation=operation, logger=logger, **context)
+        super().__init__(
+            service_name="backend-api", operation=operation, logger=logger, **context
+        )

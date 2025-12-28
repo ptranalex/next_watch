@@ -1,12 +1,10 @@
 """Authentication dependencies for BFF API routes."""
 
-from typing import Optional, Tuple
-
-from fastapi import Depends, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fast_core.errors.exceptions import AuthenticationException
-
 from config.logging import get_logger
+from fast_core.errors.exceptions import AuthenticationException
+from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from bff_api.utils.auth import extract_user_id_from_token
 
 logger = get_logger(__name__)
@@ -31,7 +29,9 @@ def get_current_user_id(
         AuthenticationException: If token is invalid or missing
     """
     if not credentials or not credentials.credentials:
-        logger.error("Authentication required", service="bff", endpoint="get_current_user_id")
+        logger.error(
+            "Authentication required", service="bff", endpoint="get_current_user_id"
+        )
         raise AuthenticationException(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
@@ -49,7 +49,7 @@ def get_current_user_id(
 
 def get_current_user_id_and_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> Tuple[int, str]:
+) -> tuple[int, str]:
     """Get current authenticated user ID and JWT token.
 
     Args:
@@ -63,7 +63,9 @@ def get_current_user_id_and_token(
     """
     if not credentials or not credentials.credentials:
         logger.error(
-            "Authentication required", service="bff", endpoint="get_current_user_id_and_token"
+            "Authentication required",
+            service="bff",
+            endpoint="get_current_user_id_and_token",
         )
         raise AuthenticationException(
             detail="Authentication required",
@@ -73,7 +75,9 @@ def get_current_user_id_and_token(
     user_id = extract_user_id_from_token(credentials.credentials)
     if user_id is None:
         logger.error(
-            "Invalid or expired token", service="bff", endpoint="get_current_user_id_and_token"
+            "Invalid or expired token",
+            service="bff",
+            endpoint="get_current_user_id_and_token",
         )
         raise AuthenticationException(
             detail="Invalid or expired token",
@@ -84,8 +88,8 @@ def get_current_user_id_and_token(
 
 
 def get_optional_user_id(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
-) -> Optional[int]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_security),
+) -> int | None:
     """Get optional user ID from JWT token.
 
     For truly optional authentication:
