@@ -4,7 +4,7 @@ Provides configuration for Redis cache connections with straightforward settings
 and validation.
 """
 
-from typing import Any, Dict, Optional, List
+from typing import Any
 from urllib.parse import urlparse
 
 from pydantic import Field, validator
@@ -117,7 +117,7 @@ class CacheConfigMixin:
             )
         return v
 
-    def get_redis_config(self) -> Dict[str, Any]:
+    def get_redis_config(self) -> dict[str, Any]:
         """Get Redis connection configuration dictionary.
 
         Returns:
@@ -131,7 +131,7 @@ class CacheConfigMixin:
             "retry_on_timeout": self.redis_retry_on_timeout,
         }
 
-    def get_cache_config(self) -> Dict[str, Any]:
+    def get_cache_config(self) -> dict[str, Any]:
         """Get cache configuration dictionary.
 
         Returns:
@@ -162,7 +162,7 @@ class CacheConfigMixin:
         except Exception:
             return "***"
 
-    def format_cache_key(self, key: str, namespace: Optional[str] = None) -> str:
+    def format_cache_key(self, key: str, namespace: str | None = None) -> str:
         """Format a cache key with prefix and optional namespace.
 
         Args:
@@ -176,7 +176,7 @@ class CacheConfigMixin:
             return f"{self.cache_key_prefix}{namespace}:{key}"
         return f"{self.cache_key_prefix}{key}"
 
-    def validate_cache_production_settings(self) -> List[str]:
+    def validate_cache_production_settings(self) -> list[str]:
         """Validate cache configuration for production deployment.
 
         Returns:

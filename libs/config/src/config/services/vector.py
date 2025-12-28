@@ -4,7 +4,7 @@ Provides configuration for Qdrant vector database connections with
 collection management and search settings.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 from pydantic import Field, validator
@@ -30,7 +30,7 @@ class VectorDBConfigMixin:
         description="Qdrant server URL",
         examples=["http://localhost:6333", "https://qdrant.example.com"],
     )
-    qdrant_api_key: Optional[str] = Field(
+    qdrant_api_key: str | None = Field(
         default=None, description="Qdrant API key for authentication"
     )
     qdrant_timeout: int = Field(default=30, description="Request timeout in seconds")
@@ -51,12 +51,8 @@ class VectorDBConfigMixin:
     )
 
     ***REMOVED*** Search configuration
-    search_limit_default: int = Field(
-        default=10, description="Default search result limit"
-    )
-    search_limit_max: int = Field(
-        default=100, description="Maximum allowed search result limit"
-    )
+    search_limit_default: int = Field(default=10, description="Default search result limit")
+    search_limit_max: int = Field(default=100, description="Maximum allowed search result limit")
     search_score_threshold: float = Field(
         default=0.7, description="Minimum similarity score threshold"
     )
@@ -68,9 +64,7 @@ class VectorDBConfigMixin:
     enable_vector_indexing: bool = Field(
         default=True, description="Enable vector indexing for faster search"
     )
-    hnsw_ef_construct: int = Field(
-        default=64, description="HNSW index construction parameter"
-    )
+    hnsw_ef_construct: int = Field(default=64, description="HNSW index construction parameter")
     hnsw_m: int = Field(default=16, description="HNSW index M parameter")
 
     @validator("qdrant_url")
@@ -198,7 +192,7 @@ class VectorDBConfigMixin:
             raise ValueError("HNSW M should not exceed 64")
         return v
 
-    def get_qdrant_config(self) -> Dict[str, Any]:
+    def get_qdrant_config(self) -> dict[str, Any]:
         """Get Qdrant connection configuration dictionary.
 
         Returns:
@@ -218,7 +212,7 @@ class VectorDBConfigMixin:
 
         return config
 
-    def get_collection_config(self) -> Dict[str, Any]:
+    def get_collection_config(self) -> dict[str, Any]:
         """Get vector collection configuration dictionary.
 
         Returns:
@@ -236,7 +230,7 @@ class VectorDBConfigMixin:
             "indexing_enabled": self.enable_vector_indexing,
         }
 
-    def get_search_config(self) -> Dict[str, Any]:
+    def get_search_config(self) -> dict[str, Any]:
         """Get search configuration dictionary.
 
         Returns:
@@ -257,7 +251,7 @@ class VectorDBConfigMixin:
         ***REMOVED*** API key is typically passed separately, so just return URL
         return self.qdrant_url
 
-    def validate_vector_production_settings(self) -> List[str]:
+    def validate_vector_production_settings(self) -> list[str]:
         """Validate vector database configuration for production deployment.
 
         Returns:

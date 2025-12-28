@@ -6,11 +6,6 @@ Provides a simplified, standardized way to manage configuration across NextWatch
 ***REMOVED*** Base configuration classes
 from config.base.config import BaseConfig, ServiceConfig, WorkerConfig
 
-***REMOVED*** Service-specific configuration mixins
-from config.services.auth import AuthConfigMixin
-from config.services.cache import CacheConfigMixin
-from config.services.database import DatabaseConfigMixin
-
 ***REMOVED*** Configuration profiles
 from config.profiles import (
     ApiServiceProfile,
@@ -26,6 +21,11 @@ from config.profiles import (
     apply_profiles,
     get_profile_by_name,
 )
+
+***REMOVED*** Service-specific configuration mixins
+from config.services.auth import AuthConfigMixin
+from config.services.cache import CacheConfigMixin
+from config.services.database import DatabaseConfigMixin
 
 __all__ = [
     ***REMOVED*** Base classes

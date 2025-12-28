@@ -11,9 +11,9 @@ Available mixins:
 - VectorDBConfigMixin: Qdrant vector database configuration
 """
 
-from config.services.database import DatabaseConfigMixin
-from config.services.cache import CacheConfigMixin
 from config.services.auth import AuthConfigMixin
+from config.services.cache import CacheConfigMixin
+from config.services.database import DatabaseConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
 from config.services.vector import VectorDBConfigMixin
 

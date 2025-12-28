@@ -5,10 +5,9 @@ by looking for common project markers.
 """
 
 from pathlib import Path
-from typing import Optional
 
 
-def find_project_root(start_path: Optional[Path] = None) -> Path:
+def find_project_root(start_path: Path | None = None) -> Path:
     """Find the project root directory by looking for common project markers.
 
     Args:
@@ -59,9 +58,7 @@ def find_project_root(start_path: Optional[Path] = None) -> Path:
     while current != current.parent:
         if any(pattern in current.name.lower() for pattern in fallback_patterns):
             ***REMOVED*** Look for typical monorepo structure
-            if any(
-                (current / subdir).exists() for subdir in ["libs", "apps", "packages"]
-            ):
+            if any((current / subdir).exists() for subdir in ["libs", "apps", "packages"]):
                 return current
         current = current.parent
 

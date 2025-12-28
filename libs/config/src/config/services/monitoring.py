@@ -4,9 +4,9 @@ Provides configuration for logging, metrics, tracing, and other observability
 features across NextWatch services.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from pydantic import Field, validator, model_validator
+from pydantic import Field, model_validator, validator
 
 
 class MonitoringConfigMixin:
@@ -29,7 +29,7 @@ class MonitoringConfigMixin:
     """
 
     ***REMOVED*** Metrics configuration - Note: Metrics are always enabled for production observability
-    metrics_port: Optional[int] = Field(
+    metrics_port: int | None = Field(
         default=None,
         description="Port for metrics endpoint (if different from main port)",
     )
@@ -51,7 +51,7 @@ class MonitoringConfigMixin:
 
     ***REMOVED*** Tracing configuration
     enable_tracing: bool = Field(default=False, description="Enable distributed tracing")
-    tracing_endpoint: Optional[str] = Field(
+    tracing_endpoint: str | None = Field(
         default=None,
         description="Tracing collector endpoint (Tempo, Jaeger, etc.) - required if tracing enabled",
     )
@@ -68,7 +68,7 @@ class MonitoringConfigMixin:
     enable_error_tracking: bool = Field(
         default=True, description="Enable error tracking and alerting"
     )
-    error_tracking_dsn: Optional[str] = Field(
+    error_tracking_dsn: str | None = Field(
         default=None, description="Error tracking service DSN (Sentry, etc.)"
     )
 
@@ -83,7 +83,7 @@ class MonitoringConfigMixin:
         return v
 
     @validator("metrics_port")
-    def validate_metrics_port(cls, v: Optional[int]) -> Optional[int]:
+    def validate_metrics_port(cls, v: int | None) -> int | None:
         """Validate metrics port if specified."""
         if v is not None:
             if not (1 <= v <= 65535):
@@ -134,7 +134,7 @@ class MonitoringConfigMixin:
             raise ValueError("Health check timeout should not exceed 60 seconds")
         return v
 
-    def get_logging_config(self) -> Dict[str, Any]:
+    def get_logging_config(self) -> dict[str, Any]:
         """Get logging configuration dictionary.
 
         Returns:
@@ -149,7 +149,7 @@ class MonitoringConfigMixin:
             "suppress_noise": self.log_suppress_noise,
         }
 
-    def get_metrics_config(self) -> Dict[str, Any]:
+    def get_metrics_config(self) -> dict[str, Any]:
         """Get metrics configuration dictionary.
 
         Returns:
@@ -166,13 +166,13 @@ class MonitoringConfigMixin:
 
         return config
 
-    def get_tracing_config(self) -> Dict[str, Any]:
+    def get_tracing_config(self) -> dict[str, Any]:
         """Get tracing configuration dictionary.
 
         Returns:
             Dictionary with tracing configuration
         """
-        config: Dict[str, Any] = {
+        config: dict[str, Any] = {
             "enabled": self.enable_tracing,
             "sample_rate": self.tracing_sample_rate,
         }
@@ -182,7 +182,7 @@ class MonitoringConfigMixin:
 
         return config
 
-    def get_health_check_config(self) -> Dict[str, Any]:
+    def get_health_check_config(self) -> dict[str, Any]:
         """Get health check configuration dictionary.
 
         Returns:
@@ -194,13 +194,13 @@ class MonitoringConfigMixin:
             "deep_checks": self.enable_deep_health_checks,
         }
 
-    def get_error_tracking_config(self) -> Dict[str, Any]:
+    def get_error_tracking_config(self) -> dict[str, Any]:
         """Get error tracking configuration dictionary.
 
         Returns:
             Dictionary with error tracking configuration
         """
-        config: Dict[str, Any] = {
+        config: dict[str, Any] = {
             "enabled": self.enable_error_tracking,
         }
 
@@ -221,7 +221,7 @@ class MonitoringConfigMixin:
         ***REMOVED*** Only log SQL in development or if explicitly enabled
         return (environment == "development") or self.log_sql_queries
 
-    def get_metrics_labels(self, service_name: str) -> Dict[str, str]:
+    def get_metrics_labels(self, service_name: str) -> dict[str, str]:
         """Get default metrics labels for the service.
 
         Args:
@@ -235,7 +235,7 @@ class MonitoringConfigMixin:
             "version": "1.0.0",  ***REMOVED*** Could be injected from service config
         }
 
-    def validate_monitoring_production_settings(self, environment: str) -> List[str]:
+    def validate_monitoring_production_settings(self, environment: str) -> list[str]:
         """Validate monitoring configuration for production deployment.
 
         Args:

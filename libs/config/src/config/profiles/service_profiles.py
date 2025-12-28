@@ -4,7 +4,7 @@ Provides predefined configuration profiles for different service types and
 deployment scenarios with a simplified approach.
 """
 
-from typing import Dict, Any, Optional, Type, Callable
+from typing import Any
 
 
 class ConfigProfile:
@@ -16,9 +16,9 @@ class ConfigProfile:
 
     name: str
     description: str
-    overrides: Dict[str, Any]
+    overrides: dict[str, Any]
 
-    def __init__(self, name: str, description: str, overrides: Dict[str, Any]) -> None:
+    def __init__(self, name: str, description: str, overrides: dict[str, Any]) -> None:
         """Initialize configuration profile.
 
         Args:
@@ -170,7 +170,7 @@ def apply_profiles(config: Any, *profiles: ConfigProfile) -> None:
             config.debug = False
 
 
-def get_profile_by_name(name: str) -> Optional[ConfigProfile]:
+def get_profile_by_name(name: str) -> ConfigProfile | None:
     """Get profile by name.
 
     Args:

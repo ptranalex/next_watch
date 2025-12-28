@@ -4,7 +4,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import structlog
 
@@ -13,15 +13,15 @@ from config.logging.themes import COLOR_THEMES
 
 def configure_logging(
     log_level: str = "INFO",
-    log_dir: Optional[Path] = None,
+    log_dir: Path | None = None,
     verbose: bool = False,
     quiet: bool = False,
     use_coloredlogs: bool = True,
     logger_name: str = "nextwatch",
     color_theme: str = "modern",
     http_verbose: bool = False,
-    component_levels: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+    component_levels: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Configure comprehensive logging for NextWatch services.
 
     Args:
@@ -63,7 +63,7 @@ def configure_logging(
     root_logger.handlers.clear()  ***REMOVED*** Remove any existing handlers to avoid conflicts
 
     ***REMOVED*** Track configuration details for debugging and monitoring
-    config_info: Dict[str, Any] = {
+    config_info: dict[str, Any] = {
         "log_level": log_level,
         "verbose": verbose,
         "quiet": quiet,

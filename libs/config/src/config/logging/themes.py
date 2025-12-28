@@ -4,10 +4,8 @@ Provides various color schemes for different environments and preferences,
 from vibrant modern themes to minimal production-friendly options.
 """
 
-from typing import Dict
-
 ***REMOVED*** Color theme presets for different environments and preferences
-COLOR_THEMES: Dict[str, Dict[str, str]] = {
+COLOR_THEMES: dict[str, dict[str, str]] = {
     "modern": {
         "critical": "\033[1;97;41m",  ***REMOVED*** Bold white on red background
         "exception": "\033[1;97;41m",  ***REMOVED*** Bold white on red background

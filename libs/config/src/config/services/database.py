@@ -4,7 +4,7 @@ Provides configuration for database connections with straightforward settings
 and validation.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 from pydantic import Field, validator
@@ -91,7 +91,7 @@ class DatabaseConfigMixin:
             raise ValueError("Database pool timeout should not exceed 300 seconds")
         return v
 
-    def get_database_config(self) -> Dict[str, Any]:
+    def get_database_config(self) -> dict[str, Any]:
         """Get database connection configuration dictionary.
 
         Returns:
@@ -121,7 +121,7 @@ class DatabaseConfigMixin:
         except Exception:
             return "***"
 
-    def validate_database_production_settings(self) -> List[str]:
+    def validate_database_production_settings(self) -> list[str]:
         """Validate database configuration for production deployment.
 
         Returns:

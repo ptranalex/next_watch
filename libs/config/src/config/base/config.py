@@ -4,7 +4,8 @@ Provides base classes for different types of services in the NextWatch platform
 with a simplified, straightforward approach to configuration.
 """
 
-from typing import Any, Dict, List, Optional, ClassVar
+from typing import Any
+
 from pydantic import Field, validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -47,7 +48,7 @@ class BaseConfig(BaseSettings):
             raise ValueError(f"Log level must be one of {allowed_levels}")
         return v_upper
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment.
 
         Returns:
@@ -128,7 +129,7 @@ class BaseConfig(BaseSettings):
         config_str = f"{self.environment}_{self.service_name}_{self.version}_{self.debug}"
         return hashlib.md5(config_str.encode()).hexdigest()[:8]
 
-    def get_config_dict(self) -> Dict[str, Any]:
+    def get_config_dict(self) -> dict[str, Any]:
         """Get configuration as a dictionary.
 
         Returns:
@@ -150,11 +151,11 @@ class ServiceConfig(BaseConfig):
 
     host: str = Field(default="0.0.0.0", description="Service host address")
     port: int = Field(description="Service port number")
-    cors_origins: List[str] = Field(default=["*"], description="Allowed CORS origins")
-    allowed_hosts: List[str] = Field(default=["*"], description="Allowed host headers")
+    cors_origins: list[str] = Field(default=["*"], description="Allowed CORS origins")
+    allowed_hosts: list[str] = Field(default=["*"], description="Allowed host headers")
 
     @validator("allowed_hosts", pre=True)
-    def parse_allowed_hosts(cls, v: Any) -> List[str]:
+    def parse_allowed_hosts(cls, v: Any) -> list[str]:
         """Parse allowed hosts from string or list."""
         if isinstance(v, str):
             return [x.strip() for x in v.split(",") if x.strip()]
@@ -168,13 +169,13 @@ class ServiceConfig(BaseConfig):
         return v
 
     @validator("cors_origins", pre=True)
-    def parse_cors_origins(cls, v: Any) -> List[str]:
+    def parse_cors_origins(cls, v: Any) -> list[str]:
         """Parse CORS origins from string or list."""
         if isinstance(v, str):
             return [x.strip() for x in v.split(",") if x.strip()]
         return v or []
 
-    def get_server_config(self) -> Dict[str, Any]:
+    def get_server_config(self) -> dict[str, Any]:
         """Get server configuration dictionary.
 
         Returns:
@@ -187,7 +188,7 @@ class ServiceConfig(BaseConfig):
             "allowed_hosts": self.allowed_hosts,
         }
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment.
 
         Returns:
@@ -264,7 +265,7 @@ class WorkerConfig(BaseConfig):
             raise ValueError("Task timeout must be at least 1 second")
         return v
 
-    def validate_production_settings(self) -> List[str]:
+    def validate_production_settings(self) -> list[str]:
         """Validate configuration for production deployment.
 
         Returns:

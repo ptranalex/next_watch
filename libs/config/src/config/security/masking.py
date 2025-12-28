@@ -1,8 +1,7 @@
 """Secret masking utilities for secure configuration display."""
 
 import re
-from typing import Any, Dict, List, Union, Optional
-
+from typing import Any
 
 ***REMOVED*** Common patterns for sensitive field names
 SENSITIVE_FIELD_PATTERNS = [
@@ -25,7 +24,7 @@ def mask_sensitive_value(
     field_name: str = "",
     mask_char: str = "*",
     show_length: int = 3,
-    sensitive_patterns: Optional[List[str]] = None,
+    sensitive_patterns: list[str] | None = None,
 ) -> str:
     """Mask sensitive values for display.
 
@@ -99,8 +98,8 @@ def mask_url_credentials(url: str, mask_char: str = "*") -> str:
 
 
 def mask_config_for_display(
-    config: Any, sensitive_patterns: Optional[List[str]] = None, mask_char: str = "*"
-) -> Dict[str, Any]:
+    config: Any, sensitive_patterns: list[str] | None = None, mask_char: str = "*"
+) -> dict[str, Any]:
     """Mask sensitive configuration values for display.
 
     Args:
@@ -129,7 +128,7 @@ def mask_config_for_display(
             if not attr.startswith("_") and not callable(getattr(config, attr, None))
         }
 
-    masked_dict: Dict[str, Any] = {}
+    masked_dict: dict[str, Any] = {}
 
     for key, value in config_dict.items():
         ***REMOVED*** Skip private attributes
@@ -138,9 +137,7 @@ def mask_config_for_display(
 
         ***REMOVED*** Handle nested dictionaries recursively
         if isinstance(value, dict):
-            masked_dict[key] = mask_config_for_display(
-                value, sensitive_patterns, mask_char
-            )
+            masked_dict[key] = mask_config_for_display(value, sensitive_patterns, mask_char)
         ***REMOVED*** Handle URLs specially
         elif "url" in key.lower() and isinstance(value, str):
             masked_dict[key] = mask_url_credentials(value, mask_char)
@@ -153,9 +150,7 @@ def mask_config_for_display(
     return masked_dict
 
 
-def is_sensitive_field(
-    field_name: str, additional_patterns: Optional[List[str]] = None
-) -> bool:
+def is_sensitive_field(field_name: str, additional_patterns: list[str] | None = None) -> bool:
     """Check if a field name indicates sensitive data.
 
     Args:

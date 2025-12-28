@@ -41,10 +41,10 @@ dependencies = [
     "pydantic>=2.4.2",           ***REMOVED*** Data validation and settings
     "pydantic-settings>=2.1.0",  ***REMOVED*** Settings management
     "python-dotenv>=1.0.0",      ***REMOVED*** Environment variable loading
-    
+
     ***REMOVED*** Structured logging
     "structlog>=24.1.0",         ***REMOVED*** Structured logging
-    
+
     ***REMOVED*** CLI framework
     "typer>=0.15.2",             ***REMOVED*** CLI framework
     "rich>=13.7.0",              ***REMOVED*** Terminal formatting
@@ -56,13 +56,13 @@ dev = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
-    
+
     ***REMOVED*** Code quality
     "black>=23.10.1",
-    "isort>=5.12.0", 
+    "isort>=5.12.0",
     "flake8>=6.1.0",
     "mypy>=1.7.0",
-    
+
     ***REMOVED*** Pre-commit hooks
     "pre-commit>=3.6.0",
 ]
@@ -172,7 +172,7 @@ no_implicit_optional = true
 strict_optional = true
 disallow_any_unimported = true
 disallow_untyped_calls = true
-disallow_any_generics = true 
+disallow_any_generics = true
 disallow_subclassing_any = true
 
 ***REMOVED*** Warning settings
@@ -215,4 +215,4 @@ known_first_party = ["config"]
 [tool.flake8]
 max-line-length = 100
 exclude = [".git", "__pycache__", "build", "dist"]
-extend-ignore = ["E203"] 
+extend-ignore = ["E203"]

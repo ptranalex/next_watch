@@ -4,8 +4,8 @@ Provides configuration for JWT authentication with straightforward settings
 and validation.
 """
 
-from typing import Dict, Any, List, Optional
 from datetime import timedelta
+from typing import Any
 
 from pydantic import Field, validator
 
@@ -82,7 +82,7 @@ class AuthConfigMixin:
             raise ValueError("Token prefix cannot be empty")
         return v
 
-    def get_jwt_config(self) -> Dict[str, Any]:
+    def get_jwt_config(self) -> dict[str, Any]:
         """Get JWT configuration dictionary.
 
         Returns:
@@ -110,7 +110,7 @@ class AuthConfigMixin:
             return f"{self.jwt_secret[:4]}***"
         return "***"
 
-    def validate_auth_production_settings(self) -> List[str]:
+    def validate_auth_production_settings(self) -> list[str]:
         """Validate authentication configuration for production deployment.
 
         Returns:

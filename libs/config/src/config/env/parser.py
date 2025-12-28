@@ -5,7 +5,7 @@ and validation, following patterns established in the existing codebase.
 """
 
 import os
-from typing import Optional, overload
+from typing import overload
 
 
 @overload
@@ -13,14 +13,10 @@ def get_env_var(key: str, default: str, required: bool = False) -> str: ...
 
 
 @overload
-def get_env_var(
-    key: str, default: None = None, required: bool = False
-) -> Optional[str]: ...
+def get_env_var(key: str, default: None = None, required: bool = False) -> str | None: ...
 
 
-def get_env_var(
-    key: str, default: Optional[str] = None, required: bool = False
-) -> Optional[str]:
+def get_env_var(key: str, default: str | None = None, required: bool = False) -> str | None:
     """Get an environment variable with optional validation.
 
     Args:
@@ -83,10 +79,10 @@ def get_env_int(key: str, default: int) -> int: ...
 
 
 @overload
-def get_env_int(key: str, default: None = None) -> Optional[int]: ...
+def get_env_int(key: str, default: None = None) -> int | None: ...
 
 
-def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
+def get_env_int(key: str, default: int | None = None) -> int | None:
     """Get an integer environment variable.
 
     Args:
@@ -112,12 +108,10 @@ def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
     except ValueError:
         if default is not None:
             return default
-        raise ValueError(
-            f"Environment variable '{key}' has invalid integer value: '{value}'"
-        )
+        raise ValueError(f"Environment variable '{key}' has invalid integer value: '{value}'")
 
 
-def get_env_float(key: str, default: Optional[float] = None) -> Optional[float]:
+def get_env_float(key: str, default: float | None = None) -> float | None:
     """Get a float environment variable.
 
     Args:
@@ -141,14 +135,10 @@ def get_env_float(key: str, default: Optional[float] = None) -> Optional[float]:
     except ValueError:
         if default is not None:
             return default
-        raise ValueError(
-            f"Environment variable '{key}' has invalid float value: '{value}'"
-        )
+        raise ValueError(f"Environment variable '{key}' has invalid float value: '{value}'")
 
 
-def get_env_list(
-    key: str, default: Optional[list[str]] = None, separator: str = ","
-) -> list[str]:
+def get_env_list(key: str, default: list[str] | None = None, separator: str = ",") -> list[str]:
     """Get a list environment variable by splitting on separator.
 
     Args:
