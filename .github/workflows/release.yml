@@ -226,14 +226,14 @@ jobs:
         build_ml,
       ]
     if: |
-      always() && 
-      (needs.check_changes.outputs.backend_changed == 'true' || 
-       needs.check_changes.outputs.auth_changed == 'true' || 
-       needs.check_changes.outputs.bff_changed == 'true' || 
-       needs.check_changes.outputs.frontend_changed == 'true' || 
-       needs.check_changes.outputs.importer_changed == 'true' || 
-       needs.check_changes.outputs.recommendation_changed == 'true' || 
-       needs.check_changes.outputs.search_changed == 'true' || 
+      always() &&
+      (needs.check_changes.outputs.backend_changed == 'true' ||
+       needs.check_changes.outputs.auth_changed == 'true' ||
+       needs.check_changes.outputs.bff_changed == 'true' ||
+       needs.check_changes.outputs.frontend_changed == 'true' ||
+       needs.check_changes.outputs.importer_changed == 'true' ||
+       needs.check_changes.outputs.recommendation_changed == 'true' ||
+       needs.check_changes.outputs.search_changed == 'true' ||
        needs.check_changes.outputs.ml_changed == 'true' ||
        github.event.inputs.build_all == true)
     uses: ./.github/workflows/deploy.yml

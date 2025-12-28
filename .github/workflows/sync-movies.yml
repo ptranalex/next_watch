@@ -82,7 +82,7 @@ jobs:
             ***REMOVED*** Build the command as a single string without line breaks
             CMD="docker run --rm --memory=512m --cpus=0.75"
             CMD="${CMD} -e POSTGRES_HOST=host.docker.internal"
-            CMD="${CMD} -e POSTGRES_PORT=5432" 
+            CMD="${CMD} -e POSTGRES_PORT=5432"
             CMD="${CMD} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }}"
             CMD="${CMD} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
             CMD="${CMD} -e POSTGRES_DB=${{ secrets.POSTGRES_DB }}"

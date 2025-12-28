@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 ***REMOVED*** Python Configuration Best Practices
@@ -19,7 +19,7 @@ When implementing Python configuration systems, follow these patterns and best p
   ```python
   class Config:
       _instance = None
-      
+
       @classmethod
       def get_instance(cls) -> "Config":
           if cls._instance is None:

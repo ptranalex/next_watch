@@ -313,13 +313,13 @@ jobs:
             if [ "${{ github.event.inputs.deploy_observability || inputs.deploy_observability }}" = "true" ]; then
               echo "📊 Downloading Grafana Alloy configuration..."
               mkdir -p monitoring/alloy
-              
+
               ***REMOVED*** Download Alloy config file
               curl -H "Authorization: token ${{ github.token }}" \
                    -H "Accept: application/vnd.github.v3.raw" \
                    -o monitoring/alloy/config.alloy \
                    https://api.github.com/repos/${{ github.repository }}/contents/infra/monitoring/alloy/config.alloy
-                   
+
               echo "✅ Grafana Alloy configuration downloaded"
               ls -la monitoring/alloy/
             fi
@@ -356,38 +356,38 @@ jobs:
 
             if [ -n "$SERVICES" ]; then
               echo "Deploying services: $SERVICES"
-              
+
               ***REMOVED*** Cleanup before deployment
               echo "🧹 Cleaning up Docker resources..."
-              
+
               ***REMOVED*** Stop and remove containers that are not running
               if [ -n "$SUDO" ]; then
                 sudo docker ps -a -q -f status=exited | xargs -r sudo docker rm || true
               else
                 docker ps -a -q -f status=exited | xargs -r docker rm || true
               fi
-              
+
               ***REMOVED*** Remove unused images
               docker_cmd image prune -af || true
-              
+
               ***REMOVED*** Remove unused volumes
               docker_cmd volume prune -f || true
-              
+
               ***REMOVED*** Remove unused networks
               docker_cmd network prune -f || true
-              
+
               ***REMOVED*** Pull and deploy only the specified services
               compose_cmd -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES
               compose_cmd -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES
-              
+
               ***REMOVED*** Wait for services to be healthy
               echo "⏳ Waiting for services to be healthy..."
               sleep 30
-              
+
               ***REMOVED*** Check service status
               echo "📊 Service status:"
               docker_cmd ps
-              
+
               ***REMOVED*** Final cleanup after deployment
               echo "🧹 Final cleanup..."
               docker_cmd system prune -af --volumes || true

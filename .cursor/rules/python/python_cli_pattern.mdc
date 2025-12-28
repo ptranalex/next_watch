@@ -1,11 +1,11 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 ***REMOVED*** CLI Pattern Best Practices
 
-When building CLI applications, follow these consistent patterns to ensure maintainable, 
+When building CLI applications, follow these consistent patterns to ensure maintainable,
 user-friendly, and robust command-line interfaces:
 
 ***REMOVED******REMOVED*** 🏗️ CLI Structure
@@ -13,14 +13,14 @@ user-friendly, and robust command-line interfaces:
 - Organize CLI code into these distinct components:
   - 📁 `cli/` - Main CLI package
     - 📄 `__init__.py` - Initialize Typer app and register commands
-    - 📁 `commands/` - Individual command implementations 
+    - 📁 `commands/` - Individual command implementations
     - 📄 `utils.py` - Shared CLI utilities (validation, display, etc.)
 - Follow a hierarchical command structure for complex applications:
   ```python
   ***REMOVED*** Main app with primary commands
   app = typer.Typer()
   app.command()(command_function)
-  
+
   ***REMOVED*** Add subcommands as needed
   subapp = typer.Typer()
   app.add_typer(subapp, name="subcommand")
@@ -39,13 +39,13 @@ user-friendly, and robust command-line interfaces:
   def command_name(
       ***REMOVED*** Required arguments
       file_path: Path = typer.Argument(..., help="Description", exists=True),
-      
+
       ***REMOVED*** Options with defaults
       output_dir: Path = typer.Option(DEFAULT_DIR, "--output", "-o", help="Description"),
-      
+
       ***REMOVED*** Boolean flags
       verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-      
+
       ***REMOVED*** Options with environment variable support
       api_key: str = typer.Option(None, help="API key", envvar="API_KEY"),
   ):
