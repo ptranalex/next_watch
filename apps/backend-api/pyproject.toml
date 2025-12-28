@@ -40,32 +40,32 @@ dependencies = [
     "fastapi>=0.104.0",         ***REMOVED*** API framework
     "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
     "pydantic>=2.4.2",          ***REMOVED*** Data validation
-    
+
     ***REMOVED*** Database and ORM
     "sqlalchemy>=2.0.23",       ***REMOVED*** ORM
     "sqlmodel>=0.0.8",          ***REMOVED*** SQLModel
     "alembic<=1.13.1",          ***REMOVED*** Database migrations (constrained to match movie-storage)
     "psycopg2-binary>=2.9.10",  ***REMOVED*** PostgreSQL adapter (from movie-storage)
-    
+
     ***REMOVED*** CLI and utilities
     "typer>=0.15.2",            ***REMOVED*** CLI framework
     "rich>=13.7.0",             ***REMOVED*** Terminal formatting
     "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
     "structlog>=24.1.0",        ***REMOVED*** Structured logging
-    
+
     ***REMOVED*** Cache
     "redis>=6.0.0",             ***REMOVED*** Redis client
     "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
-    
+
     ***REMOVED*** Auth and security
     "pyjwt>=2.8.0",             ***REMOVED*** JWT handling
     "passlib[bcrypt]>=1.7.4",   ***REMOVED*** Password hashing
     "bcrypt==3.2.2",            ***REMOVED*** Specific bcrypt version
-    
+
     ***REMOVED*** Form handling
     "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
     "email-validator>=2.2.0",   ***REMOVED*** Email validation
-    
+
     ***REMOVED*** Date/time handling
     "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
     "types-python-dateutil>=2.9.0", ***REMOVED*** Type stubs for dateutil
@@ -80,29 +80,29 @@ dev = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
-    
+
     ***REMOVED*** Code quality
     "ruff>=0.8.4",
     "pyright>=1.1.0",
-    
+
     ***REMOVED*** System monitoring for memory and CPU usage
     "psutil>=5.9.0",
-    
+
     ***REMOVED*** Data analysis and statistics (optional but useful)
     "numpy>=1.24.0",
     "pandas>=2.0.0",
-    
+
     ***REMOVED*** Advanced profiling tools (optional)
     "py-spy>=0.3.14",          ***REMOVED*** Python profiler
     "memory-profiler>=0.60.0", ***REMOVED*** Memory usage profiler
-    
+
     ***REMOVED*** Visualization tools (optional)
     "matplotlib>=3.7.0",       ***REMOVED*** For creating performance charts
     "seaborn>=0.12.0",         ***REMOVED*** Statistical data visualization
-    
+
     ***REMOVED*** Database profiling
     "sqlparse>=0.4.4",         ***REMOVED*** SQL query parsing and analysis
-    
+
     ***REMOVED*** Local NextWatch libraries (for development)
     ***REMOVED*** "cache @ file:../../libs/cache",
     ***REMOVED*** "cli @ file:../../libs/cli",
@@ -205,7 +205,7 @@ profile-db = "ENABLE_DB_PROFILING=true python -m backend_api.scripts.setup_db pr
 profile-db-30 = "ENABLE_DB_PROFILING=true python -m backend_api.scripts.setup_db profile-db --duration 30"
 profile-db-60 = "ENABLE_DB_PROFILING=true python -m backend_api.scripts.setup_db profile-db --duration 60"
 
-***REMOVED*** Basic movie API benchmarks  
+***REMOVED*** Basic movie API benchmarks
 benchmark-basic = "python benchmark_movies.py --scenario basic --requests 50"
 benchmark-load = "python benchmark_movies.py --scenario load --requests 200 --concurrent 10"
 benchmark-bulk = "python benchmark_movies.py --scenario bulk_vs_individual --requests 20"
@@ -229,7 +229,7 @@ perf-analysis = [
     "mkdir -p results",
     "echo 'Running basic benchmark...'",
     "python benchmark_movies.py --scenario basic --requests 50 --export results/basic.json",
-    "echo 'Running database profiler...'", 
+    "echo 'Running database profiler...'",
     "python db_profiler.py --simulate > results/db_profile.txt",
     "echo 'Performance analysis complete. Check results/ directory.'"
 ]
@@ -268,4 +268,3 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-

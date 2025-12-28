@@ -23,8 +23,8 @@ Core application endpoints providing service information and debugging capabilit
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Root Endpoint (`/`)
 
-**Description**: Main API information endpoint  
-**Method**: `GET`  
+**Description**: Main API information endpoint
+**Method**: `GET`
 **Authentication**: None required
 
 **Response Structure**:
@@ -56,9 +56,9 @@ Core application endpoints providing service information and debugging capabilit
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Debug Endpoint (`/debug`)
 
-**Description**: Development and debugging information  
-**Method**: `GET`  
-**Authentication**: None required  
+**Description**: Development and debugging information
+**Method**: `GET`
+**Authentication**: None required
 **Environment**: Limited in production for security
 
 **Development Response**:
@@ -103,9 +103,9 @@ Comprehensive health monitoring endpoints for system observability and load bala
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Comprehensive Health Check (`/health`)
 
-**Description**: Full health check of all system dependencies  
-**Method**: `GET`  
-**Authentication**: None required  
+**Description**: Full health check of all system dependencies
+**Method**: `GET`
+**Authentication**: None required
 **Use Case**: Detailed system monitoring and diagnostics
 
 **Healthy Response** (200):
@@ -175,9 +175,9 @@ Comprehensive health monitoring endpoints for system observability and load bala
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Liveness Check (`/health/live`)
 
-**Description**: Simple liveness probe for container orchestrators  
-**Method**: `GET`  
-**Authentication**: None required  
+**Description**: Simple liveness probe for container orchestrators
+**Method**: `GET`
+**Authentication**: None required
 **Use Case**: Kubernetes/Docker liveness probes
 
 **Response** (Always 200):
@@ -193,9 +193,9 @@ Comprehensive health monitoring endpoints for system observability and load bala
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Readiness Check (`/health/ready`)
 
-**Description**: Readiness probe for critical dependencies  
-**Method**: `GET`  
-**Authentication**: None required  
+**Description**: Readiness probe for critical dependencies
+**Method**: `GET`
+**Authentication**: None required
 **Use Case**: Load balancer and orchestrator readiness checks
 
 **Ready Response** (200):
@@ -228,10 +228,10 @@ Comprehensive health monitoring endpoints for system observability and load bala
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Legacy Database Health (`/db-health`)
 
-**Description**: Legacy database-only health check  
-**Method**: `GET`  
-**Authentication**: None required  
-**Use Case**: Backward compatibility  
+**Description**: Legacy database-only health check
+**Method**: `GET`
+**Authentication**: None required
+**Use Case**: Backward compatibility
 **Note**: Use `/health` for comprehensive checks
 
 **Healthy Response** (200):
@@ -260,8 +260,8 @@ Comprehensive health monitoring endpoints for system observability and load bala
 
 Main business logic routes organized under versioned API structure.
 
-**Base Path**: `/api/v1/`  
-**Description**: Core application functionality  
+**Base Path**: `/api/v1/`
+**Description**: Core application functionality
 **Authentication**: Varies by endpoint
 
 ***REMOVED******REMOVED*** Health Check Integration
