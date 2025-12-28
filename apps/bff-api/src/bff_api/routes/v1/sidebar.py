@@ -202,9 +202,7 @@ async def _get_sidebar_content_data(
 
 @router.get("/sidebar", response_model=SidebarData)
 async def get_sidebar_content(
-    user_id: int | None = Query(
-        None, description="User ID for personalized sidebar content"
-    ),
+    user_id: int | None = Query(None, description="User ID for personalized sidebar content"),
     backend: BackendClient = Depends(get_backend_client),
 ) -> SidebarData:
     """Get dynamic sidebar content configuration.

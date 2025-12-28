@@ -79,9 +79,7 @@ def _build_movies_list_cache_key(
         "start_year": start_year,
         "end_year": end_year,
     }
-    return build_filtered_key(
-        "screen:movies", "list", filters, user_id=user_id, prefix=""
-    )
+    return build_filtered_key("screen:movies", "list", filters, user_id=user_id, prefix="")
 
 
 def _build_static_movie_cache_key(movie_id: int, version: str | None = None) -> str:
@@ -221,9 +219,7 @@ def _build_static_movies_list_cache_key(
         return build_filtered_key("screen:movies:static", "list", filters, prefix="")
 
 
-def _build_user_movies_batch_cache_key(
-    movie_ids: list[int], user_id: int | None
-) -> str:
+def _build_user_movies_batch_cache_key(movie_ids: list[int], user_id: int | None) -> str:
     """Build cache key for user interactions with a batch of movies."""
     ***REMOVED*** Use a simple string-based approach instead of build_cache_key
     user_part = str(user_id) if user_id is not None else "anon"
@@ -284,19 +280,13 @@ async def _get_static_movie_data(
         logger.error("Failed to get movie data", movie_id=movie_id, error=str(movie))
         raise movie
     if isinstance(movie_cast, BaseException):
-        logger.warning(
-            "Failed to get movie cast", movie_id=movie_id, error=str(movie_cast)
-        )
+        logger.warning("Failed to get movie cast", movie_id=movie_id, error=str(movie_cast))
         movie_cast = []  ***REMOVED*** Fallback to empty cast
     if isinstance(trailers, BaseException):
-        logger.warning(
-            "Failed to get movie trailers", movie_id=movie_id, error=str(trailers)
-        )
+        logger.warning("Failed to get movie trailers", movie_id=movie_id, error=str(trailers))
         trailers = []  ***REMOVED*** Fallback to empty trailers
     if isinstance(similar_movies, BaseException):
-        logger.warning(
-            "Failed to get similar movies", movie_id=movie_id, error=str(similar_movies)
-        )
+        logger.warning("Failed to get similar movies", movie_id=movie_id, error=str(similar_movies))
         similar_movies = []  ***REMOVED*** Fallback to empty similar movies
 
     logger.debug(
@@ -412,9 +402,7 @@ async def _get_versioned_static_movie_data(
         )
 
         ***REMOVED*** Fallback to non-versioned caching
-        return await _get_static_movie_data(
-            movie_id, backend, recommendation_client, version=None
-        )
+        return await _get_static_movie_data(movie_id, backend, recommendation_client, version=None)
 
 
 @redis_cache(
@@ -497,9 +485,7 @@ async def _enrich_similar_movies_with_user_data(
         return similar_movies
 
         ***REMOVED*** Extract movie IDs from similar movies
-    movie_ids = [
-        movie.get("id") for movie in similar_movies if movie.get("id") is not None
-    ]
+    movie_ids = [movie.get("id") for movie in similar_movies if movie.get("id") is not None]
     ***REMOVED*** Filter to ensure we only have valid integers
     valid_movie_ids = [mid for mid in movie_ids if isinstance(mid, int)]
 
@@ -605,14 +591,10 @@ async def _get_movie_screen_data(
     )
 
     ***REMOVED*** Get static data with versioned caching (30-day TTL - "cache forever" approach)
-    static_data = await _get_versioned_static_movie_data(
-        movie_id, backend, recommendation_client
-    )
+    static_data = await _get_versioned_static_movie_data(movie_id, backend, recommendation_client)
 
     ***REMOVED*** Get user interactions (cached separately with shorter TTL)
-    user_interactions = await _get_user_movie_interactions(
-        movie_id, user_id, backend, credentials
-    )
+    user_interactions = await _get_user_movie_interactions(movie_id, user_id, backend, credentials)
 
     ***REMOVED*** Enrich similar movies with user data if authenticated
     similar_movies = await _enrich_similar_movies_with_user_data(
@@ -934,10 +916,9 @@ async def _get_static_movies_list_data(
 
 @redis_cache(
     ttl=180,  ***REMOVED*** 3 minutes for batch user interactions - slightly shorter for list consistency
-    key_builder=lambda movie_ids,
-    user_id,
-    backend,
-    credentials: _build_user_movies_batch_cache_key(movie_ids, user_id),
+    key_builder=lambda movie_ids, user_id, backend, credentials: _build_user_movies_batch_cache_key(
+        movie_ids, user_id
+    ),
 )
 async def _get_user_movies_batch_interactions(
     movie_ids: list[int],
@@ -1136,9 +1117,7 @@ async def get_movies_list(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: int | None = Query(None, description="Filter by release year"),
-    start_year: int | None = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: int | None = Query(None, description="Filter by start year (inclusive)"),
     end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: HTTPAuthorizationCredentials | None = Depends(security),

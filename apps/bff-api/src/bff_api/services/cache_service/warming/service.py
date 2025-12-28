@@ -84,9 +84,7 @@ class BFFWarmingService:
 
         ***REMOVED*** Set up user data providers
         self.engine.set_user_data_provider(self.data_providers.get_user_data)
-        self.engine.set_recommendation_provider(
-            self.data_providers.get_user_recommendations
-        )
+        self.engine.set_recommendation_provider(self.data_providers.get_user_recommendations)
 
         logger.info("Configured BFF data providers for warming strategies")
 
@@ -181,9 +179,7 @@ class BFFWarmingService:
             logger.info(
                 "Successfully tested warming function",
                 function_name=function_name,
-                result_keys=list(result.keys())
-                if isinstance(result, dict)
-                else "non-dict",
+                result_keys=list(result.keys()) if isinstance(result, dict) else "non-dict",
                 service="bff",
                 component="warming_service",
             )

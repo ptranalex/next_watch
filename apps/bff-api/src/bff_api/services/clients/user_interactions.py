@@ -232,9 +232,7 @@ class UserInteractionsClient(BaseBackendClient):
             ExternalServiceException: If request fails
         """
         ***REMOVED*** Check current interaction status
-        interaction = await self.get_user_movie_interaction(
-            user_id, movie_id, jwt_token
-        )
+        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if interaction and interaction.get("in_watchlist", False):
             ***REMOVED*** Remove from watchlist
@@ -378,9 +376,7 @@ class UserInteractionsClient(BaseBackendClient):
             Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         ***REMOVED*** Check current interaction status
-        interaction = await self.get_user_movie_interaction(
-            user_id, movie_id, jwt_token
-        )
+        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if interaction and interaction.get("watched", False):
             ***REMOVED*** Remove from watched
@@ -524,9 +520,7 @@ class UserInteractionsClient(BaseBackendClient):
             Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
         ***REMOVED*** Check current interaction status
-        interaction = await self.get_user_movie_interaction(
-            user_id, movie_id, jwt_token
-        )
+        interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if interaction and interaction.get("liked", False):
             ***REMOVED*** Remove like
@@ -539,9 +533,7 @@ class UserInteractionsClient(BaseBackendClient):
     ***REMOVED*** User Details & Category Operations (OPTIONAL - Profile features)
     ***REMOVED*** ============================================================================
 
-    @optional_service_handler(
-        service_name="backend-api", logger=logger, fallback_value=[]
-    )
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_user_favorites(self, user_id: int) -> list[dict[str, Any]]:
         """Get user's favorite movies.
 

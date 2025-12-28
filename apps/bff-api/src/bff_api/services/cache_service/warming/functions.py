@@ -123,9 +123,7 @@ async def _rate_limited_operation(
                 raise
 
     ***REMOVED*** This should never be reached, but add for type safety
-    raise Exception(
-        f"Rate-limited operation {operation_name} failed after all attempts"
-    )
+    raise Exception(f"Rate-limited operation {operation_name} failed after all attempts")
 
 
 class WarmingFunctions:
@@ -163,9 +161,7 @@ class WarmingFunctions:
 
             ***REMOVED*** Create client instances
             backend_client = BackendClient(backend_config, self.settings)
-            recommendation_client = RecommendationClient(
-                recommendation_config, self.settings
-            )
+            recommendation_client = RecommendationClient(recommendation_config, self.settings)
 
             ***REMOVED*** Warm the movie screen data (this will populate the cache)
             warmed_data = await _get_movie_screen_data(
@@ -183,9 +179,7 @@ class WarmingFunctions:
                 "data_size": len(str(warmed_data)) if warmed_data else 0,
             }
 
-        result = await _rate_limited_operation(
-            f"warm_movie_screen_{movie_id}", _warm_operation
-        )
+        result = await _rate_limited_operation(f"warm_movie_screen_{movie_id}", _warm_operation)
         return result
 
     async def warm_movies_list(
@@ -243,9 +237,7 @@ class WarmingFunctions:
                 "user_id": user_id,
                 "limit": limit,
                 "cache_populated": True,
-                "movies_count": len(warmed_data.get("results", []))
-                if warmed_data
-                else 0,
+                "movies_count": len(warmed_data.get("results", [])) if warmed_data else 0,
             }
 
         return await _rate_limited_operation(
@@ -294,9 +286,7 @@ class WarmingFunctions:
                 "data_size": len(str(warmed_data)) if warmed_data else 0,
             }
 
-        return await _rate_limited_operation(
-            f"warm_actor_screen_{actor_id}", _warm_operation
-        )
+        return await _rate_limited_operation(f"warm_actor_screen_{actor_id}", _warm_operation)
 
     async def warm_genre_screen(
         self, genre_id: int, user_id: int | None = None, limit: int = 20, **kwargs: Any
@@ -350,9 +340,7 @@ class WarmingFunctions:
                 "limit": limit,
                 "cache_populated": True,
                 "movies_count": (
-                    len(warmed_data.get("movies", {}).get("results", []))
-                    if warmed_data
-                    else 0
+                    len(warmed_data.get("movies", {}).get("results", [])) if warmed_data else 0
                 ),
             }
 

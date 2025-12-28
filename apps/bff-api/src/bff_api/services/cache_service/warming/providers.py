@@ -172,9 +172,7 @@ class BFFDataProviders:
             release_date = movie.get("release_date")
             if release_date:
                 try:
-                    release_year = datetime.fromisoformat(
-                        release_date.replace("Z", "+00:00")
-                    ).year
+                    release_year = datetime.fromisoformat(release_date.replace("Z", "+00:00")).year
                     current_year = datetime.now().year
                     if current_year - release_year <= 5:
                         score += 0.5
@@ -209,9 +207,7 @@ class BFFDataProviders:
         except Exception:
             return 100
 
-    async def _get_popular_actors_data(
-        self, backend_client: Any
-    ) -> list[dict[str, Any]]:
+    async def _get_popular_actors_data(self, backend_client: Any) -> list[dict[str, Any]]:
         """Get popular actors data for warming."""
         try:
             popular_actors = [
@@ -240,9 +236,7 @@ class BFFDataProviders:
             )
             return []
 
-    async def _get_popular_genres_data(
-        self, backend_client: Any
-    ) -> list[dict[str, Any]]:
+    async def _get_popular_genres_data(self, backend_client: Any) -> list[dict[str, Any]]:
         """Get all genres data for warming."""
         try:
             ***REMOVED*** Fetch all genres from backend API

@@ -108,9 +108,7 @@ async def get_top_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: int | None = Query(None, description="Filter by release year"),
-    start_year: int | None = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: int | None = Query(None, description="Filter by start year (inclusive)"),
     end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
@@ -228,20 +226,14 @@ async def get_top_movies(
                             ***REMOVED*** for frontend compatibility
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get(
-                                "in_watchlist", False
-                            )
+                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
 
                             ***REMOVED*** Also include complete user_interactions object for reference
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get(
-                                    "in_watchlist", False
-                                ),
+                                "in_watchlist": interaction_data.get("in_watchlist", False),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get(
-                                    "watch_progress", 0
-                                ),
+                                "watch_progress": interaction_data.get("watch_progress", 0),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
@@ -290,9 +282,7 @@ async def get_top_movies(
                     "is_watched": False,
                 }
 
-        logger.debug(
-            f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})"
-        )
+        logger.debug(f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})")
 
         ***REMOVED*** Record successful movie request metrics
         if metrics:

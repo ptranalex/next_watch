@@ -5,9 +5,11 @@ compatible configuration using the enhanced FastAPIConfig.
 """
 
 from typing import Optional
-from fast_core import FastAPIConfig
-from bff_api.config.app import BFFAPIConfig
+
 from config.logging import get_logger
+from fast_core import FastAPIConfig
+
+from bff_api.config.app import BFFAPIConfig
 
 logger = get_logger(__name__)
 

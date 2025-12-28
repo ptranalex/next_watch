@@ -167,9 +167,7 @@ class BFFMetrics:
         }
         self.service_response_time.labels(**time_labels).observe(response_time)
 
-    def record_cache_operation(
-        self, operation: str, cache_name: str, status: str
-    ) -> None:
+    def record_cache_operation(self, operation: str, cache_name: str, status: str) -> None:
         """Record a cache operation.
 
         Args:
@@ -318,9 +316,7 @@ def initialize_bff_metrics() -> BFFMetrics | None:
         ***REMOVED*** Return None if the metrics instance couldn't initialize properly
         if _bff_metrics and not _bff_metrics.registry:
             _bff_metrics = None
-            logger.warning(
-                "Failed to initialize BFF metrics - no metrics registry available"
-            )
+            logger.warning("Failed to initialize BFF metrics - no metrics registry available")
         else:
             logger.info("BFF metrics initialized successfully")
 

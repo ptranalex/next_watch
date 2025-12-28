@@ -336,9 +336,7 @@ class HealthService:
                             "status_code": response.status_code,
                             "service_status": service_status,
                             "auth_checks": health_data.get("checks", {}),
-                            "note": "Service responding"
-                            if response.status_code == 503
-                            else None,
+                            "note": "Service responding" if response.status_code == 503 else None,
                         },
                     )
                 except Exception:
@@ -526,8 +524,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 response_time = (time.time() - start_time) * 1000
 
                 return HealthCheckResult(
-                    is_healthy=response.status_code
-                    in [200, 503],  ***REMOVED*** 503 = degraded but reachable
+                    is_healthy=response.status_code in [200, 503],  ***REMOVED*** 503 = degraded but reachable
                     status="healthy" if response.status_code == 200 else "degraded",
                     response_time_ms=round(response_time, 2),
                     details={

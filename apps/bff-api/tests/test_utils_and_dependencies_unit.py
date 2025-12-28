@@ -78,9 +78,7 @@ def test_response_helpers() -> None:
         create_suggestions_response,
     )
 
-    r1 = create_movie_list_response(
-        movies=[], total=0, page=1, per_page=20, message="ok"
-    )
+    r1 = create_movie_list_response(movies=[], total=0, page=1, per_page=20, message="ok")
     assert r1["pagination"]["page"] == 1
     assert r1["message"] == "ok"
 

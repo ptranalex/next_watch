@@ -75,6 +75,4 @@ class BackendErrorContext(ServiceErrorContext):
     """Context manager for backend service errors."""
 
     def __init__(self, operation: str, **context: Any):
-        super().__init__(
-            service_name="backend-api", operation=operation, logger=logger, **context
-        )
+        super().__init__(service_name="backend-api", operation=operation, logger=logger, **context)

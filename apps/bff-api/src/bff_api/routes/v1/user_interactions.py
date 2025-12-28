@@ -135,9 +135,7 @@ async def add_to_watchlist(
         )
 
     except ExternalServiceException as e:
-        logger.error(
-            f"Backend error adding movie {movie_id} to watchlist for user {user_id}: {e}"
-        )
+        logger.error(f"Backend error adding movie {movie_id} to watchlist for user {user_id}: {e}")
         if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -322,9 +320,7 @@ async def mark_movie_watched(
         )
 
     except ExternalServiceException as e:
-        logger.error(
-            f"Backend error marking movie {movie_id} as watched for user {user_id}: {e}"
-        )
+        logger.error(f"Backend error marking movie {movie_id} as watched for user {user_id}: {e}")
         if e.status_code == 404:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -387,9 +383,7 @@ async def unmark_movie_watched(
         )
 
     except ExternalServiceException as e:
-        logger.error(
-            f"Backend error unmarking movie {movie_id} as watched for user {user_id}: {e}"
-        )
+        logger.error(f"Backend error unmarking movie {movie_id} as watched for user {user_id}: {e}")
         if e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -622,9 +616,7 @@ async def get_movie_interaction(
     logger.debug(f"Getting interaction for user {user_id}, movie {movie_id}")
 
     try:
-        interaction = await backend.get_user_movie_interaction(
-            user_id, movie_id, jwt_token
-        )
+        interaction = await backend.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if not interaction:
             ***REMOVED*** Return default interaction (all false)
@@ -644,9 +636,7 @@ async def get_movie_interaction(
         return UserMovieInteractionResponse(**interaction)
 
     except ExternalServiceException as e:
-        logger.error(
-            f"Backend error getting interaction for user {user_id}, movie {movie_id}: {e}"
-        )
+        logger.error(f"Backend error getting interaction for user {user_id}, movie {movie_id}: {e}")
         if e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

@@ -117,9 +117,7 @@ async def get_user_profile(
     except AuthClientError as e:
         if "401" in str(e):
             ***REMOVED*** Token validation failures are normal - log as info
-            logger.debug(
-                "Token validation failed", service="bff", endpoint="get_user_profile"
-            )
+            logger.debug("Token validation failed", service="bff", endpoint="get_user_profile")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired token",

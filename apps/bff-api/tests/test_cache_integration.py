@@ -5,8 +5,9 @@
 from unittest.mock import patch
 
 import pytest
-from bff_api.services.cache_service import check_cache_health, get_cache
 from cache import CacheManager
+
+from bff_api.services.cache_service import check_cache_health, get_cache
 
 
 class TestBFFCacheIntegration:

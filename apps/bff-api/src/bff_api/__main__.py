@@ -24,9 +24,7 @@ def main() -> None:
 
     try:
         ***REMOVED*** Log that we're starting the server
-        logger.info(
-            f"Starting BFF API server on http://{settings.host}:{settings.port}"
-        )
+        logger.info(f"Starting BFF API server on http://{settings.host}:{settings.port}")
         logger.info(f"Debug mode: {settings.debug}")
 
         if not settings.debug:

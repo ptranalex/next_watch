@@ -30,9 +30,7 @@ class SearchAPIClient(BaseBackendClient):
     Extends BaseBackendClient with Search API-specific methods and configurations.
     """
 
-    def __init__(
-        self, config: ServiceClientConfig, bff_config: Any | None = None
-    ) -> None:
+    def __init__(self, config: ServiceClientConfig, bff_config: Any | None = None) -> None:
         """Initialize Search API client."""
         super().__init__(config, bff_config)
         ***REMOVED*** Override service name for proper error attribution

@@ -46,9 +46,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         )
 
         try:
-            response = await self._make_request(
-                "GET", self._build_api_path(f"/genres/{genre_id}")
-            )
+            response = await self._make_request("GET", self._build_api_path(f"/genres/{genre_id}"))
             logger.debug(
                 "Successfully fetched genre details",
                 genre_id=genre_id,
@@ -101,9 +99,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         )
         return genres
 
-    @optional_service_handler(
-        service_name="backend-api", logger=logger, fallback_value=[]
-    )
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_trending_genres(self) -> list[dict[str, Any]]:
         """Get trending genres.
 
@@ -166,9 +162,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         )
 
         try:
-            response = await self._make_request(
-                "GET", self._build_api_path(f"/actors/{actor_id}")
-            )
+            response = await self._make_request("GET", self._build_api_path(f"/actors/{actor_id}"))
             logger.debug(
                 "Successfully fetched actor details",
                 actor_id=actor_id,
@@ -185,12 +179,8 @@ class ContentDiscoveryClient(BaseBackendClient):
                 resource_id=str(actor_id),
             )
 
-    @optional_service_handler(
-        service_name="backend-api", logger=logger, fallback_value=[]
-    )
-    async def get_popular_actors(
-        self, page: int = 1, limit: int = 20
-    ) -> list[dict[str, Any]]:
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
+    async def get_popular_actors(self, page: int = 1, limit: int = 20) -> list[dict[str, Any]]:
         """Get popular actors.
 
         This is an OPTIONAL operation - popular actors are discovery enhancements.
@@ -241,9 +231,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         return actors
 
     @critical_service_handler("backend-api", logger)
-    async def search_actors(
-        self, query: str, page: int = 1, limit: int = 20
-    ) -> dict[str, Any]:
+    async def search_actors(self, query: str, page: int = 1, limit: int = 20) -> dict[str, Any]:
         """Search actors.
 
         This is a CRITICAL operation - search functionality must work.

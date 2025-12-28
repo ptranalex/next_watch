@@ -81,9 +81,7 @@ def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> int
             )
         return None
     except jwt.InvalidTokenError as e:
-        logger.warning(
-            "Invalid JWT token", error=str(e), service="bff", component="auth"
-        )
+        logger.warning("Invalid JWT token", error=str(e), service="bff", component="auth")
         if raise_on_invalid:
             from fast_core.errors.exceptions import AuthenticationException
 

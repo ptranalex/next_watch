@@ -99,9 +99,7 @@ async def bff_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             )
     except ImportError as e:
         logger.error(f"Metrics dependencies not installed: {e}")
-        logger.info(
-            "Install prometheus-client to enable metrics: pip install prometheus-client"
-        )
+        logger.info("Install prometheus-client to enable metrics: pip install prometheus-client")
     except Exception as e:
         logger.error(f"Failed to initialize BFF metrics: {e}", exc_info=True)
         if bff_config.is_production:
@@ -211,11 +209,7 @@ def create_bff_middleware_config(config: BFFAPIConfig) -> MiddlewareConfig:
         default_limit="500/hour" if config.is_production else "1000/hour",
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
-        + (
-            ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
-            if not config.is_production
-            else []
-        ),
+        + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
         headers=True,  ***REMOVED*** Include rate limit headers for debugging
         key_func="ip",  ***REMOVED*** Rate limit by IP address
     )

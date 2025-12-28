@@ -53,18 +53,10 @@ class UserInteractions(BaseModel):
     in_watchlist: bool = Field(
         default=False, description="Whether the movie is in user's watchlist"
     )
-    is_favorite: bool = Field(
-        default=False, description="Whether the movie is marked as favorite"
-    )
-    user_rating: float | None = Field(
-        default=None, description="User's rating for the movie"
-    )
-    watch_progress: float = Field(
-        default=0, description="User's watch progress (0-100)"
-    )
-    is_watched: bool = Field(
-        default=False, description="Whether the movie has been watched"
-    )
+    is_favorite: bool = Field(default=False, description="Whether the movie is marked as favorite")
+    user_rating: float | None = Field(default=None, description="User's rating for the movie")
+    watch_progress: float = Field(default=0, description="User's watch progress (0-100)")
+    is_watched: bool = Field(default=False, description="Whether the movie has been watched")
 
 
 class MovieListData(BaseModel):

@@ -37,9 +37,7 @@ class BFFTargetFactories:
             return targets
 
         ***REMOVED*** Calculate base priority
-        base_priority = self._calculate_priority_for_item(
-            popularity_score, view_count, "movie"
-        )
+        base_priority = self._calculate_priority_for_item(popularity_score, view_count, "movie")
 
         ***REMOVED*** Movie detail screen for anonymous users
         ***REMOVED*** This is the most valuable warming target since:
@@ -83,9 +81,7 @@ class BFFTargetFactories:
             return targets
 
         ***REMOVED*** Calculate base priority
-        base_priority = self._calculate_priority_for_item(
-            popularity_score, view_count, "actor"
-        )
+        base_priority = self._calculate_priority_for_item(popularity_score, view_count, "actor")
 
         ***REMOVED*** Actor profile screen
         targets.append(
@@ -118,9 +114,7 @@ class BFFTargetFactories:
             return targets
 
         ***REMOVED*** Calculate base priority
-        base_priority = self._calculate_priority_for_item(
-            popularity_score, view_count, "genre"
-        )
+        base_priority = self._calculate_priority_for_item(popularity_score, view_count, "genre")
 
         ***REMOVED*** Genre screen with default sorting
         targets.append(

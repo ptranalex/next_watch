@@ -33,10 +33,7 @@ def get_cache() -> CacheManager:
             _cache_manager = CacheManager.from_settings(cache_settings)
 
             ***REMOVED*** Enable metrics if configured
-            if (
-                hasattr(settings, "cache_enable_metrics")
-                and settings.cache_enable_metrics
-            ):
+            if hasattr(settings, "cache_enable_metrics") and settings.cache_enable_metrics:
                 set_metrics_enabled(True)
                 logger.info("Cache metrics enabled")
 

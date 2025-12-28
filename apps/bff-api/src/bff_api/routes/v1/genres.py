@@ -55,14 +55,10 @@ def _build_genre_screen_cache_key(
         "start_year": start_year,
         "end_year": end_year,
     }
-    return build_filtered_key(
-        "screen:genre", str(genre_id), filters, user_id=user_id, prefix=""
-    )
+    return build_filtered_key("screen:genre", str(genre_id), filters, user_id=user_id, prefix="")
 
 
-@redis_cache(
-    ttl=900, key_builder=_build_genre_screen_cache_key
-)  ***REMOVED*** 15 minutes for genre movie lists
+@redis_cache(ttl=900, key_builder=_build_genre_screen_cache_key)  ***REMOVED*** 15 minutes for genre movie lists
 async def _get_genre_screen_data(
     genre_id: int,
     page: int,
@@ -212,9 +208,7 @@ async def get_genre_screen(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: int | None = Query(None, description="Filter by release year"),
-    start_year: int | None = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: int | None = Query(None, description="Filter by start year (inclusive)"),
     end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     user_id: int | None = Query(None, description="User ID for personalized content"),
     backend: BackendClient = Depends(get_backend_client),
@@ -325,18 +319,12 @@ async def get_genre_screen(
                             ***REMOVED*** Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get(
-                                "in_watchlist", False
-                            )
+                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get(
-                                    "in_watchlist", False
-                                ),
+                                "in_watchlist": interaction_data.get("in_watchlist", False),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get(
-                                    "watch_progress", 0
-                                ),
+                                "watch_progress": interaction_data.get("watch_progress", 0),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:

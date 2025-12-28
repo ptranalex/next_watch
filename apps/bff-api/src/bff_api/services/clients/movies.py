@@ -19,9 +19,7 @@ class MoviesClient(BaseBackendClient):
     """Client for movie-related operations."""
 
     @critical_service_handler("backend-api", logger)
-    async def get_movie(
-        self, movie_id: int, user_id: int | None = None
-    ) -> dict[str, Any]:
+    async def get_movie(self, movie_id: int, user_id: int | None = None) -> dict[str, Any]:
         """Get movie details with user-specific data.
 
         This is a CRITICAL operation - movie detail pages must work.
@@ -101,9 +99,7 @@ class MoviesClient(BaseBackendClient):
                 raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
-        return await self._make_request(
-            "GET", self._build_api_path("/movies"), params=params
-        )
+        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
 
     @critical_service_handler("backend-api", logger)
     async def search_movies(
@@ -197,9 +193,7 @@ class MoviesClient(BaseBackendClient):
                 raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
-        return await self._make_request(
-            "GET", self._build_api_path("/movies"), params=params
-        )
+        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
 
     @optional_service_handler(
         service_name="backend-api",
@@ -246,13 +240,9 @@ class MoviesClient(BaseBackendClient):
                 raise ValidationException("User ID must be a positive integer")
             params["user_id"] = user_id
 
-        return await self._make_request(
-            "GET", self._build_api_path("/movies"), params=params
-        )
+        return await self._make_request("GET", self._build_api_path("/movies"), params=params)
 
-    @optional_service_handler(
-        service_name="backend-api", logger=logger, fallback_value=[]
-    )
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_movie_cast(self, movie_id: int) -> list[dict[str, Any]]:
         """Get movie cast and crew information.
 
@@ -284,9 +274,7 @@ class MoviesClient(BaseBackendClient):
                 resource_id=str(movie_id),
             )
 
-    @optional_service_handler(
-        service_name="backend-api", logger=logger, fallback_value=[]
-    )
+    @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_movie_trailers(self, movie_id: int) -> list[dict[str, Any]]:
         """Get movie trailers.
 
@@ -365,6 +353,4 @@ class MoviesClient(BaseBackendClient):
             "limit": limit,
         }
 
-        return await self._make_request(
-            "GET", self._build_api_path("/movies/bulk"), params=params
-        )
+        return await self._make_request("GET", self._build_api_path("/movies/bulk"), params=params)

@@ -54,18 +54,10 @@ def get_warming_rate_limits() -> dict[str, Any]:
     """Get rate limiting configuration for warming operations."""
     settings = get_bff_settings()
     return {
-        "requests_per_second": getattr(
-            settings, "warming_requests_per_second", 2
-        ),  ***REMOVED*** 2 RPS max
-        "burst_size": getattr(
-            settings, "warming_burst_size", 5
-        ),  ***REMOVED*** Allow 5 request burst
-        "backoff_base": getattr(
-            settings, "warming_backoff_base", 2.0
-        ),  ***REMOVED*** Exponential backoff base
-        "backoff_max": getattr(
-            settings, "warming_backoff_max", 30.0
-        ),  ***REMOVED*** Max backoff 30s
+        "requests_per_second": getattr(settings, "warming_requests_per_second", 2),  ***REMOVED*** 2 RPS max
+        "burst_size": getattr(settings, "warming_burst_size", 5),  ***REMOVED*** Allow 5 request burst
+        "backoff_base": getattr(settings, "warming_backoff_base", 2.0),  ***REMOVED*** Exponential backoff base
+        "backoff_max": getattr(settings, "warming_backoff_max", 30.0),  ***REMOVED*** Max backoff 30s
         "jitter": getattr(settings, "warming_jitter", True),  ***REMOVED*** Add jitter to backoff
     }
 
@@ -142,9 +134,7 @@ def get_bff_warming_settings() -> dict[str, Any]:
             "warming_max_concurrent",
             3,  ***REMOVED*** Reduced for rate limiting
         ),
-        "max_items_per_strategy": getattr(
-            settings, "warming_max_items_per_strategy", 10000
-        ),
+        "max_items_per_strategy": getattr(settings, "warming_max_items_per_strategy", 10000),
         "operation_timeout_seconds": getattr(
             settings,
             "warming_operation_timeout",

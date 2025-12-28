@@ -34,11 +34,7 @@ security = HTTPBearer(auto_error=False)
 
 @redis_cache(
     ttl=1800,  ***REMOVED*** 30 minutes - actor data changes infrequently
-    key_builder=lambda actor_id,
-    page,
-    limit,
-    backend,
-    credentials=None: build_paginated_key(
+    key_builder=lambda actor_id, page, limit, backend, credentials=None: build_paginated_key(
         "screen:actor", [actor_id], page, limit, prefix=""
     ),
 )
@@ -65,9 +61,7 @@ async def _get_actor_screen_data(
         raise HTTPException(status_code=404, detail="Actor not found")
 
     ***REMOVED*** Get actor's movies with pagination support
-    movies_response = await backend.get_movies(
-        page=page, limit=limit, actor_id=actor_id
-    )
+    movies_response = await backend.get_movies(page=page, limit=limit, actor_id=actor_id)
 
     ***REMOVED*** Extract pagination data
     movies = movies_response.get("results", [])
@@ -349,18 +343,12 @@ async def get_actor_screen(
                             ***REMOVED*** Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get(
-                                "in_watchlist", False
-                            )
+                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get(
-                                    "in_watchlist", False
-                                ),
+                                "in_watchlist": interaction_data.get("in_watchlist", False),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get(
-                                    "watch_progress", 0
-                                ),
+                                "watch_progress": interaction_data.get("watch_progress", 0),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
@@ -461,9 +449,7 @@ async def get_actor_movies(
         None, ge=0, le=100, description="Filter by minimum Metacritic rating"
     ),
     year: int | None = Query(None, description="Filter by release year"),
-    start_year: int | None = Query(
-        None, description="Filter by start year (inclusive)"
-    ),
+    start_year: int | None = Query(None, description="Filter by start year (inclusive)"),
     end_year: int | None = Query(None, description="Filter by end year (inclusive)"),
     backend: BackendClient = Depends(get_backend_client),
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
@@ -557,18 +543,12 @@ async def get_actor_movies(
                             ***REMOVED*** Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
-                            movie["in_watchlist"] = interaction_data.get(
-                                "in_watchlist", False
-                            )
+                            movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
                             movie["user_interactions"] = {
-                                "in_watchlist": interaction_data.get(
-                                    "in_watchlist", False
-                                ),
+                                "in_watchlist": interaction_data.get("in_watchlist", False),
                                 "is_favorite": interaction_data.get("liked", False),
                                 "user_rating": interaction_data.get("rating"),
-                                "watch_progress": interaction_data.get(
-                                    "watch_progress", 0
-                                ),
+                                "watch_progress": interaction_data.get("watch_progress", 0),
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
@@ -584,9 +564,7 @@ async def get_actor_movies(
                                 "is_watched": False,
                             }
                     except Exception as e:
-                        logger.warning(
-                            f"Failed to get user interaction for movie {movie_id}: {e}"
-                        )
+                        logger.warning(f"Failed to get user interaction for movie {movie_id}: {e}")
                         ***REMOVED*** Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False

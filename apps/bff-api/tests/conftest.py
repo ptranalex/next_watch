@@ -14,11 +14,12 @@ from unittest.mock import AsyncMock, Mock
 
 import httpx
 import pytest
+from fastapi.testclient import TestClient
+
 from bff_api.config import Config
 from bff_api.dependencies import get_backend_client
 from bff_api.main import get_app
 from bff_api.services.backend_client import BackendClient
-from fastapi.testclient import TestClient
 
 
 @pytest.fixture

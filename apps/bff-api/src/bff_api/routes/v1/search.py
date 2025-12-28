@@ -144,15 +144,11 @@ async def search_screen(
         return {}
 
 
-@rate_limit(
-    requests=100, window=60
-)  ***REMOVED*** 100 suggestions per minute (higher for typeahead)
+@rate_limit(requests=100, window=60)  ***REMOVED*** 100 suggestions per minute (higher for typeahead)
 @router.get("/search/suggestions")
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
-    limit: int = Query(
-        10, ge=1, le=20, description="Max number of suggestions to return"
-    ),
+    limit: int = Query(10, ge=1, le=20, description="Max number of suggestions to return"),
     search_client: SearchAPIClient = Depends(get_search_client),
 ) -> dict[str, Any]:
     """Get basic search suggestions.
@@ -172,9 +168,7 @@ async def get_search_suggestions(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.debug(
-            "Basic suggestions request via Search API", query=query, limit=limit
-        )
+        logger.debug("Basic suggestions request via Search API", query=query, limit=limit)
 
         result = await search_client.get_suggestions(
             query=query,
@@ -239,9 +233,7 @@ async def get_text_suggestions(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.debug(
-            "Text suggestions request via Search API", query=query, limit=limit
-        )
+        logger.debug("Text suggestions request via Search API", query=query, limit=limit)
 
         result = await search_client.get_text_suggestions(
             query=query,
@@ -285,9 +277,7 @@ async def search_all_entities(
     query: str = Query(..., description="Search query"),
     page: int = Query(1, ge=1, description="Page number for pagination"),
     limit: int = Query(20, ge=1, le=100, description="Max number of results per page"),
-    types: list[str] | None = Query(
-        None, description="Entity types to include in results"
-    ),
+    types: list[str] | None = Query(None, description="Entity types to include in results"),
     search_client: SearchAPIClient = Depends(get_search_client),
 ) -> dict[str, Any]:
     """Search across all entities (movies, actors, genres).
@@ -309,9 +299,7 @@ async def search_all_entities(
         HTTPException: If Search API service is unavailable (502)
     """
     try:
-        logger.debug(
-            "Multi-entity search request via Search API", query=query, types=types
-        )
+        logger.debug("Multi-entity search request via Search API", query=query, types=types)
 
         result = await search_client.search_all_entities(
             query=query,

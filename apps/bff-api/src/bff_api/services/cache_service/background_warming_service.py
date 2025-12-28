@@ -126,9 +126,7 @@ class BackgroundWarmingService:
             component="background_warming",
         )
 
-    async def _run_scheduled_warming(
-        self, schedule_name: str, config: dict[str, Any]
-    ) -> None:
+    async def _run_scheduled_warming(self, schedule_name: str, config: dict[str, Any]) -> None:
         """Run a scheduled warming task that triggers at specific times."""
         target_time = config["time"]
         strategy = config["strategy"]
@@ -338,9 +336,7 @@ class BackgroundWarmingService:
             task_statuses[task.get_name() or "unnamed"] = {
                 "done": task.done(),
                 "cancelled": task.cancelled(),
-                "exception": str(task.exception())
-                if task.done() and task.exception()
-                else None,
+                "exception": str(task.exception()) if task.done() and task.exception() else None,
             }
 
         return {

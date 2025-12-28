@@ -6,8 +6,8 @@ NextWatch configuration library.
 
 from .app import (
     BFFAPIConfig,
-    settings,
     get_cache_settings,
+    settings,
 )
 
 ***REMOVED*** Backward compatibility: Import old Config class name

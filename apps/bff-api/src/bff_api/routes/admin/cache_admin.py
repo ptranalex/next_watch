@@ -71,9 +71,7 @@ async def verify_admin_access(
             service="bff",
             component="admin_auth",
         )
-        raise HTTPException(
-            status_code=503, detail="Admin endpoints not properly configured"
-        )
+        raise HTTPException(status_code=503, detail="Admin endpoints not properly configured")
 
     if not x_admin_key or x_admin_key != expected_admin_key:
         logger.warning(
@@ -82,9 +80,7 @@ async def verify_admin_access(
             service="bff",
             component="admin_auth",
         )
-        raise HTTPException(
-            status_code=403, detail="Admin access denied - invalid credentials"
-        )
+        raise HTTPException(status_code=403, detail="Admin access denied - invalid credentials")
 
     return True
 
@@ -283,9 +279,7 @@ async def get_warming_statistics(
             "warming_engine": {
                 "initialized": warming_engine is not None,
                 "registered_functions": (
-                    list(warming_engine._warming_functions.keys())
-                    if warming_engine
-                    else []
+                    list(warming_engine._warming_functions.keys()) if warming_engine else []
                 ),
                 "strategies": (
                     [strategy.value for strategy in warming_engine._strategies.keys()]
@@ -300,9 +294,7 @@ async def get_warming_statistics(
                             else None
                         ),
                         "max_items_per_strategy": (
-                            warming_engine.config.max_items_per_strategy
-                            if warming_engine
-                            else None
+                            warming_engine.config.max_items_per_strategy if warming_engine else None
                         ),
                     }
                     if warming_engine
@@ -374,22 +366,14 @@ async def get_smart_warming_statistics(
         failed_operations = stats.get("operations_failed", 0)
 
         success_rate = (
-            (successful_operations / total_operations * 100)
-            if total_operations > 0
-            else 0.0
+            (successful_operations / total_operations * 100) if total_operations > 0 else 0.0
         )
 
         rate_limit_rate = (
-            (rate_limited_operations / total_operations * 100)
-            if total_operations > 0
-            else 0.0
+            (rate_limited_operations / total_operations * 100) if total_operations > 0 else 0.0
         )
 
-        failure_rate = (
-            (failed_operations / total_operations * 100)
-            if total_operations > 0
-            else 0.0
-        )
+        failure_rate = (failed_operations / total_operations * 100) if total_operations > 0 else 0.0
 
         response_data = {
             "smart_warming": {
@@ -430,9 +414,7 @@ async def get_smart_warming_statistics(
             endpoint="admin_smart_warming_stats",
             exc_info=True,
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to get smart warming statistics"
-        )
+        raise HTTPException(status_code=500, detail="Failed to get smart warming statistics")
 
 
 ***REMOVED*** REMOVED: Strategy listing endpoint no longer needed

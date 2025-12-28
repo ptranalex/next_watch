@@ -112,9 +112,7 @@ class AuthClient(BaseBackendClient):
                 )
                 response.raise_for_status()
 
-                if response.headers.get("content-type", "").startswith(
-                    "application/json"
-                ):
+                if response.headers.get("content-type", "").startswith("application/json"):
                     return cast(dict[str, Any], response.json())
                 else:
                     return {"data": response.text}
@@ -123,13 +121,9 @@ class AuthClient(BaseBackendClient):
                 status_code = e.response.status_code
                 if 400 <= status_code < 500:
                     if status_code == 401:
-                        logger.debug(
-                            f"Authentication failed for {method} {path}: {status_code}"
-                        )
+                        logger.debug(f"Authentication failed for {method} {path}: {status_code}")
                     elif status_code == 404:
-                        logger.debug(
-                            f"Resource not found for {method} {path}: {status_code}"
-                        )
+                        logger.debug(f"Resource not found for {method} {path}: {status_code}")
                     else:
                         logger.info(f"Client error {status_code} for {method} {path}")
                     raise AuthClientPermanentError(f"Auth service error: {status_code}")
@@ -191,9 +185,7 @@ class AuthClient(BaseBackendClient):
         if username:
             user_data["username"] = username
 
-        return await self._make_request(
-            "POST", self._build_api_path("/users"), data=user_data
-        )
+        return await self._make_request("POST", self._build_api_path("/users"), data=user_data)
 
     async def refresh_token(self, refresh_token: str) -> dict[str, Any]:
         """Refresh access token using refresh token.

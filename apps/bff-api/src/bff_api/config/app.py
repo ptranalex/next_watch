@@ -3,24 +3,21 @@
 Provides configuration for the BFF API service using the simplified config library.
 """
 
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 
-from pydantic import Field, validator
 from config.base.config import ServiceConfig
-from config.services.cache import CacheConfigMixin
-from config.services.auth import AuthConfigMixin
-from config.services.monitoring import MonitoringConfigMixin
-from config.profiles.service_profiles import apply_profiles, GatewayProfile
-
 from config.logging import get_logger
+from config.profiles.service_profiles import GatewayProfile, apply_profiles
+from config.services.auth import AuthConfigMixin
+from config.services.cache import CacheConfigMixin
+from config.services.monitoring import MonitoringConfigMixin
+from pydantic import Field, validator
 
 ***REMOVED*** Configure basic logging first for this module
 logger = get_logger(__name__)
 
 
-class BFFAPIConfig(
-    ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringConfigMixin
-):
+class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringConfigMixin):
     """BFF API service configuration.
 
     Provides configuration for the BFF API service with cache, auth, and monitoring support.
@@ -36,32 +33,22 @@ class BFFAPIConfig(
     )
 
     ***REMOVED*** Backend service URLs
-    backend_api_url: str = Field(
-        default="http://localhost:8000", description="Backend API URL"
-    )
-    auth_api_url: str = Field(
-        default="http://localhost:8003", description="Auth API URL"
-    )
+    backend_api_url: str = Field(default="http://localhost:8000", description="Backend API URL")
+    auth_api_url: str = Field(default="http://localhost:8003", description="Auth API URL")
     reco_api_url: str = Field(
         default="http://localhost:8002",
         description="Recommendation API URL",
     )
-    search_api_url: str = Field(
-        default="http://localhost:8005", description="Search API URL"
-    )
+    search_api_url: str = Field(default="http://localhost:8005", description="Search API URL")
     ml_api_url: Optional[str] = Field(default=None, description="ML API URL (optional)")
 
     ***REMOVED*** Service timeouts
-    backend_api_timeout: int = Field(
-        default=30, description="Backend API timeout in seconds"
-    )
+    backend_api_timeout: int = Field(default=30, description="Backend API timeout in seconds")
     auth_api_timeout: int = Field(default=10, description="Auth API timeout in seconds")
     recommendation_api_timeout: int = Field(
         default=30, description="Recommendation API timeout in seconds"
     )
-    search_api_timeout: int = Field(
-        default=15, description="Search API timeout in seconds"
-    )
+    search_api_timeout: int = Field(default=15, description="Search API timeout in seconds")
     ml_api_timeout: int = Field(default=60, description="ML API timeout in seconds")
 
     ***REMOVED*** Service-to-service authentication
@@ -77,12 +64,8 @@ class BFFAPIConfig(
     )
 
     ***REMOVED*** Feature flags
-    enable_recommendations: bool = Field(
-        default=True, description="Enable recommendation features"
-    )
-    enable_ml_features: bool = Field(
-        default=False, description="Enable machine learning features"
-    )
+    enable_recommendations: bool = Field(default=True, description="Enable recommendation features")
+    enable_ml_features: bool = Field(default=False, description="Enable machine learning features")
     enable_auth_service: bool = Field(
         default=True, description="Enable authentication service integration"
     )
@@ -92,9 +75,7 @@ class BFFAPIConfig(
         default=True, description="Enable performance metrics collection"
     )
 
-    cache_enable_metrics: bool = Field(
-        default=True, description="Enable cache metrics collection"
-    )
+    cache_enable_metrics: bool = Field(default=True, description="Enable cache metrics collection")
 
     ***REMOVED*** Cache warming configuration
     warming_max_concurrent: int = Field(
@@ -112,9 +93,7 @@ class BFFAPIConfig(
     warming_request_timeout: int = Field(
         default=3, description="Individual warming request timeout in seconds"
     )
-    warming_burst_size: int = Field(
-        default=5, description="Maximum burst size for rate limiting"
-    )
+    warming_burst_size: int = Field(default=5, description="Maximum burst size for rate limiting")
     warming_max_items_per_strategy: int = Field(
         default=10000, description="Maximum items per warming strategy"
     )
@@ -130,12 +109,8 @@ class BFFAPIConfig(
     warming_backoff_base: float = Field(
         default=2.0, description="Exponential backoff base for warming retries"
     )
-    warming_backoff_max: float = Field(
-        default=30.0, description="Maximum backoff time in seconds"
-    )
-    warming_jitter: bool = Field(
-        default=True, description="Enable jitter for warming backoff"
-    )
+    warming_backoff_max: float = Field(default=30.0, description="Maximum backoff time in seconds")
+    warming_jitter: bool = Field(default=True, description="Enable jitter for warming backoff")
 
     class Config:
         """Pydantic configuration for environment handling."""
@@ -164,9 +139,7 @@ class BFFAPIConfig(
 
         ***REMOVED*** Disable file logging in production to avoid volume permission issues
         if self.logs_dir:
-            logger.warning(
-                "File logging disabled in production to avoid volume permission issues"
-            )
+            logger.warning("File logging disabled in production to avoid volume permission issues")
             object.__setattr__(self, "logs_dir", None)
 
     def _log_bff_specific_summary(self) -> None:

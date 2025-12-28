@@ -110,9 +110,7 @@ def warm_popular_content(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without executing"
     ),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose output"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """🔥 Warm popular content cache.
 
@@ -141,9 +139,7 @@ def warm_popular_content(
 @cache_app.command("warm-movie")
 def warm_single_movie(
     movie_id: int = typer.Argument(..., help="Movie ID to warm"),
-    user_id: int | None = typer.Option(
-        None, "--user-id", help="User ID for personalized warming"
-    ),
+    user_id: int | None = typer.Option(None, "--user-id", help="User ID for personalized warming"),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without executing"
     ),
@@ -216,16 +212,12 @@ async def _warm_popular_content_async(
 ) -> None:
     """Async implementation of popular content warming."""
     if dry_run:
-        console.print(
-            f"[bold blue]DRY RUN:[/bold blue] Would warm {limit} popular items"
-        )
+        console.print(f"[bold blue]DRY RUN:[/bold blue] Would warm {limit} popular items")
         console.print(f"Max concurrent operations: {max_concurrent}")
         return
 
     console.print(f"🔥 Warming {limit} popular items...")
-    console.print(
-        f"[dim]Concurrency: {max_concurrent}, Rate limited for production safety[/dim]"
-    )
+    console.print(f"[dim]Concurrency: {max_concurrent}, Rate limited for production safety[/dim]")
 
     start_time = time.time()
 
@@ -233,9 +225,7 @@ async def _warm_popular_content_async(
         ***REMOVED*** Initialize service clients for CLI context
         clients_ready = await _setup_cli_services()
         if not clients_ready:
-            console.print(
-                "[bold red]Error:[/bold red] Failed to initialize service clients"
-            )
+            console.print("[bold red]Error:[/bold red] Failed to initialize service clients")
             raise typer.Exit(1)
 
         ***REMOVED*** Get warming service
@@ -255,9 +245,7 @@ async def _warm_popular_content_async(
                 break
 
         if not popular_strategy:
-            console.print(
-                "[bold red]Error:[/bold red] Popular content strategy not available"
-            )
+            console.print("[bold red]Error:[/bold red] Popular content strategy not available")
             raise typer.Exit(1)
 
         ***REMOVED*** Get the actual targets to warm
@@ -265,9 +253,7 @@ async def _warm_popular_content_async(
         actual_count = len(targets)
 
         if actual_count == 0:
-            console.print(
-                "[bold yellow]Warning:[/bold yellow] No targets found to warm"
-            )
+            console.print("[bold yellow]Warning:[/bold yellow] No targets found to warm")
             return
 
         console.print(f"[dim]Found {actual_count} targets to warm[/dim]")
@@ -305,24 +291,18 @@ async def _warm_popular_content_async(
                 async with semaphore:  ***REMOVED*** Limit concurrency
                     try:
                         ***REMOVED*** Get the warming function for this target
-                        warming_func = warming_engine._warming_functions.get(
-                            target.function_name
-                        )
+                        warming_func = warming_engine._warming_functions.get(target.function_name)
                         if warming_func:
                             await warming_func(**target.parameters)
                             return True, None
                         else:
-                            logger.warning(
-                                f"No warming function found for {target.function_name}"
-                            )
+                            logger.warning(f"No warming function found for {target.function_name}")
                             return (
                                 False,
                                 f"No warming function found for {target.function_name}",
                             )
                     except Exception as e:
-                        logger.error(
-                            f"Failed to warm target {target.function_name}: {e}"
-                        )
+                        logger.error(f"Failed to warm target {target.function_name}: {e}")
                         return False, str(e)
 
             ***REMOVED*** Create tasks for all targets
@@ -364,9 +344,7 @@ async def _warm_popular_content_async(
         raise typer.Exit(1)
 
 
-async def _warm_single_movie_async(
-    movie_id: int, user_id: int | None, dry_run: bool
-) -> None:
+async def _warm_single_movie_async(movie_id: int, user_id: int | None, dry_run: bool) -> None:
     """Async implementation of single movie warming."""
     if dry_run:
         console.print(f"[bold blue]DRY RUN:[/bold blue] Would warm movie {movie_id}")
@@ -380,9 +358,7 @@ async def _warm_single_movie_async(
         ***REMOVED*** Initialize service clients for CLI context
         clients_ready = await _setup_cli_services()
         if not clients_ready:
-            console.print(
-                "[bold red]Error:[/bold red] Failed to initialize service clients"
-            )
+            console.print("[bold red]Error:[/bold red] Failed to initialize service clients")
             raise typer.Exit(1)
 
         ***REMOVED*** Import here to avoid circular imports
@@ -392,20 +368,14 @@ async def _warm_single_movie_async(
         warming_functions = WarmingFunctions(settings)
 
         with console.status(f"Warming movie {movie_id}..."):
-            result = await warming_functions.warm_movie_screen(
-                movie_id=movie_id, user_id=user_id
-            )
+            result = await warming_functions.warm_movie_screen(movie_id=movie_id, user_id=user_id)
 
         console.print(f"✅ Movie {movie_id} warmed successfully")
         if result.get("cache_populated"):
-            console.print(
-                f"[dim]Cache keys populated: {len(result.get('cache_keys', []))}"
-            )
+            console.print(f"[dim]Cache keys populated: {len(result.get('cache_keys', []))}")
 
     except Exception as e:
-        console.print(
-            f"[bold red]Error:[/bold red] Failed to warm movie {movie_id}: {str(e)}"
-        )
+        console.print(f"[bold red]Error:[/bold red] Failed to warm movie {movie_id}: {str(e)}")
         raise typer.Exit(1)
 
 
@@ -414,9 +384,7 @@ async def _warm_movie_batch_async(
 ) -> None:
     """Async implementation of batch movie warming."""
     if dry_run:
-        console.print(
-            f"[bold blue]DRY RUN:[/bold blue] Would warm {len(movie_ids)} movies"
-        )
+        console.print(f"[bold blue]DRY RUN:[/bold blue] Would warm {len(movie_ids)} movies")
         console.print(f"Movie IDs: {movie_ids}")
         console.print(f"Concurrency: {max_concurrent}, Delay: {delay}s")
         return
@@ -425,9 +393,7 @@ async def _warm_movie_batch_async(
 
     ***REMOVED*** Production safety check
     if max_concurrent > 5:
-        console.print(
-            "[bold yellow]Warning:[/bold yellow] High concurrency may impact production"
-        )
+        console.print("[bold yellow]Warning:[/bold yellow] High concurrency may impact production")
         if not typer.confirm("Continue?"):
             raise typer.Exit(0)
 
@@ -435,9 +401,7 @@ async def _warm_movie_batch_async(
         ***REMOVED*** Initialize service clients for CLI context
         clients_ready = await _setup_cli_services()
         if not clients_ready:
-            console.print(
-                "[bold red]Error:[/bold red] Failed to initialize service clients"
-            )
+            console.print("[bold red]Error:[/bold red] Failed to initialize service clients")
             raise typer.Exit(1)
 
         from bff_api.config.app import settings
@@ -468,9 +432,7 @@ async def _warm_movie_batch_async(
                         ***REMOVED*** Rate limiting
                         await rate_limiter.acquire()
 
-                        result = await warming_functions.warm_movie_screen(
-                            movie_id=movie_id
-                        )
+                        result = await warming_functions.warm_movie_screen(movie_id=movie_id)
                         progress.advance(task)
                         return {"movie_id": movie_id, "success": True, "result": result}
 
@@ -552,9 +514,7 @@ async def _cache_health_check_async() -> None:
         ***REMOVED*** Rate limiter
         try:
             rate_limiter = get_warming_rate_limiter()
-            table.add_row(
-                "Rate Limiter", "✅ Healthy", f"Tokens: {rate_limiter.tokens:.1f}"
-            )
+            table.add_row("Rate Limiter", "✅ Healthy", f"Tokens: {rate_limiter.tokens:.1f}")
         except Exception:
             table.add_row("Rate Limiter", "❌ Error", "Rate limiter not available")
 
@@ -588,23 +548,17 @@ def _display_warming_results(stats: Any, elapsed: float, verbose: bool) -> None:
 
 @cache_app.command("warm-tier")
 def warm_priority_movies(
-    tier: int = typer.Argument(
-        ..., help="Priority tier: 1 (2hr), 2 (daily), 3 (weekly)"
-    ),
+    tier: int = typer.Argument(..., help="Priority tier: 1 (2hr), 2 (daily), 3 (weekly)"),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be warmed without executing"
     ),
-    force: bool = typer.Option(
-        False, "--force", help="Force warming regardless of versions"
-    ),
+    force: bool = typer.Option(False, "--force", help="Force warming regardless of versions"),
     max_movies: int | None = typer.Option(
         None,
         "--max-movies",
         help="Optional: Limit number of movies for debugging (default: warm ALL movies)",
     ),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose output"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """Warm movies based on priority tiers with version checking.
 
@@ -698,9 +652,7 @@ def warm_priority_movies(
             smart_warmer = get_bff_smart_warming()
 
             if dry_run:
-                console.print(
-                    f"[yellow]DRY RUN: Would warm Tier {tier} movies[/yellow]"
-                )
+                console.print(f"[yellow]DRY RUN: Would warm Tier {tier} movies[/yellow]")
 
                 tier_descriptions = {
                     1: "New releases (last 30 days) + trending top 50",
@@ -714,9 +666,7 @@ def warm_priority_movies(
                 return
 
             ***REMOVED*** Execute priority warming with direct progress tracking for CLI
-            console.print(
-                "[blue]Starting priority warming with real-time progress...[/blue]"
-            )
+            console.print("[blue]Starting priority warming with real-time progress...[/blue]")
 
             ***REMOVED*** Get the movie IDs first to set up proper progress tracking
             movie_ids = await smart_warmer._get_tier_movie_ids(tier, max_movies)
@@ -745,14 +695,10 @@ def warm_priority_movies(
                 TimeElapsedColumn(),
                 console=console,
             ) as progress:
-                task = progress.add_task(
-                    f"Warming Tier {tier} movies...", total=len(movie_ids)
-                )
+                task = progress.add_task(f"Warming Tier {tier} movies...", total=len(movie_ids))
 
                 ***REMOVED*** Use semaphore to limit concurrent requests (use optimized concurrency)
-                max_concurrent = min(
-                    warming_config.max_concurrent_operations, len(movie_ids)
-                )
+                max_concurrent = min(warming_config.max_concurrent_operations, len(movie_ids))
                 semaphore = asyncio.Semaphore(max_concurrent)
 
                 async def _warm_with_progress(movie_id: int) -> dict[str, Any]:
@@ -763,9 +709,7 @@ def warm_priority_movies(
                                 movie_id, warming_funcs, force=force
                             )
                             progress.advance(task)
-                            await asyncio.sleep(
-                                0.01
-                            )  ***REMOVED*** Reduced delay for better performance
+                            await asyncio.sleep(0.01)  ***REMOVED*** Reduced delay for better performance
                             return {
                                 "movie_id": movie_id,
                                 "success": True,
@@ -780,15 +724,11 @@ def warm_priority_movies(
                             }
 
                 ***REMOVED*** Execute all warming operations with real-time progress
-                warming_tasks = [
-                    _warm_with_progress(movie_id) for movie_id in movie_ids
-                ]
+                warming_tasks = [_warm_with_progress(movie_id) for movie_id in movie_ids]
                 results = await asyncio.gather(*warming_tasks, return_exceptions=True)
 
                 ***REMOVED*** Show summary
-                successful = sum(
-                    1 for r in results if isinstance(r, dict) and r.get("success")
-                )
+                successful = sum(1 for r in results if isinstance(r, dict) and r.get("success"))
                 failed = len(movie_ids) - successful
 
                 console.print(
@@ -814,12 +754,8 @@ def warm_priority_movies(
 @cache_app.command("warm-movie")
 def warm_movie_with_version_check(
     movie_id: int = typer.Argument(..., help="Movie ID to warm"),
-    force: bool = typer.Option(
-        False, "--force", help="Force warming regardless of version"
-    ),
-    verbose: bool = typer.Option(
-        False, "--verbose", "-v", help="Enable verbose output"
-    ),
+    force: bool = typer.Option(False, "--force", help="Force warming regardless of version"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """Warm a specific movie with version checking.
 
@@ -830,9 +766,7 @@ def warm_movie_with_version_check(
     """
 
     async def _warm_movie_with_version_check_async() -> None:
-        console.print(
-            f"[bold green]Warming Movie {movie_id} with Version Check[/bold green]"
-        )
+        console.print(f"[bold green]Warming Movie {movie_id} with Version Check[/bold green]")
         console.print(f"Force: {force}")
 
         if not await _setup_cli_services():
@@ -871,9 +805,7 @@ def warm_movie_with_version_check(
                 ***REMOVED*** Show result details based on warming status
                 status = result.get("status", "unknown")
                 if status == "completed":
-                    console.print(
-                        f"[green]✅ Movie {movie_id} was warmed successfully[/green]"
-                    )
+                    console.print(f"[green]✅ Movie {movie_id} was warmed successfully[/green]")
                 elif status == "skipped":
                     console.print(
                         f"[yellow]⏭️  Movie {movie_id} skipped (version unchanged)[/yellow]"
@@ -891,9 +823,7 @@ def warm_movie_with_version_check(
                 console.print("[blue]Check logs for version and warming details[/blue]")
 
         except Exception as e:
-            logger.error(
-                "Version-aware movie warming failed", error=str(e), exc_info=True
-            )
+            logger.error("Version-aware movie warming failed", error=str(e), exc_info=True)
             console.print(f"[bold red]Error: {e}[/bold red]")
             raise typer.Exit(1)
 
@@ -907,27 +837,21 @@ def show_cache_metrics() -> None:
     """Show cache performance metrics."""
     console.print("🔍 [bold blue]Cache Performance Metrics[/bold blue]")
     ***REMOVED*** This would integrate with the cache metrics from the cache library
-    console.print(
-        "[yellow]Cache metrics integration - implement with cache library[/yellow]"
-    )
+    console.print("[yellow]Cache metrics integration - implement with cache library[/yellow]")
 
 
 @cache_app.command("summary")
 def show_cache_summary() -> None:
     """Show cache metrics summary."""
     console.print("📊 [bold blue]Cache Metrics Summary[/bold blue]")
-    console.print(
-        "[yellow]Cache summary integration - implement with cache library[/yellow]"
-    )
+    console.print("[yellow]Cache summary integration - implement with cache library[/yellow]")
 
 
 @cache_app.command("reset")
 def reset_cache_metrics() -> None:
     """Reset all cache metrics."""
     console.print("🔄 [bold red]Resetting Cache Metrics[/bold red]")
-    console.print(
-        "[yellow]Cache reset integration - implement with cache library[/yellow]"
-    )
+    console.print("[yellow]Cache reset integration - implement with cache library[/yellow]")
 
 
 @cache_app.command("redis")

@@ -25,9 +25,7 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
     - ContentDiscoveryClient: Content discovery (genres, actors)
     """
 
-    def __init__(
-        self, config: ServiceClientConfig, bff_config: BFFAPIConfig | None = None
-    ) -> None:
+    def __init__(self, config: ServiceClientConfig, bff_config: BFFAPIConfig | None = None) -> None:
         """Initialize the unified backend client.
 
         Args:

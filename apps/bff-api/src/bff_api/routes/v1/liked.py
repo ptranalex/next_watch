@@ -93,9 +93,7 @@ async def get_user_liked_movies(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     ***REMOVED*** Filter parameters
-    imdb_rating: float | None = Query(
-        None, ge=0, le=10, description="Minimum IMDb rating"
-    ),
+    imdb_rating: float | None = Query(None, ge=0, le=10, description="Minimum IMDb rating"),
     rotten_tomatoes_rating: float | None = Query(
         None, ge=0, le=100, description="Minimum Rotten Tomatoes rating"
     ),
@@ -210,9 +208,7 @@ async def get_user_liked_movies(
 
         ***REMOVED*** Extract movie IDs for bulk fetching - collection items have movie_id directly
         valid_movie_ids = [
-            item["movie_id"]
-            for item in actually_liked
-            if item.get("movie_id") is not None
+            item["movie_id"] for item in actually_liked if item.get("movie_id") is not None
         ]
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
@@ -285,9 +281,7 @@ async def get_user_liked_movies(
                 enriched_movie["watched"] = (
                     False  ***REMOVED*** Unknown from collection data, would need separate lookup
                 )
-                enriched_movie["liked"] = (
-                    True  ***REMOVED*** Always true since this is from liked collection
-                )
+                enriched_movie["liked"] = True  ***REMOVED*** Always true since this is from liked collection
                 enriched_movie["in_watchlist"] = (
                     False  ***REMOVED*** Unknown from collection data, would need separate lookup
                 )
@@ -299,9 +293,7 @@ async def get_user_liked_movies(
                     "user_rating": None,  ***REMOVED*** Unknown from collection data
                     "watch_progress": 0,  ***REMOVED*** Unknown from collection data
                     "is_watched": False,  ***REMOVED*** Unknown from collection data
-                    "liked_at": collection_item.get(
-                        "added_at"
-                    ),  ***REMOVED*** Use added_at as liked_at
+                    "liked_at": collection_item.get("added_at"),  ***REMOVED*** Use added_at as liked_at
                 }
 
                 enriched_movies.append(enriched_movie)
@@ -312,16 +304,14 @@ async def get_user_liked_movies(
                 enriched_movies = [
                     m
                     for m in enriched_movies
-                    if m.get("imdb_rating")
-                    and cast(float, m.get("imdb_rating")) >= imdb_rating
+                    if m.get("imdb_rating") and cast(float, m.get("imdb_rating")) >= imdb_rating
                 ]
             if rotten_tomatoes_rating is not None:
                 enriched_movies = [
                     m
                     for m in enriched_movies
                     if m.get("rotten_tomatoes_rating")
-                    and cast(float, m.get("rotten_tomatoes_rating"))
-                    >= rotten_tomatoes_rating
+                    and cast(float, m.get("rotten_tomatoes_rating")) >= rotten_tomatoes_rating
                 ]
             if metacritic_rating is not None:
                 enriched_movies = [
@@ -341,25 +331,19 @@ async def get_user_liked_movies(
             ***REMOVED*** Apply sorting
             reverse = sort_desc
             if sort_by == "title":
-                enriched_movies.sort(
-                    key=lambda x: (x.get("title") or "").lower(), reverse=reverse
-                )
+                enriched_movies.sort(key=lambda x: (x.get("title") or "").lower(), reverse=reverse)
             elif sort_by == "release_date":
                 enriched_movies.sort(
                     key=lambda x: x.get("release_date") or "1900-01-01", reverse=reverse
                 )
             elif sort_by == "imdb_rating":
-                enriched_movies.sort(
-                    key=lambda x: x.get("imdb_rating") or 0, reverse=reverse
-                )
+                enriched_movies.sort(key=lambda x: x.get("imdb_rating") or 0, reverse=reverse)
             elif sort_by == "rotten_tomatoes_rating":
                 enriched_movies.sort(
                     key=lambda x: x.get("rotten_tomatoes_rating") or 0, reverse=reverse
                 )
             elif sort_by == "metacritic_rating":
-                enriched_movies.sort(
-                    key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse
-                )
+                enriched_movies.sort(key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse)
 
         ***REMOVED*** Calculate pagination metadata using backend response pagination data
         backend_pagination = liked_interactions_response.get("pagination", {})

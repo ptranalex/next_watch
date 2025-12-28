@@ -120,9 +120,7 @@ async def get_watched_movies(
 
     user_id, jwt_token = user_data
 
-    logger.debug(
-        f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})"
-    )
+    logger.debug(f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})")
 
     try:
         ***REMOVED*** Get watched movies interactions from backend
@@ -136,8 +134,8 @@ async def get_watched_movies(
 
         ***REMOVED*** The backend client now returns fast-core format with {"results": [...]} format
         ***REMOVED*** Extract the collection items from the watched-movies collection endpoint
-        watched_collection_items: list[dict[str, Any]] = (
-            watched_interactions_response.get("results", [])
+        watched_collection_items: list[dict[str, Any]] = watched_interactions_response.get(
+            "results", []
         )
 
         ***REMOVED*** All items from the watched-movies collection are watched by definition
@@ -167,16 +165,12 @@ async def get_watched_movies(
 
         ***REMOVED*** Extract movie IDs for bulk fetching - collection items have movie_id directly
         valid_movie_ids = [
-            item["movie_id"]
-            for item in actually_watched
-            if item.get("movie_id") is not None
+            item["movie_id"] for item in actually_watched if item.get("movie_id") is not None
         ]
         movie_ids = [int(mid) for mid in valid_movie_ids]
 
         if not movie_ids:
-            logger.debug(
-                f"No valid movie IDs found in watched interactions for user {user_id}"
-            )
+            logger.debug(f"No valid movie IDs found in watched interactions for user {user_id}")
             response = responses.paginated(
                 items=[],
                 page=page,
@@ -247,9 +241,7 @@ async def get_watched_movies(
                     "user_rating": None,  ***REMOVED*** Unknown from collection data
                     "watch_progress": 100,  ***REMOVED*** Assume 100% for watched movies
                     "is_watched": True,  ***REMOVED*** Always true for watched movies
-                    "watched_at": collection_item.get(
-                        "added_at"
-                    ),  ***REMOVED*** Use added_at as watched_at
+                    "watched_at": collection_item.get("added_at"),  ***REMOVED*** Use added_at as watched_at
                 }
 
                 enriched_movies.append(enriched_movie)

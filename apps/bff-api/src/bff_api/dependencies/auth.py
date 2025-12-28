@@ -29,9 +29,7 @@ def get_current_user_id(
         AuthenticationException: If token is invalid or missing
     """
     if not credentials or not credentials.credentials:
-        logger.error(
-            "Authentication required", service="bff", endpoint="get_current_user_id"
-        )
+        logger.error("Authentication required", service="bff", endpoint="get_current_user_id")
         raise AuthenticationException(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
