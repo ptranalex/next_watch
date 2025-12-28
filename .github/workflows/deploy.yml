@@ -199,16 +199,45 @@ jobs:
             mkdir -p /home/${{ secrets.DEPLOY_USER }}/next_watch
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
+            ***REMOVED*** ------------------------------------------------------------------
+            ***REMOVED*** Docker execution context
+            ***REMOVED*** ------------------------------------------------------------------
+            ***REMOVED*** docker login writes credentials to ~/.docker/config.json for the *current user*.
+            ***REMOVED*** If we later run `sudo docker ...`, root will NOT see those credentials, leading to
+            ***REMOVED*** `unauthorized` pulls even though login "succeeded". So we pick one context up-front
+            ***REMOVED*** (sudo or not) and use it consistently for login + pull + up + cleanup.
+            SUDO=""
+            if docker ps >/dev/null 2>&1; then
+              echo "✅ Docker daemon accessible without sudo"
+            else
+              echo "ℹ️ Docker daemon requires sudo"
+              SUDO="sudo"
+            fi
+
+            docker_cmd() {
+              if [ -n "$SUDO" ]; then
+                sudo docker "$@"
+              else
+                docker "$@"
+              fi
+            }
+
+            compose_cmd() {
+              if command -v docker-compose >/dev/null 2>&1; then
+                if [ -n "$SUDO" ]; then
+                  sudo docker-compose "$@"
+                else
+                  docker-compose "$@"
+                fi
+              else
+                docker_cmd compose "$@"
+              fi
+            }
+
             echo "🔐 Attempting Docker login to GHCR..."
             ***REMOVED*** Use the repository owner for GHCR auth. The repo-scoped token has access to the
             ***REMOVED*** repository owner's packages, and images are stored under that namespace.
-            if ! echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin; then
-              echo "⚠️ Docker login failed — retrying with sudo..."
-              echo "${{ github.token }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin || {
-                echo "❌ Docker login failed even with sudo. Aborting."
-                exit 1
-              }
-            fi
+            echo "${{ github.token }}" | docker_cmd login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
             ***REMOVED*** Create comprehensive .env.prod file
             echo "***REMOVED*** Docker Images" > .env.prod
@@ -332,36 +361,24 @@ jobs:
               echo "🧹 Cleaning up Docker resources..."
               
               ***REMOVED*** Stop and remove containers that are not running
-              docker ps -a -q -f status=exited | xargs -r docker rm || true
-              sudo docker ps -a -q -f status=exited | xargs -r sudo docker rm || true
+              if [ -n "$SUDO" ]; then
+                sudo docker ps -a -q -f status=exited | xargs -r sudo docker rm || true
+              else
+                docker ps -a -q -f status=exited | xargs -r docker rm || true
+              fi
               
               ***REMOVED*** Remove unused images
-              docker image prune -af || true
-              sudo docker image prune -af || true
+              docker_cmd image prune -af || true
               
               ***REMOVED*** Remove unused volumes
-              docker volume prune -f || true
-              sudo docker volume prune -f || true
+              docker_cmd volume prune -f || true
               
               ***REMOVED*** Remove unused networks
-              docker network prune -f || true
-              sudo docker network prune -f || true
+              docker_cmd network prune -f || true
               
               ***REMOVED*** Pull and deploy only the specified services
-              if command -v docker-compose >/dev/null 2>&1; then
-                docker-compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES || \
-                sudo docker-compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES
-                
-                docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES || \
-                sudo docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES
-              else
-                ***REMOVED*** Use docker compose (newer syntax)
-                docker compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES || \
-                sudo docker compose -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES
-                
-                docker compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES || \
-                sudo docker compose -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES
-              fi
+              compose_cmd -f docker-compose.prod.yml --env-file .env.prod pull $SERVICES
+              compose_cmd -f docker-compose.prod.yml --env-file .env.prod up -d $SERVICES
               
               ***REMOVED*** Wait for services to be healthy
               echo "⏳ Waiting for services to be healthy..."
@@ -369,12 +386,11 @@ jobs:
               
               ***REMOVED*** Check service status
               echo "📊 Service status:"
-              docker ps || sudo docker ps
+              docker_cmd ps
               
               ***REMOVED*** Final cleanup after deployment
               echo "🧹 Final cleanup..."
-              docker system prune -af --volumes || true
-              sudo docker system prune -af --volumes || true
+              docker_cmd system prune -af --volumes || true
             else
               echo "No services to deploy"
             fi
