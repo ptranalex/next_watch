@@ -1,0 +1,81 @@
+{
+  "type": "record",
+  "name": "MLTrainingTriggerEvent",
+  "namespace": "com.nextwatch.events.v1",
+  "doc": "Event to trigger ML model retraining",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique event identifier"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Type of the event"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Event timestamp in UTC"
+    },
+    {
+      "name": "service_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Service that emitted the event"
+    },
+    {
+      "name": "trace_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing trace ID"
+    },
+    {
+      "name": "span_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing span ID"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional event metadata"
+    },
+    {
+      "name": "model_name",
+      "type": "string",
+      "doc": "Name of the model to retrain"
+    },
+    {
+      "name": "trigger_reason",
+      "type": "string",
+      "doc": "Reason for triggering training"
+    },
+    {
+      "name": "config",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Training configuration"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "type": "record",
+  "name": "MovieUpdatedEvent",
+  "namespace": "com.nextwatch.events.v1",
+  "doc": "Event emitted when movie metadata is updated",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique event identifier"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Type of the event"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Event timestamp in UTC"
+    },
+    {
+      "name": "service_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Service that emitted the event"
+    },
+    {
+      "name": "trace_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing trace ID"
+    },
+    {
+      "name": "span_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing span ID"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional event metadata"
+    },
+    {
+      "name": "movie_id",
+      "type": "int",
+      "doc": "ID of the updated movie"
+    },
+    {
+      "name": "updated_fields",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "doc": "List of fields that were updated"
+    }
+  ]
+}

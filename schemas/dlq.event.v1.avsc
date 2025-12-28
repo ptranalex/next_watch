@@ -1,0 +1,82 @@
+{
+  "type": "record",
+  "name": "DLQEvent",
+  "namespace": "com.nextwatch.events.v1",
+  "doc": "Event sent to dead letter queue for failed processing",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique event identifier"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Type of the event"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Event timestamp in UTC"
+    },
+    {
+      "name": "service_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Service that emitted the event"
+    },
+    {
+      "name": "trace_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing trace ID"
+    },
+    {
+      "name": "span_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing span ID"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional event metadata"
+    },
+    {
+      "name": "original_topic",
+      "type": "string",
+      "doc": "Original topic name"
+    },
+    {
+      "name": "error_message",
+      "type": "string",
+      "doc": "Error message"
+    },
+    {
+      "name": "retry_count",
+      "type": "int",
+      "doc": "Number of retry attempts"
+    },
+    {
+      "name": "original_payload",
+      "type": "string",
+      "doc": "Original event payload as JSON string"
+    }
+  ]
+}

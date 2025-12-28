@@ -1,0 +1,85 @@
+{
+  "type": "record",
+  "name": "CacheInvalidationEvent",
+  "namespace": "com.nextwatch.events.v1",
+  "doc": "Event emitted to invalidate cache entries",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique event identifier"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Type of the event"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Event timestamp in UTC"
+    },
+    {
+      "name": "service_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Service that emitted the event"
+    },
+    {
+      "name": "trace_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing trace ID"
+    },
+    {
+      "name": "span_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing span ID"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional event metadata"
+    },
+    {
+      "name": "cache_key",
+      "type": "string",
+      "doc": "Cache key to invalidate"
+    },
+    {
+      "name": "cache_pattern",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Pattern for bulk invalidation"
+    },
+    {
+      "name": "reason",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Invalidation reason"
+    }
+  ]
+}

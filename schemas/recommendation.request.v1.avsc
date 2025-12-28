@@ -1,0 +1,78 @@
+{
+  "type": "record",
+  "name": "RecommendationRequestEvent",
+  "namespace": "com.nextwatch.events.v1",
+  "doc": "Event to trigger async recommendation generation",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique event identifier"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Type of the event"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Event timestamp in UTC"
+    },
+    {
+      "name": "service_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Service that emitted the event"
+    },
+    {
+      "name": "trace_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing trace ID"
+    },
+    {
+      "name": "span_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "Distributed tracing span ID"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional event metadata"
+    },
+    {
+      "name": "user_id",
+      "type": "int",
+      "doc": "User ID for recommendations"
+    },
+    {
+      "name": "strategy",
+      "type": "string",
+      "doc": "Recommendation strategy to use"
+    },
+    {
+      "name": "limit",
+      "type": "int",
+      "default": 20,
+      "doc": "Number of recommendations"
+    }
+  ]
+}
