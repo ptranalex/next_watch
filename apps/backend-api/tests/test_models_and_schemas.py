@@ -59,6 +59,23 @@ def test_sqlmodel_models_construct() -> None:
     assert interaction.watched is False
 
 
+def test_sqlalchemy_mappers_configure() -> None:
+    """Regression test: mapper configuration should succeed for all models.
+
+    We previously had a broken relationship annotation in `Trailer`:
+    `movie: "Movie | None"`, which SQLAlchemy tried to resolve as a literal
+    class name and failed during mapper configuration.
+    """
+
+    from sqlalchemy.orm import configure_mappers
+
+    ***REMOVED*** Ensure both sides of the relationship are imported/registered.
+    from backend_api.models.movie import Movie  ***REMOVED*** noqa: F401
+    from backend_api.models.trailer import Trailer  ***REMOVED*** noqa: F401
+
+    configure_mappers()
+
+
 def test_pydantic_schemas_construct() -> None:
     from backend_api.schemas.movie_schema import (
         MovieCreate,

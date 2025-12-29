@@ -1,7 +1,7 @@
 """Trailer model definition."""
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -28,4 +28,4 @@ class Trailer(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     ***REMOVED*** Relationship back to Movie
-    movie: "Movie | None" = Relationship(back_populates="trailers")
+    movie: Optional["Movie"] = Relationship(back_populates="trailers")
