@@ -534,6 +534,7 @@ Interactive API documentation available at `/docs` on each service:
 - **Production Deployment**: `infra/production-deployment-guide.md`
 - **Monitoring Setup**: `infra/compose/monitoring.yml`
 - **AWS Infrastructure**: `infra/aws/`
+- **Security cleanup (making repo public)**: `docs/security/SECURITY_CLEANUP.md` and `cleanup-git-history.sh`
 
 ***REMOVED******REMOVED*** 🤝 Contributing
 

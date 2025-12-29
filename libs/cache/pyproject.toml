@@ -9,12 +9,8 @@ description = "NextWatch unified Redis caching library with typed keys and domai
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE*"]
-authors = [
-    { name = "Alex Tran", email = "p.tran.alex@gmail.com" },
-]
-maintainers = [
-    { name = "Alex Tran", email = "p.tran.alex@gmail.com" },
-]
+authors = [{ name = "Alex Tran" }]
+maintainers = [{ name = "Next Watch Contributors" }]
 keywords = [
     "cache",
     "redis",

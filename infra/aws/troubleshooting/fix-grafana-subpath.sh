@@ -24,8 +24,21 @@ else
 fi
 
 ***REMOVED*** Check SSH key
-SSH_KEY_PATH="/Users/alex/.ssh/aws_next_watch_may_7.pem"
-SSH_USER="ubuntu"
+SSH_USER="${SSH_USER:-ubuntu}"
+SSH_KEY_PATH="${SSH_KEY_PATH:-}"
+if [ -z "$SSH_KEY_PATH" ]; then
+    for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
+        if [ -f "$key" ]; then
+            SSH_KEY_PATH="$key"
+            break
+        fi
+    done
+fi
+
+if [ -z "$SSH_KEY_PATH" ]; then
+    echo -e "${YELLOW}⚠️  SSH key not found. Please specify the path:${NC}"
+    read -p "SSH key path: " SSH_KEY_PATH
+fi
 
 echo "Target instance: $INSTANCE_ID ($PUBLIC_IP)"
 echo "Using SSH key: $SSH_KEY_PATH"
@@ -45,6 +58,17 @@ echo -e "${YELLOW}🔧 Updating Grafana configuration for subpath serving...${NC
 ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" << 'REMOTE_SCRIPT'
 cd /opt/nextwatch-monitoring
 
+***REMOVED*** Load environment variables if present (do not hardcode secrets in this repo)
+set -a
+if [ -f .env.monitoring.prod ]; then
+    source .env.monitoring.prod
+elif [ -f .env ]; then
+    source .env
+fi
+set +a
+
+DOMAIN="${PRODUCTION_DOMAIN:-your-domain.com}"
+
 echo "🛑 Stopping Grafana container..."
 sudo docker stop grafana-prod || true
 sudo docker rm grafana-prod || true
@@ -56,10 +80,10 @@ sudo docker run -d \
   -p 3001:3000 \
   --network nextwatch-monitoring_monitoring \
   --network next_watch_default \
-  -e GF_SECURITY_ADMIN_PASSWORD=NextWatch2024Admin \
-  -e GF_SECURITY_SECRET_KEY=NextWatchMonitoringSecretKey2024 \
+  -e "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-change-me}" \
+  -e "GF_SECURITY_SECRET_KEY=${GRAFANA_SECRET_KEY:-change-me}" \
   -e GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel \
-  -e GF_SERVER_ROOT_URL=https://alexsandbox.me/grafana/ \
+  -e "GF_SERVER_ROOT_URL=https://${DOMAIN}/grafana/" \
   -e GF_SERVER_SERVE_FROM_SUB_PATH=true \
   -v /opt/nextwatch-monitoring/monitoring/grafana/provisioning:/etc/grafana/provisioning \
   -v /opt/nextwatch-monitoring/monitoring/grafana/dashboards:/var/lib/grafana/dashboards \
@@ -81,10 +105,10 @@ echo ""
 echo "🎉 Grafana subpath configuration complete!"
 echo ""
 echo "🌐 Access URLs:"
-echo "  📊 Grafana (via Nginx): https://alexsandbox.me/grafana/"
+echo "  📊 Grafana (via Nginx): https://${DOMAIN}/grafana/"
 echo "  📊 Grafana (direct): http://$(curl -s ifconfig.me):3001"
 echo ""
-echo "🔐 Login: admin / NextWatch2024Admin"
+echo "🔐 Login: admin / (your GRAFANA_ADMIN_PASSWORD)"
 REMOTE_SCRIPT
 
 echo ""
@@ -92,14 +116,14 @@ echo -e "${GREEN}🎉 Grafana Subpath Fix Complete!${NC}"
 echo "=================================================================="
 echo ""
 echo "🌐 Access Grafana:"
-echo "  ✅ https://alexsandbox.me/grafana/ (should work now!)"
-echo "  🔐 Login: admin / NextWatch2024Admin"
+echo "  ✅ https://${NEXTWATCH_DOMAIN:-your-domain.com}/grafana/ (should work now!)"
+echo "  🔐 Login: admin / (your GRAFANA_ADMIN_PASSWORD)"
 echo ""
 echo "🔧 What was fixed:"
-echo "  ✅ GF_SERVER_ROOT_URL=https://alexsandbox.me/grafana/"
+echo "  ✅ GF_SERVER_ROOT_URL=https://<your-domain>/grafana/"
 echo "  ✅ GF_SERVER_SERVE_FROM_SUB_PATH=true"
 echo ""
 echo "📋 Test the fix:"
-echo "  1. Go to https://alexsandbox.me/grafana/"
+echo "  1. Go to https://<your-domain>/grafana/"
 echo "  2. Should see Grafana login page (not redirect to /login)"
-echo "  3. Login with admin / NextWatch2024Admin"
+echo "  3. Login with admin / (your GRAFANA_ADMIN_PASSWORD)"

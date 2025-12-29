@@ -75,15 +75,15 @@ echo -e "${YELLOW}🌐 Domain Access Configuration${NC}"
 
 ***REMOVED*** Check if we're in one-click mode (non-interactive)
 if [ "${ONE_CLICK_MODE:-}" = "true" ]; then
-    echo "One-click mode: Automatically configuring domain access for alexsandbox.me"
+    echo "One-click mode: Automatically configuring domain access for ${NEXTWATCH_DOMAIN:-your-domain.com}"
     domain_access="y"
 else
-    read -p "Do you want to open monitoring ports for domain access (alexsandbox.me)? [y/N]: " domain_access
+    read -p "Do you want to open monitoring ports for domain access (${NEXTWATCH_DOMAIN:-your-domain.com})? [y/N]: " domain_access
 fi
 
 if [[ $domain_access =~ ^[Yy]$ ]]; then
     ***REMOVED*** Get domain IP
-    DOMAIN_IP=$(dig +short alexsandbox.me | tail -n1)
+    DOMAIN_IP=$(dig +short "${NEXTWATCH_DOMAIN:-your-domain.com}" | tail -n1)
     if [ -n "$DOMAIN_IP" ]; then
         echo "Domain IP: $DOMAIN_IP"
 

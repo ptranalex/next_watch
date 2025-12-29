@@ -71,12 +71,28 @@ echo -e "${YELLOW}========================================${NC}"
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
 
+    SSH_USER="${SSH_USER:-ubuntu}"
+    SSH_KEY_PATH="${SSH_KEY_PATH:-}"
+    if [ -z "$SSH_KEY_PATH" ]; then
+        for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
+            if [ -f "$key" ]; then
+                SSH_KEY_PATH="$key"
+                break
+            fi
+        done
+    fi
+
+    if [ -z "$SSH_KEY_PATH" ]; then
+        echo -e "${RED}❌ SSH key not found. Set SSH_KEY_PATH env var or ensure a key exists in ~/.ssh.${NC}"
+        exit 1
+    fi
+
     echo "🔧 Configuring Docker socket permissions for Promtail..."
-    ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'sudo chmod 666 /var/run/docker.sock'
+    ssh -i "$SSH_KEY_PATH" "$SSH_USER@$PUBLIC_IP" 'sudo chmod 666 /var/run/docker.sock'
     echo -e "${GREEN}✅ Docker socket permissions configured${NC}"
 
     echo "🔄 Restarting Promtail to apply changes..."
-    ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'cd /opt/nextwatch-monitoring && (sudo docker compose -f docker-compose.monitoring.yml restart promtail || sudo docker-compose -f docker-compose.monitoring.yml restart promtail)'
+    ssh -i "$SSH_KEY_PATH" "$SSH_USER@$PUBLIC_IP" 'cd /opt/nextwatch-monitoring && (sudo docker compose -f docker-compose.monitoring.yml restart promtail || sudo docker-compose -f docker-compose.monitoring.yml restart promtail)'
     echo -e "${GREEN}✅ Promtail restarted${NC}"
 fi
 
@@ -91,14 +107,14 @@ if [ -f /tmp/nextwatch-aws-env.sh ]; then
 
     echo "🌐 Your NextWatch Monitoring Stack is now live:"
     echo ""
-    echo "  📊 Grafana Dashboard:   https://alexsandbox.me/grafana/"
+    echo "  📊 Grafana Dashboard:   https://${NEXTWATCH_DOMAIN:-your-domain.com}/grafana/"
     echo "  🔍 Prometheus Metrics:  http://$PUBLIC_IP:9090"
     echo "  📢 AlertManager:        http://$PUBLIC_IP:9093"
     echo "  📋 Loki Logs:           http://$PUBLIC_IP:3100"
     echo "  🔍 Tempo Tracing:       http://$PUBLIC_IP:3200"
     echo ""
     echo "🔐 Login Credentials:"
-    echo "  Grafana: admin / NextWatch2024Admin"
+    echo "  Grafana: admin / (set via GRAFANA_ADMIN_PASSWORD in your env file)"
     echo ""
     echo "🎯 What's Being Monitored:"
     echo "  📈 Metrics: Backend API, BFF API, Recommendation API, Auth API, ML API, Search API"
@@ -113,7 +129,7 @@ if [ -f /tmp/nextwatch-aws-env.sh ]; then
     echo "  • Import custom dashboards"
     echo ""
     echo "📋 Troubleshooting:"
-    echo "  ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP"
+    echo "  ssh -i $SSH_KEY_PATH $SSH_USER@$PUBLIC_IP"
     echo "  cd /opt/nextwatch-monitoring"
     echo "  sudo docker compose -f docker-compose.monitoring.yml ps  (or: sudo docker-compose -f docker-compose.monitoring.yml ps)"
     echo ""

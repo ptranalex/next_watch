@@ -53,7 +53,7 @@ if [ -z "$SSH_KEY_PATH" ]; then
     ***REMOVED*** Check if we're in one-click mode (non-interactive)
     if [ "${ONE_CLICK_MODE:-}" = "true" ]; then
         ***REMOVED*** In one-click mode, try common AWS key locations
-        for common_key in ~/.ssh/aws_next_watch_may_7.pem ~/.ssh/nextwatch*.pem ~/.ssh/*aws*.pem; do
+        for common_key in ~/.ssh/nextwatch*.pem ~/.ssh/*aws*.pem ~/.ssh/*.pem; do
             if [ -f "$common_key" ]; then
                 SSH_KEY_PATH="$common_key"
                 echo "One-click mode: Using SSH key: $SSH_KEY_PATH"
@@ -63,7 +63,7 @@ if [ -z "$SSH_KEY_PATH" ]; then
 
         if [ -z "$SSH_KEY_PATH" ]; then
             echo -e "${RED}❌ SSH key not found automatically in one-click mode.${NC}"
-            echo "Looked for: ~/.ssh/aws_next_watch_may_7.pem, ~/.ssh/nextwatch*.pem, ~/.ssh/*aws*.pem"
+            echo "Looked for: ~/.ssh/nextwatch*.pem, ~/.ssh/*aws*.pem, ~/.ssh/*.pem"
             exit 1
         fi
     else
@@ -233,7 +233,7 @@ echo "🎉 Monitoring stack deployment complete!"
 echo ""
 echo "🌐 Access URLs:"
 echo "  Prometheus: http://\$(curl -s ifconfig.me):9090"
-echo "  Grafana: http://\$(curl -s ifconfig.me):3001 (admin/NextWatch2024Admin)"
+echo "  Grafana: http://\$(curl -s ifconfig.me):3001 (admin/<GRAFANA_ADMIN_PASSWORD>)"
 echo "  AlertManager: http://\$(curl -s ifconfig.me):9093"
 echo "  Loki: http://\$(curl -s ifconfig.me):3100"
 echo ""
@@ -275,8 +275,8 @@ echo "  🔍 Prometheus: http://$PUBLIC_IP:9090"
 echo "  📊 Grafana: http://$PUBLIC_IP:3001"
 echo "  📢 AlertManager: http://$PUBLIC_IP:9093"
 echo ""
-echo "🔐 Default Credentials:"
-echo "  Grafana: admin / NextWatch2024Admin"
+echo "🔐 Credentials:"
+echo "  Grafana: admin / (set via GRAFANA_ADMIN_PASSWORD)"
 echo ""
 echo "🎯 Next Steps:"
 echo "  1. Access Grafana and import NextWatch dashboards"

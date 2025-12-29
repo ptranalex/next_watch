@@ -8,7 +8,7 @@ All external API traffic goes through the BFF service only. Auth and Backend ser
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name alexsandbox.me www.alexsandbox.me;
+    server_name your-domain.com www.your-domain.com;
 
     ***REMOVED*** SSL configuration...
     ssl_certificate /etc/ssl/certs/cloudflare-origin.pem;
@@ -152,13 +152,13 @@ location /bff/ {
 
 **Application URLs:**
 
-- `https://alexsandbox.me/bff/v1/movies` → BFF handles movies
-- `https://alexsandbox.me/bff/v1/auth/login` → BFF proxies to Auth
-- `https://alexsandbox.me/bff/health` → BFF health check
+- `https://your-domain.com/bff/v1/movies` → BFF handles movies
+- `https://your-domain.com/bff/v1/auth/login` → BFF proxies to Auth
+- `https://your-domain.com/bff/health` → BFF health check
 - ❌ Direct service access → Not accessible (secure)
 
 **Monitoring URLs (Admin Only):**
 
-- `https://alexsandbox.me/grafana/` → Grafana dashboard
-- `https://alexsandbox.me/prometheus/` → Prometheus metrics
+- `https://your-domain.com/grafana/` → Grafana dashboard
+- `https://your-domain.com/prometheus/` → Prometheus metrics
 - ⚠️ Consider IP restrictions for production

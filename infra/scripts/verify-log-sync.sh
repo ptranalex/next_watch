@@ -29,6 +29,23 @@ fi
 echo ""
 echo -e "${BLUE}🔍 Running verification checks...${NC}"
 
+***REMOVED*** SSH key (do not hardcode local user paths in a public repo)
+SSH_USER="${SSH_USER:-ubuntu}"
+SSH_KEY_PATH="${SSH_KEY_PATH:-}"
+if [ -z "$SSH_KEY_PATH" ]; then
+    for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
+        if [ -f "$key" ]; then
+            SSH_KEY_PATH="$key"
+            break
+        fi
+    done
+fi
+
+if [ -z "$SSH_KEY_PATH" ]; then
+    echo -e "${YELLOW}⚠️  SSH key not found. Please specify the path:${NC}"
+    read -p "SSH key path: " SSH_KEY_PATH
+fi
+
 ***REMOVED*** Create the remote verification script
 cat << 'REMOTE_VERIFY' > /tmp/aws-log-verify.sh
 ***REMOVED***!/bin/bash
@@ -117,7 +134,7 @@ if curl -s http://localhost:3100/ready > /dev/null && [ -n "$labels" ]; then
     echo -e "${GREEN}🎉 Log sync is working! Check Grafana for logs.${NC}"
     echo ""
     echo -e "${YELLOW}Access your logs at:${NC}"
-    echo "  📊 Grafana: https://alexsandbox.me/grafana/"
+    echo "  📊 Grafana: https://${NEXTWATCH_DOMAIN:-your-domain.com}/grafana/"
     echo "  🔍 Go to Explore → Select Loki datasource"
     echo "  📋 Query examples:"
     echo "    {service=\"backend-api\"}"
@@ -138,10 +155,10 @@ REMOTE_VERIFY
 
 ***REMOVED*** Copy script to remote server and execute
 echo -e "${BLUE}📤 Uploading verification script...${NC}"
-scp -i ~/.ssh/aws_next_watch_may_7.pem /tmp/aws-log-verify.sh ubuntu@$PUBLIC_IP:/tmp/
+scp -i "$SSH_KEY_PATH" /tmp/aws-log-verify.sh "$SSH_USER@$PUBLIC_IP:/tmp/"
 
 echo -e "${BLUE}🔍 Running verification on AWS instance...${NC}"
-ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'chmod +x /tmp/aws-log-verify.sh && /tmp/aws-log-verify.sh'
+ssh -i "$SSH_KEY_PATH" "$SSH_USER@$PUBLIC_IP" 'chmod +x /tmp/aws-log-verify.sh && /tmp/aws-log-verify.sh'
 
 echo ""
 echo -e "${GREEN}🎉 Verification Complete!${NC}"

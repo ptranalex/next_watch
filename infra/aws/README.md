@@ -142,7 +142,7 @@ check-environment.sh → open-monitoring-ports.sh → deploy-monitoring-to-exist
 
 ***REMOVED******REMOVED*** 🌐 Access URLs (After Deployment)
 
-- **📊 Grafana**: `http://YOUR_IP:3001` (admin/NextWatch2024Admin)
+- **📊 Grafana**: `http://YOUR_IP:3001` (admin/<GRAFANA_ADMIN_PASSWORD>)
 - **🔍 Prometheus**: `http://YOUR_IP:9090`
 - **📢 AlertManager**: `http://YOUR_IP:9093`
 - **📋 Loki**: `http://YOUR_IP:3100`

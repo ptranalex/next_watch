@@ -21,11 +21,26 @@ if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Found AWS environment variables${NC}"
     echo "Public IP: $PUBLIC_IP"
-    echo "Key Path: ~/.ssh/aws_next_watch_may_7.pem"
 else
     echo -e "${YELLOW}⚠️  AWS environment not found. Please provide connection details:${NC}"
     read -p "AWS Instance Public IP: " PUBLIC_IP
-    echo "Using default key path: ~/.ssh/aws_next_watch_may_7.pem"
+fi
+
+***REMOVED*** SSH key (do not hardcode local user paths in a public repo)
+SSH_USER="${SSH_USER:-ubuntu}"
+SSH_KEY_PATH="${SSH_KEY_PATH:-}"
+if [ -z "$SSH_KEY_PATH" ]; then
+    for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
+        if [ -f "$key" ]; then
+            SSH_KEY_PATH="$key"
+            break
+        fi
+    done
+fi
+
+if [ -z "$SSH_KEY_PATH" ]; then
+    echo -e "${YELLOW}⚠️  SSH key not found. Please specify the path:${NC}"
+    read -p "SSH key path: " SSH_KEY_PATH
 fi
 
 echo ""
@@ -183,16 +198,16 @@ REMOTE_SCRIPT
 
 ***REMOVED*** Copy script to remote server and execute
 echo -e "${BLUE}📤 Uploading diagnostic script...${NC}"
-scp -i ~/.ssh/aws_next_watch_may_7.pem /tmp/aws-log-debug.sh ubuntu@$PUBLIC_IP:/tmp/
+scp -i "$SSH_KEY_PATH" /tmp/aws-log-debug.sh "$SSH_USER@$PUBLIC_IP:/tmp/"
 
 echo -e "${BLUE}🔍 Running diagnostics on AWS instance...${NC}"
-ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP 'chmod +x /tmp/aws-log-debug.sh && /tmp/aws-log-debug.sh'
+ssh -i "$SSH_KEY_PATH" "$SSH_USER@$PUBLIC_IP" 'chmod +x /tmp/aws-log-debug.sh && /tmp/aws-log-debug.sh'
 
 echo ""
 echo -e "${GREEN}🎉 Diagnostic Complete!${NC}"
 echo ""
 echo -e "${YELLOW}If you need to manually connect:${NC}"
-echo "ssh -i ~/.ssh/aws_next_watch_may_7.pem ubuntu@$PUBLIC_IP"
+echo "ssh -i $SSH_KEY_PATH $SSH_USER@$PUBLIC_IP"
 echo ""
 echo -e "${YELLOW}Common Fix Commands (run on AWS instance):${NC}"
 echo ""

@@ -12,12 +12,8 @@ description = "Search API for Next Watch platform"
 readme = {text = "***REMOVED*** Search API\n\nSearch API for Next Watch platform", content-type = "text/markdown"}
 license = "MIT"
 license-files = ["LICENSE*"]
-authors = [
-    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
-]
-maintainers = [
-    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
-]
+authors = [{ name = "Alex Tran" }]
+maintainers = [{ name = "Next Watch Contributors" }]
 keywords = [
     "api",
     "search",

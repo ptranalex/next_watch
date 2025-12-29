@@ -10,9 +10,12 @@ This document intentionally **does not** include any real credentials, API keys,
 ***REMOVED******REMOVED*** If secrets were committed
 
 1. **Remove secrets from the current working tree**
-   - Delete any committed secret files (e.g. `.env`, exported credentials, DB dumps).
+   - Delete any committed secret files (e.g. `.env`, `.secrets`, exported credentials, DB dumps).
 2. **Rewrite git history**
    - Use the repo’s `cleanup-git-history.sh` script to remove sensitive files from all commits/tags.
+   - Provide a **local replacements file** (do not commit it) with the exact literals you need scrubbed:
+     - `./cleanup-git-history.sh /path/to/replacements.txt`
+     - Format: `<literal-to-find>==><replacement>`
 3. **Force push rewritten history**
    - Only after you’ve validated the cleanup locally.
 4. **Rotate everything that was exposed**

@@ -24,8 +24,21 @@ else
 fi
 
 ***REMOVED*** Check SSH key
-SSH_KEY_PATH="/Users/alex/.ssh/aws_next_watch_may_7.pem"
-SSH_USER="ubuntu"
+SSH_USER="${SSH_USER:-ubuntu}"
+SSH_KEY_PATH="${SSH_KEY_PATH:-}"
+if [ -z "$SSH_KEY_PATH" ]; then
+    for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
+        if [ -f "$key" ]; then
+            SSH_KEY_PATH="$key"
+            break
+        fi
+    done
+fi
+
+if [ -z "$SSH_KEY_PATH" ]; then
+    echo -e "${YELLOW}⚠️  SSH key not found. Please specify the path:${NC}"
+    read -p "SSH key path: " SSH_KEY_PATH
+fi
 
 echo "Target instance: $INSTANCE_ID ($PUBLIC_IP)"
 echo "Using SSH key: $SSH_KEY_PATH"
@@ -151,7 +164,7 @@ echo "  📊 Metrics: Prometheus + Grafana"
 echo "  📋 Logs: Loki + Promtail"
 echo "  🖥️  System: Node Exporter"
 echo ""
-echo "🔍 Access Grafana: https://alexsandbox.me/grafana/"
+echo "🔍 Access Grafana: https://${NEXTWATCH_DOMAIN:-your-domain.com}/grafana/"
 echo "   - Prometheus datasource: Metrics"
 echo "   - Loki datasource: Logs"
 echo ""

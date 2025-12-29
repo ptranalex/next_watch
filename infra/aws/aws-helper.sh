@@ -94,12 +94,12 @@ case $choice in
         echo "=================================================="
         if [ -f /tmp/nextwatch-aws-env.sh ]; then
             source /tmp/nextwatch-aws-env.sh
-            echo "  📊 Grafana:      http://$PUBLIC_IP:3001 (admin/NextWatch2024Admin)"
+            echo "  📊 Grafana:      http://$PUBLIC_IP:3001 (admin/<GRAFANA_ADMIN_PASSWORD>)"
             echo "  🔍 Prometheus:   http://$PUBLIC_IP:9090"
             echo "  📢 AlertManager: http://$PUBLIC_IP:9093"
             echo "  📋 Loki:        http://$PUBLIC_IP:3100"
         else
-            echo "  📊 Grafana:      http://YOUR_IP:3001 (admin/NextWatch2024Admin)"
+            echo "  📊 Grafana:      http://YOUR_IP:3001 (admin/<GRAFANA_ADMIN_PASSWORD>)"
             echo "  🔍 Prometheus:   http://YOUR_IP:9090"
             echo "  📢 AlertManager: http://YOUR_IP:9093"
             echo "  📋 Loki:        http://YOUR_IP:3100"
@@ -107,7 +107,7 @@ case $choice in
             echo "  💡 Run option 3 (Check AWS Environment) to get your actual IP"
         fi
         echo ""
-        echo "  🔐 Default Grafana Credentials: admin / NextWatch2024Admin"
+        echo "  🔐 Grafana Credentials: admin / (set via GRAFANA_ADMIN_PASSWORD)"
         echo ""
         ;;
     0)

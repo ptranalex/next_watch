@@ -25,7 +25,7 @@ fi
 
 ***REMOVED*** Get domain configuration
 echo -e "${YELLOW}🌐 Domain Configuration${NC}"
-read -p "Enter your domain for monitoring (e.g., monitoring.alexsandbox.me): " MONITORING_DOMAIN
+read -p "Enter your domain for monitoring (e.g., monitoring.your-domain.com): " MONITORING_DOMAIN
 read -p "Enter your email for Let's Encrypt: " LETSENCRYPT_EMAIL
 
 if [ -z "$MONITORING_DOMAIN" ] || [ -z "$LETSENCRYPT_EMAIL" ]; then
@@ -234,8 +234,8 @@ services:
     ports:
       - "127.0.0.1:3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=\${GRAFANA_ADMIN_PASSWORD:-NextWatch2024Admin}
-      - GF_SECURITY_SECRET_KEY=\${GRAFANA_SECRET_KEY:-NextWatchMonitoringSecretKey2024}
+      - GF_SECURITY_ADMIN_PASSWORD=\${GRAFANA_ADMIN_PASSWORD:-change-me}
+      - GF_SECURITY_SECRET_KEY=\${GRAFANA_SECRET_KEY:-change-me}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
       - GF_SERVER_DOMAIN=$MONITORING_DOMAIN
       - GF_SERVER_ROOT_URL=https://$MONITORING_DOMAIN/

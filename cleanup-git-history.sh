@@ -59,6 +59,7 @@ echo ""
 echo "Files/patterns to be removed:"
 echo "  - All .env files (except .example files)"
 echo "  - All .db files"
+echo "  - Any .secrets file"
 echo "  - Specific sensitive configuration files"
 echo ""
 echo "Credentials to be redacted:"
@@ -81,17 +82,39 @@ cp -r . "$BACKUP_DIR"
 echo -e "${GREEN}✓ Backup created at: $BACKUP_DIR${NC}"
 echo ""
 
-***REMOVED*** Step 2: Create passwords replacement file
-echo -e "${GREEN}Step 2: Creating replacement patterns...${NC}"
-cat > /tmp/nextwatch_passwords.txt << 'EOF'
-glc_eyJvIjoiMTUwMjI5NSIsIm4iOiJzdGFjay0xMzM5NjgxLWFsbG95LW5leHR3YXRjaCIsImsiOiJCYzM0Sk5rOHEyUTA4aDRKb3M4MXU5UkkiLCJtIjp7InIiOiJwcm9kLWFwLXNvdXRoZWFzdC0xIn19==>YOUR_GRAFANA_API_KEY_HERE
-NextWatch2024!Admin==>YOUR_ADMIN_PASSWORD_HERE
-NextWatch2024!Grafana==>YOUR_DB_PASSWORD_HERE
-805656999857-a4ckp6k066aipeq52lkk1tm8h9ab908n==>YOUR_GOOGLE_CLIENT_ID
-p.tran.alex@gmail.com==>contributors@example.com
-alexsandbox.me==>your-domain.com
+***REMOVED*** Step 2: Prepare replacement patterns (NO REAL SECRETS IN REPO)
+***REMOVED***
+***REMOVED*** IMPORTANT:
+***REMOVED*** - Never store real secrets in this repository (even inside this cleanup script).
+***REMOVED*** - Provide your own replacements file when running this script, e.g.:
+***REMOVED***     ./cleanup-git-history.sh /path/to/replacements.txt
+***REMOVED***
+***REMOVED*** BFG replacement file format:
+***REMOVED***   <literal-to-find>==><replacement>
+***REMOVED***
+echo -e "${GREEN}Step 2: Preparing replacement patterns...${NC}"
+REPLACEMENTS_FILE="${1:-/tmp/nextwatch_replacements.txt}"
+
+if [ ! -f "$REPLACEMENTS_FILE" ]; then
+    cat > "$REPLACEMENTS_FILE" << 'EOF'
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED*** Examples (edit/remove as needed):
+***REMOVED*** my_old_api_key_value==>REDACTED_API_KEY
+***REMOVED*** my_old_password==>REDACTED_PASSWORD
+***REMOVED*** my-domain.example==>your-domain.com
+***REMOVED*** someone@example.com==>contributors@example.com
 EOF
-echo -e "${GREEN}✓ Replacement patterns created${NC}"
+    echo -e "${YELLOW}⚠️  Replacement file not found; created a TEMPLATE at:${NC} $REPLACEMENTS_FILE"
+    echo -e "${YELLOW}   Edit it to include the exact literals you need to scrub, then re-run the script.${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Using replacements file:${NC} $REPLACEMENTS_FILE"
 echo ""
 
 ***REMOVED*** Step 3: Clone as mirror for cleaning
@@ -105,6 +128,9 @@ echo ""
 ***REMOVED*** Step 4: Remove sensitive files
 echo -e "${GREEN}Step 4: Removing sensitive files from history...${NC}"
 echo "This may take a few minutes..."
+
+***REMOVED*** Remove explicit secrets files
+bfg --delete-files '.secrets' --no-blob-protection .
 
 ***REMOVED*** Remove .env files
 bfg --delete-files '.env' --no-blob-protection .
@@ -123,7 +149,7 @@ echo ""
 
 ***REMOVED*** Step 5: Replace credentials
 echo -e "${GREEN}Step 5: Replacing exposed credentials...${NC}"
-bfg --replace-text /tmp/nextwatch_passwords.txt --no-blob-protection .
+bfg --replace-text "$REPLACEMENTS_FILE" --no-blob-protection .
 echo -e "${GREEN}✓ Credentials replaced${NC}"
 echo ""
 

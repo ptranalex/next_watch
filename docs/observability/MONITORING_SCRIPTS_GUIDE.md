@@ -71,7 +71,7 @@ cd apps/backend-api && hatch run python -m backend_api
 
 ***REMOVED******REMOVED******REMOVED*** Access:
 
-- **Grafana**: https://alexsandbox.me/grafana/
+- **Grafana**: `https://your-domain.com/grafana/`
 - **Tempo**: http://YOUR_IP:3200
 - **Prometheus**: http://YOUR_IP:9090
 - **Other services**: Various ports on your AWS instance

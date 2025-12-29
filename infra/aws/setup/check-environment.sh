@@ -104,8 +104,18 @@ echo "Note: Services are behind Nginx reverse proxy, checking via SSH..."
 
 if [ -n "$PUBLIC_IP" ]; then
     ***REMOVED*** First try to check if SSH is accessible
-    SSH_KEY_PATH="/Users/alex/.ssh/aws_next_watch_may_7.pem"
-    SSH_USER="ubuntu"
+    SSH_USER="${SSH_USER:-ubuntu}"
+    SSH_KEY_PATH="${SSH_KEY_PATH:-}"
+    if [ -z "$SSH_KEY_PATH" ]; then
+        for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
+            if [ -f "$key" ]; then
+                SSH_KEY_PATH="$key"
+                break
+            fi
+        done
+    fi
+
+    DOMAIN="${NEXTWATCH_DOMAIN:-${PRODUCTION_DOMAIN:-}}"
 
     if ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=5 -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" "echo 'SSH test'" 2>/dev/null >/dev/null; then
         echo -e "${GREEN}✅ SSH connection available for service checks${NC}"
@@ -148,35 +158,47 @@ done
 
 echo ""
 echo "🌐 Checking domain access..."
-if curl -s --connect-timeout 5 https://alexsandbox.me > /dev/null; then
-    echo "  ✅ alexsandbox.me is accessible from server"
+if [ -n "$DOMAIN" ]; then
+    if curl -s --connect-timeout 5 "https://$DOMAIN" > /dev/null; then
+        echo "  ✅ $DOMAIN is accessible from server"
+    else
+        echo "  ⚠️  $DOMAIN not accessible from server"
+    fi
 else
-    echo "  ⚠️  alexsandbox.me not accessible from server"
+    echo "  ⚠️  NEXTWATCH_DOMAIN not set; skipping domain check"
 fi
 REMOTE_CHECK
     else
         echo -e "${YELLOW}⚠️  SSH not accessible, checking domain instead...${NC}"
 
         ***REMOVED*** Check domain access as fallback
-        if curl -s --connect-timeout 5 https://alexsandbox.me > /dev/null; then
-            echo -e "  ${GREEN}✅ NextWatch domain (alexsandbox.me) is accessible${NC}"
-            echo "  Note: Services are running behind Nginx reverse proxy"
+        if [ -n "$DOMAIN" ]; then
+            if curl -s --connect-timeout 5 "https://$DOMAIN" > /dev/null; then
+                echo -e "  ${GREEN}✅ NextWatch domain ($DOMAIN) is accessible${NC}"
+                echo "  Note: Services are running behind Nginx reverse proxy"
+            else
+                echo -e "  ${RED}❌ NextWatch domain ($DOMAIN) is not accessible${NC}"
+            fi
         else
-            echo -e "  ${RED}❌ NextWatch domain (alexsandbox.me) is not accessible${NC}"
+            echo -e "  ${YELLOW}⚠️  NEXTWATCH_DOMAIN not set; skipping domain check${NC}"
         fi
     fi
 fi
 
 ***REMOVED*** Domain and SSL check
 echo -e "${YELLOW}🌐 Domain & SSL Check:${NC}"
-if curl -s --connect-timeout 5 https://alexsandbox.me > /dev/null; then
-    echo -e "  ${GREEN}✅ Domain alexsandbox.me is accessible${NC}"
+if [ -n "$DOMAIN" ] && curl -s --connect-timeout 5 "https://$DOMAIN" > /dev/null; then
+    echo -e "  ${GREEN}✅ Domain $DOMAIN is accessible${NC}"
 
     ***REMOVED*** Check SSL certificate
-    SSL_EXPIRY=$(echo | openssl s_client -servername alexsandbox.me -connect alexsandbox.me:443 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2)
+    SSL_EXPIRY=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2)
     echo "  SSL Certificate expires: $SSL_EXPIRY"
 else
-    echo -e "  ${YELLOW}⚠️  Domain alexsandbox.me is not accessible${NC}"
+    if [ -n "$DOMAIN" ]; then
+        echo -e "  ${YELLOW}⚠️  Domain $DOMAIN is not accessible${NC}"
+    else
+        echo -e "  ${YELLOW}⚠️  NEXTWATCH_DOMAIN not set; skipping SSL check${NC}"
+    fi
 fi
 
 ***REMOVED*** Generate deployment summary

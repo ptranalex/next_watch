@@ -4,7 +4,7 @@
 ***REMOVED***
 ***REMOVED*** PRODUCTION DOMAIN
 ***REMOVED***
-PRODUCTION_DOMAIN=alexsandbox.me
+PRODUCTION_DOMAIN=your-domain.com
 
 ***REMOVED***
 ***REMOVED*** GRAFANA CONFIGURATION
@@ -28,28 +28,28 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-monitoring-email@gmail.com
 SMTP_PASSWORD=your-app-password
-SMTP_FROM_EMAIL=monitoring@alexsandbox.me
+SMTP_FROM_EMAIL=monitoring@your-domain.com
 
 ***REMOVED***
 ***REMOVED*** ALERT EMAIL ROUTING
 ***REMOVED***
 ***REMOVED*** Default alert email
-ALERT_EMAIL_TO=alerts@alexsandbox.me
+ALERT_EMAIL_TO=alerts@your-domain.com
 
 ***REMOVED*** Critical alerts (immediate attention required)
-CRITICAL_ALERT_EMAIL=critical@alexsandbox.me,sms@yourphone.com
+CRITICAL_ALERT_EMAIL=critical@your-domain.com,sms@yourphone.com
 
 ***REMOVED*** Warning alerts (action may be required)
-WARNING_ALERT_EMAIL=warnings@alexsandbox.me
+WARNING_ALERT_EMAIL=warnings@your-domain.com
 
 ***REMOVED*** Info alerts (daily digest)
-INFO_ALERT_EMAIL=info@alexsandbox.me
+INFO_ALERT_EMAIL=info@your-domain.com
 
 ***REMOVED*** Business metric alerts
-BUSINESS_ALERT_EMAIL=business@alexsandbox.me
+BUSINESS_ALERT_EMAIL=business@your-domain.com
 
 ***REMOVED*** Infrastructure alerts
-INFRA_ALERT_EMAIL=infrastructure@alexsandbox.me
+INFRA_ALERT_EMAIL=infrastructure@your-domain.com
 
 ***REMOVED***
 ***REMOVED*** SLACK/DISCORD WEBHOOKS (Optional)
@@ -110,8 +110,8 @@ APPLICATION_SCRAPE_INTERVAL=15
 ***REMOVED***
 ***REMOVED*** SSL/TLS (if using reverse proxy)
 ***REMOVED***
-SSL_CERT_PATH=/etc/ssl/certs/alexsandbox.me.crt
-SSL_KEY_PATH=/etc/ssl/private/alexsandbox.me.key
+SSL_CERT_PATH=/etc/ssl/certs/your-domain.com.crt
+SSL_KEY_PATH=/etc/ssl/private/your-domain.com.key
 
 ***REMOVED***
 ***REMOVED*** LOGGING

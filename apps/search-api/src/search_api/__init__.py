@@ -9,4 +9,3 @@ A dedicated search service providing:
 
 __version__ = "0.1.0"
 __author__ = "Alex Tran"
-__email__ = "p.tran.alex@gmail.com"

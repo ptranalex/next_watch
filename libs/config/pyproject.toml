@@ -12,12 +12,8 @@ description = "Unified configuration management library for NextWatch monorepo"
 readme = {text = "***REMOVED*** NextWatch Configuration Library\n\nUnified configuration management for NextWatch services", content-type = "text/markdown"}
 license = "MIT"
 license-files = ["LICENSE*"]
-authors = [
-    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
-]
-maintainers = [
-    {name = "Alex Tran", email = "p.tran.alex@gmail.com"}
-]
+authors = [{ name = "Alex Tran" }]
+maintainers = [{ name = "Next Watch Contributors" }]
 keywords = [
     "configuration",
     "settings",
