@@ -136,10 +136,10 @@ def with_logging(
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            ***REMOVED*** Extract command name from function name
+            # Extract command name from function name
             command_name = func.__name__.replace("_", "-")
 
-            ***REMOVED*** Configure logging
+            # Configure logging
             configure_cli_logging(
                 verbose=verbose,
                 quiet=quiet,
@@ -148,7 +148,7 @@ def with_logging(
                 log_dir=log_dir,
             )
 
-            ***REMOVED*** Create logger for the command
+            # Create logger for the command
             logger = CLILogger(
                 name=f"{service_name}.{command_name}",
                 service_name=service_name,

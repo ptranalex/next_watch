@@ -10,7 +10,7 @@ from typing import Any, TypeVar
 from config.logging import get_logger
 from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
 
-***REMOVED*** Type variable for function decorators
+# Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
 
 logger = get_logger(__name__)
@@ -33,19 +33,19 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
     if not endpoint:
         return endpoint
 
-    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    # Remove query parameters (they cause cardinality explosion)
     endpoint = endpoint.split("?")[0]
 
-    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    # Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
     normalized_parts = []
 
     for part in parts:
         if part.isdigit():
-            ***REMOVED*** Replace numeric IDs with generic placeholder
+            # Replace numeric IDs with generic placeholder
             normalized_parts.append("{id}")
         else:
-            ***REMOVED*** Keep non-numeric parts as-is
+            # Keep non-numeric parts as-is
             normalized_parts.append(part)
 
     return "/".join(normalized_parts)
@@ -73,7 +73,7 @@ class AuthMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Authentication operation metrics
+        # Authentication operation metrics
         self.auth_requests = self.registry.create_counter(
             "auth_requests_total",
             "Total authentication requests by type and status",
@@ -93,7 +93,7 @@ class AuthMetrics:
             ["failure_reason", "auth_type", "service"],
         )
 
-        ***REMOVED*** JWT token metrics
+        # JWT token metrics
         self.jwt_operations = self.registry.create_counter(
             "auth_jwt_operations_total",
             "JWT token operations",
@@ -119,7 +119,7 @@ class AuthMetrics:
             ["token_type", "service"],
         )
 
-        ***REMOVED*** User management metrics
+        # User management metrics
         self.user_operations = self.registry.create_counter(
             "auth_user_operations_total",
             "User management operations",
@@ -144,7 +144,7 @@ class AuthMetrics:
             ["pattern_type", "time_period", "service"],
         )
 
-        ***REMOVED*** Security monitoring metrics
+        # Security monitoring metrics
         self.security_events = self.registry.create_counter(
             "auth_security_events_total",
             "Security-related events",
@@ -169,7 +169,7 @@ class AuthMetrics:
             ["endpoint", "limit_type", "service"],
         )
 
-        ***REMOVED*** Database operation metrics
+        # Database operation metrics
         self.database_operations = self.registry.create_counter(
             "auth_database_operations_total",
             "Database operations by type and status",
@@ -189,7 +189,7 @@ class AuthMetrics:
             ["service"],
         )
 
-        ***REMOVED*** Session management metrics
+        # Session management metrics
         self.session_operations = self.registry.create_counter(
             "auth_session_operations_total",
             "Session management operations",
@@ -200,7 +200,7 @@ class AuthMetrics:
             "auth_session_duration_seconds",
             "User session duration",
             ["session_type", "service"],
-            buckets=(60, 300, 900, 1800, 3600, 7200, 14400, 28800, 86400),  ***REMOVED*** 1m to 1d
+            buckets=(60, 300, 900, 1800, 3600, 7200, 14400, 28800, 86400),  # 1m to 1d
         )
 
         self.concurrent_sessions = self.registry.create_gauge(
@@ -209,7 +209,7 @@ class AuthMetrics:
             ["service"],
         )
 
-        ***REMOVED*** Password security metrics
+        # Password security metrics
         self.password_operations = self.registry.create_counter(
             "auth_password_operations_total",
             "Password-related operations",
@@ -220,10 +220,10 @@ class AuthMetrics:
             "auth_password_strength_scores",
             "Password strength scores for new registrations",
             ["strength_category", "service"],
-            buckets=(0, 1, 2, 3, 4, 5),  ***REMOVED*** Weak to strong
+            buckets=(0, 1, 2, 3, 4, 5),  # Weak to strong
         )
 
-        ***REMOVED*** API integration metrics
+        # API integration metrics
         self.api_client_requests = self.registry.create_counter(
             "auth_api_client_requests_total",
             "Requests from different API clients",
@@ -236,7 +236,7 @@ class AuthMetrics:
             ["refresh_type", "time_until_expiry", "service"],
         )
 
-        ***REMOVED*** Performance metrics
+        # Performance metrics
         self.response_size = self.registry.create_histogram(
             "auth_response_size_bytes",
             "Response size for auth operations",
@@ -261,7 +261,7 @@ class AuthMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Record auth request
+        # Record auth request
         request_labels = {
             "auth_type": auth_type,
             "status": status,
@@ -269,7 +269,7 @@ class AuthMetrics:
         }
         self.auth_requests.labels(**request_labels).inc()
 
-        ***REMOVED*** Record auth duration
+        # Record auth duration
         duration_labels = {
             "auth_type": auth_type,
             "status": status,
@@ -308,7 +308,7 @@ class AuthMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Record JWT operation
+        # Record JWT operation
         operation_labels = {
             "operation": operation,
             "token_type": token_type,
@@ -317,7 +317,7 @@ class AuthMetrics:
         }
         self.jwt_operations.labels(**operation_labels).inc()
 
-        ***REMOVED*** Record JWT duration
+        # Record JWT duration
         duration_labels = {
             "operation": operation,
             "token_type": token_type,
@@ -458,7 +458,7 @@ class AuthMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Record database operation
+        # Record database operation
         operation_labels = {
             "operation": operation,
             "table": table,
@@ -467,7 +467,7 @@ class AuthMetrics:
         }
         self.database_operations.labels(**operation_labels).inc()
 
-        ***REMOVED*** Record database duration
+        # Record database duration
         duration_labels = {
             "operation": operation,
             "table": table,
@@ -646,7 +646,7 @@ class AuthMetrics:
         self.database_connection_pool.labels(**labels).set(active_connections)
 
 
-***REMOVED*** Global Auth metrics instance
+# Global Auth metrics instance
 _auth_metrics: AuthMetrics | None = None
 
 
@@ -663,13 +663,13 @@ def initialize_auth_metrics() -> AuthMetrics | None:
     """
     global _auth_metrics
     _auth_metrics = AuthMetrics()
-    ***REMOVED*** Return None if the metrics instance couldn't initialize properly
+    # Return None if the metrics instance couldn't initialize properly
     if _auth_metrics and not _auth_metrics.registry:
         _auth_metrics = None
     return _auth_metrics
 
 
-***REMOVED*** Decorator for tracking Auth operations
+# Decorator for tracking Auth operations
 def track_auth_operation(
     operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:
@@ -693,7 +693,7 @@ def track_auth_operation(
     return track_operation(registry, f"auth_{operation_name}", labels)
 
 
-***REMOVED*** Example usage decorators for common Auth operations
+# Example usage decorators for common Auth operations
 def track_authentication(func: F) -> F:
     """Track authentication operations."""
     return track_auth_operation("authentication")(func)

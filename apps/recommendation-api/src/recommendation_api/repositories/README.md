@@ -1,8 +1,8 @@
-***REMOVED*** Repositories Module
+# Repositories Module
 
 This module implements the Repository pattern for data access, providing a clean abstraction layer between the business logic and data storage systems.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The repositories module provides:
 
@@ -12,42 +12,42 @@ The repositories module provides:
 - **Connection Management**: Proper connection handling and resource cleanup
 - **Query Optimization**: Efficient data retrieval and storage operations
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
 The repositories module follows the Repository pattern with specialized repositories for different data types:
 
 ```
 repositories/
-├── __init__.py         ***REMOVED*** Module exports and repository registry
-├── redis/              ***REMOVED*** Redis cache repository
-│   ├── __init__.py     ***REMOVED*** Redis repository exports
-│   ├── base.py         ***REMOVED*** Base Redis repository class
-│   ├── cache.py        ***REMOVED*** Caching operations
-│   └── session.py      ***REMOVED*** Redis session management
-└── vector/             ***REMOVED*** Vector database repository
-    ├── __init__.py     ***REMOVED*** Vector repository exports
-    ├── base.py         ***REMOVED*** Base vector repository class
-    ├── qdrant.py       ***REMOVED*** Qdrant-specific implementation
-    └── operations.py   ***REMOVED*** Vector operations (search, store, etc.)
+├── __init__.py         # Module exports and repository registry
+├── redis/              # Redis cache repository
+│   ├── __init__.py     # Redis repository exports
+│   ├── base.py         # Base Redis repository class
+│   ├── cache.py        # Caching operations
+│   └── session.py      # Redis session management
+└── vector/             # Vector database repository
+    ├── __init__.py     # Vector repository exports
+    ├── base.py         # Base vector repository class
+    ├── qdrant.py       # Qdrant-specific implementation
+    └── operations.py   # Vector operations (search, store, etc.)
 ```
 
-***REMOVED******REMOVED*** Repository Types
+## Repository Types
 
-***REMOVED******REMOVED******REMOVED*** Redis Repository (`redis/`)
+### Redis Repository (`redis/`)
 
 Handles caching and session data using Redis:
 
 ```python
 from recommendation_api.repositories.redis import RedisRepository
 
-***REMOVED*** Get repository instance
+# Get repository instance
 redis_repo = RedisRepository()
 
-***REMOVED*** Cache operations
+# Cache operations
 await redis_repo.set("key", value, ttl=3600)
 cached_value = await redis_repo.get("key")
 
-***REMOVED*** Batch operations
+# Batch operations
 await redis_repo.mset({"key1": "value1", "key2": "value2"})
 values = await redis_repo.mget(["key1", "key2"])
 ```
@@ -68,24 +68,24 @@ values = await redis_repo.mget(["key1", "key2"])
 - Rate limiting counters
 - Feature flags
 
-***REMOVED******REMOVED******REMOVED*** Vector Repository (`vector/`)
+### Vector Repository (`vector/`)
 
 Handles vector embeddings and similarity search using Qdrant:
 
 ```python
 from recommendation_api.repositories.vector import VectorRepository
 
-***REMOVED*** Get repository instance
+# Get repository instance
 vector_repo = VectorRepository()
 
-***REMOVED*** Store movie embedding
+# Store movie embedding
 await vector_repo.store_movie_embedding(
     movie_id=123,
     embedding=[0.1, 0.2, 0.3, ...],
     metadata={"title": "The Matrix", "year": 1999}
 )
 
-***REMOVED*** Search for similar movies
+# Search for similar movies
 similar_movies = await vector_repo.search_similar_movies(
     embedding=[0.1, 0.2, 0.3, ...],
     limit=10,
@@ -109,9 +109,9 @@ similar_movies = await vector_repo.search_similar_movies(
 - Clustering and classification
 - Duplicate detection
 
-***REMOVED******REMOVED*** Repository Pattern Implementation
+## Repository Pattern Implementation
 
-***REMOVED******REMOVED******REMOVED*** Base Repository Interface
+### Base Repository Interface
 
 All repositories implement a common interface:
 
@@ -138,34 +138,34 @@ class BaseRepository(ABC):
         pass
 ```
 
-***REMOVED******REMOVED******REMOVED*** Repository Registry
+### Repository Registry
 
 The module provides a registry for managing repository instances:
 
 ```python
 from recommendation_api.repositories import get_repository
 
-***REMOVED*** Get specific repository
+# Get specific repository
 redis_repo = get_repository("redis")
 vector_repo = get_repository("vector")
 
-***REMOVED*** Get all repositories
+# Get all repositories
 all_repos = get_repository("all")
 ```
 
-***REMOVED******REMOVED*** Connection Management
+## Connection Management
 
-***REMOVED******REMOVED******REMOVED*** Redis Connection
+### Redis Connection
 
 Redis connections are managed through connection pooling:
 
 ```python
 from recommendation_api.repositories.redis import get_redis_pool
 
-***REMOVED*** Get connection pool
+# Get connection pool
 pool = get_redis_pool()
 
-***REMOVED*** Use connection
+# Use connection
 async with pool.get_connection() as conn:
     await conn.set("key", "value")
     value = await conn.get("key")
@@ -178,17 +178,17 @@ async with pool.get_connection() as conn:
 - Health checks and monitoring
 - SSL/TLS support for production
 
-***REMOVED******REMOVED******REMOVED*** Vector Database Connection
+### Vector Database Connection
 
 Qdrant connections are managed through the Qdrant client:
 
 ```python
 from recommendation_api.repositories.vector import get_qdrant_client
 
-***REMOVED*** Get Qdrant client
+# Get Qdrant client
 client = get_qdrant_client()
 
-***REMOVED*** Use client for operations
+# Use client for operations
 collections = await client.get_collections()
 ```
 
@@ -199,9 +199,9 @@ collections = await client.get_collections()
 - Collection and index management
 - Authentication and security
 
-***REMOVED******REMOVED*** Data Models
+## Data Models
 
-***REMOVED******REMOVED******REMOVED*** Redis Data Models
+### Redis Data Models
 
 Redis repositories use structured data models:
 
@@ -224,7 +224,7 @@ class UserSession(BaseModel):
     expires_at: datetime
 ```
 
-***REMOVED******REMOVED******REMOVED*** Vector Data Models
+### Vector Data Models
 
 Vector repositories use embedding-specific models:
 
@@ -245,9 +245,9 @@ class SimilarityResult(BaseModel):
     metadata: Dict[str, Any]
 ```
 
-***REMOVED******REMOVED*** Usage Examples
+## Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Caching Recommendations
+### Caching Recommendations
 
 ```python
 from recommendation_api.repositories.redis import RedisRepository
@@ -259,7 +259,7 @@ async def cache_recommendations(user_id: int, recommendations: List[Dict]):
     await redis_repo.set(
         cache_key,
         recommendations,
-        ttl=3600  ***REMOVED*** 1 hour
+        ttl=3600  # 1 hour
     )
 
 async def get_cached_recommendations(user_id: int) -> Optional[List[Dict]]:
@@ -269,7 +269,7 @@ async def get_cached_recommendations(user_id: int) -> Optional[List[Dict]]:
     return await redis_repo.get(cache_key)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Vector Similarity Search
+### Vector Similarity Search
 
 ```python
 from recommendation_api.repositories.vector import VectorRepository
@@ -277,13 +277,13 @@ from recommendation_api.repositories.vector import VectorRepository
 async def find_similar_movies(movie_id: int, limit: int = 10) -> List[Dict]:
     vector_repo = VectorRepository()
 
-    ***REMOVED*** Get movie embedding
+    # Get movie embedding
     movie_embedding = await vector_repo.get_movie_embedding(movie_id)
 
     if not movie_embedding:
         return []
 
-    ***REMOVED*** Search for similar movies
+    # Search for similar movies
     similar_movies = await vector_repo.search_similar_movies(
         embedding=movie_embedding.embedding,
         limit=limit,
@@ -300,7 +300,7 @@ async def find_similar_movies(movie_id: int, limit: int = 10) -> List[Dict]:
     ]
 ```
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 Repositories implement comprehensive error handling:
 
@@ -315,19 +315,19 @@ from recommendation_api.repositories.exceptions import (
 try:
     result = await redis_repo.get("nonexistent_key")
 except DataNotFoundError:
-    ***REMOVED*** Handle missing data
+    # Handle missing data
     result = None
 except ConnectionError:
-    ***REMOVED*** Handle connection issues
+    # Handle connection issues
     logger.error("Redis connection failed")
     raise
 except RepositoryError as e:
-    ***REMOVED*** Handle general repository errors
+    # Handle general repository errors
     logger.error(f"Repository error: {e}")
     raise
 ```
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 Repositories are designed for easy testing with mock implementations:
 
@@ -343,42 +343,42 @@ def mock_redis_repo():
     return repo
 
 async def test_cache_operations(mock_redis_repo):
-    ***REMOVED*** Test set operation
+    # Test set operation
     await mock_redis_repo.set("test_key", "test_value")
     mock_redis_repo.client.set.assert_called_once()
 
-    ***REMOVED*** Test get operation
+    # Test get operation
     mock_redis_repo.client.get.return_value = "test_value"
     result = await mock_redis_repo.get("test_key")
     assert result == "test_value"
 ```
 
-***REMOVED******REMOVED*** Performance Considerations
+## Performance Considerations
 
-***REMOVED******REMOVED******REMOVED*** Redis Performance
+### Redis Performance
 
 - **Connection Pooling**: Use connection pools to avoid connection overhead
 - **Pipelining**: Batch operations for better throughput
 - **Compression**: Compress large values to reduce memory usage
 - **TTL Management**: Set appropriate TTL values to prevent memory bloat
 
-***REMOVED******REMOVED******REMOVED*** Vector Database Performance
+### Vector Database Performance
 
 - **Batch Operations**: Store embeddings in batches for better performance
 - **Index Optimization**: Configure appropriate vector indexes
 - **Memory Management**: Monitor memory usage for large embedding collections
 - **Query Optimization**: Use metadata filters to reduce search space
 
-***REMOVED******REMOVED*** Monitoring and Health Checks
+## Monitoring and Health Checks
 
 All repositories implement health check methods:
 
 ```python
-***REMOVED*** Check repository health
+# Check repository health
 redis_health = await redis_repo.health_check()
 vector_health = await vector_repo.health_check()
 
-***REMOVED*** Health check response format
+# Health check response format
 {
     "status": "healthy",
     "response_time_ms": 15,
@@ -390,7 +390,7 @@ vector_health = await vector_repo.health_check()
 }
 ```
 
-***REMOVED******REMOVED*** Future Enhancements
+## Future Enhancements
 
 Planned improvements for the repositories module:
 

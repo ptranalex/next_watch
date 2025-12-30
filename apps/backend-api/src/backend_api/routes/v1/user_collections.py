@@ -15,7 +15,7 @@ from typing import Annotated, Any
 
 from config.logging import get_logger
 
-***REMOVED*** Import fast-core dependencies and utilities
+# Import fast-core dependencies and utilities
 from fast_core.responses import ActionResponse, PaginatedResponse, ResponseBuilder
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from pydantic import BaseModel, Field
@@ -38,10 +38,10 @@ from backend_api.services.user_interaction import UserInteractionService
 
 logger = get_logger(__name__)
 
-***REMOVED*** Create router with prefix for user collections
+# Create router with prefix for user collections
 router = APIRouter(prefix="/user", tags=["user-collections"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "pagination": {
@@ -52,7 +52,7 @@ responses = ResponseBuilder(
 )
 
 
-***REMOVED*** Get dependencies
+# Get dependencies
 def get_user_interaction_service() -> UserInteractionService:
     """Get user interaction service."""
     return UserInteractionService()
@@ -63,9 +63,9 @@ def get_user_interaction_query() -> UserInteractionQuery:
     return UserInteractionQuery()
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** SINGLE INTERACTION ENDPOINT
-***REMOVED*** ============================================================================
+# ============================================================================
+# SINGLE INTERACTION ENDPOINT
+# ============================================================================
 
 
 @router.get(
@@ -101,9 +101,9 @@ async def get_movie_interaction(
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** BATCH INTERACTION ENDPOINTS
-***REMOVED*** ============================================================================
+# ============================================================================
+# BATCH INTERACTION ENDPOINTS
+# ============================================================================
 
 
 class BatchInteractionsRequest(BaseModel):
@@ -152,7 +152,7 @@ async def get_movie_interactions_batch(
             db, user_id, request.movie_ids
         )
 
-        ***REMOVED*** Convert UserMovieInteraction objects to dictionaries for JSON response
+        # Convert UserMovieInteraction objects to dictionaries for JSON response
         result: dict[str, dict[str, Any] | None] = {}
         for movie_id, interaction in interactions_dict.items():
             if interaction:
@@ -182,9 +182,9 @@ async def get_movie_interactions_batch(
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** WATCHLIST COLLECTION ENDPOINTS
-***REMOVED*** ============================================================================
+# ============================================================================
+# WATCHLIST COLLECTION ENDPOINTS
+# ============================================================================
 
 
 @router.get(
@@ -216,7 +216,7 @@ async def get_user_watchlist(
             - 401 if not authenticated
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("get", "watchlist", "started")
@@ -225,7 +225,7 @@ async def get_user_watchlist(
         offset = (page - 1) * limit
         interactions, total = interaction_query.get_user_watchlist(db, user_id, limit, offset)
 
-        ***REMOVED*** Convert to collection items
+        # Convert to collection items
         collection_items = [
             {
                 "movie_id": interaction.movie_id,
@@ -235,7 +235,7 @@ async def get_user_watchlist(
             for interaction in interactions
         ]
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation(
                 "get", "watchlist", "success", collection_size=len(collection_items)
@@ -258,7 +258,7 @@ async def get_user_watchlist(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("get", "watchlist", "validation_error")
         raise service_error_to_http_exception(e)
@@ -294,7 +294,7 @@ async def add_to_watchlist(
             - 409 if movie already in watchlist
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("add", "watchlist", "started")
@@ -304,14 +304,14 @@ async def add_to_watchlist(
             db, user_id, request.movie_id
         )
 
-        ***REMOVED*** Make operation idempotent - return success regardless of whether it was already in watchlist
+        # Make operation idempotent - return success regardless of whether it was already in watchlist
         message = (
             "Movie successfully added to watchlist"
             if was_created
             else "Movie was already in watchlist"
         )
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation("add", "watchlist", "success")
 
@@ -334,7 +334,7 @@ async def add_to_watchlist(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("add", "watchlist", "validation_error")
         raise service_error_to_http_exception(e)
@@ -368,7 +368,7 @@ async def remove_from_watchlist(
             - 404 if movie not found or not in watchlist
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("remove", "watchlist", "started")
@@ -382,7 +382,7 @@ async def remove_from_watchlist(
                 detail="Movie not found in watchlist",
             )
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation("remove", "watchlist", "success")
 
@@ -402,15 +402,15 @@ async def remove_from_watchlist(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("remove", "watchlist", "validation_error")
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** WATCHED MOVIES COLLECTION ENDPOINTS
-***REMOVED*** ============================================================================
+# ============================================================================
+# WATCHED MOVIES COLLECTION ENDPOINTS
+# ============================================================================
 
 
 @router.get(
@@ -442,7 +442,7 @@ async def get_user_watched_movies(
             - 401 if not authenticated
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("get", "watched_movies", "started")
@@ -451,7 +451,7 @@ async def get_user_watched_movies(
         offset = (page - 1) * limit
         interactions, total = interaction_query.get_user_watched_movies(db, user_id, limit, offset)
 
-        ***REMOVED*** Convert to collection items
+        # Convert to collection items
         collection_items = [
             {
                 "movie_id": interaction.movie_id,
@@ -461,7 +461,7 @@ async def get_user_watched_movies(
             for interaction in interactions
         ]
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation(
                 "get",
@@ -487,7 +487,7 @@ async def get_user_watched_movies(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("get", "watched_movies", "validation_error")
         raise service_error_to_http_exception(e)
@@ -523,7 +523,7 @@ async def mark_movie_as_watched(
             - 409 if movie already marked as watched
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("add", "watched_movies", "started")
@@ -533,14 +533,14 @@ async def mark_movie_as_watched(
             db, user_id, request.movie_id
         )
 
-        ***REMOVED*** Make operation idempotent - return success regardless of whether it was already watched
+        # Make operation idempotent - return success regardless of whether it was already watched
         message = (
             "Movie successfully marked as watched"
             if was_created
             else "Movie was already marked as watched"
         )
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation("add", "watched_movies", "success")
 
@@ -563,7 +563,7 @@ async def mark_movie_as_watched(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("add", "watched_movies", "validation_error")
         raise service_error_to_http_exception(e)
@@ -597,7 +597,7 @@ async def unmark_movie_as_watched(
             - 404 if movie not found or not marked as watched
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("remove", "watched_movies", "started")
@@ -611,7 +611,7 @@ async def unmark_movie_as_watched(
                 detail="Movie not found in watched movies",
             )
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation("remove", "watched_movies", "success")
 
@@ -631,15 +631,15 @@ async def unmark_movie_as_watched(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("remove", "watched_movies", "validation_error")
         raise service_error_to_http_exception(e)
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** LIKED MOVIES COLLECTION ENDPOINTS
-***REMOVED*** ============================================================================
+# ============================================================================
+# LIKED MOVIES COLLECTION ENDPOINTS
+# ============================================================================
 
 
 @router.get(
@@ -671,7 +671,7 @@ async def get_user_liked_movies(
             - 401 if not authenticated
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("get", "liked_movies", "started")
@@ -680,7 +680,7 @@ async def get_user_liked_movies(
         offset = (page - 1) * limit
         interactions, total = interaction_query.get_user_liked_movies(db, user_id, limit, offset)
 
-        ***REMOVED*** Convert to collection items
+        # Convert to collection items
         collection_items = [
             {
                 "movie_id": interaction.movie_id,
@@ -690,7 +690,7 @@ async def get_user_liked_movies(
             for interaction in interactions
         ]
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation(
                 "get", "liked_movies", "success", collection_size=len(collection_items)
@@ -713,7 +713,7 @@ async def get_user_liked_movies(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("get", "liked_movies", "validation_error")
         raise service_error_to_http_exception(e)
@@ -749,7 +749,7 @@ async def like_movie(
             - 409 if movie already liked
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("add", "liked_movies", "started")
@@ -757,10 +757,10 @@ async def like_movie(
     try:
         interaction, was_created = interaction_service.like_movie(db, user_id, request.movie_id)
 
-        ***REMOVED*** Make operation idempotent - return success regardless of whether it was already liked
+        # Make operation idempotent - return success regardless of whether it was already liked
         message = "Movie successfully liked" if was_created else "Movie was already liked"
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation("add", "liked_movies", "success")
 
@@ -783,7 +783,7 @@ async def like_movie(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("add", "liked_movies", "validation_error")
         raise service_error_to_http_exception(e)
@@ -817,7 +817,7 @@ async def unlike_movie(
             - 404 if movie not found or not liked
             - 422 if validation fails
     """
-    ***REMOVED*** Record user collection operation metrics
+    # Record user collection operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_user_collection_operation("remove", "liked_movies", "started")
@@ -831,7 +831,7 @@ async def unlike_movie(
                 detail="Movie not found in liked movies",
             )
 
-        ***REMOVED*** Record successful user collection operation metrics
+        # Record successful user collection operation metrics
         if metrics:
             metrics.record_user_collection_operation("remove", "liked_movies", "success")
 
@@ -851,7 +851,7 @@ async def unlike_movie(
         )
 
     except ValidationError as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_user_collection_operation("remove", "liked_movies", "validation_error")
         raise service_error_to_http_exception(e)

@@ -32,26 +32,26 @@ logger = structlog.get_logger(__name__)
 class HealthCheckType(Enum):
     """Health check endpoint types following Kubernetes patterns."""
 
-    LIVENESS = "liveness"  ***REMOVED*** Basic process health check
-    READINESS = "readiness"  ***REMOVED*** Traffic routing decision
-    DEEP = "deep"  ***REMOVED*** Full diagnostic information
+    LIVENESS = "liveness"  # Basic process health check
+    READINESS = "readiness"  # Traffic routing decision
+    DEEP = "deep"  # Full diagnostic information
 
 
 class HealthCheckCategory(Enum):
     """Health check criticality categories that determine endpoint inclusion."""
 
-    CRITICAL = "critical"  ***REMOVED*** Must pass for readiness - included in READINESS + DEEP
-    IMPORTANT = "important"  ***REMOVED*** Affects functionality - included in DEEP only
-    INFORMATIONAL = "info"  ***REMOVED*** Monitoring only - included in DEEP only
+    CRITICAL = "critical"  # Must pass for readiness - included in READINESS + DEEP
+    IMPORTANT = "important"  # Affects functionality - included in DEEP only
+    INFORMATIONAL = "info"  # Monitoring only - included in DEEP only
 
 
-***REMOVED*** Industry-standard category-to-endpoint mapping
+# Industry-standard category-to-endpoint mapping
 ENDPOINT_CATEGORY_MAPPING = {
     HealthCheckType.READINESS: [
-        HealthCheckCategory.CRITICAL,  ***REMOVED*** Only critical services for traffic routing
+        HealthCheckCategory.CRITICAL,  # Only critical services for traffic routing
     ],
     HealthCheckType.DEEP: [
-        HealthCheckCategory.CRITICAL,  ***REMOVED*** All categories for comprehensive diagnostics
+        HealthCheckCategory.CRITICAL,  # All categories for comprehensive diagnostics
         HealthCheckCategory.IMPORTANT,
         HealthCheckCategory.INFORMATIONAL,
     ],
@@ -93,7 +93,7 @@ class HealthCheckDefinition:
 
     name: str
     check_func: Callable[[], Awaitable[HealthCheckResult]]
-    category: HealthCheckCategory  ***REMOVED*** Category automatically determines endpoint inclusion
+    category: HealthCheckCategory  # Category automatically determines endpoint inclusion
     timeout_seconds: float = 5.0
     cache_ttl_seconds: int | None = None
 
@@ -104,7 +104,7 @@ class HealthCheckRegistry:
     def __init__(self) -> None:
         """Initialize the health check registry."""
         self._checks: dict[str, HealthCheckDefinition] = {}
-        self._cache: dict[str, tuple[HealthCheckResult, float]] = {}  ***REMOVED*** (result, timestamp)
+        self._cache: dict[str, tuple[HealthCheckResult, float]] = {}  # (result, timestamp)
 
     def add_check(self, definition: HealthCheckDefinition) -> None:
         """Add a health check to the registry.
@@ -126,19 +126,19 @@ class HealthCheckRegistry:
             result: Health check result
         """
         try:
-            ***REMOVED*** Import here to avoid circular dependencies
+            # Import here to avoid circular dependencies
             from fast_core.monitoring.metrics import get_metrics_registry
 
             metrics_registry = get_metrics_registry()
             if not metrics_registry:
                 return
 
-            ***REMOVED*** Get check definition for category
+            # Get check definition for category
             check_def = self._checks.get(check_name)
             if not check_def:
                 return
 
-            ***REMOVED*** Update individual health check metrics
+            # Update individual health check metrics
             metrics_registry.update_health_check_status(
                 check_name=check_name,
                 check_category=check_def.category.value,
@@ -149,7 +149,7 @@ class HealthCheckRegistry:
             )
 
         except Exception as e:
-            ***REMOVED*** Don't let metrics failures affect health checks
+            # Don't let metrics failures affect health checks
             logger.warning(f"Failed to update health metrics for {check_name}: {e}")
 
     def _update_overall_health_metrics(self, overall_status: str) -> None:
@@ -159,18 +159,18 @@ class HealthCheckRegistry:
             overall_status: Overall health status (healthy, degraded, unhealthy)
         """
         try:
-            ***REMOVED*** Import here to avoid circular dependencies
+            # Import here to avoid circular dependencies
             from fast_core.monitoring.metrics import get_metrics_registry
 
             metrics_registry = get_metrics_registry()
             if not metrics_registry:
                 return
 
-            ***REMOVED*** Update overall service health status
+            # Update overall service health status
             metrics_registry.update_service_health_status(overall_status)
 
         except Exception as e:
-            ***REMOVED*** Don't let metrics failures affect health checks
+            # Don't let metrics failures affect health checks
             logger.warning(f"Failed to update overall health metrics: {e}")
 
     def get_checks_by_type(self, check_type: HealthCheckType) -> list[HealthCheckDefinition]:
@@ -227,15 +227,15 @@ class HealthCheckRegistry:
                 "checks": {},
             }
 
-            ***REMOVED*** Run checks concurrently with timeout
+            # Run checks concurrently with timeout
         tasks = []
         for check in checks:
             task = asyncio.create_task(self._run_single_check(check), name=check.name)
             tasks.append((check.name, task))
 
-        ***REMOVED*** Wait for all checks with global timeout
+        # Wait for all checks with global timeout
         try:
-            ***REMOVED*** Gather all results
+            # Gather all results
             results = {}
             critical_healthy = 0
             critical_total = 0
@@ -244,10 +244,10 @@ class HealthCheckRegistry:
 
             for check_name, task in tasks:
                 try:
-                    result = await asyncio.wait_for(task, timeout=10.0)  ***REMOVED*** Global timeout
+                    result = await asyncio.wait_for(task, timeout=10.0)  # Global timeout
                     results[check_name] = result.to_dict()
 
-                    ***REMOVED*** Count healthy status by category for degraded detection
+                    # Count healthy status by category for degraded detection
                     check_category = self.get_check_category(check_name)
                     if check_category == HealthCheckCategory.CRITICAL:
                         critical_total += 1
@@ -264,7 +264,7 @@ class HealthCheckRegistry:
                         is_healthy=False, status="timeout", error="Health check timed out"
                     ).to_dict()
 
-                    ***REMOVED*** Count timeout by category
+                    # Count timeout by category
                     check_category = self.get_check_category(check_name)
                     if check_category == HealthCheckCategory.CRITICAL:
                         critical_total += 1
@@ -277,27 +277,27 @@ class HealthCheckRegistry:
                         is_healthy=False, status="error", error=str(e)
                     ).to_dict()
 
-                    ***REMOVED*** Count error by category
+                    # Count error by category
                     check_category = self.get_check_category(check_name)
                     if check_category == HealthCheckCategory.CRITICAL:
                         critical_total += 1
                     else:
                         non_critical_total += 1
 
-            ***REMOVED*** Determine overall status with degraded support
+            # Determine overall status with degraded support
             all_critical_healthy = critical_total == 0 or critical_healthy == critical_total
             all_non_critical_healthy = (
                 non_critical_total == 0 or non_critical_healthy == non_critical_total
             )
 
             if all_critical_healthy and all_non_critical_healthy:
-                status = "healthy"  ***REMOVED*** All services healthy
+                status = "healthy"  # All services healthy
             elif all_critical_healthy:
-                status = "degraded"  ***REMOVED*** Critical services up, some non-critical down
+                status = "degraded"  # Critical services up, some non-critical down
             else:
-                status = "unhealthy"  ***REMOVED*** Any critical service down
+                status = "unhealthy"  # Any critical service down
 
-            ***REMOVED*** Update overall health metrics
+            # Update overall health metrics
             self._update_overall_health_metrics(status)
 
             return {
@@ -324,25 +324,25 @@ class HealthCheckRegistry:
         Returns:
             Health check result
         """
-        ***REMOVED*** Check cache if TTL is set
+        # Check cache if TTL is set
         if check.cache_ttl_seconds:
             cached = self._get_cached_result(check.name, check.cache_ttl_seconds)
             if cached:
-                ***REMOVED*** Update metrics even for cached results
+                # Update metrics even for cached results
                 self._update_health_metrics(check.name, cached)
                 return cached
 
         start_time = time.time()
 
         try:
-            ***REMOVED*** Run the check with individual timeout
+            # Run the check with individual timeout
             result = await asyncio.wait_for(check.check_func(), timeout=check.timeout_seconds)
 
-            ***REMOVED*** Cache result if TTL is set
+            # Cache result if TTL is set
             if check.cache_ttl_seconds:
                 self._cache[check.name] = (result, time.time())
 
-            ***REMOVED*** Update health metrics
+            # Update health metrics
             self._update_health_metrics(check.name, result)
 
             return result
@@ -356,7 +356,7 @@ class HealthCheckRegistry:
                 error=f"Health check timed out after {check.timeout_seconds}s",
             )
 
-            ***REMOVED*** Update health metrics
+            # Update health metrics
             self._update_health_metrics(check.name, result)
 
             return result
@@ -369,7 +369,7 @@ class HealthCheckRegistry:
                 error=str(e),
             )
 
-            ***REMOVED*** Update health metrics
+            # Update health metrics
             self._update_health_metrics(check.name, result)
 
             return result
@@ -391,7 +391,7 @@ class HealthCheckRegistry:
         if time.time() - timestamp <= ttl_seconds:
             return cached_result
 
-        ***REMOVED*** Remove expired cache entry
+        # Remove expired cache entry
         del self._cache[check_name]
         return None
 
@@ -424,7 +424,7 @@ def setup_kubernetes_health_checks(
     registry = HealthCheckRegistry()
     service_name = getattr(settings, "service_name", "unknown")
 
-    ***REMOVED*** Liveness endpoint - basic process health
+    # Liveness endpoint - basic process health
     @app.get(f"{base_path}/live", tags=["Health"])
     async def liveness_probe() -> dict[str, Any]:
         """Liveness probe for Kubernetes/Docker.
@@ -438,7 +438,7 @@ def setup_kubernetes_health_checks(
             "service": service_name,
         }
 
-    ***REMOVED*** Readiness endpoint - critical dependencies only
+    # Readiness endpoint - critical dependencies only
     @app.get(f"{base_path}/ready", tags=["Health"])
     async def readiness_probe() -> JSONResponse:
         """Readiness probe for Kubernetes/Docker.
@@ -448,7 +448,7 @@ def setup_kubernetes_health_checks(
         """
         results = await registry.run_checks_for_type(HealthCheckType.READINESS)
 
-        ***REMOVED*** Fail-fast logic: ANY critical failure = not ready
+        # Fail-fast logic: ANY critical failure = not ready
         critical_services = {}
         is_ready = True
 
@@ -472,7 +472,7 @@ def setup_kubernetes_health_checks(
             },
         )
 
-    ***REMOVED*** Comprehensive endpoint - all dependencies (backward compatibility)
+    # Comprehensive endpoint - all dependencies (backward compatibility)
     @app.get(f"{base_path}", tags=["Health"])
     async def comprehensive_health() -> JSONResponse:
         """Comprehensive health check endpoint.
@@ -483,23 +483,23 @@ def setup_kubernetes_health_checks(
         Industry best practice: This endpoint should check ALL services
         for monitoring purposes, unlike readiness which only checks critical ones.
         """
-        ***REMOVED*** Run both READINESS and DEEP checks to get comprehensive coverage
+        # Run both READINESS and DEEP checks to get comprehensive coverage
         readiness_checks = registry.get_checks_by_type(HealthCheckType.READINESS)
         deep_checks = registry.get_checks_by_type(HealthCheckType.DEEP)
 
-        ***REMOVED*** Combine all unique checks for comprehensive coverage (deduplicate by name)
+        # Combine all unique checks for comprehensive coverage (deduplicate by name)
         all_checks_dict = {}
         for check in readiness_checks + deep_checks:
             all_checks_dict[check.name] = check
         all_checks = list(all_checks_dict.values())
 
-        ***REMOVED*** Execute all checks concurrently
+        # Execute all checks concurrently
         tasks = []
         for check in all_checks:
             task = asyncio.create_task(registry._run_single_check(check), name=check.name)
             tasks.append((check.name, task))
 
-        ***REMOVED*** Gather results with proper categorization
+        # Gather results with proper categorization
         results = {}
         critical_healthy = 0
         critical_total = 0
@@ -513,7 +513,7 @@ def setup_kubernetes_health_checks(
                 result = await asyncio.wait_for(task, timeout=10.0)
                 results[check_name] = result.to_dict()
 
-                ***REMOVED*** Count by category for comprehensive status determination
+                # Count by category for comprehensive status determination
                 check_category = registry.get_check_category(check_name)
                 if check_category == HealthCheckCategory.CRITICAL:
                     critical_total += 1
@@ -523,7 +523,7 @@ def setup_kubernetes_health_checks(
                     important_total += 1
                     if result.is_healthy:
                         important_healthy += 1
-                else:  ***REMOVED*** INFORMATIONAL
+                else:  # INFORMATIONAL
                     info_total += 1
                     if result.is_healthy:
                         info_healthy += 1
@@ -534,7 +534,7 @@ def setup_kubernetes_health_checks(
                     is_healthy=False, status="error", error=error_msg
                 ).to_dict()
 
-                ***REMOVED*** Count errors by category
+                # Count errors by category
                 check_category = registry.get_check_category(check_name)
                 if check_category == HealthCheckCategory.CRITICAL:
                     critical_total += 1
@@ -543,29 +543,29 @@ def setup_kubernetes_health_checks(
                 else:
                     info_total += 1
 
-        ***REMOVED*** Comprehensive status determination (includes all service types)
+        # Comprehensive status determination (includes all service types)
         all_critical_healthy = critical_total == 0 or critical_healthy == critical_total
         all_important_healthy = important_total == 0 or important_healthy == important_total
 
         if all_critical_healthy and all_important_healthy:
-            registry_status = "healthy"  ***REMOVED*** All critical and important services healthy
+            registry_status = "healthy"  # All critical and important services healthy
         elif all_critical_healthy:
-            registry_status = "degraded"  ***REMOVED*** Critical services up, some important down
+            registry_status = "degraded"  # Critical services up, some important down
         else:
-            registry_status = "unhealthy"  ***REMOVED*** Any critical service down
+            registry_status = "unhealthy"  # Any critical service down
 
-        ***REMOVED*** Update overall health metrics
+        # Update overall health metrics
         registry._update_overall_health_metrics(registry_status)
 
-        ***REMOVED*** Set HTTP status code based on registry status
+        # Set HTTP status code based on registry status
         if registry_status == "healthy":
             status_code = 200
         elif registry_status == "degraded":
-            status_code = 200  ***REMOVED*** Degraded services can still handle traffic
+            status_code = 200  # Degraded services can still handle traffic
         else:
-            status_code = 503  ***REMOVED*** unhealthy, error, etc.
+            status_code = 503  # unhealthy, error, etc.
 
-        ***REMOVED*** Build comprehensive response using registry status
+        # Build comprehensive response using registry status
         response_data = {
             "status": registry_status,
             "service": service_name,
@@ -578,15 +578,15 @@ def setup_kubernetes_health_checks(
             },
         }
 
-        ***REMOVED*** Add service configuration info if available
+        # Add service configuration info if available
         if hasattr(settings, "environment"):
             response_data["environment"] = settings.environment
 
         return JSONResponse(status_code=status_code, content=response_data)
 
-    ***REMOVED*** Deep diagnostics endpoint (optional)
+    # Deep diagnostics endpoint (optional)
     if include_deep:
-        ***REMOVED*** Setup dependencies for deep endpoint
+        # Setup dependencies for deep endpoint
         dependencies = []
         if require_auth_deep:
             try:
@@ -605,7 +605,7 @@ def setup_kubernetes_health_checks(
             """
             results = await registry.run_checks_for_type(HealthCheckType.DEEP)
 
-            ***REMOVED*** Add extra diagnostic information
+            # Add extra diagnostic information
             diagnostic_info = {
                 "service": service_name,
                 "timestamp": results["timestamp"],
@@ -644,7 +644,7 @@ def setup_kubernetes_health_checks(
                 },
             }
 
-            ***REMOVED*** Add configuration information if available
+            # Add configuration information if available
             if hasattr(settings, "environment"):
                 diagnostic_info["environment"] = settings.environment
             if hasattr(settings, "debug"):
@@ -654,7 +654,7 @@ def setup_kubernetes_health_checks(
 
             return JSONResponse(status_code=status_code, content=diagnostic_info)
 
-    ***REMOVED*** Store registry in app state for meta endpoint access
+    # Store registry in app state for meta endpoint access
     app.state.health_registry = registry
 
     logger.info(
@@ -666,7 +666,7 @@ def setup_kubernetes_health_checks(
     return registry
 
 
-***REMOVED*** Utility functions for common health checks
+# Utility functions for common health checks
 
 
 async def check_database(db_session: Any) -> HealthCheckResult:
@@ -680,15 +680,15 @@ async def check_database(db_session: Any) -> HealthCheckResult:
     """
     start_time = time.time()
     try:
-        ***REMOVED*** Execute simple query to check connectivity
+        # Execute simple query to check connectivity
         if hasattr(db_session, "execute"):
-            ***REMOVED*** SQLAlchemy-style session
+            # SQLAlchemy-style session
             await db_session.execute("SELECT 1")
         elif hasattr(db_session, "ping"):
-            ***REMOVED*** Connection pool style
+            # Connection pool style
             await db_session.ping()
         else:
-            ***REMOVED*** Generic test
+            # Generic test
             str(db_session)
 
         response_time = (time.time() - start_time) * 1000
@@ -720,12 +720,12 @@ async def check_redis(redis_client: Any) -> HealthCheckResult:
     """
     start_time = time.time()
     try:
-        ***REMOVED*** Ping Redis to check connectivity
+        # Ping Redis to check connectivity
         ping_result = await redis_client.ping()
         response_time = (time.time() - start_time) * 1000
 
         if ping_result:
-            ***REMOVED*** Get Redis info for additional details
+            # Get Redis info for additional details
             try:
                 info = await redis_client.info()
                 return HealthCheckResult(
@@ -739,7 +739,7 @@ async def check_redis(redis_client: Any) -> HealthCheckResult:
                     },
                 )
             except Exception:
-                ***REMOVED*** Ping succeeded but info failed - still healthy
+                # Ping succeeded but info failed - still healthy
                 return HealthCheckResult(
                     is_healthy=True,
                     status="healthy",

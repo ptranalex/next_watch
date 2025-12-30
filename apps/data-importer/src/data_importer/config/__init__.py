@@ -28,7 +28,7 @@ __all__ = [
     "DEFAULT_LOG_LEVEL",
     "DEFAULT_VERBOSE",
     "DEFAULT_QUIET",
-    ***REMOVED*** Environment utilities
+    # Environment utilities
     "get_env_var",
     "get_env_bool",
     "get_env_int",

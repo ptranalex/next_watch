@@ -16,11 +16,11 @@ Usage:
     movie = await client.get_movie(123)
 """
 
-***REMOVED*** Import all classes from the internal clients module
+# Import all classes from the internal clients module
 from recommendation_api.services.clients.backend_client import BackendClient
 from recommendation_api.services.clients.base import BackendClientError
 
-***REMOVED*** Global backend client instance
+# Global backend client instance
 _backend_client: BackendClient | None = None
 
 
@@ -47,5 +47,5 @@ async def close_backend_client() -> None:
         _backend_client = None
 
 
-***REMOVED*** Maintain clean public API
+# Maintain clean public API
 __all__ = ["BackendClient", "BackendClientError", "get_backend_client", "close_backend_client"]

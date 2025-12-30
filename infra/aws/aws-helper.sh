@@ -1,16 +1,16 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** NextWatch AWS Helper - Interactive Menu for AWS Scripts
+# NextWatch AWS Helper - Interactive Menu for AWS Scripts
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 NextWatch AWS Infrastructure Helper${NC}"
 echo "=================================================="
@@ -18,30 +18,30 @@ echo ""
 echo "Choose an action:"
 echo ""
 
-***REMOVED*** Deployment options
+# Deployment options
 echo -e "${GREEN}📦 DEPLOYMENT${NC}"
 echo "  1) 🚀 One-Click Monitoring Deployment (Recommended)"
 echo "  2) 🔧 Deploy Monitoring to Existing Infrastructure"
 echo ""
 
-***REMOVED*** Setup options
+# Setup options
 echo -e "${YELLOW}⚙️  SETUP & CONFIGURATION${NC}"
 echo "  3) 🔍 Check AWS Environment"
 echo "  4) 🔓 Open Monitoring Ports"
 echo "  5) 🔒 Setup SSL/TLS for Monitoring"
 echo ""
 
-***REMOVED*** Monitoring options
+# Monitoring options
 echo -e "${CYAN}📊 MONITORING UTILITIES${NC}"
 echo "  6) 📋 Add Loki Log Integration"
 echo ""
 
-***REMOVED*** Troubleshooting options
+# Troubleshooting options
 echo -e "${RED}🔧 TROUBLESHOOTING${NC}"
 echo "  7) 🛠️  Fix Grafana Subpath Issues"
 echo ""
 
-***REMOVED*** Information options
+# Information options
 echo -e "${BLUE}📚 INFORMATION${NC}"
 echo "  8) 📖 View Documentation"
 echo "  9) 🌐 Show Access URLs"

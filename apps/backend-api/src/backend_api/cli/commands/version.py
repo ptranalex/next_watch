@@ -34,17 +34,17 @@ def show_version(
     configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
 
     try:
-        ***REMOVED*** Try to get version from package metadata
+        # Try to get version from package metadata
         backend_version = pkg_version("backend_api")
     except PackageNotFoundError:
-        ***REMOVED*** Fall back to using a version constant or hardcoded version
-        backend_version = "0.1.0"  ***REMOVED*** Default version if not found
+        # Fall back to using a version constant or hardcoded version
+        backend_version = "0.1.0"  # Default version if not found
 
-    ***REMOVED*** Display version information
+    # Display version information
     console.print(f"🚀 Backend API v{backend_version}")
 
     if verbose:
-        ***REMOVED*** System information
+        # System information
         table = Table(title="System Information")
         table.add_column("Component", style="cyan")
         table.add_column("Version", style="green")
@@ -55,12 +55,12 @@ def show_version(
 
         console.print(table)
 
-        ***REMOVED*** Dependencies
+        # Dependencies
         deps_table = Table(title="Key Dependencies")
         deps_table.add_column("Package", style="cyan")
         deps_table.add_column("Version", style="green")
 
-        ***REMOVED*** List important dependencies
+        # List important dependencies
         dependencies = [
             "fastapi",
             "uvicorn",
@@ -78,7 +78,7 @@ def show_version(
                 dep_version = pkg_version(dep)
                 deps_table.add_row(dep, dep_version)
             except PackageNotFoundError:
-                ***REMOVED*** Try to import and get version
+                # Try to import and get version
                 try:
                     module = importlib.import_module(dep)
                     if hasattr(module, "__version__"):
@@ -95,8 +95,8 @@ def show_version(
         console.print(deps_table)
 
 
-***REMOVED*** Register version command directly with main app
-from backend_api.cli import app as main_app  ***REMOVED*** noqa: E402
+# Register version command directly with main app
+from backend_api.cli import app as main_app  # noqa: E402
 
-***REMOVED*** Register the show_version command directly as "version"
+# Register the show_version command directly as "version"
 main_app.command("version")(show_version)

@@ -49,7 +49,7 @@ class MoviesClient(BaseBackendClient):
                 "GET", self._build_api_path(f"/movies/{movie_id}"), params=params
             )
         except ResourceNotFoundException:
-            ***REMOVED*** Re-raise with more specific message
+            # Re-raise with more specific message
             raise ResourceNotFoundException(
                 detail=f"Movie with ID {movie_id} not found",
                 resource_type="Movie",
@@ -82,7 +82,7 @@ class MoviesClient(BaseBackendClient):
         Raises:
             ValidationException: If pagination parameters are invalid
         """
-        ***REMOVED*** Validate pagination parameters
+        # Validate pagination parameters
         if page <= 0:
             raise ValidationException("Page number must be a positive integer")
         if limit <= 0 or limit > 100:
@@ -125,7 +125,7 @@ class MoviesClient(BaseBackendClient):
         Raises:
             ValidationException: If search parameters are invalid
         """
-        ***REMOVED*** Validate search parameters
+        # Validate search parameters
         if not query or not query.strip():
             raise ValidationException("Search query cannot be empty")
         if page <= 0:
@@ -180,7 +180,7 @@ class MoviesClient(BaseBackendClient):
         Returns:
             Trending movies list (empty if service unavailable)
         """
-        ***REMOVED*** Validate pagination parameters
+        # Validate pagination parameters
         if page <= 0:
             raise ValidationException("Page number must be a positive integer")
         if limit <= 0 or limit > 100:
@@ -227,7 +227,7 @@ class MoviesClient(BaseBackendClient):
         Returns:
             Popular movies list (empty if service unavailable)
         """
-        ***REMOVED*** Validate pagination parameters
+        # Validate pagination parameters
         if page <= 0:
             raise ValidationException("Page number must be a positive integer")
         if limit <= 0 or limit > 100:
@@ -267,7 +267,7 @@ class MoviesClient(BaseBackendClient):
             )
             return cast(list[dict[str, Any]], response.get("cast", []))
         except ResourceNotFoundException:
-            ***REMOVED*** Re-raise with more specific message but let the decorator handle graceful degradation
+            # Re-raise with more specific message but let the decorator handle graceful degradation
             raise ResourceNotFoundException(
                 detail=f"Cast information for movie {movie_id} not found",
                 resource_type="Movie",
@@ -297,12 +297,12 @@ class MoviesClient(BaseBackendClient):
             response = await self._make_request(
                 "GET", self._build_api_path(f"/movies/{movie_id}/trailers")
             )
-            ***REMOVED*** Handle both dict responses with trailers key and wrapped list responses
+            # Handle both dict responses with trailers key and wrapped list responses
             if "trailers" in response:
                 return cast(list[dict[str, Any]], response["trailers"])
             return cast(list[dict[str, Any]], response.get("data", []))
         except ResourceNotFoundException:
-            ***REMOVED*** Re-raise with more specific message but let the decorator handle graceful degradation
+            # Re-raise with more specific message but let the decorator handle graceful degradation
             raise ResourceNotFoundException(
                 detail=f"Trailers for movie {movie_id} not found",
                 resource_type="Movie",
@@ -333,7 +333,7 @@ class MoviesClient(BaseBackendClient):
         Raises:
             ValidationException: If parameters are invalid
         """
-        ***REMOVED*** Validate parameters
+        # Validate parameters
         if not movie_ids:
             raise ValidationException("Movie IDs list cannot be empty")
         if any(movie_id <= 0 for movie_id in movie_ids):
@@ -345,7 +345,7 @@ class MoviesClient(BaseBackendClient):
         if limit <= 0 or limit > 100:
             raise ValidationException("Limit must be between 1 and 100")
 
-        ***REMOVED*** Convert movie IDs to comma-separated string
+        # Convert movie IDs to comma-separated string
         movie_ids_str = ",".join(map(str, movie_ids))
         params = {
             "ids": movie_ids_str,

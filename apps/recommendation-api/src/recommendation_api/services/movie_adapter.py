@@ -38,35 +38,35 @@ class MovieDataAdapter:
         Returns:
             MovieRecommendation object
         """
-        ***REMOVED*** Extract movie ID, defaulting to None if not found
+        # Extract movie ID, defaulting to None if not found
         movie_id = movie_data.get("id") or movie_data.get("movie_id")
 
-        ***REMOVED*** Process genres - extract names if they're dictionaries
+        # Process genres - extract names if they're dictionaries
         genres = movie_data.get("genres", [])
         processed_genres = []
 
         if genres:
             for genre in genres:
                 if isinstance(genre, dict) and "name" in genre:
-                    ***REMOVED*** Extract name from genre dictionary
+                    # Extract name from genre dictionary
                     processed_genres.append(genre["name"])
                 elif isinstance(genre, str):
-                    ***REMOVED*** Already a string
+                    # Already a string
                     processed_genres.append(genre)
                 else:
-                    ***REMOVED*** Try to convert to string as fallback
+                    # Try to convert to string as fallback
                     try:
                         processed_genres.append(str(genre))
                     except Exception:
                         logger.warning(f"Could not process genre: {genre}")
 
-        ***REMOVED*** Ensure score is within valid range (0.0 to 1.0)
+        # Ensure score is within valid range (0.0 to 1.0)
         clamped_score = min(max(0.0, score), 1.0)
         if score != clamped_score:
             logger.debug(f"Clamped score from {score} to {clamped_score}")
 
-        ***REMOVED*** Handle both API response format and vector DB metadata format
-        ***REMOVED*** Ensure we always provide an int ID to the response model.
+        # Handle both API response format and vector DB metadata format
+        # Ensure we always provide an int ID to the response model.
         try:
             movie_id_int = int(movie_id or 0)
         except Exception:
@@ -129,12 +129,12 @@ class MovieDataAdapter:
             Tuple of (movie recommendations, filters)
         """
         try:
-            ***REMOVED*** Call backend API to get popular movies
+            # Call backend API to get popular movies
             popular_movies = await self.backend_client.get_popular_movies(
                 limit=limit, min_rating=min_rating, min_vote_count=min_vote_count
             )
 
-            ***REMOVED*** Convert to recommendation objects
+            # Convert to recommendation objects
             recommendations = [
                 self._convert_to_recommendation(
                     movie, "Popular on Next Watch", movie.get("vote_average", 0.0) / 10.0
@@ -142,7 +142,7 @@ class MovieDataAdapter:
                 for movie in popular_movies
             ]
 
-            ***REMOVED*** Return recommendations with filters
+            # Return recommendations with filters
             return recommendations, {
                 "limit": limit,
                 "min_rating": min_rating,
@@ -169,12 +169,12 @@ class MovieDataAdapter:
             Tuple of (movie recommendations, filters)
         """
         try:
-            ***REMOVED*** Call backend API to get personalized movies
+            # Call backend API to get personalized movies
             personalized_movies = await self.backend_client.get_personalized_movies(
                 user_id=user_id, limit=limit, min_rating=min_rating, min_vote_count=min_vote_count
             )
 
-            ***REMOVED*** Convert to recommendation objects
+            # Convert to recommendation objects
             recommendations = [
                 self._convert_to_recommendation(
                     movie,
@@ -184,7 +184,7 @@ class MovieDataAdapter:
                 for movie in personalized_movies
             ]
 
-            ***REMOVED*** Return recommendations with filters
+            # Return recommendations with filters
             return recommendations, {
                 "user_id": user_id,
                 "limit": limit,
@@ -210,11 +210,11 @@ class MovieDataAdapter:
             Tuple of (movie recommendations, filters)
         """
         try:
-            ***REMOVED*** Call backend API to get trending movies
-            ***REMOVED*** Note: This endpoint might not exist yet in the backend API
+            # Call backend API to get trending movies
+            # Note: This endpoint might not exist yet in the backend API
             trending_movies = await self.backend_client.get_trending_movies(limit=limit, days=days)
 
-            ***REMOVED*** Convert to recommendation objects
+            # Convert to recommendation objects
             recommendations = [
                 self._convert_to_recommendation(
                     movie,
@@ -224,7 +224,7 @@ class MovieDataAdapter:
                 for movie in trending_movies
             ]
 
-            ***REMOVED*** Return recommendations with filters
+            # Return recommendations with filters
             return recommendations, {
                 "limit": limit,
                 "days": days,
@@ -233,7 +233,7 @@ class MovieDataAdapter:
 
         except Exception as e:
             logger.error(f"Error getting trending movies: {e}")
-            ***REMOVED*** For warming purposes, return empty list rather than raising
+            # For warming purposes, return empty list rather than raising
             return [], {"error": str(e)}
 
     async def get_recent_movies(
@@ -248,11 +248,11 @@ class MovieDataAdapter:
             Tuple of (movie recommendations, filters)
         """
         try:
-            ***REMOVED*** Call backend API to get recent movies
-            ***REMOVED*** Note: This endpoint might not exist yet in the backend API
+            # Call backend API to get recent movies
+            # Note: This endpoint might not exist yet in the backend API
             recent_movies = await self.backend_client.get_recent_movies(limit=limit)
 
-            ***REMOVED*** Convert to recommendation objects
+            # Convert to recommendation objects
             recommendations = [
                 self._convert_to_recommendation(
                     movie, "Recently updated", movie.get("vote_average", 0.0) / 10.0
@@ -260,7 +260,7 @@ class MovieDataAdapter:
                 for movie in recent_movies
             ]
 
-            ***REMOVED*** Return recommendations with filters
+            # Return recommendations with filters
             return recommendations, {
                 "limit": limit,
                 "type": "recent",
@@ -268,11 +268,11 @@ class MovieDataAdapter:
 
         except Exception as e:
             logger.error(f"Error getting recent movies: {e}")
-            ***REMOVED*** For warming purposes, return empty list rather than raising
+            # For warming purposes, return empty list rather than raising
             return [], {"error": str(e)}
 
 
-***REMOVED*** Global movie adapter instance
+# Global movie adapter instance
 _movie_adapter: MovieDataAdapter | None = None
 
 
@@ -287,7 +287,7 @@ def get_movie_adapter() -> MovieDataAdapter:
     global _movie_adapter
 
     if _movie_adapter is None:
-        ***REMOVED*** Create a new movie adapter with the global backend client
+        # Create a new movie adapter with the global backend client
         _movie_adapter = MovieDataAdapter(get_backend_client())
 
     return _movie_adapter

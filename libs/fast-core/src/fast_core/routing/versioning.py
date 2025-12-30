@@ -73,7 +73,7 @@ class APIVersion:
             return self.minor < other.minor
         if self.patch != other.patch:
             return self.patch < other.patch
-        ***REMOVED*** Labels are compared lexicographically, None is considered "latest"
+        # Labels are compared lexicographically, None is considered "latest"
         if self.label is None and other.label is not None:
             return False
         if self.label is not None and other.label is None:
@@ -101,17 +101,17 @@ class APIVersion:
         Raises:
             ValueError: If version string is invalid
         """
-        ***REMOVED*** Remove 'v' prefix if present
+        # Remove 'v' prefix if present
         if version_str.startswith("v"):
             version_str = version_str[1:]
 
-        ***REMOVED*** Split by label separator
+        # Split by label separator
         if "-" in version_str:
             version_part, label = version_str.split("-", 1)
         else:
             version_part, label = version_str, None
 
-        ***REMOVED*** Parse version numbers
+        # Parse version numbers
         parts = version_part.split(".")
         if len(parts) < 1 or len(parts) > 3:
             raise ValueError(f"Invalid version format: {version_str}")
@@ -199,7 +199,7 @@ class VersionedRouter:
                 tags=[f"v{version.major}.{version.minor}"],
             )
         else:
-            ***REMOVED*** For non-URL strategies, include without prefix
+            # For non-URL strategies, include without prefix
             app_router.include_router(
                 router,
                 tags=[f"v{version.major}.{version.minor}"],
@@ -218,7 +218,7 @@ class VersionedRouter:
             HTTPException: If version is invalid or not found
         """
         if self.strategy == VersioningStrategy.URL_PATH:
-            ***REMOVED*** Extract from URL path
+            # Extract from URL path
             path_parts = request.url.path.strip("/").split("/")
             for part in path_parts:
                 if part.startswith("v") and len(part) > 1:
@@ -229,7 +229,7 @@ class VersionedRouter:
             return self.default_version
 
         elif self.strategy == VersioningStrategy.HEADER:
-            ***REMOVED*** Extract from header
+            # Extract from header
             version_str = request.headers.get(self.header_name)
             if not version_str:
                 return self.default_version
@@ -242,7 +242,7 @@ class VersionedRouter:
                 )
 
         elif self.strategy == VersioningStrategy.QUERY_PARAM:
-            ***REMOVED*** Extract from query parameter
+            # Extract from query parameter
             version_str = request.query_params.get(self.query_param_name)
             if not version_str:
                 return self.default_version
@@ -255,9 +255,9 @@ class VersionedRouter:
                 )
 
         elif self.strategy == VersioningStrategy.ACCEPT_HEADER:
-            ***REMOVED*** Extract from Accept header
+            # Extract from Accept header
             accept_header = request.headers.get("Accept", "")
-            ***REMOVED*** Look for version in Accept header like: application/vnd.api+json;version=1.0
+            # Look for version in Accept header like: application/vnd.api+json;version=1.0
             for part in accept_header.split(","):
                 part = part.strip()
                 if "version=" in part:
@@ -334,8 +334,8 @@ def deprecation_warning_middleware(
     async def middleware(request: Request, call_next: Callable) -> Any:
         response = await call_next(request)
 
-        ***REMOVED*** Check if current version is deprecated
-        ***REMOVED*** This is a simplified check - in practice you'd extract version from request
+        # Check if current version is deprecated
+        # This is a simplified check - in practice you'd extract version from request
         version_str = request.headers.get("API-Version", "1.0.0")
         if version_str in deprecated_versions:
             response.headers["Warning"] = f'299 - "API version {version_str} is deprecated"'

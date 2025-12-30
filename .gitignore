@@ -1,6 +1,6 @@
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** OS & Editor Junk
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OS & Editor Junk
+# ------------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
 *.swp
@@ -8,19 +8,19 @@ Thumbs.db
 *.bak
 *.tmp
 
-***REMOVED*** VS Code / IDE configs
+# VS Code / IDE configs
 .vscode/
 .idea/
 *.code-workspace
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** Python - global patterns (apps should still have their own .gitignore)
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Python - global patterns (apps should still have their own .gitignore)
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 
-***REMOVED*** Byte-compiled and cache artifacts
+# Byte-compiled and cache artifacts
 *.egg
 *.egg-info/
 .eggs/
@@ -29,15 +29,15 @@ dist/
 pip-wheel-metadata/
 *.log
 
-***REMOVED*** Hatch/Pipenv/Poetry caches (if used globally)
+# Hatch/Pipenv/Poetry caches (if used globally)
 .hatch/
 .venv/
-.env/        ***REMOVED*** in case a global .env exists at root
+.env/        # in case a global .env exists at root
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** SECURITY: Environment Files - ALL variants
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** Exclude ALL .env files except example templates
+# ------------------------------------------------------------------------------
+# SECURITY: Environment Files - ALL variants
+# ------------------------------------------------------------------------------
+# Exclude ALL .env files except example templates
 .env
 .env.*
 !.env.example
@@ -49,7 +49,7 @@ pip-wheel-metadata/
 !**/.env.example
 !**/.env.*.example
 
-***REMOVED*** Production and sensitive configurations
+# Production and sensitive configurations
 **/production.yml
 **/prod.yml
 !infra/compose/prod.yml
@@ -58,9 +58,9 @@ pip-wheel-metadata/
 **/.env.observability.*
 **/.env.monitoring.*
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** Node.js (for frontend apps or tools)
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Node.js (for frontend apps or tools)
+# ------------------------------------------------------------------------------
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -70,9 +70,9 @@ dist/
 .next/
 out/
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** Coverage & Test Reports
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Coverage & Test Reports
+# ------------------------------------------------------------------------------
 coverage/
 htmlcov/
 .coverage
@@ -89,31 +89,31 @@ coverage.xml
 pytest_cache/
 junit*.xml
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** Monorepo tooling
-***REMOVED*** ------------------------------------------------------------------------------
-*.lock           ***REMOVED*** e.g., if using pip-tools or pnpm
+# ------------------------------------------------------------------------------
+# Monorepo tooling
+# ------------------------------------------------------------------------------
+*.lock           # e.g., if using pip-tools or pnpm
 .lock-wip
 turbo/
 
 model_cache
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** Local Development Storage
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Local Development Storage
+# ------------------------------------------------------------------------------
 data
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** SECURITY: Database Files
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# SECURITY: Database Files
+# ------------------------------------------------------------------------------
 *.db
 *.sqlite
 *.sqlite3
 *.db-journal
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** SECURITY: Keys and Certificates
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# SECURITY: Keys and Certificates
+# ------------------------------------------------------------------------------
 *.pem
 *.key
 *.crt
@@ -122,18 +122,18 @@ data
 id_rsa*
 *.pub
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** SECURITY: AWS and Cloud Credentials
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# SECURITY: AWS and Cloud Credentials
+# ------------------------------------------------------------------------------
 .aws/
 **/credentials
 **/config
 **/.boto
 **/.s3cfg
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** SECURITY: internal docs / incident reports (never commit)
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# SECURITY: internal docs / incident reports (never commit)
+# ------------------------------------------------------------------------------
 SECURITY_CLEANUP_REPORT*.md
 docs/internal/
 **/docs/internal/

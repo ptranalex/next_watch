@@ -7,7 +7,7 @@ based on patterns from production NextWatch services.
 from typing import Any
 from urllib.parse import urlparse
 
-***REMOVED*** Patterns for detecting sensitive field names
+# Patterns for detecting sensitive field names
 SENSITIVE_FIELD_PATTERNS = {
     "password",
     "passwd",
@@ -78,14 +78,14 @@ def mask_url(url: str, mask_password: bool = True, mask_username: bool = False) 
     try:
         parsed = urlparse(url)
     except Exception:
-        ***REMOVED*** If URL parsing fails, just return the original
+        # If URL parsing fails, just return the original
         return url
 
-    ***REMOVED*** No auth info to mask
+    # No auth info to mask
     if not parsed.username and not parsed.password:
         return url
 
-    ***REMOVED*** Build the masked auth part
+    # Build the masked auth part
     auth_parts = []
 
     if parsed.username:
@@ -100,10 +100,10 @@ def mask_url(url: str, mask_password: bool = True, mask_username: bool = False) 
         else:
             auth_parts.append(parsed.password)
 
-    ***REMOVED*** Reconstruct the URL
+    # Reconstruct the URL
     auth_string = ":".join(auth_parts) if auth_parts else ""
 
-    ***REMOVED*** Build the netloc
+    # Build the netloc
     if auth_string:
         netloc = f"{auth_string}@{parsed.hostname}"
         if parsed.port:
@@ -111,7 +111,7 @@ def mask_url(url: str, mask_password: bool = True, mask_username: bool = False) 
     else:
         netloc = parsed.netloc
 
-    ***REMOVED*** Reconstruct the full URL
+    # Reconstruct the full URL
     result = f"{parsed.scheme}://{netloc}"
     if parsed.path:
         result += parsed.path
@@ -120,7 +120,7 @@ def mask_url(url: str, mask_password: bool = True, mask_username: bool = False) 
     if parsed.query:
         result += f"?{parsed.query}"
     if parsed.fragment:
-        result += f"***REMOVED***{parsed.fragment}"
+        result += f"#{parsed.fragment}"
 
     return result
 
@@ -147,12 +147,12 @@ def is_sensitive_field(field_name: str, additional_patterns: set[str] | None = N
     """
     field_lower = field_name.lower()
 
-    ***REMOVED*** Check against default patterns
+    # Check against default patterns
     patterns = SENSITIVE_FIELD_PATTERNS
     if additional_patterns:
         patterns = patterns.union(additional_patterns)
 
-    ***REMOVED*** Check if any pattern is in the field name
+    # Check if any pattern is in the field name
     for pattern in patterns:
         if pattern in field_lower:
             return True
@@ -187,11 +187,11 @@ def mask_dict_values(
     for key, value in result.items():
         should_mask = False
 
-        ***REMOVED*** Check if explicitly specified as sensitive
+        # Check if explicitly specified as sensitive
         if sensitive_fields and key in sensitive_fields:
             should_mask = True
 
-        ***REMOVED*** Check if auto-detection is enabled and field appears sensitive
+        # Check if auto-detection is enabled and field appears sensitive
         elif mask_all_sensitive and is_sensitive_field(key, additional_patterns):
             should_mask = True
 
@@ -269,7 +269,7 @@ def mask_command_args(args: list[str], sensitive_flags: set[str] | None = None) 
             result.append(arg)
             mask_next = True
         elif "=" in arg:
-            ***REMOVED*** Handle --key=value format
+            # Handle --key=value format
             flag, value = arg.split("=", 1)
             if flag in sensitive_flags:
                 result.append(f"{flag}=****")

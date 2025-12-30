@@ -8,7 +8,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from config.logging import get_logger
-from fast_core import AppOptions, create_app  ***REMOVED*** pyright: ignore[reportUnknownVariableType]
+from fast_core import AppOptions, create_app  # pyright: ignore[reportUnknownVariableType]
 from fast_core.middleware import MiddlewareConfig
 from fastapi import FastAPI
 
@@ -16,15 +16,15 @@ from backend_api.config.app import BackendAPIConfig
 from backend_api.config.fast_core_config import create_fast_core_config
 from backend_api.db.database import init_database
 
-***REMOVED*** Import Backend routes
+# Import Backend routes
 from backend_api.routes.api_v1 import api_v1_router
 from backend_api.services.health_service import close_health_service
 
 logger = get_logger(__name__)
 
-***REMOVED*** Backend API focuses on core movie data operations
+# Backend API focuses on core movie data operations
 
-***REMOVED*** Simple meta configuration constants
+# Simple meta configuration constants
 BACKEND_FEATURES: list[str] = [
     "Movie search and browsing",
     "User authentication and profiles",
@@ -56,15 +56,15 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Handles startup and shutdown events for the Backend API application.
     Uses Service Client Factory for better lifecycle management.
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Starting Backend API application with Fast Core integration")
     settings = app.state.settings
 
-    ***REMOVED*** Log configuration summary
+    # Log configuration summary
     logger.info(f"Backend API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize database
+    # Initialize database
     logger.info("Initializing database connection")
     try:
         init_database()
@@ -75,9 +75,9 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to connect to database: {e}")
         raise
 
-    ***REMOVED*** Legacy health service removed - now using Health Registry only
+    # Legacy health service removed - now using Health Registry only
 
-    ***REMOVED*** Setup new multi-endpoint health checks
+    # Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
 
@@ -89,22 +89,22 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
-    ***REMOVED*** Backend API focuses on core movie data - no suggestion engine needed
+    # Backend API focuses on core movie data - no suggestion engine needed
     logger.info("Backend API handles core movie data operations")
 
-    ***REMOVED*** Initialize Backend-specific metrics (always enabled for observability)
+    # Initialize Backend-specific metrics (always enabled for observability)
     backend_config = app.state.settings
     try:
-        ***REMOVED*** First initialize the global metrics registry
+        # First initialize the global metrics registry
         from fast_core.monitoring.metrics import initialize_metrics
 
         from backend_api.core.metrics import initialize_backend_metrics
 
-        ***REMOVED*** Initialize global metrics registry with service name
+        # Initialize global metrics registry with service name
         initialize_metrics("backend-api")
         logger.info("Global metrics registry initialized for service: backend-api")
 
-        ***REMOVED*** Now initialize Backend-specific metrics
+        # Now initialize Backend-specific metrics
         metrics_instance = initialize_backend_metrics()
         if metrics_instance:
             logger.info("Backend metrics initialized successfully")
@@ -119,18 +119,18 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize Backend metrics: {e}", exc_info=True)
         if getattr(backend_config, "is_production", False):
-            ***REMOVED*** In production, we want to know about metrics failures
+            # In production, we want to know about metrics failures
             raise
 
-    ***REMOVED*** Backend API is independent - no external service registrations needed
+    # Backend API is independent - no external service registrations needed
     logger.info("Backend API runs independently without external service dependencies")
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info("Shutting down Backend API application")
 
-    ***REMOVED*** Shutdown health service
+    # Shutdown health service
     if hasattr(app.state, "health_service") and app.state.health_service is not None:
         try:
             logger.info("Shutting down health service")
@@ -139,9 +139,9 @@ async def backend_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.error(f"Error shutting down health service: {e}")
 
-    ***REMOVED*** No suggestion engine to shutdown - Backend API is focused on core data
+    # No suggestion engine to shutdown - Backend API is focused on core data
 
-    ***REMOVED*** Close global health service
+    # Close global health service
     close_health_service()
 
     logger.info("Backend API service shutdown complete")
@@ -158,23 +158,23 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
     """
     middleware = MiddlewareConfig()
 
-    ***REMOVED*** Configure CORS for Backend API (serves frontend and other services)
+    # Configure CORS for Backend API (serves frontend and other services)
     middleware.cors(
         origins=config.cors_origins,
-        credentials=True,  ***REMOVED*** Backend needs credentials for auth
+        credentials=True,  # Backend needs credentials for auth
         methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         headers=["Content-Type", "Authorization", "X-Requested-With", "X-Request-ID"],
         expose_headers=["X-Request-ID", "X-Process-Time", "X-Cache-Status"],
-        max_age=3600,  ***REMOVED*** Cache preflight requests for 1 hour
+        max_age=3600,  # Cache preflight requests for 1 hour
     )
 
-    ***REMOVED*** Configure security headers for production
+    # Configure security headers for production
     if config.is_production:
         middleware.security_headers(
             hsts=True,
-            hsts_max_age=63072000,  ***REMOVED*** 2 years
+            hsts_max_age=63072000,  # 2 years
             hsts_include_subdomains=True,
-            frame_options="DENY",  ***REMOVED*** Prevent iframe embedding
+            frame_options="DENY",  # Prevent iframe embedding
             content_type_options=True,
             xss_protection=True,
             csp="default-src 'self'; connect-src 'self' https://*.example.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'",
@@ -182,28 +182,28 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
             trusted_hosts=config.allowed_hosts,
         )
     else:
-        ***REMOVED*** Development security headers (more permissive)
+        # Development security headers (more permissive)
         middleware.security_headers(
-            hsts=False,  ***REMOVED*** No HSTS in development
+            hsts=False,  # No HSTS in development
             frame_options="SAMEORIGIN",
             content_type_options=True,
             xss_protection=True,
             referrer_policy="strict-origin-when-cross-origin",
         )
 
-    ***REMOVED*** Configure rate limiting for Backend API protection
+    # Configure rate limiting for Backend API protection
     rate_limit_config = {
-        ***REMOVED*** Core movie data endpoints
+        # Core movie data endpoints
         "/api/v1/movies": "300/minute",
         "/api/v1/movies/{movie_id}": "500/minute",
         "/api/v1/movies/search": "100/minute",
         "/api/v1/movies/bulk": "500/minute",
         "/api/v1/movies/{movie_id}/cast": "200/minute",
         "/api/v1/movies/{movie_id}/trailers": "200/minute",
-        ***REMOVED*** User interaction endpoints (managed by BFF auth)
+        # User interaction endpoints (managed by BFF auth)
         "/api/v1/user/movies": "200/minute",
         "/api/v1/user/movies/{movie_id}": "100/minute",
-        ***REMOVED*** Health and meta endpoints (less restrictive)
+        # Health and meta endpoints (less restrictive)
         "/health": "1000/minute",
         "/meta": "1000/minute",
     }
@@ -213,32 +213,32 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
         + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
-        headers=True,  ***REMOVED*** Include rate limit headers for debugging
-        key_func="ip",  ***REMOVED*** Rate limit by IP address
+        headers=True,  # Include rate limit headers for debugging
+        key_func="ip",  # Rate limit by IP address
     )
 
-    ***REMOVED*** Configure logging for Backend API
+    # Configure logging for Backend API
     log_level = "INFO" if config.is_production else "DEBUG"
     middleware.logging(
         level=log_level,
-        include_request_body=not config.is_production,  ***REMOVED*** Only log bodies in development
-        include_response_body=False,  ***REMOVED*** Never log response bodies (too verbose)
+        include_request_body=not config.is_production,  # Only log bodies in development
+        include_response_body=False,  # Never log response bodies (too verbose)
         max_body_size=2048,
         exclude_additional=[
             "/docs",
             "/openapi.json",
             "/favicon.ico",
-        ],  ***REMOVED*** Add to defaults
+        ],  # Add to defaults
         include_headers=True,
         exclude_headers=["authorization", "cookie", "x-api-key", "internal-api-key"],
         log_timing=True,
-        log_user_agent=not config.is_production,  ***REMOVED*** Only in development
+        log_user_agent=not config.is_production,  # Only in development
     )
 
-    ***REMOVED*** Configure request processing for Backend API
+    # Configure request processing for Backend API
     middleware.request_processing(
-        max_request_size=10 * 1024 * 1024,  ***REMOVED*** 10MB for file uploads
-        timeout=60,  ***REMOVED*** Backend might handle complex queries
+        max_request_size=10 * 1024 * 1024,  # 10MB for file uploads
+        timeout=60,  # Backend might handle complex queries
         include_request_id=True,
         request_id_header="X-Request-ID",
         include_process_time=True,
@@ -247,20 +247,20 @@ def create_backend_middleware_config(config: BackendAPIConfig) -> MiddlewareConf
         gzip_minimum_size=1000,
     )
 
-    ***REMOVED*** Configure Prometheus metrics for Backend monitoring
+    # Configure Prometheus metrics for Backend monitoring
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_additional=["/favicon.ico"],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
+        exclude_additional=["/favicon.ico"],  # Only favicon.ico (docs/openapi already in defaults)
         exclude_methods=["OPTIONS"],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+        enabled=True,  # Always enable metrics for production observability
     )
 
-    ***REMOVED*** Note: Context middleware is automatically enabled when tracing is configured
-    ***REMOVED*** No need for manual middleware.context() call - fast-core handles this automatically
-    ***REMOVED*** based on the enable_tracing setting in the configuration
+    # Note: Context middleware is automatically enabled when tracing is configured
+    # No need for manual middleware.context() call - fast-core handles this automatically
+    # based on the enable_tracing setting in the configuration
 
     logger.info(
         f"Backend middleware configured for {config.environment} environment with automatic tracing"
@@ -277,7 +277,7 @@ def create_backend_app(config: BackendAPIConfig | None = None) -> FastAPI:
     Returns:
         Configured FastAPI application
     """
-    ***REMOVED*** Create or use provided configuration
+    # Create or use provided configuration
     if config is None:
         from backend_api.config.app import settings
 
@@ -285,30 +285,30 @@ def create_backend_app(config: BackendAPIConfig | None = None) -> FastAPI:
 
     logger.info("Creating Backend API application with fast-core and enhanced middleware")
 
-    ***REMOVED*** Convert Backend config to fast-core config
+    # Convert Backend config to fast-core config
     fast_core_config = create_fast_core_config(config)
 
-    ***REMOVED*** Create Backend-specific middleware configuration
+    # Create Backend-specific middleware configuration
     middleware_config = create_backend_middleware_config(config)
 
-    ***REMOVED*** Define routers for the application
+    # Define routers for the application
     routers = [
-        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
+        # health_router,  # Removed: Using new multi-endpoint health system
         api_v1_router,
     ]
 
-    ***REMOVED*** Create app options with simple configuration-based meta endpoints
+    # Create app options with simple configuration-based meta endpoints
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
+        health_checks=False,  # CRITICAL: Disable to prevent conflicts
         docs=config.debug,
-        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_endpoints=True,  # ✅ Enable auto-setup with static config
         meta_features=BACKEND_FEATURES,
         meta_endpoints_map=BACKEND_ENDPOINTS,
-        ***REMOVED*** No complex debug provider needed - fast-core provides sensible defaults
+        # No complex debug provider needed - fast-core provides sensible defaults
     )
 
-    ***REMOVED*** Create FastAPI app using fast-core with automatic meta endpoint setup
+    # Create FastAPI app using fast-core with automatic meta endpoint setup
     app = create_app(
         settings=fast_core_config,
         title="Next Watch Backend API",
@@ -320,7 +320,7 @@ def create_backend_app(config: BackendAPIConfig | None = None) -> FastAPI:
         lifespan=backend_lifespan,
     )
 
-    ***REMOVED*** Meta endpoints are now automatically configured with simple static configuration
+    # Meta endpoints are now automatically configured with simple static configuration
     logger.info("Backend API meta endpoints configured automatically with static config")
 
     logger.info("Backend API application created with fast-core integration")

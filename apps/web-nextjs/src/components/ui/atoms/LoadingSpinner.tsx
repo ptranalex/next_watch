@@ -57,16 +57,16 @@ export function LoadingSpinner({
   // Default GitHub-style colors
   const defaultColors = {
     light: {
-      background: '***REMOVED***ffffff',
-      ring: '***REMOVED***d1d9e0',
-      accent: '***REMOVED***0969da',
-      text: '***REMOVED***656d76',
+      background: '#ffffff',
+      ring: '#d1d9e0',
+      accent: '#0969da',
+      text: '#656d76',
     },
     dark: {
-      background: '***REMOVED***0d1117',
-      ring: '***REMOVED***30363d',
-      accent: '***REMOVED***58a6ff',
-      text: '***REMOVED***7d8590',
+      background: '#0d1117',
+      ring: '#30363d',
+      accent: '#58a6ff',
+      text: '#7d8590',
     },
   }
 

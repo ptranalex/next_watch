@@ -1,13 +1,13 @@
-***REMOVED*** Navigation Sections
+# Navigation Sections
 
 This directory contains UI components that form sections of navigation elements across the application.
 
-***REMOVED******REMOVED*** Components
+## Components
 
 - **GenreSection**: Desktop genre navigation section used in sidebar
 - **MobileGenreSection**: Mobile-optimized genre navigation with multiple layout options
 
-***REMOVED******REMOVED*** Usage Guidelines
+## Usage Guidelines
 
 - Navigation sections should be composed into larger navigation components
 - Keep sections focused on a single category/concern

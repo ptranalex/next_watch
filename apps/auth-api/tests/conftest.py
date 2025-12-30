@@ -11,7 +11,7 @@ from sqlmodel import Session, SQLModel
 def app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Create an isolated Auth API app wired to a temporary SQLite DB."""
 
-    ***REMOVED*** Create a test config first
+    # Create a test config first
     from auth_api.config.app import AuthAPIConfig
 
     db_path = tmp_path / "test.db"
@@ -22,7 +22,7 @@ def app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         database_url=f"sqlite:///{db_path}",
     )
 
-    ***REMOVED*** Patch global module-level settings used across the app
+    # Patch global module-level settings used across the app
     import auth_api.config.app as config_app
     import auth_api.db.database as db
     import auth_api.services.auth_service as auth_service_mod
@@ -31,22 +31,22 @@ def app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     db.settings = cfg
     auth_service_mod.settings = cfg
 
-    ***REMOVED*** Reset global engine so it rebuilds with the patched settings
-    db._engine = None  ***REMOVED*** type: ignore[attr-defined]
+    # Reset global engine so it rebuilds with the patched settings
+    db._engine = None  # type: ignore[attr-defined]
 
     engine = db.get_engine()
 
-    ***REMOVED*** Ensure models are imported/registered, then create tables
-    from auth_api.models.user import User  ***REMOVED*** noqa: F401
+    # Ensure models are imported/registered, then create tables
+    from auth_api.models.user import User  # noqa: F401
 
     SQLModel.metadata.create_all(engine)
 
-    ***REMOVED*** Build the FastAPI app
+    # Build the FastAPI app
     from auth_api.core.app_fast_core import create_auth_app
 
     fastapi_app = create_auth_app(cfg)
 
-    ***REMOVED*** Override DB dependency to ensure tests always hit our SQLite engine
+    # Override DB dependency to ensure tests always hit our SQLite engine
     from auth_api.db.database import get_db
 
     def override_get_db():

@@ -17,7 +17,7 @@ from auth_api.db.database import init_database
 
 logger = get_logger(__name__)
 
-***REMOVED*** Add Auth meta configuration constants after imports
+# Add Auth meta configuration constants after imports
 AUTH_FEATURES = [
     "JWT token-based authentication",
     "User registration and profile management",
@@ -39,10 +39,10 @@ AUTH_ENDPOINTS = {
     "/auth/health": "Authentication service health check",
 }
 
-***REMOVED*** Import Auth routes
+# Import Auth routes
 
-***REMOVED*** Remove the router import from module level to avoid circular imports
-***REMOVED*** from auth_api.routes.api_v1 import api_v1_router
+# Remove the router import from module level to avoid circular imports
+# from auth_api.routes.api_v1 import api_v1_router
 
 
 @asynccontextmanager
@@ -58,26 +58,26 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Yields:
         None: Application runs between startup and shutdown
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Starting Next Watch Authentication Service with Fast Core")
     settings = app.state.settings
 
-    ***REMOVED*** Log configuration summary
+    # Log configuration summary
     logger.info(f"Auth API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Initialize Auth-specific metrics (always enabled for observability)
+    # Initialize Auth-specific metrics (always enabled for observability)
     try:
-        ***REMOVED*** First initialize the global metrics registry
+        # First initialize the global metrics registry
         from fast_core.monitoring.metrics import initialize_metrics
 
         from auth_api.core.metrics import initialize_auth_metrics
 
-        ***REMOVED*** Initialize global metrics registry with service name
+        # Initialize global metrics registry with service name
         _ = initialize_metrics("auth-api")
         logger.info("Global metrics registry initialized for service: auth-api")
 
-        ***REMOVED*** Now initialize Auth-specific metrics
+        # Now initialize Auth-specific metrics
         metrics_instance = initialize_auth_metrics()
         if metrics_instance:
             logger.info("Auth metrics initialized successfully")
@@ -92,10 +92,10 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize Auth metrics: {e}", exc_info=True)
         if settings.is_production:
-            ***REMOVED*** In production, we want to know about metrics failures
+            # In production, we want to know about metrics failures
             raise
 
-    ***REMOVED*** Initialize database
+    # Initialize database
     try:
         init_database()
         logger.info("Database connection established successfully")
@@ -105,9 +105,9 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to connect to database: {e}")
         raise
 
-    ***REMOVED*** Legacy health service removed - now using Health Registry only
+    # Legacy health service removed - now using Health Registry only
 
-    ***REMOVED*** Setup new multi-endpoint health checks
+    # Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
 
@@ -123,10 +123,10 @@ async def auth_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info("Shutting down Next Watch Authentication Service")
 
-    ***REMOVED*** Legacy health service cleanup removed - using Health Registry only
+    # Legacy health service cleanup removed - using Health Registry only
 
     logger.info("Auth API service shutdown complete")
 
@@ -142,47 +142,47 @@ def create_auth_middleware_config(config: AuthAPIConfig) -> MiddlewareConfig:
     """
     middleware = MiddlewareConfig()
 
-    ***REMOVED*** CORS Configuration - restrictive for auth service
+    # CORS Configuration - restrictive for auth service
     middleware.cors(
         origins=config.cors_origins,
-        credentials=True,  ***REMOVED*** Required for auth cookies/tokens
-        methods=["POST", "GET", "PUT", "OPTIONS"],  ***REMOVED*** Limited to auth operations
+        credentials=True,  # Required for auth cookies/tokens
+        methods=["POST", "GET", "PUT", "OPTIONS"],  # Limited to auth operations
         headers=["Content-Type", "Authorization", "X-Request-ID"],
         expose_headers=["X-Request-ID", "X-Process-Time"],
-        max_age=300,  ***REMOVED*** Short cache for auth endpoints (5 minutes)
+        max_age=300,  # Short cache for auth endpoints (5 minutes)
     )
 
-    ***REMOVED*** Enhanced Security Headers for auth service
+    # Enhanced Security Headers for auth service
     if config.is_production:
         middleware.security_headers(
-            hsts=True,  ***REMOVED*** Force HTTPS in production
-            hsts_max_age=31536000,  ***REMOVED*** 1 year
+            hsts=True,  # Force HTTPS in production
+            hsts_max_age=31536000,  # 1 year
             hsts_include_subdomains=True,
-            frame_options="DENY",  ***REMOVED*** Prevent iframe attacks
+            frame_options="DENY",  # Prevent iframe attacks
             content_type_options=True,
-            xss_protection=True,  ***REMOVED*** XSS prevention
-            csp="default-src 'self'",  ***REMOVED*** Strict content policy
+            xss_protection=True,  # XSS prevention
+            csp="default-src 'self'",  # Strict content policy
             referrer_policy="strict-origin-when-cross-origin",
             trusted_hosts=config.allowed_hosts,
         )
     else:
-        ***REMOVED*** More permissive settings for development
+        # More permissive settings for development
         middleware.security_headers(
-            hsts=False,  ***REMOVED*** No HSTS in development
-            frame_options="SAMEORIGIN",  ***REMOVED*** Allow same origin iframes
+            hsts=False,  # No HSTS in development
+            frame_options="SAMEORIGIN",  # Allow same origin iframes
             content_type_options=True,
             xss_protection=True,
             csp="default-src 'self' 'unsafe-inline' 'unsafe-eval'",
             referrer_policy="strict-origin-when-cross-origin",
         )
 
-    ***REMOVED*** Auth-Specific Rate Limiting
+    # Auth-Specific Rate Limiting
     rate_limit_config = {
-        "/auth/tokens": "10/minute",  ***REMOVED*** Login attempts
-        "/auth/users": "5/minute",  ***REMOVED*** Registration attempts
-        "/auth/tokens/verify": "100/minute",  ***REMOVED*** Token verification (used by BFF)
-        "/health": "60/minute",  ***REMOVED*** Health checks
-        "/meta": "60/minute",  ***REMOVED*** Meta endpoints
+        "/auth/tokens": "10/minute",  # Login attempts
+        "/auth/users": "5/minute",  # Registration attempts
+        "/auth/tokens/verify": "100/minute",  # Token verification (used by BFF)
+        "/health": "60/minute",  # Health checks
+        "/meta": "60/minute",  # Meta endpoints
     }
 
     middleware.rate_limiting(
@@ -190,16 +190,16 @@ def create_auth_middleware_config(config: AuthAPIConfig) -> MiddlewareConfig:
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
         + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
-        headers=True,  ***REMOVED*** Include rate limit headers
-        key_func="ip",  ***REMOVED*** Rate limit by IP address
+        headers=True,  # Include rate limit headers
+        key_func="ip",  # Rate limit by IP address
     )
 
-    ***REMOVED*** Configure logging for Auth API - never log bodies due to sensitivity
+    # Configure logging for Auth API - never log bodies due to sensitivity
     log_level = "INFO" if config.is_production else "DEBUG"
     middleware.logging(
         level=log_level,
-        include_request_body=False,  ***REMOVED*** Never log request bodies
-        include_response_body=False,  ***REMOVED*** Never log sensitive auth responses
+        include_request_body=False,  # Never log request bodies
+        include_response_body=False,  # Never log sensitive auth responses
         max_body_size=1024,
         exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],
         include_headers=True,
@@ -208,26 +208,26 @@ def create_auth_middleware_config(config: AuthAPIConfig) -> MiddlewareConfig:
         log_user_agent=not config.is_production,
     )
 
-    ***REMOVED*** Request Processing
+    # Request Processing
     middleware.request_processing(
-        include_request_id=True,  ***REMOVED*** Track requests with correlation IDs
-        include_process_time=True,  ***REMOVED*** Add processing time headers
-        gzip_compression=True,  ***REMOVED*** Compress responses
-        gzip_minimum_size=500,  ***REMOVED*** Only compress larger responses
-        max_request_size=1024 * 1024,  ***REMOVED*** 1MB limit for auth requests
-        timeout=30,  ***REMOVED*** Auth operations should be fast
+        include_request_id=True,  # Track requests with correlation IDs
+        include_process_time=True,  # Add processing time headers
+        gzip_compression=True,  # Compress responses
+        gzip_minimum_size=500,  # Only compress larger responses
+        max_request_size=1024 * 1024,  # 1MB limit for auth requests
+        timeout=30,  # Auth operations should be fast
     )
 
-    ***REMOVED*** Configure metrics middleware for Auth API monitoring
+    # Configure metrics middleware for Auth API monitoring
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_additional=["/favicon.ico"],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
+        exclude_additional=["/favicon.ico"],  # Only favicon.ico (docs/openapi already in defaults)
         exclude_methods=["OPTIONS"],
         custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+        enabled=True,  # Always enable metrics for production observability
     )
     logger.info("Metrics middleware enabled for Auth API monitoring")
 
@@ -244,7 +244,7 @@ def create_auth_app(config: AuthAPIConfig | None = None) -> FastAPI:
     Returns:
         Configured FastAPI application
     """
-    ***REMOVED*** Create or use provided configuration
+    # Create or use provided configuration
     if config is None:
         from auth_api.config.app import settings
 
@@ -252,29 +252,29 @@ def create_auth_app(config: AuthAPIConfig | None = None) -> FastAPI:
 
     logger.info("Creating Auth API application with fast-core and enhanced middleware")
 
-    ***REMOVED*** Create Auth-specific middleware configuration
+    # Create Auth-specific middleware configuration
     middleware_config = create_auth_middleware_config(config)
 
-    ***REMOVED*** Import routers locally to avoid circular imports
+    # Import routers locally to avoid circular imports
     from auth_api.routes.api_v1 import api_v1_router
 
-    ***REMOVED*** Define routers for the application
+    # Define routers for the application
     routers = [
-        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
-        api_v1_router,  ***REMOVED*** V1 API routes with built-in prefix
+        # health_router,  # Removed: Using new multi-endpoint health system
+        api_v1_router,  # V1 API routes with built-in prefix
     ]
 
-    ***REMOVED*** Create app options with enhanced meta endpoint configuration
+    # Create app options with enhanced meta endpoint configuration
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
+        health_checks=False,  # CRITICAL: Disable to prevent conflicts
         docs=config.debug,
-        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_endpoints=True,  # ✅ Enable auto-setup with static config
         meta_features=AUTH_FEATURES,
         meta_endpoints_map=AUTH_ENDPOINTS,
     )
 
-    ***REMOVED*** Create FastAPI app using fast-core
+    # Create FastAPI app using fast-core
     app = create_app(
         settings=config,
         title="Next Watch Authentication API",
@@ -286,9 +286,9 @@ def create_auth_app(config: AuthAPIConfig | None = None) -> FastAPI:
         lifespan=auth_lifespan,
     )
 
-    ***REMOVED*** All routers now have their prefixes built-in, no manual configuration needed
+    # All routers now have their prefixes built-in, no manual configuration needed
 
-    ***REMOVED*** Meta endpoints are now automatically configured with Auth-specific data
+    # Meta endpoints are now automatically configured with Auth-specific data
     logger.info("Auth API meta endpoints configured automatically with static config")
     logger.info("Auth API application created with fast-core integration")
     return app

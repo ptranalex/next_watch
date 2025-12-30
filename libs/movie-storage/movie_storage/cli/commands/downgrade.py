@@ -12,7 +12,7 @@ from movie_storage.config.app import Config
 from movie_storage.db.db import get_engine
 from movie_storage.db.migrations import get_applied_migrations
 
-***REMOVED*** Create app for this command group
+# Create app for this command group
 app = typer.Typer(help="Database downgrade commands")
 console = Console()
 
@@ -32,17 +32,17 @@ def main(
             console.print("Run with --confirm to proceed with the downgrade.")
         raise typer.Exit(code=1)
 
-    ***REMOVED*** Get configuration
+    # Get configuration
     config = Config.get_instance()
     if database_url:
         config.database_url = database_url
 
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         masked_url = config._mask_database_password(config.database_url)
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Get engine and migrations
+    # Get engine and migrations
     engine = get_engine(database_url, config)
     migrations = get_applied_migrations(engine)
 
@@ -50,12 +50,12 @@ def main(
         console.print("[bold blue]ℹ[/] No migrations to downgrade.")
         raise typer.Exit(code=0)
 
-    ***REMOVED*** Sort migration IDs
+    # Sort migration IDs
     migration_ids = sorted(migrations.keys())
 
-    ***REMOVED*** Process migrations to downgrade
+    # Process migrations to downgrade
     if all:
-        ***REMOVED*** Final confirmation for downgrading all migrations
+        # Final confirmation for downgrading all migrations
         if not confirm or (
             not quiet
             and not Confirm.ask(
@@ -68,7 +68,7 @@ def main(
         if not quiet:
             console.print("[bold yellow]Downgrading all migrations...[/]")
 
-        ***REMOVED*** Process migrations in reverse order
+        # Process migrations in reverse order
         for migration_id in reversed(migration_ids):
             success = _downgrade_single_migration(
                 engine, migration_id, migrations[migration_id], verbose, quiet
@@ -79,7 +79,7 @@ def main(
         if not quiet:
             console.print("[bold green]✓[/] All migrations successfully downgraded!")
     else:
-        ***REMOVED*** Just downgrade the last migration
+        # Just downgrade the last migration
         last_migration_id = migration_ids[-1]
         last_migration_desc = migrations[last_migration_id]
 
@@ -117,11 +117,11 @@ def _downgrade_single_migration(
     Returns:
         Success status
     """
-    ***REMOVED*** Show progress if not quiet
+    # Show progress if not quiet
     if not quiet:
         console.print(f"[bold yellow]⟳[/] Downgrading: {migration_id}")
 
-    ***REMOVED*** Import the migration module
+    # Import the migration module
     try:
         module = importlib.import_module(f"movie_storage.db.migrations.{migration_id}")
     except ImportError as e:
@@ -130,7 +130,7 @@ def _downgrade_single_migration(
             console.print(f"[red]{str(e)}[/]")
         return False
 
-    ***REMOVED*** Call the downgrade function
+    # Call the downgrade function
     try:
         with console.status("Running downgrade..."):
             module.downgrade(engine)
@@ -140,7 +140,7 @@ def _downgrade_single_migration(
             console.print(f"[red]{str(e)}[/]")
         return False
 
-    ***REMOVED*** Remove the migration record
+    # Remove the migration record
     try:
         with engine.begin() as conn:
             conn.execute(
@@ -156,5 +156,5 @@ def _downgrade_single_migration(
     return True
 
 
-***REMOVED*** Register with parent app
+# Register with parent app
 cli_app.add_typer(app, name="downgrade")

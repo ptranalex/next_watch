@@ -1,20 +1,20 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Set up SSL/TLS for NextWatch Monitoring Stack using Let's Encrypt
+# Set up SSL/TLS for NextWatch Monitoring Stack using Let's Encrypt
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🔒 Setting up SSL/TLS for NextWatch Monitoring${NC}"
 echo "================================================="
 
-***REMOVED*** Load environment variables
+# Load environment variables
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Loaded environment variables${NC}"
@@ -23,7 +23,7 @@ else
     exit 1
 fi
 
-***REMOVED*** Get domain configuration
+# Get domain configuration
 echo -e "${YELLOW}🌐 Domain Configuration${NC}"
 read -p "Enter your domain for monitoring (e.g., monitoring.your-domain.com): " MONITORING_DOMAIN
 read -p "Enter your email for Let's Encrypt: " LETSENCRYPT_EMAIL
@@ -36,7 +36,7 @@ fi
 echo "Domain: $MONITORING_DOMAIN"
 echo "Email: $LETSENCRYPT_EMAIL"
 
-***REMOVED*** Check if SSH key is available
+# Check if SSH key is available
 SSH_KEY_PATH=""
 for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
     if [ -f "$key" ]; then
@@ -50,38 +50,38 @@ if [ -z "$SSH_KEY_PATH" ]; then
     read -p "SSH key path: " SSH_KEY_PATH
 fi
 
-***REMOVED*** SSH user detection
+# SSH user detection
 SSH_USER="ubuntu"
 if [[ "$INSTANCE_TYPE" == *"ubuntu"* ]]; then
     SSH_USER="ubuntu"
 fi
 
-***REMOVED*** Create SSL setup script
+# Create SSL setup script
 TEMP_DIR="/tmp/nextwatch-ssl-$$"
 mkdir -p "$TEMP_DIR"
 
 cat > "$TEMP_DIR/setup-ssl.sh" << EOF
-***REMOVED***!/bin/bash
+#!/bin/bash
 
 set -e
 
 echo "🔒 Setting up SSL/TLS on AWS instance"
 
-***REMOVED*** Install necessary packages
+# Install necessary packages
 if command -v yum >/dev/null 2>&1; then
-    ***REMOVED*** Amazon Linux
+    # Amazon Linux
     sudo yum update -y
     sudo yum install -y nginx certbot python3-certbot-nginx
 elif command -v apt >/dev/null 2>&1; then
-    ***REMOVED*** Ubuntu
+    # Ubuntu
     sudo apt update
     sudo apt install -y nginx certbot python3-certbot-nginx
 fi
 
-***REMOVED*** Stop nginx if running
+# Stop nginx if running
 sudo systemctl stop nginx 2>/dev/null || true
 
-***REMOVED*** Generate SSL certificate
+# Generate SSL certificate
 echo "📜 Generating SSL certificate for $MONITORING_DOMAIN..."
 sudo certbot certonly --standalone \
     --non-interactive \
@@ -89,23 +89,23 @@ sudo certbot certonly --standalone \
     --email $LETSENCRYPT_EMAIL \
     --domains $MONITORING_DOMAIN
 
-***REMOVED*** Create nginx configuration for monitoring
+# Create nginx configuration for monitoring
 sudo tee /etc/nginx/sites-available/nextwatch-monitoring << 'NGINX_CONFIG'
-***REMOVED*** NextWatch Monitoring SSL Configuration
+# NextWatch Monitoring SSL Configuration
 
-***REMOVED*** Redirect HTTP to HTTPS
+# Redirect HTTP to HTTPS
 server {
     listen 80;
     server_name $MONITORING_DOMAIN;
     return 301 https://\$server_name\$request_uri;
 }
 
-***REMOVED*** HTTPS Configuration
+# HTTPS Configuration
 server {
     listen 443 ssl http2;
     server_name $MONITORING_DOMAIN;
 
-    ***REMOVED*** SSL Configuration
+    # SSL Configuration
     ssl_certificate /etc/letsencrypt/live/$MONITORING_DOMAIN/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$MONITORING_DOMAIN/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -116,13 +116,13 @@ server {
     ssl_stapling on;
     ssl_stapling_verify on;
 
-    ***REMOVED*** Security Headers
+    # Security Headers
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Content-Type-Options nosniff;
     add_header X-Frame-Options DENY;
     add_header X-XSS-Protection "1; mode=block";
 
-    ***REMOVED*** Prometheus
+    # Prometheus
     location /prometheus/ {
         proxy_pass http://localhost:9090/;
         proxy_set_header Host \$host;
@@ -130,12 +130,12 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
 
-        ***REMOVED*** Authentication (optional)
-        ***REMOVED*** auth_basic "Monitoring";
-        ***REMOVED*** auth_basic_user_file /etc/nginx/.htpasswd;
+        # Authentication (optional)
+        # auth_basic "Monitoring";
+        # auth_basic_user_file /etc/nginx/.htpasswd;
     }
 
-    ***REMOVED*** Grafana
+    # Grafana
     location / {
         proxy_pass http://localhost:3001/;
         proxy_set_header Host \$host;
@@ -144,13 +144,13 @@ server {
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_set_header X-Forwarded-Host \$host;
 
-        ***REMOVED*** WebSocket support for Grafana
+        # WebSocket support for Grafana
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
     }
 
-    ***REMOVED*** AlertManager
+    # AlertManager
     location /alertmanager/ {
         proxy_pass http://localhost:9093/;
         proxy_set_header Host \$host;
@@ -159,7 +159,7 @@ server {
         proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
-    ***REMOVED*** Health check endpoint
+    # Health check endpoint
     location /health {
         access_log off;
         return 200 "healthy\n";
@@ -168,31 +168,31 @@ server {
 }
 NGINX_CONFIG
 
-***REMOVED*** Enable the site
+# Enable the site
 if [ -d "/etc/nginx/sites-enabled" ]; then
     sudo ln -sf /etc/nginx/sites-available/nextwatch-monitoring /etc/nginx/sites-enabled/
 else
-    ***REMOVED*** Amazon Linux - copy to conf.d
+    # Amazon Linux - copy to conf.d
     sudo cp /etc/nginx/sites-available/nextwatch-monitoring /etc/nginx/conf.d/nextwatch-monitoring.conf
 fi
 
-***REMOVED*** Test nginx configuration
+# Test nginx configuration
 sudo nginx -t
 
-***REMOVED*** Start and enable nginx
+# Start and enable nginx
 sudo systemctl start nginx
 sudo systemctl enable nginx
 
-***REMOVED*** Set up certificate renewal
+# Set up certificate renewal
 sudo crontab -l 2>/dev/null | { cat; echo "0 12 * * * /usr/bin/certbot renew --quiet"; } | sudo crontab -
 
-***REMOVED*** Update Grafana configuration for domain access
+# Update Grafana configuration for domain access
 cd /opt/nextwatch-monitoring
 
-***REMOVED*** Update docker-compose to use domain
+# Update docker-compose to use domain
 sudo tee docker-compose.ssl.yml << DOCKER_SSL
 services:
-  ***REMOVED*** Prometheus - Metrics collection
+  # Prometheus - Metrics collection
   prometheus:
     image: prom/prometheus:v2.48.0
     container_name: prometheus-prod
@@ -226,7 +226,7 @@ services:
         max-size: "100m"
         max-file: "3"
 
-  ***REMOVED*** Grafana - Visualization
+  # Grafana - Visualization
   grafana:
     image: grafana/grafana:10.2.0
     container_name: grafana-prod
@@ -259,7 +259,7 @@ services:
         max-size: "100m"
         max-file: "3"
 
-  ***REMOVED*** AlertManager - Alert routing
+  # AlertManager - Alert routing
   alertmanager:
     image: prom/alertmanager:v0.26.0
     container_name: alertmanager-prod
@@ -287,7 +287,7 @@ services:
         max-size: "100m"
         max-file: "3"
 
-  ***REMOVED*** Node Exporter - Host metrics
+  # Node Exporter - Host metrics
   node-exporter:
     image: prom/node-exporter:v1.7.0
     container_name: node-exporter-prod
@@ -330,7 +330,7 @@ networks:
     driver: bridge
 DOCKER_SSL
 
-***REMOVED*** Restart monitoring stack with SSL configuration
+# Restart monitoring stack with SSL configuration
 echo "🔄 Restarting monitoring stack with SSL configuration..."
 if sudo docker compose version >/dev/null 2>&1; then
     DOCKER_COMPOSE_CMD="sudo docker compose"
@@ -341,7 +341,7 @@ fi
 $DOCKER_COMPOSE_CMD -f docker-compose.ssl.yml --env-file .env.monitoring.prod down
 $DOCKER_COMPOSE_CMD -f docker-compose.ssl.yml --env-file .env.monitoring.prod up -d
 
-***REMOVED*** Display final status
+# Display final status
 echo ""
 echo "🎉 SSL/TLS setup complete!"
 echo ""
@@ -360,14 +360,14 @@ EOF
 
 chmod +x "$TEMP_DIR/setup-ssl.sh"
 
-***REMOVED*** Transfer and execute SSL setup
+# Transfer and execute SSL setup
 echo -e "${YELLOW}📤 Transferring SSL setup script...${NC}"
 scp -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$TEMP_DIR/setup-ssl.sh" "$SSH_USER@$PUBLIC_IP:/tmp/"
 
 echo -e "${YELLOW}🔒 Setting up SSL/TLS on remote instance...${NC}"
 ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" "bash /tmp/setup-ssl.sh"
 
-***REMOVED*** Clean up
+# Clean up
 rm -rf "$TEMP_DIR"
 
 echo ""

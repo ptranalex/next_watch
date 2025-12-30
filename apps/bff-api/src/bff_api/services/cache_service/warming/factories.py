@@ -36,15 +36,15 @@ class BFFTargetFactories:
         if not movie_id:
             return targets
 
-        ***REMOVED*** Calculate base priority
+        # Calculate base priority
         base_priority = self._calculate_priority_for_item(popularity_score, view_count, "movie")
 
-        ***REMOVED*** Movie detail screen for anonymous users
-        ***REMOVED*** This is the most valuable warming target since:
-        ***REMOVED*** 1. It can be shared across all anonymous users
-        ***REMOVED*** 2. It has long TTL (30 minutes vs 30 minutes for authenticated)
-        ***REMOVED*** 3. No user-specific data means no credentials needed during warming
-        ***REMOVED*** 4. Covers the majority of traffic (anonymous browsing)
+        # Movie detail screen for anonymous users
+        # This is the most valuable warming target since:
+        # 1. It can be shared across all anonymous users
+        # 2. It has long TTL (30 minutes vs 30 minutes for authenticated)
+        # 3. No user-specific data means no credentials needed during warming
+        # 4. Covers the majority of traffic (anonymous browsing)
         targets.append(
             WarmingTarget(
                 function_name="movie_screen",
@@ -55,11 +55,11 @@ class BFFTargetFactories:
             )
         )
 
-        ***REMOVED*** Note: We don't warm user-specific versions because:
-        ***REMOVED*** - Warming has no JWT credentials, so user interaction data defaults to False anyway
-        ***REMOVED*** - User-specific caches are short-lived and personalized
-        ***REMOVED*** - Better to warm them on-demand when users actually visit
-        ***REMOVED*** - Anonymous cache covers the majority of use cases
+        # Note: We don't warm user-specific versions because:
+        # - Warming has no JWT credentials, so user interaction data defaults to False anyway
+        # - User-specific caches are short-lived and personalized
+        # - Better to warm them on-demand when users actually visit
+        # - Anonymous cache covers the majority of use cases
 
         return targets
 
@@ -80,10 +80,10 @@ class BFFTargetFactories:
         if not actor_id:
             return targets
 
-        ***REMOVED*** Calculate base priority
+        # Calculate base priority
         base_priority = self._calculate_priority_for_item(popularity_score, view_count, "actor")
 
-        ***REMOVED*** Actor profile screen
+        # Actor profile screen
         targets.append(
             WarmingTarget(
                 function_name="actor_screen",
@@ -113,10 +113,10 @@ class BFFTargetFactories:
         if not genre_id:
             return targets
 
-        ***REMOVED*** Calculate base priority
+        # Calculate base priority
         base_priority = self._calculate_priority_for_item(popularity_score, view_count, "genre")
 
-        ***REMOVED*** Genre screen with default sorting
+        # Genre screen with default sorting
         targets.append(
             WarmingTarget(
                 function_name="genre_screen",
@@ -142,15 +142,15 @@ class BFFTargetFactories:
         Returns:
             Priority score
         """
-        ***REMOVED*** Base priority from popularity
+        # Base priority from popularity
         base_priority = popularity_score
 
-        ***REMOVED*** Boost based on view count (logarithmic scale)
+        # Boost based on view count (logarithmic scale)
         import math
 
         view_boost = math.log10(max(view_count, 1)) / 10.0
 
-        ***REMOVED*** Content type multipliers
+        # Content type multipliers
         type_multipliers = {"movie": 1.0, "actor": 0.8, "genre": 0.6}
         type_multiplier = type_multipliers.get(content_type, 0.3)
 

@@ -1,34 +1,34 @@
-***REMOVED*** Domain Layer
+# Domain Layer
 
 The domain layer represents the core business logic and data structures of the application. It's organized around domain concepts rather than technical concepts, making it easier to express and understand the application's purpose.
 
-***REMOVED******REMOVED*** 📂 Directory Structure
+## 📂 Directory Structure
 
 ```
 src/domain/
-├── entities/           ***REMOVED*** Domain entities (data structures with behavior)
-│   ├── movies/         ***REMOVED*** Movie domain entities
-│   │   ├── Movie.ts    ***REMOVED*** Movie entity definition
-│   │   └── types.ts    ***REMOVED*** Movie-related types
-│   ├── users/          ***REMOVED*** User domain entities
-│   │   ├── User.ts     ***REMOVED*** User entity definition
-│   │   └── types.ts    ***REMOVED*** User-related types
-│   ├── genres/         ***REMOVED*** Genre domain entities
-│   │   ├── Genre.ts    ***REMOVED*** Genre entity definition
-│   │   └── types.ts    ***REMOVED*** Genre-related types
-│   └── index.ts        ***REMOVED*** Entity exports
-├── models/             ***REMOVED*** Domain models with business logic
-│   ├── movies/         ***REMOVED*** Movie domain models
-│   ├── users/          ***REMOVED*** User domain models
-│   └── genres/         ***REMOVED*** Genre domain models
-├── usecases/           ***REMOVED*** Application use cases/business logic
-├── repositories/       ***REMOVED*** Repository interfaces
-└── services/           ***REMOVED*** Domain service interfaces
+├── entities/           # Domain entities (data structures with behavior)
+│   ├── movies/         # Movie domain entities
+│   │   ├── Movie.ts    # Movie entity definition
+│   │   └── types.ts    # Movie-related types
+│   ├── users/          # User domain entities
+│   │   ├── User.ts     # User entity definition
+│   │   └── types.ts    # User-related types
+│   ├── genres/         # Genre domain entities
+│   │   ├── Genre.ts    # Genre entity definition
+│   │   └── types.ts    # Genre-related types
+│   └── index.ts        # Entity exports
+├── models/             # Domain models with business logic
+│   ├── movies/         # Movie domain models
+│   ├── users/          # User domain models
+│   └── genres/         # Genre domain models
+├── usecases/           # Application use cases/business logic
+├── repositories/       # Repository interfaces
+└── services/           # Domain service interfaces
 ```
 
-***REMOVED******REMOVED*** 🧩 Core Concepts
+## 🧩 Core Concepts
 
-***REMOVED******REMOVED******REMOVED*** Entities
+### Entities
 
 Entities are the core data structures of the application's domain. They:
 
@@ -37,7 +37,7 @@ Entities are the core data structures of the application's domain. They:
 3. Include type guards for runtime type checking
 4. Define core business rules for data validation
 
-***REMOVED******REMOVED******REMOVED*** Models
+### Models
 
 Domain models extend entities by adding:
 
@@ -45,7 +45,7 @@ Domain models extend entities by adding:
 2. Complex validation rules
 3. Relationships between different domain concepts
 
-***REMOVED******REMOVED******REMOVED*** API and UI Separation
+### API and UI Separation
 
 The domain layer creates a clear separation between:
 
@@ -54,9 +54,9 @@ The domain layer creates a clear separation between:
 
 This separation allows each layer to evolve independently while maintaining compatibility.
 
-***REMOVED******REMOVED*** 🔄 Usage Examples
+## 🔄 Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Working with Entity Types
+### Working with Entity Types
 
 ```typescript
 import { Movie, toMovieEntity, toServiceMovie } from "@/domain/entities";
@@ -73,7 +73,7 @@ if (isMovie(data)) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Entity Relationships
+### Entity Relationships
 
 The domain layer models relationships between entities:
 
@@ -88,7 +88,7 @@ movie.genres.forEach((genre) => {
 });
 ```
 
-***REMOVED******REMOVED******REMOVED*** Working with Domain Models
+### Working with Domain Models
 
 ```typescript
 import { MovieModel } from "@/domain/models/movies";
@@ -104,7 +104,7 @@ const isAppropriateForAge = movieModel.isAppropriateForAge(userAge);
 const updatedEntity = movieModel.toEntity();
 ```
 
-***REMOVED******REMOVED*** 🏛️ Architecture Background
+## 🏛️ Architecture Background
 
 This project follows a Clean Architecture approach with these key principles:
 
@@ -113,7 +113,7 @@ This project follows a Clean Architecture approach with these key principles:
 3. **Use-Case Driven**: Organized around business capabilities, not technical frameworks
 4. **Entity-Centric**: Core business entities are at the center of the architecture
 
-***REMOVED******REMOVED*** 🔄 Layer Organization
+## 🔄 Layer Organization
 
 From inner to outer:
 
@@ -129,7 +129,7 @@ From inner to outer:
    - Components: UI presentation
    - Hooks: React integration with domain
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 Domain entities and logic should be highly testable in isolation from technical implementations:
 
@@ -158,7 +158,7 @@ describe("MovieModel", () => {
 });
 ```
 
-***REMOVED******REMOVED*** 📚 Further Reading
+## 📚 Further Reading
 
 For more detailed information about domain entities:
 

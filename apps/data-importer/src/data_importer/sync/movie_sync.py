@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, TypedDict
 
 from movie_storage.db.operations import movie as movie_ops
 
-***REMOVED*** Import database models and storage operations
+# Import database models and storage operations
 from movie_storage.models import Movie
 from rich.console import Console
 from rich.progress import Progress, TaskID
@@ -20,7 +20,7 @@ from data_importer.services.tmdb import TMDBClient
 logger = logging.getLogger(__name__)
 console = Console()
 
-***REMOVED*** Get configuration settings
+# Get configuration settings
 config = Config.get_instance()
 
 
@@ -88,10 +88,10 @@ async def fetch_genre_data(tmdb_client: TMDBClient) -> Dict[int, Dict[str, Any]]
     genre_map = {}
 
     try:
-        ***REMOVED*** Fetch genres from TMDB
+        # Fetch genres from TMDB
         tmdb_genres = await tmdb_client.get_movie_genres()
 
-        ***REMOVED*** Create simple dictionary for each genre
+        # Create simple dictionary for each genre
         for genre_data in tmdb_genres:
             genre_id = genre_data.get("id")
             name = genre_data.get("name")
@@ -140,7 +140,7 @@ async def sync_movies_by_year_range(
     Returns:
         Dictionary with complete sync results including statistics, movies, and metadata
     """
-    ***REMOVED*** Load defaults from config if not provided
+    # Load defaults from config if not provided
     start_year = start_year if start_year is not None else config.movie_sync_start_year
     end_year = end_year if end_year is not None else config.movie_sync_end_year
     limit_per_year = (
@@ -158,7 +158,7 @@ async def sync_movies_by_year_range(
         min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
     )
 
-    ***REMOVED*** Log configuration being used (only if verbose)
+    # Log configuration being used (only if verbose)
     if verbose:
         logger.info("Starting movie sync with configuration:")
         logger.info(f"  Years: {start_year} to {end_year}")
@@ -174,20 +174,20 @@ async def sync_movies_by_year_range(
     if start_year > end_year:
         start_year, end_year = end_year, start_year
 
-    ***REMOVED*** Validate sort_by parameter
+    # Validate sort_by parameter
     if sort_by not in ["popularity.desc", "vote_count.desc"]:
         logger.warning(f"Invalid sort_by value: {sort_by}. Using vote_count.desc instead.")
         sort_by = "vote_count.desc"
 
-    ***REMOVED*** Store sort strategy in stats
+    # Store sort strategy in stats
     sort_strategy = "popularity" if sort_by == "popularity.desc" else "vote count"
 
-    ***REMOVED*** Check if we should save to database
+    # Check if we should save to database
     if save_to_db and db_session is None:
         logger.warning("save_to_db is True but no db_session provided. Movies will not be saved.")
         save_to_db = False
 
-    ***REMOVED*** Create movie data adapter that combines TMDB and OMDB
+    # Create movie data adapter that combines TMDB and OMDB
     data_adapter = MovieDataAdapter(tmdb_client, omdb_client)
 
     tmdb_movies = []
@@ -195,10 +195,10 @@ async def sync_movies_by_year_range(
     movie_dicts = []
     years = list(range(start_year, end_year + 1))
 
-    ***REMOVED*** Fetch genres first
+    # Fetch genres first
     genre_map = await fetch_genre_data(tmdb_client)
 
-    ***REMOVED*** Statistics to return
+    # Statistics to return
     stats: SyncStats = {
         "tmdb_movies_found": 0,
         "omdb_matches_found": 0,
@@ -215,10 +215,10 @@ async def sync_movies_by_year_range(
         "end_time": None,
         "elapsed_seconds": 0.0,
         "errors": [],
-        "movies": [],  ***REMOVED*** Will hold simplified movie data
+        "movies": [],  # Will hold simplified movie data
     }
 
-    ***REMOVED*** Set up progress tracking
+    # Set up progress tracking
     progress = None
     task_ids = {}
     main_task: TaskID | None = None
@@ -232,7 +232,7 @@ async def sync_movies_by_year_range(
         progress.start()
 
     try:
-        ***REMOVED*** Process each year
+        # Process each year
         for year in years:
             if show_progress and progress is not None:
                 year_task = progress.add_task(
@@ -241,7 +241,7 @@ async def sync_movies_by_year_range(
                 task_ids[year] = year_task
 
             try:
-                ***REMOVED*** Prepare parameters for this API call
+                # Prepare parameters for this API call
                 api_params = {
                     "primary_release_year": year,
                     "language": "en-US",
@@ -251,43 +251,43 @@ async def sync_movies_by_year_range(
                     "vote_count.gte": min_vote_count,
                 }
 
-                ***REMOVED*** Log which filters we're using (only in verbose mode)
+                # Log which filters we're using (only in verbose mode)
                 if verbose:
                     logger.info(
                         f"Fetching movies for year {year} (sorted by {sort_strategy}, min votes: {min_vote_count})"
                     )
 
-                ***REMOVED*** Fetch movies from TMDB for this year with custom parameters
+                # Fetch movies from TMDB for this year with custom parameters
                 year_movies: List[Dict[str, Any]] = []
                 page = 1
 
-                ***REMOVED*** Manual pagination implementation (similar to fetch_movies_by_year but with our custom params)
+                # Manual pagination implementation (similar to fetch_movies_by_year but with our custom params)
                 while len(year_movies) < limit_per_year:
                     api_params["page"] = page
                     response = await tmdb_client._make_request("/discover/movie", api_params)
 
-                    ***REMOVED*** If no results, break
+                    # If no results, break
                     if not response or not response.get("results"):
                         break
 
-                    ***REMOVED*** Add results to our list
+                    # Add results to our list
                     results = response.get("results", [])
                     remaining = limit_per_year - len(year_movies)
                     year_movies.extend(results[:remaining])
 
-                    ***REMOVED*** Check if we need to fetch more pages
+                    # Check if we need to fetch more pages
                     if page >= response.get("total_pages", 1) or not remaining:
                         break
 
                     page += 1
 
-                ***REMOVED*** Ensure we don't exceed the limit
+                # Ensure we don't exceed the limit
                 year_movies = year_movies[:limit_per_year]
 
                 tmdb_movies.extend(year_movies)
                 stats["tmdb_movies_found"] += len(year_movies)
 
-                ***REMOVED*** Log info about results (simplified for normal mode)
+                # Log info about results (simplified for normal mode)
                 if verbose:
                     logger.info(
                         f"Year {year}: Found {len(year_movies)} movies (sorted by {sort_strategy}, min votes: {min_vote_count})"
@@ -295,7 +295,7 @@ async def sync_movies_by_year_range(
                 else:
                     logger.info(f"Year {year}: Processing {len(year_movies)} movies")
 
-                ***REMOVED*** Process each movie from TMDB
+                # Process each movie from TMDB
                 for i, tmdb_movie in enumerate(year_movies):
                     try:
                         movie_title = tmdb_movie.get("title", "")
@@ -305,11 +305,11 @@ async def sync_movies_by_year_range(
                             logger.warning(f"Skipping movie with no TMDB ID: {movie_title}")
                             continue
 
-                        ***REMOVED*** Use the combined adapter to import and enrich movie
+                        # Use the combined adapter to import and enrich movie
                         if save_to_db and db_session:
                             try:
-                                ***REMOVED*** Import movie using combined adapter with OMDB enrichment
-                                language = "en-US"  ***REMOVED*** Default language
+                                # Import movie using combined adapter with OMDB enrichment
+                                language = "en-US"  # Default language
                                 result = await data_adapter.import_movie_with_enrichment(
                                     db_session,
                                     tmdb_id,
@@ -324,20 +324,20 @@ async def sync_movies_by_year_range(
                                     )
                                     continue
 
-                                ***REMOVED*** Get the database movie ID
+                                # Get the database movie ID
                                 db_movie_id = result.get("movie_id")
                                 credit_count = result.get("credit_count", 0)
                                 if result.get("omdb_enriched"):
                                     stats["omdb_matches_found"] += 1
 
-                                ***REMOVED*** Get the full movie for stats and result lists
+                                # Get the full movie for stats and result lists
                                 if db_movie_id is not None:
                                     db_movie = movie_ops.get_movie_by_id(db_session, db_movie_id)
                                     if db_movie:
-                                        ***REMOVED*** Add to in-memory movie models list
+                                        # Add to in-memory movie models list
                                         movie_models.append(db_movie)
 
-                                        ***REMOVED*** Create a dictionary representation
+                                        # Create a dictionary representation
                                         movie_dict = {
                                             "tmdb_id": db_movie.tmdb_id,
                                             "title": db_movie.title,
@@ -366,7 +366,7 @@ async def sync_movies_by_year_range(
                                         stats["movies_saved_to_db"] += 1
                                         stats["credits_saved"] += credit_count
 
-                                        ***REMOVED*** Add simplified movie data to stats
+                                        # Add simplified movie data to stats
                                         stats["movies"].append(
                                             {
                                                 "id": db_movie.tmdb_id,
@@ -389,10 +389,10 @@ async def sync_movies_by_year_range(
                                 logger.error(error_msg)
                                 stats["errors"].append(error_msg)
                         else:
-                            ***REMOVED*** For in-memory use only, create a representation
-                            ***REMOVED*** but don't save to database
+                            # For in-memory use only, create a representation
+                            # but don't save to database
                             try:
-                                ***REMOVED*** Get movie details (lightweight fetch without creating in DB)
+                                # Get movie details (lightweight fetch without creating in DB)
                                 movie_details = await tmdb_client.get_movie_details(
                                     movie_id=tmdb_id, append_credits=False
                                 )
@@ -401,7 +401,7 @@ async def sync_movies_by_year_range(
                                     logger.warning(f"Could not get details for movie {movie_title}")
                                     continue
 
-                                ***REMOVED*** Try to get OMDB data without saving to DB
+                                # Try to get OMDB data without saving to DB
                                 omdb_data = None
                                 year_str = str(year)
                                 if movie_title:
@@ -423,7 +423,7 @@ async def sync_movies_by_year_range(
                                             f"OMDB lookup failed for '{movie_title}': {str(e)}"
                                         )
 
-                                ***REMOVED*** Create a virtual movie model for statistics
+                                # Create a virtual movie model for statistics
                                 movie = Movie(
                                     tmdb_id=tmdb_id,
                                     title=movie_title,
@@ -439,24 +439,24 @@ async def sync_movies_by_year_range(
                                     popularity=movie_details.get("popularity"),
                                     runtime=movie_details.get("runtime"),
                                     imdb_rating=None,
-                                    genres=[],  ***REMOVED*** Empty list for SQLModel initialization
+                                    genres=[],  # Empty list for SQLModel initialization
                                 )
 
-                                ***REMOVED*** Add OMDB data if available
+                                # Add OMDB data if available
                                 if omdb_data:
                                     movie.imdb_id = omdb_data.get("imdb_id")
                                     movie.imdb_rating = omdb_data.get("imdb_rating")
                                     if not movie.runtime and omdb_data.get("runtime_mins"):
                                         movie.runtime = omdb_data.get("runtime_mins")
 
-                                ***REMOVED*** Get genres for this movie
+                                # Get genres for this movie
                                 movie_genres = []
                                 genre_ids = tmdb_movie.get("genre_ids", [])
                                 for genre_id in genre_ids:
                                     if genre_id in genre_map:
                                         movie_genres.append(genre_map[genre_id])
 
-                                ***REMOVED*** Create a dictionary representation
+                                # Create a dictionary representation
                                 movie_dict = {
                                     "tmdb_id": movie.tmdb_id,
                                     "title": movie.title,
@@ -478,7 +478,7 @@ async def sync_movies_by_year_range(
                                 movie_dicts.append(movie_dict)
                                 stats["movies_synced"] += 1
 
-                                ***REMOVED*** Add simplified movie data to stats
+                                # Add simplified movie data to stats
                                 stats["movies"].append(
                                     {
                                         "id": movie.tmdb_id,
@@ -500,7 +500,7 @@ async def sync_movies_by_year_range(
                                 )
                                 continue
 
-                        ***REMOVED*** Update progress
+                        # Update progress
                         if show_progress and progress is not None and year in task_ids:
                             progress.update(
                                 task_ids[year],
@@ -517,7 +517,7 @@ async def sync_movies_by_year_range(
 
                 stats["years_processed"] += 1
 
-                ***REMOVED*** Log year summary (consolidated information)
+                # Log year summary (consolidated information)
                 year_movies_processed = len(year_movies)
                 year_omdb_enriched = sum(
                     1 for m in stats["movies"] if m["year"] == year and m.get("imdb_rating")
@@ -528,7 +528,7 @@ async def sync_movies_by_year_range(
                     f"{f', {year_omdb_enriched} OMDB enriched' if year_omdb_enriched > 0 else ''}"
                 )
 
-                ***REMOVED*** Update main progress bar
+                # Update main progress bar
                 if show_progress and progress is not None and main_task is not None:
                     progress.update(main_task, advance=1)
 
@@ -544,7 +544,7 @@ async def sync_movies_by_year_range(
                         description=f"[red]Year {year}: Error!",
                     )
 
-        ***REMOVED*** Complete the progress
+        # Complete the progress
         if show_progress and progress is not None and main_task is not None:
             progress.update(
                 main_task,
@@ -553,14 +553,14 @@ async def sync_movies_by_year_range(
             )
 
     finally:
-        ***REMOVED*** Record end time and calculate elapsed time
+        # Record end time and calculate elapsed time
         end_time = datetime.now()
         stats["end_time"] = end_time.isoformat()
         stats["elapsed_seconds"] = (
             end_time - datetime.fromisoformat(stats["start_time"])
         ).total_seconds()
 
-        ***REMOVED*** Stop progress bar if it's running
+        # Stop progress bar if it's running
         if progress and progress.live.is_started:
             progress.stop()
 
@@ -584,12 +584,12 @@ def format_sync_results(results: Dict[str, Any]) -> str:
     if not results:
         return "No results available"
 
-    ***REMOVED*** Calculate elapsed time
+    # Calculate elapsed time
     start_time = datetime.fromisoformat(results.get("start_time", datetime.now().isoformat()))
     end_time = datetime.fromisoformat(results.get("end_time", datetime.now().isoformat()))
     elapsed_seconds = (end_time - start_time).total_seconds()
 
-    ***REMOVED*** Build the formatted string
+    # Build the formatted string
     formatted = []
     formatted.append("[bold cyan]===== Movie Sync Results =====[/bold cyan]")
     formatted.append(
@@ -607,19 +607,19 @@ def format_sync_results(results: Dict[str, Any]) -> str:
     formatted.append(f"[bold]Movies Synced:[/bold] {results.get('movies_synced', 0)}")
     formatted.append(f"[bold]Genres Found:[/bold] {results.get('genres_found', 0)}")
 
-    ***REMOVED*** Add credit information if available
+    # Add credit information if available
     if "credits_saved" in results:
         formatted.append(f"[bold]Credits Saved:[/bold] {results.get('credits_saved', 0)}")
 
     if results.get("save_to_db", False):
         formatted.append(f"[bold]Movies Saved to DB:[/bold] {results.get('movies_saved_to_db', 0)}")
 
-    ***REMOVED*** Add errors if any
+    # Add errors if any
     errors = results.get("errors", [])
     if errors:
         formatted.append("")
         formatted.append("[bold red]--- Errors ---[/bold red]")
-        for error in errors[:5]:  ***REMOVED*** Show at most 5 errors
+        for error in errors[:5]:  # Show at most 5 errors
             formatted.append(f"[red]- {error}[/red]")
         if len(errors) > 5:
             formatted.append(f"[red]... and {len(errors) - 5} more errors[/red]")

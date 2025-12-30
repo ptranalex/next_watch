@@ -1,17 +1,17 @@
-***REMOVED*** NextWatch Monitoring Scripts
+# NextWatch Monitoring Scripts
 
 This directory contains deployment scripts for the NextWatch monitoring stack.
 
-***REMOVED******REMOVED*** Local Development Deployment
+## Local Development Deployment
 
-***REMOVED******REMOVED******REMOVED*** Quick Start
+### Quick Start
 
 ```bash
-***REMOVED*** Deploy monitoring stack locally
+# Deploy monitoring stack locally
 ./deploy-monitoring-local.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** What Gets Deployed
+### What Gets Deployed
 
 The local monitoring stack includes:
 
@@ -25,7 +25,7 @@ The local monitoring stack includes:
 - **Node Exporter** (http://localhost:9100) - System metrics
 - **cAdvisor** (http://localhost:8080) - Container metrics
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - Docker and Docker Compose installed
 - NextWatch services running on standard ports:
@@ -36,7 +36,7 @@ The local monitoring stack includes:
   - ML API: http://localhost:8004
   - Recommendation API: http://localhost:8005
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+### Configuration
 
 The script automatically creates local configuration files:
 
@@ -46,23 +46,23 @@ The script automatically creates local configuration files:
 - `monitoring/promtail/promtail.local.yml` - Promtail configuration for log shipping
 - `monitoring/tempo/tempo.local.yml` - Tempo configuration for tracing
 
-***REMOVED******REMOVED******REMOVED*** Management Commands
+### Management Commands
 
 ```bash
-***REMOVED*** View logs
+# View logs
 docker compose -f infra/compose/monitoring.local.yml logs -f
 
-***REMOVED*** Restart services
+# Restart services
 docker compose -f infra/compose/monitoring.local.yml restart
 
-***REMOVED*** Stop monitoring
+# Stop monitoring
 docker compose -f infra/compose/monitoring.local.yml down
 
-***REMOVED*** Clean up (removes volumes)
+# Clean up (removes volumes)
 docker compose -f infra/compose/monitoring.local.yml down -v
 ```
 
-***REMOVED******REMOVED******REMOVED*** Accessing Services
+### Accessing Services
 
 - **Grafana**: http://localhost:3001 (admin/admin123)
 - **Prometheus**: http://localhost:9090
@@ -70,7 +70,7 @@ docker compose -f infra/compose/monitoring.local.yml down -v
 - **Loki**: http://localhost:3100
 - **Tempo**: http://localhost:3200
 
-***REMOVED******REMOVED******REMOVED*** Health Status Monitoring
+### Health Status Monitoring
 
 The local deployment includes the enhanced health status monitoring that supports:
 
@@ -81,13 +81,13 @@ The local deployment includes the enhanced health status monitoring that support
 Use these Grafana queries for your charts:
 
 ```promql
-***REMOVED*** Healthy services
+# Healthy services
 probe_success{job="nextwatch-health-healthy-only"}
 
-***REMOVED*** Degraded services
+# Degraded services
 probe_success{job="nextwatch-health-degraded-only"}
 
-***REMOVED*** Enhanced status overview
+# Enhanced status overview
 probe_success{job="nextwatch-health-healthy-only"} * 3 +
 probe_success{job="nextwatch-health-degraded-only"} * 2 +
 (probe_success{job="nextwatch-health-endpoints"}
@@ -95,25 +95,25 @@ probe_success{job="nextwatch-health-degraded-only"} * 2 +
   and probe_success{job="nextwatch-health-degraded-only"} == 0) * 1
 ```
 
-***REMOVED******REMOVED******REMOVED*** Troubleshooting
+### Troubleshooting
 
 1. **Services not starting**: Check Docker is running and ports are available
 2. **No metrics**: Ensure NextWatch services are running on expected ports
 3. **Permission issues**: The script tries to set Docker socket permissions
 4. **Log collection issues**: Verify NextWatch service log volumes exist
 
-***REMOVED******REMOVED******REMOVED*** Production Deployment
+### Production Deployment
 
 For production deployment, use:
 
 ```bash
-***REMOVED*** AWS production deployment
+# AWS production deployment
 ./aws/deployment/deploy-monitoring-one-click.sh
 ```
 
-***REMOVED******REMOVED*** 🔍 Service Status Checking
+## 🔍 Service Status Checking
 
-***REMOVED******REMOVED******REMOVED*** check-services.sh
+### check-services.sh
 
 Comprehensive health check script that monitors all Next Watch services and infrastructure.
 

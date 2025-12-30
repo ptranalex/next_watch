@@ -1,22 +1,22 @@
-***REMOVED*** BFF API Service Clients
+# BFF API Service Clients
 
 This module provides client implementations for communicating with backend services. These clients handle the HTTP communication, error handling, retries, and response processing for all backend service interactions.
 
-***REMOVED******REMOVED*** Structure
+## Structure
 
 The services module is organized as follows:
 
 ```
 bff_api/services/
 │
-├── __init__.py       ***REMOVED*** Package initialization
-├── backend_client.py ***REMOVED*** Client for the Backend API service
-└── auth_client.py    ***REMOVED*** Client for the Auth API service
+├── __init__.py       # Package initialization
+├── backend_client.py # Client for the Backend API service
+└── auth_client.py    # Client for the Auth API service
 ```
 
-***REMOVED******REMOVED*** Service Clients
+## Service Clients
 
-***REMOVED******REMOVED******REMOVED*** BackendClient
+### BackendClient
 
 The `BackendClient` provides methods for accessing the main Backend API, including:
 
@@ -27,7 +27,7 @@ The `BackendClient` provides methods for accessing the main Backend API, includi
 - **Search**: Global search across content types
 - **Categories**: Genres, keywords, collections
 
-***REMOVED******REMOVED******REMOVED*** AuthClient
+### AuthClient
 
 The `AuthClient` provides authentication and authorization methods:
 
@@ -36,7 +36,7 @@ The `AuthClient` provides authentication and authorization methods:
 - **Profile**: User profile management
 - **Security**: Password reset, account verification
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 The service clients are designed to be used as dependencies in the FastAPI routes:
 
@@ -63,7 +63,7 @@ async def login(
     return await auth_client.login(credentials.username, credentials.password)
 ```
 
-***REMOVED******REMOVED*** Design Principles
+## Design Principles
 
 1. **Separation of Concerns**: The service clients abstract away the details of HTTP communication from the route handlers
 2. **Resilience**: Built-in retry mechanisms with exponential backoff for handling transient failures
@@ -73,9 +73,9 @@ async def login(
 6. **Typed Interfaces**: Full type annotations for all methods and responses
 7. **Logging**: Comprehensive logging for debugging and monitoring
 
-***REMOVED******REMOVED*** Implementation Details
+## Implementation Details
 
-***REMOVED******REMOVED******REMOVED*** HTTP Client
+### HTTP Client
 
 The clients use `httpx` for HTTP communication, which provides:
 
@@ -85,7 +85,7 @@ The clients use `httpx` for HTTP communication, which provides:
 - HTTP/2 support
 - Request/response logging
 
-***REMOVED******REMOVED******REMOVED*** Retry Logic
+### Retry Logic
 
 The `tenacity` library is used for implementing retry logic with:
 
@@ -94,7 +94,7 @@ The `tenacity` library is used for implementing retry logic with:
 - Jitter to prevent thundering herd
 - Retry only on specific error conditions
 
-***REMOVED******REMOVED******REMOVED*** Error Handling
+### Error Handling
 
 Errors from the backend services are:
 
@@ -103,7 +103,7 @@ Errors from the backend services are:
 3. Enhanced with additional context when needed
 4. Properly logged with relevant details
 
-***REMOVED******REMOVED*** Extension Guidelines
+## Extension Guidelines
 
 When extending or modifying the service clients:
 
@@ -115,7 +115,7 @@ When extending or modifying the service clients:
 6. Consider caching implications for read operations
 7. Ensure proper retry configuration for different operation types
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 - Use appropriate timeouts for different types of operations
 - Include relevant request IDs in logs for traceability

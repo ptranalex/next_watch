@@ -11,7 +11,7 @@ from typing import Any
 try:
     import prometheus_client
 except ImportError:
-    prometheus_client = None  ***REMOVED*** type: ignore[assignment]
+    prometheus_client = None  # type: ignore[assignment]
     PROMETHEUS_AVAILABLE = False
 else:
     PROMETHEUS_AVAILABLE = True
@@ -41,19 +41,19 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
     if not endpoint:
         return endpoint
 
-    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    # Remove query parameters (they cause cardinality explosion)
     endpoint = endpoint.split("?")[0]
 
-    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    # Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
     normalized_parts = []
 
     for part in parts:
         if part.isdigit():
-            ***REMOVED*** Replace numeric IDs with generic placeholder
+            # Replace numeric IDs with generic placeholder
             normalized_parts.append("{id}")
         else:
-            ***REMOVED*** Keep non-numeric parts as-is
+            # Keep non-numeric parts as-is
             normalized_parts.append(part)
 
     return "/".join(normalized_parts)
@@ -73,11 +73,11 @@ class MLMetrics:
             self.registry = registry
             return
 
-        ***REMOVED*** At this point, prometheus_client is installed and the symbols are available.
+        # At this point, prometheus_client is installed and the symbols are available.
         assert prometheus_client is not None
         self.registry = registry or prometheus_client.CollectorRegistry()
 
-        ***REMOVED*** Embedding-specific metrics
+        # Embedding-specific metrics
         self.embedding_requests = prometheus_client.Counter(
             "ml_embedding_requests_total",
             "Total number of embedding requests",
@@ -100,7 +100,7 @@ class MLMetrics:
             registry=self.registry,
         )
 
-        ***REMOVED*** Model metrics
+        # Model metrics
         self.model_load_duration = prometheus_client.Histogram(
             "ml_model_load_duration_seconds",
             "Time spent loading ML models",
@@ -115,7 +115,7 @@ class MLMetrics:
             registry=self.registry,
         )
 
-        ***REMOVED*** Error metrics
+        # Error metrics
         self.embedding_errors = prometheus_client.Counter(
             "ml_embedding_errors_total",
             "Total number of embedding errors",
@@ -130,7 +130,7 @@ class MLMetrics:
         if not PROMETHEUS_AVAILABLE:
             return
 
-        ***REMOVED*** Categorize batch size
+        # Categorize batch size
         if batch_size == 1:
             batch_range = "single"
         elif batch_size <= BATCH_SIZE_SMALL_MAX:

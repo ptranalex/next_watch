@@ -51,7 +51,7 @@ def create_version_command(
         ... )
         >>> app.command("version")(version_cmd)
     """
-    ***REMOVED*** Default package name from service name
+    # Default package name from service name
     if package_name is None:
         package_name = service_name.lower().replace(" ", "_").replace("-", "_")
 
@@ -65,35 +65,35 @@ def create_version_command(
         out = get_cli_output("version", verbose=verbose, quiet=quiet)
 
         try:
-            ***REMOVED*** Get package version
+            # Get package version
             try:
                 version = importlib.metadata.version(package_name)
             except (importlib.metadata.PackageNotFoundError, AttributeError):
                 version = default_version
 
-            ***REMOVED*** Basic version info
+            # Basic version info
             out.info(f"[bold blue]{service_name}[/bold blue] version [green]{version}[/green]")
 
-            ***REMOVED*** Environment information
+            # Environment information
             if show_environment and config_getter:
                 try:
                     config = config_getter()
                     if hasattr(config, "environment"):
                         out.info(f"Environment: [yellow]{config.environment}[/yellow]")
                 except Exception:
-                    ***REMOVED*** Don't fail if config is unavailable
+                    # Don't fail if config is unavailable
                     pass
 
-            ***REMOVED*** Python version
+            # Python version
             if show_python_info:
                 out.info(f"Python: [dim]{sys.version.split()[0]}[/dim]")
 
-            ***REMOVED*** Extra info
+            # Extra info
             if extra_info:
                 for key, value in extra_info.items():
                     out.info(f"{key}: [cyan]{value}[/cyan]")
 
-            ***REMOVED*** Verbose mode - detailed information
+            # Verbose mode - detailed information
             if verbose:
                 _show_verbose_info(
                     out,
@@ -104,7 +104,7 @@ def create_version_command(
                     config_getter,
                 )
 
-                ***REMOVED*** Log operation for monitoring
+                # Log operation for monitoring
                 out.log_operation(
                     "Version command completed",
                     service=service_name,
@@ -130,7 +130,7 @@ def _show_verbose_info(
 ) -> None:
     """Show detailed version information in verbose mode."""
 
-    ***REMOVED*** System Information Table
+    # System Information Table
     system_table = Table(title="System Information")
     system_table.add_column("Component", style="cyan")
     system_table.add_column("Version", style="white")
@@ -142,7 +142,7 @@ def _show_verbose_info(
     system_table.add_row("Platform", platform.platform())
     system_table.add_row("System", f"{platform.system()} {platform.release()}")
 
-    ***REMOVED*** Add environment details if available
+    # Add environment details if available
     if config_getter:
         try:
             config = config_getter()
@@ -155,7 +155,7 @@ def _show_verbose_info(
 
     out.console.print(system_table)
 
-    ***REMOVED*** Dependencies Table (if provided)
+    # Dependencies Table (if provided)
     if dependencies:
         deps_table = Table(title="Key Dependencies")
         deps_table.add_column("Package", style="cyan")
@@ -166,7 +166,7 @@ def _show_verbose_info(
                 dep_version = importlib.metadata.version(dep)
                 deps_table.add_row(dep, dep_version)
             except importlib.metadata.PackageNotFoundError:
-                ***REMOVED*** Try to import and get version attribute
+                # Try to import and get version attribute
                 try:
                     module = importlib.import_module(dep)
                     if hasattr(module, "__version__"):

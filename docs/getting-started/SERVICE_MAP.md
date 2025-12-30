@@ -1,8 +1,8 @@
-***REMOVED*** Service Map (NextWatch Monorepo)
+# Service Map (NextWatch Monorepo)
 
 This document is the index for **what each app/lib does**, **how to run it**, and **how requests flow**.
 
-***REMOVED******REMOVED*** Apps (deployable services)
+## Apps (deployable services)
 
 | Component | Path | Tech | Default port(s) | Run (local dev) | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ Read more (service-level docs):
 - `apps/data-importer/README.md`
 - `apps/web-nextjs/README.md`
 
-***REMOVED******REMOVED*** Shared libraries
+## Shared libraries
 
 | Library | Path | Used by | Purpose |
 | --- | --- | --- | --- |
@@ -49,7 +49,7 @@ Read more:
 - `libs/cli/README.md`
 - `libs/movie-storage/README.md`
 
-***REMOVED******REMOVED*** Request flow (typical)
+## Request flow (typical)
 
 ```mermaid
 flowchart LR
@@ -62,7 +62,7 @@ flowchart LR
   rec --> ml[ml-api]
 ```
 
-***REMOVED******REMOVED*** Data flow (events + import)
+## Data flow (events + import)
 
 ```mermaid
 flowchart LR
@@ -71,7 +71,7 @@ flowchart LR
   kafka --> consumers[ServiceConsumers]
 ```
 
-***REMOVED******REMOVED*** Infrastructure entrypoints
+## Infrastructure entrypoints
 
 - Production stack (Docker Compose): `infra/compose/prod.yml` (env: `.env.prod`, template: `infra/env/prod.example`)
 - Monitoring stack (Docker Compose): `infra/compose/monitoring.yml` (env: `infra/.env.monitoring.prod`, template: `infra/env/monitoring.prod.example`)

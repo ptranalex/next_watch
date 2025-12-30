@@ -1,8 +1,8 @@
-***REMOVED*** Movie Hooks
+# Movie Hooks
 
 This directory contains hooks for working with movie data in the application.
 
-***REMOVED******REMOVED*** 🔄 API Conventions
+## 🔄 API Conventions
 
 We follow the backend API naming conventions for movie user interactions:
 
@@ -12,7 +12,7 @@ We follow the backend API naming conventions for movie user interactions:
 | `watched`      | Whether the user has watched the movie       |
 | `in_watchlist` | Whether the movie is in the user's watchlist |
 
-***REMOVED******REMOVED******REMOVED*** API Response Structure
+### API Response Structure
 
 User movie interactions from the API follow this structure:
 
@@ -30,9 +30,9 @@ interface UserMovieInteractionResponse {
 }
 ```
 
-***REMOVED******REMOVED*** 🧩 Available Hooks
+## 🧩 Available Hooks
 
-***REMOVED******REMOVED******REMOVED*** `useMovie`
+### `useMovie`
 
 Fetches and manages a single movie's data:
 
@@ -48,7 +48,7 @@ const {
 } = useMovie(movieId);
 ```
 
-***REMOVED******REMOVED******REMOVED*** `useMovies`
+### `useMovies`
 
 Fetches and manages a paginated list of movies:
 
@@ -64,7 +64,7 @@ const {
 } = useMovies(filterOptions);
 ```
 
-***REMOVED******REMOVED******REMOVED*** `useMovieTrailer`
+### `useMovieTrailer`
 
 Fetches movie trailer information:
 
@@ -76,7 +76,7 @@ const {
 } = useMovieTrailer(movieId);
 ```
 
-***REMOVED******REMOVED******REMOVED*** `useMovieCast`
+### `useMovieCast`
 
 Fetches movie cast information:
 
@@ -88,7 +88,7 @@ const {
 } = useMovieCast(movieId);
 ```
 
-***REMOVED******REMOVED******REMOVED*** `useTopMovies`
+### `useTopMovies`
 
 Fetches top-rated movies:
 
@@ -103,7 +103,7 @@ const {
 });
 ```
 
-***REMOVED******REMOVED*** 🔄 Data Flow
+## 🔄 Data Flow
 
 These hooks integrate with the domain layer to transform API data:
 
@@ -112,9 +112,9 @@ These hooks integrate with the domain layer to transform API data:
 3. **React Components** receive the entity data for display
 4. **User Interactions** are processed and sent back to the API
 
-***REMOVED******REMOVED*** 💡 Usage Examples
+## 💡 Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Single Movie Page
+### Single Movie Page
 
 ```tsx
 function MovieDetail({ movieId }) {
@@ -134,7 +134,7 @@ function MovieDetail({ movieId }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Movie Grid with Infinite Scroll
+### Movie Grid with Infinite Scroll
 
 ```tsx
 function MovieGrid() {
@@ -162,7 +162,7 @@ function MovieGrid() {
 }
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 Example test for a movie hook:
 

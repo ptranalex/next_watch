@@ -6,11 +6,11 @@ schema evolution capabilities via Schema Registry.
 
 from typing import Any
 
-***REMOVED*** Namespace for all Next Watch event schemas
+# Namespace for all Next Watch event schemas
 NAMESPACE = "com.nextwatch.events"
 VERSION = "v1"
 
-***REMOVED*** Base Event Schema (inherited fields in all events)
+# Base Event Schema (inherited fields in all events)
 BASE_EVENT_FIELDS = [
     {"name": "event_id", "type": "string", "doc": "Unique event identifier"},
     {"name": "event_type", "type": "string", "doc": "Type of the event"},
@@ -45,7 +45,7 @@ BASE_EVENT_FIELDS = [
     },
 ]
 
-***REMOVED*** User Event Schemas
+# User Event Schemas
 USER_REGISTERED_EVENT_SCHEMA: dict[str, Any] = {
     "type": "record",
     "name": f"UserRegisteredEvent.{VERSION}",
@@ -99,7 +99,7 @@ USER_LOGOUT_EVENT_SCHEMA: dict[str, Any] = {
     ],
 }
 
-***REMOVED*** Activity Event Schemas
+# Activity Event Schemas
 MOVIE_VIEWED_EVENT_SCHEMA: dict[str, Any] = {
     "type": "record",
     "name": f"MovieViewedEvent.{VERSION}",
@@ -160,7 +160,7 @@ WATCHLIST_CHANGED_EVENT_SCHEMA: dict[str, Any] = {
     ],
 }
 
-***REMOVED*** Content Event Schemas
+# Content Event Schemas
 MOVIE_CREATED_EVENT_SCHEMA: dict[str, Any] = {
     "type": "record",
     "name": f"MovieCreatedEvent.{VERSION}",
@@ -203,7 +203,7 @@ MOVIE_DELETED_EVENT_SCHEMA: dict[str, Any] = {
     ],
 }
 
-***REMOVED*** Cache Event Schemas
+# Cache Event Schemas
 CACHE_INVALIDATION_EVENT_SCHEMA: dict[str, Any] = {
     "type": "record",
     "name": f"CacheInvalidationEvent.{VERSION}",
@@ -227,7 +227,7 @@ CACHE_INVALIDATION_EVENT_SCHEMA: dict[str, Any] = {
     ],
 }
 
-***REMOVED*** System Event Schemas
+# System Event Schemas
 RECOMMENDATION_REQUEST_EVENT_SCHEMA: dict[str, Any] = {
     "type": "record",
     "name": f"RecommendationRequestEvent.{VERSION}",
@@ -290,7 +290,7 @@ DLQ_EVENT_SCHEMA: dict[str, Any] = {
     ],
 }
 
-***REMOVED*** Dictionary of all schemas for easy lookup
+# Dictionary of all schemas for easy lookup
 AVRO_SCHEMAS: dict[str, dict[str, Any]] = {
     "user.registered": USER_REGISTERED_EVENT_SCHEMA,
     "user.login": USER_LOGIN_EVENT_SCHEMA,

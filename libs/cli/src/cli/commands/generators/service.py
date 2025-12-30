@@ -80,7 +80,7 @@ def create_service_commands(
 
                     out.console.print(table)
 
-                ***REMOVED*** Call the actual serve command
+                # Call the actual serve command
                 serve_command(
                     host=host,
                     port=port,
@@ -115,13 +115,13 @@ def create_service_commands(
                 async with with_timeout(timeout, f"Health check timed out after {timeout}s"):
                     health_service = await get_health_service()
 
-                    ***REMOVED*** Use existing health service for comprehensive checks
+                    # Use existing health service for comprehensive checks
                     results = await health_service.check_all()
 
-                    ***REMOVED*** Use framework display utilities
+                    # Use framework display utilities
                     display_health_results(results, out)
 
-                    ***REMOVED*** Determine overall status
+                    # Determine overall status
                     all_healthy = all(result.is_healthy for result in results.values())
 
                     if all_healthy:
@@ -154,9 +154,9 @@ def create_service_commands(
             table.add_row("Service Name", service_name)
             table.add_row("CLI Framework", "NextWatch CLI Framework v0.1.0")
 
-            ***REMOVED*** Add more service-specific info if available
+            # Add more service-specific info if available
             if verbose:
-                ***REMOVED*** Count commands manually since app.commands doesn't exist
+                # Count commands manually since app.commands doesn't exist
                 command_count = len([cmd for cmd in dir(app) if not cmd.startswith("_")])
                 table.add_row("Commands Available", str(command_count))
                 table.add_row("Health Monitoring", "Yes" if get_health_service else "No")
@@ -187,7 +187,7 @@ def create_service_commands(
                 table.add_row("Service", service_name)
                 table.add_row("CLI Framework", "0.1.0")
 
-                ***REMOVED*** Try to get package version if available
+                # Try to get package version if available
                 try:
                     import importlib.metadata
 
@@ -205,7 +205,7 @@ def create_service_commands(
             out.error(f"Failed to get version info: {e}")
             raise typer.Exit(code=1)
 
-    ***REMOVED*** Add additional commands if provided
+    # Add additional commands if provided
     if additional_commands:
         for cmd_name, cmd_func in additional_commands.items():
             app.command(name=cmd_name)(cmd_func)
@@ -265,15 +265,15 @@ def create_database_commands(
 
             db_connection = await get_db_connection()
 
-            ***REMOVED*** Test connection
+            # Test connection
             await run_with_retries(_test_db_connection, db_connection, retries=3, delay=1.0)
 
             out.success("Database connection successful")
 
             if verbose:
-                ***REMOVED*** Get additional database info
+                # Get additional database info
                 try:
-                    ***REMOVED*** This would be database-specific
+                    # This would be database-specific
                     table = Table(title="Database Status")
                     table.add_column("Property", style="cyan")
                     table.add_column("Value", style="white")
@@ -305,9 +305,9 @@ def create_database_commands(
             table.add_row("Status", "Connected")
 
             if verbose:
-                ***REMOVED*** Add more detailed info based on database type
+                # Add more detailed info based on database type
                 table.add_row("Framework", "NextWatch CLI Framework")
-                ***REMOVED*** Count commands manually since app.commands doesn't exist
+                # Count commands manually since app.commands doesn't exist
                 command_count = len([cmd for cmd in dir(app) if not cmd.startswith("_")])
                 table.add_row("Available Commands", str(command_count))
 
@@ -320,11 +320,11 @@ def create_database_commands(
 
     async def _test_db_connection(db_connection: Any) -> bool:
         """Test database connection."""
-        ***REMOVED*** This would be implemented based on the specific database type
-        ***REMOVED*** For now, just return True if connection exists
+        # This would be implemented based on the specific database type
+        # For now, just return True if connection exists
         return db_connection is not None
 
-    ***REMOVED*** Add migration commands if provided
+    # Add migration commands if provided
     if migration_commands:
         for cmd_name, cmd_func in migration_commands.items():
             app.command(name=cmd_name)(cmd_func)

@@ -23,46 +23,46 @@ def create_fast_core_config(auth_config: AuthAPIConfig) -> FastAPIConfig:
     """
     logger.info("Converting Auth config to fast-core config")
 
-    ***REMOVED*** Create fast-core config using enhanced configuration
+    # Create fast-core config using enhanced configuration
     fast_core_config = FastAPIConfig(
-        ***REMOVED*** Basic service configuration (inherited from ServiceConfig)
+        # Basic service configuration (inherited from ServiceConfig)
         service_name=getattr(auth_config, "service_name", "Next Watch Authentication API"),
         environment=auth_config.environment,
         debug=auth_config.debug,
         host=auth_config.host,
         port=auth_config.port,
         log_level=auth_config.log_level,
-        ***REMOVED*** CORS configuration - restrictive for auth service
+        # CORS configuration - restrictive for auth service
         cors_origins=getattr(auth_config, "cors_origins", ["*"]),
-        cors_allow_credentials=True,  ***REMOVED*** Required for auth cookies/tokens
-        cors_allow_methods=["POST", "GET", "OPTIONS"],  ***REMOVED*** Limited to auth operations
+        cors_allow_credentials=True,  # Required for auth cookies/tokens
+        cors_allow_methods=["POST", "GET", "OPTIONS"],  # Limited to auth operations
         cors_allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
-        ***REMOVED*** No external service URLs - auth API is independent
+        # No external service URLs - auth API is independent
         service_urls={},
-        ***REMOVED*** No external service timeouts needed
+        # No external service timeouts needed
         service_timeouts={
             "default": 30,
         },
-        ***REMOVED*** Feature flags for auth API functionality
+        # Feature flags for auth API functionality
         feature_flags={
             "jwt_validation": True,
             "refresh_tokens": True,
             "password_reset": auth_config.enable_password_reset,
             "user_registration": auth_config.enable_user_registration,
             "session_management": auth_config.enable_session_management,
-            "two_factor_auth": False,  ***REMOVED*** Future feature
-            "social_login": False,  ***REMOVED*** Future feature
+            "two_factor_auth": False,  # Future feature
+            "social_login": False,  # Future feature
             "health_checks": True,
             "performance_metrics": auth_config.auth_performance_metrics,
         },
-        ***REMOVED*** FastAPI-specific configuration
+        # FastAPI-specific configuration
         docs_url="/docs" if auth_config.debug else None,
         redoc_url="/redoc" if auth_config.debug else None,
         openapi_url="/openapi.json" if auth_config.debug else None,
     )
 
-    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
-    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    # Set monitoring configuration (MonitoringConfigMixin fields)
+    # Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
     fast_core_config.enable_tracing = auth_config.enable_tracing
     fast_core_config.tracing_endpoint = auth_config.tracing_endpoint
     fast_core_config.tracing_sample_rate = auth_config.tracing_sample_rate

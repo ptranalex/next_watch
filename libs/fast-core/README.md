@@ -1,8 +1,8 @@
-***REMOVED*** Fast Core
+# Fast Core
 
 A comprehensive core library for building standardized FastAPI applications across Next Watch services. Fast Core provides common patterns, utilities, and components that ensure consistency and reduce boilerplate code.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 Fast Core standardizes FastAPI application development by providing:
 
@@ -14,20 +14,20 @@ Fast Core standardizes FastAPI application development by providing:
 - **Routing**: API versioning, pagination, and base router utilities
 - **Monitoring**: Health checks, system monitoring, and comprehensive metrics collection
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 ```bash
-***REMOVED*** Install from local development
+# Install from local development
 pip install -e libs/fast-core
 
-***REMOVED*** Or add to pyproject.toml
+# Or add to pyproject.toml
 [tool.hatch.envs.default.dependencies]
 fast-core = {path = "libs/fast-core", develop = true}
 ```
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 ```python
 from fastapi import FastAPI, Depends
@@ -35,7 +35,7 @@ from fast_core import create_app, FastAPIConfig
 from fast_core.dependencies import get_current_user, get_pagination_params
 from fast_core.routing.pagination import paginate_results
 
-***REMOVED*** Configure the application
+# Configure the application
 config = FastAPIConfig(
     title="My API",
     version="1.0.0",
@@ -44,10 +44,10 @@ config = FastAPIConfig(
     jwt_secret_key="your-secret-key"
 )
 
-***REMOVED*** Create FastAPI app with all Fast Core features
+# Create FastAPI app with all Fast Core features
 app = create_app(config=config)
 
-***REMOVED*** Use Fast Core dependencies
+# Use Fast Core dependencies
 @app.get("/users")
 async def list_users(
     pagination = Depends(get_pagination_params),
@@ -70,11 +70,11 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-***REMOVED******REMOVED*** Module Documentation
+## Module Documentation
 
 Each complex module has its own comprehensive README with examples and best practices:
 
-***REMOVED******REMOVED******REMOVED*** 📁 [Dependencies](src/fast_core/dependencies/README.md)
+### 📁 [Dependencies](src/fast_core/dependencies/README.md)
 
 Dependency injection utilities for FastAPI applications:
 
@@ -83,14 +83,14 @@ Dependency injection utilities for FastAPI applications:
 - **Database**: Session management, transactions, read-only access
 - **Cache**: Redis client, cache manager, cache service operations
 
-***REMOVED******REMOVED******REMOVED*** 🔒 [Security](src/fast_core/security/README.md)
+### 🔒 [Security](src/fast_core/security/README.md)
 
 Security utilities for authentication and protection:
 
 - **JWT Management**: Token creation, validation, and refresh handling
 - **Rate Limiting**: Request throttling with memory and Redis backends
 
-***REMOVED******REMOVED******REMOVED*** ❌ [Errors](src/fast_core/errors/README.md)
+### ❌ [Errors](src/fast_core/errors/README.md)
 
 Comprehensive error handling system:
 
@@ -98,7 +98,7 @@ Comprehensive error handling system:
 - **Handlers**: Exception handlers that convert exceptions to HTTP responses
 - **Responses**: Standardized error response models and utilities
 
-***REMOVED******REMOVED******REMOVED*** 🛡️ [Middleware](src/fast_core/middleware/README.md)
+### 🛡️ [Middleware](src/fast_core/middleware/README.md)
 
 Essential middleware components with builder pattern configuration:
 
@@ -109,7 +109,7 @@ Essential middleware components with builder pattern configuration:
 - **Request Processing**: Request IDs, timing headers, compression, and size limits
 - **Metrics Collection**: Prometheus metrics for requests, responses, errors, and performance
 
-***REMOVED******REMOVED******REMOVED*** 📊 [Monitoring](src/fast_core/monitoring/README.md)
+### 📊 [Monitoring](src/fast_core/monitoring/README.md)
 
 Comprehensive monitoring and observability features:
 
@@ -118,7 +118,7 @@ Comprehensive monitoring and observability features:
 - **Performance Tracking**: Response times, throughput, and resource utilization
 - **Error Monitoring**: Exception tracking, error rates, and failure analysis
 
-***REMOVED******REMOVED******REMOVED*** 🛣️ [Routing](src/fast_core/routing/README.md)
+### 🛣️ [Routing](src/fast_core/routing/README.md)
 
 Advanced routing utilities:
 
@@ -126,18 +126,18 @@ Advanced routing utilities:
 - **Versioning**: Multi-strategy API versioning (URL, header, query, accept)
 - **Base Router**: Foundation router class with common functionality
 
-***REMOVED******REMOVED*** Features
+## Features
 
-***REMOVED******REMOVED******REMOVED*** Application Factory
+### Application Factory
 
 ```python
 from fast_core import create_app, AppOptions
 from fast_core.middleware import MiddlewareConfig
 
-***REMOVED*** Basic app creation
+# Basic app creation
 app = create_app()
 
-***REMOVED*** Advanced configuration with middleware builder
+# Advanced configuration with middleware builder
 middleware = MiddlewareConfig()
 middleware.cors(
     origins=["https://app.example.com"],
@@ -163,46 +163,46 @@ app = create_app(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Metrics Integration
+### Metrics Integration
 
 ```python
 from fast_core.monitoring.metrics import (
     REQUESTS_TOTAL, REQUEST_DURATION_SECONDS, track_operation
 )
 
-***REMOVED*** Track custom operations
+# Track custom operations
 @track_operation("user_creation")
 async def create_user(user_data: dict):
-    ***REMOVED*** Custom metrics are automatically collected
+    # Custom metrics are automatically collected
     return await db.create_user(user_data)
 
-***REMOVED*** Access built-in metrics
+# Access built-in metrics
 @app.get("/api/v1/movies")
 async def get_movies():
-    ***REMOVED*** Request metrics automatically tracked:
-    ***REMOVED*** - http_requests_total{method="GET", endpoint="/api/v1/movies", status="200"}
-    ***REMOVED*** - http_request_duration_seconds{method="GET", endpoint="/api/v1/movies"}
-    ***REMOVED*** - http_response_size_bytes{method="GET", endpoint="/api/v1/movies"}
+    # Request metrics automatically tracked:
+    # - http_requests_total{method="GET", endpoint="/api/v1/movies", status="200"}
+    # - http_request_duration_seconds{method="GET", endpoint="/api/v1/movies"}
+    # - http_response_size_bytes{method="GET", endpoint="/api/v1/movies"}
     return {"movies": []}
 
-***REMOVED*** View metrics at /metrics endpoint (Prometheus format)
-***REMOVED*** Example metrics output:
-***REMOVED*** http_requests_total{method="GET",endpoint="/api/v1/movies",status="200"} 150
-***REMOVED*** http_request_duration_seconds_bucket{method="GET",endpoint="/api/v1/movies",le="0.1"} 120
-***REMOVED*** http_response_size_bytes{method="GET",endpoint="/api/v1/movies"} 2048
+# View metrics at /metrics endpoint (Prometheus format)
+# Example metrics output:
+# http_requests_total{method="GET",endpoint="/api/v1/movies",status="200"} 150
+# http_request_duration_seconds_bucket{method="GET",endpoint="/api/v1/movies",le="0.1"} 120
+# http_response_size_bytes{method="GET",endpoint="/api/v1/movies"} 2048
 ```
 
-***REMOVED******REMOVED******REMOVED*** Singleton Dependencies
+### Singleton Dependencies
 
 ```python
 from fast_core.dependencies.singleton import get_singleton_client, singleton_lifespan
 
-***REMOVED*** Create singleton service clients for performance
+# Create singleton service clients for performance
 @get_singleton_client("database")
 def create_database_client() -> DatabaseClient:
     return DatabaseClient("postgresql://localhost/db")
 
-***REMOVED*** Use in FastAPI with automatic cleanup
+# Use in FastAPI with automatic cleanup
 app = FastAPI(lifespan=singleton_lifespan)
 
 @app.get("/users")
@@ -210,37 +210,37 @@ async def get_users(db: DatabaseClient = Depends(create_database_client)):
     return await db.query("SELECT * FROM users")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service Client Factory (NEW!)
+### Service Client Factory (NEW!)
 
 ```python
 from fast_core.dependencies.client_factory import (
     register_service, get_service_client, BaseServiceClient, service_client
 )
 
-***REMOVED*** Register services with the factory
+# Register services with the factory
 register_service(
     name="user-service",
     base_url="https://api.users.com",
     timeout=30,
-    singleton=True,  ***REMOVED*** Use singleton for performance
+    singleton=True,  # Use singleton for performance
     headers={"Authorization": "Bearer token"}
 )
 
-***REMOVED*** Create custom service clients
+# Create custom service clients
 class UserServiceClient(BaseServiceClient):
     async def get_user(self, user_id: int):
         client = await self._get_client()
         response = await client.get(f"/users/{user_id}")
         return response.json()
 
-***REMOVED*** Register with decorator
+# Register with decorator
 @service_client("notification-service", singleton=True)
 class NotificationClient(BaseServiceClient):
     async def send_notification(self, user_id: int, message: str):
         client = await self._get_client()
         return await client.post("/notify", json={"user_id": user_id, "message": message})
 
-***REMOVED*** Use in FastAPI endpoints
+# Use in FastAPI endpoints
 get_user_client = get_service_client("user-service")
 
 @app.get("/users/{user_id}")
@@ -248,7 +248,7 @@ async def get_user(user_id: int, client: UserServiceClient = Depends(get_user_cl
     return await client.get_user(user_id)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Comprehensive Error Handling
+### Comprehensive Error Handling
 
 ```python
 from fast_core.errors.exceptions import (
@@ -257,7 +257,7 @@ from fast_core.errors.exceptions import (
     AuthorizationException
 )
 
-***REMOVED*** Raise specific exceptions
+# Raise specific exceptions
 if not user:
     raise ResourceNotFoundException(
         message="User not found",
@@ -265,47 +265,47 @@ if not user:
         resource_id=user_id
     )
 
-***REMOVED*** Automatic conversion to HTTP responses
-***REMOVED*** Returns: {"error": {"message": "User not found", "code": "USER_NOT_FOUND", ...}}
+# Automatic conversion to HTTP responses
+# Returns: {"error": {"message": "User not found", "code": "USER_NOT_FOUND", ...}}
 ```
 
-***REMOVED******REMOVED******REMOVED*** JWT Authentication
+### JWT Authentication
 
 ```python
 from fast_core.security.jwt import create_jwt_manager, JWTConfig
 
-***REMOVED*** Configure JWT
+# Configure JWT
 jwt_config = JWTConfig(
     secret_key="your-secret-key",
     access_token_expire_minutes=30
 )
 jwt_manager = create_jwt_manager(jwt_config)
 
-***REMOVED*** Create and verify tokens
+# Create and verify tokens
 access_token = jwt_manager.create_access_token({"sub": "user123"})
 payload = jwt_manager.verify_token(access_token)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Rate Limiting
+### Rate Limiting
 
 ```python
 from fast_core.security.rate_limit import RedisRateLimiter, rate_limit
 
-***REMOVED*** Create rate limiter
+# Create rate limiter
 limiter = RedisRateLimiter(redis_url="redis://localhost:6379")
 
-***REMOVED*** Apply rate limiting
+# Apply rate limiting
 @rate_limit(limiter=limiter, max_requests=100, window_seconds=3600)
 async def my_endpoint():
     return {"message": "Success"}
 ```
 
-***REMOVED******REMOVED******REMOVED*** API Versioning
+### API Versioning
 
 ```python
 from fast_core.routing.versioning import VersionedRouter
 
-***REMOVED*** Create versioned router
+# Create versioned router
 router = VersionedRouter(prefix="/api", strategy="url_path")
 
 @router.get("/users", version="v1")
@@ -317,7 +317,7 @@ async def list_users_v2():
     return {"users": [], "version": "v2", "enhanced": True}
 ```
 
-***REMOVED******REMOVED******REMOVED*** Pagination
+### Pagination
 
 ```python
 from fast_core.routing.pagination import get_pagination_params, paginate_results
@@ -334,39 +334,39 @@ async def list_users(pagination = Depends(get_pagination_params)):
     )
 ```
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 Fast Core uses environment-based configuration:
 
 ```bash
-***REMOVED*** Database
+# Database
 DATABASE_URL=postgresql://user:pass@localhost/db
 
-***REMOVED*** Redis
+# Redis
 REDIS_URL=redis://localhost:6379
 
-***REMOVED*** JWT
+# JWT
 JWT_SECRET_KEY=your-256-bit-secret-key
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-***REMOVED*** CORS
+# CORS
 CORS_ORIGINS=https://example.com,https://app.example.com
 
-***REMOVED*** Security
+# Security
 SECURITY_HSTS_MAX_AGE=31536000
 RATE_LIMIT_MAX_REQUESTS=1000
 
-***REMOVED*** Monitoring
+# Monitoring
 METRICS_ENABLED=true
 METRICS_INCLUDE_REQUEST_SIZE=true
 METRICS_INCLUDE_RESPONSE_SIZE=true
 METRICS_BUCKETS=0.1,0.25,0.5,1.0,2.5,5.0,10.0
 
-***REMOVED*** Logging
+# Logging
 LOG_LEVEL=INFO
 ```
 
-***REMOVED******REMOVED*** Integration with Next Watch Services
+## Integration with Next Watch Services
 
 Fast Core is designed to work seamlessly with other Next Watch libraries:
 
@@ -375,11 +375,11 @@ Fast Core is designed to work seamlessly with other Next Watch libraries:
 - **CLI Library**: Command-line utilities and structured logging
 - **Movie Storage**: Database models and operations
 
-***REMOVED******REMOVED******REMOVED*** Production Metrics Integration
+### Production Metrics Integration
 
 Fast Core's metrics system is successfully deployed across all NextWatch services in production:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Deployed Services with Metrics** ✅
+#### **Deployed Services with Metrics** ✅
 
 - **BFF API** (`bff-api:8001/metrics`) - API gateway with authentication, caching, and service orchestration metrics
 - **Backend API** (`backend-api:8002/metrics`) - Core movie data operations and database performance metrics
@@ -387,7 +387,7 @@ Fast Core's metrics system is successfully deployed across all NextWatch service
 - **Recommendation API** (`recommendation-api:8004/metrics`) - ML-powered recommendations, vector operations, and personalization metrics
 - **Auth API** (`auth-api:8005/metrics`) - Authentication, JWT operations, and security metrics
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Metrics Categories**
+#### **Metrics Categories**
 
 Each service collects comprehensive metrics across these categories:
 
@@ -416,12 +416,12 @@ Each service collects comprehensive metrics across these categories:
    - Error categorization and failure analysis
    - Performance benchmarking and SLA monitoring
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Prometheus Configuration**
+#### **Prometheus Configuration**
 
 All services are automatically discovered and scraped by Prometheus:
 
 ```yaml
-***REMOVED*** Production prometheus.yml
+# Production prometheus.yml
 scrape_configs:
   - job_name: "nextwatch-services"
     static_configs:
@@ -437,7 +437,7 @@ scrape_configs:
     scrape_interval: 15s
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Grafana Dashboards**
+#### **Grafana Dashboards**
 
 Production monitoring includes specialized dashboards for:
 
@@ -448,31 +448,31 @@ Production monitoring includes specialized dashboards for:
 
 This comprehensive metrics integration provides full observability across the NextWatch platform, enabling proactive monitoring, performance optimization, and business intelligence.
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Application Structure
+### Application Structure
 
 ```python
-***REMOVED*** main.py
+# main.py
 from fast_core import create_app, FastAPIConfig
 from .routers import users, movies
 from .config import get_config
 
-***REMOVED*** Load configuration
+# Load configuration
 config = get_config()
 
-***REMOVED*** Create app with Fast Core
+# Create app with Fast Core
 app = create_app(config=config)
 
-***REMOVED*** Include routers
+# Include routers
 app.include_router(users.router)
 app.include_router(movies.router)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error Handling
+### Error Handling
 
 ```python
-***REMOVED*** Use specific exceptions
+# Use specific exceptions
 from fast_core.errors.exceptions import ValidationException
 
 if not email_is_valid(email):
@@ -483,10 +483,10 @@ if not email_is_valid(email):
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 
 ```python
-***REMOVED*** Combine authentication and authorization
+# Combine authentication and authorization
 from fast_core.dependencies.auth import get_current_user, require_roles
 
 @app.get("/admin/users")
@@ -494,33 +494,33 @@ async def admin_users(
     current_user = Depends(get_current_user),
     _ = Depends(require_roles(["admin"]))
 ):
-    ***REMOVED*** Only authenticated admins can access
+    # Only authenticated admins can access
     pass
 ```
 
-***REMOVED******REMOVED******REMOVED*** Database Operations
+### Database Operations
 
 ```python
-***REMOVED*** Use appropriate session types
+# Use appropriate session types
 from fast_core.dependencies.database import get_db_transaction, get_readonly_db_session
 
 @app.post("/users")
 async def create_user(
     user_data: UserCreate,
-    db = Depends(get_db_transaction)  ***REMOVED*** Auto-commits
+    db = Depends(get_db_transaction)  # Auto-commits
 ):
-    ***REMOVED*** Database changes are automatically committed
+    # Database changes are automatically committed
     pass
 
 @app.get("/users")
 async def list_users(
-    db = Depends(get_readonly_db_session)  ***REMOVED*** Read-only
+    db = Depends(get_readonly_db_session)  # Read-only
 ):
-    ***REMOVED*** Cannot modify database
+    # Cannot modify database
     pass
 ```
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 Fast Core components are designed to be easily testable:
 
@@ -528,83 +528,83 @@ Fast Core components are designed to be easily testable:
 from fastapi.testclient import TestClient
 from fast_core.dependencies import get_current_user
 
-***REMOVED*** Override dependencies for testing
+# Override dependencies for testing
 def override_get_current_user():
     return User(id=1, username="testuser")
 
 app.dependency_overrides[get_current_user] = override_get_current_user
 
-***REMOVED*** Test with client
+# Test with client
 client = TestClient(app)
 response = client.get("/users")
 assert response.status_code == 200
 ```
 
-***REMOVED******REMOVED*** Examples
+## Examples
 
 See the [examples](examples/) directory for complete application examples:
 
 - **Basic App**: Simple FastAPI application with Fast Core
 - **Advanced App**: Full-featured application with all Fast Core components
 
-***REMOVED******REMOVED*** Development
+## Development
 
-***REMOVED******REMOVED******REMOVED*** Running Tests
+### Running Tests
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 pytest
 
-***REMOVED*** Run with coverage
+# Run with coverage
 pytest --cov=fast_core --cov-report=html
 
-***REMOVED*** Run specific test file
+# Run specific test file
 pytest tests/test_dependencies.py
 ```
 
-***REMOVED******REMOVED******REMOVED*** Type Checking
+### Type Checking
 
 ```bash
-***REMOVED*** Run mypy
+# Run mypy
 mypy src/fast_core
 
-***REMOVED*** Run with strict mode
+# Run with strict mode
 mypy --strict src/fast_core
 ```
 
-***REMOVED******REMOVED******REMOVED*** Linting
+### Linting
 
 ```bash
-***REMOVED*** Run ruff
+# Run ruff
 ruff check src/fast_core
 
-***REMOVED*** Auto-fix issues
+# Auto-fix issues
 ruff check --fix src/fast_core
 ```
 
-***REMOVED******REMOVED*** 🚀 Enhancement Roadmap
+## 🚀 Enhancement Roadmap
 
 Based on real-world integration experience with the BFF API, the following enhancements are planned to make Fast Core even more powerful and developer-friendly:
 
-***REMOVED******REMOVED******REMOVED*** **Phase 1: Core Patterns** (High Priority)
+### **Phase 1: Core Patterns** (High Priority)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **1. Singleton Dependency Pattern** ⭐ **IMMEDIATE**
+#### **1. Singleton Dependency Pattern** ⭐ **IMMEDIATE**
 
 **Problem**: Current service clients are per-request, but many services need singleton patterns for performance optimization.
 
 **Solution**: Add singleton dependency support:
 
 ```python
-***REMOVED*** Proposed API
+# Proposed API
 from fast_core.dependencies import get_singleton_client, SingletonConfig
 
 @get_singleton_client("backend", lifecycle="app")
 def create_backend_client(config: FastAPIConfig) -> BackendClient:
     return BackendClient(config)
 
-***REMOVED*** Usage in routes
+# Usage in routes
 async def get_movies(
-    backend: BackendClient = Depends(get_backend_client),  ***REMOVED*** Singleton instance
+    backend: BackendClient = Depends(get_backend_client),  # Singleton instance
 ):
     return await backend.get_movies()
 ```
@@ -615,41 +615,41 @@ async def get_movies(
 - 🔄 Resource management (connection pooling)
 - 🎯 Cache compatibility with method signatures
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **2. Enhanced Service Client Factory** ⭐ **HIGH**
+#### **2. Enhanced Service Client Factory** ⭐ **HIGH**
 
 **Problem**: Basic HTTP clients don't support specialized client types or custom configurations.
 
 **Solution**: Flexible client factory system:
 
 ```python
-***REMOVED*** Proposed API
+# Proposed API
 from fast_core.dependencies import ServiceClientFactory
 
 factory = ServiceClientFactory()
 factory.register_client_type("backend", BackendClient, singleton=True)
 factory.register_client_type("auth", AuthClient, timeout=10)
 
-***REMOVED*** Auto-generates dependencies
+# Auto-generates dependencies
 def get_backend_client() -> BackendClient:
     return factory.get_client("backend")
 ```
 
-***REMOVED******REMOVED******REMOVED*** **Phase 2: Developer Experience** (Medium Priority)
+### **Phase 2: Developer Experience** (Medium Priority)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **3. Domain-Specific Response Utilities** ⭐ **MEDIUM**
+#### **3. Domain-Specific Response Utilities** ⭐ **MEDIUM**
 
 **Problem**: Services need domain-specific response wrappers beyond basic success/error responses.
 
 **Solution**: Response builder system:
 
 ```python
-***REMOVED*** Proposed API
+# Proposed API
 from fast_core.responses import ResponseBuilder
 
 movie_responses = ResponseBuilder("movies")
 search_responses = ResponseBuilder("search")
 
-***REMOVED*** Smart defaults based on domain
+# Smart defaults based on domain
 def get_movies():
     return movie_responses.list_response(
         items=movies,
@@ -659,14 +659,14 @@ def get_movies():
     )
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **4. Middleware Configuration Builder** ⭐ **COMPLETE**
+#### **4. Middleware Configuration Builder** ⭐ **COMPLETE**
 
 **Problem**: All-or-nothing middleware approach in AppOptions lacks granular control.
 
 **Solution**: Flexible middleware configuration:
 
 ```python
-***REMOVED*** Current API
+# Current API
 from fast_core.middleware import MiddlewareConfig
 
 middleware = MiddlewareConfig()
@@ -678,16 +678,16 @@ middleware.security_headers(hsts=True, csp="default-src 'self'")
 app = create_app(middleware=middleware)
 ```
 
-***REMOVED******REMOVED******REMOVED*** **Phase 3: Convenience Features** (Nice to Have)
+### **Phase 3: Convenience Features** (Nice to Have)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **5. Configuration Auto-Discovery** ⭐ **LOW**
+#### **5. Configuration Auto-Discovery** ⭐ **LOW**
 
 **Problem**: Manual configuration mapping between service configs and FastAPIConfig.
 
 **Solution**: Annotation-based config discovery:
 
 ```python
-***REMOVED*** Proposed API
+# Proposed API
 from fast_core.config import fast_core_config, service_url, feature_flag
 
 @fast_core_config
@@ -698,18 +698,18 @@ class MyServiceConfig:
     @feature_flag("recommendations")
     enable_recommendations: bool = True
 
-***REMOVED*** Auto-generates FastAPIConfig
+# Auto-generates FastAPIConfig
 config = auto_discover_config(MyServiceConfig())
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **6. Enhanced Health Check Patterns** ⭐ **LOW**
+#### **6. Enhanced Health Check Patterns** ⭐ **LOW**
 
 **Problem**: Basic health checks without service-specific patterns.
 
 **Solution**: Service-specific health check builders:
 
 ```python
-***REMOVED*** Proposed API
+# Proposed API
 from fast_core.monitoring import HealthCheckConfig
 
 health = HealthCheckConfig()
@@ -717,10 +717,10 @@ health.add_database_check("main_db", connection_string)
 health.add_service_check("backend", url, timeout=5)
 health.add_cache_check("redis", redis_url)
 
-***REMOVED*** Auto-generates /health endpoints with detailed status
+# Auto-generates /health endpoints with detailed status
 ```
 
-***REMOVED******REMOVED******REMOVED*** **Implementation Status**
+### **Implementation Status**
 
 | **Enhancement**        | **Priority** | **Status**      | **Target Version** |
 | ---------------------- | ------------ | --------------- | ------------------ |
@@ -731,7 +731,7 @@ health.add_cache_check("redis", redis_url)
 | Config Auto-Discovery  | Low          | 💡 Proposed     | v0.4.0             |
 | Enhanced Health Checks | Low          | 💡 Proposed     | v0.4.0             |
 
-***REMOVED******REMOVED******REMOVED*** **Integration Experience**
+### **Integration Experience**
 
 These enhancements are based on real-world experience from the **BFF API integration**, which achieved **90% Fast Core adoption** and identified these patterns as the most valuable for production services.
 
@@ -749,7 +749,7 @@ These enhancements are based on real-world experience from the **BFF API integra
 
 - ✅ **Middleware Configuration Builder** - Complete implementation with granular middleware control using builder pattern. Includes CORS, security headers, rate limiting, logging, and request processing middleware with full type safety and production-ready examples!
 
-***REMOVED******REMOVED******REMOVED*** **Contributing to Enhancements**
+### **Contributing to Enhancements**
 
 1. **Review Enhancement Proposals**: Check the detailed specifications in each enhancement
 2. **Implementation Guidelines**: Follow established patterns and maintain backward compatibility
@@ -757,7 +757,7 @@ These enhancements are based on real-world experience from the **BFF API integra
 4. **Documentation**: Update relevant README files and examples
 5. **Integration Testing**: Validate with existing services (BFF API as reference)
 
-***REMOVED******REMOVED*** Contributing
+## Contributing
 
 1. Follow the established patterns in existing modules
 2. Add comprehensive tests for new functionality
@@ -766,13 +766,13 @@ These enhancements are based on real-world experience from the **BFF API integra
 5. Follow the Next Watch coding standards
 6. **Enhancement Contributions**: See the Enhancement Roadmap above for priority areas
 
-***REMOVED******REMOVED*** License
+## License
 
 This library is part of the Next Watch project and follows the project's licensing terms.
 
-***REMOVED******REMOVED*** Changelog
+## Changelog
 
-***REMOVED******REMOVED******REMOVED*** v0.1.0
+### v0.1.0
 
 - Initial implementation with core modules
 - Dependencies, security, errors, middleware, routing
@@ -781,25 +781,25 @@ This library is part of the Next Watch project and follows the project's licensi
 - Health monitoring and metrics
 - Integration with Next Watch libraries
 
-***REMOVED******REMOVED******REMOVED*** v0.2.0
+### v0.2.0
 
 - **Enhanced Monitoring**: Comprehensive Prometheus metrics integration
 - **Singleton Dependencies**: Performance-optimized service client patterns
 - **Service Client Factory**: Flexible HTTP client management with custom configurations
 - **Response Utilities**: Generic response patterns for consistent API responses
 
-***REMOVED******REMOVED******REMOVED*** v0.3.0
+### v0.3.0
 
 - **Middleware Builder**: Granular middleware configuration with builder pattern
 - **Metrics Middleware**: Automatic request/response metrics collection
 - **Production Integration**: Full deployment across NextWatch services (BFF, Backend, Search, Recommendation, Auth APIs)
 - **Performance Optimization**: Custom metric buckets and efficient data collection
 
-***REMOVED******REMOVED*** Response Utilities (NEW!) 🎯
+## Response Utilities (NEW!) 🎯
 
 Fast Core now includes a powerful `ResponseBuilder` for creating consistent, well-structured API responses across all your services.
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 - **Generic Response Patterns**: Paginated, detail, search, collection, action, and error responses
 - **Configurable Behavior**: Customize response structure per service needs
@@ -807,18 +807,18 @@ Fast Core now includes a powerful `ResponseBuilder` for creating consistent, wel
 - **Type Safety**: Full TypeScript-style type definitions with TypedDict
 - **Framework Agnostic**: Works with any Python web framework
 
-***REMOVED******REMOVED******REMOVED*** Quick Start
+### Quick Start
 
 ```python
 from fast_core.responses import ResponseBuilder
 
-***REMOVED*** Initialize with optional configuration
+# Initialize with optional configuration
 responses = ResponseBuilder(config={
     "pagination": {"default_limit": 20, "max_limit": 100},
     "detail": {"include_metadata": True}
 })
 
-***REMOVED*** Paginated responses
+# Paginated responses
 movies_response = responses.paginated(
     items=movies,
     page=1,
@@ -831,7 +831,7 @@ movies_response = responses.paginated(
     }
 )
 
-***REMOVED*** Detail responses
+# Detail responses
 movie_response = responses.detail(
     item=movie,
     related={
@@ -849,7 +849,7 @@ movie_response = responses.detail(
     }
 )
 
-***REMOVED*** Search responses
+# Search responses
 search_response = responses.search(
     query="action movies",
     results=search_results,
@@ -858,7 +858,7 @@ search_response = responses.search(
     metadata={"search_time_ms": 25}
 )
 
-***REMOVED*** Action responses (POST/PUT/DELETE)
+# Action responses (POST/PUT/DELETE)
 action_response = responses.action(
     success=True,
     action="movie_added_to_watchlist",
@@ -866,7 +866,7 @@ action_response = responses.action(
     message="Movie added successfully"
 )
 
-***REMOVED*** Error responses
+# Error responses
 error_response = responses.error(
     code="MOVIE_NOT_FOUND",
     message="The requested movie was not found",
@@ -875,9 +875,9 @@ error_response = responses.error(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Response Patterns
+### Response Patterns
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Paginated Response
+#### 1. Paginated Response
 
 ```json
 {
@@ -897,7 +897,7 @@ error_response = responses.error(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Detail Response
+#### 2. Detail Response
 
 ```json
 {
@@ -918,7 +918,7 @@ error_response = responses.error(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Search Response
+#### 3. Search Response
 
 ```json
 {
@@ -932,12 +932,12 @@ error_response = responses.error(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** BFF API Integration
+### BFF API Integration
 
 The ResponseBuilder is successfully integrated into the BFF API with demo endpoints:
 
 ```python
-***REMOVED*** In BFF API routes
+# In BFF API routes
 from fast_core.responses import ResponseBuilder
 
 responses = ResponseBuilder(config={
@@ -979,7 +979,7 @@ async def get_movies_demo(page: int = 1, limit: int = 20):
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration Options
+### Configuration Options
 
 ```python
 config = {
@@ -1006,7 +1006,7 @@ config = {
 builder = ResponseBuilder(config=config)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Available Response Types
+### Available Response Types
 
 - **`PaginatedResponse`**: For paginated data with metadata
 - **`DetailResponse`**: For single item details with related data
@@ -1015,7 +1015,7 @@ builder = ResponseBuilder(config=config)
 - **`ActionResponse`**: For POST/PUT/DELETE operation results
 - **`ErrorResponse`**: For structured error information
 
-***REMOVED******REMOVED******REMOVED*** Benefits
+### Benefits
 
 ✅ **Consistency**: All APIs use the same response structure
 ✅ **Rich Metadata**: Include performance, cache, and service information

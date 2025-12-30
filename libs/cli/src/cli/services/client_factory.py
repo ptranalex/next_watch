@@ -74,12 +74,12 @@ class ServiceClientFactory:
                 f"Service '{service_name}' is not an HTTP service (type: {service_config.service_type})"
             )
 
-        ***REMOVED*** Create HTTP client with enterprise configuration
+        # Create HTTP client with enterprise configuration
         client = httpx.AsyncClient(
             base_url=service_config.base_url,
             timeout=httpx.Timeout(service_config.timeout),
             limits=httpx.Limits(
-                max_connections=20,  ***REMOVED*** Connection pool size
+                max_connections=20,  # Connection pool size
                 max_keepalive_connections=10,
             ),
             headers={
@@ -125,7 +125,7 @@ class ServiceClientFactory:
                 f"Service '{service_name}' is not a Redis service (type: {service_config.service_type})"
             )
 
-        ***REMOVED*** Create Redis client with timeout configuration
+        # Create Redis client with timeout configuration
         client = cast(
             Redis,
             redis.Redis.from_url(
@@ -171,13 +171,13 @@ class ServiceClientFactory:
         client = await self.get_http_client(service_name)
         service_config = self.registry.get_service(service_name)
 
-        ***REMOVED*** Create retry decorator based on service configuration
+        # Create retry decorator based on service configuration
         if service_config.retry_attempts > 0:
             if service_config.retry_backoff == "exponential":
                 wait_strategy = wait_exponential(multiplier=1, min=1, max=10)
             elif service_config.retry_backoff == "linear":
                 wait_strategy = wait_exponential(multiplier=1, min=1, max=1)
-            else:  ***REMOVED*** fixed
+            else:  # fixed
                 wait_strategy = wait_exponential(multiplier=0, min=2, max=2)
 
             @retry(
@@ -219,7 +219,7 @@ class ServiceClientFactory:
                 ) from e
 
         else:
-            ***REMOVED*** No retries - single attempt
+            # No retries - single attempt
             try:
                 response = await client.request(method, path, **kwargs)
                 response.raise_for_status()
@@ -233,13 +233,13 @@ class ServiceClientFactory:
         Args:
             service_name: Name of the service to close
         """
-        ***REMOVED*** Close HTTP client if exists
+        # Close HTTP client if exists
         if service_name in self._http_clients:
             await self._http_clients[service_name].aclose()
             del self._http_clients[service_name]
             self.logger.info("HTTP client closed", service_name=service_name)
 
-        ***REMOVED*** Close Redis client if exists
+        # Close Redis client if exists
         if service_name in self._redis_clients:
             await self._redis_clients[service_name].close()
             del self._redis_clients[service_name]
@@ -247,7 +247,7 @@ class ServiceClientFactory:
 
     async def close_all(self) -> None:
         """Close all clients and clean up resources."""
-        ***REMOVED*** Close all HTTP clients
+        # Close all HTTP clients
         for service_name, client in self._http_clients.items():
             try:
                 await client.aclose()
@@ -257,7 +257,7 @@ class ServiceClientFactory:
                     "Error closing HTTP client", service_name=service_name, error=str(e)
                 )
 
-        ***REMOVED*** Close all Redis clients
+        # Close all Redis clients
         for service_name, redis_client in self._redis_clients.items():
             try:
                 await redis_client.close()
@@ -269,7 +269,7 @@ class ServiceClientFactory:
                     error=str(e),
                 )
 
-        ***REMOVED*** Clear client dictionaries
+        # Clear client dictionaries
         self._http_clients.clear()
         self._redis_clients.clear()
 

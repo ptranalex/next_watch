@@ -1,8 +1,8 @@
-***REMOVED*** Singleton Dependencies
+# Singleton Dependencies
 
 The singleton dependency system in Fast Core provides performance optimization and resource management for FastAPI applications by ensuring that expensive-to-create objects are instantiated only once and shared across all requests.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 Traditional FastAPI dependencies create new instances for each request, which can be inefficient for:
 
@@ -14,15 +14,15 @@ Traditional FastAPI dependencies create new instances for each request, which ca
 
 The singleton pattern ensures these objects are created once and reused, while maintaining proper lifecycle management and cleanup.
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 ```python
 from fastapi import FastAPI, Depends
 from fast_core.dependencies.singleton import get_singleton_client, singleton_lifespan
 
-***REMOVED*** Define your client class
+# Define your client class
 class DatabaseClient:
     def __init__(self, connection_string: str):
         self.connection_string = connection_string
@@ -35,12 +35,12 @@ class DatabaseClient:
         self.query_count += 1
         return f"Query result for: {sql}"
 
-***REMOVED*** Register as singleton using decorator
+# Register as singleton using decorator
 @get_singleton_client("database")
 def create_database_client() -> DatabaseClient:
     return DatabaseClient("postgresql://localhost:5432/myapp")
 
-***REMOVED*** Use in FastAPI with automatic cleanup
+# Use in FastAPI with automatic cleanup
 app = FastAPI(lifespan=singleton_lifespan)
 
 @app.get("/users")
@@ -48,9 +48,9 @@ async def get_users(db: DatabaseClient = Depends(create_database_client)):
     return await db.query("SELECT * FROM users")
 ```
 
-***REMOVED******REMOVED*** Registration Methods
+## Registration Methods
 
-***REMOVED******REMOVED******REMOVED*** Method 1: Decorator Pattern (Recommended)
+### Method 1: Decorator Pattern (Recommended)
 
 ```python
 from fast_core.dependencies.singleton import get_singleton_client
@@ -59,12 +59,12 @@ from fast_core.dependencies.singleton import get_singleton_client
 def create_my_client() -> MyClient:
     return MyClient(config)
 
-***REMOVED*** Use directly in routes
+# Use directly in routes
 async def my_route(client: MyClient = Depends(create_my_client)):
     return await client.do_something()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Method 2: Manual Registration
+### Method 2: Manual Registration
 
 ```python
 from fast_core.dependencies.singleton import register_singleton, get_singleton
@@ -72,18 +72,18 @@ from fast_core.dependencies.singleton import register_singleton, get_singleton
 def create_my_client() -> MyClient:
     return MyClient(config)
 
-***REMOVED*** Register the singleton
+# Register the singleton
 register_singleton(name="my_client", factory=create_my_client)
 
-***REMOVED*** Get dependency function
+# Get dependency function
 get_my_client = get_singleton("my_client")
 
-***REMOVED*** Use in routes
+# Use in routes
 async def my_route(client: MyClient = Depends(get_my_client)):
     return await client.do_something()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Method 3: Convenience Function
+### Method 3: Convenience Function
 
 ```python
 from fast_core.dependencies.singleton import create_singleton_dependency
@@ -97,22 +97,22 @@ async def my_route(client: MyClient = Depends(get_my_client)):
     return await client.do_something()
 ```
 
-***REMOVED******REMOVED*** Configuration Options
+## Configuration Options
 
-***REMOVED******REMOVED******REMOVED*** Lifecycle Management
+### Lifecycle Management
 
 ```python
 @get_singleton_client(
     "my_client",
-    lifecycle="app",              ***REMOVED*** Scope: 'app', 'request', 'session'
-    cleanup_on_shutdown=True,     ***REMOVED*** Auto-cleanup on app shutdown
-    dependencies=[get_config],    ***REMOVED*** Dependencies for factory function
+    lifecycle="app",              # Scope: 'app', 'request', 'session'
+    cleanup_on_shutdown=True,     # Auto-cleanup on app shutdown
+    dependencies=[get_config],    # Dependencies for factory function
 )
 def create_my_client(config: Config) -> MyClient:
     return MyClient(config)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Dependencies
+### Dependencies
 
 Singletons can depend on other dependencies:
 
@@ -124,9 +124,9 @@ def create_database_client(settings: Settings) -> DatabaseClient:
     return DatabaseClient(settings.database_url)
 ```
 
-***REMOVED******REMOVED*** Lifecycle Management
+## Lifecycle Management
 
-***REMOVED******REMOVED******REMOVED*** Automatic Cleanup
+### Automatic Cleanup
 
 Use the `singleton_lifespan` context manager for automatic cleanup:
 
@@ -138,19 +138,19 @@ app = FastAPI(lifespan=singleton_lifespan)
 
 This automatically calls `close()` methods on all singletons during app shutdown.
 
-***REMOVED******REMOVED******REMOVED*** Manual Cleanup
+### Manual Cleanup
 
 ```python
 from fast_core.dependencies.singleton import cleanup_singletons
 
-***REMOVED*** Cleanup all singletons
+# Cleanup all singletons
 await cleanup_singletons()
 
-***REMOVED*** Cleanup specific singleton
+# Cleanup specific singleton
 await cleanup_singletons("my_client")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Cleanup
+### Custom Cleanup
 
 Your singleton classes can implement cleanup logic:
 
@@ -165,24 +165,24 @@ class MyClient:
             await conn.close()
         print("MyClient cleaned up")
 
-    ***REMOVED*** Synchronous cleanup is also supported
+    # Synchronous cleanup is also supported
     def close_sync(self):
         """For synchronous cleanup."""
         pass
 ```
 
-***REMOVED******REMOVED*** Monitoring and Debugging
+## Monitoring and Debugging
 
-***REMOVED******REMOVED******REMOVED*** List Active Singletons
+### List Active Singletons
 
 ```python
 from fast_core.dependencies.singleton import list_singletons
 
 singletons = list_singletons()
-***REMOVED*** Returns: {"my_client": "active", "other_client": "registered"}
+# Returns: {"my_client": "active", "other_client": "registered"}
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration with FastAPI Routes
+### Integration with FastAPI Routes
 
 ```python
 @app.get("/debug/singletons")
@@ -191,9 +191,9 @@ async def debug_singletons():
     return {"singletons": list_singletons()}
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Resource Management
+### 1. Resource Management
 
 Always implement cleanup methods for proper resource management:
 
@@ -206,7 +206,7 @@ class DatabaseClient:
         await self.pool.close()
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Thread Safety
+### 2. Thread Safety
 
 Ensure your singleton classes are thread-safe if used in multi-threaded environments:
 
@@ -224,7 +224,7 @@ class ThreadSafeClient:
             return self._cache.get(key)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Error Handling
+### 3. Error Handling
 
 Handle initialization errors gracefully:
 
@@ -238,7 +238,7 @@ def create_api_client() -> APIClient:
         raise
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Configuration
+### 4. Configuration
 
 Use dependency injection for configuration:
 
@@ -252,44 +252,44 @@ def create_redis_client(settings: Settings) -> RedisClient:
     )
 ```
 
-***REMOVED******REMOVED*** Performance Benefits
+## Performance Benefits
 
-***REMOVED******REMOVED******REMOVED*** Before (Per-Request Instances)
+### Before (Per-Request Instances)
 
 ```python
-***REMOVED*** Traditional approach - new instance per request
+# Traditional approach - new instance per request
 def get_database_client() -> DatabaseClient:
-    return DatabaseClient("postgresql://...")  ***REMOVED*** Created every request
+    return DatabaseClient("postgresql://...")  # Created every request
 
-***REMOVED*** Memory usage: High
-***REMOVED*** Connection overhead: High
-***REMOVED*** Performance: Poor for heavy objects
+# Memory usage: High
+# Connection overhead: High
+# Performance: Poor for heavy objects
 ```
 
-***REMOVED******REMOVED******REMOVED*** After (Singleton Pattern)
+### After (Singleton Pattern)
 
 ```python
-***REMOVED*** Singleton approach - shared instance
+# Singleton approach - shared instance
 @get_singleton_client("database")
 def create_database_client() -> DatabaseClient:
-    return DatabaseClient("postgresql://...")  ***REMOVED*** Created once
+    return DatabaseClient("postgresql://...")  # Created once
 
-***REMOVED*** Memory usage: Low
-***REMOVED*** Connection overhead: Minimal
-***REMOVED*** Performance: Excellent
+# Memory usage: Low
+# Connection overhead: Minimal
+# Performance: Excellent
 ```
 
-***REMOVED******REMOVED*** Integration with BFF API
+## Integration with BFF API
 
 The singleton pattern was developed based on real-world experience with the BFF API integration:
 
 ```python
-***REMOVED*** BFF API uses singleton for BackendClient
+# BFF API uses singleton for BackendClient
 @get_singleton_client("backend", cleanup_on_shutdown=True)
 def create_backend_client(config: BFFAPIConfig) -> BackendClient:
     return BackendClient(config)
 
-***REMOVED*** Used in routes
+# Used in routes
 async def get_movies(
     backend: BackendClient = Depends(create_backend_client),
 ):
@@ -303,9 +303,9 @@ Benefits achieved:
 - **Connection Pooling**: Efficient HTTP connection reuse
 - **Cache Compatibility**: Maintained existing cache decorators
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
-***REMOVED******REMOVED******REMOVED*** Registration Errors
+### Registration Errors
 
 ```python
 try:
@@ -314,18 +314,18 @@ except ValueError as e:
     print(f"Singleton not registered: {e}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cleanup Errors
+### Cleanup Errors
 
 Cleanup errors are logged but don't stop the shutdown process:
 
 ```python
-***REMOVED*** Cleanup continues even if one singleton fails
-await cleanup_singletons()  ***REMOVED*** Logs errors but continues
+# Cleanup continues even if one singleton fails
+await cleanup_singletons()  # Logs errors but continues
 ```
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
-***REMOVED******REMOVED******REMOVED*** Unit Testing
+### Unit Testing
 
 ```python
 import pytest
@@ -334,7 +334,7 @@ from fast_core.dependencies.singleton import cleanup_singletons
 @pytest.fixture(autouse=True)
 async def cleanup_after_test():
     yield
-    await cleanup_singletons()  ***REMOVED*** Clean up after each test
+    await cleanup_singletons()  # Clean up after each test
 
 def test_singleton_behavior():
     @get_singleton_client("test_client")
@@ -344,10 +344,10 @@ def test_singleton_behavior():
     instance1 = create_test_client()
     instance2 = create_test_client()
 
-    assert instance1 is instance2  ***REMOVED*** Same instance
+    assert instance1 is instance2  # Same instance
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration Testing
+### Integration Testing
 
 ```python
 from fastapi.testclient import TestClient
@@ -355,37 +355,37 @@ from fastapi.testclient import TestClient
 def test_singleton_in_routes():
     client = TestClient(app)
 
-    ***REMOVED*** Multiple requests should use same singleton
+    # Multiple requests should use same singleton
     response1 = client.get("/test")
     response2 = client.get("/test")
 
-    ***REMOVED*** Verify singleton behavior through response data
+    # Verify singleton behavior through response data
     assert response1.json()["instance_id"] == response2.json()["instance_id"]
 ```
 
-***REMOVED******REMOVED*** Migration Guide
+## Migration Guide
 
-***REMOVED******REMOVED******REMOVED*** From Per-Request to Singleton
+### From Per-Request to Singleton
 
 ```python
-***REMOVED*** Before: Per-request dependency
+# Before: Per-request dependency
 def get_api_client() -> APIClient:
     return APIClient(config)
 
-***REMOVED*** After: Singleton dependency
+# After: Singleton dependency
 @get_singleton_client("api_client")
 def create_api_client() -> APIClient:
     return APIClient(config)
 
-***REMOVED*** Route usage remains the same
+# Route usage remains the same
 async def my_route(client: APIClient = Depends(create_api_client)):
     return await client.get_data()
 ```
 
-***REMOVED******REMOVED******REMOVED*** From Custom Singleton to Fast Core
+### From Custom Singleton to Fast Core
 
 ```python
-***REMOVED*** Before: Custom singleton implementation
+# Before: Custom singleton implementation
 _client_instance = None
 
 def get_client():
@@ -394,15 +394,15 @@ def get_client():
         _client_instance = APIClient()
     return _client_instance
 
-***REMOVED*** After: Fast Core singleton
+# After: Fast Core singleton
 @get_singleton_client("api_client")
 def create_client() -> APIClient:
     return APIClient()
 ```
 
-***REMOVED******REMOVED*** Advanced Usage
+## Advanced Usage
 
-***REMOVED******REMOVED******REMOVED*** Conditional Singletons
+### Conditional Singletons
 
 ```python
 @get_singleton_client("cache")
@@ -413,7 +413,7 @@ def create_cache_client() -> CacheClient:
         return MemoryCache()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Singleton with Complex Dependencies
+### Singleton with Complex Dependencies
 
 ```python
 @get_singleton_client(
@@ -427,16 +427,16 @@ def create_service_manager(
     return ServiceManager(database=db, cache=cache)
 ```
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 1. **Singleton not cleaned up**: Ensure you're using `singleton_lifespan` or calling `cleanup_singletons()` manually
 2. **Memory leaks**: Implement proper `close()` methods in your singleton classes
 3. **Thread safety**: Use locks or async-safe patterns for shared state
 4. **Import errors**: Make sure Fast Core is properly installed and imported
 
-***REMOVED******REMOVED******REMOVED*** Debug Logging
+### Debug Logging
 
 ```python
 import logging

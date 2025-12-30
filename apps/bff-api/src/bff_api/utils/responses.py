@@ -38,7 +38,7 @@ def create_movie_list_response(
         data=movies, page=page, page_size=per_page, total_items=total
     )
 
-    ***REMOVED*** Add success message to the response
+    # Add success message to the response
     if message:
         paginated_data["message"] = message
 

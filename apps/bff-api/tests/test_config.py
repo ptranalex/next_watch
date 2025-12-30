@@ -34,9 +34,9 @@ class TestConfig:
         assert config.host == "127.0.0.1"
         assert config.port == 9000
         assert config.log_level == "DEBUG"
-        assert config.backend_api_url == "http://test-backend:8080"  ***REMOVED*** trailing slash removed
+        assert config.backend_api_url == "http://test-backend:8080"  # trailing slash removed
         assert config.environment == "production"
-        ***REMOVED*** production overrides should force debug off
+        # production overrides should force debug off
         assert config.debug is False
 
     def test_backend_url_trailing_slash_removed(self) -> None:

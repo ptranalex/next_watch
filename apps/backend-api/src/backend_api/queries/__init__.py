@@ -18,7 +18,7 @@ from .user_interaction_query import UserInteractionQuery
 __all__ = [
     "MovieQuery",
     "UserInteractionQuery",
-    ***REMOVED*** Legacy functions
+    # Legacy functions
     "get_top_rated_movies",
     "get_movie_genres",
     "get_movies_with_filters",

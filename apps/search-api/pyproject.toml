@@ -9,7 +9,7 @@ allow-direct-references = true
 name = "search_api"
 version = "0.1.0"
 description = "Search API for Next Watch platform"
-readme = {text = "***REMOVED*** Search API\n\nSearch API for Next Watch platform", content-type = "text/markdown"}
+readme = {text = "# Search API\n\nSearch API for Next Watch platform", content-type = "text/markdown"}
 license = "MIT"
 license-files = ["LICENSE*"]
 authors = [{ name = "Alex Tran" }]
@@ -32,59 +32,59 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    ***REMOVED*** Core API framework
-    "fastapi>=0.104.0",         ***REMOVED*** API framework
-    "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
-    "pydantic>=2.4.2",          ***REMOVED*** Data validation
-    "pydantic-settings>=2.0.0", ***REMOVED*** Settings management
+    # Core API framework
+    "fastapi>=0.104.0",         # API framework
+    "uvicorn>=0.23.2",          # ASGI server
+    "pydantic>=2.4.2",          # Data validation
+    "pydantic-settings>=2.0.0", # Settings management
 
-    ***REMOVED*** Database
-    "sqlalchemy>=2.0.23",       ***REMOVED*** SQL ORM
-    "sqlmodel>=0.0.8",          ***REMOVED*** SQL Model extension
-    "psycopg2-binary>=2.9.10",  ***REMOVED*** PostgreSQL driver
+    # Database
+    "sqlalchemy>=2.0.23",       # SQL ORM
+    "sqlmodel>=0.0.8",          # SQL Model extension
+    "psycopg2-binary>=2.9.10",  # PostgreSQL driver
 
-    ***REMOVED*** Cache and storage
-    "redis>=6.0.0",             ***REMOVED*** Redis client for caching and suggestions
-    "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
+    # Cache and storage
+    "redis>=6.0.0",             # Redis client for caching and suggestions
+    "types-redis>=4.6.0",       # Redis type stubs
 
-    ***REMOVED*** HTTP client for Backend API
-    "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
-    "tenacity>=8.2.3",          ***REMOVED*** Retry logic for HTTP requests
+    # HTTP client for Backend API
+    "httpx>=0.24.0",            # Async HTTP client
+    "tenacity>=8.2.3",          # Retry logic for HTTP requests
 
-    ***REMOVED*** CLI and utilities
-    "typer>=0.15.2",            ***REMOVED*** CLI framework
-    "rich>=13.7.0",             ***REMOVED*** Terminal formatting
-    "structlog>=23.2.0",        ***REMOVED*** Structured logging
-    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    # CLI and utilities
+    "typer>=0.15.2",            # CLI framework
+    "rich>=13.7.0",             # Terminal formatting
+    "structlog>=23.2.0",        # Structured logging
+    "python-dotenv>=1.0.0",     # Environment variable loading
 
-    ***REMOVED*** Date/time handling
-    "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
+    # Date/time handling
+    "python-dateutil>=2.9.0",   # Date utilities
 
-    ***REMOVED*** Form handling
-    "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
-    "email-validator>=2.2.0",   ***REMOVED*** Email validation
+    # Form handling
+    "python-multipart>=0.0.20", # Multipart form parsing
+    "email-validator>=2.2.0",   # Email validation
 ]
 
 [project.optional-dependencies]
 dev = [
-    ***REMOVED*** Testing
+    # Testing
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
     "pytest-httpx>=0.21.3",
     "respx>=0.20.2",
 
-    ***REMOVED*** Code quality
+    # Code quality
     "black>=23.10.1",
     "isort>=5.12.0",
     "ruff>=0.1.6",
     "mypy>=1.7.0",
 
-    ***REMOVED*** Local NextWatch libraries (for development)
-    ***REMOVED*** "cache @ file:../../libs/cache",
-    ***REMOVED*** "cli @ file:../../libs/cli",
-    ***REMOVED*** "config @ file:../../libs/config",
-    ***REMOVED*** "fast-core @ file:../../libs/fast-core",
+    # Local NextWatch libraries (for development)
+    # "cache @ file:../../libs/cache",
+    # "cli @ file:../../libs/cli",
+    # "config @ file:../../libs/config",
+    # "fast-core @ file:../../libs/fast-core",
 ]
 
 [project.scripts]
@@ -96,7 +96,7 @@ Repository = "https://github.com/nextwatch/search-api"
 Issues = "https://github.com/nextwatch/search-api/issues"
 Documentation = "https://docs.nextwatch.dev/search-api"
 
-***REMOVED*** Hatch configuration
+# Hatch configuration
 [tool.hatch.version]
 source = "vcs"
 
@@ -112,7 +112,7 @@ packages = ["src/search_api"]
 [tool.hatch.build.sources]
 "src" = ""
 
-***REMOVED*** Single consolidated environment
+# Single consolidated environment
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"
@@ -123,7 +123,7 @@ PYTHONPATH = "src"
 
 [tool.hatch.envs.default.scripts]
 
-***REMOVED*** Install local libraries, so it can be reloaded after changes
+# Install local libraries, so it can be reloaded after changes
 install-libs = [
   "pip install -e ../../libs/cache",
   "pip install -e ../../libs/cli",
@@ -131,34 +131,34 @@ install-libs = [
   "pip install -e ../../libs/fast-core"
 ]
 
-***REMOVED*** Server management
+# Server management
 serve = "python -m search_api.main"
 dev = "PYTHONPATH=src uvicorn search_api.main:create_app --factory --reload --port 8005"
 
-***REMOVED*** CLI access
+# CLI access
 cli = "python -m search_api.cli"
 
-***REMOVED*** Health checks
+# Health checks
 health-check = "python -m search_api.cli health check"
 health-redis = "python -m search_api.cli health redis"
 health-backend = "python -m search_api.cli health backend"
 
-***REMOVED*** Cache management
+# Cache management
 cache-info = "python -m search_api.cli cache info"
 cache-keys = "python -m search_api.cli cache keys"
 cache-get = "python -m search_api.cli cache get"
 cache-clear = "python -m search_api.cli cache clear --confirm"
 
-***REMOVED*** Search operations
+# Search operations
 index-suggestions = "python -m search_api.cli search index-suggestions"
 search-test = "python -m search_api.cli search test"
 
-***REMOVED*** System commands
+# System commands
 config = "python -m search_api.cli config"
 version = "python -m search_api.cli version"
 serve-cli = "python -m search_api.cli serve"
 
-***REMOVED*** Development tools
+# Development tools
 lint = [
     "black .",
     "isort .",
@@ -172,7 +172,7 @@ format = [
     "isort ."
 ]
 
-***REMOVED*** Tool configurations
+# Tool configurations
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -181,7 +181,7 @@ python_functions = "test_*"
 
 [tool.mypy]
 python_version = "3.12"
-***REMOVED*** Strict settings
+# Strict settings
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
@@ -193,19 +193,19 @@ disallow_untyped_calls = true
 disallow_any_generics = true
 disallow_subclassing_any = true
 
-***REMOVED*** Warning settings
+# Warning settings
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_return_any = true
 warn_unreachable = true
 
-***REMOVED*** Error reporting
+# Error reporting
 pretty = true
 show_column_numbers = true
 show_error_context = true
 
-***REMOVED*** Importing
+# Importing
 ignore_missing_imports = false
 follow_imports = "normal"
 
@@ -242,21 +242,21 @@ src = ["src"]
 
 [tool.ruff.lint]
 select = [
-    "E",   ***REMOVED*** pycodestyle errors
-    "W",   ***REMOVED*** pycodestyle warnings
-    "F",   ***REMOVED*** pyflakes
-    "UP",  ***REMOVED*** pyupgrade
-    "B",   ***REMOVED*** flake8-bugbear
-    "SIM", ***REMOVED*** flake8-simplify
-    "I",   ***REMOVED*** isort
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
 ]
 ignore = [
-    "E501", ***REMOVED*** line too long, handled by black
-    "B008", ***REMOVED*** do not perform function calls in argument defaults
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
 ]
 
 [tool.ruff.lint.isort]
-***REMOVED*** Pre-commit runs Ruff from the monorepo root, so make first/third-party grouping explicit
-***REMOVED*** to keep import blocks stable regardless of current working directory.
+# Pre-commit runs Ruff from the monorepo root, so make first/third-party grouping explicit
+# to keep import blocks stable regardless of current working directory.
 known-first-party = ["search_api"]
 known-third-party = ["cache", "cli", "config", "fast_core", "kafka", "movie_storage"]

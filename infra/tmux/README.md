@@ -1,15 +1,15 @@
-***REMOVED*** Next Watch Tmux Development Environment
+# Next Watch Tmux Development Environment
 
 This directory contains scripts to start all Next Watch services in a convenient tmux session for local development.
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
 ```bash
-***REMOVED*** From project root
+# From project root
 ./infra/tmux/start_services_tmux.sh
 ```
 
-***REMOVED******REMOVED*** What It Does
+## What It Does
 
 The script creates an 11-window tmux session called "nextwatch" with:
 
@@ -25,7 +25,7 @@ The script creates an 11-window tmux session called "nextwatch" with:
 9. **data** - Data importer utilities
 10. **monitoring** - Service health checks and monitoring
 
-***REMOVED******REMOVED*** Smart Session Management
+## Smart Session Management
 
 When running the script, if a session already exists, you'll get options:
 
@@ -35,7 +35,7 @@ When running the script, if a session already exists, you'll get options:
 
 This means you can safely run the script multiple times without losing your work!
 
-***REMOVED******REMOVED*** Service URLs
+## Service URLs
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000 (docs: http://localhost:8000/docs)
@@ -47,23 +47,23 @@ This means you can safely run the script multiple times without losing your work
 - **Redis (Homebrew)**: localhost:6379
 - **Qdrant (Docker)**: http://localhost:6333
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
-***REMOVED******REMOVED******REMOVED*** Required Tools
+### Required Tools
 
 ```bash
-***REMOVED*** macOS
+# macOS
 brew install tmux hatch pnpm redis docker
 
-***REMOVED*** Ubuntu/Debian
+# Ubuntu/Debian
 sudo apt update
 sudo apt install tmux docker.io
-***REMOVED*** Install Node.js 18+ and pnpm
-***REMOVED*** Install hatch: pip install hatch
-***REMOVED*** Install Redis via package manager or build from source
+# Install Node.js 18+ and pnpm
+# Install hatch: pip install hatch
+# Install Redis via package manager or build from source
 ```
 
-***REMOVED******REMOVED******REMOVED*** Database Dependencies
+### Database Dependencies
 
 **Redis**: Managed automatically via Homebrew. The script will start the Redis service if it's not already running.
 
@@ -72,17 +72,17 @@ sudo apt install tmux docker.io
 **PostgreSQL**: You need to set this up separately for the backend API.
 
 ```bash
-***REMOVED*** Install and start PostgreSQL
+# Install and start PostgreSQL
 brew install postgresql@14
 brew services start postgresql@14
 
-***REMOVED*** Create database
+# Create database
 createdb nextwatch_dev
 ```
 
-***REMOVED******REMOVED*** Navigation
+## Navigation
 
-***REMOVED******REMOVED******REMOVED*** Tmux Basics
+### Tmux Basics
 
 - `Ctrl+B` then `0-9` - Switch to window 0-9
 - `Ctrl+B` then `:select-window -t 10` - Switch to window 10 (monitoring)
@@ -91,7 +91,7 @@ createdb nextwatch_dev
 - `Ctrl+B` then `d` - Detach from session
 - `Ctrl+B` then `?` - Show help
 
-***REMOVED******REMOVED******REMOVED*** Quick Window Access
+### Quick Window Access
 
 - `Ctrl+B` then `0` - infra (Redis)
 - `Ctrl+B` then `1` - qdrant (Vector DB logs)
@@ -99,19 +99,19 @@ createdb nextwatch_dev
 - `Ctrl+B` then `8` - frontend
 - `Ctrl+B` then `w` then arrow keys - Browse all windows
 
-***REMOVED******REMOVED******REMOVED*** Reconnect to Session
+### Reconnect to Session
 
 ```bash
 tmux attach -t nextwatch
 ```
 
-***REMOVED******REMOVED******REMOVED*** Kill Session
+### Kill Session
 
 ```bash
 tmux kill-session -t nextwatch
 ```
 
-***REMOVED******REMOVED*** Health Monitoring
+## Health Monitoring
 
 In the monitoring window (window 10), run:
 
@@ -126,104 +126,104 @@ This shows the status of all services including:
 - All API services
 - Frontend application
 
-***REMOVED******REMOVED******REMOVED*** Viewing Live Logs
+### Viewing Live Logs
 
 - **Qdrant logs**: Switch to window 1 (`Ctrl+B` then `1`) to see real-time Qdrant vector database logs
 - **API logs**: Each service runs in its own window with live output
 - **All services**: Use `Ctrl+B` then `w` to navigate between windows
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Redis Issues
+### Redis Issues
 
 ```bash
-***REMOVED*** Check Redis status
+# Check Redis status
 redis-cli ping
 
-***REMOVED*** Start Redis manually
+# Start Redis manually
 brew services start redis
 
-***REMOVED*** Check Redis logs
+# Check Redis logs
 brew services list | grep redis
 ```
 
-***REMOVED******REMOVED******REMOVED*** Qdrant Issues
+### Qdrant Issues
 
 ```bash
-***REMOVED*** Check if Qdrant container is running
+# Check if Qdrant container is running
 docker ps | grep qdrant
 
-***REMOVED*** View Qdrant logs in real-time
-***REMOVED*** Switch to window 1 in tmux session: Ctrl+B then 1
+# View Qdrant logs in real-time
+# Switch to window 1 in tmux session: Ctrl+B then 1
 
-***REMOVED*** Restart Qdrant container (with persistent storage)
+# Restart Qdrant container (with persistent storage)
 docker stop nextwatch-qdrant
 tmux new-window -t nextwatch:1 -n qdrant
 tmux send-keys -t nextwatch:qdrant "cd /path/to/project && docker run --rm --name nextwatch-qdrant -p 6333:6333 -p 6334:6334 -v $(pwd)/data/qdrant_storage:/qdrant/storage qdrant/qdrant" C-m
 
-***REMOVED*** Check Qdrant API
+# Check Qdrant API
 curl http://localhost:6333/collections
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service Won't Start
+### Service Won't Start
 
 - Check logs in the respective tmux window
 - Ensure all dependencies are installed
 - Check if ports are already in use: `lsof -i :8000`
 
-***REMOVED******REMOVED******REMOVED*** Clean Restart
+### Clean Restart
 
 ```bash
-***REMOVED*** Option 1: Use the built-in session management
+# Option 1: Use the built-in session management
 ./infra/tmux/start_services_tmux.sh
-***REMOVED*** Choose option 2 to kill and recreate
+# Choose option 2 to kill and recreate
 
-***REMOVED*** Option 2: Manual cleanup
+# Option 2: Manual cleanup
 tmux kill-session -t nextwatch
 docker stop nextwatch-qdrant 2>/dev/null || true
 docker rm nextwatch-qdrant 2>/dev/null || true
 
-***REMOVED*** Start fresh
+# Start fresh
 ./infra/tmux/start_services_tmux.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** Missing Windows
+### Missing Windows
 
 If you notice missing windows (common issue):
 
 ```bash
-***REMOVED*** Use built-in repair
+# Use built-in repair
 ./infra/tmux/start_services_tmux.sh
-***REMOVED*** Choose option 3 to fix missing windows
+# Choose option 3 to fix missing windows
 
-***REMOVED*** This will automatically:
-***REMOVED*** - Detect which windows should exist (0-10)
-***REMOVED*** - Add any missing windows
-***REMOVED*** - Start the appropriate services
-***REMOVED*** - Preserve existing working windows
+# This will automatically:
+# - Detect which windows should exist (0-10)
+# - Add any missing windows
+# - Start the appropriate services
+# - Preserve existing working windows
 ```
 
-***REMOVED******REMOVED*** Features
+## Features
 
-***REMOVED******REMOVED******REMOVED*** Data Persistence
+### Data Persistence
 
 - **Redis**: Data persists between restarts (Homebrew manages persistence)
 - **Qdrant**: Data persists in `./qdrant_storage/` directory (vector embeddings saved!)
 - **PostgreSQL**: Separate setup required, data persists independently
 
-***REMOVED******REMOVED******REMOVED*** Smart Window Management
+### Smart Window Management
 
 - **Missing window detection**: Script automatically detects and fixes missing windows
 - **Flexible session handling**: Attach, recreate, or repair existing sessions
 - **Proper window numbering**: Windows 0-10 for consistent navigation
 
-***REMOVED******REMOVED******REMOVED*** Live Monitoring
+### Live Monitoring
 
 - **Real-time logs**: Each service has its own window with live output
 - **Dedicated Qdrant logs**: Window 1 shows vector database activity
 - **Health monitoring**: Window 10 provides service status checking
 
-***REMOVED******REMOVED*** Notes
+## Notes
 
 - Services take 1-2 minutes to fully start up
 - Frontend hot-reload works automatically

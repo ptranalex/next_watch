@@ -1,15 +1,15 @@
-***REMOVED*** Application Providers
+# Application Providers
 
 This directory contains React Context providers that supply global state and functionality to the application.
 
-***REMOVED******REMOVED*** Current Providers
+## Current Providers
 
 - **AuthProvider**: Manages authentication state and user sessions
 - **ThemeScript**: Provides theme initialization for the application
 - **ResponsiveContext**: Provides responsive design utilities and device detection
 - **MovieQueryContext**: Manages global state for movie queries and filters
 
-***REMOVED******REMOVED*** Guidelines
+## Guidelines
 
 - Providers should be focused on a single responsibility
 - Export both the provider component and a hook to access the context
@@ -17,7 +17,7 @@ This directory contains React Context providers that supply global state and fun
 - Document the shape of the context and how to use it properly
 - Place all application-level providers in this directory, not in the components directory
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 Providers should be imported in the application's layout or page files, typically wrapping the main content:
 

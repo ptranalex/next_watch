@@ -7,18 +7,18 @@ for granular middleware configuration in FastAPI applications.
 
 import os
 
-***REMOVED*** Import from the local fast_core package
+# Import from the local fast_core package
 import sys
 from typing import Any, cast
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from fast_core.app import create_app  ***REMOVED*** type: ignore
-from fast_core.middleware import MiddlewareConfig  ***REMOVED*** type: ignore
+from fast_core.app import create_app  # type: ignore
+from fast_core.middleware import MiddlewareConfig  # type: ignore
 from fastapi import APIRouter, FastAPI, Request
 
 
-***REMOVED*** Example settings class
+# Example settings class
 class Settings:
     service_name = "Example API"
     debug = True
@@ -27,7 +27,7 @@ class Settings:
 
 settings = Settings()
 
-***REMOVED*** Create routers for demonstration
+# Create routers for demonstration
 api_router = APIRouter(prefix="/api/v1")
 
 
@@ -76,7 +76,7 @@ def create_security_focused_app() -> FastAPI:
         methods=["GET", "POST", "PUT", "DELETE"],
     ).security_headers(
         hsts=True,
-        hsts_max_age=31536000,  ***REMOVED*** 1 year
+        hsts_max_age=31536000,  # 1 year
         frame_options="DENY",
         csp="default-src 'self'; script-src 'self' 'unsafe-inline'",
         trusted_hosts=["secure-app.example.com", "api.example.com"],
@@ -97,12 +97,12 @@ def create_security_focused_app() -> FastAPI:
 def create_development_app() -> FastAPI:
     """Create an app with development-friendly middleware."""
     middleware = MiddlewareConfig()
-    middleware.cors(origins=["*"], credentials=False).logging(  ***REMOVED*** Allow all origins in development
+    middleware.cors(origins=["*"], credentials=False).logging(  # Allow all origins in development
         level="DEBUG",
         include_request_body=True,
         include_response_body=True,
         max_body_size=2048,
-        exclude_paths=["/health"],  ***REMOVED*** Don't log health checks
+        exclude_paths=["/health"],  # Don't log health checks
         log_timing=True,
         log_user_agent=True,
     ).request_processing(include_request_id=True, include_process_time=True, gzip_compression=True)
@@ -126,7 +126,7 @@ def create_production_app() -> FastAPI:
         expose_headers=["X-Request-ID", "X-Process-Time"],
     ).security_headers(
         hsts=True,
-        hsts_max_age=63072000,  ***REMOVED*** 2 years
+        hsts_max_age=63072000,  # 2 years
         hsts_include_subdomains=True,
         frame_options="DENY",
         content_type_options=True,
@@ -136,25 +136,25 @@ def create_production_app() -> FastAPI:
         trusted_hosts=["app.example.com", "api.example.com"],
     ).rate_limiting(
         default_limit="1000/hour",
-        storage_url="redis://localhost:6379/0",  ***REMOVED*** Use Redis for distributed rate limiting
+        storage_url="redis://localhost:6379/0",  # Use Redis for distributed rate limiting
         endpoints={
             "/api/v1/auth/login": "10/minute",
             "/api/v1/auth/refresh": "20/minute",
             "/api/v1/upload": "5/minute",
             "/api/v1/search": "100/minute",
         },
-        exempt_ips=["10.0.0.0/8", "192.168.0.0/16"],  ***REMOVED*** Internal networks
+        exempt_ips=["10.0.0.0/8", "192.168.0.0/16"],  # Internal networks
     ).logging(
         level="INFO",
-        include_request_body=False,  ***REMOVED*** Don't log request bodies in production
+        include_request_body=False,  # Don't log request bodies in production
         include_response_body=False,
         exclude_paths=["/health", "/metrics", "/favicon.ico"],
         include_headers=True,
         exclude_headers=["authorization", "cookie", "x-api-key"],
         log_timing=True,
-        log_user_agent=False,  ***REMOVED*** Reduce log volume
+        log_user_agent=False,  # Reduce log volume
     ).request_processing(
-        max_request_size=5 * 1024 * 1024,  ***REMOVED*** 5MB max request size
+        max_request_size=5 * 1024 * 1024,  # 5MB max request size
         timeout=30,
         include_request_id=True,
         include_process_time=True,
@@ -171,7 +171,7 @@ def create_minimal_app() -> FastAPI:
     middleware = MiddlewareConfig()
     middleware.cors(origins=["http://localhost:3000"], credentials=False).request_processing(
         include_request_id=True,
-        gzip_compression=False,  ***REMOVED*** Disable compression for minimal setup
+        gzip_compression=False,  # Disable compression for minimal setup
     )
 
     app = create_app(settings=settings, middleware=middleware, routers=[api_router])
@@ -181,7 +181,7 @@ def create_minimal_app() -> FastAPI:
 if __name__ == "__main__":
     import uvicorn
 
-    ***REMOVED*** Choose which app configuration to run
+    # Choose which app configuration to run
     app_configs = {
         "basic": create_basic_app,
         "security": create_security_focused_app,
@@ -190,7 +190,7 @@ if __name__ == "__main__":
         "minimal": create_minimal_app,
     }
 
-    ***REMOVED*** Default to basic configuration
+    # Default to basic configuration
     config_name = "basic"
     app = app_configs[config_name]()
 

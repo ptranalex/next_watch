@@ -59,7 +59,7 @@ class BackendKafkaService:
             self.logger.info("Kafka producer started")
         except Exception as e:
             self.logger.error("Failed to start Kafka producer", error=str(e), exc_info=True)
-            ***REMOVED*** Don't raise - service should continue even if Kafka is unavailable
+            # Don't raise - service should continue even if Kafka is unavailable
 
     async def stop(self) -> None:
         """Stop the Kafka producer."""
@@ -103,7 +103,7 @@ class BackendKafkaService:
             await self._producer.send_event(
                 topic="user.activity",
                 event=event,
-                key=str(user_id),  ***REMOVED*** Partition by user_id
+                key=str(user_id),  # Partition by user_id
             )
 
             self.logger.debug(
@@ -214,7 +214,7 @@ class BackendKafkaService:
             )
 
 
-***REMOVED*** Global Kafka service instance
+# Global Kafka service instance
 _kafka_service: BackendKafkaService | None = None
 
 

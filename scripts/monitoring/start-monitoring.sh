@@ -1,16 +1,16 @@
-***REMOVED***!/bin/bash
-***REMOVED*** NextWatch Monitoring Stack Startup Script
+#!/bin/bash
+# NextWatch Monitoring Stack Startup Script
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
-***REMOVED*** Configuration
+# Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$PROJECT_ROOT/infra"
@@ -19,7 +19,7 @@ MONITORING_DIR="$INFRA_DIR/monitoring"
 echo -e "${BLUE}🚀 Starting NextWatch Monitoring Stack${NC}"
 echo "Project root: $PROJECT_ROOT"
 
-***REMOVED*** Create directories if they don't exist
+# Create directories if they don't exist
 echo -e "${YELLOW}📁 Creating monitoring directories...${NC}"
 mkdir -p "$MONITORING_DIR/prometheus/rules"
 mkdir -p "$MONITORING_DIR/grafana/provisioning/datasources"
@@ -29,17 +29,17 @@ mkdir -p "$MONITORING_DIR/grafana/dashboards/infrastructure"
 mkdir -p "$MONITORING_DIR/grafana/dashboards/business"
 mkdir -p "$MONITORING_DIR/alertmanager"
 
-***REMOVED*** Set proper permissions
+# Set proper permissions
 echo -e "${YELLOW}🔒 Setting permissions...${NC}"
 chmod -R 755 "$MONITORING_DIR"
 
-***REMOVED*** Check if Docker is running
+# Check if Docker is running
 if ! docker info >/dev/null 2>&1; then
     echo -e "${RED}❌ Docker is not running. Please start Docker first.${NC}"
     exit 1
 fi
 
-***REMOVED*** Check if docker-compose is available
+# Check if docker-compose is available
 if docker compose version >/dev/null 2>&1; then
     DOCKER_COMPOSE_CMD="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
@@ -49,21 +49,21 @@ else
     exit 1
 fi
 
-***REMOVED*** Create network if it doesn't exist
+# Create network if it doesn't exist
 echo -e "${YELLOW}🌐 Creating Docker network...${NC}"
 docker network create nextwatch-network 2>/dev/null || echo "Network already exists"
 
-***REMOVED*** Start monitoring stack
+# Start monitoring stack
 echo -e "${YELLOW}🐳 Starting monitoring containers...${NC}"
 cd "$INFRA_DIR"
 
-***REMOVED*** Stop any existing containers
+# Stop any existing containers
 $DOCKER_COMPOSE_CMD -f "$INFRA_DIR/compose/monitoring.yml" down
 
-***REMOVED*** Start the stack
+# Start the stack
 $DOCKER_COMPOSE_CMD -f "$INFRA_DIR/compose/monitoring.yml" up -d
 
-***REMOVED*** Wait for services to be healthy
+# Wait for services to be healthy
 echo -e "${YELLOW}⏳ Waiting for services to be healthy...${NC}"
 
 check_service() {
@@ -86,16 +86,16 @@ check_service() {
     return 1
 }
 
-***REMOVED*** Check Prometheus
+# Check Prometheus
 check_service "Prometheus" "http://localhost:9090/-/healthy"
 
-***REMOVED*** Check Grafana
+# Check Grafana
 check_service "Grafana" "http://localhost:3001/api/health"
 
-***REMOVED*** Check AlertManager
+# Check AlertManager
 check_service "AlertManager" "http://localhost:9093/-/healthy"
 
-***REMOVED*** Display status
+# Display status
 echo -e "\n${GREEN}🎉 Monitoring stack is running!${NC}"
 echo ""
 echo -e "${BLUE}📊 Access URLs:${NC}"
@@ -104,7 +104,7 @@ echo -e "  Prometheus:   ${GREEN}http://localhost:9090${NC}"
 echo -e "  AlertManager: ${GREEN}http://localhost:9093${NC}"
 echo ""
 
-***REMOVED*** Check for NextWatch services
+# Check for NextWatch services
 echo -e "${BLUE}🔍 Checking NextWatch services...${NC}"
 services_found=false
 

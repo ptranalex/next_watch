@@ -1,66 +1,66 @@
-***REMOVED*** Error Handling Best Practices
+# Error Handling Best Practices
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This document outlines best practices for error handling in microservices using the enhanced error handling system. Following these patterns ensures consistent, maintainable, and observable error handling across the Next Watch platform.
 
-***REMOVED******REMOVED*** 🎯 Core Principles
+## 🎯 Core Principles
 
-***REMOVED******REMOVED******REMOVED*** 1. Semantic Preservation
+### 1. Semantic Preservation
 
 **Principle**: HTTP status codes should reflect the actual nature of the error, not the implementation details.
 
 ```python
-***REMOVED*** ❌ Bad: All errors become 502
+# ❌ Bad: All errors become 502
 @service_error_handler("user-service", logger)
 async def get_user(user_id: int):
-    return await user_service.get(user_id)  ***REMOVED*** 404 becomes 502
+    return await user_service.get(user_id)  # 404 becomes 502
 
-***REMOVED*** ✅ Good: Preserve semantic meaning
+# ✅ Good: Preserve semantic meaning
 @critical_service_handler("user-service", logger)
 async def get_user(user_id: int):
-    return await user_service.get(user_id)  ***REMOVED*** 404 stays 404
+    return await user_service.get(user_id)  # 404 stays 404
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Graceful Degradation
+### 2. Graceful Degradation
 
 **Principle**: Non-critical features should fail silently without breaking core functionality.
 
 ```python
-***REMOVED*** ❌ Bad: Recommendations failure breaks movie page
+# ❌ Bad: Recommendations failure breaks movie page
 @critical_service_handler("recommendation-api", logger)
 async def get_similar_movies():
-    return await reco_api.get_similar()  ***REMOVED*** Failure = 502 error page
+    return await reco_api.get_similar()  # Failure = 502 error page
 
-***REMOVED*** ✅ Good: Graceful degradation
+# ✅ Good: Graceful degradation
 @optional_service_handler(
     service_name="recommendation-api",
     logger=logger,
     fallback_value=[]
 )
 async def get_similar_movies():
-    return await reco_api.get_similar()  ***REMOVED*** Failure = empty recommendations
+    return await reco_api.get_similar()  # Failure = empty recommendations
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Context-Rich Logging
+### 3. Context-Rich Logging
 
 **Principle**: Error logs should provide sufficient context for debugging and monitoring.
 
 ```python
-***REMOVED*** ❌ Bad: Generic error message
+# ❌ Bad: Generic error message
 logger.error("Service failed")
 
-***REMOVED*** ✅ Good: Rich context provided automatically
-@critical_service_handler("database", logger)  ***REMOVED*** Includes operation, service, timing
+# ✅ Good: Rich context provided automatically
+@critical_service_handler("database", logger)  # Includes operation, service, timing
 async def get_user_data(user_id: int):
     return await db.get_user(user_id)
 ```
 
-***REMOVED******REMOVED*** 📋 Decision Framework
+## 📋 Decision Framework
 
-***REMOVED******REMOVED******REMOVED*** Choosing the Right Decorator
+### Choosing the Right Decorator
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Critical Service Handler
+#### Critical Service Handler
 
 **Use when**: The operation is essential for core functionality
 
@@ -81,7 +81,7 @@ async def get_user_data(user_id: int):
 - Users expect an error if this fails
 - Alternative flows are not acceptable
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Optional Service Handler
+#### Optional Service Handler
 
 **Use when**: The operation enhances the experience but isn't required
 
@@ -106,7 +106,7 @@ async def get_user_data(user_id: int):
 - Acceptable fallback values exist
 - Users may not notice the absence
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Custom Error Mapping
+#### Custom Error Mapping
 
 **Use when**: You need to preserve specific business logic semantics
 
@@ -132,9 +132,9 @@ async def get_user_data(user_id: int):
 - Multiple error types need different responses
 - Business logic embedded in error handling
 
-***REMOVED******REMOVED*** 🔧 Implementation Patterns
+## 🔧 Implementation Patterns
 
-***REMOVED******REMOVED******REMOVED*** Pattern 1: Database Operations
+### Pattern 1: Database Operations
 
 ```python
 @critical_service_handler("database", logger)
@@ -152,25 +152,25 @@ async def get_user(session: Session, user_id: int) -> User:
 @critical_service_handler("database", logger)
 async def create_user(session: Session, email: str) -> User:
     """Create user - critical for registration."""
-    ***REMOVED*** Check for conflicts first
+    # Check for conflicts first
     existing = get_user_by_email(session, email)
     if existing:
-        ***REMOVED*** Will be mapped to ConflictException by error mapping
+        # Will be mapped to ConflictException by error mapping
         raise ValueError("email already exists")
 
     return User(email=email)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Pattern 2: External API Calls
+### Pattern 2: External API Calls
 
 ```python
-***REMOVED*** Critical business data
+# Critical business data
 @critical_service_handler("payment-api", logger)
 async def process_payment(amount: float) -> PaymentResult:
     """Process payment - must succeed for purchase."""
     return await payment_api.charge(amount)
 
-***REMOVED*** Enhancement data
+# Enhancement data
 @optional_service_handler(
     service_name="analytics-api",
     logger=logger,
@@ -181,7 +181,7 @@ async def track_user_event(event: dict) -> dict:
     return await analytics_api.track(event)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Pattern 3: Authentication Flows
+### Pattern 3: Authentication Flows
 
 ```python
 @service_error_handler(
@@ -196,69 +196,69 @@ async def track_user_event(event: dict) -> dict:
 )
 async def authenticate_user(email: str, password: str) -> User:
     """Authenticate user with semantic error preservation."""
-    ***REMOVED*** Input validation
+    # Input validation
     if not email or not password:
         raise ValidationException("Email and password are required")
 
-    ***REMOVED*** Attempt authentication
+    # Attempt authentication
     user = await auth_service.authenticate(email, password)
     if not user:
-        raise ValueError("invalid_credentials")  ***REMOVED*** Mapped to AuthenticationException
+        raise ValueError("invalid_credentials")  # Mapped to AuthenticationException
 
     return user
 ```
 
-***REMOVED******REMOVED******REMOVED*** Pattern 4: Multi-Service Orchestration
+### Pattern 4: Multi-Service Orchestration
 
 ```python
 async def get_movie_details(movie_id: int) -> MovieDetails:
     """Get comprehensive movie details from multiple services."""
 
-    ***REMOVED*** Critical: Basic movie data
-    movie = await get_movie_basic_data(movie_id)  ***REMOVED*** @critical_service_handler
+    # Critical: Basic movie data
+    movie = await get_movie_basic_data(movie_id)  # @critical_service_handler
 
-    ***REMOVED*** Optional: Enhancement data with fallbacks
-    cast = await get_movie_cast(movie_id)  ***REMOVED*** @optional_service_handler -> []
-    trailers = await get_movie_trailers(movie_id)  ***REMOVED*** @optional_service_handler -> []
-    recommendations = await get_similar_movies(movie_id)  ***REMOVED*** @optional_service_handler -> []
+    # Optional: Enhancement data with fallbacks
+    cast = await get_movie_cast(movie_id)  # @optional_service_handler -> []
+    trailers = await get_movie_trailers(movie_id)  # @optional_service_handler -> []
+    recommendations = await get_similar_movies(movie_id)  # @optional_service_handler -> []
 
     return MovieDetails(
         movie=movie,
-        cast=cast,  ***REMOVED*** May be empty on service failure
-        trailers=trailers,  ***REMOVED*** May be empty on service failure
-        recommendations=recommendations  ***REMOVED*** May be empty on service failure
+        cast=cast,  # May be empty on service failure
+        trailers=trailers,  # May be empty on service failure
+        recommendations=recommendations  # May be empty on service failure
     )
 ```
 
-***REMOVED******REMOVED*** 🚨 Anti-Patterns
+## 🚨 Anti-Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Wrong Criticality Classification
+### 1. Wrong Criticality Classification
 
 ```python
-***REMOVED*** ❌ Bad: Optional data marked as critical
+# ❌ Bad: Optional data marked as critical
 @critical_service_handler("recommendation-api", logger)
 async def get_movie_suggestions():
-    return await reco_api.get_suggestions()  ***REMOVED*** Page breaks if recommendations fail
+    return await reco_api.get_suggestions()  # Page breaks if recommendations fail
 
-***REMOVED*** ✅ Good: Proper classification
+# ✅ Good: Proper classification
 @optional_service_handler(
     service_name="recommendation-api",
     logger=logger,
     fallback_value=[]
 )
 async def get_movie_suggestions():
-    return await reco_api.get_suggestions()  ***REMOVED*** Page works without recommendations
+    return await reco_api.get_suggestions()  # Page works without recommendations
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Missing Fallback Values
+### 2. Missing Fallback Values
 
 ```python
-***REMOVED*** ❌ Bad: No fallback specified
-@optional_service_handler("external-api", logger)  ***REMOVED*** Returns None on failure
+# ❌ Bad: No fallback specified
+@optional_service_handler("external-api", logger)  # Returns None on failure
 async def get_optional_data():
     return await api.get_data()
 
-***REMOVED*** ✅ Good: Appropriate fallback
+# ✅ Good: Appropriate fallback
 @optional_service_handler(
     service_name="external-api",
     logger=logger,
@@ -268,10 +268,10 @@ async def get_optional_data():
     return await api.get_data()
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Over-Complex Error Mapping
+### 3. Over-Complex Error Mapping
 
 ```python
-***REMOVED*** ❌ Bad: Too many specific mappings
+# ❌ Bad: Too many specific mappings
 @service_error_handler(
     service_name="api",
     logger=logger,
@@ -280,11 +280,11 @@ async def get_optional_data():
         "connection_refused": lambda e: ServiceException("Refused"),
         "dns_error": lambda e: NetworkException("DNS"),
         "ssl_error": lambda e: SecurityException("SSL"),
-        ***REMOVED*** ... 20 more mappings
+        # ... 20 more mappings
     }
 )
 
-***REMOVED*** ✅ Good: Focus on actionable business errors
+# ✅ Good: Focus on actionable business errors
 @service_error_handler(
     service_name="payment-api",
     logger=logger,
@@ -296,27 +296,27 @@ async def get_optional_data():
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Manual Error Handling in Decorated Functions
+### 4. Manual Error Handling in Decorated Functions
 
 ```python
-***REMOVED*** ❌ Bad: Manual error handling defeats the purpose
+# ❌ Bad: Manual error handling defeats the purpose
 @optional_service_handler("api", logger, fallback_value=[])
 async def get_data():
     try:
         return await api.fetch()
     except Exception as e:
-        logger.error(f"Manual error handling: {e}")  ***REMOVED*** Decorator handles this
-        return []  ***REMOVED*** Decorator provides fallback
+        logger.error(f"Manual error handling: {e}")  # Decorator handles this
+        return []  # Decorator provides fallback
 
-***REMOVED*** ✅ Good: Let decorator handle errors
+# ✅ Good: Let decorator handle errors
 @optional_service_handler("api", logger, fallback_value=[])
 async def get_data():
-    return await api.fetch()  ***REMOVED*** Clean, decorator handles errors and fallbacks
+    return await api.fetch()  # Clean, decorator handles errors and fallbacks
 ```
 
-***REMOVED******REMOVED*** 📝 Documentation Standards
+## 📝 Documentation Standards
 
-***REMOVED******REMOVED******REMOVED*** Function Documentation
+### Function Documentation
 
 ```python
 @critical_service_handler("user-database", logger)
@@ -342,7 +342,7 @@ async def get_user_profile(user_id: int) -> UserProfile:
     return await db.get_user_profile(user_id)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error Mapping Documentation
+### Error Mapping Documentation
 
 ```python
 @service_error_handler(
@@ -350,7 +350,7 @@ async def get_user_profile(user_id: int) -> UserProfile:
     logger=logger,
     preserve_semantics=True,
     error_mapping={
-        ***REMOVED*** Map auth service errors to semantic exceptions
+        # Map auth service errors to semantic exceptions
         "invalid_credentials": lambda e: AuthenticationException("Invalid email or password"),
         "account_locked": lambda e: AuthenticationException("Account temporarily locked"),
         "token_expired": lambda e: AuthenticationException("Session expired"),
@@ -368,9 +368,9 @@ async def validate_user_session(token: str):
     return await auth_service.validate_token(token)
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing Best Practices
+## 🧪 Testing Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Test Critical Operations
+### Test Critical Operations
 
 ```python
 async def test_critical_operation_database_failure():
@@ -387,7 +387,7 @@ async def test_critical_operation_database_failure():
 async def test_critical_operation_business_logic_error():
     """Critical operations should preserve business logic errors."""
     with patch('database.get_user') as mock_db:
-        mock_db.return_value = None  ***REMOVED*** User not found
+        mock_db.return_value = None  # User not found
 
         with pytest.raises(ResourceNotFoundException) as exc_info:
             await get_user_profile(123)
@@ -396,7 +396,7 @@ async def test_critical_operation_business_logic_error():
         assert exc_info.value.status_code == 404
 ```
 
-***REMOVED******REMOVED******REMOVED*** Test Optional Operations
+### Test Optional Operations
 
 ```python
 async def test_optional_operation_graceful_degradation():
@@ -406,8 +406,8 @@ async def test_optional_operation_graceful_degradation():
 
         result = await get_movie_recommendations(123)
 
-        assert result == []  ***REMOVED*** Fallback value
-        ***REMOVED*** No exception raised
+        assert result == []  # Fallback value
+        # No exception raised
 
 async def test_optional_operation_success():
     """Optional operations should work normally when service is available."""
@@ -420,7 +420,7 @@ async def test_optional_operation_success():
         assert result[0]["title"] == "Similar Movie"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Test Error Mapping
+### Test Error Mapping
 
 ```python
 async def test_error_mapping_auth_failures():
@@ -441,25 +441,25 @@ async def test_error_mapping_auth_failures():
             assert expected_message in str(exc_info.value)
 ```
 
-***REMOVED******REMOVED*** 📊 Monitoring and Observability
+## 📊 Monitoring and Observability
 
-***REMOVED******REMOVED******REMOVED*** Essential Metrics
+### Essential Metrics
 
 ```python
-***REMOVED*** Error rate by service and operation
+# Error rate by service and operation
 error_rate = Counter('service_errors_total', ['service', 'operation', 'error_type'])
 
-***REMOVED*** Graceful degradation tracking
+# Graceful degradation tracking
 degradation_count = Counter('graceful_degradations_total', ['service', 'operation'])
 
-***REMOVED*** Critical service availability
+# Critical service availability
 critical_service_uptime = Gauge('critical_service_availability', ['service'])
 ```
 
-***REMOVED******REMOVED******REMOVED*** Log Structure Standards
+### Log Structure Standards
 
 ```python
-***REMOVED*** Structured logging for error context
+# Structured logging for error context
 logger.error(
     "Critical service failure",
     extra={
@@ -474,10 +474,10 @@ logger.error(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Alert Definitions
+### Alert Definitions
 
 ```yaml
-***REMOVED*** Critical service failure alerts
+# Critical service failure alerts
 - alert: CriticalServiceDown
   expr: rate(service_errors_total{error_type="ExternalServiceException"}[5m]) > 0.1
   labels:
@@ -485,7 +485,7 @@ logger.error(
   annotations:
     summary: "Critical service {{ $labels.service }} failing"
 
-***REMOVED*** Excessive graceful degradation
+# Excessive graceful degradation
 - alert: HighGracefulDegradation
   expr: rate(graceful_degradations_total[15m]) > 50
   labels:
@@ -494,40 +494,40 @@ logger.error(
     summary: "High rate of graceful degradation in {{ $labels.service }}"
 ```
 
-***REMOVED******REMOVED*** 🔒 Security Considerations
+## 🔒 Security Considerations
 
-***REMOVED******REMOVED******REMOVED*** Error Information Disclosure
+### Error Information Disclosure
 
 ```python
-***REMOVED*** ❌ Bad: Exposing internal details
+# ❌ Bad: Exposing internal details
 @service_error_handler("database", logger)
 async def get_user_secrets(user_id: int):
     try:
         return await db.query("SELECT * FROM secrets WHERE user_id = ?", user_id)
     except Exception as e:
-        ***REMOVED*** Exposes database structure in error messages
+        # Exposes database structure in error messages
         raise HTTPException(500, f"Database error: {str(e)}")
 
-***REMOVED*** ✅ Good: Generic error messages for security
+# ✅ Good: Generic error messages for security
 @critical_service_handler("database", logger)
 async def get_user_secrets(user_id: int):
-    ***REMOVED*** Error details logged internally, generic message to user
+    # Error details logged internally, generic message to user
     return await db.get_user_secrets(user_id)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Authentication Error Timing
+### Authentication Error Timing
 
 ```python
-***REMOVED*** ❌ Bad: Different timing reveals user existence
+# ❌ Bad: Different timing reveals user existence
 async def authenticate_user(email: str, password: str):
-    user = await get_user_by_email(email)  ***REMOVED*** Fast if user doesn't exist
+    user = await get_user_by_email(email)  # Fast if user doesn't exist
     if not user:
         raise AuthenticationException("Invalid credentials")
 
-    if not verify_password(password, user.hashed_password):  ***REMOVED*** Slow hash check
+    if not verify_password(password, user.hashed_password):  # Slow hash check
         raise AuthenticationException("Invalid credentials")
 
-***REMOVED*** ✅ Good: Consistent timing
+# ✅ Good: Consistent timing
 async def authenticate_user(email: str, password: str):
     user = await get_user_by_email(email)
     dummy_hash = "$2b$12$dummy_hash_for_timing_consistency"
@@ -535,7 +535,7 @@ async def authenticate_user(email: str, password: str):
     if user:
         is_valid = verify_password(password, user.hashed_password)
     else:
-        ***REMOVED*** Still perform hash to maintain consistent timing
+        # Still perform hash to maintain consistent timing
         verify_password(password, dummy_hash)
         is_valid = False
 
@@ -543,38 +543,38 @@ async def authenticate_user(email: str, password: str):
         raise AuthenticationException("Invalid credentials")
 ```
 
-***REMOVED******REMOVED*** 🚀 Performance Considerations
+## 🚀 Performance Considerations
 
-***REMOVED******REMOVED******REMOVED*** Timeout Configuration
+### Timeout Configuration
 
 ```python
-***REMOVED*** Configure appropriate timeouts for different service types
+# Configure appropriate timeouts for different service types
 @critical_service_handler("database", logger)
 async def get_user_data(user_id: int):
-    ***REMOVED*** Fast database operations - short timeout
-    async with timeout(5):  ***REMOVED*** 5 seconds
+    # Fast database operations - short timeout
+    async with timeout(5):  # 5 seconds
         return await db.get_user(user_id)
 
 @optional_service_handler("external-api", logger, fallback_value=[])
 async def get_enrichment_data():
-    ***REMOVED*** External API - longer timeout before fallback
-    async with timeout(15):  ***REMOVED*** 15 seconds
+    # External API - longer timeout before fallback
+    async with timeout(15):  # 15 seconds
         return await external_api.get_data()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Circuit Breaker Integration
+### Circuit Breaker Integration
 
 ```python
 from circuit_breaker import CircuitBreaker
 
-***REMOVED*** Circuit breaker for optional services
+# Circuit breaker for optional services
 @optional_service_handler("recommendation-api", logger, fallback_value=[])
 @CircuitBreaker(failure_threshold=5, reset_timeout=60)
 async def get_recommendations():
     return await reco_api.get_similar()
 ```
 
-***REMOVED******REMOVED*** 📚 Additional Resources
+## 📚 Additional Resources
 
 - [Migration Guide](./MIGRATION_GUIDE.md) - Step-by-step migration instructions
 - [Enhanced Error Handling](./ENHANCED_ERROR_HANDLING.md) - Technical documentation

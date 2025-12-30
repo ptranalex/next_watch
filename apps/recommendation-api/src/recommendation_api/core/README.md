@@ -1,8 +1,8 @@
-***REMOVED*** Core Module
+# Core Module
 
 This module contains the core application components that handle FastAPI application creation, configuration, and lifecycle management using the Application Factory pattern.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The core module provides:
 
@@ -12,28 +12,28 @@ The core module provides:
 - **Lifecycle Management**: Proper startup and shutdown handling
 - **Exception Handling**: Global exception handling for unhandled errors
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
 The core module follows the Application Factory pattern, separating concerns into focused modules:
 
 ```
 core/
-├── __init__.py         ***REMOVED*** Module exports
-├── app.py              ***REMOVED*** FastAPI app factory & lifespan management
-├── middleware.py       ***REMOVED*** Middleware configuration (CORS, TrustedHost)
-└── logging.py          ***REMOVED*** Logging setup wrapper
+├── __init__.py         # Module exports
+├── app.py              # FastAPI app factory & lifespan management
+├── middleware.py       # Middleware configuration (CORS, TrustedHost)
+└── logging.py          # Logging setup wrapper
 ```
 
-***REMOVED******REMOVED*** Components
+## Components
 
-***REMOVED******REMOVED******REMOVED*** Application Factory (`app.py`)
+### Application Factory (`app.py`)
 
 The main application factory that creates and configures the FastAPI application:
 
 ```python
 from recommendation_api.core.app import create_app
 
-***REMOVED*** Create a configured FastAPI application
+# Create a configured FastAPI application
 app = create_app()
 ```
 
@@ -50,14 +50,14 @@ app = create_app()
 - **Startup**: Initialize health service, log configuration
 - **Shutdown**: Clean up health service and other resources
 
-***REMOVED******REMOVED******REMOVED*** Middleware Configuration (`middleware.py`)
+### Middleware Configuration (`middleware.py`)
 
 Configures FastAPI middleware for security and cross-origin requests:
 
 ```python
 from recommendation_api.core.middleware import setup_middleware
 
-***REMOVED*** Setup middleware on an existing app
+# Setup middleware on an existing app
 setup_middleware(app)
 ```
 
@@ -72,14 +72,14 @@ setup_middleware(app)
 - Development: Permissive CORS for local development
 - Production: Restricted hosts and origins based on settings
 
-***REMOVED******REMOVED******REMOVED*** Logging Configuration (`logging.py`)
+### Logging Configuration (`logging.py`)
 
 Provides a simple interface to the comprehensive logging system:
 
 ```python
 from recommendation_api.core.logging import setup_logging
 
-***REMOVED*** Configure application logging
+# Configure application logging
 setup_logging()
 ```
 
@@ -90,40 +90,40 @@ setup_logging()
 - **Environment Aware**: Adjusts verbosity based on debug mode
 - **External Library Suppression**: Reduces noise from third-party libraries
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Basic Application Creation
+### Basic Application Creation
 
 ```python
 from recommendation_api.core import create_app
 
-***REMOVED*** Create the application
+# Create the application
 app = create_app()
 
-***REMOVED*** The app is fully configured and ready to run
+# The app is fully configured and ready to run
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Configuration
+### Custom Configuration
 
 ```python
 from recommendation_api.core.app import create_app
 from recommendation_api.core.middleware import setup_middleware
 
-***REMOVED*** Create base app
+# Create base app
 app = create_app()
 
-***REMOVED*** Add custom middleware
+# Add custom middleware
 @app.middleware("http")
 async def custom_middleware(request, call_next):
-    ***REMOVED*** Custom logic here
+    # Custom logic here
     response = await call_next(request)
     return response
 ```
 
-***REMOVED******REMOVED******REMOVED*** Testing Setup
+### Testing Setup
 
 ```python
 from fastapi.testclient import TestClient
@@ -137,9 +137,9 @@ def test_app():
     assert response.status_code == 200
 ```
 
-***REMOVED******REMOVED*** Application Lifecycle
+## Application Lifecycle
 
-***REMOVED******REMOVED******REMOVED*** Startup Sequence
+### Startup Sequence
 
 1. **Environment Loading**: Load environment variables and settings
 2. **Logging Setup**: Configure logging with appropriate levels
@@ -149,21 +149,21 @@ def test_app():
 6. **Service Initialization**: Initialize health service and dependencies
 7. **Exception Handlers**: Register global exception handlers
 
-***REMOVED******REMOVED******REMOVED*** Shutdown Sequence
+### Shutdown Sequence
 
 1. **Service Cleanup**: Close health service connections
 2. **Resource Cleanup**: Clean up any other resources
 3. **Logging**: Log shutdown completion
 
-***REMOVED******REMOVED*** Health Service Integration
+## Health Service Integration
 
 The core module manages the health service lifecycle:
 
 ```python
-***REMOVED*** During startup
+# During startup
 app.state.health_service = get_health_service()
 
-***REMOVED*** During shutdown
+# During shutdown
 if hasattr(app.state, 'health_service') and app.state.health_service:
     app.state.health_service.close()
 ```
@@ -174,7 +174,7 @@ if hasattr(app.state, 'health_service') and app.state.health_service:
 - **Proper Cleanup**: Connections are closed on shutdown
 - **State Management**: Stored in app.state for route access
 
-***REMOVED******REMOVED*** Exception Handling
+## Exception Handling
 
 Global exception handler for unhandled errors:
 
@@ -193,14 +193,14 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 - **Consistent Response**: Returns structured error response
 - **Security**: Doesn't expose internal error details to clients
 
-***REMOVED******REMOVED*** Configuration Integration
+## Configuration Integration
 
 The core module integrates with the application settings:
 
 ```python
 from recommendation_api.config import settings
 
-***REMOVED*** App metadata from settings
+# App metadata from settings
 app = FastAPI(
     title="Recommendation API",
     description="AI-powered movie recommendation service",
@@ -208,7 +208,7 @@ app = FastAPI(
     debug=settings.debug,
 )
 
-***REMOVED*** Middleware configuration
+# Middleware configuration
 if settings.is_production:
     app.add_middleware(
         TrustedHostMiddleware,
@@ -216,30 +216,30 @@ if settings.is_production:
     )
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Application Factory Pattern
+### Application Factory Pattern
 
 1. **Separation of Concerns**: Each module has a single responsibility
 2. **Dependency Injection**: Dependencies are injected, not created internally
 3. **Configuration**: Use settings for all configurable values
 4. **Testing**: Factory pattern makes testing easier with different configurations
 
-***REMOVED******REMOVED******REMOVED*** Resource Management
+### Resource Management
 
 1. **Lifespan Events**: Use lifespan for proper startup/shutdown
 2. **State Management**: Store shared resources in app.state
 3. **Cleanup**: Always clean up resources in shutdown handler
 4. **Error Handling**: Handle initialization errors gracefully
 
-***REMOVED******REMOVED******REMOVED*** Development vs Production
+### Development vs Production
 
 1. **Debug Mode**: Different behavior based on settings.debug
 2. **Security**: Production-specific middleware and settings
 3. **Logging**: Appropriate log levels for each environment
 4. **CORS**: Restrictive CORS in production
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 The core module is designed for easy testing:
 
@@ -263,7 +263,7 @@ def test_root_endpoint(client):
     assert "Welcome to Next Watch" in response.json()["message"]
 ```
 
-***REMOVED******REMOVED*** Future Enhancements
+## Future Enhancements
 
 Planned improvements for the core module:
 

@@ -36,7 +36,7 @@ class BackendProvider:
                     sort_desc=True,
                 )
                 page_movies = response.get("results", [])
-            except Exception as e:  ***REMOVED*** pragma: no cover - defensive
+            except Exception as e:  # pragma: no cover - defensive
                 logger.warning(f"Movies endpoint failed, using fallback: {e}")
                 response = await self._client.search_movies(
                     query="e",

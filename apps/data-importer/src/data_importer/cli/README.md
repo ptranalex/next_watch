@@ -1,64 +1,64 @@
-***REMOVED*** CLI Module
+# CLI Module
 
 This directory contains the command-line interface (CLI) implementation for the data-importer application. The CLI is built using [Typer](https://typer.tiangolo.com/) and provides a modern, user-friendly interface for importing movie and TV show data from various external sources.
 
-***REMOVED******REMOVED*** 📁 Directory Structure
+## 📁 Directory Structure
 
 ```
 cli/
-├── __init__.py          ***REMOVED*** Main CLI app initialization and command registration
-├── __main__.py          ***REMOVED*** Entry point for python -m data_importer.cli
-├── utils.py             ***REMOVED*** Shared CLI utilities and helper functions
-├── commands/            ***REMOVED*** Individual command implementations
-│   ├── __init__.py      ***REMOVED*** Command module exports
-│   ├── sync.py          ***REMOVED*** Movie synchronization commands
-│   ├── interactive.py   ***REMOVED*** Interactive interface command
-│   ├── shell/           ***REMOVED*** Interactive shell command
-│   └── README.md        ***REMOVED*** Detailed command documentation
-└── README.md           ***REMOVED*** This file
+├── __init__.py          # Main CLI app initialization and command registration
+├── __main__.py          # Entry point for python -m data_importer.cli
+├── utils.py             # Shared CLI utilities and helper functions
+├── commands/            # Individual command implementations
+│   ├── __init__.py      # Command module exports
+│   ├── sync.py          # Movie synchronization commands
+│   ├── interactive.py   # Interactive interface command
+│   ├── shell/           # Interactive shell command
+│   └── README.md        # Detailed command documentation
+└── README.md           # This file
 ```
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 The CLI is automatically available after installing the data-importer package:
 
 ```bash
-***REMOVED*** Install the package
+# Install the package
 pip install -e .
 
-***REMOVED*** Use the CLI
+# Use the CLI
 data-importer --help
 ```
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 ```bash
-***REMOVED*** Show all available commands
+# Show all available commands
 data-importer --help
 
-***REMOVED*** Sync movies for a specific year range
+# Sync movies for a specific year range
 data-importer sync movies --start-year 2022 --end-year 2023 --save
 
-***REMOVED*** Launch interactive shell
+# Launch interactive shell
 data-importer shell
 
-***REMOVED*** Launch interactive interface (experimental)
+# Launch interactive interface (experimental)
 data-importer interactive
 ```
 
-***REMOVED******REMOVED*** 📋 Available Commands
+## 📋 Available Commands
 
-***REMOVED******REMOVED******REMOVED*** 1. **Sync Commands** (`sync`)
+### 1. **Sync Commands** (`sync`)
 
 Import movie data from external sources (TMDB, OMDB).
 
 ```bash
-***REMOVED*** Sync movies with default settings
+# Sync movies with default settings
 data-importer sync movies
 
-***REMOVED*** Sync with custom parameters
+# Sync with custom parameters
 data-importer sync movies \
   --start-year 2020 \
   --end-year 2023 \
@@ -67,7 +67,7 @@ data-importer sync movies \
   --save \
   --verbose
 
-***REMOVED*** Sync without saving to database
+# Sync without saving to database
 data-importer sync movies --start-year 2023 --no-save
 ```
 
@@ -79,15 +79,15 @@ data-importer sync movies --start-year 2023 --no-save
 - Progress tracking with visual indicators
 - Comprehensive error handling
 
-***REMOVED******REMOVED******REMOVED*** 2. **Interactive Shell** (`shell`)
+### 2. **Interactive Shell** (`shell`)
 
 Launch an enhanced Python shell with pre-configured data import tools.
 
 ```bash
-***REMOVED*** Launch shell with default configuration
+# Launch shell with default configuration
 data-importer shell
 
-***REMOVED*** Launch with custom theme and verbose logging
+# Launch with custom theme and verbose logging
 data-importer shell --theme monokai --verbose
 ```
 
@@ -101,7 +101,7 @@ data-importer shell --theme monokai --verbose
 - `sync_movie_by_id()`: Single movie import
 - Rich formatting and syntax highlighting
 
-***REMOVED******REMOVED******REMOVED*** 3. **Interactive Interface** (`interactive`)
+### 3. **Interactive Interface** (`interactive`)
 
 Experimental conversational interface for guided data operations.
 
@@ -111,11 +111,11 @@ data-importer interactive
 
 **Status:** Under development - provides configuration validation and setup.
 
-***REMOVED******REMOVED*** 🛠️ CLI Architecture
+## 🛠️ CLI Architecture
 
-***REMOVED******REMOVED******REMOVED*** Core Components
+### Core Components
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. **Main App (`__init__.py`)**
+#### 1. **Main App (`__init__.py`)**
 
 The central CLI application built with Typer:
 
@@ -134,7 +134,7 @@ app = typer.Typer(
 - Command group registration
 - Global error handling
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. **Entry Point (`__main__.py`)**
+#### 2. **Entry Point (`__main__.py`)**
 
 Enables running the CLI as a Python module:
 
@@ -142,7 +142,7 @@ Enables running the CLI as a Python module:
 python -m data_importer.cli
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. **Utilities (`utils.py`)**
+#### 3. **Utilities (`utils.py`)**
 
 Shared functions used across commands:
 
@@ -151,7 +151,7 @@ Shared functions used across commands:
 - **`get_api_key()`**: Standardized API key validation and retrieval
 - **`print_plain()`**: Plain text output without formatting
 
-***REMOVED******REMOVED******REMOVED*** Configuration Integration
+### Configuration Integration
 
 The CLI integrates seamlessly with the application's configuration system:
 
@@ -160,11 +160,11 @@ from data_importer.config.app import Config
 
 def command():
     config = Config.get_instance()
-    ***REMOVED*** Use config defaults when CLI options not provided
+    # Use config defaults when CLI options not provided
     actual_value = cli_option if cli_option is not None else config.default_value
 ```
 
-***REMOVED******REMOVED******REMOVED*** Logging Integration
+### Logging Integration
 
 All commands use the centralized logging system:
 
@@ -177,9 +177,9 @@ def command():
     logger.info("Command executed")
 ```
 
-***REMOVED******REMOVED*** 🎨 User Experience Features
+## 🎨 User Experience Features
 
-***REMOVED******REMOVED******REMOVED*** Rich Console Output
+### Rich Console Output
 
 The CLI uses [Rich](https://rich.readthedocs.io/) for enhanced terminal output:
 
@@ -189,13 +189,13 @@ The CLI uses [Rich](https://rich.readthedocs.io/) for enhanced terminal output:
 - **Syntax highlighting** in the interactive shell
 - **Error formatting** with stack traces
 
-***REMOVED******REMOVED******REMOVED*** Error Handling
+### Error Handling
 
 Comprehensive error handling with user-friendly messages:
 
 ```python
 try:
-    ***REMOVED*** Command logic
+    # Command logic
     result = perform_operation()
 except SpecificError as e:
     console.print(f"[red]Error: {e}[/red]")
@@ -206,12 +206,12 @@ except Exception as e:
     raise typer.Exit(code=1)
 ```
 
-***REMOVED******REMOVED******REMOVED*** API Key Management
+### API Key Management
 
 Standardized API key handling across all commands:
 
 ```python
-***REMOVED*** Supports CLI arguments, environment variables, and validation
+# Supports CLI arguments, environment variables, and validation
 api_key = get_api_key(
     provided_key=cli_arg,
     env_var_name="TMDB_ACCESS_TOKEN",
@@ -221,14 +221,14 @@ api_key = get_api_key(
 )
 ```
 
-***REMOVED******REMOVED*** 🔧 Development Guide
+## 🔧 Development Guide
 
-***REMOVED******REMOVED******REMOVED*** Adding New Commands
+### Adding New Commands
 
 1. **Create Command Module**
 
 ```python
-***REMOVED*** cli/commands/new_command.py
+# cli/commands/new_command.py
 import typer
 from data_importer.config.logging import with_logging
 
@@ -244,15 +244,15 @@ def new_subcommand():
 2. **Register Command**
 
 ```python
-***REMOVED*** cli/__init__.py
+# cli/__init__.py
 from data_importer.cli.commands import new_command
 
 app.add_typer(new_command.app, name="new-command")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Best Practices
+### Best Practices
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Type Annotations
+#### Type Annotations
 
 Always use comprehensive type hints:
 
@@ -267,7 +267,7 @@ def command(
 ) -> None:
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Help Documentation
+#### Help Documentation
 
 Provide clear help text and examples:
 
@@ -285,7 +285,7 @@ def command():
     """
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Configuration Defaults
+#### Configuration Defaults
 
 Use the configuration system for default values:
 
@@ -295,20 +295,20 @@ def command(limit: Optional[int] = typer.Option(None, help="Limit")):
     actual_limit = limit if limit is not None else config.default_limit
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
-***REMOVED******REMOVED******REMOVED*** Unit Tests
+### Unit Tests
 
 Test command logic separately from CLI interface:
 
 ```python
 def test_command_logic():
-    ***REMOVED*** Test core functionality without CLI
+    # Test core functionality without CLI
     result = command_function(args)
     assert result.success
 ```
 
-***REMOVED******REMOVED******REMOVED*** CLI Integration Tests
+### CLI Integration Tests
 
 Use Typer's testing utilities:
 
@@ -323,26 +323,26 @@ def test_command_cli():
     assert "Sync movies" in result.stdout
 ```
 
-***REMOVED******REMOVED*** 📦 Dependencies
+## 📦 Dependencies
 
-***REMOVED******REMOVED******REMOVED*** Core Dependencies
+### Core Dependencies
 
 - **[Typer](https://typer.tiangolo.com/)**: Modern CLI framework with automatic help generation
 - **[Rich](https://rich.readthedocs.io/)**: Rich text and beautiful formatting in the terminal
 - **[Click](https://click.palletsprojects.com/)**: Underlying CLI library (via Typer)
 
-***REMOVED******REMOVED******REMOVED*** Application Dependencies
+### Application Dependencies
 
 - **Config System**: Centralized configuration management
 - **Logging System**: Structured logging with file and console output
 - **Service Clients**: API clients for external data sources (TMDB, OMDB, IMDb)
 - **Database Layer**: SQLModel-based data persistence
 
-***REMOVED******REMOVED*** 🔍 Troubleshooting
+## 🔍 Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** API Key Errors
+#### API Key Errors
 
 ```bash
 Error: TMDB access token is required.
@@ -355,11 +355,11 @@ Provide it via command option or set the TMDB_ACCESS_TOKEN environment variable.
 export TMDB_ACCESS_TOKEN="your_token_here"
 export OMDB_API_KEY="your_key_here"
 
-***REMOVED*** Or use CLI options
+# Or use CLI options
 data-importer sync movies --tmdb-token "your_token" --omdb-key "your_key"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Database Connection Issues
+#### Database Connection Issues
 
 ```bash
 Error: Could not connect to database
@@ -367,7 +367,7 @@ Error: Could not connect to database
 
 **Solution**: Ensure database is running and connection string is correct in `.env` file.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Import Errors
+#### Import Errors
 
 ```bash
 ModuleNotFoundError: No module named 'data_importer'
@@ -379,7 +379,7 @@ ModuleNotFoundError: No module named 'data_importer'
 pip install -e .
 ```
 
-***REMOVED******REMOVED******REMOVED*** Debug Mode
+### Debug Mode
 
 Enable verbose logging for troubleshooting:
 
@@ -394,32 +394,32 @@ This provides detailed logs including:
 - Configuration values
 - Error stack traces
 
-***REMOVED******REMOVED*** 🚀 Performance Tips
+## 🚀 Performance Tips
 
-***REMOVED******REMOVED******REMOVED*** Batch Operations
+### Batch Operations
 
 Use appropriate batch sizes for large imports:
 
 ```bash
-***REMOVED*** Process in smaller batches
+# Process in smaller batches
 data-importer sync movies --start-year 2020 --end-year 2020 --limit 100
 ```
 
-***REMOVED******REMOVED******REMOVED*** Database Optimization
+### Database Optimization
 
 - Use `--no-save` for testing without database writes
 - Ensure database indexes are properly configured
 - Monitor database connection pool usage
 
-***REMOVED******REMOVED******REMOVED*** API Rate Limiting
+### API Rate Limiting
 
 - TMDB: 40 requests per 10 seconds
 - OMDB: 1000 requests per day (free tier)
 - Use appropriate delays between requests
 
-***REMOVED******REMOVED*** 📈 Future Enhancements
+## 📈 Future Enhancements
 
-***REMOVED******REMOVED******REMOVED*** Planned Features
+### Planned Features
 
 - **Configuration Profiles**: Multiple environment configurations
 - **Parallel Processing**: Concurrent API requests and database operations
@@ -427,7 +427,7 @@ data-importer sync movies --start-year 2020 --end-year 2020 --limit 100
 - **Export Commands**: Data export in various formats
 - **Monitoring**: Built-in performance and health monitoring
 
-***REMOVED******REMOVED******REMOVED*** Contributing
+### Contributing
 
 When adding new CLI features:
 

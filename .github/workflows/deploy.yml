@@ -128,7 +128,7 @@ on:
         required: false
       ADMIN_API_KEY:
         required: false
-      ***REMOVED*** Grafana Cloud Observability Secrets
+      # Grafana Cloud Observability Secrets
       GRAFANA_CLOUD_METRICS_URL:
         required: false
       GRAFANA_CLOUD_METRICS_USERNAME:
@@ -199,13 +199,13 @@ jobs:
             mkdir -p /home/${{ secrets.DEPLOY_USER }}/next_watch
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
-            ***REMOVED*** ------------------------------------------------------------------
-            ***REMOVED*** Docker execution context
-            ***REMOVED*** ------------------------------------------------------------------
-            ***REMOVED*** docker login writes credentials to ~/.docker/config.json for the *current user*.
-            ***REMOVED*** If we later run `sudo docker ...`, root will NOT see those credentials, leading to
-            ***REMOVED*** `unauthorized` pulls even though login "succeeded". So we pick one context up-front
-            ***REMOVED*** (sudo or not) and use it consistently for login + pull + up + cleanup.
+            # ------------------------------------------------------------------
+            # Docker execution context
+            # ------------------------------------------------------------------
+            # docker login writes credentials to ~/.docker/config.json for the *current user*.
+            # If we later run `sudo docker ...`, root will NOT see those credentials, leading to
+            # `unauthorized` pulls even though login "succeeded". So we pick one context up-front
+            # (sudo or not) and use it consistently for login + pull + up + cleanup.
             SUDO=""
             if docker ps >/dev/null 2>&1; then
               echo "✅ Docker daemon accessible without sudo"
@@ -223,11 +223,11 @@ jobs:
             }
 
             compose_cmd() {
-              ***REMOVED*** Force a stable compose project name and project directory.
-              ***REMOVED*** If we run `docker compose -f compose/prod.yml ...` the default project name becomes
-              ***REMOVED*** "compose" (based on the first compose file directory), which causes warnings like:
-              ***REMOVED***   network ... exists but was not created for project "compose"
-              ***REMOVED*** and can create duplicate resources.
+              # Force a stable compose project name and project directory.
+              # If we run `docker compose -f compose/prod.yml ...` the default project name becomes
+              # "compose" (based on the first compose file directory), which causes warnings like:
+              #   network ... exists but was not created for project "compose"
+              # and can create duplicate resources.
               PROJECT_NAME="next_watch"
               PROJECT_DIR="."
               if command -v docker-compose >/dev/null 2>&1; then
@@ -242,18 +242,18 @@ jobs:
             }
 
             echo "🔐 Attempting Docker login to GHCR..."
-            ***REMOVED*** Use the repository owner for GHCR auth. The repo-scoped token has access to the
-            ***REMOVED*** repository owner's packages, and images are stored under that namespace.
+            # Use the repository owner for GHCR auth. The repo-scoped token has access to the
+            # repository owner's packages, and images are stored under that namespace.
             echo "${{ github.token }}" | docker_cmd login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-            ***REMOVED*** NOTE: The following runs on the remote host via SSH, so GitHub-provided environment
-            ***REMOVED*** variables like $GITHUB_REPOSITORY are NOT available. Use GitHub Actions expressions
-            ***REMOVED*** to inject the values into this script at workflow runtime.
+            # NOTE: The following runs on the remote host via SSH, so GitHub-provided environment
+            # variables like $GITHUB_REPOSITORY are NOT available. Use GitHub Actions expressions
+            # to inject the values into this script at workflow runtime.
             OWNER="${{ github.repository_owner }}"
             REPO_NAME="${{ github.event.repository.name }}"
 
-            ***REMOVED*** Create comprehensive .env.prod file
-            echo "***REMOVED*** Docker Images" > .env.prod
+            # Create comprehensive .env.prod file
+            echo "# Docker Images" > .env.prod
             echo "DOCKER_BACKEND_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-backend-api:latest" >> .env.prod
             echo "DOCKER_AUTH_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-auth-api:latest" >> .env.prod
             echo "DOCKER_BFF_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-bff-api:latest" >> .env.prod
@@ -264,17 +264,17 @@ jobs:
             echo "DOCKER_ML_IMAGE=ghcr.io/${OWNER}/${REPO_NAME}-ml-api:latest" >> .env.prod
 
             echo "" >> .env.prod
-            echo "***REMOVED*** Database Configuration" >> .env.prod
+            echo "# Database Configuration" >> .env.prod
             echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env.prod
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env.prod
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env.prod
 
             echo "" >> .env.prod
-            echo "***REMOVED*** Security Configuration" >> .env.prod
+            echo "# Security Configuration" >> .env.prod
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.prod
             echo "INTERNAL_API_KEY=${{ secrets.INTERNAL_API_KEY }}" >> .env.prod
 
-            ***REMOVED*** Handle optional JWT configuration
+            # Handle optional JWT configuration
             if [ -n "${{ secrets.JWT_JWK }}" ]; then
               echo "JWT_JWK=${{ secrets.JWT_JWK }}" >> .env.prod
             fi
@@ -282,7 +282,7 @@ jobs:
               echo "JWT_JWK_ROTATION_INTERVAL=${{ secrets.JWT_JWK_ROTATION_INTERVAL }}" >> .env.prod
             fi
 
-            ***REMOVED*** Handle optional external API keys
+            # Handle optional external API keys
             if [ -n "${{ secrets.TMDB_ACCESS_TOKEN }}" ]; then
               echo "TMDB_ACCESS_TOKEN=${{ secrets.TMDB_ACCESS_TOKEN }}" >> .env.prod
             fi
@@ -290,15 +290,15 @@ jobs:
               echo "OMDB_API_KEY=${{ secrets.OMDB_API_KEY }}" >> .env.prod
             fi
 
-            ***REMOVED*** Handle optional admin API key for cache warming
+            # Handle optional admin API key for cache warming
             if [ -n "${{ secrets.ADMIN_API_KEY }}" ]; then
               echo "ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}" >> .env.prod
             fi
 
-            ***REMOVED*** Handle optional Grafana Cloud observability credentials
+            # Handle optional Grafana Cloud observability credentials
             if [ -n "${{ secrets.GRAFANA_CLOUD_METRICS_URL }}" ]; then
               echo "" >> .env.prod
-              echo "***REMOVED*** Grafana Cloud Observability" >> .env.prod
+              echo "# Grafana Cloud Observability" >> .env.prod
               echo "GRAFANA_CLOUD_METRICS_URL=${{ secrets.GRAFANA_CLOUD_METRICS_URL }}" >> .env.prod
               echo "GRAFANA_CLOUD_METRICS_USERNAME=${{ secrets.GRAFANA_CLOUD_METRICS_USERNAME }}" >> .env.prod
               echo "GRAFANA_CLOUD_METRICS_PASSWORD=${{ secrets.GRAFANA_CLOUD_METRICS_PASSWORD }}" >> .env.prod
@@ -311,25 +311,25 @@ jobs:
               echo "ENVIRONMENT=production" >> .env.prod
             fi
 
-            ***REMOVED*** Download the production compose file.
-            ***REMOVED*** NOTE: `infra/docker-compose.prod.yml` is now a pointer; the real file lives at `infra/compose/prod.yml`.
+            # Download the production compose file.
+            # NOTE: `infra/docker-compose.prod.yml` is now a pointer; the real file lives at `infra/compose/prod.yml`.
             mkdir -p compose
             curl -H "Authorization: token ${{ github.token }}" \
                  -H "Accept: application/vnd.github.v3.raw" \
                  -o compose/prod.yml \
                  https://api.github.com/repos/${{ github.repository }}/contents/infra/compose/prod.yml
 
-            ***REMOVED*** Verify file content
+            # Verify file content
             echo "Verifying compose/prod.yml content:"
             ls -la compose/prod.yml
             head -10 compose/prod.yml
 
-            ***REMOVED*** Download Grafana Alloy configuration if observability deployment is requested
+            # Download Grafana Alloy configuration if observability deployment is requested
             if [ "${{ github.event.inputs.deploy_observability || inputs.deploy_observability }}" = "true" ]; then
               echo "📊 Downloading Grafana Alloy configuration..."
               mkdir -p monitoring/alloy
 
-              ***REMOVED*** Download Alloy config file
+              # Download Alloy config file
               curl -H "Authorization: token ${{ github.token }}" \
                    -H "Accept: application/vnd.github.v3.raw" \
                    -o monitoring/alloy/config.alloy \
@@ -339,7 +339,7 @@ jobs:
               ls -la monitoring/alloy/
             fi
 
-            ***REMOVED*** Build the list of services to deploy
+            # Build the list of services to deploy
             SERVICES=""
             if [ "${{ github.event.inputs.deploy_backend || inputs.deploy_backend }}" = "true" ]; then
               SERVICES="$SERVICES backend-api"
@@ -372,48 +372,48 @@ jobs:
             if [ -n "$SERVICES" ]; then
               echo "Deploying services: $SERVICES"
 
-              ***REMOVED*** Cleanup before deployment
+              # Cleanup before deployment
               echo "🧹 Cleaning up Docker resources..."
 
-              ***REMOVED*** Stop and remove containers that are not running
+              # Stop and remove containers that are not running
               if [ -n "$SUDO" ]; then
                 sudo docker ps -a -q -f status=exited | xargs -r sudo docker rm || true
               else
                 docker ps -a -q -f status=exited | xargs -r docker rm || true
               fi
 
-              ***REMOVED*** Remove unused images
+              # Remove unused images
               docker_cmd image prune -af || true
 
-              ***REMOVED*** Remove unused volumes
+              # Remove unused volumes
               docker_cmd volume prune -f || true
 
-              ***REMOVED*** Remove unused networks
+              # Remove unused networks
               docker_cmd network prune -f || true
 
-              ***REMOVED*** Remove any existing containers for the services we are about to (re)deploy.
-              ***REMOVED*** This avoids conflicts when compose files set `container_name: ...`.
+              # Remove any existing containers for the services we are about to (re)deploy.
+              # This avoids conflicts when compose files set `container_name: ...`.
               for svc in $SERVICES; do
                 docker_cmd rm -f "$svc" >/dev/null 2>&1 || true
               done
 
-              ***REMOVED*** Pull and deploy only the specified services.
-              ***REMOVED***
-              ***REMOVED*** IMPORTANT: Many services have `depends_on`. A targeted deploy (e.g. only `bff-api`)
-              ***REMOVED*** should NOT implicitly pull/recreate dependencies like `auth-api`, otherwise the
-              ***REMOVED*** deploy can fail if those dependency images haven't been built/published yet.
+              # Pull and deploy only the specified services.
+              #
+              # IMPORTANT: Many services have `depends_on`. A targeted deploy (e.g. only `bff-api`)
+              # should NOT implicitly pull/recreate dependencies like `auth-api`, otherwise the
+              # deploy can fail if those dependency images haven't been built/published yet.
               compose_cmd -f compose/prod.yml --env-file .env.prod pull $SERVICES
               compose_cmd -f compose/prod.yml --env-file .env.prod up -d --no-deps $SERVICES
 
-              ***REMOVED*** Wait for services to be healthy
+              # Wait for services to be healthy
               echo "⏳ Waiting for services to be healthy..."
               sleep 30
 
-              ***REMOVED*** Check service status
+              # Check service status
               echo "📊 Service status:"
               docker_cmd ps
 
-              ***REMOVED*** Final cleanup after deployment
+              # Final cleanup after deployment
               echo "🧹 Final cleanup..."
               docker_cmd system prune -af --volumes || true
             else

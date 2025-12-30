@@ -1,5 +1,5 @@
-***REMOVED*** Kafka JMX Metrics Targets for Prometheus
-***REMOVED*** Add this file to be included in prometheus.yml
+# Kafka JMX Metrics Targets for Prometheus
+# Add this file to be included in prometheus.yml
 
 - job_name: "kafka-broker"
   static_configs:

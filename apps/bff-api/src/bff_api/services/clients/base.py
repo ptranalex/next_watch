@@ -57,10 +57,10 @@ class BaseBackendClient(BaseServiceClient):
         super().__init__(config)
         self.bff_config = bff_config or settings
         self.timeout = config.timeout
-        self.service_name = "backend-api"  ***REMOVED*** For error handling
+        self.service_name = "backend-api"  # For error handling
 
-    ***REMOVED*** Remove the _get_client override - use Fast Core's implementation
-    ***REMOVED*** Fast Core already handles headers from config properly
+    # Remove the _get_client override - use Fast Core's implementation
+    # Fast Core already handles headers from config properly
 
     def _build_api_path(self, path: str) -> str:
         """Build API path with version prefix.
@@ -71,7 +71,7 @@ class BaseBackendClient(BaseServiceClient):
         Returns:
             Full API path with version prefix
         """
-        ***REMOVED*** Remove leading slash if present to avoid double slashes
+        # Remove leading slash if present to avoid double slashes
         clean_path = path.lstrip("/")
         return f"/api/v1/{clean_path}"
 
@@ -109,7 +109,7 @@ class BaseBackendClient(BaseServiceClient):
 
         client = await self._get_client()
 
-        ***REMOVED*** Use Fast Core's header management with trace propagation
+        # Use Fast Core's header management with trace propagation
         request_headers = self._get_request_headers(headers)
 
         try:
@@ -122,7 +122,7 @@ class BaseBackendClient(BaseServiceClient):
             )
             response.raise_for_status()
 
-            ***REMOVED*** Record successful service call metrics
+            # Record successful service call metrics
             response_time = time.time() - start_time
             if metrics:
                 metrics.record_service_call(
@@ -134,7 +134,7 @@ class BaseBackendClient(BaseServiceClient):
 
             if response.headers.get("content-type", "").startswith("application/json"):
                 json_response = response.json()
-                ***REMOVED*** If the response is a list, wrap it in a dict for consistency
+                # If the response is a list, wrap it in a dict for consistency
                 if isinstance(json_response, list):
                     return {"data": json_response}
                 return cast(dict[str, Any], json_response)
@@ -145,7 +145,7 @@ class BaseBackendClient(BaseServiceClient):
             status_code = e.response.status_code
             response_time = time.time() - start_time
 
-            ***REMOVED*** Record error metrics
+            # Record error metrics
             if metrics:
                 error_status = "rate_limit" if status_code == 429 else "http_error"
                 metrics.record_service_call(
@@ -158,7 +158,7 @@ class BaseBackendClient(BaseServiceClient):
                     service_name=self.service_name, error_type=f"http_{status_code}"
                 )
 
-            ***REMOVED*** 429 Too Many Requests should be retried with backoff
+            # 429 Too Many Requests should be retried with backoff
             if status_code == 429:
                 retry_after = e.response.headers.get("Retry-After")
                 if retry_after:
@@ -178,12 +178,12 @@ class BaseBackendClient(BaseServiceClient):
                         status_code=status_code,
                         service=self.service_name,
                     )
-                ***REMOVED*** Treat 429 as transient error for retry
+                # Treat 429 as transient error for retry
                 raise BackendClientTransientError(f"Rate limited by service: {status_code}")
 
-            ***REMOVED*** Other 4xx errors are permanent (don't retry)
+            # Other 4xx errors are permanent (don't retry)
             elif 400 <= status_code < 500:
-                ***REMOVED*** Log 4xx as appropriate levels
+                # Log 4xx as appropriate levels
                 if status_code == 401:
                     logger.debug(f"Authentication failed for {method} {path}: {status_code}")
                 elif status_code == 404:
@@ -191,7 +191,7 @@ class BaseBackendClient(BaseServiceClient):
                 else:
                     logger.warning(f"Client error {status_code} for {method} {path}")
                 raise BackendClientPermanentError(f"Backend service error: {status_code}")
-            ***REMOVED*** 5xx errors are transient (can retry)
+            # 5xx errors are transient (can retry)
             else:
                 logger.error(
                     f"Server error {status_code} for {method} {path}: {e}",
@@ -202,7 +202,7 @@ class BaseBackendClient(BaseServiceClient):
         except httpx.RequestError as e:
             response_time = time.time() - start_time
 
-            ***REMOVED*** Record network error metrics
+            # Record network error metrics
             if metrics:
                 error_type = "timeout" if "timeout" in str(e).lower() else "connection"
                 metrics.record_service_call(
@@ -214,12 +214,12 @@ class BaseBackendClient(BaseServiceClient):
                 metrics.record_service_error(service_name=self.service_name, error_type=error_type)
 
             logger.error(f"Request error for {method} {path}: {e}", exc_info=True)
-            ***REMOVED*** Network errors are transient (can retry)
+            # Network errors are transient (can retry)
             raise BackendClientTransientError(f"Backend service request failed: {e}")
         except Exception as e:
             response_time = time.time() - start_time
 
-            ***REMOVED*** Record unexpected error metrics
+            # Record unexpected error metrics
             if metrics:
                 metrics.record_service_call(
                     service_name=self.service_name,
@@ -232,7 +232,7 @@ class BaseBackendClient(BaseServiceClient):
                 )
 
             logger.error(f"Unexpected error for {method} {path}: {e}", exc_info=True)
-            ***REMOVED*** Unexpected errors are treated as permanent
+            # Unexpected errors are treated as permanent
             raise BackendClientPermanentError(f"Unexpected backend error: {e}")
 
     def _get_auth_headers(self, user_id: int) -> dict[str, str]:
@@ -249,17 +249,17 @@ class BaseBackendClient(BaseServiceClient):
             "X-Service": "bff-api",
         }
 
-        ***REMOVED*** Include Authorization header from service client config if available
+        # Include Authorization header from service client config if available
         if self.config.headers and "Authorization" in self.config.headers:
             auth_header = self.config.headers["Authorization"]
             headers["Authorization"] = auth_header
-            ***REMOVED*** Mask the token for security but show first/last few chars for debugging
+            # Mask the token for security but show first/last few chars for debugging
             masked_auth = (
                 f"{auth_header[:12]}...{auth_header[-4:]}" if len(auth_header) > 16 else "***"
             )
             logger.debug(f"Using Authorization header: {masked_auth}")
         else:
-            ***REMOVED*** Warn without echoing full headers structure to avoid secrets in logs
+            # Warn without echoing full headers structure to avoid secrets in logs
             logger.warning("No Authorization header in config for backend client")
 
         return headers

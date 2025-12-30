@@ -1,10 +1,10 @@
-***REMOVED*** Fast Core Middleware System
+# Fast Core Middleware System
 
 The Fast Core Middleware System provides a comprehensive, production-ready middleware stack for FastAPI applications with a flexible builder pattern, automatic configuration, and enterprise-grade features.
 
-***REMOVED******REMOVED*** 📁 Module Overview
+## 📁 Module Overview
 
-***REMOVED******REMOVED******REMOVED*** Core Components
+### Core Components
 
 | Module                       | Purpose                                   | Key Features                                             |
 | ---------------------------- | ----------------------------------------- | -------------------------------------------------------- |
@@ -13,7 +13,7 @@ The Fast Core Middleware System provides a comprehensive, production-ready middl
 | [`context.py`](./context.py) | Request context and distributed tracing   | W3C/B3/Jaeger propagation, request correlation           |
 | [`tracing.py`](./tracing.py) | OpenTelemetry infrastructure setup        | Auto-instrumentation, trace exporters, service metadata  |
 
-***REMOVED******REMOVED******REMOVED*** Specialized Middleware
+### Specialized Middleware
 
 | Module                         | Purpose                         | Production Features                                |
 | ------------------------------ | ------------------------------- | -------------------------------------------------- |
@@ -22,7 +22,7 @@ The Fast Core Middleware System provides a comprehensive, production-ready middl
 | [`logging.py`](./logging.py)   | Request/response logging        | Structured logging, sensitive data masking         |
 | [`metrics.py`](./metrics.py)   | Prometheus metrics collection   | HTTP metrics, custom buckets, performance tracking |
 
-***REMOVED******REMOVED*** 🏗️ Architecture
+## 🏗️ Architecture
 
 ```mermaid
 graph TD
@@ -46,15 +46,15 @@ graph TD
     O --> P[Your Route Handlers]
 ```
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 ```python
 from fast_core.middleware import MiddlewareConfig
 from fast_core import create_app
 
-***REMOVED*** Simple configuration
+# Simple configuration
 middleware = MiddlewareConfig()
 middleware.cors(
     origins=["http://localhost:3000"],
@@ -67,12 +67,12 @@ middleware.cors(
 app = create_app(middleware=middleware)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Production Configuration
+### Production Configuration
 
 ```python
 middleware = MiddlewareConfig()
 
-***REMOVED*** Production CORS (strict)
+# Production CORS (strict)
 middleware.cors(
     origins=["https://app.example.com", "https://mobile.example.com"],
     credentials=True,
@@ -82,10 +82,10 @@ middleware.cors(
     max_age=3600
 )
 
-***REMOVED*** Security headers (comprehensive)
+# Security headers (comprehensive)
 .security_headers(
     hsts=True,
-    hsts_max_age=63072000,  ***REMOVED*** 2 years
+    hsts_max_age=63072000,  # 2 years
     hsts_include_subdomains=True,
     frame_options="DENY",
     content_type_options=True,
@@ -95,7 +95,7 @@ middleware.cors(
     trusted_hosts=["app.example.com"]
 )
 
-***REMOVED*** Rate limiting (endpoint-specific)
+# Rate limiting (endpoint-specific)
 .rate_limiting(
     default_limit="1000/hour",
     endpoints={
@@ -104,10 +104,10 @@ middleware.cors(
         "/api/upload": "20/minute"
     },
     exempt_ips=["10.0.0.0/8"],
-    headers=False  ***REMOVED*** Don't expose limits in production
+    headers=False  # Don't expose limits in production
 )
 
-***REMOVED*** Logging (minimal in production)
+# Logging (minimal in production)
 .logging(
     level="INFO",
     include_request_body=False,
@@ -116,7 +116,7 @@ middleware.cors(
     log_timing=True
 )
 
-***REMOVED*** Request processing
+# Request processing
 .request_processing(
     max_request_size=10 * 1024 * 1024,
     timeout=30,
@@ -124,7 +124,7 @@ middleware.cors(
     gzip_compression=True
 )
 
-***REMOVED*** Metrics (always enabled)
+# Metrics (always enabled)
 .metrics(
     track_request_size=True,
     track_response_size=True,
@@ -132,9 +132,9 @@ middleware.cors(
 )
 ```
 
-***REMOVED******REMOVED*** 🔧 Module Documentation
+## 🔧 Module Documentation
 
-***REMOVED******REMOVED******REMOVED*** Configuration System (`config.py`)
+### Configuration System (`config.py`)
 
 The heart of the middleware system, providing type-safe configuration classes and a fluent builder pattern.
 
@@ -152,14 +152,14 @@ The heart of the middleware system, providing type-safe configuration classes an
 **Example:**
 
 ```python
-***REMOVED*** All configurations are strongly typed
+# All configurations are strongly typed
 config = MiddlewareConfig()
-config.cors(origins=["https://example.com"])  ***REMOVED*** List[str]
-config.security_headers(hsts_max_age=31536000)  ***REMOVED*** int
-config.rate_limiting(enabled=True)  ***REMOVED*** bool
+config.cors(origins=["https://example.com"])  # List[str]
+config.security_headers(hsts_max_age=31536000)  # int
+config.rate_limiting(enabled=True)  # bool
 ```
 
-***REMOVED******REMOVED******REMOVED*** Setup and Orchestration (`setup.py`)
+### Setup and Orchestration (`setup.py`)
 
 Handles the automatic setup and ordering of middleware components.
 
@@ -180,7 +180,7 @@ Handles the automatic setup and ordering of middleware components.
 6. Request Processing (Timeouts, compression)
 7. Context (Request correlation, tracing)
 
-***REMOVED******REMOVED******REMOVED*** Request Context and Tracing (`context.py`)
+### Request Context and Tracing (`context.py`)
 
 Provides distributed tracing context propagation and request correlation across services.
 
@@ -197,14 +197,14 @@ Provides distributed tracing context propagation and request correlation across 
 ```python
 from fast_core.middleware.context import get_request_id, get_trace_headers
 
-***REMOVED*** In your route handlers
+# In your route handlers
 async def my_handler():
     request_id = get_request_id()
     trace_headers = get_trace_headers()
-    ***REMOVED*** Headers automatically include trace context for downstream calls
+    # Headers automatically include trace context for downstream calls
 ```
 
-***REMOVED******REMOVED******REMOVED*** OpenTelemetry Infrastructure (`tracing.py`)
+### OpenTelemetry Infrastructure (`tracing.py`)
 
 Sets up the foundational OpenTelemetry instrumentation for the entire application.
 
@@ -224,7 +224,7 @@ Sets up the foundational OpenTelemetry instrumentation for the entire applicatio
 - Redis operations
 - Custom application spans
 
-***REMOVED******REMOVED******REMOVED*** Cross-Origin Resource Sharing (`cors.py`)
+### Cross-Origin Resource Sharing (`cors.py`)
 
 Handles CORS configuration with environment-aware security.
 
@@ -235,7 +235,7 @@ Handles CORS configuration with environment-aware security.
 - **Credential handling** - Configurable credential support
 - **Method/header control** - Fine-grained access control
 
-***REMOVED******REMOVED******REMOVED*** Security Headers (`security.py`)
+### Security Headers (`security.py`)
 
 Comprehensive security header management for production applications.
 
@@ -249,7 +249,7 @@ Comprehensive security header management for production applications.
 - **Referrer policy**
 - **Trusted host validation**
 
-***REMOVED******REMOVED******REMOVED*** Request/Response Logging (`logging.py`)
+### Request/Response Logging (`logging.py`)
 
 Structured logging with sensitive data protection and performance optimization.
 
@@ -261,7 +261,7 @@ Structured logging with sensitive data protection and performance optimization.
 - **Configurable verbosity** - Environment-specific log levels
 - **Path exclusion** - Skip logging for health checks
 
-***REMOVED******REMOVED******REMOVED*** Metrics Collection (`metrics.py`)
+### Metrics Collection (`metrics.py`)
 
 Prometheus metrics integration for observability and monitoring.
 
@@ -273,31 +273,31 @@ Prometheus metrics integration for observability and monitoring.
 - **Endpoint labeling** - Per-route metrics
 - **Performance histograms** - Response time distributions
 
-***REMOVED******REMOVED*** 🔄 Integration Patterns
+## 🔄 Integration Patterns
 
-***REMOVED******REMOVED******REMOVED*** Automatic Setup
+### Automatic Setup
 
 Fast Core automatically configures middleware when tracing is enabled:
 
 ```python
-***REMOVED*** In your service configuration
+# In your service configuration
 fast_core_config = FastAPIConfig(
     service_name="my-service",
-    enable_tracing=True  ***REMOVED*** This triggers automatic context middleware
+    enable_tracing=True  # This triggers automatic context middleware
 )
 
-***REMOVED*** Context middleware is automatically added with optimal settings
+# Context middleware is automatically added with optimal settings
 app = create_app(settings=fast_core_config)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Manual Configuration
+### Manual Configuration
 
 For fine-grained control, use the builder pattern:
 
 ```python
 middleware = MiddlewareConfig()
 
-***REMOVED*** Environment-specific configuration
+# Environment-specific configuration
 if config.is_production:
     middleware.cors(origins=config.cors_origins)
     middleware.security_headers(hsts=True, csp=production_csp)
@@ -305,80 +305,80 @@ else:
     middleware.cors(origins=["*"])
     middleware.logging(level="DEBUG", include_request_body=True)
 
-***REMOVED*** Common configuration
+# Common configuration
 middleware.request_processing(include_request_id=True)
 middleware.metrics(enabled=True)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service-to-Service Integration
+### Service-to-Service Integration
 
 The middleware automatically handles service-to-service communication:
 
 ```python
-***REMOVED*** Headers are automatically injected with trace context
+# Headers are automatically injected with trace context
 async def call_backend_service():
-    ***REMOVED*** get_trace_headers() provides W3C/B3/Jaeger headers
+    # get_trace_headers() provides W3C/B3/Jaeger headers
     headers = get_trace_headers()
     response = await httpx.get("http://backend/api", headers=headers)
     return response
 ```
 
-***REMOVED******REMOVED*** 🛡️ Production Best Practices
+## 🛡️ Production Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Security Configuration
+### Security Configuration
 
 ```python
-***REMOVED*** Production security checklist
+# Production security checklist
 middleware.security_headers(
-    hsts=True,                    ***REMOVED*** ✅ Force HTTPS
-    hsts_max_age=63072000,       ***REMOVED*** ✅ 2 year HSTS
-    hsts_include_subdomains=True, ***REMOVED*** ✅ Include subdomains
-    frame_options="DENY",         ***REMOVED*** ✅ Prevent clickjacking
-    content_type_options=True,    ***REMOVED*** ✅ Prevent MIME sniffing
-    xss_protection=True,          ***REMOVED*** ✅ XSS protection
-    csp="default-src 'self'",     ***REMOVED*** ✅ Content Security Policy
-    trusted_hosts=["yourdomain.com"]  ***REMOVED*** ✅ Host validation
+    hsts=True,                    # ✅ Force HTTPS
+    hsts_max_age=63072000,       # ✅ 2 year HSTS
+    hsts_include_subdomains=True, # ✅ Include subdomains
+    frame_options="DENY",         # ✅ Prevent clickjacking
+    content_type_options=True,    # ✅ Prevent MIME sniffing
+    xss_protection=True,          # ✅ XSS protection
+    csp="default-src 'self'",     # ✅ Content Security Policy
+    trusted_hosts=["yourdomain.com"]  # ✅ Host validation
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Performance Configuration
+### Performance Configuration
 
 ```python
-***REMOVED*** Performance optimizations
+# Performance optimizations
 middleware.request_processing(
-    gzip_compression=True,        ***REMOVED*** ✅ Compress responses
-    gzip_minimum_size=1000,      ***REMOVED*** ✅ Only compress larger responses
-    timeout=30,                   ***REMOVED*** ✅ Reasonable timeout
-    max_request_size=10_000_000  ***REMOVED*** ✅ 10MB limit
+    gzip_compression=True,        # ✅ Compress responses
+    gzip_minimum_size=1000,      # ✅ Only compress larger responses
+    timeout=30,                   # ✅ Reasonable timeout
+    max_request_size=10_000_000  # ✅ 10MB limit
 )
 
 middleware.logging(
-    include_request_body=False,   ***REMOVED*** ✅ Don't log bodies in prod
-    include_response_body=False,  ***REMOVED*** ✅ Reduce log volume
-    exclude_paths=["/health"]     ***REMOVED*** ✅ Skip health checks
+    include_request_body=False,   # ✅ Don't log bodies in prod
+    include_response_body=False,  # ✅ Reduce log volume
+    exclude_paths=["/health"]     # ✅ Skip health checks
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Monitoring Configuration
+### Monitoring Configuration
 
 ```python
-***REMOVED*** Comprehensive observability
+# Comprehensive observability
 middleware.metrics(
-    track_request_size=True,      ***REMOVED*** ✅ Monitor payload sizes
-    track_response_size=True,     ***REMOVED*** ✅ Monitor response sizes
-    custom_buckets=[              ***REMOVED*** ✅ SLA-aligned buckets
+    track_request_size=True,      # ✅ Monitor payload sizes
+    track_response_size=True,     # ✅ Monitor response sizes
+    custom_buckets=[              # ✅ SLA-aligned buckets
         0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0
     ],
-    exclude_paths=["/metrics"]    ***REMOVED*** ✅ Don't track metrics endpoint
+    exclude_paths=["/metrics"]    # ✅ Don't track metrics endpoint
 )
 
-***REMOVED*** Automatic tracing context
-***REMOVED*** ✅ No configuration needed - automatically enabled
+# Automatic tracing context
+# ✅ No configuration needed - automatically enabled
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
-***REMOVED******REMOVED******REMOVED*** Unit Testing
+### Unit Testing
 
 ```python
 def test_middleware_config():
@@ -389,7 +389,7 @@ def test_middleware_config():
     assert config.cors_config.enabled is True
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration Testing
+### Integration Testing
 
 ```python
 @pytest.mark.asyncio
@@ -404,15 +404,15 @@ async def test_middleware_stack():
         assert "x-request-id" in response.headers
 ```
 
-***REMOVED******REMOVED*** 📊 Monitoring and Observability
+## 📊 Monitoring and Observability
 
-***REMOVED******REMOVED******REMOVED*** Metrics Endpoints
+### Metrics Endpoints
 
 - `/metrics` - Prometheus metrics
 - `/health` - Health check endpoint
 - `/meta` - Service metadata
 
-***REMOVED******REMOVED******REMOVED*** Trace Correlation
+### Trace Correlation
 
 All requests automatically include:
 
@@ -421,7 +421,7 @@ All requests automatically include:
 - User context for personalization
 - Service metadata for routing
 
-***REMOVED******REMOVED******REMOVED*** Log Structure
+### Log Structure
 
 ```json
 {
@@ -439,27 +439,27 @@ All requests automatically include:
 }
 ```
 
-***REMOVED******REMOVED*** 🔧 Troubleshooting
+## 🔧 Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 **CORS Issues:**
 
 ```python
-***REMOVED*** ❌ Wildcard origins in production
-middleware.cors(origins=["*"])  ***REMOVED*** Security risk
+# ❌ Wildcard origins in production
+middleware.cors(origins=["*"])  # Security risk
 
-***REMOVED*** ✅ Explicit origins in production
+# ✅ Explicit origins in production
 middleware.cors(origins=["https://yourdomain.com"])
 ```
 
 **Rate Limiting:**
 
 ```python
-***REMOVED*** ❌ No Redis configuration
-middleware.rate_limiting(default_limit="100/minute")  ***REMOVED*** Uses memory
+# ❌ No Redis configuration
+middleware.rate_limiting(default_limit="100/minute")  # Uses memory
 
-***REMOVED*** ✅ Redis for distributed rate limiting
+# ✅ Redis for distributed rate limiting
 middleware.rate_limiting(
     default_limit="100/minute",
     storage_url="redis://localhost:6379/0"
@@ -469,14 +469,14 @@ middleware.rate_limiting(
 **Logging Performance:**
 
 ```python
-***REMOVED*** ❌ Verbose logging in production
-middleware.logging(include_request_body=True)  ***REMOVED*** Performance impact
+# ❌ Verbose logging in production
+middleware.logging(include_request_body=True)  # Performance impact
 
-***REMOVED*** ✅ Minimal logging in production
+# ✅ Minimal logging in production
 middleware.logging(include_request_body=False, level="INFO")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Debugging
+### Debugging
 
 Enable debug logging to see middleware setup:
 
@@ -485,30 +485,30 @@ import logging
 logging.getLogger("fast_core.middleware").setLevel(logging.DEBUG)
 ```
 
-***REMOVED******REMOVED*** 🎯 Migration Guide
+## 🎯 Migration Guide
 
-***REMOVED******REMOVED******REMOVED*** From Legacy FastAPI
+### From Legacy FastAPI
 
 ```python
-***REMOVED*** Old way - manual middleware setup
+# Old way - manual middleware setup
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-***REMOVED*** New way - builder pattern
+# New way - builder pattern
 middleware = MiddlewareConfig()
 middleware.cors(origins=["*"]).request_processing(gzip_compression=True)
 app = create_app(middleware=middleware)
 ```
 
-***REMOVED******REMOVED******REMOVED*** From Other Frameworks
+### From Other Frameworks
 
 ```python
-***REMOVED*** Flask equivalent
+# Flask equivalent
 middleware.cors(origins=["*"])
 middleware.security_headers(hsts=True)
 middleware.logging(level="INFO")
 
-***REMOVED*** Express equivalent
+# Express equivalent
 middleware.cors(credentials=True)
 middleware.request_processing(max_request_size=10_000_000)
 middleware.rate_limiting(default_limit="100/minute")

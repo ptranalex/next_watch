@@ -31,21 +31,21 @@ def create_movie(
     Returns:
         Created Movie instance
     """
-    ***REMOVED*** Create a copy to avoid modifying the input
+    # Create a copy to avoid modifying the input
     movie_dict = movie_data.copy()
 
-    ***REMOVED*** Extract genre information if present to prevent SQLModel errors
+    # Extract genre information if present to prevent SQLModel errors
     if "genres" in movie_dict:
         del movie_dict["genres"]
 
-    ***REMOVED*** Create movie instance
+    # Create movie instance
     movie = Movie(**movie_dict)
     session.add(movie)
-    session.flush()  ***REMOVED*** Flush to get the generated ID
+    session.flush()  # Flush to get the generated ID
 
     logger.info(f"Created movie: {movie.title} (ID: {movie.id})")
 
-    ***REMOVED*** Associate genres if provided
+    # Associate genres if provided
     if genre_ids:
         for genre_id in genre_ids:
             link = MovieGenreLink(movie_id=movie.id, genre_id=genre_id)
@@ -125,23 +125,23 @@ def get_movies(
     """
     query = select(Movie)
 
-    ***REMOVED*** Apply title search if provided
+    # Apply title search if provided
     if title_search:
         search_pattern = f"%{title_search}%"
         query = query.where(func.lower(Movie.title).like(func.lower(search_pattern)))
 
-    ***REMOVED*** Apply genre filter if provided
+    # Apply genre filter if provided
     if genre_id:
         query = query.join(MovieGenreLink).where(MovieGenreLink.genre_id == genre_id)
 
-    ***REMOVED*** Apply sorting
+    # Apply sorting
     if hasattr(Movie, sort_by):
         sort_field = getattr(Movie, sort_by)
         if sort_desc:
             sort_field = sort_field.desc()
         query = query.order_by(sort_field)
 
-    ***REMOVED*** Apply pagination
+    # Apply pagination
     movies = session.exec(query.offset(skip).limit(limit)).all()
     return list(movies)
 
@@ -172,29 +172,29 @@ def update_movie(
 
     logger.debug(f"Updating movie: {movie.title} (ID: {movie_id})")
 
-    ***REMOVED*** Create a copy to avoid modifying the input
+    # Create a copy to avoid modifying the input
     movie_dict = movie_data.copy()
 
-    ***REMOVED*** Extract genre information if present
+    # Extract genre information if present
     if "genres" in movie_dict:
         del movie_dict["genres"]
 
-    ***REMOVED*** Ensure language is not None to prevent SQL errors
+    # Ensure language is not None to prevent SQL errors
     if movie_dict.get("language") is None:
-        ***REMOVED*** Use original_language as fallback, or default to 'en'
+        # Use original_language as fallback, or default to 'en'
         movie_dict["language"] = movie_dict.get("original_language") or "en"
 
-    ***REMOVED*** Update movie attributes
+    # Update movie attributes
     for key, value in movie_dict.items():
         if hasattr(movie, key):
             setattr(movie, key, value)
 
-    ***REMOVED*** Set updated_at timestamp
+    # Set updated_at timestamp
     movie.updated_at = datetime.utcnow()
 
-    ***REMOVED*** Update genre associations if provided
+    # Update genre associations if provided
     if genre_ids is not None:
-        ***REMOVED*** Remove existing genre links
+        # Remove existing genre links
         links = session.exec(
             select(MovieGenreLink).where(MovieGenreLink.movie_id == movie_id)
         ).all()
@@ -202,7 +202,7 @@ def update_movie(
             session.delete(link)
         logger.debug(f"Removed {len(links)} existing genre associations")
 
-        ***REMOVED*** Add new genre links
+        # Add new genre links
         for genre_id in genre_ids:
             link = MovieGenreLink(movie_id=movie_id, genre_id=genre_id)
             session.add(link)
@@ -234,13 +234,13 @@ def delete_movie(session: Session, movie_id: int) -> bool:
 
     logger.info(f"Deleting movie: {movie.title} (ID: {movie_id})")
 
-    ***REMOVED*** Delete genre links
+    # Delete genre links
     links = session.exec(select(MovieGenreLink).where(MovieGenreLink.movie_id == movie_id)).all()
     for link in links:
         session.delete(link)
     logger.debug(f"Deleted {len(links)} genre links")
 
-    ***REMOVED*** Delete the movie
+    # Delete the movie
     session.delete(movie)
     session.commit()
     logger.info("Movie deleted successfully")
@@ -263,7 +263,7 @@ def create_movie_from_tmdb_details(session: Session, tmdb_details: dict[str, Any
     Returns:
         Movie instance
     """
-    ***REMOVED*** Check if movie already exists
+    # Check if movie already exists
     tmdb_id = tmdb_details.get("id")
     if not tmdb_id:
         logger.error("TMDB details missing movie ID")
@@ -271,7 +271,7 @@ def create_movie_from_tmdb_details(session: Session, tmdb_details: dict[str, Any
 
     existing_movie = get_movie_by_tmdb_id(session, tmdb_id)
 
-    ***REMOVED*** Extract basic movie data
+    # Extract basic movie data
     movie_data = {
         "tmdb_id": tmdb_id,
         "imdb_id": tmdb_details.get("imdb_id"),
@@ -293,23 +293,23 @@ def create_movie_from_tmdb_details(session: Session, tmdb_details: dict[str, Any
         "tmdb_rating": tmdb_details.get("vote_average"),
         "imdb_rating": tmdb_details.get("imdb_rating"),
         "metacritic_rating": tmdb_details.get("metascore"),
-        "rotten_tomatoes_rating": None,  ***REMOVED*** Will be populated by OMDB enrichment
-        "awards": None,  ***REMOVED*** Will be populated by OMDB enrichment
+        "rotten_tomatoes_rating": None,  # Will be populated by OMDB enrichment
+        "awards": None,  # Will be populated by OMDB enrichment
     }
 
-    ***REMOVED*** Process release date
+    # Process release date
     if release_date_str := tmdb_details.get("release_date"):
         try:
             movie_data["release_date"] = date.fromisoformat(release_date_str)
         except (ValueError, TypeError):
             logger.warning(f"Invalid release date format: {release_date_str}")
 
-    ***REMOVED*** Process collection info
+    # Process collection info
     if collection := tmdb_details.get("belongs_to_collection"):
         movie_data["belongs_to_collection_id"] = collection.get("id")
         movie_data["belongs_to_collection_name"] = collection.get("name")
 
-    ***REMOVED*** Process URLs
+    # Process URLs
     if poster_path := tmdb_details.get("poster_path"):
         movie_data["poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
@@ -318,32 +318,32 @@ def create_movie_from_tmdb_details(session: Session, tmdb_details: dict[str, Any
 
     movie_data["homepage"] = tmdb_details.get("homepage")
 
-    ***REMOVED*** Extract genre IDs and ensure they exist in the database
+    # Extract genre IDs and ensure they exist in the database
     genre_ids = None
     if genres := tmdb_details.get("genres"):
-        ***REMOVED*** Import here to avoid circular imports
+        # Import here to avoid circular imports
         from movie_storage.db.operations.genre import create_genre, get_genre_by_tmdb_id
 
-        ***REMOVED*** Process each genre and ensure it exists in database
+        # Process each genre and ensure it exists in database
         valid_genre_ids = []
         for genre_data in genres:
             tmdb_genre_id = genre_data.get("id")
             if not tmdb_genre_id:
                 continue
 
-            ***REMOVED*** Check if genre exists, create if not
+            # Check if genre exists, create if not
             db_genre = get_genre_by_tmdb_id(session, tmdb_genre_id)
             if not db_genre:
                 genre_name = genre_data.get("name", f"Genre {tmdb_genre_id}")
                 logger.info(f"Creating missing genre: {genre_name} (TMDB ID: {tmdb_genre_id})")
                 db_genre = create_genre(session, name=genre_name, tmdb_id=tmdb_genre_id)
 
-            ***REMOVED*** Add the database genre ID to our list
+            # Add the database genre ID to our list
             valid_genre_ids.append(db_genre.id)
 
         genre_ids = valid_genre_ids
 
-    ***REMOVED*** Create or update movie
+    # Create or update movie
     if existing_movie:
         logger.debug(f"Updating existing movie: {movie_data['title']} (ID: {existing_movie.id})")
         movie = update_movie(session, existing_movie.id, movie_data, genre_ids)
@@ -351,23 +351,23 @@ def create_movie_from_tmdb_details(session: Session, tmdb_details: dict[str, Any
         logger.info(f"Creating new movie: {movie_data['title']}")
         movie = create_movie(session, movie_data, genre_ids)
 
-    ***REMOVED*** Process credits if present
+    # Process credits if present
     if tmdb_details.get("credits"):
-        ***REMOVED*** Delete existing credits
+        # Delete existing credits
         delete_credits_for_movie(session, movie.id)
 
-        ***REMOVED*** Create new credits
+        # Create new credits
         create_credits_from_tmdb_data(session, movie.id, tmdb_details["credits"])
 
-    ***REMOVED*** Process trailers if present
+    # Process trailers if present
     if videos := tmdb_details.get("videos", {}).get("results", []):
-        ***REMOVED*** Import here to avoid circular imports
+        # Import here to avoid circular imports
         from movie_storage.db.operations.trailer import create_trailer, delete_trailers_for_movie
 
-        ***REMOVED*** Delete existing trailers
+        # Delete existing trailers
         delete_trailers_for_movie(session, movie.id)
 
-        ***REMOVED*** Create new trailers
+        # Create new trailers
         for video in videos:
             if video.get("site") == "YouTube" and video.get("type") == "Trailer":
                 trailer_data = {
@@ -380,6 +380,6 @@ def create_movie_from_tmdb_details(session: Session, tmdb_details: dict[str, Any
                 create_trailer(session, trailer_data)
                 logger.debug(f"Created trailer: {trailer_data['name']} for movie {movie.title}")
 
-    ***REMOVED*** Refresh the movie to include relationships
+    # Refresh the movie to include relationships
     session.refresh(movie)
     return movie

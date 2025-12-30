@@ -23,21 +23,21 @@ def create_fast_core_config(reco_config: RecommendationAPIConfig) -> FastAPIConf
     """
     logger.info("Converting Recommendation config to fast-core config")
 
-    ***REMOVED*** Create fast-core config using enhanced configuration
+    # Create fast-core config using enhanced configuration
     fast_core_config = FastAPIConfig(
-        ***REMOVED*** Basic service configuration (inherited from ServiceConfig)
+        # Basic service configuration (inherited from ServiceConfig)
         service_name=reco_config.service_name,
         environment=reco_config.environment,
         debug=reco_config.debug,
         host=reco_config.host,
         port=reco_config.port,
         log_level=reco_config.log_level,
-        ***REMOVED*** CORS configuration - recommendations API is public-facing
+        # CORS configuration - recommendations API is public-facing
         cors_origins=["*"] if reco_config.environment == "development" else [],
         cors_allow_credentials=True,
         cors_allow_methods=["GET", "POST", "OPTIONS"],
         cors_allow_headers=["*"],
-        ***REMOVED*** Service URLs for external services (filter out None values)
+        # Service URLs for external services (filter out None values)
         service_urls={
             k: v
             for k, v in {
@@ -48,30 +48,30 @@ def create_fast_core_config(reco_config: RecommendationAPIConfig) -> FastAPIConf
             }.items()
             if v is not None
         },
-        ***REMOVED*** Service timeouts
+        # Service timeouts
         service_timeouts={
             "backend": reco_config.backend_api_timeout,
             "ml": reco_config.ml_api_timeout,
             "default": reco_config.request_timeout_seconds,
         },
-        ***REMOVED*** Feature flags
+        # Feature flags
         feature_flags={
             "collaborative_filtering": reco_config.enable_collaborative_filtering,
             "content_filtering": reco_config.enable_content_filtering,
             "trending_fallback": reco_config.enable_trending_fallback,
             "diversity_boost": reco_config.enable_diversity_boost,
             "caching": reco_config.enable_caching,
-            "metrics": True,  ***REMOVED*** Always enabled for production observability
+            "metrics": True,  # Always enabled for production observability
             "precompute_similarities": reco_config.precompute_similarities,
         },
-        ***REMOVED*** FastAPI-specific configuration
+        # FastAPI-specific configuration
         docs_url="/docs" if reco_config.debug else None,
         redoc_url="/redoc" if reco_config.debug else None,
         openapi_url="/openapi.json" if reco_config.debug else None,
     )
 
-    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
-    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    # Set monitoring configuration (MonitoringConfigMixin fields)
+    # Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
     fast_core_config.enable_tracing = reco_config.enable_tracing
     fast_core_config.tracing_endpoint = reco_config.tracing_endpoint
     fast_core_config.tracing_sample_rate = reco_config.tracing_sample_rate

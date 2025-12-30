@@ -211,7 +211,7 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
-  ***REMOVED*** Preparation job for deployment
+  # Preparation job for deployment
   prepare-deployment:
     needs:
       [
@@ -261,7 +261,7 @@ jobs:
       JWT_JWK: ${{ secrets.JWT_JWK }}
       JWT_JWK_ROTATION_INTERVAL: ${{ secrets.JWT_JWK_ROTATION_INTERVAL }}
 
-  ***REMOVED*** Individual service deployments
+  # Individual service deployments
   deploy-backend:
     needs: [check_changes, build_backend, prepare-deployment]
     if: ${{ always() && needs.prepare-deployment.result == 'success' && (needs.check_changes.outputs.backend_changed == 'true' || github.event.inputs.build_all == 'true') }}

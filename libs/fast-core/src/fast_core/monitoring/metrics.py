@@ -44,20 +44,20 @@ class MetricsRegistry:
         self.registry = registry or REGISTRY
         self._metrics: dict[str, Any] = {}
 
-        ***REMOVED*** Standard HTTP metrics
+        # Standard HTTP metrics
         self._setup_http_metrics()
 
-        ***REMOVED*** Service info metric
+        # Service info metric
         self._setup_service_info()
 
-        ***REMOVED*** Health status metrics
+        # Health status metrics
         self._setup_health_metrics()
 
         logger.info(f"Metrics registry initialized for service: {service_name}")
 
     def _setup_http_metrics(self) -> None:
         """Set up standard HTTP request metrics."""
-        ***REMOVED*** HTTP request duration histogram
+        # HTTP request duration histogram
         self.http_request_duration = Histogram(
             "http_request_duration_seconds",
             "HTTP request duration in seconds",
@@ -66,7 +66,7 @@ class MetricsRegistry:
             buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
         )
 
-        ***REMOVED*** HTTP request count
+        # HTTP request count
         self.http_requests_total = Counter(
             "http_requests_total",
             "Total HTTP requests",
@@ -74,7 +74,7 @@ class MetricsRegistry:
             registry=self.registry,
         )
 
-        ***REMOVED*** HTTP requests in progress
+        # HTTP requests in progress
         self.http_requests_in_progress = Gauge(
             "http_requests_in_progress",
             "HTTP requests currently being processed",
@@ -82,7 +82,7 @@ class MetricsRegistry:
             registry=self.registry,
         )
 
-        ***REMOVED*** HTTP request size
+        # HTTP request size
         self.http_request_size_bytes = Histogram(
             "http_request_size_bytes",
             "HTTP request size in bytes",
@@ -90,7 +90,7 @@ class MetricsRegistry:
             registry=self.registry,
         )
 
-        ***REMOVED*** HTTP response size
+        # HTTP response size
         self.http_response_size_bytes = Histogram(
             "http_response_size_bytes",
             "HTTP response size in bytes",
@@ -102,11 +102,11 @@ class MetricsRegistry:
         """Set up service information metric."""
         self.service_info = Info("service_info", "Service information", registry=self.registry)
 
-        ***REMOVED*** Set basic service info
+        # Set basic service info
         self.service_info.info(
             {
                 "service_name": self.service_name,
-                "version": "1.0.0",  ***REMOVED*** This should come from settings
+                "version": "1.0.0",  # This should come from settings
             }
         )
 
@@ -116,8 +116,8 @@ class MetricsRegistry:
         Creates standard health metrics following industry best practices
         used by Spring Boot, Kubernetes, and other platforms.
         """
-        ***REMOVED*** Overall service health status gauge
-        ***REMOVED*** Values: 3=healthy, 2=degraded, 1=unhealthy, 0=unknown
+        # Overall service health status gauge
+        # Values: 3=healthy, 2=degraded, 1=unhealthy, 0=unknown
         self.service_health_status = Gauge(
             "service_health_status",
             "Overall service health status (3=healthy, 2=degraded, 1=unhealthy, 0=unknown)",
@@ -125,7 +125,7 @@ class MetricsRegistry:
             registry=self.registry,
         )
 
-        ***REMOVED*** Individual health check statuses
+        # Individual health check statuses
         self.health_check_status = Gauge(
             "health_check_status",
             "Individual health check status (1=healthy, 0=unhealthy)",
@@ -133,7 +133,7 @@ class MetricsRegistry:
             registry=self.registry,
         )
 
-        ***REMOVED*** Health check response times
+        # Health check response times
         self.health_check_duration = Histogram(
             "health_check_duration_seconds",
             "Health check execution duration",
@@ -142,7 +142,7 @@ class MetricsRegistry:
             buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
         )
 
-        ***REMOVED*** Health check execution counts
+        # Health check execution counts
         self.health_check_total = Counter(
             "health_check_executions_total",
             "Total health check executions",
@@ -150,7 +150,7 @@ class MetricsRegistry:
             registry=self.registry,
         )
 
-        ***REMOVED*** Initialize overall service health to unknown
+        # Initialize overall service health to unknown
         self.service_health_status.labels(service=self.service_name).set(0)
 
         logger.info("Health status metrics initialized")
@@ -189,14 +189,14 @@ class MetricsRegistry:
             "check_category": check_category.lower(),
         }
 
-        ***REMOVED*** Update status gauge
+        # Update status gauge
         self.health_check_status.labels(**labels).set(1 if is_healthy else 0)
 
-        ***REMOVED*** Update duration histogram if provided
+        # Update duration histogram if provided
         if duration_seconds is not None:
             self.health_check_duration.labels(**labels).observe(duration_seconds)
 
-        ***REMOVED*** Update execution counter
+        # Update execution counter
         status = "healthy" if is_healthy else "unhealthy"
         count_labels = {**labels, "status": status}
         self.health_check_total.labels(**count_labels).inc()
@@ -273,7 +273,7 @@ class MetricsRegistry:
         if "service" not in labels:
             labels.append("service")
 
-        ***REMOVED*** Handle buckets parameter properly
+        # Handle buckets parameter properly
         if buckets is not None:
             histogram = Histogram(
                 name, description, labels, registry=self.registry, buckets=buckets
@@ -324,26 +324,26 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         """Process request and collect metrics."""
-        ***REMOVED*** Skip excluded paths and methods
+        # Skip excluded paths and methods
         if request.url.path in self.exclude_paths or request.method in self.exclude_methods:
             return await call_next(request)
 
-        ***REMOVED*** Track request in progress
+        # Track request in progress
         self.metrics.http_requests_in_progress.labels(service=self.metrics.service_name).inc()
 
         start_time = time.time()
 
         try:
-            ***REMOVED*** Process request
+            # Process request
             response = await call_next(request)
 
-            ***REMOVED*** Calculate duration
+            # Calculate duration
             duration = time.time() - start_time
 
-            ***REMOVED*** Get route pattern for consistent labeling
+            # Get route pattern for consistent labeling
             endpoint = self._get_route_pattern(request)
 
-            ***REMOVED*** Record metrics
+            # Record metrics
             labels = {
                 "method": request.method,
                 "endpoint": endpoint,
@@ -354,9 +354,9 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
             self.metrics.http_request_duration.labels(**labels).observe(duration)
             self.metrics.http_requests_total.labels(**labels).inc()
 
-            ***REMOVED*** Record request/response sizes if available
+            # Record request/response sizes if available
             try:
-                ***REMOVED*** Get request size from headers
+                # Get request size from headers
                 content_length = request.headers.get("content-length")
                 if content_length:
                     self.metrics.http_request_size_bytes.labels(
@@ -366,7 +366,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
                 pass
 
             try:
-                ***REMOVED*** Get response size from headers or body
+                # Get response size from headers or body
                 response_size = None
                 if hasattr(response, "headers") and "content-length" in response.headers:
                     response_size = int(response.headers["content-length"])
@@ -383,7 +383,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
             return response
 
         except Exception:
-            ***REMOVED*** Record error metrics
+            # Record error metrics
             duration = time.time() - start_time
             endpoint = self._get_route_pattern(request)
 
@@ -400,7 +400,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
             raise
 
         finally:
-            ***REMOVED*** Decrement in-progress counter
+            # Decrement in-progress counter
             self.metrics.http_requests_in_progress.labels(service=self.metrics.service_name).dec()
 
     def _get_route_pattern(self, request: Request) -> str:
@@ -412,13 +412,13 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         Returns:
             Route pattern or path
         """
-        ***REMOVED*** Try to get the route pattern from FastAPI
+        # Try to get the route pattern from FastAPI
         if hasattr(request, "scope") and "route" in request.scope:
             route = request.scope["route"]
             if hasattr(route, "path"):
                 return str(route.path)
 
-        ***REMOVED*** Fallback to URL path
+        # Fallback to URL path
         return request.url.path
 
 
@@ -439,7 +439,7 @@ def track_operation(
     """
 
     def decorator(func: F) -> F:
-        ***REMOVED*** Create operation metrics if they don't exist
+        # Create operation metrics if they don't exist
         duration_metric_name = f"{operation_name}_duration_seconds"
         count_metric_name = f"{operation_name}_total"
         error_metric_name = f"{operation_name}_errors_total"
@@ -475,11 +475,11 @@ def track_operation(
             try:
                 result = await func(*args, **kwargs)
 
-                ***REMOVED*** Record success metrics
+                # Record success metrics
                 duration = time.time() - start_time
                 success_labels = {**operation_labels, "status": "success"}
 
-                ***REMOVED*** Safely access metrics with null checks
+                # Safely access metrics with null checks
                 duration_metric = metrics_registry.get_metric(duration_metric_name)
                 count_metric = metrics_registry.get_metric(count_metric_name)
 
@@ -491,12 +491,12 @@ def track_operation(
                 return result
 
             except Exception as e:
-                ***REMOVED*** Record error metrics
+                # Record error metrics
                 duration = time.time() - start_time
                 error_labels = {**operation_labels, "status": "error"}
                 error_type_labels = {**operation_labels, "error_type": type(e).__name__}
 
-                ***REMOVED*** Safely access metrics with null checks
+                # Safely access metrics with null checks
                 duration_metric = metrics_registry.get_metric(duration_metric_name)
                 count_metric = metrics_registry.get_metric(count_metric_name)
                 error_metric = metrics_registry.get_metric(error_metric_name)
@@ -520,11 +520,11 @@ def track_operation(
             try:
                 result = func(*args, **kwargs)
 
-                ***REMOVED*** Record success metrics
+                # Record success metrics
                 duration = time.time() - start_time
                 success_labels = {**operation_labels, "status": "success"}
 
-                ***REMOVED*** Safely access metrics with null checks
+                # Safely access metrics with null checks
                 duration_metric = metrics_registry.get_metric(duration_metric_name)
                 count_metric = metrics_registry.get_metric(count_metric_name)
 
@@ -536,12 +536,12 @@ def track_operation(
                 return result
 
             except Exception as e:
-                ***REMOVED*** Record error metrics
+                # Record error metrics
                 duration = time.time() - start_time
                 error_labels = {**operation_labels, "status": "error"}
                 error_type_labels = {**operation_labels, "error_type": type(e).__name__}
 
-                ***REMOVED*** Safely access metrics with null checks
+                # Safely access metrics with null checks
                 duration_metric = metrics_registry.get_metric(duration_metric_name)
                 count_metric = metrics_registry.get_metric(count_metric_name)
                 error_metric = metrics_registry.get_metric(error_metric_name)
@@ -555,11 +555,11 @@ def track_operation(
 
                 raise
 
-        ***REMOVED*** Return appropriate wrapper based on function type
+        # Return appropriate wrapper based on function type
         if hasattr(func, "__code__") and "async" in func.__code__.co_flags.__class__.__name__:
-            return async_wrapper  ***REMOVED*** type: ignore
+            return async_wrapper  # type: ignore
         else:
-            return sync_wrapper  ***REMOVED*** type: ignore
+            return sync_wrapper  # type: ignore
 
     return decorator
 
@@ -580,7 +580,7 @@ def setup_metrics_endpoint(
         tags=["Monitoring"],
         summary="Prometheus metrics",
         description="Prometheus metrics endpoint for monitoring",
-        include_in_schema=False,  ***REMOVED*** Don't include in OpenAPI docs
+        include_in_schema=False,  # Don't include in OpenAPI docs
     )
     async def metrics_endpoint() -> Response:
         """Prometheus metrics endpoint."""
@@ -592,7 +592,7 @@ def setup_metrics_endpoint(
     logger.info(f"Metrics endpoint registered at: {path}")
 
 
-***REMOVED*** Global metrics registry instance - will be initialized by applications
+# Global metrics registry instance - will be initialized by applications
 _metrics_registry: MetricsRegistry | None = None
 
 
@@ -619,18 +619,18 @@ def initialize_metrics(service_name: str) -> MetricsRegistry:
     """
     global _metrics_registry
 
-    ***REMOVED*** Validate input
+    # Validate input
     if not service_name or not isinstance(service_name, str):
         raise ValueError("service_name must be a non-empty string")
 
-    ***REMOVED*** If registry already exists, return it
+    # If registry already exists, return it
     if _metrics_registry is not None:
         logger.debug(
             f"Metrics registry already initialized for service: {_metrics_registry.service_name}"
         )
         return _metrics_registry
 
-    ***REMOVED*** Create new registry only if one doesn't exist
+    # Create new registry only if one doesn't exist
     try:
         _metrics_registry = MetricsRegistry(service_name)
         logger.info(f"Initialized new metrics registry for service: {service_name}")

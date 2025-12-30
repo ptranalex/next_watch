@@ -51,7 +51,7 @@ class HealthService:
         """
         if self._http_client is None:
             self._http_client = httpx.AsyncClient(
-                timeout=httpx.Timeout(10.0),  ***REMOVED*** 10 second timeout for health checks
+                timeout=httpx.Timeout(10.0),  # 10 second timeout for health checks
                 limits=httpx.Limits(max_connections=10),
             )
         return self._http_client
@@ -62,21 +62,21 @@ class HealthService:
         Returns:
             Dictionary mapping service names to health check results
         """
-        ***REMOVED*** Run all health checks concurrently
+        # Run all health checks concurrently
         backend_task = asyncio.create_task(self.check_backend_api())
         reco_task = asyncio.create_task(self.check_recommendation_api())
         auth_task = asyncio.create_task(self.check_auth_api())
         cache_task = asyncio.create_task(self.check_cache())
 
-        ***REMOVED*** Wait for all checks to complete
+        # Wait for all checks to complete
         backend_result, reco_result, auth_result, cache_result = await asyncio.gather(
             backend_task, reco_task, auth_task, cache_task, return_exceptions=True
         )
 
-        ***REMOVED*** Handle any exceptions and build results
+        # Handle any exceptions and build results
         results: dict[str, HealthCheckResult] = {}
 
-        ***REMOVED*** Process backend API result
+        # Process backend API result
         if isinstance(backend_result, Exception):
             results["backend_api"] = HealthCheckResult(
                 is_healthy=False, status="error", error=str(backend_result)
@@ -88,7 +88,7 @@ class HealthService:
                 is_healthy=False, status="error", error="Unexpected result type"
             )
 
-        ***REMOVED*** Process recommendation API result
+        # Process recommendation API result
         if isinstance(reco_result, Exception):
             results["recommendation_api"] = HealthCheckResult(
                 is_healthy=False, status="error", error=str(reco_result)
@@ -100,7 +100,7 @@ class HealthService:
                 is_healthy=False, status="error", error="Unexpected result type"
             )
 
-        ***REMOVED*** Process auth API result
+        # Process auth API result
         if isinstance(auth_result, Exception):
             results["auth_api"] = HealthCheckResult(
                 is_healthy=False, status="error", error=str(auth_result)
@@ -112,7 +112,7 @@ class HealthService:
                 is_healthy=False, status="error", error="Unexpected result type"
             )
 
-        ***REMOVED*** Process cache result
+        # Process cache result
         if isinstance(cache_result, Exception):
             results["cache"] = HealthCheckResult(
                 is_healthy=False, status="error", error=str(cache_result)
@@ -183,7 +183,7 @@ class HealthService:
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 200:
-                ***REMOVED*** Try to parse response for additional details
+                # Try to parse response for additional details
                 try:
                     health_data = response.json()
                     return HealthCheckResult(
@@ -198,7 +198,7 @@ class HealthService:
                         },
                     )
                 except Exception:
-                    ***REMOVED*** JSON parsing failed, but 200 response is still healthy
+                    # JSON parsing failed, but 200 response is still healthy
                     return HealthCheckResult(
                         is_healthy=True,
                         status="healthy",
@@ -313,22 +313,22 @@ class HealthService:
 
         try:
             client = await self._get_http_client()
-            ***REMOVED*** Try the auth API health endpoint
+            # Try the auth API health endpoint
             health_url = f"{settings.auth_api_url}/health"
 
             response = await client.get(health_url)
             response_time = (time.time() - start_time) * 1000
 
-            ***REMOVED*** Auth API can return 200 (all healthy) or 503 (service up, dependencies unhealthy)
+            # Auth API can return 200 (all healthy) or 503 (service up, dependencies unhealthy)
             if response.status_code in [200, 503]:
                 try:
                     health_data = response.json()
                     service_status = health_data.get("status", "unknown")
 
-                    ***REMOVED*** Service is considered "reachable" if it responds with health data
-                    ***REMOVED*** Even if some dependencies are unhealthy (503), the auth service itself is up
+                    # Service is considered "reachable" if it responds with health data
+                    # Even if some dependencies are unhealthy (503), the auth service itself is up
                     return HealthCheckResult(
-                        is_healthy=True,  ***REMOVED*** Service is reachable and responding
+                        is_healthy=True,  # Service is reachable and responding
                         status="healthy" if response.status_code == 200 else "degraded",
                         response_time_ms=round(response_time, 2),
                         details={
@@ -340,7 +340,7 @@ class HealthService:
                         },
                     )
                 except Exception:
-                    ***REMOVED*** Even if JSON parsing fails, a 200/503 response means service is up
+                    # Even if JSON parsing fails, a 200/503 response means service is up
                     return HealthCheckResult(
                         is_healthy=True,
                         status="healthy" if response.status_code == 200 else "degraded",
@@ -362,7 +362,7 @@ class HealthService:
         except RequestError as e:
             response_time = (time.time() - start_time) * 1000
             logger.warning(f"Auth API health check failed: {e}")
-            ***REMOVED*** Auth API is optional for basic BFF functionality
+            # Auth API is optional for basic BFF functionality
             return HealthCheckResult(
                 is_healthy=False,
                 status="unavailable",
@@ -390,7 +390,7 @@ class HealthService:
                 self._http_client = None
 
 
-***REMOVED*** Global health service instance
+# Global health service instance
 _health_service: HealthService | None = None
 
 
@@ -417,9 +417,9 @@ async def close_health_service() -> None:
         _health_service = None
 
 
-***REMOVED***
-***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
-***REMOVED***
+#
+# NEW HEALTH CHECK REGISTRY INTEGRATION
+#
 
 
 def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
@@ -436,7 +436,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckResult,
     )
 
-    ***REMOVED*** Backend API - CRITICAL dependency
+    # Backend API - CRITICAL dependency
     async def check_backend_api() -> HealthCheckResult:
         """Check Backend API health."""
         start_time = time.time()
@@ -463,7 +463,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Cache service - IMPORTANT but not critical
+    # Cache service - IMPORTANT but not critical
     async def check_redis() -> HealthCheckResult:
         """Check Redis cache health."""
         start_time = time.time()
@@ -487,7 +487,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Recommendation API - IMPORTANT for features
+    # Recommendation API - IMPORTANT for features
     async def check_recommendation_api() -> HealthCheckResult:
         """Check Recommendation API health."""
         start_time = time.time()
@@ -514,7 +514,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Auth API - IMPORTANT for auth features
+    # Auth API - IMPORTANT for auth features
     async def check_auth_api() -> HealthCheckResult:
         """Check Auth API health."""
         start_time = time.time()
@@ -524,7 +524,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 response_time = (time.time() - start_time) * 1000
 
                 return HealthCheckResult(
-                    is_healthy=response.status_code in [200, 503],  ***REMOVED*** 503 = degraded but reachable
+                    is_healthy=response.status_code in [200, 503],  # 503 = degraded but reachable
                     status="healthy" if response.status_code == 200 else "degraded",
                     response_time_ms=round(response_time, 2),
                     details={
@@ -541,27 +541,27 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
-    ***REMOVED*** Categories automatically determine which endpoints include each check
+    # Register health checks with industry-standard category-driven endpoint mapping
+    # Categories automatically determine which endpoints include each check
 
-    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
-    ***REMOVED*** These are essential for basic BFF functionality
+    # CRITICAL services - automatically included in READINESS + DEEP
+    # These are essential for basic BFF functionality
     registry.add_check(
         HealthCheckDefinition(
             name="backend_api",
             check_func=check_backend_api,
-            category=HealthCheckCategory.CRITICAL,  ***REMOVED*** Auto-included in readiness + deep
+            category=HealthCheckCategory.CRITICAL,  # Auto-included in readiness + deep
             timeout_seconds=3.0,
         )
     )
 
-    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
-    ***REMOVED*** These enhance functionality but BFF can operate without them
+    # IMPORTANT services - automatically included in DEEP only
+    # These enhance functionality but BFF can operate without them
     registry.add_check(
         HealthCheckDefinition(
             name="redis_cache",
             check_func=check_redis,
-            category=HealthCheckCategory.IMPORTANT,  ***REMOVED*** Auto-included in deep only
+            category=HealthCheckCategory.IMPORTANT,  # Auto-included in deep only
             timeout_seconds=2.0,
         )
     )
@@ -570,7 +570,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckDefinition(
             name="recommendation_api",
             check_func=check_recommendation_api,
-            category=HealthCheckCategory.IMPORTANT,  ***REMOVED*** Auto-included in deep only
+            category=HealthCheckCategory.IMPORTANT,  # Auto-included in deep only
             timeout_seconds=4.0,
         )
     )
@@ -579,12 +579,12 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckDefinition(
             name="auth_api",
             check_func=check_auth_api,
-            category=HealthCheckCategory.IMPORTANT,  ***REMOVED*** Auto-included in deep only
+            category=HealthCheckCategory.IMPORTANT,  # Auto-included in deep only
             timeout_seconds=4.0,
         )
     )
 
-    ***REMOVED*** DIAGNOSTIC FUNCTIONS for INFORMATIONAL health checks
+    # DIAGNOSTIC FUNCTIONS for INFORMATIONAL health checks
     async def check_system_info() -> HealthCheckResult:
         """Check system information and metrics."""
         import os
@@ -594,7 +594,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Gather system metrics
+            # Gather system metrics
             process = psutil.Process(os.getpid())
             memory_info = process.memory_info()
             cpu_percent = process.cpu_percent()
@@ -619,7 +619,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
             return HealthCheckResult(
-                is_healthy=True,  ***REMOVED*** System info failure shouldn't affect health
+                is_healthy=True,  # System info failure shouldn't affect health
                 status="partial",
                 response_time_ms=round(response_time, 2),
                 error=f"Could not gather all system info: {str(e)}",
@@ -652,19 +652,19 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
             return HealthCheckResult(
-                is_healthy=True,  ***REMOVED*** Metrics failure shouldn't affect health
+                is_healthy=True,  # Metrics failure shouldn't affect health
                 status="partial",
                 response_time_ms=round(response_time, 2),
                 error=f"Could not gather service metrics: {str(e)}",
             )
 
-    ***REMOVED*** INFORMATIONAL services - automatically included in DEEP only
-    ***REMOVED*** These provide diagnostic insights for troubleshooting
+    # INFORMATIONAL services - automatically included in DEEP only
+    # These provide diagnostic insights for troubleshooting
     registry.add_check(
         HealthCheckDefinition(
             name="system_info",
             check_func=check_system_info,
-            category=HealthCheckCategory.INFORMATIONAL,  ***REMOVED*** Auto-included in deep only
+            category=HealthCheckCategory.INFORMATIONAL,  # Auto-included in deep only
             timeout_seconds=2.0,
         )
     )
@@ -673,7 +673,7 @@ def setup_bff_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckDefinition(
             name="service_metrics",
             check_func=check_service_metrics,
-            category=HealthCheckCategory.INFORMATIONAL,  ***REMOVED*** Auto-included in deep only
+            category=HealthCheckCategory.INFORMATIONAL,  # Auto-included in deep only
             timeout_seconds=2.0,
         )
     )

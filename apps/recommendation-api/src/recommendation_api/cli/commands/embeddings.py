@@ -31,18 +31,18 @@ def generate(
     It fetches movie data from the backend API, generates embeddings using the configured model,
     and stores them in Qdrant vector database for similarity search.
     """
-    ***REMOVED*** Configure logging for this command
+    # Configure logging for this command
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
     elif quiet:
         log_level = "ERROR"
     else:
-        log_level = "WARNING"  ***REMOVED*** Default to WARNING to reduce noise
+        log_level = "WARNING"  # Default to WARNING to reduce noise
 
     configure_logging(log_level=log_level, verbose=verbose)
 
-    ***REMOVED*** Suppress noisy logs unless in verbose mode
+    # Suppress noisy logs unless in verbose mode
     noisy_loggers = [
         "httpx",
         "qdrant_client",
@@ -55,15 +55,15 @@ def generate(
     ]
 
     if verbose:
-        ***REMOVED*** In verbose mode, show more details but still suppress the noisiest ones
+        # In verbose mode, show more details but still suppress the noisiest ones
         for logger_name in ["httpx", "qdrant_client", "sentence_transformers"]:
             logging.getLogger(logger_name).setLevel(logging.WARNING)
     else:
-        ***REMOVED*** In normal mode, suppress all noisy loggers
+        # In normal mode, suppress all noisy loggers
         for logger_name in noisy_loggers:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
 
-    ***REMOVED*** Use asyncio to run the async function
+    # Use asyncio to run the async function
     asyncio.run(
         _run_generate(
             batch_size=batch_size,
@@ -87,7 +87,7 @@ async def _run_generate(
     noisy_loggers: list[str],
 ) -> None:
     """Async implementation of generate command."""
-    ***REMOVED*** Temporarily suppress logs during generation unless verbose
+    # Temporarily suppress logs during generation unless verbose
     temp_loggers = {}
     if not verbose:
         for logger_name in noisy_loggers:
@@ -97,23 +97,23 @@ async def _run_generate(
 
     embedding_service = None
     try:
-        ***REMOVED*** Initialize embedding service
+        # Initialize embedding service
         console.print("[cyan]Initializing embedding service...[/cyan]")
         embedding_service = await get_embedding_service()
 
-        ***REMOVED*** Indicate when force mode is active
+        # Indicate when force mode is active
         if force:
             console.print(
                 "[yellow]Force mode enabled - all embeddings will be regenerated.[/yellow]"
             )
 
-        ***REMOVED*** Process specific movie or all movies
+        # Process specific movie or all movies
         movie_ids = [movie_id] if movie_id is not None else None
 
         if movie_id is not None:
             console.print(f"[yellow]Processing specific movie ID: {movie_id}[/yellow]")
 
-        ***REMOVED*** Run embedding generation with progress tracking if not quiet
+        # Run embedding generation with progress tracking if not quiet
         if not quiet:
             with console.status(
                 "[bold green]Generating embeddings...[/bold green]", spinner="dots"
@@ -125,7 +125,7 @@ async def _run_generate(
                     batch_size=batch_size,
                 )
         else:
-            ***REMOVED*** Silent mode
+            # Silent mode
             results = await embedding_service.generate_embeddings(
                 movie_ids=movie_ids,
                 force=force,
@@ -133,11 +133,11 @@ async def _run_generate(
                 batch_size=batch_size,
             )
 
-        ***REMOVED*** Print results
+        # Print results
         if not quiet:
             console.print("\n[bold cyan]Embedding Generation Summary:[/bold cyan]")
 
-            ***REMOVED*** Create a table for summary statistics
+            # Create a table for summary statistics
             table = Table()
             table.add_column("Metric", style="cyan")
             table.add_column("Count", style="white")
@@ -173,13 +173,13 @@ async def _run_generate(
 
             console.print(table)
 
-            ***REMOVED*** Add explanatory message if all skipped
+            # Add explanatory message if all skipped
             if processed == 0 and skipped > 0:
                 console.print(
                     "\n[yellow]All movies already have embeddings. Use --force to regenerate.[/yellow]"
                 )
 
-            ***REMOVED*** Add a completion message
+            # Add a completion message
             if processed > 0:
                 console.print("\n[green]✓ Embedding generation completed successfully![/green]")
             elif failed > 0:
@@ -200,12 +200,12 @@ async def _run_generate(
         raise typer.Exit(code=1) from e
 
     finally:
-        ***REMOVED*** Restore log levels
+        # Restore log levels
         if not verbose:
             for logger_name, level in temp_loggers.items():
                 logging.getLogger(logger_name).setLevel(level)
 
-        ***REMOVED*** Clean up embedding service
+        # Clean up embedding service
         if embedding_service:
             await embedding_service.close()
 
@@ -225,7 +225,7 @@ def status(
     """
     console.print("[cyan]Checking embedding status...[/cyan]")
 
-    ***REMOVED*** Use asyncio to run the async function
+    # Use asyncio to run the async function
     asyncio.run(_run_status(verbose=verbose))
 
 
@@ -233,16 +233,16 @@ async def _run_status(verbose: bool) -> None:
     """Async implementation of status command."""
     embedding_service = None
     try:
-        ***REMOVED*** Initialize embedding service
+        # Initialize embedding service
         embedding_service = await get_embedding_service()
 
-        ***REMOVED*** Get status information
+        # Get status information
         with console.status(
             "[bold green]Retrieving status information...[/bold green]", spinner="dots"
         ):
             status_info = embedding_service.get_embedding_status()
 
-            ***REMOVED*** Get total movies from API
+            # Get total movies from API
             all_movies = await embedding_service.get_movies_for_embeddings()
             total_movies = len(all_movies)
 
@@ -250,7 +250,7 @@ async def _run_status(verbose: bool) -> None:
             console.print(f"[bold red]Error:[/bold red] {status_info['error']}")
             raise typer.Exit(code=1)
 
-        ***REMOVED*** Create status table
+        # Create status table
         table = Table(title="Embedding Status")
         table.add_column("Metric", style="cyan")
         table.add_column("Value", style="green")
@@ -269,7 +269,7 @@ async def _run_status(verbose: bool) -> None:
 
         console.print(table)
 
-        ***REMOVED*** Calculate completion percentage
+        # Calculate completion percentage
         if total_movies > 0:
             completion = (status_info.get("total_embeddings", 0) / total_movies) * 100
             console.print(f"\n[cyan]Completion: {completion:.1f}%[/cyan]")
@@ -283,7 +283,7 @@ async def _run_status(verbose: bool) -> None:
         raise typer.Exit(code=1) from e
 
     finally:
-        ***REMOVED*** Clean up embedding service
+        # Clean up embedding service
         if embedding_service:
             await embedding_service.close()
 
@@ -303,7 +303,7 @@ def cleanup(
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
 
-    ***REMOVED*** TODO: Implement cleanup using EmbeddingService
+    # TODO: Implement cleanup using EmbeddingService
     console.print("[yellow]Cleanup functionality will be implemented in future versions[/yellow]")
     console.print("[dim]This would check for orphaned embeddings and remove them.[/dim]")
 
@@ -317,7 +317,7 @@ def info(
     This command displays the current configuration for embedding generation,
     including the model being used, vector dimensions, and database settings.
     """
-    ***REMOVED*** Use asyncio to run the async function
+    # Use asyncio to run the async function
     asyncio.run(_run_info(verbose=verbose))
 
 
@@ -325,10 +325,10 @@ async def _run_info(verbose: bool) -> None:
     """Async implementation of info command."""
     embedding_service = None
     try:
-        ***REMOVED*** Initialize embedding service
+        # Initialize embedding service
         embedding_service = await get_embedding_service()
 
-        ***REMOVED*** Get configuration information
+        # Get configuration information
         config_info = embedding_service.get_configuration_info()
 
         table = Table(title="Embedding Configuration")
@@ -357,7 +357,7 @@ async def _run_info(verbose: bool) -> None:
         raise typer.Exit(code=1) from e
 
     finally:
-        ***REMOVED*** Clean up embedding service
+        # Clean up embedding service
         if embedding_service:
             await embedding_service.close()
 
@@ -386,18 +386,18 @@ def repair_embeddings(
         quiet: Suppress most log output
         verbose: Show detailed progress
     """
-    ***REMOVED*** Configure logging for this command
+    # Configure logging for this command
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
     elif quiet:
         log_level = "ERROR"
     else:
-        log_level = "WARNING"  ***REMOVED*** Default to WARNING to reduce noise
+        log_level = "WARNING"  # Default to WARNING to reduce noise
 
     configure_logging(log_level=log_level, verbose=verbose)
 
-    ***REMOVED*** Suppress noisy logs unless in verbose mode
+    # Suppress noisy logs unless in verbose mode
     noisy_loggers = [
         "httpx",
         "qdrant_client",
@@ -410,17 +410,17 @@ def repair_embeddings(
     ]
 
     if verbose:
-        ***REMOVED*** In verbose mode, show more details but still suppress the noisiest ones
+        # In verbose mode, show more details but still suppress the noisiest ones
         for logger_name in ["httpx", "qdrant_client", "sentence_transformers"]:
             logging.getLogger(logger_name).setLevel(logging.WARNING)
     else:
-        ***REMOVED*** In normal mode, suppress all noisy loggers
+        # In normal mode, suppress all noisy loggers
         for logger_name in noisy_loggers:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
 
     console.print("[cyan]Repairing movie embeddings with missing vectors[/cyan]")
 
-    ***REMOVED*** Use asyncio to run the async function
+    # Use asyncio to run the async function
     asyncio.run(
         _run_repair(
             batch_size=batch_size,
@@ -442,7 +442,7 @@ async def _run_repair(
     noisy_loggers: list[str],
 ) -> None:
     """Async implementation of repair command."""
-    ***REMOVED*** Temporarily suppress logs during repair unless verbose
+    # Temporarily suppress logs during repair unless verbose
     temp_loggers = {}
     if not verbose:
         for logger_name in noisy_loggers:
@@ -452,19 +452,19 @@ async def _run_repair(
 
     embedding_service = None
     try:
-        ***REMOVED*** Initialize embedding service
+        # Initialize embedding service
         if not quiet:
             console.print("[cyan]Initializing embedding service...[/cyan]")
 
         embedding_service = await get_embedding_service()
 
-        ***REMOVED*** Handle case for specific movie ID
+        # Handle case for specific movie ID
         movie_ids = [specific_movie_id] if specific_movie_id is not None else None
 
         if specific_movie_id is not None:
             console.print(f"[cyan]Checking specific movie ID: {specific_movie_id}[/cyan]")
 
-        ***REMOVED*** Run repair process
+        # Run repair process
         if not quiet and not dry_run:
             with console.status("[bold green]Repairing embeddings...[/bold green]", spinner="dots"):
                 results = await embedding_service.repair_embeddings(
@@ -473,14 +473,14 @@ async def _run_repair(
                     dry_run=dry_run,
                 )
         else:
-            ***REMOVED*** Silent mode or dry run
+            # Silent mode or dry run
             results = await embedding_service.repair_embeddings(
                 movie_ids=movie_ids,
                 batch_size=batch_size,
                 dry_run=dry_run,
             )
 
-        ***REMOVED*** Print summary
+        # Print summary
         if not quiet:
             console.print("\n[cyan]Repair Summary:[/cyan]")
             table = Table()
@@ -514,12 +514,12 @@ async def _run_repair(
         raise typer.Exit(code=1) from e
 
     finally:
-        ***REMOVED*** Restore log levels
+        # Restore log levels
         if not verbose:
             for logger_name, level in temp_loggers.items():
                 logging.getLogger(logger_name).setLevel(level)
 
-        ***REMOVED*** Clean up embedding service
+        # Clean up embedding service
         if embedding_service:
             await embedding_service.close()
 

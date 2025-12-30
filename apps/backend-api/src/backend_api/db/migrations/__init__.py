@@ -26,7 +26,7 @@ from backend_api.config import settings
 
 logger = get_logger(__name__)
 
-***REMOVED*** List of migration modules to apply in order
+# List of migration modules to apply in order
 MIGRATIONS = [
     "backend_api.db.migrations.001_create_initial_tables",
     "backend_api.db.migrations.002_add_credits_and_extended_movie_fields",
@@ -51,11 +51,11 @@ def get_applied_migrations(engine: Engine) -> dict[str, str]:
     Returns:
         Dictionary mapping migration IDs to descriptions
     """
-    ***REMOVED*** First check if migrations table exists using SQLAlchemy inspector
+    # First check if migrations table exists using SQLAlchemy inspector
     inspector = inspect(engine)
     table_exists = "migrations" in inspector.get_table_names()
 
-    ***REMOVED*** If table doesn't exist, create it
+    # If table doesn't exist, create it
     if not table_exists:
         with engine.begin() as conn:
             conn.execute(
@@ -72,22 +72,22 @@ def get_applied_migrations(engine: Engine) -> dict[str, str]:
         logger.info("Created migrations table")
         return {}
 
-    ***REMOVED*** Check if table has correct schema
+    # Check if table has correct schema
     try:
-        ***REMOVED*** Try to query the table with expected columns
+        # Try to query the table with expected columns
         with engine.connect() as conn:
             result = conn.execute(text("SELECT id, description FROM migrations"))
             return {row[0]: row[1] for row in result}
     except Exception as e:
         logger.warning(f"Error querying migrations table: {e}")
 
-        ***REMOVED*** Table exists but has wrong schema - recreate it
+        # Table exists but has wrong schema - recreate it
         with engine.begin() as conn:
-            ***REMOVED*** Drop the existing table
+            # Drop the existing table
             logger.warning("Migrations table has incorrect schema, recreating it")
             conn.execute(text("DROP TABLE migrations"))
 
-            ***REMOVED*** Create the migrations table with the correct schema
+            # Create the migrations table with the correct schema
             conn.execute(
                 text(
                     """
@@ -114,35 +114,35 @@ def run_migration(db_url: str | None = None) -> list[str]:
     """
     import time
 
-    ***REMOVED*** Use provided URL or settings URL
+    # Use provided URL or settings URL
     db_url = db_url or settings.database_url
 
-    ***REMOVED*** Create engine with shorter timeout for better interruption
+    # Create engine with shorter timeout for better interruption
     engine = create_engine(db_url, pool_timeout=30, pool_recycle=3600)
 
-    ***REMOVED*** Get applied migrations
+    # Get applied migrations
     applied_migrations = get_applied_migrations(engine)
     logger.info(f"Found {len(applied_migrations)} applied migrations")
 
-    ***REMOVED*** Run pending migrations
+    # Run pending migrations
     applied_ids: list[str] = []
     for migration_module in MIGRATIONS:
-        migration_start = 0.0  ***REMOVED*** Initialize before try block
+        migration_start = 0.0  # Initialize before try block
         try:
-            ***REMOVED*** Import migration module
+            # Import migration module
             module = importlib.import_module(migration_module)
             migration_id = getattr(module, "MIGRATION_ID", migration_module)
 
-            ***REMOVED*** Skip if already applied
+            # Skip if already applied
             if migration_id in applied_migrations:
                 logger.info(f"Migration {migration_id} already applied, skipping")
                 continue
 
-            ***REMOVED*** Run migration with timing and progress updates
+            # Run migration with timing and progress updates
             migration_start = time.time()
             logger.info(f"⏱️ Starting migration: {migration_id}")
 
-            ***REMOVED*** Run migration (progress is shown at CLI level)
+            # Run migration (progress is shown at CLI level)
             module.upgrade(engine)
 
             migration_elapsed = time.time() - migration_start
@@ -153,7 +153,7 @@ def run_migration(db_url: str | None = None) -> list[str]:
             else:
                 time_str = f"{migration_elapsed:.1f}s"
 
-            ***REMOVED*** Auto-record migration completion to avoid human error
+            # Auto-record migration completion to avoid human error
             try:
                 migration_description = getattr(module, "MIGRATION_DESCRIPTION", migration_id)
                 with engine.begin() as conn:
@@ -207,21 +207,21 @@ def downgrade_single_migration(engine: Engine, migration_id: str) -> bool:
 
     logger = get_logger(__name__)
 
-    ***REMOVED*** Import the migration module
+    # Import the migration module
     try:
         module = importlib.import_module(f"backend_api.db.migrations.{migration_id}")
     except ImportError as e:
         logger.error(f"Could not import migration module: {migration_id} - {str(e)}")
         return False
 
-    ***REMOVED*** Call the downgrade function
+    # Call the downgrade function
     try:
         module.downgrade(engine)
     except Exception as e:
         logger.error(f"Failed to downgrade migration {migration_id}: {str(e)}")
         return False
 
-    ***REMOVED*** Remove the migration record
+    # Remove the migration record
     try:
         with engine.begin() as conn:
             conn.execute(text("DELETE FROM migrations WHERE id = :id"), {"id": migration_id})

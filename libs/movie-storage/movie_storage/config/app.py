@@ -4,9 +4,9 @@ from typing import TypedDict
 
 from movie_storage.config.env import get_env_bool, get_env_int, get_env_var
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** TYPE DEFINITIONS
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# TYPE DEFINITIONS
+# ------------------------------------------------------------------------------
 
 
 class ConfigDict(TypedDict, total=False):
@@ -21,24 +21,24 @@ class ConfigDict(TypedDict, total=False):
     sql_log_level: str
 
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** DEFAULT CONFIGURATION VALUES
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# DEFAULT CONFIGURATION VALUES
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Database URLs and connection settings
+# Database URLs and connection settings
 DEFAULT_DATABASE_URL = get_env_var("DATABASE_URL", "sqlite:///movies.db")
 DEFAULT_DATABASE_ECHO = get_env_bool("DATABASE_ECHO", False)
 DEFAULT_DATABASE_POOL_SIZE = get_env_int("DATABASE_POOL_SIZE", 5)
 DEFAULT_DATABASE_MAX_OVERFLOW = get_env_int("DATABASE_MAX_OVERFLOW", 10)
 DEFAULT_DATABASE_POOL_TIMEOUT = get_env_int("DATABASE_POOL_TIMEOUT", 30)
 
-***REMOVED*** Logging settings
+# Logging settings
 DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
 DEFAULT_SQL_LOG_LEVEL = get_env_var("SQL_LOG_LEVEL", "WARNING")
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** CONFIGURATION CLASS
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# CONFIGURATION CLASS
+# ------------------------------------------------------------------------------
 
 
 class Config:
@@ -52,7 +52,7 @@ class Config:
     log_level: str
     sql_log_level: str
 
-    ***REMOVED*** Singleton instance
+    # Singleton instance
     _instance = None
 
     @classmethod
@@ -97,7 +97,7 @@ class Config:
 
     def __str__(self) -> str:
         """Return a comprehensive multi-line string representation of the Config instance."""
-        ***REMOVED*** Mask password in database_url for security
+        # Mask password in database_url for security
         masked_url = self._mask_database_password(self.database_url)
 
         return f"""Movie Storage Configuration:
@@ -126,15 +126,15 @@ class Config:
             return url
 
         try:
-            ***REMOVED*** Simple approach to mask password in standard SQLAlchemy URLs
+            # Simple approach to mask password in standard SQLAlchemy URLs
             if "@" in url and ":" in url:
-                ***REMOVED*** Split URL into components
+                # Split URL into components
                 protocol_part, rest = url.split("://", 1)
                 if "@" in rest:
                     auth_part, host_part = rest.split("@", 1)
                     if ":" in auth_part:
                         username, password = auth_part.split(":", 1)
-                        ***REMOVED*** Replace password with asterisks
+                        # Replace password with asterisks
                         return f"{protocol_part}://{username}:******@{host_part}"
         except Exception:
             pass

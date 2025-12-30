@@ -7,7 +7,7 @@ from movie_storage.cli import app as cli_app
 from movie_storage.config.app import Config
 from movie_storage.db.db import init_db
 
-***REMOVED*** Create app for this command group
+# Create app for this command group
 app = typer.Typer(help="Database initialization commands")
 console = Console()
 
@@ -20,17 +20,17 @@ def main(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
 ) -> int:
     """Initialize the database and optionally create tables."""
-    ***REMOVED*** Get configuration
+    # Get configuration
     config = Config.get_instance()
     if database_url:
         config.database_url = database_url
 
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         masked_url = config._mask_database_password(config.database_url)
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Initialize database
+    # Initialize database
     with console.status("[bold green]Initializing database...[/]"):
         init_db(
             db_url=database_url,
@@ -38,7 +38,7 @@ def main(
             config=config,
         )
 
-    ***REMOVED*** Show results
+    # Show results
     if not quiet:
         if create_tables:
             console.print("[bold green]✓[/] Database initialized and tables created successfully!")
@@ -49,5 +49,5 @@ def main(
     return 0
 
 
-***REMOVED*** Register with parent app
+# Register with parent app
 cli_app.add_typer(app, name="init")

@@ -67,11 +67,11 @@ class CacheConsumer(KafkaEventConsumer):
             pattern=event.pattern,
         )
 
-        ***REMOVED*** TODO: Implement logic to:
-        ***REMOVED*** 1. Invalidate specified cache keys from Redis
-        ***REMOVED*** 2. If pattern provided, invalidate keys matching pattern
-        ***REMOVED*** 3. Trigger cache warming for critical keys
-        ***REMOVED*** 4. Log invalidation for monitoring
+        # TODO: Implement logic to:
+        # 1. Invalidate specified cache keys from Redis
+        # 2. If pattern provided, invalidate keys matching pattern
+        # 3. Trigger cache warming for critical keys
+        # 4. Log invalidation for monitoring
 
 
 async def start_cache_consumer() -> None:

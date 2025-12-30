@@ -1,6 +1,6 @@
-***REMOVED*** Cache Refinement Strategy: "Forever" Caching with Versioning
+# Cache Refinement Strategy: "Forever" Caching with Versioning
 
-***REMOVED******REMOVED*** 1. Static Data: Cache "Forever" with Versioning
+## 1. Static Data: Cache "Forever" with Versioning
 
     • Set TTL to 30 days or longer (effectively infinite for movie content)
     • Use versioned cache keys based on content update timestamps
@@ -8,22 +8,22 @@
 
 ✅ **Benefits:** Data stays hot, automatic updates without manual eviction, reduces backend load
 
-***REMOVED******REMOVED******REMOVED*** Versioning Strategy Options:
+### Versioning Strategy Options:
 
 ```python
-***REMOVED*** Option A: Timestamp-based (recommended)
+# Option A: Timestamp-based (recommended)
 cache_key = f"static:movie:{movie_id}:v{movie.updated_at.timestamp()}"
 
-***REMOVED*** Option B: Content hash-based (more precise for partial updates)
+# Option B: Content hash-based (more precise for partial updates)
 cache_key = f"static:movie:{movie_id}:{content_hash}"
 
-***REMOVED*** Option C: Database version field
+# Option C: Database version field
 cache_key = f"static:movie:{movie_id}:v{movie.version}"
 ```
 
 ⸻
 
-***REMOVED******REMOVED*** 2. User Data: Keep Short TTL with Context-Aware Timing
+## 2. User Data: Keep Short TTL with Context-Aware Timing
 
     • **Watchlist/Favorites:** 2-5 minutes (frequent changes)
     • **Ratings:** 10-15 minutes (less frequent changes)
@@ -34,7 +34,7 @@ cache_key = f"static:movie:{movie_id}:v{movie.version}"
 
 ⸻
 
-***REMOVED******REMOVED*** 3. Cache Warmer: Smart Preloading & Version-Aware Warming
+## 3. Cache Warmer: Smart Preloading & Version-Aware Warming
 
     • **Version checking:** Only fetch if cache miss or version mismatch
     • **Priority tiers:**
@@ -42,7 +42,7 @@ cache_key = f"static:movie:{movie_id}:v{movie.version}"
     	- **Tier 2** (daily): Popular movies (top 500), user favorites
     	- **Tier 3** (weekly): Full catalog refresh for discovery
 
-***REMOVED******REMOVED******REMOVED*** Version Checking Strategy:
+### Version Checking Strategy:
 
     1. Get latest `movie.updated_at` from database
     2. Check if cache key exists with that version
@@ -51,7 +51,7 @@ cache_key = f"static:movie:{movie_id}:v{movie.version}"
 
 ⸻
 
-***REMOVED******REMOVED*** 4. Eviction Policy & Memory Management
+## 4. Eviction Policy & Memory Management
 
     • Let Redis auto-evict older keys (via `volatile-lru`)
     • **Active cleanup:** Remove old versions when writing new ones
@@ -60,7 +60,7 @@ cache_key = f"static:movie:{movie_id}:v{movie.version}"
 
 ⸻
 
-***REMOVED******REMOVED*** 5. Hybrid Data Handling
+## 5. Hybrid Data Handling
 
     • **Movies list responses:** Compose static data + user data separately
     • Cache static list results with versioning
@@ -69,7 +69,7 @@ cache_key = f"static:movie:{movie_id}:v{movie.version}"
 
 ⸻
 
-***REMOVED******REMOVED*** 6. Key Naming Convention
+## 6. Key Naming Convention
 
 ```
 Static Data:    "static:movie:{movie_id}:v{timestamp}"
@@ -80,7 +80,7 @@ User Batch:     "user:{user_id}:batch:{movie_ids_hash}"
 
 ⸻
 
-***REMOVED******REMOVED*** 7. Monitoring & Metrics
+## 7. Monitoring & Metrics
 
     • Track cache hit rates by data type (static vs user)
     • Monitor version churn rate (how often static data updates)
@@ -89,7 +89,7 @@ User Batch:     "user:{user_id}:batch:{movie_ids_hash}"
 
 ⸻
 
-***REMOVED******REMOVED*** 8. Migration Strategy
+## 8. Migration Strategy
 
     	• **Phase 1:** ✅ **COMPLETED** - Enable versioned static caching (low risk)
     	- ✅ Versioned cache keys implemented
@@ -109,7 +109,7 @@ User Batch:     "user:{user_id}:batch:{movie_ids_hash}"
 
 ⸻
 
-***REMOVED******REMOVED*** 9. Edge Cases & Considerations
+## 9. Edge Cases & Considerations
 
     • **Clock skew:** Handle version conflicts in distributed systems
     • **Graceful degradation:** Fallback when Redis unavailable
@@ -118,7 +118,7 @@ User Batch:     "user:{user_id}:batch:{movie_ids_hash}"
 
 ⸻
 
-***REMOVED******REMOVED*** 10. Implementation Notes
+## 10. Implementation Notes
 
     • **Database changes:** Add `updated_at` triggers to movie-related tables
     • **Cache warming coordination:** Use Redis locks to prevent duplicate warming across BFF instances

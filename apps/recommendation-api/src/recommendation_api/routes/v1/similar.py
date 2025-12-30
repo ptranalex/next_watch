@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-***REMOVED*** Custom key builder for similar movies
+# Custom key builder for similar movies
 def _build_similar_movies_key(
     movie_id: int,
     limit: int = 20,
@@ -42,7 +42,7 @@ def _build_similar_movies_key(
 
 
 @redis_cache(
-    ttl=3600,  ***REMOVED*** 1 hour TTL
+    ttl=3600,  # 1 hour TTL
     key_builder=_build_similar_movies_key,
     enable_metrics=True,
 )
@@ -74,11 +74,11 @@ async def _get_similar_movies_data(
 
     logger.debug(f"Found {len(recommendations)} similar movies for movie ID {movie_id}")
 
-    ***REMOVED*** Convert MovieRecommendation objects to dictionaries for caching
-    ***REMOVED*** Use mode="json" to ensure proper serialization of date objects
+    # Convert MovieRecommendation objects to dictionaries for caching
+    # Use mode="json" to ensure proper serialization of date objects
     recommendations_dicts = [rec.model_dump(mode="json") for rec in recommendations]
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     return {
         "recommendations": recommendations_dicts,
         "total": len(recommendations),
@@ -111,11 +111,11 @@ async def get_similar_movies_endpoint(
         ValidationException: If movie_id is invalid
         ResourceNotFoundException: If movie is not found
     """
-    ***REMOVED*** Validate movie_id
+    # Validate movie_id
     if movie_id <= 0:
         raise ValidationException("Movie ID must be a positive integer")
 
-    ***REMOVED*** Apply the error handler decorator with fallback logic
+    # Apply the error handler decorator with fallback logic
     @optional_service_handler(
         service_name="recommendation-engine",
         logger=logger,
@@ -140,16 +140,16 @@ async def get_similar_movies_endpoint(
     async def _get_similar_movies_with_error_handling():
         """Inner function to handle the actual similar movies logic."""
 
-        ***REMOVED*** Record recommendation request metrics
+        # Record recommendation request metrics
         metrics = get_recommendation_metrics()
         if metrics:
-            ***REMOVED*** Record filter usage for similar movies
+            # Record filter usage for similar movies
             metrics.record_recommendation_filter_usage(
                 "min_score", _categorize_similarity_score(min_score)
             )
             metrics.record_recommendation_filter_usage("limit", _categorize_limit(limit))
 
-        ***REMOVED*** Routine start log at DEBUG
+        # Routine start log at DEBUG
         logger.debug(
             f"Processing similar movies request - movie_id=={movie_id}, limit={limit}, min_score={min_score}",
             extra={
@@ -162,7 +162,7 @@ async def get_similar_movies_endpoint(
             },
         )
 
-        ***REMOVED*** Use the cached function to get data as dictionary
+        # Use the cached function to get data as dictionary
         data = await _get_similar_movies_data(
             movie_id=movie_id,
             limit=limit,
@@ -170,12 +170,12 @@ async def get_similar_movies_endpoint(
             recommendation_service=recommendation_service,
         )
 
-        ***REMOVED*** Record successful similar movies request
+        # Record successful similar movies request
         if metrics:
             metrics.record_recommendation_request("similar", "success", 0.0, data.get("total", 0))
             metrics.record_vector_operation("search_similar", "success", 0.0)
 
-        ***REMOVED*** Routine success log at DEBUG
+        # Routine success log at DEBUG
         logger.debug(
             f"Successfully processed similar movies request - movie_id={movie_id}, total_recommendations={data.get('total', 0)}",
             extra={
@@ -189,10 +189,10 @@ async def get_similar_movies_endpoint(
 
         return data
 
-    ***REMOVED*** Execute the error-handled function
+    # Execute the error-handled function
     data = await _get_similar_movies_with_error_handling()
 
-    ***REMOVED*** Convert dictionary back to Pydantic model for response
+    # Convert dictionary back to Pydantic model for response
     return SimilarMoviesResponse(**data)
 
 

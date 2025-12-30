@@ -26,7 +26,7 @@ def show_metrics(
     collector = get_global_collector()
 
     if function_name:
-        ***REMOVED*** Show metrics for specific function
+        # Show metrics for specific function
         func_metrics = collector.get_function_metrics(function_name)
         if not func_metrics:
             console.print(f"[red]No metrics found for function: {function_name}[/red]")
@@ -37,7 +37,7 @@ def show_metrics(
         else:
             _display_function_metrics(func_metrics)
     else:
-        ***REMOVED*** Show overall metrics
+        # Show overall metrics
         metrics = collector.get_metrics()
         if not metrics:
             console.print("[yellow]No metrics available yet[/yellow]")
@@ -84,7 +84,7 @@ def _display_overall_metrics(metrics: dict[str, Any]) -> None:
     overall = metrics.get("overall", {})
     functions = metrics.get("functions", {})
 
-    ***REMOVED*** Overall summary panel
+    # Overall summary panel
     summary_text = Text()
     summary_text.append(f"Total Calls: {overall.get('total_calls', 0)}\n", style="bold")
     summary_text.append(f"Cache Hits: {overall.get('total_hits', 0)} ", style="green")
@@ -99,7 +99,7 @@ def _display_overall_metrics(metrics: dict[str, Any]) -> None:
         console.print("[yellow]No function-specific metrics available[/yellow]")
         return
 
-    ***REMOVED*** Function metrics table
+    # Function metrics table
     table = Table(title="Function Performance Metrics")
     table.add_column("Function", style="cyan", no_wrap=True)
     table.add_column("Calls", justify="right")
@@ -118,7 +118,7 @@ def _display_overall_metrics(metrics: dict[str, Any]) -> None:
         )
 
         table.add_row(
-            func_name.split(".")[-1],  ***REMOVED*** Show only function name, not full module path
+            func_name.split(".")[-1],  # Show only function name, not full module path
             str(func_data.get("total_calls", 0)),
             Text(f"{hit_ratio}%", style=hit_ratio_style),
             f"{func_data.get('avg_cache_time_ms', 0):.1f}ms",
@@ -133,7 +133,7 @@ def _display_function_metrics(func_metrics: dict[str, Any]) -> None:
     """Display metrics for a specific function."""
     func_name = func_metrics.get("function_name", "Unknown")
 
-    ***REMOVED*** Function details panel
+    # Function details panel
     details_text = Text()
     details_text.append(f"Function: {func_name}\n", style="bold cyan")
     details_text.append(f"Total Calls: {func_metrics.get('total_calls', 0)}\n")
@@ -166,7 +166,7 @@ def _display_function_metrics(func_metrics: dict[str, Any]) -> None:
 
 def _display_summary(summary: dict[str, Any]) -> None:
     """Display metrics summary."""
-    ***REMOVED*** Create a compact summary display
+    # Create a compact summary display
     table = Table(title="Cache Metrics Summary", show_header=False, box=None)
     table.add_column("Metric", style="bold")
     table.add_column("Value", justify="right")

@@ -30,14 +30,14 @@ from bff_api.services.cache_service import get_bff_warming_service
 from bff_api.services.cache_service.warming.config import get_warming_rate_limiter
 from bff_api.services.smart_warming import get_bff_smart_warming
 
-***REMOVED*** Import external cache functionality to consolidate under one command group
+# Import external cache functionality to consolidate under one command group
 try:
     from cache.cli.metrics import metrics_app
     from cache.cli.warming import warming_app
 except ImportError:
-    ***REMOVED*** Fallback if cache library not available
-    metrics_app = None  ***REMOVED*** type: ignore
-    warming_app = None  ***REMOVED*** type: ignore
+    # Fallback if cache library not available
+    metrics_app = None  # type: ignore
+    warming_app = None  # type: ignore
 from cache.warming import WarmingStrategy
 from config.logging import get_logger
 
@@ -52,7 +52,7 @@ async def _setup_cli_services() -> bool:
 
         from bff_api.config.app import settings
 
-        ***REMOVED*** Register backend service
+        # Register backend service
         if settings.backend_api_url:
             register_service(
                 name="backend",
@@ -61,7 +61,7 @@ async def _setup_cli_services() -> bool:
                 singleton=True,
             )
 
-        ***REMOVED*** Register recommendation service
+        # Register recommendation service
         if settings.reco_api_url:
             register_service(
                 name="recommendation",
@@ -70,7 +70,7 @@ async def _setup_cli_services() -> bool:
                 singleton=True,
             )
 
-        ***REMOVED*** Register auth service
+        # Register auth service
         if settings.auth_api_url:
             register_service(
                 name="auth",
@@ -79,7 +79,7 @@ async def _setup_cli_services() -> bool:
                 singleton=True,
             )
 
-        ***REMOVED*** Register search service
+        # Register search service
         if settings.search_api_url:
             register_service(
                 name="search",
@@ -95,7 +95,7 @@ async def _setup_cli_services() -> bool:
         return False
 
 
-***REMOVED*** Create the cache warming command group
+# Create the cache warming command group
 cache_app = typer.Typer(
     name="cache", help="Cache warming and management commands", rich_markup_mode="rich"
 )
@@ -124,13 +124,13 @@ def warm_popular_content(
     - Memory-efficient batch processing
 
     Examples:
-        ***REMOVED*** Warm 50 popular items (safe for production)
+        # Warm 50 popular items (safe for production)
         bff-api cache warm-popular --limit 50
 
-        ***REMOVED*** Test run without actually warming
+        # Test run without actually warming
         bff-api cache warm-popular --limit 100 --dry-run
 
-        ***REMOVED*** Higher concurrency for off-peak hours
+        # Higher concurrency for off-peak hours
         bff-api cache warm-popular --limit 500 --concurrent 5
     """
     asyncio.run(_warm_popular_content_async(limit, max_concurrent, dry_run, verbose))
@@ -170,10 +170,10 @@ def warm_movie_batch(
     [bold yellow]Production Warning:[/bold yellow] Use low concurrency values in production!
 
     Examples:
-        ***REMOVED*** Safe for production
+        # Safe for production
         bff-api cache warm-batch "1,2,3,4,5" --concurrent 2 --delay 1.0
 
-        ***REMOVED*** Test first
+        # Test first
         bff-api cache warm-batch "1,2,3" --dry-run
     """
     try:
@@ -204,7 +204,7 @@ def cache_health_check() -> None:
     asyncio.run(_cache_health_check_async())
 
 
-***REMOVED*** Async implementation functions
+# Async implementation functions
 
 
 async def _warm_popular_content_async(
@@ -222,13 +222,13 @@ async def _warm_popular_content_async(
     start_time = time.time()
 
     try:
-        ***REMOVED*** Initialize service clients for CLI context
+        # Initialize service clients for CLI context
         clients_ready = await _setup_cli_services()
         if not clients_ready:
             console.print("[bold red]Error:[/bold red] Failed to initialize service clients")
             raise typer.Exit(1)
 
-        ***REMOVED*** Get warming service
+        # Get warming service
         warming_service = get_bff_warming_service()
         warming_engine = warming_service.get_warming_engine()
 
@@ -236,7 +236,7 @@ async def _warm_popular_content_async(
             console.print("[bold red]Error:[/bold red] Warming engine not available")
             raise typer.Exit(1)
 
-        ***REMOVED*** Get targets first to show accurate progress
+        # Get targets first to show accurate progress
 
         popular_strategy = None
         for strategy_name, strategy_instance in warming_engine._strategies.items():
@@ -248,7 +248,7 @@ async def _warm_popular_content_async(
             console.print("[bold red]Error:[/bold red] Popular content strategy not available")
             raise typer.Exit(1)
 
-        ***REMOVED*** Get the actual targets to warm
+        # Get the actual targets to warm
         targets = await popular_strategy.identify_targets(limit)
         actual_count = len(targets)
 
@@ -258,7 +258,7 @@ async def _warm_popular_content_async(
 
         console.print(f"[dim]Found {actual_count} targets to warm[/dim]")
 
-        ***REMOVED*** Show progress with real updates
+        # Show progress with real updates
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -270,16 +270,16 @@ async def _warm_popular_content_async(
         ) as progress:
             task = progress.add_task("Warming popular content...", total=actual_count)
 
-            ***REMOVED*** Create a progress callback
+            # Create a progress callback
             def update_progress(completed: int) -> None:
                 progress.update(task, completed=completed)
 
-            ***REMOVED*** Warm targets concurrently with progress tracking
+            # Warm targets concurrently with progress tracking
             successful = 0
             failed = 0
             completed = 0
 
-            ***REMOVED*** Create semaphore to limit concurrent operations
+            # Create semaphore to limit concurrent operations
             from bff_api.config.app import get_bff_settings
 
             settings = get_bff_settings()
@@ -288,9 +288,9 @@ async def _warm_popular_content_async(
 
             async def warm_single_target(target: Any) -> tuple[bool, str | None]:
                 """Warm a single target with error handling."""
-                async with semaphore:  ***REMOVED*** Limit concurrency
+                async with semaphore:  # Limit concurrency
                     try:
-                        ***REMOVED*** Get the warming function for this target
+                        # Get the warming function for this target
                         warming_func = warming_engine._warming_functions.get(target.function_name)
                         if warming_func:
                             await warming_func(**target.parameters)
@@ -305,10 +305,10 @@ async def _warm_popular_content_async(
                         logger.error(f"Failed to warm target {target.function_name}: {e}")
                         return False, str(e)
 
-            ***REMOVED*** Create tasks for all targets
+            # Create tasks for all targets
             tasks = [warm_single_target(target) for target in targets]
 
-            ***REMOVED*** Process with progress updates
+            # Process with progress updates
             for future in asyncio.as_completed(tasks):
                 try:
                     success, error = await future
@@ -324,7 +324,7 @@ async def _warm_popular_content_async(
                     progress.update(task, completed=completed)
                     logger.error(f"Unexpected error in warming task: {e}")
 
-            ***REMOVED*** Create stats object
+            # Create stats object
             class WarmingStats:
                 def __init__(self, total: int, successful: int, failed: int):
                     self.total_targets = total
@@ -333,7 +333,7 @@ async def _warm_popular_content_async(
 
             stats = WarmingStats(actual_count, successful, failed)
 
-        ***REMOVED*** Show results
+        # Show results
         elapsed = time.time() - start_time
         _display_warming_results(stats, elapsed, verbose)
 
@@ -355,13 +355,13 @@ async def _warm_single_movie_async(movie_id: int, user_id: int | None, dry_run: 
     console.print(f"🎬 Warming movie {movie_id}...")
 
     try:
-        ***REMOVED*** Initialize service clients for CLI context
+        # Initialize service clients for CLI context
         clients_ready = await _setup_cli_services()
         if not clients_ready:
             console.print("[bold red]Error:[/bold red] Failed to initialize service clients")
             raise typer.Exit(1)
 
-        ***REMOVED*** Import here to avoid circular imports
+        # Import here to avoid circular imports
         from bff_api.config.app import settings
         from bff_api.services.cache_service.warming.functions import WarmingFunctions
 
@@ -391,14 +391,14 @@ async def _warm_movie_batch_async(
 
     console.print(f"📦 Warming {len(movie_ids)} movies in batches...")
 
-    ***REMOVED*** Production safety check
+    # Production safety check
     if max_concurrent > 5:
         console.print("[bold yellow]Warning:[/bold yellow] High concurrency may impact production")
         if not typer.confirm("Continue?"):
             raise typer.Exit(0)
 
     try:
-        ***REMOVED*** Initialize service clients for CLI context
+        # Initialize service clients for CLI context
         clients_ready = await _setup_cli_services()
         if not clients_ready:
             console.print("[bold red]Error:[/bold red] Failed to initialize service clients")
@@ -423,13 +423,13 @@ async def _warm_movie_batch_async(
         ) as progress:
             task = progress.add_task("Warming movies...", total=len(movie_ids))
 
-            ***REMOVED*** Process in batches to respect rate limits
+            # Process in batches to respect rate limits
             semaphore = asyncio.Semaphore(max_concurrent)
 
             async def warm_single(movie_id: int) -> dict[str, Any]:
                 async with semaphore:
                     try:
-                        ***REMOVED*** Rate limiting
+                        # Rate limiting
                         await rate_limiter.acquire()
 
                         result = await warming_functions.warm_movie_screen(movie_id=movie_id)
@@ -440,15 +440,15 @@ async def _warm_movie_batch_async(
                         progress.advance(task)
                         return {"movie_id": movie_id, "success": False, "error": str(e)}
 
-            ***REMOVED*** Execute all warming operations
+            # Execute all warming operations
             tasks = [warm_single(movie_id) for movie_id in movie_ids]
             results = await asyncio.gather(*tasks)
 
-            ***REMOVED*** Add delay between batches if specified
+            # Add delay between batches if specified
             if delay > 0:
                 await asyncio.sleep(delay)
 
-        ***REMOVED*** Show results
+        # Show results
         successful = sum(1 for r in results if r["success"])
         failed_count = len(movie_ids) - successful
 
@@ -471,10 +471,10 @@ async def _show_cache_stats_async() -> None:
     try:
         warming_service = get_bff_warming_service()
 
-        ***REMOVED*** Get warming engine stats
+        # Get warming engine stats
         warming_engine = warming_service.get_warming_engine()
         if warming_engine:
-            ***REMOVED*** This would need to be implemented in the warming engine
+            # This would need to be implemented in the warming engine
             console.print("📊 Cache Warming Statistics")
             console.print("[dim]Feature in development - basic stats shown[/dim]")
         else:
@@ -490,7 +490,7 @@ async def _cache_health_check_async() -> None:
     try:
         console.print("🏥 Cache Warming Health Check")
 
-        ***REMOVED*** Check warming service
+        # Check warming service
         warming_service = get_bff_warming_service()
         warming_engine = warming_service.get_warming_engine()
 
@@ -499,19 +499,19 @@ async def _cache_health_check_async() -> None:
         table.add_column("Status", style="green")
         table.add_column("Details")
 
-        ***REMOVED*** Warming service
+        # Warming service
         if warming_service:
             table.add_row("Warming Service", "✅ Healthy", "Service initialized")
         else:
             table.add_row("Warming Service", "❌ Error", "Service not available")
 
-        ***REMOVED*** Warming engine
+        # Warming engine
         if warming_engine:
             table.add_row("Warming Engine", "✅ Healthy", "Engine initialized")
         else:
             table.add_row("Warming Engine", "❌ Error", "Engine not available")
 
-        ***REMOVED*** Rate limiter
+        # Rate limiter
         try:
             rate_limiter = get_warming_rate_limiter()
             table.add_row("Rate Limiter", "✅ Healthy", f"Tokens: {rate_limiter.tokens:.1f}")
@@ -540,7 +540,7 @@ def _display_warming_results(stats: Any, elapsed: float, verbose: bool) -> None:
 
     if verbose and hasattr(stats, "errors") and stats.errors:
         console.print(f"\n[bold yellow]Errors ({len(stats.errors)}):[/bold yellow]")
-        for error in stats.errors[:5]:  ***REMOVED*** Show first 5 errors
+        for error in stats.errors[:5]:  # Show first 5 errors
             console.print(f"   {error}")
         if len(stats.errors) > 5:
             console.print(f"   ... and {len(stats.errors) - 5} more")
@@ -584,11 +584,11 @@ def warm_priority_movies(
         if not await _setup_cli_services():
             raise typer.Exit(1)
 
-        ***REMOVED*** Print current warming configuration
+        # Print current warming configuration
         from bff_api.config.app import get_bff_settings
         from bff_api.services.cache_service.warming.config import get_bff_warming_config
 
-        ***REMOVED*** Get settings (automatically loads .env and .env.local)
+        # Get settings (automatically loads .env and .env.local)
         settings = get_bff_settings()
         warming_config = get_bff_warming_config()
 
@@ -598,7 +598,7 @@ def warm_priority_movies(
         config_table.add_column("Value", style="green", width=20)
         config_table.add_column("Source", style="dim", width=15)
 
-        ***REMOVED*** Core config settings (these come from the warming config, with automatic env detection)
+        # Core config settings (these come from the warming config, with automatic env detection)
         config_table.add_row(
             "Max Concurrent Operations",
             str(warming_config.max_concurrent_operations),
@@ -620,7 +620,7 @@ def warm_priority_movies(
             "Default",
         )
 
-        ***REMOVED*** Environment settings (automatically loaded from .env/.env.local)
+        # Environment settings (automatically loaded from .env/.env.local)
         config_table.add_row(
             "Max Connections",
             str(getattr(settings, "warming_max_connections", 4)),
@@ -648,7 +648,7 @@ def warm_priority_movies(
         start_time = time.time()
 
         try:
-            ***REMOVED*** Get smart warming service with version awareness
+            # Get smart warming service with version awareness
             smart_warmer = get_bff_smart_warming()
 
             if dry_run:
@@ -665,10 +665,10 @@ def warm_priority_movies(
                 console.print(f"Version checking: {'Disabled' if force else 'Enabled'}")
                 return
 
-            ***REMOVED*** Execute priority warming with direct progress tracking for CLI
+            # Execute priority warming with direct progress tracking for CLI
             console.print("[blue]Starting priority warming with real-time progress...[/blue]")
 
-            ***REMOVED*** Get the movie IDs first to set up proper progress tracking
+            # Get the movie IDs first to set up proper progress tracking
             movie_ids = await smart_warmer._get_tier_movie_ids(tier, max_movies)
 
             if not movie_ids:
@@ -677,7 +677,7 @@ def warm_priority_movies(
 
             console.print(f"[dim]Found {len(movie_ids)} movies to warm[/dim]")
 
-            ***REMOVED*** Import warming components
+            # Import warming components
             from bff_api.config.app import settings
             from bff_api.services.cache_service.warming.functions import (
                 WarmingFunctions,
@@ -685,7 +685,7 @@ def warm_priority_movies(
 
             warming_funcs = WarmingFunctions(settings)
 
-            ***REMOVED*** Create progress bar for actual movie processing
+            # Create progress bar for actual movie processing
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
@@ -697,7 +697,7 @@ def warm_priority_movies(
             ) as progress:
                 task = progress.add_task(f"Warming Tier {tier} movies...", total=len(movie_ids))
 
-                ***REMOVED*** Use semaphore to limit concurrent requests (use optimized concurrency)
+                # Use semaphore to limit concurrent requests (use optimized concurrency)
                 max_concurrent = min(warming_config.max_concurrent_operations, len(movie_ids))
                 semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -709,7 +709,7 @@ def warm_priority_movies(
                                 movie_id, warming_funcs, force=force
                             )
                             progress.advance(task)
-                            await asyncio.sleep(0.01)  ***REMOVED*** Reduced delay for better performance
+                            await asyncio.sleep(0.01)  # Reduced delay for better performance
                             return {
                                 "movie_id": movie_id,
                                 "success": True,
@@ -723,11 +723,11 @@ def warm_priority_movies(
                                 "error": str(e),
                             }
 
-                ***REMOVED*** Execute all warming operations with real-time progress
+                # Execute all warming operations with real-time progress
                 warming_tasks = [_warm_with_progress(movie_id) for movie_id in movie_ids]
                 results = await asyncio.gather(*warming_tasks, return_exceptions=True)
 
-                ***REMOVED*** Show summary
+                # Show summary
                 successful = sum(1 for r in results if isinstance(r, dict) and r.get("success"))
                 failed = len(movie_ids) - successful
 
@@ -747,7 +747,7 @@ def warm_priority_movies(
             console.print(f"[bold red]Error: {e}[/bold red]")
             raise typer.Exit(1)
 
-    ***REMOVED*** Run the async function
+    # Run the async function
     asyncio.run(_warm_priority_movies_async())
 
 
@@ -777,10 +777,10 @@ def warm_movie_with_version_check(
         try:
             smart_warmer = get_bff_smart_warming()
 
-            ***REMOVED*** Execute version-aware warming with better progress display
+            # Execute version-aware warming with better progress display
             console.print("[blue]Checking version and warming if needed...[/blue]")
 
-            ***REMOVED*** Import warming components for direct execution
+            # Import warming components for direct execution
             from bff_api.config.app import settings
             from bff_api.services.cache_service.warming.functions import (
                 WarmingFunctions,
@@ -795,14 +795,14 @@ def warm_movie_with_version_check(
             ) as progress:
                 task = progress.add_task(f"Warming movie {movie_id}...", total=None)
 
-                ***REMOVED*** Execute warming directly with progress indicator
+                # Execute warming directly with progress indicator
                 result = await smart_warmer._warm_single_movie_with_version(
                     movie_id, warming_funcs, force=force
                 )
 
                 progress.update(task, description=f"✅ Movie {movie_id} completed")
 
-                ***REMOVED*** Show result details based on warming status
+                # Show result details based on warming status
                 status = result.get("status", "unknown")
                 if status == "completed":
                     console.print(f"[green]✅ Movie {movie_id} was warmed successfully[/green]")
@@ -819,7 +819,7 @@ def warm_movie_with_version_check(
             )
 
             if verbose:
-                ***REMOVED*** Show version info if available
+                # Show version info if available
                 console.print("[blue]Check logs for version and warming details[/blue]")
 
         except Exception as e:
@@ -827,16 +827,16 @@ def warm_movie_with_version_check(
             console.print(f"[bold red]Error: {e}[/bold red]")
             raise typer.Exit(1)
 
-    ***REMOVED*** Run the async function
+    # Run the async function
     asyncio.run(_warm_movie_with_version_check_async())
 
 
-***REMOVED*** Add cache metrics and management commands
+# Add cache metrics and management commands
 @cache_app.command("show")
 def show_cache_metrics() -> None:
     """Show cache performance metrics."""
     console.print("🔍 [bold blue]Cache Performance Metrics[/bold blue]")
-    ***REMOVED*** This would integrate with the cache metrics from the cache library
+    # This would integrate with the cache metrics from the cache library
     console.print("[yellow]Cache metrics integration - implement with cache library[/yellow]")
 
 
@@ -862,5 +862,5 @@ def redis_operations() -> None:
     console.print("Available operations: KEYS, GET, SET, DEL, FLUSHALL")
 
 
-***REMOVED*** Export the command group
+# Export the command group
 __all__ = ["cache_app"]

@@ -8,47 +8,47 @@ from typing import Any
 
 import structlog
 
-***REMOVED*** Color theme presets for different environments and preferences
+# Color theme presets for different environments and preferences
 COLOR_THEMES = {
     "modern": {
-        "critical": "\033[1;97;41m",  ***REMOVED*** Bold white on red background
-        "exception": "\033[1;97;41m",  ***REMOVED*** Bold white on red background
-        "error": "\033[1;31m",  ***REMOVED*** Bold red
-        "warn": "\033[1;33m",  ***REMOVED*** Bold yellow
-        "warning": "\033[1;33m",  ***REMOVED*** Bold yellow
-        "info": "\033[1;36m",  ***REMOVED*** Bold cyan
-        "debug": "\033[1;35m",  ***REMOVED*** Bold magenta
-        "notset": "\033[37m",  ***REMOVED*** Light gray
+        "critical": "\033[1;97;41m",  # Bold white on red background
+        "exception": "\033[1;97;41m",  # Bold white on red background
+        "error": "\033[1;31m",  # Bold red
+        "warn": "\033[1;33m",  # Bold yellow
+        "warning": "\033[1;33m",  # Bold yellow
+        "info": "\033[1;36m",  # Bold cyan
+        "debug": "\033[1;35m",  # Bold magenta
+        "notset": "\033[37m",  # Light gray
     },
     "classic": {
-        "critical": "\033[1;31m",  ***REMOVED*** Bold red
-        "exception": "\033[1;31m",  ***REMOVED*** Bold red
-        "error": "\033[31m",  ***REMOVED*** Red
-        "warn": "\033[33m",  ***REMOVED*** Yellow
-        "warning": "\033[33m",  ***REMOVED*** Yellow
-        "info": "\033[32m",  ***REMOVED*** Green
-        "debug": "\033[36m",  ***REMOVED*** Cyan
-        "notset": "\033[37m",  ***REMOVED*** White
+        "critical": "\033[1;31m",  # Bold red
+        "exception": "\033[1;31m",  # Bold red
+        "error": "\033[31m",  # Red
+        "warn": "\033[33m",  # Yellow
+        "warning": "\033[33m",  # Yellow
+        "info": "\033[32m",  # Green
+        "debug": "\033[36m",  # Cyan
+        "notset": "\033[37m",  # White
     },
     "minimal": {
-        "critical": "\033[31m",  ***REMOVED*** Red
-        "exception": "\033[31m",  ***REMOVED*** Red
-        "error": "\033[31m",  ***REMOVED*** Red
-        "warn": "\033[33m",  ***REMOVED*** Yellow
-        "warning": "\033[33m",  ***REMOVED*** Yellow
-        "info": "",  ***REMOVED*** No color
-        "debug": "\033[37m",  ***REMOVED*** Gray
-        "notset": "\033[37m",  ***REMOVED*** Gray
+        "critical": "\033[31m",  # Red
+        "exception": "\033[31m",  # Red
+        "error": "\033[31m",  # Red
+        "warn": "\033[33m",  # Yellow
+        "warning": "\033[33m",  # Yellow
+        "info": "",  # No color
+        "debug": "\033[37m",  # Gray
+        "notset": "\033[37m",  # Gray
     },
     "solarized": {
-        "critical": "\033[1;31m",  ***REMOVED*** Bold red
-        "exception": "\033[1;31m",  ***REMOVED*** Bold red
-        "error": "\033[31m",  ***REMOVED*** Red
-        "warn": "\033[93m",  ***REMOVED*** Bright yellow
-        "warning": "\033[93m",  ***REMOVED*** Bright yellow
-        "info": "\033[94m",  ***REMOVED*** Bright blue
-        "debug": "\033[92m",  ***REMOVED*** Bright green
-        "notset": "\033[90m",  ***REMOVED*** Dark gray
+        "critical": "\033[1;31m",  # Bold red
+        "exception": "\033[1;31m",  # Bold red
+        "error": "\033[31m",  # Red
+        "warn": "\033[93m",  # Bright yellow
+        "warning": "\033[93m",  # Bright yellow
+        "info": "\033[94m",  # Bright blue
+        "debug": "\033[92m",  # Bright green
+        "notset": "\033[90m",  # Dark gray
     },
 }
 
@@ -66,7 +66,7 @@ def get_cli_renderer(colors: bool = True, theme: str = "modern", pad_event: int 
 
     Example:
         >>> renderer = get_cli_renderer(colors=True, theme="solarized")
-        >>> ***REMOVED*** Use in structlog configuration
+        >>> # Use in structlog configuration
     """
     if colors:
         selected_theme = COLOR_THEMES.get(theme, COLOR_THEMES["modern"])
@@ -90,7 +90,7 @@ def get_json_renderer() -> Any:
 
     Example:
         >>> renderer = get_json_renderer()
-        >>> ***REMOVED*** Use for file handlers
+        >>> # Use for file handlers
     """
     return structlog.processors.JSONRenderer()
 
@@ -129,13 +129,13 @@ class CLIFormatter:
         Returns:
             Formatted log message
         """
-        ***REMOVED*** Add CLI context
+        # Add CLI context
         event_dict.setdefault("service", self.service_name)
         if self.command_name:
             event_dict.setdefault("command", self.command_name)
         event_dict.setdefault("component", "cli")
 
-        ***REMOVED*** Use appropriate renderer
+        # Use appropriate renderer
         renderer = get_cli_renderer(colors=self.colors, theme=self.theme, pad_event=30)
 
         return renderer(logger, method_name, event_dict)

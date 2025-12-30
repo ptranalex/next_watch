@@ -35,12 +35,12 @@ class BFFWarmingService:
         self.cache_manager = get_cache()
         self.metrics_collector = get_global_collector()
 
-        ***REMOVED*** Initialize component classes
+        # Initialize component classes
         self.data_providers = BFFDataProviders()
         self.warming_functions = WarmingFunctions(settings)
         self.target_factories = BFFTargetFactories()
 
-        ***REMOVED*** Create warming engine
+        # Create warming engine
         self.engine = WarmingEngine(
             cache_manager=self.cache_manager,
             metrics_collector=self.metrics_collector,
@@ -55,7 +55,7 @@ class BFFWarmingService:
         self._setup_data_providers()
         self._setup_target_factories()
 
-        ***REMOVED*** Register engine globally for CLI usage
+        # Register engine globally for CLI usage
         set_global_warming_engine(self.engine)
 
         logger.info("BFF warming service initialized successfully")
@@ -79,10 +79,10 @@ class BFFWarmingService:
 
     def _setup_data_providers(self) -> None:
         """Set up data providers for warming strategies."""
-        ***REMOVED*** Set up popular content provider
+        # Set up popular content provider
         self.engine.set_popularity_provider(self.data_providers.get_popularity_data)
 
-        ***REMOVED*** Set up user data providers
+        # Set up user data providers
         self.engine.set_user_data_provider(self.data_providers.get_user_data)
         self.engine.set_recommendation_provider(self.data_providers.get_user_recommendations)
 
@@ -111,10 +111,10 @@ class BFFWarmingService:
             True if service is healthy, False otherwise
         """
         try:
-            ***REMOVED*** Check if cache manager is healthy
+            # Check if cache manager is healthy
             cache_healthy = await self.cache_manager.health_check()
 
-            ***REMOVED*** Check if strategies are available
+            # Check if strategies are available
             strategies_available = len(self.engine.get_available_strategies()) > 0
 
             return cache_healthy and strategies_available
@@ -139,19 +139,19 @@ class BFFWarmingService:
             Dictionary containing test results and any warming data
 
         Example:
-            ***REMOVED*** Test movie screen warming
+            # Test movie screen warming
             result = await warming_service.test_warming_function(
                 "movie_screen",
                 movie_id=1,
                 user_id=None
             )
 
-            ***REMOVED*** Test movies list warming
+            # Test movies list warming
             result = await warming_service.test_warming_function(
                 "movies_list",
                 page=1,
                 limit=20,
-                genre_id=28  ***REMOVED*** Action genre
+                genre_id=28  # Action genre
             )
         """
         try:
@@ -163,7 +163,7 @@ class BFFWarmingService:
                 component="warming_service",
             )
 
-            ***REMOVED*** Check if function is registered
+            # Check if function is registered
             if function_name not in self.engine._warming_functions:
                 available_functions = list(self.engine._warming_functions.keys())
                 return {
@@ -172,7 +172,7 @@ class BFFWarmingService:
                     "available_functions": available_functions,
                 }
 
-            ***REMOVED*** Call the warming function
+            # Call the warming function
             warming_func = self.engine._warming_functions[function_name]
             result = await warming_func(**kwargs)
 
@@ -219,7 +219,7 @@ class BFFWarmingService:
         return self.engine
 
 
-***REMOVED*** Global BFF warming service instance
+# Global BFF warming service instance
 _bff_warming_service: BFFWarmingService | None = None
 
 
@@ -242,17 +242,17 @@ def configure_bff_warming() -> None:
     the cache warming system with BFF-specific data providers and functions.
     """
     try:
-        ***REMOVED*** Initialize BFF warming service which configures the cache library
+        # Initialize BFF warming service which configures the cache library
         get_bff_warming_service()
         logger.info("✅ BFF warming configuration applied")
 
     except Exception as e:
         logger.error(f"❌ Failed to configure BFF warming: {e}")
-        ***REMOVED*** Don't raise - warming should be optional
+        # Don't raise - warming should be optional
 
 
-***REMOVED*** Auto-configure BFF warming when this module is imported
-***REMOVED*** This ensures the CLI commands use the BFF-configured engine
+# Auto-configure BFF warming when this module is imported
+# This ensures the CLI commands use the BFF-configured engine
 def _auto_configure() -> None:
     """Auto-configure BFF warming when module is imported."""
     try:
@@ -262,5 +262,5 @@ def _auto_configure() -> None:
         logger.warning(f"Auto-configuration of BFF warming failed: {e}")
 
 
-***REMOVED*** Enable auto-configuration
+# Enable auto-configuration
 _auto_configure()

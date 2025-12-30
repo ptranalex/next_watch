@@ -21,31 +21,31 @@ from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 
 
-***REMOVED*** Example 1: Basic Service Registration
+# Example 1: Basic Service Registration
 def setup_basic_services():
     """Set up basic service registrations."""
     print("🔧 Setting up basic services...")
 
-    ***REMOVED*** Register basic HTTP services
+    # Register basic HTTP services
     register_service(
         name="user-service",
         base_url="https://jsonplaceholder.typicode.com",
         timeout=30,
         headers={"User-Agent": "FastCore-Example"},
-        singleton=True,  ***REMOVED*** Use singleton for performance
+        singleton=True,  # Use singleton for performance
     )
 
     register_service(
         name="notification-service",
         base_url="https://api.example.com/notifications",
         timeout=15,
-        singleton=False,  ***REMOVED*** Per-request instances
+        singleton=False,  # Per-request instances
     )
 
     print("✅ Basic services registered")
 
 
-***REMOVED*** Example 2: Custom Service Client
+# Example 2: Custom Service Client
 class UserServiceClient(BaseServiceClient):
     """Custom client for user service operations."""
 
@@ -73,7 +73,7 @@ class UserServiceClient(BaseServiceClient):
     async def health_check(self) -> dict[str, Any]:
         """Custom health check for user service."""
         try:
-            ***REMOVED*** Check if we can fetch users
+            # Check if we can fetch users
             users = await self.get_users(limit=1)
             return {
                 "service": self.name,
@@ -90,7 +90,7 @@ class UserServiceClient(BaseServiceClient):
             }
 
 
-***REMOVED*** Example 3: Using the @service_client decorator
+# Example 3: Using the @service_client decorator
 @service_client("notification-service", singleton=True)
 class NotificationServiceClient(BaseServiceClient):
     """Notification service client with decorator registration."""
@@ -100,7 +100,7 @@ class NotificationServiceClient(BaseServiceClient):
         await self._get_client()
         payload = {"user_id": user_id, "message": message, "timestamp": "2024-01-01T00:00:00Z"}
 
-        ***REMOVED*** Simulate API call (this would normally be a real API)
+        # Simulate API call (this would normally be a real API)
         return {
             "notification_id": f"notif_{user_id}_{hash(message) % 10000}",
             "status": "sent",
@@ -123,22 +123,22 @@ def setup_custom_clients():
     """Set up custom service clients."""
     print("🔧 Setting up custom clients...")
 
-    ***REMOVED*** Register the custom user service client
+    # Register the custom user service client
     register_client_type(
         service_name="user-service",
         client_class=UserServiceClient,
         singleton=True,
     )
 
-    ***REMOVED*** The notification client is automatically registered via decorator
+    # The notification client is automatically registered via decorator
     print("✅ Custom clients registered")
 
 
-***REMOVED*** Example 4: FastAPI Integration
+# Example 4: FastAPI Integration
 app = FastAPI(title="Service Client Factory Example")
 
 
-***REMOVED*** Pydantic models for API
+# Pydantic models for API
 class UserCreate(BaseModel):
     name: str
     email: str
@@ -150,7 +150,7 @@ class NotificationRequest(BaseModel):
     message: str
 
 
-***REMOVED*** Dependency injection
+# Dependency injection
 get_user_client = get_service_client("user-service")
 get_notification_client = get_service_client("notification-service")
 
@@ -171,7 +171,7 @@ async def health_check():
     try:
         results = await health_check_all_services()
 
-        ***REMOVED*** Determine overall health
+        # Determine overall health
         all_healthy = all(result.get("status") == "healthy" for result in results.values())
 
         return {
@@ -241,7 +241,7 @@ async def list_registered_services():
     return {"services": services}
 
 
-***REMOVED*** Example 5: Advanced Usage with Multiple Clients
+# Example 5: Advanced Usage with Multiple Clients
 @app.get("/users/{user_id}/profile")
 async def get_user_profile(
     user_id: int,
@@ -250,10 +250,10 @@ async def get_user_profile(
 ):
     """Get user profile and send welcome notification."""
     try:
-        ***REMOVED*** Get user data
+        # Get user data
         user = await user_client.get_user(user_id)
 
-        ***REMOVED*** Send welcome notification
+        # Send welcome notification
         welcome_message = f"Welcome back, {user.get('name', 'User')}!"
         notification_result = await notification_client.send_notification(user_id, welcome_message)
 
@@ -265,12 +265,12 @@ async def get_user_profile(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-***REMOVED*** Example 6: Demonstration Functions
+# Example 6: Demonstration Functions
 async def demonstrate_direct_usage():
     """Demonstrate direct usage of service clients."""
     print("\n🚀 Demonstrating direct service client usage...")
 
-    ***REMOVED*** Create clients directly
+    # Create clients directly
     from fast_core.dependencies.client_factory import create_service_client
 
     user_client = create_service_client("user-service")
@@ -279,13 +279,13 @@ async def demonstrate_direct_usage():
     print(f"✅ Created user client: {type(user_client).__name__}")
     print(f"✅ Created notification client: {type(notification_client).__name__}")
 
-    ***REMOVED*** Use the clients
+    # Use the clients
     try:
-        ***REMOVED*** Get a user
+        # Get a user
         user = await user_client.get_user(1)
         print(f"📝 Fetched user: {user.get('name', 'Unknown')}")
 
-        ***REMOVED*** Send notification
+        # Send notification
         notification = await notification_client.send_notification(1, "Hello from Fast Core!")
         print(f"📨 Sent notification: {notification['notification_id']}")
 
@@ -319,11 +319,11 @@ def main():
     print("🎯 Fast Core Service Client Factory Example")
     print("=" * 50)
 
-    ***REMOVED*** Setup services
+    # Setup services
     setup_basic_services()
     setup_custom_clients()
 
-    ***REMOVED*** Show registered services
+    # Show registered services
     services = list_services()
     print(f"\n📋 Registered services: {len(services)}")
     for name, config in services.items():
@@ -341,7 +341,7 @@ def main():
     print("\n🔧 To run the FastAPI server:")
     print("   uvicorn client_factory_example:app --reload")
 
-    ***REMOVED*** Run demonstrations
+    # Run demonstrations
     asyncio.run(demonstrate_direct_usage())
     asyncio.run(demonstrate_health_checks())
 

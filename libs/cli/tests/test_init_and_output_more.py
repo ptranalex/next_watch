@@ -10,12 +10,12 @@ import pytest
 def test_cli_init_lazy_exports_and_dir() -> None:
     import cli
 
-    ***REMOVED*** dir should include some known exports
+    # dir should include some known exports
     d = dir(cli)
     assert "CLIOutput" in d
     assert "validate_port" in d
 
-    ***REMOVED*** lazy export resolution
+    # lazy export resolution
     validate_port = cli.validate_port
     assert callable(validate_port)
 
@@ -36,11 +36,11 @@ def test_cli_output_confirm_and_progress_branches() -> None:
 
     o = CLIOutput("x")
 
-    ***REMOVED*** determinate progress
+    # determinate progress
     p = o.progress("work", total=5)
     assert p.disable is not True
 
-    ***REMOVED*** quiet confirm uses default
+    # quiet confirm uses default
     oq = CLIOutput("x", quiet=True)
     assert oq.confirm("q?", default=True) is True
 

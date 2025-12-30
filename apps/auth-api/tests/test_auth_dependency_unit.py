@@ -12,7 +12,7 @@ def test_get_current_user_raises_401_when_missing_user() -> None:
             return None
 
     with pytest.raises(HTTPException) as exc:
-        ***REMOVED*** session isn't used by FakeAuthService
+        # session isn't used by FakeAuthService
         import asyncio
 
         asyncio.run(get_current_user(token="t", session=None, auth_service=FakeAuthService()))

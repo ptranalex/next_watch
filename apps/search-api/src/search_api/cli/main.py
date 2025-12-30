@@ -7,14 +7,14 @@ from search_api.cli.commands import redis
 
 console = Console()
 
-***REMOVED*** Create main app
+# Create main app
 app = typer.Typer(
     name="search-api",
     help="Search API CLI for managing search suggestions and Redis data.",
     add_completion=False,
 )
 
-***REMOVED*** Add command groups
+# Add command groups
 app.add_typer(redis.app, name="redis", help="Redis data management commands")
 
 

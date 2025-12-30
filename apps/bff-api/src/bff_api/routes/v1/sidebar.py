@@ -31,12 +31,12 @@ async def _get_genres(backend: BackendClient) -> list[dict[str, Any]]:
     Raises:
         Exception: If backend request fails
     """
-    ***REMOVED*** Use BackendClient.get_genres method instead of direct HTTP calls
+    # Use BackendClient.get_genres method instead of direct HTTP calls
     return await backend.get_genres()
 
 
 @redis_cache(
-    ttl=3600,  ***REMOVED*** 1 hour - sidebar content changes infrequently
+    ttl=3600,  # 1 hour - sidebar content changes infrequently
     key_builder=lambda user_id, backend: build_cache_key(
         "sidebar:content", ["user", user_id or "anon"], prefix=""
     ),
@@ -53,7 +53,7 @@ async def _get_sidebar_content_data(
         component="sidebar_data",
     )
 
-    ***REMOVED*** Get genres from backend
+    # Get genres from backend
     logger.debug(
         "Fetching genres for sidebar content",
         user_id=user_id,
@@ -62,7 +62,7 @@ async def _get_sidebar_content_data(
     )
     genres = await _get_genres(backend)
 
-    ***REMOVED*** Ensure we have a valid list (defensive programming)
+    # Ensure we have a valid list (defensive programming)
     if not genres:
         logger.warning(
             "No genres returned from backend",
@@ -80,16 +80,16 @@ async def _get_sidebar_content_data(
         endpoint="sidebar",
     )
 
-    ***REMOVED*** Build home link
+    # Build home link
     home = {
         "label": "Home",
         "href": "/",
     }
 
-    ***REMOVED*** Build user-specific navigation links
+    # Build user-specific navigation links
     user_links = []
     if user_id:
-        ***REMOVED*** Authenticated user links
+        # Authenticated user links
         user_links = [
             {
                 "id": "watchlist",
@@ -117,7 +117,7 @@ async def _get_sidebar_content_data(
             },
         ]
 
-    ***REMOVED*** Build top navigation links
+    # Build top navigation links
     top_links = [
         {
             "id": "top-current",
@@ -145,7 +145,7 @@ async def _get_sidebar_content_data(
         },
     ]
 
-    ***REMOVED*** Build filter configuration
+    # Build filter configuration
     filters = {
         "show": True,
         "defaults": {
@@ -155,7 +155,7 @@ async def _get_sidebar_content_data(
         "locked": [],
     }
 
-    ***REMOVED*** Build genre links
+    # Build genre links
     genre_links = [
         {
             "id": int(genre["id"]) if isinstance(genre["id"], (int, str)) else 0,
@@ -173,14 +173,14 @@ async def _get_sidebar_content_data(
         component="navigation_building",
     )
 
-    ***REMOVED*** Build metadata
+    # Build metadata
     metadata = {
         "layout": "sidebar",
         "version": "1.0.0",
         "user_authenticated": bool(user_id),
     }
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     sidebar_data = {
         "home": home,
         "user_links": user_links,
@@ -221,7 +221,7 @@ async def get_sidebar_content(
     Raises:
         ExternalServiceException: If backend unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("sidebar_view")
@@ -234,10 +234,10 @@ async def get_sidebar_content(
     )
 
     try:
-        ***REMOVED*** Use the cached function - decorator handles all cache logic
+        # Use the cached function - decorator handles all cache logic
         sidebar_data_dict = await _get_sidebar_content_data(user_id, backend)
 
-        ***REMOVED*** Convert dictionary back to Pydantic model
+        # Convert dictionary back to Pydantic model
         return SidebarData(**sidebar_data_dict)
 
     except Exception as e:

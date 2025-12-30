@@ -1,8 +1,8 @@
-***REMOVED*** Search API (Go)
+# Search API (Go)
 
 Minimal Go scaffold for the Search API runtime service.
 
-***REMOVED******REMOVED*** Run locally
+## Run locally
 
 ```bash
 cd apps/search-api-go
@@ -13,7 +13,7 @@ Then:
 
 - `GET http://localhost:8080/health`
 
-***REMOVED******REMOVED*** Configuration (env)
+## Configuration (env)
 
 - `PORT` (default: `8080`)
 - `ENV` (default: `dev`)

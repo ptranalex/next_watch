@@ -69,7 +69,7 @@ async def async_input_confirmation(
     if console is None:
         console = Console()
 
-    ***REMOVED*** Run in thread pool to avoid blocking the event loop
+    # Run in thread pool to avoid blocking the event loop
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(
         None, lambda: Confirm.ask(message, default=default, console=console)
@@ -164,23 +164,23 @@ class AsyncCommandRunner:
 
         self.output.info(f"Running {len(operations)} operations concurrently...")
 
-        ***REMOVED*** Create tasks
+        # Create tasks
         tasks: dict[str, asyncio.Task[Any]] = {
-            name: asyncio.create_task(coro, name=name)  ***REMOVED*** type: ignore[arg-type]
+            name: asyncio.create_task(coro, name=name)  # type: ignore[arg-type]
             for name, coro in operations.items()
         }
         self._active_tasks.extend(tasks.values())
 
         try:
             if fail_fast:
-                ***REMOVED*** Wait for all to complete or first to fail
+                # Wait for all to complete or first to fail
                 done, pending = await asyncio.wait(
                     tasks.values(),
                     timeout=effective_timeout,
                     return_when=asyncio.FIRST_EXCEPTION,
                 )
 
-                ***REMOVED*** Cancel pending tasks
+                # Cancel pending tasks
                 for task in pending:
                     task.cancel()
                     try:
@@ -188,23 +188,23 @@ class AsyncCommandRunner:
                     except asyncio.CancelledError:
                         pass
 
-                ***REMOVED*** Check for exceptions
+                # Check for exceptions
                 results = {}
                 for task in done:
                     if task.exception():
-                        raise task.exception()  ***REMOVED*** type: ignore
+                        raise task.exception()  # type: ignore
                     results[task.get_name()] = task.result()
 
                 return results
             else:
-                ***REMOVED*** Wait for all to complete, collecting results and errors
+                # Wait for all to complete, collecting results and errors
                 if effective_timeout:
                     done, pending = await asyncio.wait(tasks.values(), timeout=effective_timeout)
-                    ***REMOVED*** Cancel pending tasks
+                    # Cancel pending tasks
                     for task in pending:
                         task.cancel()
                 else:
-                    ***REMOVED*** Wait for all tasks to complete
+                    # Wait for all tasks to complete
                     done = set(tasks.values())
 
                 results = {}
@@ -224,13 +224,13 @@ class AsyncCommandRunner:
                 return results
 
         except TimeoutError:
-            ***REMOVED*** Cancel all tasks
+            # Cancel all tasks
             for task in tasks.values():
                 task.cancel()
             self.output.error(f"Operations timed out after {effective_timeout}s")
             raise
         finally:
-            ***REMOVED*** Clean up task references
+            # Clean up task references
             for task in tasks.values():
                 try:
                     self._active_tasks.remove(task)

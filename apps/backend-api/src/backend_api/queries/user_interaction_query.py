@@ -62,14 +62,14 @@ class UserInteractionQuery:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -78,7 +78,7 @@ class UserInteractionQuery:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Get existing interaction
+        # Get existing interaction
         return get_user_movie_interaction(db, user_id, movie_id)
 
     def get_user_interactions_batch(
@@ -101,7 +101,7 @@ class UserInteractionQuery:
         Raises:
             ValidationError: If user_id is invalid or movie_ids is empty
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
@@ -114,7 +114,7 @@ class UserInteractionQuery:
                 field_errors={"movie_ids": ["Must contain at least one movie ID"]},
             )
 
-        ***REMOVED*** Remove duplicates and ensure all are positive integers
+        # Remove duplicates and ensure all are positive integers
         unique_movie_ids = list(set(movie_id for movie_id in movie_ids if movie_id > 0))
 
         if not unique_movie_ids:
@@ -123,10 +123,10 @@ class UserInteractionQuery:
                 field_errors={"movie_ids": ["Must contain at least one positive movie ID"]},
             )
 
-            ***REMOVED*** Use a single optimized batch query
+            # Use a single optimized batch query
         from sqlmodel import col, select
 
-        ***REMOVED*** Execute single batch query to get all interactions at once
+        # Execute single batch query to get all interactions at once
         query = (
             select(UserMovieInteraction)
             .where(UserMovieInteraction.user_id == user_id)
@@ -135,14 +135,14 @@ class UserInteractionQuery:
 
         interactions = db.exec(query).all()
 
-        ***REMOVED*** Build result dictionary
+        # Build result dictionary
         result: dict[int, UserMovieInteraction | None] = {}
 
-        ***REMOVED*** Initialize all movie IDs to None
+        # Initialize all movie IDs to None
         for movie_id in unique_movie_ids:
             result[movie_id] = None
 
-        ***REMOVED*** Fill in the interactions we found
+        # Fill in the interactions we found
         for interaction in interactions:
             result[interaction.movie_id] = interaction
 
@@ -166,18 +166,18 @@ class UserInteractionQuery:
         Raises:
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get user interactions
+        # Get user interactions
         interactions = get_user_watchlist(db, user_id)
         total = len(interactions)
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         paginated = interactions[offset : offset + limit]
 
         return paginated, total
@@ -200,18 +200,18 @@ class UserInteractionQuery:
         Raises:
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get user interactions
+        # Get user interactions
         interactions = get_user_watched_movies(db, user_id)
         total = len(interactions)
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         paginated = interactions[offset : offset + limit]
 
         return paginated, total
@@ -234,18 +234,18 @@ class UserInteractionQuery:
         Raises:
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get user interactions
+        # Get user interactions
         interactions = get_user_liked_movies(db, user_id)
         total = len(interactions)
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         paginated = interactions[offset : offset + limit]
 
         return paginated, total
@@ -274,18 +274,18 @@ class UserInteractionQuery:
         Raises:
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         total = len(interactions)
         paginated_interactions = interactions[offset : offset + limit]
 
-        ***REMOVED*** Create result with movie details
+        # Create result with movie details
         result = []
         for interaction in paginated_interactions:
             movie = get_movie_by_id(db, interaction.movie_id)
@@ -316,7 +316,7 @@ class UserInteractionQuery:
         Raises:
             ValidationError: If user_id is invalid or category is unknown
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
@@ -329,7 +329,7 @@ class UserInteractionQuery:
                 field_errors={"category": ["Must be one of: watchlist, watched, liked"]},
             )
 
-        ***REMOVED*** Construct query based on category
+        # Construct query based on category
         query = (
             select(UserMovieInteraction, Movie)
             .where(UserMovieInteraction.user_id == user_id)
@@ -337,7 +337,7 @@ class UserInteractionQuery:
             .where(UserMovieInteraction.movie_id == Movie.id)
         )
 
-        ***REMOVED*** Apply category filter
+        # Apply category filter
         if category == "watchlist":
             query = query.where(UserMovieInteraction.in_watchlist)
         elif category == "watched":
@@ -345,21 +345,21 @@ class UserInteractionQuery:
         elif category == "liked":
             query = query.where(UserMovieInteraction.liked)
 
-        ***REMOVED*** Get total count with a separate count query
+        # Get total count with a separate count query
         count_query = select(func.count()).select_from(query.subquery())
         total_count = db.scalar(count_query)
         total = int(total_count) if total_count is not None else 0
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         query = query.offset(offset).limit(limit)
 
-        ***REMOVED*** Execute query
+        # Execute query
         results = db.exec(query).all()
 
-        ***REMOVED*** Transform results into response objects
+        # Transform results into response objects
         details = []
         for interaction, movie in results:
-            ***REMOVED*** Ensure movie_id is not None before creating UserMovieDetail
+            # Ensure movie_id is not None before creating UserMovieDetail
             if movie.id is not None:
                 details.append(
                     UserMovieDetail(

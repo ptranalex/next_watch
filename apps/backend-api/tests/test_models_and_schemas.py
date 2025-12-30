@@ -69,9 +69,9 @@ def test_sqlalchemy_mappers_configure() -> None:
 
     from sqlalchemy.orm import configure_mappers
 
-    ***REMOVED*** Ensure both sides of the relationship are imported/registered.
-    from backend_api.models.movie import Movie  ***REMOVED*** noqa: F401
-    from backend_api.models.trailer import Trailer  ***REMOVED*** noqa: F401
+    # Ensure both sides of the relationship are imported/registered.
+    from backend_api.models.movie import Movie  # noqa: F401
+    from backend_api.models.trailer import Trailer  # noqa: F401
 
     configure_mappers()
 

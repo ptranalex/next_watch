@@ -3,10 +3,10 @@
 Provides a simplified, standardized way to manage configuration across NextWatch services.
 """
 
-***REMOVED*** Base configuration classes
+# Base configuration classes
 from config.base.config import BaseConfig, ServiceConfig, WorkerConfig
 
-***REMOVED*** Configuration profiles
+# Configuration profiles
 from config.profiles import (
     ApiServiceProfile,
     BackendServiceProfile,
@@ -22,21 +22,21 @@ from config.profiles import (
     get_profile_by_name,
 )
 
-***REMOVED*** Service-specific configuration mixins
+# Service-specific configuration mixins
 from config.services.auth import AuthConfigMixin
 from config.services.cache import CacheConfigMixin
 from config.services.database import DatabaseConfigMixin
 
 __all__ = [
-    ***REMOVED*** Base classes
+    # Base classes
     "BaseConfig",
     "ServiceConfig",
     "WorkerConfig",
-    ***REMOVED*** Mixins
+    # Mixins
     "AuthConfigMixin",
     "CacheConfigMixin",
     "DatabaseConfigMixin",
-    ***REMOVED*** Profiles
+    # Profiles
     "ConfigProfile",
     "ApiServiceProfile",
     "BackendServiceProfile",
@@ -47,7 +47,7 @@ __all__ = [
     "ProductionProfile",
     "TestProfile",
     "WorkerServiceProfile",
-    ***REMOVED*** Profile utilities
+    # Profile utilities
     "apply_profiles",
     "get_profile_by_name",
 ]

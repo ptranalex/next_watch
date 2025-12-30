@@ -9,7 +9,7 @@ from bff_api.utils.auth import extract_user_id_from_token
 
 logger = get_logger(__name__)
 
-***REMOVED*** Security scheme
+# Security scheme
 security = HTTPBearer()
 optional_security = HTTPBearer(auto_error=False)
 
@@ -107,5 +107,5 @@ def get_optional_user_id(
     if not credentials or not credentials.credentials:
         return None
 
-    ***REMOVED*** For optional auth, we still validate tokens if provided (security requirement)
+    # For optional auth, we still validate tokens if provided (security requirement)
     return extract_user_id_from_token(credentials.credentials, raise_on_invalid=True)

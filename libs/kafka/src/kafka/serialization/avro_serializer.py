@@ -19,7 +19,7 @@ from kafka.schema_registry import SchemaRegistryClient
 
 logger = structlog.get_logger(__name__)
 
-***REMOVED*** Confluent wire format magic byte
+# Confluent wire format magic byte
 MAGIC_BYTE = b"\x00"
 
 
@@ -66,18 +66,18 @@ class AvroSerializer:
             ValueError: If serialization fails
         """
         try:
-            ***REMOVED*** Get schema from registry
+            # Get schema from registry
             schema = await self.schema_registry.get_schema(schema_id)
 
-            ***REMOVED*** Convert Pydantic model to dict
+            # Convert Pydantic model to dict
             event_dict = self._pydantic_to_avro_dict(event)
 
-            ***REMOVED*** Encode with fastavro
+            # Encode with fastavro
             bytes_writer = io.BytesIO()
             fastavro.schemaless_writer(bytes_writer, schema, event_dict)
             avro_bytes = bytes_writer.getvalue()
 
-            ***REMOVED*** Prepend magic byte and schema ID (Confluent wire format)
+            # Prepend magic byte and schema ID (Confluent wire format)
             message = MAGIC_BYTE + struct.pack(">I", schema_id) + avro_bytes
 
             self.logger.debug(
@@ -108,12 +108,12 @@ class AvroSerializer:
         Returns:
             Dictionary compatible with Avro schema
         """
-        ***REMOVED*** Use Pydantic's model_dump with mode='json' for JSON-compatible output
+        # Use Pydantic's model_dump with mode='json' for JSON-compatible output
         event_dict = event.model_dump(mode="json")
 
-        ***REMOVED*** Fastavro expects timestamps as integers (milliseconds since epoch)
-        ***REMOVED*** Pydantic with mode='json' already converts datetime to ISO string,
-        ***REMOVED*** but Avro needs epoch milliseconds for timestamp-millis logical type
+        # Fastavro expects timestamps as integers (milliseconds since epoch)
+        # Pydantic with mode='json' already converts datetime to ISO string,
+        # but Avro needs epoch milliseconds for timestamp-millis logical type
         if "timestamp" in event_dict and isinstance(event_dict["timestamp"], str):
             from datetime import datetime
 
@@ -137,7 +137,7 @@ class AvroDeserializer:
         >>> await schema_registry.start()
         >>>
         >>> deserializer = AvroDeserializer(schema_registry)
-        >>> message_bytes = b"\\x00\\x00\\x00\\x00\\x01..."  ***REMOVED*** Avro message
+        >>> message_bytes = b"\\x00\\x00\\x00\\x00\\x01..."  # Avro message
         >>>
         >>> event_dict = await deserializer.deserialize(message_bytes)
     """
@@ -167,7 +167,7 @@ class AvroDeserializer:
         if len(data) < 5:
             raise ValueError("Message too short for Confluent wire format")
 
-        ***REMOVED*** Extract magic byte and schema ID
+        # Extract magic byte and schema ID
         magic = data[0:1]
         if magic != MAGIC_BYTE:
             raise ValueError(f"Invalid magic byte: {magic!r}, expected {MAGIC_BYTE!r}")
@@ -176,14 +176,14 @@ class AvroDeserializer:
         avro_data = data[5:]
 
         try:
-            ***REMOVED*** Get schema from registry (cached)
+            # Get schema from registry (cached)
             schema = await self.schema_registry.get_schema(schema_id)
 
-            ***REMOVED*** Deserialize with fastavro
+            # Deserialize with fastavro
             bytes_reader = io.BytesIO(avro_data)
             event_dict = fastavro.schemaless_reader(bytes_reader, schema)
 
-            ***REMOVED*** Convert timestamp back to datetime if present
+            # Convert timestamp back to datetime if present
             if "timestamp" in event_dict and isinstance(event_dict["timestamp"], int):
                 from datetime import datetime
 

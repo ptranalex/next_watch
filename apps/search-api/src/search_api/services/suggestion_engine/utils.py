@@ -4,10 +4,10 @@ Utility functions and constants for the suggestion engine.
 
 from typing import Any
 
-***REMOVED*** TMDB image base URLs for different sizes
+# TMDB image base URLs for different sizes
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
-***REMOVED*** Default entity types to search
+# Default entity types to search
 DEFAULT_ENTITY_TYPES = ["movie", "actor", "director"]
 
 

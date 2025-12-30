@@ -1,8 +1,8 @@
-***REMOVED*** Routes Module
+# Routes Module
 
 The routes module contains all FastAPI route handlers for the Auth API service. It provides the HTTP interface for authentication operations, health monitoring, and service management. Each route module is organized by domain and follows consistent patterns for request handling, validation, and response formatting.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The routes module provides:
 
@@ -12,15 +12,15 @@ The routes module provides:
 - **Token Verification**: JWT token validation for other services
 - **Admin Operations**: Administrative endpoints for user management
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Route Organization
+### Route Organization
 
 - **`auth.py`** (9.8KB, 328 lines): Core authentication endpoints
 - **`health.py`** (10KB, 307 lines): Health monitoring and status endpoints
 - **`meta.py`** (743B, 31 lines): Basic service information endpoints
 
-***REMOVED******REMOVED******REMOVED*** Design Patterns
+### Design Patterns
 
 - **Domain-Based Grouping**: Routes organized by functional domain
 - **Consistent Response Format**: Standardized JSON response structures
@@ -28,24 +28,24 @@ The routes module provides:
 - **Dependency Injection**: FastAPI dependency injection for authentication and validation
 - **Type Safety**: Full type hints and Pydantic model validation
 
-***REMOVED******REMOVED*** Route Modules
+## Route Modules
 
-***REMOVED******REMOVED******REMOVED*** `auth.py` - Authentication Routes
+### `auth.py` - Authentication Routes
 
 Core authentication functionality for user management and token operations.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Endpoints
+#### Endpoints
 
 ```http
-POST /auth/register     ***REMOVED*** Register new user account
-POST /auth/login        ***REMOVED*** Login with form data (compatibility)
-POST /auth/login/json   ***REMOVED*** Login with JSON payload
-POST /auth/refresh      ***REMOVED*** Refresh access token using refresh token
-GET  /auth/me          ***REMOVED*** Get current authenticated user information
-POST /auth/verify-token ***REMOVED*** Verify JWT token (for BFF service)
+POST /auth/register     # Register new user account
+POST /auth/login        # Login with form data (compatibility)
+POST /auth/login/json   # Login with JSON payload
+POST /auth/refresh      # Refresh access token using refresh token
+GET  /auth/me          # Get current authenticated user information
+POST /auth/verify-token # Verify JWT token (for BFF service)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Key Features
+#### Key Features
 
 - **Multiple Login Formats**: Supports both form data and JSON login
 - **Token Management**: Access and refresh token handling
@@ -54,12 +54,12 @@ POST /auth/verify-token ***REMOVED*** Verify JWT token (for BFF service)
 - **Rate Limiting**: Built-in protection against abuse
 - **Input Validation**: Comprehensive request validation using Pydantic
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Request/Response Examples
+#### Request/Response Examples
 
 **User Registration:**
 
 ```python
-***REMOVED*** Request
+# Request
 POST /auth/register
 {
     "email": "user@example.com",
@@ -68,7 +68,7 @@ POST /auth/register
     "password_confirm": "securepassword123"
 }
 
-***REMOVED*** Response (201 Created)
+# Response (201 Created)
 {
     "id": 1,
     "email": "user@example.com",
@@ -82,14 +82,14 @@ POST /auth/register
 **User Login:**
 
 ```python
-***REMOVED*** Request
+# Request
 POST /auth/login/json
 {
     "email": "user@example.com",
     "password": "securepassword123"
 }
 
-***REMOVED*** Response (200 OK)
+# Response (200 OK)
 {
     "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
@@ -106,13 +106,13 @@ POST /auth/login/json
 **Token Verification (BFF Usage):**
 
 ```python
-***REMOVED*** Request
+# Request
 POST /auth/verify-token
 {
     "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
 }
 
-***REMOVED*** Response (200 OK)
+# Response (200 OK)
 {
     "valid": true,
     "user": {
@@ -124,7 +124,7 @@ POST /auth/verify-token
     "expires_at": "2024-01-01T01:00:00Z"
 }
 
-***REMOVED*** Response (401 Unauthorized)
+# Response (401 Unauthorized)
 {
     "valid": false,
     "error": "Token has expired",
@@ -132,17 +132,17 @@ POST /auth/verify-token
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Error Handling
+#### Error Handling
 
 ```python
-***REMOVED*** Authentication errors
+# Authentication errors
 {
     "detail": "Invalid credentials",
     "code": "INVALID_CREDENTIALS",
     "type": "authentication_error"
 }
 
-***REMOVED*** Validation errors
+# Validation errors
 {
     "detail": "Validation failed",
     "errors": [
@@ -155,20 +155,20 @@ POST /auth/verify-token
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** `health.py` - Health Monitoring Routes
+### `health.py` - Health Monitoring Routes
 
 Comprehensive health monitoring endpoints for service orchestration and monitoring.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Endpoints
+#### Endpoints
 
 ```http
-GET /health         ***REMOVED*** Comprehensive health check with database status
-GET /health/live    ***REMOVED*** Liveness probe for load balancers
-GET /health/ready   ***REMOVED*** Readiness probe for Kubernetes/orchestrators
-GET /db-health      ***REMOVED*** Legacy database health check (backward compatibility)
+GET /health         # Comprehensive health check with database status
+GET /health/live    # Liveness probe for load balancers
+GET /health/ready   # Readiness probe for Kubernetes/orchestrators
+GET /db-health      # Legacy database health check (backward compatibility)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Key Features
+#### Key Features
 
 - **Multiple Health Types**: Different endpoints for different monitoring needs
 - **Database Monitoring**: PostgreSQL health and performance tracking
@@ -176,12 +176,12 @@ GET /db-health      ***REMOVED*** Legacy database health check (backward compati
 - **Graceful Degradation**: Handles database unavailability gracefully
 - **Orchestration Ready**: Kubernetes-compatible liveness/readiness probes
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Response Examples
+#### Response Examples
 
 **Comprehensive Health Check:**
 
 ```python
-***REMOVED*** Response (200 OK)
+# Response (200 OK)
 GET /health
 {
     "status": "healthy",
@@ -201,7 +201,7 @@ GET /health
     }
 }
 
-***REMOVED*** Response (503 Service Unavailable)
+# Response (503 Service Unavailable)
 {
     "status": "unhealthy",
     "timestamp": "2024-01-01T12:00:00Z",
@@ -219,7 +219,7 @@ GET /health
 **Liveness Probe:**
 
 ```python
-***REMOVED*** Response (200 OK)
+# Response (200 OK)
 GET /health/live
 {
     "status": "alive",
@@ -230,7 +230,7 @@ GET /health/live
 **Readiness Probe:**
 
 ```python
-***REMOVED*** Response (200 OK)
+# Response (200 OK)
 GET /health/ready
 {
     "status": "ready",
@@ -241,7 +241,7 @@ GET /health/ready
     }
 }
 
-***REMOVED*** Response (503 Service Unavailable)
+# Response (503 Service Unavailable)
 {
     "status": "not_ready",
     "timestamp": "2024-01-01T12:00:00Z",
@@ -252,20 +252,20 @@ GET /health/ready
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** `meta.py` - Service Information Routes
+### `meta.py` - Service Information Routes
 
 Basic service information and metadata endpoints.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Endpoints
+#### Endpoints
 
 ```http
-GET /              ***REMOVED*** Service information and welcome message
+GET /              # Service information and welcome message
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Response Example
+#### Response Example
 
 ```python
-***REMOVED*** Response (200 OK)
+# Response (200 OK)
 GET /
 {
     "message": "Auth API Service",
@@ -276,9 +276,9 @@ GET /
 }
 ```
 
-***REMOVED******REMOVED*** Route Implementation Patterns
+## Route Implementation Patterns
 
-***REMOVED******REMOVED******REMOVED*** Standard Route Structure
+### Standard Route Structure
 
 ```python
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -322,18 +322,18 @@ async def endpoint_action(
         )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error Handling Patterns
+### Error Handling Patterns
 
 ```python
-***REMOVED*** Authentication required
+# Authentication required
 @router.get("/protected")
 async def protected_endpoint(
     current_user: User = Depends(get_current_user)
 ):
-    ***REMOVED*** Will automatically return 401 if not authenticated
+    # Will automatically return 401 if not authenticated
     pass
 
-***REMOVED*** Custom business logic errors
+# Custom business logic errors
 try:
     result = await auth_service.some_operation()
 except ValidationError as e:
@@ -353,23 +353,23 @@ except NotFoundError as e:
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Response Model Patterns
+### Response Model Patterns
 
 ```python
-***REMOVED*** Success response with data
+# Success response with data
 class SuccessResponse(BaseModel):
     success: bool = True
     data: Optional[Dict[str, Any]] = None
     message: Optional[str] = None
 
-***REMOVED*** Error response
+# Error response
 class ErrorResponse(BaseModel):
     success: bool = False
     error: str
     message: str
     details: Optional[Dict[str, Any]] = None
 
-***REMOVED*** Paginated response
+# Paginated response
 class PaginatedResponse(BaseModel):
     data: List[Any]
     pagination: Dict[str, Any] = Field(
@@ -382,9 +382,9 @@ class PaginatedResponse(BaseModel):
     has_prev: bool
 ```
 
-***REMOVED******REMOVED*** Security Implementation
+## Security Implementation
 
-***REMOVED******REMOVED******REMOVED*** Authentication Dependencies
+### Authentication Dependencies
 
 ```python
 from fastapi import Depends, HTTPException, status
@@ -417,7 +417,7 @@ async def get_admin_user(
     return current_user
 ```
 
-***REMOVED******REMOVED******REMOVED*** Rate Limiting
+### Rate Limiting
 
 ```python
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -426,13 +426,13 @@ from slowapi.util import get_remote_address
 limiter = Limiter(key_func=get_remote_address)
 
 @router.post("/login")
-@limiter.limit("5/minute")  ***REMOVED*** Max 5 login attempts per minute
+@limiter.limit("5/minute")  # Max 5 login attempts per minute
 async def login(request: Request, login_data: LoginRequest):
-    ***REMOVED*** Login logic here
+    # Login logic here
     pass
 ```
 
-***REMOVED******REMOVED******REMOVED*** Input Validation
+### Input Validation
 
 ```python
 from pydantic import BaseModel, validator, EmailStr
@@ -462,9 +462,9 @@ class UserRegistrationRequest(BaseModel):
         return v
 ```
 
-***REMOVED******REMOVED*** Testing Routes
+## Testing Routes
 
-***REMOVED******REMOVED******REMOVED*** Test Structure
+### Test Structure
 
 ```python
 import pytest
@@ -485,7 +485,7 @@ class TestAuthRoutes:
         assert response.status_code == 201
         data = response.json()
         assert data["email"] == "test@example.com"
-        assert "password" not in data  ***REMOVED*** Ensure password not in response
+        assert "password" not in data  # Ensure password not in response
 
     def test_register_user_invalid_email(self):
         """Test registration with invalid email."""
@@ -499,7 +499,7 @@ class TestAuthRoutes:
 
     def test_login_success(self):
         """Test successful user login."""
-        ***REMOVED*** First register a user
+        # First register a user
         client.post("/auth/register", json={
             "email": "test@example.com",
             "username": "testuser",
@@ -507,7 +507,7 @@ class TestAuthRoutes:
             "password_confirm": "SecurePass123"
         })
 
-        ***REMOVED*** Then test login
+        # Then test login
         response = client.post("/auth/login/json", json={
             "email": "test@example.com",
             "password": "SecurePass123"
@@ -524,14 +524,14 @@ class TestAuthRoutes:
         assert response.status_code == 401
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Route Tests
+### Health Route Tests
 
 ```python
 class TestHealthRoutes:
     def test_health_check(self):
         """Test comprehensive health check."""
         response = client.get("/health")
-        assert response.status_code in [200, 503]  ***REMOVED*** Healthy or unhealthy
+        assert response.status_code in [200, 503]  # Healthy or unhealthy
         data = response.json()
         assert "status" in data
         assert "timestamp" in data
@@ -553,9 +553,9 @@ class TestHealthRoutes:
         assert "checks" in data
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Route Design
+### Route Design
 
 1. **RESTful Patterns**: Follow REST conventions for HTTP methods and URLs
 2. **Consistent Responses**: Use consistent response formats across endpoints
@@ -563,7 +563,7 @@ class TestHealthRoutes:
 4. **Documentation**: Include comprehensive docstrings and OpenAPI documentation
 5. **Validation**: Validate all inputs using Pydantic models
 
-***REMOVED******REMOVED******REMOVED*** Performance
+### Performance
 
 1. **Async Operations**: Use async/await for all database and external service calls
 2. **Database Connections**: Use connection pooling efficiently
@@ -571,7 +571,7 @@ class TestHealthRoutes:
 4. **Pagination**: Implement pagination for endpoints returning lists
 5. **Rate Limiting**: Protect against abuse with appropriate rate limits
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 
 1. **Authentication**: Require authentication for protected endpoints
 2. **Authorization**: Implement role-based access control where needed
@@ -579,7 +579,7 @@ class TestHealthRoutes:
 4. **Error Messages**: Don't expose sensitive information in error messages
 5. **HTTPS Only**: Ensure all endpoints use HTTPS in production
 
-***REMOVED******REMOVED******REMOVED*** Monitoring
+### Monitoring
 
 1. **Logging**: Log important events and errors appropriately
 2. **Metrics**: Include performance metrics in responses
@@ -587,7 +587,7 @@ class TestHealthRoutes:
 4. **Error Tracking**: Monitor and alert on error rates
 5. **Performance Monitoring**: Track response times and database performance
 
-***REMOVED******REMOVED*** Contributing
+## Contributing
 
 When adding new routes:
 
@@ -597,7 +597,7 @@ When adding new routes:
 4. **Security Review**: Ensure proper authentication and authorization
 5. **Performance Testing**: Test under load conditions
 
-***REMOVED******REMOVED*** Dependencies
+## Dependencies
 
 Routes depend on:
 

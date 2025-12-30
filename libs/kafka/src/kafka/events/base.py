@@ -11,24 +11,24 @@ from pydantic import BaseModel, Field
 class EventType(str, Enum):
     """Event type enumeration."""
 
-    ***REMOVED*** User events
+    # User events
     USER_REGISTERED = "user.registered"
     USER_LOGIN = "user.login"
     USER_LOGOUT = "user.logout"
 
-    ***REMOVED*** Activity events
+    # Activity events
     MOVIE_VIEWED = "movie.viewed"
     MOVIE_RATED = "movie.rated"
     WATCHLIST_CHANGED = "watchlist.changed"
 
-    ***REMOVED*** Content events
+    # Content events
     MOVIE_CREATED = "movie.created"
     MOVIE_UPDATED = "movie.updated"
 
-    ***REMOVED*** Cache events
+    # Cache events
     CACHE_INVALIDATION = "cache.invalidation"
 
-    ***REMOVED*** System events
+    # System events
     RECOMMENDATION_REQUEST = "recommendation.request"
     ML_TRAINING = "ml.training"
     SYSTEM_HEALTH = "system.health"

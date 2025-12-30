@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Optional, TypeVar
 
-***REMOVED*** Type variable for function decoration
+# Type variable for function decoration
 F = TypeVar("F", bound=Callable[..., Any])
 
 
@@ -31,15 +31,15 @@ def configure_logging(
     """
     root_logger = logging.getLogger("data_importer")
     root_logger.setLevel(log_level)
-    root_logger.handlers = []  ***REMOVED*** Clear any existing handlers
+    root_logger.handlers = []  # Clear any existing handlers
 
-    ***REMOVED*** Create formatters
+    # Create formatters
     file_formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
     )
     console_formatter = logging.Formatter("%(levelname)s - %(message)s")
 
-    ***REMOVED*** Add file handler if log_dir is provided
+    # Add file handler if log_dir is provided
     if log_dir:
         log_dir.mkdir(parents=True, exist_ok=True)
         log_file = log_dir / f"data_importer_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
@@ -48,7 +48,7 @@ def configure_logging(
         root_logger.addHandler(file_handler)
         root_logger.debug(f"Log file: {log_file}")
 
-    ***REMOVED*** Add console handler based on verbosity
+    # Add console handler based on verbosity
     if not quiet:
         console_level = logging.DEBUG if verbose else logging.INFO
         console_handler = logging.StreamHandler(sys.stdout)
@@ -56,18 +56,18 @@ def configure_logging(
         console_handler.setLevel(console_level)
         root_logger.addHandler(console_handler)
 
-    ***REMOVED*** Always log errors to stderr
+    # Always log errors to stderr
     error_handler = logging.StreamHandler(sys.stderr)
     error_handler.setFormatter(console_formatter)
     error_handler.setLevel(logging.ERROR)
     root_logger.addHandler(error_handler)
 
-    ***REMOVED*** Suppress logs from external libraries unless in verbose mode
+    # Suppress logs from external libraries unless in verbose mode
     if not verbose:
         logging.getLogger("openai").setLevel(logging.WARNING)
         logging.getLogger("httpx").setLevel(logging.WARNING)
 
-    ***REMOVED*** Log initial configuration
+    # Log initial configuration
     root_logger.debug(f"Logging configured: level={log_level}, verbose={verbose}, quiet={quiet}")
 
 
@@ -115,17 +115,17 @@ def with_logging(
         >>> def main():
         >>>     logger = logging.getLogger(__name__)
         >>>     logger.info("Starting application")
-        >>>     ***REMOVED*** Run the application
+        >>>     # Run the application
         >>>     app.run()
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            ***REMOVED*** Configure logging before executing the function
+            # Configure logging before executing the function
             configure_logging(log_level=log_level, log_dir=log_dir, verbose=verbose, quiet=quiet)
 
-            ***REMOVED*** Call the original function
+            # Call the original function
             return func(*args, **kwargs)
 
         return wrapper

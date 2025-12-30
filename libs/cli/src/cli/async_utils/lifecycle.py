@@ -27,9 +27,9 @@ class ServiceLifecycleManager:
         >>> async with ServiceLifecycleManager() as manager:
         ...     await manager.register_service("backend", backend_config)
         ...     await manager.register_service("auth", auth_config)
-        ...     ***REMOVED*** Use services
+        ...     # Use services
         ...     backend_client = await manager.get_client("backend")
-        ... ***REMOVED*** All services automatically cleaned up
+        ... # All services automatically cleaned up
     """
 
     def __init__(self) -> None:
@@ -53,7 +53,7 @@ class ServiceLifecycleManager:
 
         self._factories[name] = factory
 
-        ***REMOVED*** Add factory to cleanup stack
+        # Add factory to cleanup stack
         await self._cleanup_stack.enter_async_context(factory)
 
         self.logger.info("Service registered", service_name=name)
@@ -213,6 +213,6 @@ def managed_service(
     Example:
         >>> async with managed_service(my_client, "backend", "close") as client:
         ...     await client.do_something()
-        ... ***REMOVED*** client.close() called automatically
+        ... # client.close() called automatically
     """
     return ManagedService(service, name, cleanup_method)

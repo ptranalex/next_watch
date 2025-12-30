@@ -1,4 +1,4 @@
-***REMOVED***!/usr/bin/env python
+#!/usr/bin/env python
 """CLI main entry point for direct module execution.
 
 This file allows the CLI to be run directly as a module:

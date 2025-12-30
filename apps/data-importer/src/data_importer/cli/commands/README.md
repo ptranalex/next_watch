@@ -1,30 +1,30 @@
-***REMOVED*** CLI Commands
+# CLI Commands
 
 This directory contains the implementation of all CLI commands for the data-importer application. The commands are built using [Typer](https://typer.tiangolo.com/) and follow consistent patterns for configuration, logging, and error handling.
 
-***REMOVED******REMOVED*** Command Structure
+## Command Structure
 
 ```
 commands/
-├── __init__.py          ***REMOVED*** Command module exports
-├── sync.py              ***REMOVED*** Movie synchronization commands
-├── interactive.py       ***REMOVED*** Interactive interface command
-├── shell/               ***REMOVED*** Interactive shell command
-│   ├── __init__.py      ***REMOVED*** Shell module exports
-│   ├── command.py       ***REMOVED*** Main shell command implementation
-│   ├── helpers.py       ***REMOVED*** Shell helper functions and utilities
-│   ├── help.py          ***REMOVED*** Shell help and banner functions
-│   └── repl.py          ***REMOVED*** REPL configuration and setup
-└── README.md           ***REMOVED*** This file
+├── __init__.py          # Command module exports
+├── sync.py              # Movie synchronization commands
+├── interactive.py       # Interactive interface command
+├── shell/               # Interactive shell command
+│   ├── __init__.py      # Shell module exports
+│   ├── command.py       # Main shell command implementation
+│   ├── helpers.py       # Shell helper functions and utilities
+│   ├── help.py          # Shell help and banner functions
+│   └── repl.py          # REPL configuration and setup
+└── README.md           # This file
 ```
 
-***REMOVED******REMOVED*** Available Commands
+## Available Commands
 
-***REMOVED******REMOVED******REMOVED*** 1. Sync Commands (`sync.py`)
+### 1. Sync Commands (`sync.py`)
 
 The sync command group provides functionality for importing movie data from external sources.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `sync movies`
+#### `sync movies`
 
 Synchronizes movie data from TMDB and OMDB for a specified year range.
 
@@ -51,7 +51,7 @@ def sync_movies(...):
 - Supports environment variables and CLI overrides
 - Validates API keys using shared utilities
 
-***REMOVED******REMOVED******REMOVED*** 2. Interactive Command (`interactive.py`)
+### 2. Interactive Command (`interactive.py`)
 
 Provides a conversational interface for data import operations.
 
@@ -64,7 +64,7 @@ Provides a conversational interface for data import operations.
 - Logging setup
 - Future: Interactive prompts and guided operations
 
-***REMOVED******REMOVED******REMOVED*** 3. Shell Command (`shell/`)
+### 3. Shell Command (`shell/`)
 
 Launches an interactive Python shell with pre-configured data import tools.
 
@@ -85,9 +85,9 @@ Launches an interactive Python shell with pre-configured data import tools.
 - `print_json()`, `print_plain()`: Output formatters
 - Helper functions for data loading and manipulation
 
-***REMOVED******REMOVED*** Implementation Patterns
+## Implementation Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Command Definition
+### 1. Command Definition
 
 All commands follow this pattern:
 
@@ -100,18 +100,18 @@ app = typer.Typer(name="command_group", help="Command group description")
 @app.command(name="command_name")
 @with_logging(log_level="INFO")
 def command_function(
-    ***REMOVED*** Required arguments
+    # Required arguments
     required_arg: str = typer.Argument(..., help="Description"),
 
-    ***REMOVED*** Optional arguments with defaults
+    # Optional arguments with defaults
     optional_arg: Optional[str] = typer.Option(
         None, "--option", "-o", help="Description"
     ),
 
-    ***REMOVED*** Boolean flags
+    # Boolean flags
     flag: bool = typer.Option(False, "--flag", help="Description"),
 
-    ***REMOVED*** Configuration-based defaults
+    # Configuration-based defaults
     config_option: Optional[int] = typer.Option(
         None, "--config-opt", help="Uses config default if not provided"
     ),
@@ -124,52 +124,52 @@ def command_function(
     """
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Configuration Integration
+### 2. Configuration Integration
 
 Commands integrate with the centralized configuration system:
 
 ```python
 def command_function(...):
-    ***REMOVED*** Get configuration instance
+    # Get configuration instance
     config = Config.get_instance()
 
-    ***REMOVED*** Use config defaults when CLI options not provided
+    # Use config defaults when CLI options not provided
     actual_value = cli_option if cli_option is not None else config.default_value
 
-    ***REMOVED*** Display configuration in verbose mode
+    # Display configuration in verbose mode
     if verbose:
         console.print("[bold cyan]Configuration:[/bold cyan]")
         console.print(f"Option: {actual_value}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. API Key Management
+### 3. API Key Management
 
 All commands use the standardized API key utility:
 
 ```python
 from data_importer.cli.utils import get_api_key
 
-***REMOVED*** In command function
+# In command function
 api_key = get_api_key(
-    provided_key,           ***REMOVED*** CLI argument value
-    "ENV_VAR_NAME",        ***REMOVED*** Environment variable name
-    "Human readable name",  ***REMOVED*** Display name for errors
-    console,               ***REMOVED*** Rich console instance
-    required=True          ***REMOVED*** Whether key is required
+    provided_key,           # CLI argument value
+    "ENV_VAR_NAME",        # Environment variable name
+    "Human readable name",  # Display name for errors
+    console,               # Rich console instance
+    required=True          # Whether key is required
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Error Handling
+### 4. Error Handling
 
 Commands implement comprehensive error handling:
 
 ```python
 def command_function(...):
     try:
-        ***REMOVED*** Command logic
+        # Command logic
         result = perform_operation()
 
-        ***REMOVED*** Display results
+        # Display results
         console.print(f"[green]Success: {result}[/green]")
 
     except SomeSpecificError as e:
@@ -183,11 +183,11 @@ def command_function(...):
         raise typer.Exit(code=1)
 
     finally:
-        ***REMOVED*** Cleanup resources
+        # Cleanup resources
         cleanup_resources()
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. Logging Integration
+### 5. Logging Integration
 
 Commands use the `@with_logging` decorator:
 
@@ -199,10 +199,10 @@ def command_function(...):
     logger = logging.getLogger(__name__)
     logger.info("Command started")
 
-    ***REMOVED*** Command implementation
+    # Command implementation
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6. Progress Indication
+### 6. Progress Indication
 
 Commands use Rich for progress indication:
 
@@ -217,18 +217,18 @@ def command_function(...):
         task = progress.add_task("Processing...", total=total_items)
 
         for item in items:
-            ***REMOVED*** Process item
+            # Process item
             progress.advance(task)
 ```
 
-***REMOVED******REMOVED*** Adding New Commands
+## Adding New Commands
 
-***REMOVED******REMOVED******REMOVED*** 1. Create Command Module
+### 1. Create Command Module
 
 Create a new Python file in the `commands/` directory:
 
 ```python
-***REMOVED*** commands/new_command.py
+# commands/new_command.py
 """New command implementation."""
 
 import logging
@@ -249,31 +249,31 @@ def new_subcommand():
     console.print("[green]New command executed[/green]")
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Register in `__init__.py`
+### 2. Register in `__init__.py`
 
 Add the new command to the module exports:
 
 ```python
-***REMOVED*** commands/__init__.py
+# commands/__init__.py
 from data_importer.cli.commands import new_command
 
 __all__ = ["shell", "interactive", "sync", "new_command"]
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Register in Main CLI
+### 3. Register in Main CLI
 
 Add the command to the main CLI app:
 
 ```python
-***REMOVED*** cli/__init__.py
+# cli/__init__.py
 from data_importer.cli.commands import new_command
 
 app.add_typer(new_command.app, name="new-command")
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Type Hints
+### 1. Type Hints
 
 Always use comprehensive type hints:
 
@@ -288,7 +288,7 @@ def command(
 ) -> None:
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Help Documentation
+### 2. Help Documentation
 
 Provide comprehensive help text:
 
@@ -306,7 +306,7 @@ def command():
     """
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Configuration Defaults
+### 3. Configuration Defaults
 
 Use configuration system for defaults:
 
@@ -320,7 +320,7 @@ def command(
     actual_limit = limit if limit is not None else config.default_limit
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Validation
+### 4. Validation
 
 Validate inputs early:
 
@@ -331,7 +331,7 @@ def command(year: int):
         raise typer.Exit(code=1)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. Resource Cleanup
+### 5. Resource Cleanup
 
 Always clean up resources:
 
@@ -341,30 +341,30 @@ def command():
     try:
         client = create_client()
         clients.append(client)
-        ***REMOVED*** Use client
+        # Use client
     finally:
         for client in clients:
             asyncio.run(client.close())
 ```
 
-***REMOVED******REMOVED*** Testing Commands
+## Testing Commands
 
-***REMOVED******REMOVED******REMOVED*** Unit Tests
+### Unit Tests
 
 Test command logic separately from CLI interface:
 
 ```python
-***REMOVED*** tests/test_commands.py
+# tests/test_commands.py
 def test_sync_movies_logic():
-    ***REMOVED*** Test the core logic without CLI
+    # Test the core logic without CLI
     pass
 
 def test_sync_movies_cli():
-    ***REMOVED*** Test CLI interface using typer.testing.CliRunner
+    # Test CLI interface using typer.testing.CliRunner
     pass
 ```
 
-***REMOVED******REMOVED******REMOVED*** CLI Tests
+### CLI Tests
 
 Use Typer's testing utilities:
 
@@ -380,7 +380,7 @@ def test_command():
     assert "Sync movies" in result.stdout
 ```
 
-***REMOVED******REMOVED*** Dependencies
+## Dependencies
 
 Commands rely on these key dependencies:
 
@@ -390,24 +390,24 @@ Commands rely on these key dependencies:
 - **Config**: Application configuration management
 - **Services**: API clients for external data sources
 
-***REMOVED******REMOVED*** Shell Command Special Features
+## Shell Command Special Features
 
 The shell command provides an enhanced interactive environment:
 
-***REMOVED******REMOVED******REMOVED*** Pre-loaded Functions
+### Pre-loaded Functions
 
 - `run_async(coro)`: Execute async functions in the shell
 - `load_movies_from_file()`: Bulk data loading utilities
 - `save_movie()`: Database persistence helpers
 - `print_json()`, `print_plain()`: Output formatters
 
-***REMOVED******REMOVED******REMOVED*** Available Clients
+### Available Clients
 
 - `tmdb_client`: TMDB API client with authentication
 - `omdb_client`: OMDB API client for additional movie data
 - `imdb_client`: IMDb scraping client for ratings
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+### Configuration
 
 - Multiple color themes
 - Syntax highlighting toggle

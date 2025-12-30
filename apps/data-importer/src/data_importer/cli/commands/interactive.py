@@ -69,7 +69,7 @@ def interactive(
     Example:
         data-importer interactive --verbose
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     log_level = "DEBUG" if verbose else "INFO"
     configure_logging(
         log_level=log_level,
@@ -81,10 +81,10 @@ def interactive(
     logger.debug("Interactive mode started")
 
     try:
-        ***REMOVED*** Create directories if they don't exist
+        # Create directories if they don't exist
         logs_dir.mkdir(parents=True, exist_ok=True)
 
-        ***REMOVED*** Get API keys
+        # Get API keys
         tmdb_access_token = get_api_key(
             tmdb_access_token,
             "TMDB_ACCESS_TOKEN",
@@ -96,7 +96,7 @@ def interactive(
             omdb_api_key, "OMDB_API_KEY", "OMDB API key", console, required=False
         )
 
-        ***REMOVED*** Create config object
+        # Create config object
         config = Config(
             logs_dir=logs_dir,
             log_level=log_level,
@@ -106,10 +106,10 @@ def interactive(
             omdb_api_key=omdb_api_key,
         )
 
-        ***REMOVED*** Display the config
+        # Display the config
         print_config(config, title="Interactive Mode Configuration", console=console)
 
-        ***REMOVED*** Validate that credentials were provided (interactive mode is not implemented yet)
+        # Validate that credentials were provided (interactive mode is not implemented yet)
         if tmdb_access_token:
             console.print("[green]TMDB access token set[/green]")
         else:
@@ -120,13 +120,13 @@ def interactive(
         else:
             console.print("[yellow]OMDB API key not set[/yellow]")
 
-        ***REMOVED*** Display experimental notice
+        # Display experimental notice
         console.print("\n[bold yellow]EXPERIMENTAL FEATURE[/bold yellow]")
         console.print("[yellow]Interactive mode is not fully implemented yet.[/yellow]")
         console.print("[green]Interactive mode initialized[/green]")
         console.print("Type 'exit' or 'quit' to end the session")
 
-        ***REMOVED*** Placeholder for interactive loop
+        # Placeholder for interactive loop
         console.print("[yellow]Interactive mode not yet implemented[/yellow]")
 
     except Exception as e:

@@ -36,7 +36,7 @@ class SuggestionIndexer:
                 actors, batch_size=options.batch_size
             )
 
-        ***REMOVED*** Directors can be added when backend supports it
+        # Directors can be added when backend supports it
 
         counts = await self._store.counts()
         stats.zset_entries = counts.get("zset", 0)

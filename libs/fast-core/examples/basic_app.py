@@ -6,7 +6,7 @@ using the Fast Core library with all the standard components.
 
 import uvicorn
 
-***REMOVED*** Import Fast Core components
+# Import Fast Core components
 from fast_core import (
     APIException,
     AppOptions,
@@ -26,7 +26,7 @@ from fastapi import Depends
 from pydantic import BaseModel
 
 
-***REMOVED*** Configuration
+# Configuration
 class AppConfig(FastAPIConfig):
     """Application configuration."""
 
@@ -34,16 +34,16 @@ class AppConfig(FastAPIConfig):
     version: str = "0.1.0"
     debug: bool = True
 
-    ***REMOVED*** CORS settings
+    # CORS settings
     cors_origins: list = ["*"]
     cors_allow_credentials: bool = True
 
-    ***REMOVED*** Logging settings
+    # Logging settings
     log_requests: bool = True
     log_responses: bool = True
 
 
-***REMOVED*** Data models
+# Data models
 class ItemCreate(BaseModel):
     """Model for creating items."""
 
@@ -68,7 +68,7 @@ class ItemList(BaseModel):
     total: int
 
 
-***REMOVED*** In-memory data store
+# In-memory data store
 items_db = [
     Item(id=1, name="Laptop", description="Gaming laptop", price=1299.99),
     Item(id=2, name="Mouse", description="Gaming mouse", price=79.99),
@@ -78,18 +78,18 @@ items_db = [
 ]
 
 
-***REMOVED*** Create routers
+# Create routers
 api_router = BaseRouter(prefix="/api/v1", tags=["API"])
 
 
-***REMOVED*** Health check functions
+# Health check functions
 async def check_application() -> bool:
     """Check application health."""
-    ***REMOVED*** Simple check - in real app this would check database, etc.
+    # Simple check - in real app this would check database, etc.
     return len(items_db) >= 0
 
 
-***REMOVED*** Routes
+# Routes
 @api_router.get("/items", response_model=dict)
 async def list_items(
     pagination: PaginationParams = Depends(get_pagination_params),
@@ -97,12 +97,12 @@ async def list_items(
 ):
     """List items with pagination."""
     try:
-        ***REMOVED*** Calculate pagination
+        # Calculate pagination
         start = pagination.offset
         end = start + pagination.page_size
         paginated_items = items_db[start:end]
 
-        ***REMOVED*** Create response
+        # Create response
         return paginate_results(
             data=[item.dict() for item in paginated_items],
             pagination=pagination,
@@ -136,14 +136,14 @@ async def get_item(item_id: int):
 @api_router.post("/items", response_model=dict, status_code=201)
 async def create_item(item_data: ItemCreate):
     """Create a new item."""
-    ***REMOVED*** Validate data
+    # Validate data
     if item_data.price <= 0:
         raise ValidationException(
             detail="Price must be positive",
             field_errors={"price": "Must be greater than 0"},
         )
 
-    ***REMOVED*** Create new item
+    # Create new item
     new_id = max((item.id for item in items_db), default=0) + 1
     new_item = Item(
         id=new_id,
@@ -179,13 +179,13 @@ async def delete_item(item_id: int):
     )
 
 
-***REMOVED*** Create application
+# Create application
 def create_example_app():
     """Create the example FastAPI application."""
-    ***REMOVED*** Configuration
+    # Configuration
     settings = AppConfig()
 
-    ***REMOVED*** Application options
+    # Application options
     options = AppOptions(
         middleware=True,
         exception_handlers=True,
@@ -194,7 +194,7 @@ def create_example_app():
         docs=True,
     )
 
-    ***REMOVED*** Create app
+    # Create app
     app = create_app(
         settings=settings,
         title=settings.service_name,
@@ -204,7 +204,7 @@ def create_example_app():
         routers=[api_router],
     )
 
-    ***REMOVED*** Setup health checks
+    # Setup health checks
     if "setup_health_checks" in globals():
         health_check = setup_health_checks(app, settings)
         health_check.add_check("application", check_application)
@@ -212,12 +212,12 @@ def create_example_app():
     return app
 
 
-***REMOVED*** Create the app instance
+# Create the app instance
 app = create_example_app()
 
 
 if __name__ == "__main__":
-    ***REMOVED*** Run the application
+    # Run the application
     uvicorn.run(
         "basic_app:app",
         host="0.0.0.0",

@@ -1,12 +1,12 @@
-***REMOVED*** Movie Metadata Architecture: Industry Best Practices
+# Movie Metadata Architecture: Industry Best Practices
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This document outlines the optimal architecture for movie metadata aggregation and serving, based on industry leader patterns (Netflix, Amazon Prime, Disney+) and our specific use case where the Backend API serves metadata to the BFF layer for frontend consumption.
 
-***REMOVED******REMOVED*** Industry Leader Patterns Analysis
+## Industry Leader Patterns Analysis
 
-***REMOVED******REMOVED******REMOVED*** Netflix Architecture Insights
+### Netflix Architecture Insights
 
 Based on research, Netflix uses a **multi-layered caching strategy** with these key principles:
 
@@ -16,16 +16,16 @@ Based on research, Netflix uses a **multi-layered caching strategy** with these 
 4. **Microservices with Circuit Breakers** - Fault-tolerant service composition
 5. **Precomputed Aggregations** - Build complete metadata objects ahead of time
 
-***REMOVED******REMOVED******REMOVED*** Amazon Prime Video Pattern
+### Amazon Prime Video Pattern
 
 - **Multi-tier caching**: Redis → ElastiCache → Database
 - **Bulk metadata APIs** with aggressive caching
 - **Asynchronous metadata enrichment** pipelines
 - **Geographic data distribution** for global scale
 
-***REMOVED******REMOVED*** Current Architecture Analysis
+## Current Architecture Analysis
 
-***REMOVED******REMOVED******REMOVED*** Current Flow
+### Current Flow
 
 ```
 Frontend Request → BFF API → Backend API → Database
@@ -37,21 +37,21 @@ Frontend Request → BFF API → Backend API → Database
                    - Metadata aggregation
 ```
 
-***REMOVED******REMOVED******REMOVED*** Performance Issues
+### Performance Issues
 
 1. **Real-time aggregation** - Metadata assembled on every request
 2. **No caching layer** - Database hit for every metadata request
 3. **N+1 query potential** - Despite bulk optimizations
 4. **Synchronous processing** - All metadata fetched in request path
 
-***REMOVED******REMOVED*** Optimal Architecture for Movie Metadata
+## Optimal Architecture for Movie Metadata
 
-***REMOVED******REMOVED******REMOVED*** 1. **Precomputed Metadata Store** (Primary Optimization)
+### 1. **Precomputed Metadata Store** (Primary Optimization)
 
 **Concept**: Build complete movie metadata objects during content ingestion, not during requests.
 
 ```python
-***REMOVED*** Precomputed movie metadata structure
+# Precomputed movie metadata structure
 {
   "movie_id": 123,
   "metadata": {
@@ -71,41 +71,41 @@ Frontend Request → BFF API → Backend API → Database
 **Implementation Strategy**:
 
 ```python
-***REMOVED*** Metadata Builder Service (Background Job)
+# Metadata Builder Service (Background Job)
 class MovieMetadataBuilder:
     async def build_complete_metadata(self, movie_id: int):
         """Build complete metadata object for a movie"""
         metadata = {}
 
-        ***REMOVED*** Fetch all metadata in parallel
+        # Fetch all metadata in parallel
         movie_task = self.get_movie_details(movie_id)
         genres_task = self.get_movie_genres(movie_id)
         cast_task = self.get_movie_cast(movie_id)
         crew_task = self.get_movie_crew(movie_id)
         trailers_task = self.get_movie_trailers(movie_id)
 
-        ***REMOVED*** Wait for all parallel tasks
+        # Wait for all parallel tasks
         results = await asyncio.gather(
             movie_task, genres_task, cast_task,
             crew_task, trailers_task
         )
 
-        ***REMOVED*** Store in Redis with long TTL
+        # Store in Redis with long TTL
         await self.store_metadata(movie_id, metadata, ttl=30*24*3600)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. **Multi-Layer Caching Strategy**
+### 2. **Multi-Layer Caching Strategy**
 
 Following Netflix's "cache forever" pattern for static content:
 
 ```python
-***REMOVED*** Layer 1: Redis Cache (Primary)
+# Layer 1: Redis Cache (Primary)
 @redis_cache(ttl=30*24*3600, key_prefix="movie:complete")
 async def get_complete_movie_metadata(movie_id: int):
     """Get complete precomputed metadata"""
     pass
 
-***REMOVED*** Layer 2: Database Materialized View (Fallback)
+# Layer 2: Database Materialized View (Fallback)
 CREATE MATERIALIZED VIEW movie_metadata_complete AS
 SELECT
     m.*,
@@ -118,7 +118,7 @@ LEFT JOIN genre g ON mgl.genre_id = g.id
 LEFT JOIN credit c ON m.id = c.movie_id
 GROUP BY m.id;
 
-***REMOVED*** Layer 3: Hot Cache Warming
+# Layer 3: Hot Cache Warming
 class CacheWarmer:
     async def warm_popular_movies(self):
         """Proactively cache popular movie metadata"""
@@ -129,14 +129,14 @@ class CacheWarmer:
         ])
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. **Bulk Metadata Endpoint Optimization**
+### 3. **Bulk Metadata Endpoint Optimization**
 
 Transform the bulk endpoint to leverage precomputed metadata:
 
 ```python
 @router.get("/movies/bulk", response_model=MoviesListResponse)
 @redis_cache(
-    ttl=24*3600,  ***REMOVED*** 24 hours for bulk responses
+    ttl=24*3600,  # 24 hours for bulk responses
     key_builder=lambda ids, page, limit: f"movies:bulk:v2:{hash(tuple(sorted(ids)))}:{page}:{limit}"
 )
 async def get_movies_bulk_optimized(
@@ -148,31 +148,31 @@ async def get_movies_bulk_optimized(
     """Optimized bulk endpoint using precomputed metadata"""
     movie_ids = parse_movie_ids(ids)
 
-    ***REMOVED*** Try to get from cache first (batch operation)
+    # Try to get from cache first (batch operation)
     cached_movies = await cache_manager.mget([
         f"movie:complete:{movie_id}" for movie_id in movie_ids
     ])
 
-    ***REMOVED*** Identify cache misses
+    # Identify cache misses
     cache_misses = [
         movie_id for i, movie_id in enumerate(movie_ids)
         if cached_movies[i] is None
     ]
 
-    ***REMOVED*** Fetch missing movies and warm cache
+    # Fetch missing movies and warm cache
     if cache_misses:
         await background_warm_cache(cache_misses)
-        ***REMOVED*** Fallback to database for immediate response
+        # Fallback to database for immediate response
         missing_movies = await get_movies_from_db(cache_misses)
-        ***REMOVED*** Fill in the gaps
+        # Fill in the gaps
         for movie in missing_movies:
             cached_movies[movie_ids.index(movie['id'])] = movie
 
-    ***REMOVED*** Apply pagination and return
+    # Apply pagination and return
     return paginate_movies(cached_movies, page, limit)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. **Versioned Metadata with Smart Invalidation**
+### 4. **Versioned Metadata with Smart Invalidation**
 
 Implement versioning for cache invalidation without manual cache clearing:
 
@@ -181,50 +181,50 @@ class VersionedMetadata:
     def get_cache_key(self, movie_id: int, version: Optional[str] = None):
         """Generate versioned cache key"""
         if not version:
-            ***REMOVED*** Get latest version from database
+            # Get latest version from database
             version = await self.get_latest_version(movie_id)
         return f"movie:complete:{movie_id}:v{version}"
 
     async def update_movie_metadata(self, movie_id: int):
         """Update metadata and increment version"""
-        ***REMOVED*** Increment version
+        # Increment version
         new_version = await self.increment_version(movie_id)
 
-        ***REMOVED*** Build new metadata
+        # Build new metadata
         metadata = await self.build_complete_metadata(movie_id)
 
-        ***REMOVED*** Store with new version
+        # Store with new version
         cache_key = self.get_cache_key(movie_id, new_version)
         await self.cache_manager.set(cache_key, metadata, ttl=30*24*3600)
 
-        ***REMOVED*** Old versions will naturally expire
+        # Old versions will naturally expire
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. **Asynchronous Metadata Pipeline**
+### 5. **Asynchronous Metadata Pipeline**
 
 Background processing for metadata enrichment:
 
 ```python
-***REMOVED*** Metadata Pipeline (Background Jobs)
+# Metadata Pipeline (Background Jobs)
 class MetadataPipeline:
     async def process_new_movie(self, movie_id: int):
         """Process newly added movie"""
-        ***REMOVED*** Stage 1: Basic metadata extraction
+        # Stage 1: Basic metadata extraction
         await self.extract_basic_metadata(movie_id)
 
-        ***REMOVED*** Stage 2: Enrich with external data (TMDB, IMDB)
+        # Stage 2: Enrich with external data (TMDB, IMDB)
         await self.enrich_external_metadata(movie_id)
 
-        ***REMOVED*** Stage 3: Build relationships (similar movies, recommendations)
+        # Stage 3: Build relationships (similar movies, recommendations)
         await self.build_relationships(movie_id)
 
-        ***REMOVED*** Stage 4: Precompute and cache complete metadata
+        # Stage 4: Precompute and cache complete metadata
         await self.build_and_cache_metadata(movie_id)
 
-        ***REMOVED*** Stage 5: Warm related caches (genre lists, actor filmographies)
+        # Stage 5: Warm related caches (genre lists, actor filmographies)
         await self.warm_related_caches(movie_id)
 
-***REMOVED*** Triggered by movie updates
+# Triggered by movie updates
 @router.post("/movies/{movie_id}/refresh-metadata")
 async def refresh_movie_metadata(
     movie_id: int,
@@ -237,12 +237,12 @@ async def refresh_movie_metadata(
     return {"status": "refresh_scheduled"}
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6. **Geographic Distribution Strategy**
+### 6. **Geographic Distribution Strategy**
 
 For global performance (following Netflix CDN pattern):
 
 ```python
-***REMOVED*** Regional cache warming
+# Regional cache warming
 class RegionalCacheManager:
     def __init__(self, region: str):
         self.region = region
@@ -260,9 +260,9 @@ class RegionalCacheManager:
         return f"{self.cache_prefix}:movie:complete:{movie_id}"
 ```
 
-***REMOVED******REMOVED*** Implementation Plan Updates
+## Implementation Plan Updates
 
-***REMOVED******REMOVED******REMOVED*** Phase 1A: Precomputed Metadata (NEW - Highest Priority) ⚡⚡
+### Phase 1A: Precomputed Metadata (NEW - Highest Priority) ⚡⚡
 
 **Target**: 80-90% performance improvement for cached content
 
@@ -271,43 +271,43 @@ class RegionalCacheManager:
 3. **Modify bulk endpoint** to use precomputed data
 4. **Implement versioned caching** for smart invalidation
 
-***REMOVED******REMOVED******REMOVED*** Phase 1B: Enhanced Caching (Updated Priority)
+### Phase 1B: Enhanced Caching (Updated Priority)
 
 1. **Multi-get operations** for bulk cache retrieval
 2. **Cache warming jobs** for popular content
 3. **Regional cache distribution** for global performance
 
-***REMOVED******REMOVED******REMOVED*** Phase 2: Pipeline Optimization
+### Phase 2: Pipeline Optimization
 
 1. **Async metadata pipeline** for background processing
 2. **Smart cache invalidation** based on content updates
 3. **Relationship precomputation** (similar movies, recommendations)
 
-***REMOVED******REMOVED*** Expected Performance Improvements
+## Expected Performance Improvements
 
-***REMOVED******REMOVED******REMOVED*** With Precomputed Metadata
+### With Precomputed Metadata
 
 - **Cache Hit Scenarios**: 95-99% response time reduction (sub-10ms)
 - **Database Load**: 90-95% reduction in database queries
 - **Bulk Operations**: Support for 1000+ movies with constant response time
 - **Global Performance**: Sub-100ms worldwide with edge caching
 
-***REMOVED******REMOVED******REMOVED*** Real-World Metrics Targets
+### Real-World Metrics Targets
 
 - **P50 Response Time**: < 50ms (currently ~500ms)
 - **P95 Response Time**: < 200ms (currently ~2s)
 - **Cache Hit Ratio**: > 95% for popular content
 - **Database Load**: < 5% of current load
 
-***REMOVED******REMOVED*** Technology Stack Recommendations
+## Technology Stack Recommendations
 
-***REMOVED******REMOVED******REMOVED*** Storage Layer
+### Storage Layer
 
 - **Primary Cache**: Redis Cluster with replication
 - **Metadata Store**: PostgreSQL with materialized views
 - **Object Storage**: S3 for large metadata objects (cast photos, etc.)
 
-***REMOVED******REMOVED******REMOVED*** Processing Layer
+### Processing Layer
 
 - **Background Jobs**: Celery/RQ for metadata pipeline
 - **Message Queue**: Redis/RabbitMQ for job scheduling

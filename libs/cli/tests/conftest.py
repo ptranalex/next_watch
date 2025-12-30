@@ -55,7 +55,7 @@ def create_service_registry() -> ServiceRegistry:
     """Create service registry with test services."""
     registry = ServiceRegistry()
 
-    ***REMOVED*** Register test services with correct API
+    # Register test services with correct API
     backend_config = ServiceConfig(
         name="backend-api",
         url="http://localhost:8000",
@@ -96,7 +96,7 @@ def create_mock_redis_client() -> AsyncMock:
     """Create mock Redis client."""
     mock_redis = AsyncMock()
 
-    ***REMOVED*** Mock common Redis operations
+    # Mock common Redis operations
     mock_redis.ping = AsyncMock(return_value=True)
     mock_redis.info = AsyncMock(
         return_value={
@@ -121,7 +121,7 @@ def create_mock_httpx_client() -> AsyncMock:
     """Create mock httpx client."""
     mock_client = AsyncMock()
 
-    ***REMOVED*** Create mock response object
+    # Create mock response object
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.json = Mock(return_value={"status": "healthy", "version": "1.0.0"})
@@ -138,7 +138,7 @@ def create_mock_health_service() -> Mock:
     """Create mock health service."""
     service = Mock()
 
-    ***REMOVED*** Mock health check results
+    # Mock health check results
     healthy_result = Mock(is_healthy=True, response_time=0.1, status="healthy")
     unhealthy_result = Mock(
         is_healthy=False,
@@ -190,7 +190,7 @@ def create_sample_health_results() -> dict[str, Any]:
     }
 
 
-***REMOVED*** Command testing utilities
+# Command testing utilities
 class CLITestResult:
     """Helper class for CLI test results."""
 

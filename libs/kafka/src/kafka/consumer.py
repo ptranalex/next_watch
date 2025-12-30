@@ -17,7 +17,7 @@ from kafka.config import KafkaConfig
 logger = structlog.get_logger(__name__)
 tracer = trace.get_tracer(__name__)
 
-***REMOVED*** Import Avro dependencies if available
+# Import Avro dependencies if available
 try:
     from kafka.schema_registry import SchemaRegistryClient
     from kafka.serialization.avro_serializer import AvroDeserializer
@@ -25,8 +25,8 @@ try:
     AVRO_AVAILABLE = True
 except ImportError:
     AVRO_AVAILABLE = False
-    SchemaRegistryClient = None  ***REMOVED*** type: ignore
-    AvroDeserializer = None  ***REMOVED*** type: ignore
+    SchemaRegistryClient = None  # type: ignore
+    AvroDeserializer = None  # type: ignore
 
 
 class KafkaEventConsumer(ABC):
@@ -109,7 +109,7 @@ class KafkaEventConsumer(ABC):
             return
 
         try:
-            ***REMOVED*** Initialize Avro deserializer if Schema Registry is enabled
+            # Initialize Avro deserializer if Schema Registry is enabled
             if AVRO_AVAILABLE and self.config.enable_schema_registry:
                 if not self._schema_registry:
                     self._schema_registry = SchemaRegistryClient(self.config)
@@ -120,12 +120,12 @@ class KafkaEventConsumer(ABC):
             consumer_config = self.config.consumer_config(self.group_id)
             consumer_config["enable_auto_commit"] = self._enable_auto_commit
 
-            ***REMOVED*** Use None deserializer - we'll handle deserialization manually
-            ***REMOVED*** to support auto-detection of JSON/Avro formats
+            # Use None deserializer - we'll handle deserialization manually
+            # to support auto-detection of JSON/Avro formats
             self._consumer = AIOKafkaConsumer(
                 *self.topics,
                 **consumer_config,
-                value_deserializer=None,  ***REMOVED*** Manual deserialization for auto-detection
+                value_deserializer=None,  # Manual deserialization for auto-detection
                 key_deserializer=self._deserialize_key,
             )
             await self._consumer.start()
@@ -172,12 +172,12 @@ class KafkaEventConsumer(ABC):
 
         try:
             while self._running:
-                ***REMOVED*** Check for shutdown signal
+                # Check for shutdown signal
                 if self._shutdown_event.is_set():
                     break
 
                 try:
-                    ***REMOVED*** Fetch messages with timeout to allow checking shutdown signal
+                    # Fetch messages with timeout to allow checking shutdown signal
                     messages = await asyncio.wait_for(
                         self._consumer.getmany(timeout_ms=1000), timeout=2.0
                     )
@@ -186,11 +186,11 @@ class KafkaEventConsumer(ABC):
                         await self._process_batch(messages)
 
                 except TimeoutError:
-                    ***REMOVED*** No messages, continue loop
+                    # No messages, continue loop
                     continue
                 except Exception as e:
                     self.logger.error("Error in consume loop", error=str(e), exc_info=True)
-                    await asyncio.sleep(1)  ***REMOVED*** Brief pause before retrying
+                    await asyncio.sleep(1)  # Brief pause before retrying
 
         finally:
             self.logger.info("Message consumption stopped")
@@ -211,10 +211,10 @@ class KafkaEventConsumer(ABC):
         Args:
             message: Kafka message record
         """
-        ***REMOVED*** Deserialize message value with auto-detection
+        # Deserialize message value with auto-detection
         try:
             deserialized_value = await self._detect_and_deserialize(message.value)
-            ***REMOVED*** Create a new message object with deserialized value
+            # Create a new message object with deserialized value
             message = ConsumerRecord(
                 topic=message.topic,
                 partition=message.partition,
@@ -239,14 +239,14 @@ class KafkaEventConsumer(ABC):
             )
             raise
 
-        ***REMOVED*** Extract trace context from message if available
+        # Extract trace context from message if available
         trace_id = None
         span_id = None
         if message.value and isinstance(message.value, dict):
             trace_id = message.value.get("trace_id")
             span_id = message.value.get("span_id")
 
-        ***REMOVED*** Create trace span
+        # Create trace span
         with tracer.start_as_current_span(
             f"kafka.consume.{message.topic}",
             attributes={
@@ -259,7 +259,7 @@ class KafkaEventConsumer(ABC):
             },
         ) as span:
             try:
-                ***REMOVED*** Link to producing span if trace context available
+                # Link to producing span if trace context available
                 if trace_id and span_id and self.config.enable_tracing:
                     span_context = trace.SpanContext(
                         trace_id=int(trace_id, 16),
@@ -269,7 +269,7 @@ class KafkaEventConsumer(ABC):
                     )
                     span.add_link(span_context)
 
-                ***REMOVED*** Process message
+                # Process message
                 if self._message_processor:
                     await self._message_processor(message)
                 else:
@@ -297,11 +297,11 @@ class KafkaEventConsumer(ABC):
                     exc_info=True,
                 )
 
-                ***REMOVED*** Send to DLQ
+                # Send to DLQ
                 await self._send_to_dlq(message, str(e))
 
-                ***REMOVED*** Optionally re-raise to stop consumption
-                ***REMOVED*** raise
+                # Optionally re-raise to stop consumption
+                # raise
 
     @abstractmethod
     async def process_message(self, message: ConsumerRecord) -> None:
@@ -326,10 +326,10 @@ class KafkaEventConsumer(ABC):
             error_message: Error message describing the failure
         """
         try:
-            ***REMOVED*** Import producer here to avoid circular dependency
+            # Import producer here to avoid circular dependency
             from kafka.producer import KafkaEventProducer
 
-            ***REMOVED*** Create a temporary producer for DLQ
+            # Create a temporary producer for DLQ
             async with KafkaEventProducer(self.config) as producer:
                 dlq_event = {
                     "original_topic": message.topic,
@@ -380,9 +380,9 @@ class KafkaEventConsumer(ABC):
         if raw_value is None:
             return None
 
-        ***REMOVED*** Check for Avro magic byte (Confluent wire format)
+        # Check for Avro magic byte (Confluent wire format)
         if len(raw_value) >= 5 and raw_value[0] == 0x00:
-            ***REMOVED*** Likely Avro format
+            # Likely Avro format
             if self._avro_deserializer:
                 try:
                     deserialized = await self._avro_deserializer.deserialize(raw_value)
@@ -394,7 +394,7 @@ class KafkaEventConsumer(ABC):
                         error=str(e),
                     )
 
-        ***REMOVED*** Fall back to JSON deserialization
+        # Fall back to JSON deserialization
         try:
             deserialized = json.loads(raw_value.decode("utf-8"))
             self.logger.debug("Deserialized JSON message")
@@ -405,7 +405,7 @@ class KafkaEventConsumer(ABC):
                 error=str(e),
                 raw_value_preview=str(raw_value[:100]) if len(raw_value) > 100 else str(raw_value),
             )
-            ***REMOVED*** Return raw bytes as last resort
+            # Return raw bytes as last resort
             return raw_value
 
     @staticmethod
@@ -426,7 +426,7 @@ class KafkaEventConsumer(ABC):
         try:
             return json.loads(value.decode("utf-8"))
         except Exception:
-            ***REMOVED*** Return raw bytes if JSON parsing fails
+            # Return raw bytes if JSON parsing fails
             return value
 
     @staticmethod

@@ -1,4 +1,4 @@
-***REMOVED*** type: ignore
+# type: ignore
 
 """Tests for Backend API configuration."""
 

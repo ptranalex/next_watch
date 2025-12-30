@@ -36,18 +36,18 @@ from bff_api.schemas.user_interaction_schemas import (
 )
 
 __all__ = [
-    ***REMOVED*** Screen data schemas
+    # Screen data schemas
     "HomeScreenData",
     "MovieListData",
     "GenreScreenData",
     "NavbarData",
     "NavbarLinkData",
-    ***REMOVED*** User interaction schemas
+    # User interaction schemas
     "UserMovieInteractionResponse",
     "UserMovieInteractionUpdate",
     "ToggleInteractionRequest",
     "ToggleInteractionResponse",
-    ***REMOVED*** Authentication schemas
+    # Authentication schemas
     "LoginRequest",
     "TokenResponse",
     "RefreshTokenRequest",

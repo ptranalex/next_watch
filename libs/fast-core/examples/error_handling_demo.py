@@ -1,4 +1,4 @@
-***REMOVED***!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Enhanced Error Handling Demo for Fast-Core
 
@@ -23,7 +23,7 @@ from fast_core.errors import (
     service_error_handler,
 )
 
-***REMOVED*** Configure logging
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -40,15 +40,15 @@ class DemoService:
         if user_id <= 0:
             raise ValidationException("Invalid user ID")
 
-        ***REMOVED*** Simulate API call that might fail
+        # Simulate API call that might fail
         response = await self.client.get(f"https://jsonplaceholder.typicode.com/users/{user_id}")
         response.raise_for_status()
-        return response.json()  ***REMOVED*** type: ignore
+        return response.json()  # type: ignore
 
     @optional_service_handler(service_name="recommendation-api", logger=logger, fallback_value=[])
     async def get_recommendations(self, user_id: int) -> list[dict[str, Any]]:
         """Optional operation - gracefully degrades if service unavailable."""
-        ***REMOVED*** Simulate a service that might be down
+        # Simulate a service that might be down
         response = await self.client.get(f"https://nonexistent-service.com/users/{user_id}/recs")
         response.raise_for_status()
         return response.json()
@@ -64,14 +64,14 @@ class DemoService:
     async def track_event(self, event: str) -> dict[str, Any]:
         """Custom error mapping for specific business logic."""
         if event == "payment_failed":
-            ***REMOVED*** Simulate 402 Payment Required
+            # Simulate 402 Payment Required
             raise httpx.HTTPStatusError(
                 "Payment required",
                 request=httpx.Request("POST", "/track"),
                 response=httpx.Response(402),
             )
         elif event == "too_many_requests":
-            ***REMOVED*** Simulate rate limiting
+            # Simulate rate limiting
             raise Exception("rate_limit: Too many requests")
 
         return {"status": "tracked", "event": event}
@@ -86,14 +86,14 @@ class DemoService:
     async def get_content(self, content_id: int) -> dict[str, Any]:
         """Semantic preservation with graceful fallback."""
         if content_id == 404:
-            ***REMOVED*** Simulate 404 Not Found
+            # Simulate 404 Not Found
             raise httpx.HTTPStatusError(
                 "Not found",
                 request=httpx.Request("GET", f"/content/{content_id}"),
                 response=httpx.Response(404),
             )
         elif content_id == 500:
-            ***REMOVED*** Simulate server error
+            # Simulate server error
             raise Exception("Internal server error")
 
         return {"content": f"Content {content_id}", "source": "api"}
@@ -107,14 +107,14 @@ async def demo_critical_service() -> None:
     service = DemoService()
 
     try:
-        ***REMOVED*** This should work
+        # This should work
         user = await service.get_user_profile(1)
         print(f"✅ User retrieved: {user['name']}")
     except Exception as e:
         print(f"❌ Critical service failed: {e}")
 
     try:
-        ***REMOVED*** This will fail with validation error
+        # This will fail with validation error
         await service.get_user_profile(-1)
     except ValidationException as e:
         print(f"✅ Validation caught: {e}")
@@ -130,7 +130,7 @@ async def demo_optional_service():
     service = DemoService()
 
     try:
-        ***REMOVED*** This will fail but gracefully return empty list
+        # This will fail but gracefully return empty list
         recommendations = await service.get_recommendations(1)
         print(f"✅ Recommendations (graceful degradation): {recommendations}")
         print("   Note: Service failed but returned fallback value instead of crashing")
@@ -145,7 +145,7 @@ async def demo_custom_error_mapping():
 
     service = DemoService()
 
-    ***REMOVED*** Test custom 402 mapping
+    # Test custom 402 mapping
     try:
         await service.track_event("payment_failed")
     except ValidationException as e:
@@ -153,7 +153,7 @@ async def demo_custom_error_mapping():
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
 
-    ***REMOVED*** Test custom string pattern mapping
+    # Test custom string pattern mapping
     try:
         await service.track_event("too_many_requests")
     except ValidationException as e:
@@ -161,7 +161,7 @@ async def demo_custom_error_mapping():
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
 
-    ***REMOVED*** Test normal operation
+    # Test normal operation
     try:
         result = await service.track_event("user_login")
         print(f"✅ Normal operation: {result}")
@@ -176,7 +176,7 @@ async def demo_semantic_preservation():
 
     service = DemoService()
 
-    ***REMOVED*** Test 404 -> ResourceNotFoundException with graceful fallback
+    # Test 404 -> ResourceNotFoundException with graceful fallback
     try:
         content = await service.get_content(404)
         print(f"✅ Graceful degradation for 404: {content}")
@@ -186,7 +186,7 @@ async def demo_semantic_preservation():
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
 
-    ***REMOVED*** Test server error with graceful fallback
+    # Test server error with graceful fallback
     try:
         content = await service.get_content(500)
         print(f"✅ Graceful degradation for server error: {content}")
@@ -194,7 +194,7 @@ async def demo_semantic_preservation():
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
 
-    ***REMOVED*** Test normal operation
+    # Test normal operation
     try:
         content = await service.get_content(123)
         print(f"✅ Normal operation: {content}")

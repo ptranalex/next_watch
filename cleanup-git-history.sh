@@ -1,46 +1,46 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED***
-***REMOVED*** Next Watch - Git History Cleanup Script
-***REMOVED***
-***REMOVED*** This script removes all sensitive data from git history using BFG Repo-Cleaner
-***REMOVED***
-***REMOVED*** WARNING: This rewrites git history. Make sure you have a backup!
-***REMOVED***
-***REMOVED*** Prerequisites:
-***REMOVED***   - Install BFG: brew install bfg
-***REMOVED***   - Create backup of repository
-***REMOVED***   - Ensure no uncommitted changes
-***REMOVED***
-***REMOVED***
+#
+# Next Watch - Git History Cleanup Script
+#
+# This script removes all sensitive data from git history using BFG Repo-Cleaner
+#
+# WARNING: This rewrites git history. Make sure you have a backup!
+#
+# Prerequisites:
+#   - Install BFG: brew install bfg
+#   - Create backup of repository
+#   - Ensure no uncommitted changes
+#
+#
 
-set -e  ***REMOVED*** Exit on error
+set -e  # Exit on error
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${GREEN}==============================================================================${NC}"
 echo -e "${GREEN}Next Watch - Git History Cleanup${NC}"
 echo -e "${GREEN}==============================================================================${NC}"
 echo ""
 
-***REMOVED*** Check if BFG is installed
+# Check if BFG is installed
 if ! command -v bfg &> /dev/null; then
     echo -e "${RED}ERROR: BFG Repo-Cleaner is not installed${NC}"
     echo "Install with: brew install bfg"
     exit 1
 fi
 
-***REMOVED*** Check we're in the right directory
+# Check we're in the right directory
 if [ ! -f "README.md" ] || [ ! -d ".git" ]; then
     echo -e "${RED}ERROR: This script must be run from the repository root${NC}"
     exit 1
 fi
 
-***REMOVED*** Check for uncommitted changes
+# Check for uncommitted changes
 if [ -n "$(git status --porcelain)" ]; then
     echo -e "${RED}ERROR: You have uncommitted changes${NC}"
     echo "Please commit or stash your changes first"
@@ -75,39 +75,39 @@ if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
     exit 1
 fi
 
-***REMOVED*** Step 1: Create backup
+# Step 1: Create backup
 echo -e "${GREEN}Step 1: Creating backup...${NC}"
 BACKUP_DIR="../next_watch_BACKUP_$(date +%Y%m%d_%H%M%S)"
 cp -r . "$BACKUP_DIR"
 echo -e "${GREEN}✓ Backup created at: $BACKUP_DIR${NC}"
 echo ""
 
-***REMOVED*** Step 2: Prepare replacement patterns (NO REAL SECRETS IN REPO)
-***REMOVED***
-***REMOVED*** IMPORTANT:
-***REMOVED*** - Never store real secrets in this repository (even inside this cleanup script).
-***REMOVED*** - Provide your own replacements file when running this script, e.g.:
-***REMOVED***     ./cleanup-git-history.sh /path/to/replacements.txt
-***REMOVED***
-***REMOVED*** BFG replacement file format:
-***REMOVED***   <literal-to-find>==><replacement>
-***REMOVED***
+# Step 2: Prepare replacement patterns (NO REAL SECRETS IN REPO)
+#
+# IMPORTANT:
+# - Never store real secrets in this repository (even inside this cleanup script).
+# - Provide your own replacements file when running this script, e.g.:
+#     ./cleanup-git-history.sh /path/to/replacements.txt
+#
+# BFG replacement file format:
+#   <literal-to-find>==><replacement>
+#
 echo -e "${GREEN}Step 2: Preparing replacement patterns...${NC}"
 REPLACEMENTS_FILE="${1:-/tmp/nextwatch_replacements.txt}"
 
 if [ ! -f "$REPLACEMENTS_FILE" ]; then
     cat > "$REPLACEMENTS_FILE" << 'EOF'
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED*** Examples (edit/remove as needed):
-***REMOVED*** my_old_api_key_value==>REDACTED_API_KEY
-***REMOVED*** my_old_password==>REDACTED_PASSWORD
-***REMOVED*** my-domain.example==>your-domain.com
-***REMOVED*** someone@example.com==>contributors@example.com
+#
+#
+#
+#
+#
+#
+# Examples (edit/remove as needed):
+# my_old_api_key_value==>REDACTED_API_KEY
+# my_old_password==>REDACTED_PASSWORD
+# my-domain.example==>your-domain.com
+# someone@example.com==>contributors@example.com
 EOF
     echo -e "${YELLOW}⚠️  Replacement file not found; created a TEMPLATE at:${NC} $REPLACEMENTS_FILE"
     echo -e "${YELLOW}   Edit it to include the exact literals you need to scrub, then re-run the script.${NC}"
@@ -117,7 +117,7 @@ fi
 echo -e "${GREEN}✓ Using replacements file:${NC} $REPLACEMENTS_FILE"
 echo ""
 
-***REMOVED*** Step 3: Clone as mirror for cleaning
+# Step 3: Clone as mirror for cleaning
 echo -e "${GREEN}Step 3: Creating mirror clone for cleaning...${NC}"
 MIRROR_DIR="../next_watch_clean_$(date +%Y%m%d_%H%M%S).git"
 git clone --mirror . "$MIRROR_DIR"
@@ -125,14 +125,14 @@ cd "$MIRROR_DIR"
 echo -e "${GREEN}✓ Mirror clone created${NC}"
 echo ""
 
-***REMOVED*** Step 4: Remove sensitive files
+# Step 4: Remove sensitive files
 echo -e "${GREEN}Step 4: Removing sensitive files from history...${NC}"
 echo "This may take a few minutes..."
 
-***REMOVED*** Remove explicit secrets files
+# Remove explicit secrets files
 bfg --delete-files '.secrets' --no-blob-protection .
 
-***REMOVED*** Remove .env files
+# Remove .env files
 bfg --delete-files '.env' --no-blob-protection .
 bfg --delete-files '.env.local' --no-blob-protection .
 bfg --delete-files '.env.prod' --no-blob-protection .
@@ -142,27 +142,27 @@ bfg --delete-files '.env.monitoring.prod' --no-blob-protection .
 bfg --delete-files '.env.observability.prod' --no-blob-protection .
 bfg --delete-files '.env.development' --no-blob-protection .
 
-***REMOVED*** Remove database files
+# Remove database files
 bfg --delete-files 'movies.db' --no-blob-protection .
 bfg --delete-files '*.db' --no-blob-protection .
 
 echo -e "${GREEN}✓ Sensitive files removed${NC}"
 echo ""
 
-***REMOVED*** Step 5: Replace credentials
+# Step 5: Replace credentials
 echo -e "${GREEN}Step 5: Replacing exposed credentials...${NC}"
 bfg --replace-text "$REPLACEMENTS_FILE" --no-blob-protection .
 echo -e "${GREEN}✓ Credentials replaced${NC}"
 echo ""
 
-***REMOVED*** Step 6: Clean up
+# Step 6: Clean up
 echo -e "${GREEN}Step 6: Cleaning up repository...${NC}"
 git reflog expire --expire=now --all
 git gc --prune=now --aggressive
 echo -e "${GREEN}✓ Repository cleaned${NC}"
 echo ""
 
-***REMOVED*** Step 7: Return to original directory
+# Step 7: Return to original directory
 cd - > /dev/null
 
 echo -e "${GREEN}==============================================================================${NC}"

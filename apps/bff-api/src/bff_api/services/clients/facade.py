@@ -32,7 +32,7 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
             config: Service client configuration from Fast Core
             bff_config: BFF-specific configuration (optional, uses global settings if not provided)
         """
-        ***REMOVED*** Initialize all parent classes with the new signature
+        # Initialize all parent classes with the new signature
         super().__init__(config, bff_config)
 
         logger.debug(
@@ -41,4 +41,4 @@ class BackendClient(MoviesClient, UserInteractionsClient, ContentDiscoveryClient
             component="backend_client",
         )
 
-    ***REMOVED*** Inherit close() and health_check() methods from BaseBackendClient (via parents)
+    # Inherit close() and health_check() methods from BaseBackendClient (via parents)

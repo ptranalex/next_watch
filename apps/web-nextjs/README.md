@@ -1,8 +1,8 @@
-***REMOVED*** NextWatch Web Application
+# NextWatch Web Application
 
 A modern movie tracking web application built with Next.js, TypeScript, and Chakra UI.
 
-***REMOVED******REMOVED*** 📋 Overview
+## 📋 Overview
 
 NextWatch Web is the frontend application for the NextWatch platform, allowing users to:
 
@@ -14,44 +14,44 @@ NextWatch Web is the frontend application for the NextWatch platform, allowing u
 - Filter and sort movies by various criteria
 - Receive personalized recommendations
 
-***REMOVED******REMOVED*** 🚀 Getting Started
+## 🚀 Getting Started
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - Node.js 18+
 - pnpm 10+
 - Access to the NextWatch backend API (or mock data)
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 ```bash
-***REMOVED*** Navigate to the web app directory
+# Navigate to the web app directory
 cd apps/web-nextjs
 
-***REMOVED*** Install dependencies with pnpm
+# Install dependencies with pnpm
 pnpm install
 
-***REMOVED*** Set up environment variables
+# Set up environment variables
 cp .env.example .env.local
-***REMOVED*** Edit .env.local to configure your environment
+# Edit .env.local to configure your environment
 
-***REMOVED*** Start development server
+# Start development server
 pnpm dev
 ```
 
-***REMOVED******REMOVED******REMOVED*** Docker Deployment
+### Docker Deployment
 
 The application includes a Docker configuration for containerized deployment:
 
 ```bash
-***REMOVED*** Build Docker image
+# Build Docker image
 docker build -t web-nextjs -f apps/web-nextjs/Dockerfile .
 
-***REMOVED*** Run Docker container
+# Run Docker container
 docker run -d -p 3000:3000 --name web-nextjs-app web-nextjs
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Docker Architecture
+#### Docker Architecture
 
 The Docker setup uses a specially configured development mode that:
 
@@ -60,7 +60,7 @@ The Docker setup uses a specially configured development mode that:
 - Provides a secure environment with non-root users
 - Reduces container size through careful layer management
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Docker Environment Variables
+#### Docker Environment Variables
 
 - `NODE_ENV=development` - Uses development mode for best compatibility
 - `NEXT_TELEMETRY_DISABLED=1` - Disables Next.js telemetry
@@ -69,7 +69,7 @@ The Docker setup uses a specially configured development mode that:
 - `NEXT_PUBLIC_TMDB_IMAGE_BASE_URL` - Base URL for TMDB images
 - `NEXT_PUBLIC_ENABLE_ANALYTICS` - Toggle analytics (true/false)
 
-***REMOVED******REMOVED******REMOVED*** Available Scripts
+### Available Scripts
 
 - `pnpm dev` - Start the development server
 - `pnpm build` - Build for production
@@ -80,50 +80,50 @@ The Docker setup uses a specially configured development mode that:
 - `pnpm storybook` - Start Storybook for component development
 - `pnpm docker-build` - Custom build script optimized for Docker deployment
 
-***REMOVED******REMOVED*** 🏗️ Architecture
+## 🏗️ Architecture
 
 NextWatch follows **Clean Architecture** principles with a domain-driven approach:
 
 ```
 src/
-├── app/                ***REMOVED*** Next.js App Router pages and layouts
-├── components/         ***REMOVED*** React components
-│   ├── mobile/         ***REMOVED*** Mobile-specific components
-│   │   ├── common/     ***REMOVED*** Shared mobile UI components
-│   │   ├── filters/    ***REMOVED*** Mobile filter components
-│   │   └── layout/     ***REMOVED*** Mobile layout components
-│   ├── common/         ***REMOVED*** Shared components
-│   ├── layout/         ***REMOVED*** Layout components
-│   └── features/       ***REMOVED*** Feature-specific components
-├── context/            ***REMOVED*** React context providers
-│   └── ResponsiveContext.tsx  ***REMOVED*** Responsive design context
-├── domain/             ***REMOVED*** Domain entities and business logic
-│   ├── entities/       ***REMOVED*** Core data structures and type definitions
-│   └── models/         ***REMOVED*** Business models
-├── hooks/              ***REMOVED*** React hooks
-│   ├── core/           ***REMOVED*** App-wide hooks (auth, etc.)
-│   ├── domain/         ***REMOVED*** Domain-specific hooks
-│   └── ui/             ***REMOVED*** UI utility hooks
-├── services/           ***REMOVED*** External services integration
-│   ├── api/            ***REMOVED*** API client implementations
-│   └── storage/        ***REMOVED*** Local storage utilities
-├── store/              ***REMOVED*** Global state management
-│   ├── slices/         ***REMOVED*** State slices
-│   └── middleware/     ***REMOVED*** Redux middleware
-└── utils/              ***REMOVED*** Utility functions
-    ├── formatting/     ***REMOVED*** Date and text formatting
-    ├── validation/     ***REMOVED*** Form validation
-    └── analytics/      ***REMOVED*** Analytics utilities
+├── app/                # Next.js App Router pages and layouts
+├── components/         # React components
+│   ├── mobile/         # Mobile-specific components
+│   │   ├── common/     # Shared mobile UI components
+│   │   ├── filters/    # Mobile filter components
+│   │   └── layout/     # Mobile layout components
+│   ├── common/         # Shared components
+│   ├── layout/         # Layout components
+│   └── features/       # Feature-specific components
+├── context/            # React context providers
+│   └── ResponsiveContext.tsx  # Responsive design context
+├── domain/             # Domain entities and business logic
+│   ├── entities/       # Core data structures and type definitions
+│   └── models/         # Business models
+├── hooks/              # React hooks
+│   ├── core/           # App-wide hooks (auth, etc.)
+│   ├── domain/         # Domain-specific hooks
+│   └── ui/             # UI utility hooks
+├── services/           # External services integration
+│   ├── api/            # API client implementations
+│   └── storage/        # Local storage utilities
+├── store/              # Global state management
+│   ├── slices/         # State slices
+│   └── middleware/     # Redux middleware
+└── utils/              # Utility functions
+    ├── formatting/     # Date and text formatting
+    ├── validation/     # Form validation
+    └── analytics/      # Analytics utilities
 ```
 
-***REMOVED******REMOVED******REMOVED*** Key Architectural Concepts
+### Key Architectural Concepts
 
 1. **Domain Layer** - Core business entities independent of UI/framework
 2. **Hooks Layer** - React-specific integration with domain logic
 3. **Services Layer** - External API communication
 4. **Components** - UI presentation logic
 
-***REMOVED******REMOVED******REMOVED*** Mobile-First Design
+### Mobile-First Design
 
 NextWatch implements a mobile-first approach with these key features:
 
@@ -149,7 +149,7 @@ NextWatch implements a mobile-first approach with these key features:
    - Image optimization with Next.js Image component
    - Code splitting for faster initial load
 
-***REMOVED******REMOVED******REMOVED*** Mobile-First Development Guidelines
+### Mobile-First Development Guidelines
 
 When adding new features or components to NextWatch, follow these guidelines:
 
@@ -201,7 +201,7 @@ When adding new features or components to NextWatch, follow these guidelines:
    - Use responsive props for minor differences
    - Create container components that choose between implementations based on screen size
 
-***REMOVED******REMOVED******REMOVED*** Existing Mobile Components
+### Existing Mobile Components
 
 | Component       | Purpose                                   | Usage                                                                        |
 | --------------- | ----------------------------------------- | ---------------------------------------------------------------------------- |
@@ -212,7 +212,7 @@ When adding new features or components to NextWatch, follow these guidelines:
 | SwipeAction     | Add swipe gestures to list items          | `<SwipeAction leftActions={[...]} rightActions={[...]}>{item}</SwipeAction>` |
 | MovieSkeleton   | Skeleton loader for movie items           | `<MovieSkeleton count={8} isGrid={false} />`                                 |
 
-***REMOVED******REMOVED*** 📚 Documentation Structure
+## 📚 Documentation Structure
 
 The codebase includes detailed documentation organized by feature area:
 
@@ -220,14 +220,14 @@ The codebase includes detailed documentation organized by feature area:
 - `/src/hooks/README.md` - React hooks organization and best practices
 - `/src/services/README.md` - API services documentation
 
-***REMOVED******REMOVED*** 🔄 Data Flow
+## 🔄 Data Flow
 
 1. **Components** use **Hooks** to interact with data
 2. **Hooks** use **Services** to fetch data from APIs
 3. **Services** transform API responses into **Domain Entities**
 4. **Components** render UI based on Domain Entities
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 The application uses a comprehensive testing strategy:
 
@@ -238,17 +238,17 @@ The application uses a comprehensive testing strategy:
 To run tests:
 
 ```bash
-***REMOVED*** Run unit and integration tests
+# Run unit and integration tests
 pnpm test
 
-***REMOVED*** Run e2e tests
+# Run e2e tests
 pnpm test:e2e
 
-***REMOVED*** Run with coverage report
+# Run with coverage report
 pnpm test:coverage
 ```
 
-***REMOVED******REMOVED*** 🖥️ Browser Support
+## 🖥️ Browser Support
 
 The application supports:
 
@@ -259,7 +259,7 @@ The application supports:
 - iOS Safari (latest 2 versions)
 - Android Chrome (latest 2 versions)
 
-***REMOVED******REMOVED*** 📱 Progressive Web App (PWA)
+## 📱 Progressive Web App (PWA)
 
 NextWatch can be installed as a PWA on supported devices, providing:
 
@@ -267,7 +267,7 @@ NextWatch can be installed as a PWA on supported devices, providing:
 - Home screen installation
 - Native-like experience
 
-***REMOVED******REMOVED*** 🔒 Authentication
+## 🔒 Authentication
 
 Authentication is handled using:
 
@@ -276,7 +276,7 @@ Authentication is handled using:
 - Protected routes with middleware
 - Session persistence across page refreshes
 
-***REMOVED******REMOVED*** 🌐 Internationalization
+## 🌐 Internationalization
 
 The application supports multiple languages through:
 
@@ -284,7 +284,7 @@ The application supports multiple languages through:
 - Language detection and selection
 - RTL layout support for appropriate languages
 
-***REMOVED******REMOVED*** 🛡️ Security Measures
+## 🛡️ Security Measures
 
 - CSRF protection
 - Content Security Policy
@@ -293,19 +293,19 @@ The application supports multiple languages through:
 - Rate limiting
 - HTTPS only
 
-***REMOVED******REMOVED*** 👥 Contributing
+## 👥 Contributing
 
 Please see the [Contributing Guide](../CONTRIBUTING.md) for details on how to contribute to this project.
 
-***REMOVED******REMOVED*** 📝 License
+## 📝 License
 
 MIT
 
-***REMOVED******REMOVED*** URL Parameter Handling
+## URL Parameter Handling
 
 The application uses a custom hook called `useUrlParams` for handling URL parameters safely in both server and client components. This approach solves the common SSR/hydration issues with `useSearchParams` in Next.js.
 
-***REMOVED******REMOVED******REMOVED*** Using the `useUrlParams` hook
+### Using the `useUrlParams` hook
 
 ```tsx
 import { useUrlParams } from "@/hooks/navigation/useUrlParams";
@@ -346,7 +346,7 @@ function MyComponent() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Benefits of this approach
+### Benefits of this approach
 
 1. **Type safety**: Parameters are properly typed
 2. **Server-side rendering compatible**: Works in both SSR and client environments
@@ -354,74 +354,74 @@ function MyComponent() {
 4. **No suspense boundaries needed**: Eliminates the need for wrapping components in suspense boundaries
 5. **Production build compatible**: Works correctly in production builds without special accommodations
 
-***REMOVED******REMOVED*** Sustainable Docker Strategy
+## Sustainable Docker Strategy
 
 For the most sustainable Docker deployment, we have two main approaches:
 
-***REMOVED******REMOVED******REMOVED*** Approach 1: Production Build with useUrlParams
+### Approach 1: Production Build with useUrlParams
 
 Use our custom `useUrlParams` hook throughout the codebase, which safely handles URL parameters without requiring Suspense boundaries. This approach works with proper static generation and can use a standard production Dockerfile.
 
-***REMOVED******REMOVED******REMOVED*** Approach 2: Development Server Mode for Production
+### Approach 2: Development Server Mode for Production
 
 In some cases where you can't update all component instances, running in development mode can provide a more flexible solution:
 
 ```dockerfile
-***REMOVED*** Simplified Dockerfile for Next.js
+# Simplified Dockerfile for Next.js
 FROM node:20-alpine
 
-***REMOVED*** Setup app directory
+# Setup app directory
 WORKDIR /app
 
-***REMOVED*** Install dependencies
+# Install dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN pnpm install --frozen-lockfile
 
-***REMOVED*** Copy application code
+# Copy application code
 COPY . .
 
-***REMOVED*** Configure for development mode
+# Configure for development mode
 ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-***REMOVED*** Start the development server
+# Start the development server
 CMD ["pnpm", "dev"]
 ```
 
 This approach avoids static generation issues and is more forgiving with client-side hooks like `useSearchParams`, but comes with some performance trade-offs.
 
-***REMOVED******REMOVED*** Development
+## Development
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - Node.js 20+
 - pnpm 10.10.0+
 
-***REMOVED******REMOVED******REMOVED*** Setup
+### Setup
 
 ```bash
-***REMOVED*** Install dependencies
+# Install dependencies
 pnpm install
 
-***REMOVED*** Start development server
+# Start development server
 pnpm dev
 ```
 
-***REMOVED******REMOVED*** Building for Production
+## Building for Production
 
 ```bash
-***REMOVED*** Build the application
+# Build the application
 pnpm production-build
 
-***REMOVED*** Start the production server
+# Start the production server
 pnpm start
 
 dummy
 ```
 
-***REMOVED******REMOVED*** URL-Based Filter System
+## URL-Based Filter System
 
 The application uses URL-based state management for filters instead of React context. This provides several benefits:
 
@@ -430,7 +430,7 @@ The application uses URL-based state management for filters instead of React con
 - Browser navigation (back/forward) works with filter changes
 - Improved SEO as filters are reflected in URLs
 
-***REMOVED******REMOVED******REMOVED*** Available URL Parameters
+### Available URL Parameters
 
 The following URL parameters can be used for filtering:
 
@@ -445,13 +445,13 @@ The following URL parameters can be used for filtering:
 | sort                   | string | Sort field                             | `?sort=release_date`         |
 | order                  | string | Sort order (asc/desc)                  | `?order=desc`                |
 
-***REMOVED******REMOVED******REMOVED*** Examples
+### Examples
 
 - View all action movies: `/movies?genre=action`
 - 2023 movies with IMDb rating 7+: `/movies?year=2023&rating_imdb=7`
 - Highly rated comedies sorted by rating: `/movies?genre=comedy&rating_imdb=8&sort=imdb_rating&order=desc`
 
-***REMOVED******REMOVED*** Components
+## Components
 
 The filter system is composed of several components:
 
@@ -460,7 +460,7 @@ The filter system is composed of several components:
 - `SortSelector`: Sort type and direction controls
 - `SearchInput`: Movie title search field
 
-***REMOVED******REMOVED*** Mobile Development Guidelines
+## Mobile Development Guidelines
 
 When working on mobile features:
 
@@ -470,7 +470,7 @@ When working on mobile features:
 4. **Use haptic feedback appropriately** - Provide tactile confirmation for key actions
 5. **Consider mobile-specific interaction patterns** - Don't just shrink desktop UI
 
-***REMOVED******REMOVED******REMOVED*** Mobile Component Structure
+### Mobile Component Structure
 
 Mobile-specific components are organized in the `components/mobile` directory:
 
@@ -478,7 +478,7 @@ Mobile-specific components are organized in the `components/mobile` directory:
 - `filters/` - Filter interfaces optimized for mobile
 - `layout/` - Mobile layout components
 
-***REMOVED******REMOVED******REMOVED*** Responsive Integration
+### Responsive Integration
 
 Use the `useResponsive()` hook to access device information:
 

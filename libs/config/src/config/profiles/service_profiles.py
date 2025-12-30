@@ -45,7 +45,7 @@ class ConfigProfile:
         return f"ConfigProfile({self.name}): {self.description}"
 
 
-***REMOVED*** Development profiles
+# Development profiles
 DevelopmentProfile = ConfigProfile(
     name="Development",
     description="Development environment with debugging enabled",
@@ -66,7 +66,7 @@ TestProfile = ConfigProfile(
     },
 )
 
-***REMOVED*** Production profiles
+# Production profiles
 ProductionProfile = ConfigProfile(
     name="Production",
     description="Production environment with security optimizations",
@@ -77,13 +77,13 @@ ProductionProfile = ConfigProfile(
     },
 )
 
-***REMOVED*** Service-specific profiles
+# Service-specific profiles
 ApiServiceProfile = ConfigProfile(
     name="ApiService",
     description="API service with standard HTTP settings",
     overrides={
-        "cors_origins": ["*"],  ***REMOVED*** Should be overridden in production
-        "allowed_hosts": ["*"],  ***REMOVED*** Should be overridden in production
+        "cors_origins": ["*"],  # Should be overridden in production
+        "allowed_hosts": ["*"],  # Should be overridden in production
     },
 )
 
@@ -91,9 +91,9 @@ GatewayProfile = ConfigProfile(
     name="Gateway",
     description="API Gateway with optimized settings",
     overrides={
-        "cors_origins": ["*"],  ***REMOVED*** Should be overridden in production
-        "allowed_hosts": ["*"],  ***REMOVED*** Should be overridden in production
-        "log_level": "INFO",  ***REMOVED*** Default to INFO level for gateways
+        "cors_origins": ["*"],  # Should be overridden in production
+        "allowed_hosts": ["*"],  # Should be overridden in production
+        "log_level": "INFO",  # Default to INFO level for gateways
     },
 )
 
@@ -103,7 +103,7 @@ BackendServiceProfile = ConfigProfile(
     overrides={
         "database_pool_size": 10,
         "redis_max_connections": 20,
-        "cache_ttl_default": 600,  ***REMOVED*** 10 minutes
+        "cache_ttl_default": 600,  # 10 minutes
     },
 )
 
@@ -113,11 +113,11 @@ WorkerServiceProfile = ConfigProfile(
     overrides={
         "workers": 4,
         "max_concurrent_tasks": 20,
-        "task_timeout_seconds": 600,  ***REMOVED*** 10 minutes
+        "task_timeout_seconds": 600,  # 10 minutes
     },
 )
 
-***REMOVED*** Deployment profiles
+# Deployment profiles
 LowResourceProfile = ConfigProfile(
     name="LowResource",
     description="Low resource usage for development or small deployments",
@@ -157,16 +157,16 @@ def apply_profiles(config: Any, *profiles: ConfigProfile) -> None:
         logger.debug(f"Applying profile: {profile.name}")
         profile.apply_to_config(config)
 
-    ***REMOVED*** Apply environment-specific overrides last
+    # Apply environment-specific overrides last
     if hasattr(config, "environment"):
         env = config.environment
         if env == "development" and hasattr(config, "debug"):
-            ***REMOVED*** Always enable debug in development unless explicitly overridden
+            # Always enable debug in development unless explicitly overridden
             if not any(p.name == "Production" for p in profiles):
                 config.debug = True
 
         if env == "production" and hasattr(config, "debug"):
-            ***REMOVED*** Always disable debug in production
+            # Always disable debug in production
             config.debug = False
 
 

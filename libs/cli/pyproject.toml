@@ -38,37 +38,37 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    ***REMOVED*** Core CLI framework
-    "typer>=0.15.2",            ***REMOVED*** CLI framework
-    "rich>=13.7.0",             ***REMOVED*** Terminal formatting
-    "coloredlogs>=15.0.0",      ***REMOVED*** Colored logging
+    # Core CLI framework
+    "typer>=0.15.2",            # CLI framework
+    "rich>=13.7.0",             # Terminal formatting
+    "coloredlogs>=15.0.0",      # Colored logging
 
-    ***REMOVED*** Async support
-    "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
-    "redis>=6.0.0",             ***REMOVED*** Redis client
-    "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
+    # Async support
+    "httpx>=0.24.0",            # Async HTTP client
+    "redis>=6.0.0",             # Redis client
+    "types-redis>=4.6.0",       # Redis type stubs
 
-    ***REMOVED*** Structured logging
-    "structlog>=23.2.0",        ***REMOVED*** Structured logging
+    # Structured logging
+    "structlog>=23.2.0",        # Structured logging
 
-    ***REMOVED*** Configuration and validation
-    "pydantic>=2.4.2",          ***REMOVED*** Data validation
-    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    # Configuration and validation
+    "pydantic>=2.4.2",          # Data validation
+    "python-dotenv>=1.0.0",     # Environment variable loading
 
-    ***REMOVED*** Utilities
-    "tenacity>=8.2.3",          ***REMOVED*** Retry logic
-    "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
+    # Utilities
+    "tenacity>=8.2.3",          # Retry logic
+    "python-dateutil>=2.9.0",   # Date utilities
 ]
 
 [project.optional-dependencies]
 dev = [
-    ***REMOVED*** Testing
+    # Testing
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.11.0",
 
-    ***REMOVED*** Code quality
+    # Code quality
     "black>=23.10.1",
     "isort>=5.12.0",
     "ruff>=0.1.6",
@@ -76,7 +76,7 @@ dev = [
     "types-python-dateutil>=2.9.0",
     "pre-commit>=3.4.0",
 
-    ***REMOVED*** Documentation
+    # Documentation
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.2.0",
     "mkdocstrings[python]>=0.23.0",
@@ -101,7 +101,7 @@ Repository = "https://github.com/nextwatch/cli"
 Issues = "https://github.com/nextwatch/cli/issues"
 Documentation = "https://docs.nextwatch.dev/cli"
 
-***REMOVED*** Hatch configuration
+# Hatch configuration
 [tool.hatch.version]
 path = "src/cli/__init__.py"
 
@@ -117,7 +117,7 @@ packages = ["src/cli"]
 [tool.hatch.build.sources]
 "src" = ""
 
-***REMOVED*** Development environment
+# Development environment
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"
@@ -127,12 +127,12 @@ features = ["dev"]
 PYTHONPATH = "src"
 
 [tool.hatch.envs.default.scripts]
-***REMOVED*** Testing
+# Testing
 test = "pytest {args:tests}"
 test-cov = "pytest --cov=cli --cov-report=term-missing {args:tests}"
 test-html = "pytest --cov=cli --cov-report=html {args:tests}"
 
-***REMOVED*** Code quality
+# Code quality
 lint = [
     "black --check .",
     "isort --check-only .",
@@ -146,15 +146,15 @@ format = [
 ]
 type-check = "mypy src"
 
-***REMOVED*** Quality gates
+# Quality gates
 check = ["format", "lint", "type-check"]
 all = ["check", "test-cov"]
 
-***REMOVED*** Documentation
+# Documentation
 docs-build = "mkdocs build"
 docs-serve = "mkdocs serve --dev-addr localhost:8080"
 
-***REMOVED*** Testing environment
+# Testing environment
 [tool.hatch.envs.test]
 features = ["test"]
 
@@ -163,7 +163,7 @@ run = "pytest {args:tests}"
 cov = "pytest --cov=cli --cov-report=term-missing {args:tests}"
 cov-html = "pytest --cov=cli --cov-report=html {args:tests}"
 
-***REMOVED*** Documentation environment
+# Documentation environment
 [tool.hatch.envs.docs]
 features = ["docs"]
 
@@ -171,7 +171,7 @@ features = ["docs"]
 build = "mkdocs build"
 serve = "mkdocs serve --dev-addr localhost:8080"
 
-***REMOVED*** Tool configurations
+# Tool configurations
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
@@ -193,7 +193,7 @@ asyncio_mode = "auto"
 
 [tool.mypy]
 python_version = "3.12"
-***REMOVED*** Strict settings
+# Strict settings
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
@@ -205,19 +205,19 @@ disallow_untyped_calls = true
 disallow_any_generics = true
 disallow_subclassing_any = true
 
-***REMOVED*** Warning settings
+# Warning settings
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_return_any = true
 warn_unreachable = true
 
-***REMOVED*** Error reporting
+# Error reporting
 pretty = true
 show_column_numbers = true
 show_error_context = true
 
-***REMOVED*** Importing
+# Importing
 ignore_missing_imports = false
 follow_imports = "normal"
 
@@ -250,24 +250,24 @@ line-length = 100
 
 [tool.ruff.lint]
 select = [
-    "E",   ***REMOVED*** pycodestyle errors
-    "W",   ***REMOVED*** pycodestyle warnings
-    "F",   ***REMOVED*** pyflakes
-    "I",   ***REMOVED*** isort
-    "B",   ***REMOVED*** flake8-bugbear
-    "C4",  ***REMOVED*** flake8-comprehensions
-    "UP",  ***REMOVED*** pyupgrade
-    "SIM", ***REMOVED*** flake8-simplify
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
 ]
 ignore = [
-    "E501", ***REMOVED*** line too long, handled by black
-    "B008", ***REMOVED*** do not perform function calls in argument defaults
-    "C901", ***REMOVED*** too complex
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  ***REMOVED*** Allow unused imports in __init__.py
-"tests/**/*" = ["B011"]   ***REMOVED*** Allow assert False in tests
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+"tests/**/*" = ["B011"]   # Allow assert False in tests
 
 [tool.ruff.lint.isort]
 known-first-party = ["cli"]

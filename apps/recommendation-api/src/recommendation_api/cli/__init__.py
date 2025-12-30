@@ -8,27 +8,27 @@ import importlib.metadata
 import logging
 import sys
 
-***REMOVED*** Try to get version from package metadata
+# Try to get version from package metadata
 try:
     __version__ = importlib.metadata.version("recommendation_api")
 except (importlib.metadata.PackageNotFoundError, AttributeError):
     __version__ = "development"
 
 
-***REMOVED*** Entry point for hatch to call
+# Entry point for hatch to call
 def main() -> None:
     """Main entry point for CLI when called via `rec-api` command."""
     try:
-        ***REMOVED*** Import here to avoid circular imports
+        # Import here to avoid circular imports
         from recommendation_api.cli.main import app as cli_app
 
         cli_app()
     except Exception as e:
-        ***REMOVED*** Simple error handling if logging is not yet set up
+        # Simple error handling if logging is not yet set up
         logger = logging.getLogger("recommendation_api.cli")
         logger.error(f"Error running command: {str(e)}")
 
-        ***REMOVED*** Use rich for prettier output if available
+        # Use rich for prettier output if available
         try:
             from rich.console import Console
 
@@ -41,8 +41,8 @@ def main() -> None:
 
 
 __all__ = [
-    ***REMOVED*** Version
+    # Version
     "__version__",
-    ***REMOVED*** Main function
+    # Main function
     "main",
 ]

@@ -45,7 +45,7 @@ class MovieRecommendation(BaseModel):
         if not hasattr(movie, "id") or movie.id is None:
             raise ValueError("Movie must have a valid ID")
 
-        ***REMOVED*** Handle different date formats
+        # Handle different date formats
         release_date: date | None = None
         if hasattr(movie, "release_date") and movie.release_date:
             if isinstance(movie.release_date, datetime):
@@ -56,7 +56,7 @@ class MovieRecommendation(BaseModel):
                 with suppress(ValueError):
                     release_date = datetime.strptime(movie.release_date, "%Y-%m-%d").date()
 
-        ***REMOVED*** Handle genres - extract names from Genre objects if needed
+        # Handle genres - extract names from Genre objects if needed
         genres = None
         if hasattr(movie, "genres") and movie.genres:
             if isinstance(movie.genres, list):

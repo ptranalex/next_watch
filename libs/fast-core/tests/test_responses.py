@@ -53,7 +53,7 @@ class TestResponseBuilder:
         )
 
         assert "total_pages" not in response["pagination"]
-        assert "has_next" in response["pagination"]  ***REMOVED*** Still included by default
+        assert "has_next" in response["pagination"]  # Still included by default
 
     def test_detail_response_basic(self):
         """Test basic detail response."""
@@ -193,13 +193,13 @@ class TestResponseBuilder:
 
         builder = ResponseBuilder(config=config)
 
-        ***REMOVED*** Test pagination config
+        # Test pagination config
         paginated_response = builder.paginated(items=[{"id": 1}], page=1, limit=20, total=100)
 
         assert "total_pages" not in paginated_response["pagination"]
         assert "has_next" not in paginated_response["pagination"]
 
-        ***REMOVED*** Test search config
+        # Test search config
         search_response = builder.search(
             query="test", results=[{"id": 1}], suggestions=["suggestion1", "suggestion2"]
         )
@@ -250,12 +250,12 @@ class TestResponseBuilderEdgeCases:
         """Test action response when data is explicitly None."""
         response = self.builder.action(success=True, action="delete", data=None)
 
-        ***REMOVED*** data=None should not be included in response
+        # data=None should not be included in response
         assert "data" not in response
 
     def test_action_response_data_is_false(self):
         """Test action response when data is False (falsy but not None)."""
         response = self.builder.action(success=True, action="check", data=False)
 
-        ***REMOVED*** data=False should be included since it's not None
+        # data=False should be included since it's not None
         assert response["data"] is False

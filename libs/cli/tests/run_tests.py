@@ -1,4 +1,4 @@
-***REMOVED***!/usr/bin/env python3
+#!/usr/bin/env python3
 """Simple test runner for CLI Framework tests.
 
 This script runs tests without requiring pytest, making it easier to verify
@@ -37,7 +37,7 @@ def run_tests() -> int:
     print("🧪 Running CLI Framework Tests")
     print("=" * 50)
 
-    ***REMOVED*** Import test classes
+    # Import test classes
     try:
         from tests.test_base import (
             create_sample_health_results,
@@ -52,7 +52,7 @@ def run_tests() -> int:
         print(f"❌ Failed to import test modules: {e}")
         return 1
 
-    ***REMOVED*** Collect all test methods
+    # Collect all test methods
     test_classes = [
         TestServiceConfig,
         TestServiceRegistry,
@@ -67,20 +67,20 @@ def run_tests() -> int:
         print(f"\n📋 Running {test_class.__name__}")
         print("-" * 40)
 
-        ***REMOVED*** Create test instance
+        # Create test instance
         test_instance = test_class()
 
-        ***REMOVED*** Find all test methods
+        # Find all test methods
         test_methods = [method for method in dir(test_instance) if method.startswith("test_")]
 
         for method_name in test_methods:
             total_tests += 1
 
-            ***REMOVED*** Set up the test
+            # Set up the test
             if hasattr(test_instance, "setup_method"):
                 test_instance.setup_method()
 
-            ***REMOVED*** Run the test
+            # Run the test
             test_method = getattr(test_instance, method_name)
             success, error_msg = run_test_function(
                 test_method, f"{test_class.__name__}.{method_name}"
@@ -93,14 +93,14 @@ def run_tests() -> int:
                 failed_tests.append(error_msg)
                 print(f"  ❌ {method_name}")
 
-            ***REMOVED*** Tear down the test
+            # Tear down the test
             if hasattr(test_instance, "teardown_method"):
                 try:
                     test_instance.teardown_method()
                 except Exception as e:
                     print(f"  ⚠️  Teardown warning for {method_name}: {e}")
 
-    ***REMOVED*** Test utility functions
+    # Test utility functions
     print("\n📋 Running Utility Function Tests")
     print("-" * 40)
 
@@ -136,7 +136,7 @@ def run_tests() -> int:
             failed_tests.append(error_msg)
             print(f"  ❌ {test_name}")
 
-    ***REMOVED*** Print summary
+    # Print summary
     print("\n" + "=" * 50)
     print("📊 Test Summary")
     print(f"Total tests: {total_tests}")

@@ -30,7 +30,7 @@ def validate_url(url: str, allowed_schemes: list[str] | None = None) -> str:
     Example:
         >>> validate_url("https://api.example.com:8080/v1")
         'https://api.example.com:8080/v1'
-        >>> validate_url("ftp://example.com")  ***REMOVED*** doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> validate_url("ftp://example.com")  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValidationError: Invalid URL scheme...
     """
@@ -77,7 +77,7 @@ def validate_port(port: int | str, allow_zero: bool = False) -> int:
         8080
         >>> validate_port("443")
         443
-        >>> validate_port(70000)  ***REMOVED*** doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> validate_port(70000)  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValidationError: Port must be between...
     """
@@ -116,7 +116,7 @@ def validate_timeout(
         30.5
         >>> validate_timeout("10")
         10.0
-        >>> validate_timeout(-1)  ***REMOVED*** doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> validate_timeout(-1)  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValidationError: Timeout must be between...
     """
@@ -161,7 +161,7 @@ def validate_pattern(pattern: str, pattern_type: str = "glob") -> str:
         except re.error as e:
             raise ValidationError(f"Invalid regex pattern: {e}")
     elif pattern_type == "glob":
-        ***REMOVED*** Basic glob validation - ensure no path traversal
+        # Basic glob validation - ensure no path traversal
         if ".." in pattern or "/" in pattern or "\\" in pattern:
             raise ValidationError("Glob pattern cannot contain path separators or '..'")
     else:
@@ -185,7 +185,7 @@ def validate_log_level(level: str) -> str:
     Example:
         >>> validate_log_level("info")
         'INFO'
-        >>> validate_log_level("invalid")  ***REMOVED*** doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> validate_log_level("invalid")  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValidationError: Invalid log level...
     """

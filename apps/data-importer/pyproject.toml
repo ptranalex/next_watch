@@ -9,7 +9,7 @@ description = "Data importer for next_watch movie platform"
 authors = [
     {name = "Alex Tran", email = "alex@alextran.io"}
 ]
-readme = {text = "***REMOVED*** Data Importer\n\nData importer for Next Watch movie platform", content-type = "text/markdown"}
+readme = {text = "# Data Importer\n\nData importer for Next Watch movie platform", content-type = "text/markdown"}
 requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -18,29 +18,29 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    ***REMOVED*** Core dependencies
-    "requests>=2.31.0",          ***REMOVED*** HTTP client
-    "pydantic>=2.4.2",           ***REMOVED*** Data validation
-    "python-dotenv>=1.0.0",      ***REMOVED*** Environment variable loading
+    # Core dependencies
+    "requests>=2.31.0",          # HTTP client
+    "pydantic>=2.4.2",           # Data validation
+    "python-dotenv>=1.0.0",      # Environment variable loading
 
-    ***REMOVED*** CLI and utilities
-    "click>=8.1.7",              ***REMOVED*** CLI framework (legacy)
-    "typer>=0.15.2",             ***REMOVED*** Modern CLI framework
-    "rich>=14.0.0,<15.0.0",      ***REMOVED*** Terminal formatting
-    "ptpython>=3.0.23",          ***REMOVED*** Enhanced Python REPL
+    # CLI and utilities
+    "click>=8.1.7",              # CLI framework (legacy)
+    "typer>=0.15.2",             # Modern CLI framework
+    "rich>=14.0.0,<15.0.0",      # Terminal formatting
+    "ptpython>=3.0.23",          # Enhanced Python REPL
 
-    ***REMOVED*** Async HTTP
-    "aiohttp>=3.8.5",            ***REMOVED*** Async HTTP client
+    # Async HTTP
+    "aiohttp>=3.8.5",            # Async HTTP client
 
-    ***REMOVED*** Database
-    "sqlmodel>=0.0.24",          ***REMOVED*** SQL ORM
-    "psycopg2-binary>=2.9.10",   ***REMOVED*** PostgreSQL adapter
+    # Database
+    "sqlmodel>=0.0.24",          # SQL ORM
+    "psycopg2-binary>=2.9.10",   # PostgreSQL adapter
 
-    ***REMOVED*** Security
-    "passlib>=1.7.4",            ***REMOVED*** Password hashing
+    # Security
+    "passlib>=1.7.4",            # Password hashing
 
-    ***REMOVED*** Local dependencies - movie-storage installed separately
-    ***REMOVED*** "movie-storage @ file://../../../libs/movie-storage",  ***REMOVED*** Local movie storage library
+    # Local dependencies - movie-storage installed separately
+    # "movie-storage @ file://../../../libs/movie-storage",  # Local movie storage library
 ]
 
 [project.optional-dependencies]
@@ -52,7 +52,7 @@ dev = [
     "flake8>=6.1.0",
     "mypy>=1.7.0",
     "pyright>=1.1.0",
-    ***REMOVED*** Type stubs for better type checking
+    # Type stubs for better type checking
     "types-requests>=2.31.0",
     "types-python-dateutil>=2.8.19",
     "types-redis>=4.6.0",
@@ -61,18 +61,18 @@ dev = [
 [project.scripts]
 data-importer = "data_importer.cli:main"
 
-***REMOVED*** Package discovery configuration
+# Package discovery configuration
 [tool.hatch.build.targets.wheel]
 packages = ["data_importer"]
 
 [tool.hatch.build.targets.sdist]
 packages = ["data_importer"]
 
-***REMOVED*** Specify that the package is in the src directory
+# Specify that the package is in the src directory
 [tool.hatch.build.sources]
 "src" = ""
 
-***REMOVED*** Allow direct references for local dependencies
+# Allow direct references for local dependencies
 [tool.hatch.metadata]
 allow-direct-references = true
 
@@ -92,48 +92,48 @@ src = ["src"]
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 ignore = [
-    "E501", ***REMOVED*** line too long, formatter handles this
+    "E501", # line too long, formatter handles this
 ]
 
 [tool.ruff.lint.isort]
-***REMOVED*** Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
+# Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
 known-first-party = ["data_importer"]
 known-third-party = ["cache", "cli", "config", "fast_core", "kafka", "movie_storage"]
 
 [tool.mypy]
 python_version = "3.12"
-***REMOVED*** Enhanced strict settings - now that major issues are fixed
-disallow_untyped_defs = true         ***REMOVED*** Now enabled - require type annotations
-disallow_incomplete_defs = true      ***REMOVED*** Now enabled - require complete annotations
+# Enhanced strict settings - now that major issues are fixed
+disallow_untyped_defs = true         # Now enabled - require type annotations
+disallow_incomplete_defs = true      # Now enabled - require complete annotations
 check_untyped_defs = true
-disallow_untyped_decorators = false  ***REMOVED*** Temporarily disabled due to complex decorator typing
+disallow_untyped_decorators = false  # Temporarily disabled due to complex decorator typing
 no_implicit_optional = true
 strict_optional = true
-disallow_any_unimported = false     ***REMOVED*** Keep false for external libraries
-disallow_untyped_calls = false      ***REMOVED*** Keep false for gradual migration
+disallow_any_unimported = false     # Keep false for external libraries
+disallow_untyped_calls = false      # Keep false for gradual migration
 
-***REMOVED*** Advanced strictness (selective enablement)
-disallow_any_generics = true         ***REMOVED*** Now enabled - require generic parameters
-disallow_subclassing_any = true     ***REMOVED*** Now enabled - prevent Any subclassing
+# Advanced strictness (selective enablement)
+disallow_any_generics = true         # Now enabled - require generic parameters
+disallow_subclassing_any = true     # Now enabled - prevent Any subclassing
 
-***REMOVED*** Warning settings - match bff-api
+# Warning settings - match bff-api
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_return_any = true
 warn_unreachable = true
 
-***REMOVED*** Error reporting - enhanced like bff-api
+# Error reporting - enhanced like bff-api
 pretty = true
 show_column_numbers = true
 show_error_context = true
-show_error_codes = true              ***REMOVED*** Added for better debugging
+show_error_codes = true              # Added for better debugging
 
-***REMOVED*** Importing - more permissive for current state
-ignore_missing_imports = true        ***REMOVED*** Keep true for external libraries
+# Importing - more permissive for current state
+ignore_missing_imports = true        # Keep true for external libraries
 follow_imports = "normal"
 
-***REMOVED*** Module-specific overrides for external libraries
+# Module-specific overrides for external libraries
 [[tool.mypy.overrides]]
 module = [
     "requests.*",
@@ -162,7 +162,7 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 
-***REMOVED*** Hatch configuration (align with other apps in the monorepo)
+# Hatch configuration (align with other apps in the monorepo)
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"

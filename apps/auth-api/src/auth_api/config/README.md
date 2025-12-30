@@ -1,8 +1,8 @@
-***REMOVED*** Configuration Module
+# Configuration Module
 
 The configuration module provides centralized configuration management for the Auth API service. It handles environment variable loading, validation, type conversion, and provides a clean interface for accessing configuration throughout the application.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The configuration module provides:
 
@@ -13,15 +13,15 @@ The configuration module provides:
 - **Logging Configuration**: Structured logging setup and configuration
 - **Development Support**: Special handling for development and testing environments
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Module Organization
+### Module Organization
 
 - **`app.py`** (8.3KB, 231 lines): Main application configuration and settings
 - **`env.py`** (5.9KB, 208 lines): Environment variable loading and utilities
 - **`logging.py`** (3.9KB, 120 lines): Logging configuration and setup
 
-***REMOVED******REMOVED******REMOVED*** Configuration Hierarchy
+### Configuration Hierarchy
 
 ```
 1. Environment Variables (highest priority)
@@ -30,13 +30,13 @@ The configuration module provides:
 4. Default Values (lowest priority)
 ```
 
-***REMOVED******REMOVED*** Configuration Files
+## Configuration Files
 
-***REMOVED******REMOVED******REMOVED*** `app.py` - Application Configuration
+### `app.py` - Application Configuration
 
 The main configuration class that provides typed access to all application settings.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Key Features
+#### Key Features
 
 - **Typed Configuration**: All settings have proper type hints
 - **Environment Integration**: Automatically loads from environment variables
@@ -44,7 +44,7 @@ The main configuration class that provides typed access to all application setti
 - **Computed Properties**: Derived settings based on other configuration
 - **Development Helpers**: Special handling for development environments
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Main Configuration Class
+#### Main Configuration Class
 
 ```python
 from pydantic import BaseSettings, validator
@@ -62,31 +62,31 @@ class Config(BaseSettings):
     4. Default values
     """
 
-    ***REMOVED*** Server Configuration
+    # Server Configuration
     environment: str = "development"
     debug: bool = False
     auth_api_port: int = 8003
     auth_api_host: str = "0.0.0.0"
 
-    ***REMOVED*** Database Configuration
+    # Database Configuration
     database_url: str
     database_echo: bool = False
 
-    ***REMOVED*** JWT Configuration
+    # JWT Configuration
     jwt_secret: str
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
-    ***REMOVED*** Security Configuration
+    # Security Configuration
     password_hash_rounds: int = 12
     max_login_attempts: int = 5
     login_lockout_duration_minutes: int = 15
 
-    ***REMOVED*** CORS Configuration
+    # CORS Configuration
     cors_origins: List[str] = ["http://localhost:3000"]
 
-    ***REMOVED*** Logging Configuration
+    # Logging Configuration
     log_level: str = "INFO"
     log_dir: str = "logs"
 
@@ -96,67 +96,67 @@ class Config(BaseSettings):
         case_sensitive = False
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Configuration Categories
+#### Configuration Categories
 
 **Server Settings:**
 
 ```python
-***REMOVED*** HTTP server configuration
-auth_api_host: str = "0.0.0.0"        ***REMOVED*** Server bind address
-auth_api_port: int = 8003              ***REMOVED*** Server port
-environment: str = "development"        ***REMOVED*** Environment name
-debug: bool = False                    ***REMOVED*** Debug mode
+# HTTP server configuration
+auth_api_host: str = "0.0.0.0"        # Server bind address
+auth_api_port: int = 8003              # Server port
+environment: str = "development"        # Environment name
+debug: bool = False                    # Debug mode
 ```
 
 **Database Settings:**
 
 ```python
-***REMOVED*** PostgreSQL database configuration
-database_url: str                      ***REMOVED*** Database connection URL
-database_echo: bool = False            ***REMOVED*** SQL query logging
-database_pool_size: int = 5            ***REMOVED*** Connection pool size
-database_max_overflow: int = 10        ***REMOVED*** Max overflow connections
+# PostgreSQL database configuration
+database_url: str                      # Database connection URL
+database_echo: bool = False            # SQL query logging
+database_pool_size: int = 5            # Connection pool size
+database_max_overflow: int = 10        # Max overflow connections
 ```
 
 **Authentication Settings:**
 
 ```python
-***REMOVED*** JWT token configuration
-jwt_secret: str                        ***REMOVED*** JWT signing secret
-jwt_algorithm: str = "HS256"           ***REMOVED*** JWT algorithm
-access_token_expire_minutes: int = 30  ***REMOVED*** Access token lifetime
-refresh_token_expire_days: int = 7     ***REMOVED*** Refresh token lifetime
+# JWT token configuration
+jwt_secret: str                        # JWT signing secret
+jwt_algorithm: str = "HS256"           # JWT algorithm
+access_token_expire_minutes: int = 30  # Access token lifetime
+refresh_token_expire_days: int = 7     # Refresh token lifetime
 
-***REMOVED*** Password security
-password_hash_rounds: int = 12         ***REMOVED*** Bcrypt rounds
-max_login_attempts: int = 5            ***REMOVED*** Max failed attempts
-login_lockout_duration_minutes: int = 15  ***REMOVED*** Lockout duration
+# Password security
+password_hash_rounds: int = 12         # Bcrypt rounds
+max_login_attempts: int = 5            # Max failed attempts
+login_lockout_duration_minutes: int = 15  # Lockout duration
 ```
 
 **CORS Settings:**
 
 ```python
-***REMOVED*** Cross-Origin Resource Sharing
-cors_origins: List[str] = [            ***REMOVED*** Allowed origins
+# Cross-Origin Resource Sharing
+cors_origins: List[str] = [            # Allowed origins
     "http://localhost:3000",
     "http://localhost:8001"
 ]
-cors_credentials: bool = True          ***REMOVED*** Allow credentials
-cors_methods: List[str] = ["*"]        ***REMOVED*** Allowed methods
-cors_headers: List[str] = ["*"]        ***REMOVED*** Allowed headers
+cors_credentials: bool = True          # Allow credentials
+cors_methods: List[str] = ["*"]        # Allowed methods
+cors_headers: List[str] = ["*"]        # Allowed headers
 ```
 
 **Logging Settings:**
 
 ```python
-***REMOVED*** Logging configuration
-log_level: str = "INFO"                ***REMOVED*** Log level
-log_dir: str = "logs"                  ***REMOVED*** Log directory
-log_format: str = "structured"         ***REMOVED*** Log format (structured/text)
-log_rotation: str = "1 day"            ***REMOVED*** Log rotation interval
+# Logging configuration
+log_level: str = "INFO"                # Log level
+log_dir: str = "logs"                  # Log directory
+log_format: str = "structured"         # Log format (structured/text)
+log_rotation: str = "1 day"            # Log rotation interval
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Configuration Validation
+#### Configuration Validation
 
 ```python
 @validator('database_url')
@@ -193,7 +193,7 @@ def validate_log_level(cls, v):
     return v.upper()
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Computed Properties
+#### Computed Properties
 
 ```python
 @property
@@ -226,18 +226,18 @@ def cors_origin_list(self) -> List[str]:
     return self.cors_origins
 ```
 
-***REMOVED******REMOVED******REMOVED*** `env.py` - Environment Loading
+### `env.py` - Environment Loading
 
 Utilities for loading and managing environment variables.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Key Features
+#### Key Features
 
 - **Hierarchical Loading**: Load from multiple `.env` files with precedence
 - **Type Conversion**: Convert environment strings to appropriate Python types
 - **Validation Helpers**: Validate environment variable formats and values
 - **Development Support**: Handle development-specific environment setup
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Main Functions
+#### Main Functions
 
 ```python
 def load_env_file(env_file: str = ".env") -> Dict[str, str]:
@@ -255,7 +255,7 @@ def load_env_file(env_file: str = ".env") -> Dict[str, str]:
         with open(env_file, 'r') as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith('***REMOVED***'):
+                if line and not line.startswith('#'):
                     key, value = line.split('=', 1)
                     env_vars[key.strip()] = value.strip().strip('"\'')
     return env_vars
@@ -301,7 +301,7 @@ def get_env_list(key: str, default: List[str] = None, separator: str = ",") -> L
     return [item.strip() for item in value.split(separator) if item.strip()]
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Environment File Loading
+#### Environment File Loading
 
 ```python
 def load_environment_files() -> None:
@@ -310,13 +310,13 @@ def load_environment_files() -> None:
     1. .env.local (highest priority)
     2. .env (base configuration)
     """
-    ***REMOVED*** Load base environment
+    # Load base environment
     base_env = load_env_file(".env")
     for key, value in base_env.items():
         if key not in os.environ:
             os.environ[key] = value
 
-    ***REMOVED*** Load local overrides
+    # Load local overrides
     local_env = load_env_file(".env.local")
     for key, value in local_env.items():
         os.environ[key] = value
@@ -340,11 +340,11 @@ def validate_required_env_vars(required_vars: List[str]) -> List[str]:
     return missing
 ```
 
-***REMOVED******REMOVED******REMOVED*** `logging.py` - Logging Configuration
+### `logging.py` - Logging Configuration
 
 Comprehensive logging setup for the application.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Key Features
+#### Key Features
 
 - **Structured Logging**: JSON-formatted logs for production
 - **Development Logging**: Human-readable logs for development
@@ -352,7 +352,7 @@ Comprehensive logging setup for the application.
 - **Multiple Handlers**: Console and file logging
 - **Performance Logging**: Request/response timing
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Logging Setup
+#### Logging Setup
 
 ```python
 import logging
@@ -377,11 +377,11 @@ class StructuredFormatter(logging.Formatter):
             'line': record.lineno,
         }
 
-        ***REMOVED*** Add exception info if present
+        # Add exception info if present
         if record.exc_info:
             log_entry['exception'] = self.formatException(record.exc_info)
 
-        ***REMOVED*** Add extra fields
+        # Add extra fields
         for key, value in record.__dict__.items():
             if key not in ('name', 'msg', 'args', 'levelname', 'levelno',
                           'pathname', 'filename', 'module', 'lineno',
@@ -399,17 +399,17 @@ def setup_logging(config: Config) -> None:
     Args:
         config: Application configuration
     """
-    ***REMOVED*** Create logs directory
+    # Create logs directory
     os.makedirs(config.log_dir, exist_ok=True)
 
-    ***REMOVED*** Root logger
+    # Root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(getattr(logging, config.log_level))
 
-    ***REMOVED*** Clear existing handlers
+    # Clear existing handlers
     root_logger.handlers.clear()
 
-    ***REMOVED*** Console handler
+    # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     if config.is_production:
         console_handler.setFormatter(StructuredFormatter())
@@ -419,7 +419,7 @@ def setup_logging(config: Config) -> None:
         ))
     root_logger.addHandler(console_handler)
 
-    ***REMOVED*** File handler with rotation
+    # File handler with rotation
     file_handler = logging.handlers.TimedRotatingFileHandler(
         filename=os.path.join(config.log_dir, 'auth-api.log'),
         when='midnight',
@@ -430,7 +430,7 @@ def setup_logging(config: Config) -> None:
     file_handler.setFormatter(StructuredFormatter())
     root_logger.addHandler(file_handler)
 
-    ***REMOVED*** Error file handler
+    # Error file handler
     error_handler = logging.handlers.TimedRotatingFileHandler(
         filename=os.path.join(config.log_dir, 'auth-api-errors.log'),
         when='midnight',
@@ -443,7 +443,7 @@ def setup_logging(config: Config) -> None:
     root_logger.addHandler(error_handler)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Request Logging
+#### Request Logging
 
 ```python
 async def log_request(request: Request, response_time: float, status_code: int) -> None:
@@ -466,7 +466,7 @@ async def log_request(request: Request, response_time: float, status_code: int) 
         'remote_addr': request.client.host if request.client else None,
     }
 
-    ***REMOVED*** Add user ID if authenticated
+    # Add user ID if authenticated
     if hasattr(request.state, 'user_id'):
         log_data['user_id'] = request.state.user_id
 
@@ -478,80 +478,80 @@ async def log_request(request: Request, response_time: float, status_code: int) 
         logger.info("HTTP request", extra=log_data)
 ```
 
-***REMOVED******REMOVED*** Environment Variables
+## Environment Variables
 
-***REMOVED******REMOVED******REMOVED*** Required Variables
+### Required Variables
 
 ```bash
-***REMOVED*** Database Configuration (Required)
+# Database Configuration (Required)
 DATABASE_URL=postgresql://user:password@localhost:5432/next_watch
 
-***REMOVED*** JWT Configuration (Required)
+# JWT Configuration (Required)
 JWT_SECRET=your-secure-jwt-secret-key-at-least-32-characters-long
 ```
 
-***REMOVED******REMOVED******REMOVED*** Optional Variables
+### Optional Variables
 
 ```bash
-***REMOVED*** Server Configuration
+# Server Configuration
 AUTH_API_HOST=0.0.0.0
 AUTH_API_PORT=8003
 ENVIRONMENT=development
 DEBUG=false
 
-***REMOVED*** JWT Configuration
+# JWT Configuration
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
-***REMOVED*** Security Configuration
+# Security Configuration
 PASSWORD_HASH_ROUNDS=12
 MAX_LOGIN_ATTEMPTS=5
 LOGIN_LOCKOUT_DURATION_MINUTES=15
 
-***REMOVED*** Database Configuration
+# Database Configuration
 DATABASE_ECHO=false
 DATABASE_POOL_SIZE=5
 DATABASE_MAX_OVERFLOW=10
 
-***REMOVED*** CORS Configuration
+# CORS Configuration
 CORS_ORIGINS=http://localhost:3000,http://localhost:8001
 CORS_CREDENTIALS=true
 
-***REMOVED*** Logging Configuration
+# Logging Configuration
 LOG_LEVEL=INFO
 LOG_DIR=logs
 LOG_FORMAT=structured
 LOG_ROTATION=1 day
 
-***REMOVED*** Performance Configuration
+# Performance Configuration
 ENABLE_PERFORMANCE_METRICS=false
 RATE_LIMIT_REQUESTS_PER_MINUTE=60
 RATE_LIMIT_BURST=10
 ```
 
-***REMOVED******REMOVED*** Usage Patterns
+## Usage Patterns
 
-***REMOVED******REMOVED******REMOVED*** Loading Configuration
+### Loading Configuration
 
 ```python
 from auth_api.config import Config
 
-***REMOVED*** Load configuration (automatically loads environment)
+# Load configuration (automatically loads environment)
 config = Config()
 
-***REMOVED*** Access configuration values
+# Access configuration values
 print(f"Server running on {config.auth_api_host}:{config.auth_api_port}")
 print(f"Environment: {config.environment}")
 
-***REMOVED*** Check environment type
+# Check environment type
 if config.is_development:
     print("Running in development mode")
 elif config.is_production:
     print("Running in production mode")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration Validation
+### Configuration Validation
 
 ```python
 def validate_configuration(config: Config) -> List[str]:
@@ -569,9 +569,9 @@ def validate_configuration(config: Config) -> List[str]:
     return issues
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Configuration Management
+### Configuration Management
 
 1. **Environment Variables**: Use environment variables for all configuration
 2. **Type Safety**: Use type hints and validation for all settings
@@ -579,7 +579,7 @@ def validate_configuration(config: Config) -> List[str]:
 4. **Validation**: Validate configuration at startup
 5. **Documentation**: Document all configuration options
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 
 1. **Secret Management**: Never commit secrets to version control
 2. **Production Validation**: Validate security settings for production
@@ -587,7 +587,7 @@ def validate_configuration(config: Config) -> List[str]:
 4. **Access Control**: Limit access to sensitive configuration
 5. **Rotation**: Implement secret rotation procedures
 
-***REMOVED******REMOVED*** Dependencies
+## Dependencies
 
 The configuration module depends on:
 

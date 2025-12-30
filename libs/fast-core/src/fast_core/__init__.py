@@ -10,7 +10,7 @@ from .config import FastAPIConfig, FastAPIConfigMixin
 from .dependencies import (
     BaseServiceClient,
     GenericServiceClient,
-    ***REMOVED*** Service client factory
+    # Service client factory
     ServiceClientConfig,
     ServiceClientFactory,
     SingletonConfig,
@@ -18,22 +18,22 @@ from .dependencies import (
     cleanup_singletons,
     create_service_client,
     create_singleton_dependency,
-    ***REMOVED*** Cache dependencies
+    # Cache dependencies
     get_cache_manager,
     get_cache_provider,
     get_cache_service,
-    ***REMOVED*** Context dependencies
+    # Context dependencies
     get_current_request_context,
     get_current_request_id,
     get_current_trace_headers,
-    ***REMOVED*** Auth dependencies
+    # Auth dependencies
     get_current_user,
     get_database_engine,
     get_database_service,
-    ***REMOVED*** Database dependencies
+    # Database dependencies
     get_db_session,
     get_optional_user,
-    ***REMOVED*** Common dependencies
+    # Common dependencies
     get_pagination,
     get_redis_client,
     get_request_id,
@@ -42,7 +42,7 @@ from .dependencies import (
     get_service_factory,
     get_settings,
     get_singleton,
-    ***REMOVED*** Singleton dependencies
+    # Singleton dependencies
     get_singleton_client,
     get_trace_context_injector,
     health_check_all_services,
@@ -75,45 +75,45 @@ from .responses import (
 __version__ = "0.2.0"
 
 __all__ = [
-    ***REMOVED*** Core app
+    # Core app
     "create_app",
     "AppOptions",
     "FastAPIConfig",
     "FastAPIConfigMixin",
-    ***REMOVED*** Service clients
+    # Service clients
     "ServiceClient",
     "ServiceConfig",
-    ***REMOVED*** Error handling
+    # Error handling
     "handle_service_error",
     "create_error_response",
     "service_error_handler",
     "ServiceErrorContext",
-    ***REMOVED*** Auth dependencies
+    # Auth dependencies
     "get_current_user",
     "get_optional_user",
     "require_auth",
-    ***REMOVED*** Cache dependencies
+    # Cache dependencies
     "get_cache_manager",
     "get_cache_service",
     "get_cache_provider",
     "get_redis_client",
-    ***REMOVED*** Database dependencies
+    # Database dependencies
     "get_db_session",
     "get_database_service",
     "get_database_engine",
-    ***REMOVED*** Common dependencies
+    # Common dependencies
     "get_pagination",
     "get_request_id",
     "get_search_params",
     "get_settings",
-    ***REMOVED*** Context dependencies
+    # Context dependencies
     "get_current_request_context",
     "get_current_request_id",
     "get_current_trace_headers",
     "require_request_context",
     "require_request_id",
     "get_trace_context_injector",
-    ***REMOVED*** Singleton dependencies
+    # Singleton dependencies
     "get_singleton_client",
     "register_singleton",
     "get_singleton",
@@ -122,7 +122,7 @@ __all__ = [
     "create_singleton_dependency",
     "SingletonConfig",
     "SingletonManager",
-    ***REMOVED*** Service client factory
+    # Service client factory
     "ServiceClientConfig",
     "BaseServiceClient",
     "GenericServiceClient",
@@ -135,7 +135,7 @@ __all__ = [
     "health_check_all_services",
     "get_service_factory",
     "service_client",
-    ***REMOVED*** Response utilities (NEW!)
+    # Response utilities (NEW!)
     "ResponseBuilder",
     "PaginatedResponse",
     "DetailResponse",
@@ -143,6 +143,6 @@ __all__ = [
     "SearchResponse",
     "ActionResponse",
     "ErrorResponse",
-    ***REMOVED*** Version
+    # Version
     "__version__",
 ]

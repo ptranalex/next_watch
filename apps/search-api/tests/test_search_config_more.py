@@ -34,7 +34,7 @@ def test_search_config_production_overrides_and_validate_production_settings() -
         ml_api_url="http://localhost:9000",
     )
 
-    ***REMOVED*** production override should disable file logging
+    # production override should disable file logging
     assert cfg.logs_dir is None
 
     issues = cfg.validate_production_settings()

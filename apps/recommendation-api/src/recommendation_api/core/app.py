@@ -30,7 +30,7 @@ from recommendation_api.services.vector_service import close_vector_service, get
 
 logger = get_logger(__name__)
 
-***REMOVED*** Module-level settings for lifespan access
+# Module-level settings for lifespan access
 _app_settings: Any | None = None
 
 
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Yields:
         None: Application runs between startup and shutdown
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Starting Recommendation API service", service="recommendation-api")
     if _app_settings:
         logger.info(
@@ -59,16 +59,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             debug_mode=getattr(_app_settings, "debug", False),
         )
 
-    ***REMOVED*** Initialize cache service
+    # Initialize cache service
     if getattr(_app_settings, "enable_caching", True):
         logger.info(
             "Initializing cache service", service="recommendation-api", component="cache_service"
         )
         try:
-            ***REMOVED*** Get the global cache service instance
+            # Get the global cache service instance
             cache_service = get_cache_service()
 
-            ***REMOVED*** Check if cache is healthy
+            # Check if cache is healthy
             is_healthy = await cache_service.health_check()
             logger.info(
                 "Cache service initialized",
@@ -77,7 +77,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 healthy=is_healthy,
             )
 
-            ***REMOVED*** Initialize cache warming if enabled
+            # Initialize cache warming if enabled
             if getattr(_app_settings, "enable_warming", True):
                 try:
                     logger.info(
@@ -85,10 +85,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         service="recommendation-api",
                         component="warming_service",
                     )
-                    ***REMOVED*** Configure warming service
+                    # Configure warming service
                     configure_recommendation_warming()
 
-                    ***REMOVED*** Start background warming if enabled
+                    # Start background warming if enabled
                     if getattr(_app_settings, "enable_background_warming", True):
                         await start_background_warming()
                         logger.info(
@@ -103,7 +103,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         component="warming_service",
                         error=str(e),
                     )
-                    ***REMOVED*** Continue without warming if initialization fails
+                    # Continue without warming if initialization fails
         except Exception as e:
             logger.error(
                 "Failed to initialize cache service",
@@ -111,7 +111,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 component="cache_service",
                 error=str(e),
             )
-            ***REMOVED*** Continue without cache if initialization fails
+            # Continue without cache if initialization fails
     else:
         logger.info(
             "Caching is disabled by configuration",
@@ -119,7 +119,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             component="cache_service",
         )
 
-    ***REMOVED*** Initialize health service and store in app state
+    # Initialize health service and store in app state
     logger.info(
         "Initializing health service", service="recommendation-api", component="health_service"
     )
@@ -138,15 +138,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             component="health_service",
             error=str(e),
         )
-        ***REMOVED*** Continue without health service if it fails
+        # Continue without health service if it fails
         app.state.health_service = None
 
-    ***REMOVED*** Initialize backend client and movie adapter
+    # Initialize backend client and movie adapter
     logger.info(
         "Initializing backend client", service="recommendation-api", component="backend_client"
     )
     try:
-        ***REMOVED*** Initialize the global backend client
+        # Initialize the global backend client
         get_backend_client()
         logger.info(
             "Backend client initialized successfully",
@@ -162,12 +162,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         )
         raise
 
-    ***REMOVED*** Initialize movie adapter
+    # Initialize movie adapter
     logger.info(
         "Initializing movie adapter", service="recommendation-api", component="movie_adapter"
     )
     try:
-        ***REMOVED*** Initialize the global movie adapter
+        # Initialize the global movie adapter
         get_movie_adapter()
         logger.info(
             "Movie adapter initialized successfully",
@@ -183,12 +183,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         )
         raise
 
-    ***REMOVED*** Initialize vector service
+    # Initialize vector service
     logger.info(
         "Initializing vector service", service="recommendation-api", component="vector_service"
     )
     try:
-        ***REMOVED*** Initialize the global vector service
+        # Initialize the global vector service
         get_vector_service()
         logger.info(
             "Vector service initialized successfully",
@@ -202,16 +202,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             component="vector_service",
             error=str(e),
         )
-        ***REMOVED*** Continue without vector service if it fails - some routes may still work
+        # Continue without vector service if it fails - some routes may still work
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info(
         "Shutting down Recommendation API service", service="recommendation-api", phase="shutdown"
     )
 
-    ***REMOVED*** Cleanup warming service
+    # Cleanup warming service
     if getattr(_app_settings, "enable_caching", True) and getattr(
         _app_settings, "enable_warming", True
     ):
@@ -237,7 +237,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 error=str(e),
             )
 
-    ***REMOVED*** Cleanup cache service
+    # Cleanup cache service
     if getattr(_app_settings, "enable_caching", True):
         try:
             logger.info(
@@ -260,7 +260,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 error=str(e),
             )
 
-    ***REMOVED*** Cleanup health service
+    # Cleanup health service
     if hasattr(app.state, "health_service") and app.state.health_service:
         try:
             logger.info(
@@ -283,10 +283,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 error=str(e),
             )
 
-    ***REMOVED*** Close global health service
+    # Close global health service
     await close_health_service()
 
-    ***REMOVED*** Cleanup backend client
+    # Cleanup backend client
     try:
         logger.info(
             "Closing backend client",
@@ -308,7 +308,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             error=str(e),
         )
 
-    ***REMOVED*** Cleanup vector service
+    # Cleanup vector service
     try:
         logger.info(
             "Closing vector service",
@@ -360,7 +360,7 @@ def create_app(settings: Any | None = None) -> FastAPI:
     """
     global _app_settings
 
-    ***REMOVED*** Import settings only if not provided (for backward compatibility)
+    # Import settings only if not provided (for backward compatibility)
     if settings is None:
         from recommendation_api.config import settings as default_settings
 
@@ -368,7 +368,7 @@ def create_app(settings: Any | None = None) -> FastAPI:
 
     _app_settings = settings
 
-    ***REMOVED*** Create FastAPI app
+    # Create FastAPI app
     app = FastAPI(
         title="Recommendation API",
         description="AI-powered movie recommendation service for Next Watch platform",
@@ -377,7 +377,7 @@ def create_app(settings: Any | None = None) -> FastAPI:
         lifespan=lifespan,
     )
 
-    ***REMOVED*** Configure CORS
+    # Configure CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -386,14 +386,14 @@ def create_app(settings: Any | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    ***REMOVED*** Setup middleware
+    # Setup middleware
     setup_middleware(app)
 
-    ***REMOVED*** Include routers
+    # Include routers
     app.include_router(health_router, tags=["health"])
     app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 
-    ***REMOVED*** Add global exception handler
+    # Add global exception handler
     app.add_exception_handler(Exception, global_exception_handler)
 
     return app

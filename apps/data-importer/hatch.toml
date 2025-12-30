@@ -2,12 +2,12 @@
 requires = ["hatch-vcs"]
 
 [env.paths]
-***REMOVED*** Configure module paths
+# Configure module paths
 src = "src"
 tests = "tests"
 
 [build]
-***REMOVED*** Use hatch-vcs for versioning
+# Use hatch-vcs for versioning
 dev-mode-exact = true
 
 [version]
@@ -28,44 +28,44 @@ exclude = [
 "src" = ""
 
 [envs.default]
-***REMOVED*** Configure virtual environment to be in project directory
+# Configure virtual environment to be in project directory
 type = "virtual"
 path = ".venv"
 dependencies = [
-  ***REMOVED*** Core dependencies
+  # Core dependencies
   "requests>=2.31.0",
   "pydantic>=2.4.2",
   "python-dotenv>=1.0.0",
 
-  ***REMOVED*** CLI and utilities
+  # CLI and utilities
   "click>=8.1.7",
   "typer>=0.15.2",
   "rich>=14.0.0,<15.0.0",
   "ptpython>=3.0.23",
 
-  ***REMOVED*** Async HTTP
+  # Async HTTP
   "aiohttp>=3.8.5",
 
-  ***REMOVED*** Database
+  # Database
   "sqlmodel>=0.0.24",
   "psycopg2-binary>=2.9.10",
 
-  ***REMOVED*** Security
+  # Security
   "passlib>=1.7.4",
 ]
 
-***REMOVED*** Add environment variables for development
+# Add environment variables for development
 [envs.default.env-vars]
 PYTHONPATH = "src"
 
 [envs.default.scripts]
-***REMOVED*** CLI scripts
+# CLI scripts
 cli = "python -m data_importer.cli"
 import = "python -m data_importer.cli sync import"
 sync = "python -m data_importer.cli sync"
 repl = "ptpython"
 
-***REMOVED*** Data management scripts
+# Data management scripts
 clean-data = "python -m data_importer.cli clean"
 validate-data = "python -m data_importer.cli validate"
 
@@ -93,7 +93,7 @@ format = [
   "isort ."
 ]
 
-***REMOVED*** Data processing environment with additional tools
+# Data processing environment with additional tools
 [envs.data]
 dependencies = [
   "pandas>=2.0.0",

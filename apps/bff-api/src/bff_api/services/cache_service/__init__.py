@@ -17,13 +17,13 @@ from bff_api.services.cache_service.cache_service import (
     get_cache,
 )
 
-***REMOVED*** Background warming service removed - using cron jobs for scheduled warming
-***REMOVED*** from bff_api.services.cache_service.background_warming_service import (
-***REMOVED***     BackgroundWarmingService,
-***REMOVED***     get_background_warming_service,
-***REMOVED***     start_background_warming,
-***REMOVED***     stop_background_warming,
-***REMOVED*** )
+# Background warming service removed - using cron jobs for scheduled warming
+# from bff_api.services.cache_service.background_warming_service import (
+#     BackgroundWarmingService,
+#     get_background_warming_service,
+#     start_background_warming,
+#     stop_background_warming,
+# )
 from bff_api.services.cache_service.warming import (
     BFFWarmingService,
     configure_bff_warming,
@@ -33,7 +33,7 @@ from bff_api.services.cache_service.warming import (
 )
 
 
-***REMOVED*** Dummy function for backward compatibility
+# Dummy function for backward compatibility
 def get_background_warming_service() -> None:
     """Dummy function - background warming service removed.
 
@@ -43,7 +43,7 @@ def get_background_warming_service() -> None:
     return None
 
 
-class BackgroundWarmingService:  ***REMOVED*** pragma: no cover
+class BackgroundWarmingService:  # pragma: no cover
     """Backward compatible placeholder - background warming removed.
 
     The BFF now uses cron-based warming; this exists only to keep legacy imports working.
@@ -79,27 +79,27 @@ def get_cache_manager(settings: CacheSettings | None = None) -> CacheManager:
     return _get_cache_manager(settings)
 
 
-***REMOVED*** For backward compatibility
+# For backward compatibility
 get_cache_service = get_cache
 close_cache_service = close_cache
 
 __all__ = [
-    ***REMOVED*** Cache service
+    # Cache service
     "get_cache",
     "close_cache",
     "check_cache_health",
-    ***REMOVED*** Background warming service
+    # Background warming service
     "BackgroundWarmingService",
     "get_background_warming_service",
     "start_background_warming",
     "stop_background_warming",
-    ***REMOVED*** Warming service
+    # Warming service
     "BFFWarmingService",
     "get_bff_warming_service",
     "configure_bff_warming",
     "get_bff_warming_config",
     "get_bff_warming_settings",
-    ***REMOVED*** For backward compatibility
+    # For backward compatibility
     "get_cache_service",
     "close_cache_service",
     "get_cache_manager",

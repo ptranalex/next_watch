@@ -1,8 +1,8 @@
-***REMOVED*** Recommendation API
+# Recommendation API
 
 A FastAPI service for generating movie recommendations for the Next Watch platform.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This API provides endpoints for various types of movie recommendations:
 
@@ -13,28 +13,28 @@ This API provides endpoints for various types of movie recommendations:
 
 Base URL: `/reco/v1`
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
 The application follows a clean architecture approach with these main components:
 
 ```text
 recommendation_api/
-├── models/           ***REMOVED*** Data models for API requests/responses
-├── routes/           ***REMOVED*** API endpoints and request handling
-│   └── v1/           ***REMOVED*** Versioned recommendation endpoints
-├── services/         ***REMOVED*** Business logic and integrations
-│   └── cache_service ***REMOVED*** Cache helpers and background warming
-│   └── clients/      ***REMOVED*** Backend/Movies HTTP clients
-├── repositories/     ***REMOVED*** Data access layer
-│   └── vector/       ***REMOVED*** Qdrant vector DB access
-│   └── redis/        ***REMOVED*** Redis cache access
-├── db/               ***REMOVED*** Database utilities and operations
-├── core/             ***REMOVED*** App factory, middleware, metrics (fast-core)
-├── config/           ***REMOVED*** Application configuration (via shared config lib)
-└── cli/              ***REMOVED*** Typer-based command-line interface
+├── models/           # Data models for API requests/responses
+├── routes/           # API endpoints and request handling
+│   └── v1/           # Versioned recommendation endpoints
+├── services/         # Business logic and integrations
+│   └── cache_service # Cache helpers and background warming
+│   └── clients/      # Backend/Movies HTTP clients
+├── repositories/     # Data access layer
+│   └── vector/       # Qdrant vector DB access
+│   └── redis/        # Redis cache access
+├── db/               # Database utilities and operations
+├── core/             # App factory, middleware, metrics (fast-core)
+├── config/           # Application configuration (via shared config lib)
+└── cli/              # Typer-based command-line interface
 ```
 
-***REMOVED******REMOVED******REMOVED*** Key Components
+### Key Components
 
 - **API Routes**: FastAPI endpoints for handling HTTP requests
 - **Service Layer**: Business logic for recommendations
@@ -43,7 +43,7 @@ recommendation_api/
 - **Redis Cache**: Redis for caching similar movie recommendations
 - **ML API Client**: Client for communicating with the ML API service
 
-***REMOVED******REMOVED*** Dependencies
+## Dependencies
 
 The service relies on several key dependencies:
 
@@ -54,11 +54,11 @@ The service relies on several key dependencies:
 - **Typer/Rich**: CLI framework and formatting
 - **HTTPX**: Async HTTP client for ML API communication
 
-***REMOVED******REMOVED*** Development with Hatch
+## Development with Hatch
 
 The project now uses [Hatch](https://hatch.pypa.io/) for project management, which provides isolated environments, streamlined dependency management, and standardized development workflows.
 
-***REMOVED******REMOVED******REMOVED*** Getting Started with Hatch
+### Getting Started with Hatch
 
 1. Install Hatch:
 
@@ -69,65 +69,65 @@ The project now uses [Hatch](https://hatch.pypa.io/) for project management, whi
 2. Create development environment:
 
    ```bash
-   ***REMOVED*** This will create an isolated environment with all dependencies
+   # This will create an isolated environment with all dependencies
    hatch env create
    ```
 
 3. Run the API in development mode:
 
    ```bash
-   ***REMOVED*** Start the API with hot reloading
+   # Start the API with hot reloading
    hatch run dev
    ```
 
-***REMOVED******REMOVED******REMOVED*** Common Hatch Commands
+### Common Hatch Commands
 
 ```bash
-***REMOVED*** Run the application
+# Run the application
 hatch run serve
 
-***REMOVED*** Run development server with hot reloading
+# Run development server with hot reloading
 hatch run dev
 
-***REMOVED*** Run CLI commands
+# Run CLI commands
 hatch run cli -- embeddings status
 
-***REMOVED*** Run tests
+# Run tests
 hatch run test
 
-***REMOVED*** Run tests with coverage
+# Run tests with coverage
 hatch run test-cov
 
-***REMOVED*** Run linters and formatters
+# Run linters and formatters
 hatch run lint
 
-***REMOVED*** Format code
+# Format code
 hatch run format
 ```
 
-***REMOVED******REMOVED*** Docker
+## Docker
 
 The service includes an optimized Dockerfile that significantly reduces image size and build time.
 
-***REMOVED******REMOVED******REMOVED*** Dockerfile Features
+### Dockerfile Features
 
 - **Lightweight Image**: ~835MB (45% smaller than the original ~1.5GB image)
 - **ML Dependencies Optional**: Excludes heavy ML libraries (PyTorch, transformers) to reduce size
 - **Production-Ready**: Includes health checks, non-root user, and proper environment setup
 
-***REMOVED******REMOVED******REMOVED*** Docker Build Options
+### Docker Build Options
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Lightweight Build (Default)
+#### Lightweight Build (Default)
 
 ```bash
-***REMOVED*** Build the lightweight image (no ML dependencies)
+# Build the lightweight image (no ML dependencies)
 docker build -t recommendation-api .
 
-***REMOVED*** Run the container
+# Run the container
 docker run -p 8002:8002 recommendation-api
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 - `ENVIRONMENT`: Environment name (`development`, `staging`, `production`)
 - `HOST`: Server host (default: `0.0.0.0`)
@@ -143,7 +143,7 @@ docker run -p 8002:8002 recommendation-api
     `LIMIT_MAX_REQUESTS` (default `1000`), `BACKLOG` (default `1024`),
     `FORWARDED_ALLOW_IPS` (default `*`)
 
-***REMOVED******REMOVED******REMOVED*** Microservices Architecture
+### Microservices Architecture
 
 The recommendation system now follows a microservices architecture:
 
@@ -178,7 +178,7 @@ This architecture provides:
 - Specialized hardware utilization for ML operations
 - Simplified deployment with reduced dependencies
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 1. Clone the repository
 2. Install using Hatch:
@@ -192,118 +192,118 @@ This architecture provides:
 
    ```bash
    cp .env.example .env
-   ***REMOVED*** Edit .env with your configuration
+   # Edit .env with your configuration
    ```
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Running the API
+### Running the API
 
 ```bash
-***REMOVED*** Development mode with hot reloading
+# Development mode with hot reloading
 hatch run dev
 
-***REMOVED*** Production mode
+# Production mode
 hatch run serve
 ```
 
-***REMOVED******REMOVED******REMOVED*** CLI Commands
+### CLI Commands
 
 ```bash
-***REMOVED*** Using Hatch
+# Using Hatch
 hatch run cli -- [COMMAND]
 
-***REMOVED*** Or using the installed CLI (if package is installed)
+# Or using the installed CLI (if package is installed)
 rec-api [COMMAND]
 
-***REMOVED*** Show available commands
+# Show available commands
 rec-api --help
 
-***REMOVED*** Server Management
+# Server Management
 rec-api serve start [--host HOST] [--port PORT] [--reload] [--log-level LEVEL] [--verbose] [--quiet]
 rec-api serve stop
 rec-api serve restart
 
-***REMOVED*** Configuration
+# Configuration
 rec-api config show [--show-secrets] [--verbose]
 rec-api config validate
 rec-api config env
 
-***REMOVED*** Health Checks
+# Health Checks
 rec-api health check
-rec-api health ping SERVICE  ***REMOVED*** SERVICE can be: api, db, qdrant
+rec-api health ping SERVICE  # SERVICE can be: api, db, qdrant
 
-***REMOVED*** Embeddings Management
+# Embeddings Management
 rec-api embeddings generate [--batch-size SIZE] [--force] [--limit LIMIT] [--movie-id ID] [--verbose]
 rec-api embeddings status [--verbose]
 rec-api embeddings cleanup [--dry-run/--execute] [--verbose]
 rec-api embeddings info [--verbose]
 rec-api embeddings repair_embeddings [--batch-size SIZE] [--movie-id ID] [--dry-run] [--verbose]
 
-***REMOVED*** ML API Commands
+# ML API Commands
 rec-api ml test-connection
 rec-api ml generate-embedding "Title" "Overview..." --genres "Drama,Thriller" --id 123
 
-***REMOVED*** Version Information
+# Version Information
 rec-api version
 
-***REMOVED*** Cache Management
+# Cache Management
 rec-api cache info [--verbose]
 rec-api cache clear [--force]
 rec-api cache precompute [--limit N] [--min-score SCORE] [--batch-size SIZE] [--ttl SECONDS] [--movie-id ID]
 ```
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 The service is configured via environment variables and the shared `config` library. See Environment Variables above for the most important keys.
 
-***REMOVED******REMOVED*** Development
+## Development
 
-***REMOVED******REMOVED******REMOVED*** Running Tests
+### Running Tests
 
 ```bash
 hatch run test
 ```
 
-***REMOVED******REMOVED******REMOVED*** Code Style
+### Code Style
 
 ```bash
-***REMOVED*** Run all linters
+# Run all linters
 hatch run lint
 
-***REMOVED*** Format code
+# Format code
 hatch run format
 ```
 
-***REMOVED******REMOVED*** API Examples
+## API Examples
 
 Base URL: `http://localhost:8002/reco/v1`
 
-***REMOVED******REMOVED******REMOVED*** Get trending recommendations
+### Get trending recommendations
 
 ```bash
 curl "http://localhost:8002/reco/v1/trending?limit=10&days=7"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Get popular recommendations
+### Get popular recommendations
 
 ```bash
 curl "http://localhost:8002/reco/v1/popular?limit=10&min_rating=7.0&min_vote_count=1000"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Get personalized recommendations
+### Get personalized recommendations
 
 ```bash
 curl "http://localhost:8002/reco/v1/users/123/recommendations?limit=10"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Get similar movies
+### Get similar movies
 
 ```bash
 curl "http://localhost:8002/reco/v1/movies/456/similar?limit=10"
 ```
 
-***REMOVED******REMOVED*** System Integration
+## System Integration
 
 The Recommendation API integrates with several backend services:
 

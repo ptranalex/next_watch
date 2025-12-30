@@ -31,12 +31,12 @@ __all__ = [
     "SearchResponse",
     "SearchResult",
     "TrailerResponse",
-    ***REMOVED*** User interaction schemas
+    # User interaction schemas
     "MovieSummary",
     "UserMovieDetail",
     "UserMovieInteractionResponse",
     "UserMovieInteractionWithMovie",
-    ***REMOVED*** New collection-oriented schemas
+    # New collection-oriented schemas
     "AddToCollectionRequest",
     "CollectionItemResponse",
     "CollectionOperationResponse",

@@ -82,7 +82,7 @@ class AuthenticationException(APIException):
             context: Additional context information
             headers: HTTP headers to include in response
         """
-        ***REMOVED*** Add WWW-Authenticate header if not provided
+        # Add WWW-Authenticate header if not provided
         if headers is None:
             headers = {"WWW-Authenticate": "Bearer"}
 

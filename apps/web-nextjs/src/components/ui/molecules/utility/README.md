@@ -1,7 +1,7 @@
-***REMOVED*** Utility Molecules
+# Utility Molecules
 
 Composite utility components that provide enhanced functionality.
 
-***REMOVED******REMOVED*** Components
+## Components
 
 - **AppHeightScript**: A utility component that ensures correct viewport height on mobile devices.

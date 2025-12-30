@@ -2,16 +2,16 @@
 
 from typing import Any
 
-***REMOVED*** Cache value types
+# Cache value types
 type CacheValue = str | int | float | bool | dict[str, Any] | list[Any] | None
 type CacheKey = str
 type TTL = int | None
 
-***REMOVED*** JSON serializable types
+# JSON serializable types
 type JSONSerializable = (
     str | int | float | bool | None | dict[str, "JSONSerializable"] | list["JSONSerializable"]
 )
 
-***REMOVED*** Cache operation results
+# Cache operation results
 type CacheResult = JSONSerializable | None
 type CacheSetResult = bool

@@ -6,7 +6,7 @@ from rich.traceback import install
 
 from backend_api.cli import app
 
-***REMOVED*** Install rich traceback handler
+# Install rich traceback handler
 install()
 
 

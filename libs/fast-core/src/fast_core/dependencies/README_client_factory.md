@@ -1,14 +1,14 @@
-***REMOVED*** Service Client Factory Documentation
+# Service Client Factory Documentation
 
 The Service Client Factory provides a comprehensive system for managing HTTP service clients in FastAPI applications with support for custom client types, singleton patterns, and automatic health checking.
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
 ```python
 from fast_core.dependencies.client_factory import register_service, get_service_client
 from fastapi import FastAPI, Depends
 
-***REMOVED*** Register a service
+# Register a service
 register_service(
     name="user-service",
     base_url="https://api.users.com",
@@ -16,17 +16,17 @@ register_service(
     singleton=True
 )
 
-***REMOVED*** Create dependency
+# Create dependency
 get_user_client = get_service_client("user-service")
 
-***REMOVED*** Use in endpoints
+# Use in endpoints
 @app.get("/users/{user_id}")
 async def get_user(user_id: int, client = Depends(get_user_client)):
     response = await client.get(f"/users/{user_id}")
     return response.json()
 ```
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - **Service Registration**: Centralized configuration for external services
 - **Custom Client Types**: Domain-specific client classes with type safety
@@ -35,9 +35,9 @@ async def get_user(user_id: int, client = Depends(get_user_client)):
 - **FastAPI Integration**: Seamless dependency injection
 - **Multiple Patterns**: Decorator, manual, and factory registration methods
 
-***REMOVED******REMOVED*** Advanced Usage
+## Advanced Usage
 
-***REMOVED******REMOVED******REMOVED*** Custom Service Clients
+### Custom Service Clients
 
 ```python
 from fast_core.dependencies.client_factory import BaseServiceClient, service_client
@@ -56,7 +56,7 @@ class NotificationClient(BaseServiceClient):
         return {"service": self.name, "status": "healthy"}
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Monitoring
+### Health Monitoring
 
 ```python
 from fast_core.dependencies.client_factory import health_check_all_services
@@ -68,7 +68,7 @@ async def health_check():
     return {"status": "healthy" if all_healthy else "degraded", "services": results}
 ```
 
-***REMOVED******REMOVED*** Configuration Options
+## Configuration Options
 
 - `name`: Unique service identifier
 - `base_url`: Service base URL
@@ -78,7 +78,7 @@ async def health_check():
 - `client_class`: Custom client class (defaults to httpx.AsyncClient)
 - `client_kwargs`: Additional client configuration
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 1. Use singleton pattern for expensive-to-create clients
 2. Implement custom health checks for critical services

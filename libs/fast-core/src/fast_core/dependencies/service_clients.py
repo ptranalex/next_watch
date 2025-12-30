@@ -74,7 +74,7 @@ def get_service_client_factory(service_name: str) -> Callable[..., Awaitable[htt
         if not settings:
             raise HTTPException(status_code=500, detail="Application settings not available")
 
-        ***REMOVED*** Get service URL
+        # Get service URL
         service_url = None
         if hasattr(settings, "get_service_url"):
             service_url = settings.get_service_url(service_name)
@@ -86,8 +86,8 @@ def get_service_client_factory(service_name: str) -> Callable[..., Awaitable[htt
                 status_code=500, detail=f"Service URL for '{service_name}' not configured"
             )
 
-        ***REMOVED*** Get service timeout
-        timeout = 30  ***REMOVED*** default
+        # Get service timeout
+        timeout = 30  # default
         if hasattr(settings, "get_service_timeout"):
             timeout = settings.get_service_timeout(service_name, 30)
         elif hasattr(settings, "service_timeouts"):
@@ -99,7 +99,7 @@ def get_service_client_factory(service_name: str) -> Callable[..., Awaitable[htt
     return service_client_dependency
 
 
-***REMOVED*** Pre-configured dependency functions for common services
+# Pre-configured dependency functions for common services
 get_backend_client = get_service_client_factory("backend")
 get_auth_client = get_service_client_factory("auth")
 get_recommendation_client = get_service_client_factory("recommendation")

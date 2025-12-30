@@ -1,8 +1,8 @@
-***REMOVED*** NextWatch Mobile App
+# NextWatch Mobile App
 
 A Flutter-based mobile application for the NextWatch platform.
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - Cross-platform mobile app (iOS and Android)
 - Native movie browsing experience
@@ -12,16 +12,16 @@ A Flutter-based mobile application for the NextWatch platform.
 - Offline support for watchlist data
 - Push notifications for new releases
 
-***REMOVED******REMOVED*** Setup
+## Setup
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - Flutter SDK 3.10+
 - Dart 3.0+
 - Android Studio or Xcode for native development
 - Firebase project (for authentication and push notifications)
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 1. Install Flutter by following the [official installation guide](https://flutter.dev/docs/get-started/install)
 2. Clone the repository
@@ -36,23 +36,23 @@ flutter pub get
    - Copy `lib/config/.env.example` to `lib/config/.env`
    - Update API endpoint and other environment variables
 
-***REMOVED******REMOVED******REMOVED*** Running the App
+### Running the App
 
 ```bash
-***REMOVED*** Run in debug mode
+# Run in debug mode
 flutter run
 
-***REMOVED*** Run with specific device
+# Run with specific device
 flutter run -d <device_id>
 
-***REMOVED*** For iOS simulator
+# For iOS simulator
 flutter run -d ios
 
-***REMOVED*** For Android emulator
+# For Android emulator
 flutter run -d android
 ```
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
 The app follows a clean architecture pattern with the following layers:
 
@@ -61,30 +61,30 @@ The app follows a clean architecture pattern with the following layers:
 - **Domain**: Business logic and entities
 - **Infrastructure**: Data sources, repositories, and external services
 
-***REMOVED******REMOVED******REMOVED*** Directory Structure
+### Directory Structure
 
 ```
 mobile-flutter/
 ├── lib/
-│   ├── app/              ***REMOVED*** App configuration and initialization
-│   ├── config/           ***REMOVED*** Environment configuration
-│   ├── features/         ***REMOVED*** Feature modules
-│   │   ├── auth/         ***REMOVED*** Authentication feature
-│   │   ├── movies/       ***REMOVED*** Movie browsing and details
-│   │   ├── profile/      ***REMOVED*** User profile management
-│   │   └── watchlist/    ***REMOVED*** Watchlist management
-│   ├── core/             ***REMOVED*** Core utilities and shared components
-│   ├── navigation/       ***REMOVED*** Routing and navigation
-│   ├── services/         ***REMOVED*** External services (API, local storage)
-│   └── main.dart         ***REMOVED*** Entry point
-├── test/                 ***REMOVED*** Test files
-├── pubspec.yaml          ***REMOVED*** Dependencies
-└── README.md             ***REMOVED*** This file
+│   ├── app/              # App configuration and initialization
+│   ├── config/           # Environment configuration
+│   ├── features/         # Feature modules
+│   │   ├── auth/         # Authentication feature
+│   │   ├── movies/       # Movie browsing and details
+│   │   ├── profile/      # User profile management
+│   │   └── watchlist/    # Watchlist management
+│   ├── core/             # Core utilities and shared components
+│   ├── navigation/       # Routing and navigation
+│   ├── services/         # External services (API, local storage)
+│   └── main.dart         # Entry point
+├── test/                 # Test files
+├── pubspec.yaml          # Dependencies
+└── README.md             # This file
 ```
 
-***REMOVED******REMOVED*** Development
+## Development
 
-***REMOVED******REMOVED******REMOVED*** State Management
+### State Management
 
 The app uses [provider/riverpod/bloc] for state management with the following principles:
 
@@ -92,7 +92,7 @@ The app uses [provider/riverpod/bloc] for state management with the following pr
 - Reactive programming with streams
 - Dependency injection for testability
 
-***REMOVED******REMOVED******REMOVED*** API Integration
+### API Integration
 
 The app connects to the NextWatch backend API using:
 
@@ -100,38 +100,38 @@ The app connects to the NextWatch backend API using:
 - WebSockets for real-time updates (future)
 - Secure token storage for authentication
 
-***REMOVED******REMOVED******REMOVED*** Testing
+### Testing
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 flutter test
 
-***REMOVED*** Run specific test file
+# Run specific test file
 flutter test test/features/movies/movie_service_test.dart
 ```
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Android
+### Android
 
 ```bash
-***REMOVED*** Build APK
+# Build APK
 flutter build apk --release
 
-***REMOVED*** Build App Bundle for Play Store
+# Build App Bundle for Play Store
 flutter build appbundle --release
 ```
 
-***REMOVED******REMOVED******REMOVED*** iOS
+### iOS
 
 ```bash
-***REMOVED*** Build for iOS
+# Build for iOS
 flutter build ios --release
 
-***REMOVED*** Then use Xcode to archive and upload to App Store
+# Then use Xcode to archive and upload to App Store
 ```
 
-***REMOVED******REMOVED*** Contributing
+## Contributing
 
 1. Create a feature branch (`git checkout -b feature/amazing-feature`)
 2. Commit your changes (`git commit -m 'Add amazing feature'`)

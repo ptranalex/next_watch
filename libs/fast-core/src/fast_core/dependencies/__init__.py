@@ -38,32 +38,32 @@ from .singleton import (
 )
 
 __all__ = [
-    ***REMOVED*** Auth dependencies
+    # Auth dependencies
     "get_current_user",
     "get_optional_user",
     "require_auth",
-    ***REMOVED*** Cache dependencies
+    # Cache dependencies
     "get_cache_manager",
     "get_cache_service",
     "get_cache_provider",
     "get_redis_client",
-    ***REMOVED*** Database dependencies
+    # Database dependencies
     "get_db_session",
     "get_database_service",
     "get_database_engine",
-    ***REMOVED*** Common dependencies
+    # Common dependencies
     "get_pagination",
     "get_request_id",
     "get_search_params",
     "get_settings",
-    ***REMOVED*** Context dependencies
+    # Context dependencies
     "get_current_request_context",
     "get_current_request_id",
     "get_current_trace_headers",
     "require_request_context",
     "require_request_id",
     "get_trace_context_injector",
-    ***REMOVED*** Singleton dependencies
+    # Singleton dependencies
     "get_singleton_client",
     "register_singleton",
     "get_singleton",
@@ -72,7 +72,7 @@ __all__ = [
     "create_singleton_dependency",
     "SingletonConfig",
     "SingletonManager",
-    ***REMOVED*** Service client factory
+    # Service client factory
     "ServiceClientConfig",
     "BaseServiceClient",
     "GenericServiceClient",

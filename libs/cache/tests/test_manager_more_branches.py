@@ -29,7 +29,7 @@ async def test_delete_pattern_unsupported_provider_branch() -> None:
     mgr = CacheManager(provider=ProviderNoPattern())
     assert await mgr.delete_pattern("x*") == 0
 
-    ***REMOVED*** health_check false branch
+    # health_check false branch
     assert await mgr.health_check() is False
 
 

@@ -17,7 +17,7 @@ from recommendation_api.services.cache_service.warming import get_recommendation
 
 logger = get_logger(__name__)
 
-***REMOVED*** Global background task
+# Global background task
 _background_task: asyncio.Task | None = None
 _is_running = False
 
@@ -30,7 +30,7 @@ class BackgroundWarmingService:
         self.warming_service = get_recommendation_warming_service()
         self.interval_seconds = getattr(
             settings, "warming_interval_seconds", 3600
-        )  ***REMOVED*** Default: 1 hour
+        )  # Default: 1 hour
         self.is_running = False
         self.last_run: datetime | None = None
         self.stats: dict[str, Any] = {}
@@ -66,7 +66,7 @@ class BackgroundWarmingService:
                     exc_info=True,
                 )
 
-            ***REMOVED*** Sleep until next cycle
+            # Sleep until next cycle
             await asyncio.sleep(self.interval_seconds)
 
     async def stop(self) -> None:
@@ -85,16 +85,16 @@ class BackgroundWarmingService:
         )
         start_time = datetime.now()
 
-        ***REMOVED*** Run popular content strategy
+        # Run popular content strategy
         popular_stats = await self._run_strategy(WarmingStrategy.POPULAR_CONTENT)
 
-        ***REMOVED*** Run metrics-driven strategy
+        # Run metrics-driven strategy
         metrics_stats = await self._run_strategy(WarmingStrategy.METRICS_DRIVEN)
 
-        ***REMOVED*** Run scheduled strategy
+        # Run scheduled strategy
         scheduled_stats = await self._run_strategy(WarmingStrategy.SCHEDULED)
 
-        ***REMOVED*** Update stats
+        # Update stats
         end_time = datetime.now()
         duration_seconds = (end_time - start_time).total_seconds()
 
@@ -175,7 +175,7 @@ class BackgroundWarmingService:
         }
 
 
-***REMOVED*** Global background warming service instance
+# Global background warming service instance
 _background_warming_service: BackgroundWarmingService | None = None
 
 

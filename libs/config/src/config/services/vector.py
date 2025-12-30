@@ -39,7 +39,7 @@ class VectorDBConfigMixin:
     )
     qdrant_grpc_port: int = Field(default=6334, description="gRPC port for Qdrant")
 
-    ***REMOVED*** Collection configuration
+    # Collection configuration
     vector_collection_name: str = Field(
         default="movies", description="Default vector collection name"
     )
@@ -50,14 +50,14 @@ class VectorDBConfigMixin:
         default="cosine", description="Distance metric for similarity calculation"
     )
 
-    ***REMOVED*** Search configuration
+    # Search configuration
     search_limit_default: int = Field(default=10, description="Default search result limit")
     search_limit_max: int = Field(default=100, description="Maximum allowed search result limit")
     search_score_threshold: float = Field(
         default=0.7, description="Minimum similarity score threshold"
     )
 
-    ***REMOVED*** Performance configuration
+    # Performance configuration
     vector_cache_size: int = Field(
         default=1000, description="Vector cache size for better performance"
     )
@@ -94,7 +94,7 @@ class VectorDBConfigMixin:
         """Validate Qdrant timeout."""
         if v < 1:
             raise ValueError("Qdrant timeout must be at least 1 second")
-        if v > 300:  ***REMOVED*** 5 minutes
+        if v > 300:  # 5 minutes
             raise ValueError("Qdrant timeout should not exceed 300 seconds")
         return v
 
@@ -111,7 +111,7 @@ class VectorDBConfigMixin:
         if not v:
             raise ValueError("Vector collection name cannot be empty")
 
-        ***REMOVED*** Collection names should be valid identifiers
+        # Collection names should be valid identifiers
         if not v.replace("_", "").replace("-", "").isalnum():
             raise ValueError(
                 "Collection name must contain only alphanumeric, underscore, or dash characters"
@@ -127,13 +127,13 @@ class VectorDBConfigMixin:
         """Validate vector dimension."""
         if v < 1:
             raise ValueError("Vector dimension must be at least 1")
-        if v > 4096:  ***REMOVED*** Reasonable upper limit
+        if v > 4096:  # Reasonable upper limit
             raise ValueError("Vector dimension should not exceed 4096")
 
-        ***REMOVED*** Common embedding dimensions
+        # Common embedding dimensions
         common_dimensions = [128, 256, 384, 512, 768, 1024, 1536, 2048]
         if v not in common_dimensions:
-            ***REMOVED*** Warning: this might be intentional, so don't raise error
+            # Warning: this might be intentional, so don't raise error
             pass
 
         return v
@@ -248,7 +248,7 @@ class VectorDBConfigMixin:
         Returns:
             Qdrant URL with sensitive information masked
         """
-        ***REMOVED*** API key is typically passed separately, so just return URL
+        # API key is typically passed separately, so just return URL
         return self.qdrant_url
 
     def validate_vector_production_settings(self) -> list[str]:
@@ -259,29 +259,29 @@ class VectorDBConfigMixin:
         """
         issues = []
 
-        ***REMOVED*** Check for development/test URLs in production
+        # Check for development/test URLs in production
         if "localhost" in self.qdrant_url:
             issues.append("Qdrant should not use localhost in production")
 
         if "test" in self.qdrant_url.lower():
             issues.append("Qdrant URL appears to reference test instance")
 
-        ***REMOVED*** API key should be configured for production
+        # API key should be configured for production
         if not self.qdrant_api_key:
             issues.append("Qdrant API key should be configured in production")
 
-        ***REMOVED*** Performance settings for production
+        # Performance settings for production
         if not self.enable_vector_indexing:
             issues.append("Vector indexing should be enabled in production")
 
         if self.vector_cache_size < 100:
             issues.append("Vector cache size should be at least 100 in production")
 
-        ***REMOVED*** gRPC recommended for production performance
+        # gRPC recommended for production performance
         if not self.qdrant_prefer_grpc:
             issues.append("Consider enabling gRPC for better performance in production")
 
-        ***REMOVED*** Check collection name doesn't contain sensitive info
+        # Check collection name doesn't contain sensitive info
         if "test" in self.vector_collection_name.lower():
             issues.append("Collection name appears to reference test collection")
 

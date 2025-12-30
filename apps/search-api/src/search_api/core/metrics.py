@@ -30,19 +30,19 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
     if not endpoint:
         return endpoint
 
-    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    # Remove query parameters (they cause cardinality explosion)
     endpoint = endpoint.split("?")[0]
 
-    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    # Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
     normalized_parts = []
 
     for part in parts:
         if part.isdigit():
-            ***REMOVED*** Replace numeric IDs with generic placeholder
+            # Replace numeric IDs with generic placeholder
             normalized_parts.append("{id}")
         else:
-            ***REMOVED*** Keep non-numeric parts as-is
+            # Keep non-numeric parts as-is
             normalized_parts.append(part)
 
     return "/".join(normalized_parts)
@@ -70,7 +70,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Redis operation metrics
+        # Redis operation metrics
         self.redis_operations = self.registry.create_counter(
             "search_redis_operations_total",
             "Total Redis operations",
@@ -96,7 +96,7 @@ class SearchMetrics:
             ["key_type", "service"],
         )
 
-        ***REMOVED*** Search operation metrics
+        # Search operation metrics
         self.search_requests = self.registry.create_counter(
             "search_requests_total",
             "Total search requests by type and status",
@@ -117,7 +117,7 @@ class SearchMetrics:
             buckets=(0, 1, 5, 10, 25, 50, 100, 250, 500, 1000),
         )
 
-        ***REMOVED*** Suggestion engine metrics
+        # Suggestion engine metrics
         self.suggestion_requests = self.registry.create_counter(
             "search_suggestion_requests_total",
             "Total suggestion requests by type and status",
@@ -137,7 +137,7 @@ class SearchMetrics:
             ["cache_type", "status", "service"],
         )
 
-        ***REMOVED*** Query analytics metrics
+        # Query analytics metrics
         self.query_patterns = self.registry.create_counter(
             "search_query_patterns_total",
             "Query pattern analysis",
@@ -156,7 +156,7 @@ class SearchMetrics:
             ["filter_type", "filter_value_range", "service"],
         )
 
-        ***REMOVED*** Performance optimization metrics
+        # Performance optimization metrics
         self.fuzzy_search_fallbacks = self.registry.create_counter(
             "search_fuzzy_fallbacks_total",
             "Number of times fuzzy search was used as fallback",
@@ -176,7 +176,7 @@ class SearchMetrics:
             buckets=(0.001, 0.01, 0.05, 0.1, 0.25, 0.5, 1.0),
         )
 
-        ***REMOVED*** Entity-specific metrics
+        # Entity-specific metrics
         self.entity_search_performance = self.registry.create_histogram(
             "search_entity_performance_seconds",
             "Performance by entity type",
@@ -190,7 +190,7 @@ class SearchMetrics:
             ["entity_type", "service"],
         )
 
-        ***REMOVED*** User behavior metrics
+        # User behavior metrics
         self.search_session_patterns = self.registry.create_counter(
             "search_session_patterns_total",
             "Search session behavior patterns",
@@ -203,7 +203,7 @@ class SearchMetrics:
             ["suggestion_type", "conversion_status", "service"],
         )
 
-        ***REMOVED*** Error and quality metrics
+        # Error and quality metrics
         self.search_quality_metrics = self.registry.create_counter(
             "search_quality_metrics_total",
             "Search quality indicators",
@@ -259,7 +259,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Record search request
+        # Record search request
         request_labels = {
             "search_type": search_type,
             "status": status,
@@ -267,7 +267,7 @@ class SearchMetrics:
         }
         self.search_requests.labels(**request_labels).inc()
 
-        ***REMOVED*** Categorize result count for better grouping
+        # Categorize result count for better grouping
         if result_count == 0:
             result_range = "0"
         elif result_count <= 10:
@@ -279,7 +279,7 @@ class SearchMetrics:
         else:
             result_range = "100+"
 
-        ***REMOVED*** Record search duration
+        # Record search duration
         duration_labels = {
             "search_type": search_type,
             "result_count_range": result_range,
@@ -287,7 +287,7 @@ class SearchMetrics:
         }
         self.search_duration.labels(**duration_labels).observe(duration)
 
-        ***REMOVED*** Record result count
+        # Record result count
         result_labels = {
             "search_type": search_type,
             "service": self.registry.service_name,
@@ -308,7 +308,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Record suggestion request
+        # Record suggestion request
         request_labels = {
             "suggestion_type": suggestion_type,
             "status": status,
@@ -316,7 +316,7 @@ class SearchMetrics:
         }
         self.suggestion_requests.labels(**request_labels).inc()
 
-        ***REMOVED*** Categorize query length
+        # Categorize query length
         if query_length <= 2:
             length_range = "1-2"
         elif query_length <= 5:
@@ -326,7 +326,7 @@ class SearchMetrics:
         else:
             length_range = "10+"
 
-        ***REMOVED*** Record suggestion duration
+        # Record suggestion duration
         duration_labels = {
             "suggestion_type": suggestion_type,
             "query_length_range": length_range,
@@ -361,7 +361,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize query length
+        # Categorize query length
         if query_length <= 3:
             length_range = "1-3"
         elif query_length <= 7:
@@ -403,7 +403,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize filter values to avoid high cardinality
+        # Categorize filter values to avoid high cardinality
         if filter_type == "year":
             if filter_value and isinstance(filter_value, int):
                 if filter_value >= 2020:
@@ -446,7 +446,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize original results
+        # Categorize original results
         if original_results == 0:
             results_range = "0"
         elif original_results <= 5:
@@ -471,7 +471,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize page ranges
+        # Categorize page ranges
         if page == 1:
             page_range = "1"
         elif page <= 5:
@@ -481,7 +481,7 @@ class SearchMetrics:
         else:
             page_range = "10+"
 
-        ***REMOVED*** Categorize limit ranges
+        # Categorize limit ranges
         if limit <= 10:
             limit_range = "1-10"
         elif limit <= 25:
@@ -516,7 +516,7 @@ class SearchMetrics:
         }
         self.entity_search_performance.labels(**labels).observe(duration)
 
-        ***REMOVED*** Also record entity popularity
+        # Also record entity popularity
         popularity_labels = {
             "entity_type": entity_type,
             "service": self.registry.service_name,
@@ -550,7 +550,7 @@ class SearchMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize quality ranges
+        # Categorize quality ranges
         if value >= 0.9:
             quality_range = "excellent"
         elif value >= 0.7:
@@ -613,7 +613,7 @@ class SearchMetrics:
         self.redis_key_count.labels(**labels).set(count)
 
 
-***REMOVED*** Global Search metrics instance
+# Global Search metrics instance
 _search_metrics: SearchMetrics | None = None
 
 
@@ -630,13 +630,13 @@ def initialize_search_metrics() -> SearchMetrics | None:
     """
     global _search_metrics
     _search_metrics = SearchMetrics()
-    ***REMOVED*** Return None if the metrics instance couldn't initialize properly
+    # Return None if the metrics instance couldn't initialize properly
     if _search_metrics and not _search_metrics.registry:
         _search_metrics = None
     return _search_metrics
 
 
-***REMOVED*** Decorator for tracking Search operations
+# Decorator for tracking Search operations
 def track_search_operation[Func: Callable[..., Any]](
     operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[Func], Func]:
@@ -660,7 +660,7 @@ def track_search_operation[Func: Callable[..., Any]](
     return track_operation(registry, f"search_{operation_name}", labels)
 
 
-***REMOVED*** Example usage decorators for common Search operations
+# Example usage decorators for common Search operations
 def track_movie_search[Func: Callable[..., Any]](func: Func) -> Func:
     """Track movie search operations."""
     return track_search_operation("movie_search")(func)

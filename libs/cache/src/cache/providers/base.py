@@ -68,7 +68,7 @@ class CacheProvider(ABC):
         """
         try:
             result = json.loads(value)
-            ***REMOVED*** Cast to JSONSerializable since json.loads can return Any
+            # Cast to JSONSerializable since json.loads can return Any
             return cast(JSONSerializable, result)
         except (TypeError, ValueError) as e:
             self.logger.error("Failed to deserialize JSON value", error=str(e))
@@ -133,7 +133,7 @@ class CacheProvider(ABC):
         """
         pass
 
-    ***REMOVED*** High-level JSON operations
+    # High-level JSON operations
     async def get_json(self, key: CacheKey) -> CacheResult:
         """Get JSON value from cache.
 
@@ -150,7 +150,7 @@ class CacheProvider(ABC):
         try:
             return self._deserialize_json(raw_value)
         except ValueError:
-            ***REMOVED*** Log error but don't raise - treat as cache miss
+            # Log error but don't raise - treat as cache miss
             self.logger.warning("Found invalid JSON in cache, treating as miss", key=key)
             return None
 
@@ -171,7 +171,7 @@ class CacheProvider(ABC):
             json_value = self._serialize_json(value)
             return await self.set_raw(key, json_value, ttl)
         except ValueError:
-            ***REMOVED*** Log error and return False
+            # Log error and return False
             self.logger.error("Failed to cache non-serializable value", key=key)
             return False
 

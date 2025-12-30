@@ -2,21 +2,21 @@
 
 import typer
 
-***REMOVED*** Create main app
+# Create main app
 app = typer.Typer(
     help="Backend API Management CLI",
     add_completion=False,
 )
 
-***REMOVED*** Create command groups
+# Create command groups
 db_app = typer.Typer(help="Database management commands")
 health_app = typer.Typer(help="Health check commands")
 cache_app = typer.Typer(help="Cache management commands")
 
-***REMOVED*** Register command groups
+# Register command groups
 app.add_typer(db_app, name="db")
 app.add_typer(health_app, name="health")
 app.add_typer(cache_app, name="cache")
 
-***REMOVED*** Make apps available for importing
+# Make apps available for importing
 __all__ = ["app", "db_app", "health_app", "cache_app"]

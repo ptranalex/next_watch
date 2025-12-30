@@ -1,51 +1,51 @@
-***REMOVED*** React Hooks
+# React Hooks
 
 This directory contains all the React hooks used in the application, organized by their responsibility.
 
-***REMOVED******REMOVED*** 📂 Structure
+## 📂 Structure
 
 ```
 hooks/
-├── core/                ***REMOVED*** Application-wide hooks
-│   ├── useAuth.ts       ***REMOVED*** Authentication hooks
-│   ├── useSettings.ts   ***REMOVED*** Application settings
-│   └── useProtectedRoute.ts ***REMOVED*** Route protection logic
-├── domain/              ***REMOVED*** Domain-specific hooks
-│   ├── movie/           ***REMOVED*** Movie-related hooks
-│   │   ├── useMovie.ts  ***REMOVED*** Individual movie data
-│   │   ├── useMovieList.ts ***REMOVED*** Movie listings
-│   │   ├── useMovieActions.ts ***REMOVED*** Movie interactions
-│   │   └── useMovieSearch.ts ***REMOVED*** Search functionality
-│   ├── user/            ***REMOVED*** User-related hooks
-│   │   ├── useProfile.ts ***REMOVED*** User profile data
-│   │   └── usePreferences.ts ***REMOVED*** User preferences
-│   ├── genre/           ***REMOVED*** Genre-related hooks
-│   └── actors/          ***REMOVED*** Actor-related hooks
-├── ui/                  ***REMOVED*** UI-related hooks
-│   ├── useDebounce.ts   ***REMOVED*** Input debounce
-│   ├── useIntersectionObserver.ts ***REMOVED*** Scroll detection
-│   ├── useLocalStorage.ts ***REMOVED*** Local storage persistence
-│   ├── useMediaQuery.ts ***REMOVED*** Media query matching
-│   ├── useSwipe.ts      ***REMOVED*** Swipe gesture detection
-│   └── useHapticFeedback.ts ***REMOVED*** Haptic feedback utilities
-├── performance/         ***REMOVED*** Performance optimization hooks
-│   ├── useMemoizedCallback.ts ***REMOVED*** Callback memoization
-│   ├── useDeepCompareMemo.ts ***REMOVED*** Deep comparison memoization
-│   └── useDebouncedEffect.ts ***REMOVED*** Debounced effects
-├── navigation/          ***REMOVED*** Navigation-related hooks
-│   ├── useRouteParams.ts ***REMOVED*** Route parameter access
-│   ├── useQueryParams.ts ***REMOVED*** URL query parameter handling
-│   └── useNavigation.ts ***REMOVED*** Navigation utilities
-├── filter/              ***REMOVED*** Filter and sorting hooks
-│   ├── useFilterState.ts ***REMOVED*** Filter state management
-│   ├── useSortOptions.ts ***REMOVED*** Sorting options
-│   └── useFilterURL.ts  ***REMOVED*** URL-based filtering
-└── index.ts             ***REMOVED*** Re-exports all hooks
+├── core/                # Application-wide hooks
+│   ├── useAuth.ts       # Authentication hooks
+│   ├── useSettings.ts   # Application settings
+│   └── useProtectedRoute.ts # Route protection logic
+├── domain/              # Domain-specific hooks
+│   ├── movie/           # Movie-related hooks
+│   │   ├── useMovie.ts  # Individual movie data
+│   │   ├── useMovieList.ts # Movie listings
+│   │   ├── useMovieActions.ts # Movie interactions
+│   │   └── useMovieSearch.ts # Search functionality
+│   ├── user/            # User-related hooks
+│   │   ├── useProfile.ts # User profile data
+│   │   └── usePreferences.ts # User preferences
+│   ├── genre/           # Genre-related hooks
+│   └── actors/          # Actor-related hooks
+├── ui/                  # UI-related hooks
+│   ├── useDebounce.ts   # Input debounce
+│   ├── useIntersectionObserver.ts # Scroll detection
+│   ├── useLocalStorage.ts # Local storage persistence
+│   ├── useMediaQuery.ts # Media query matching
+│   ├── useSwipe.ts      # Swipe gesture detection
+│   └── useHapticFeedback.ts # Haptic feedback utilities
+├── performance/         # Performance optimization hooks
+│   ├── useMemoizedCallback.ts # Callback memoization
+│   ├── useDeepCompareMemo.ts # Deep comparison memoization
+│   └── useDebouncedEffect.ts # Debounced effects
+├── navigation/          # Navigation-related hooks
+│   ├── useRouteParams.ts # Route parameter access
+│   ├── useQueryParams.ts # URL query parameter handling
+│   └── useNavigation.ts # Navigation utilities
+├── filter/              # Filter and sorting hooks
+│   ├── useFilterState.ts # Filter state management
+│   ├── useSortOptions.ts # Sorting options
+│   └── useFilterURL.ts  # URL-based filtering
+└── index.ts             # Re-exports all hooks
 ```
 
-***REMOVED******REMOVED*** 🧩 Hook Categories
+## 🧩 Hook Categories
 
-***REMOVED******REMOVED******REMOVED*** Core Hooks
+### Core Hooks
 
 Core hooks handle application-wide concerns:
 
@@ -55,7 +55,7 @@ Core hooks handle application-wide concerns:
 - **Configuration**: App-wide settings and feature flags
 - **Theme**: Theme selection and application
 
-***REMOVED******REMOVED******REMOVED*** Domain Hooks
+### Domain Hooks
 
 Domain hooks interact with specific business domains:
 
@@ -65,7 +65,7 @@ Domain hooks interact with specific business domains:
 - **Search hooks**: Handle search functionality
 - **Watchlist hooks**: Manage user watchlist
 
-***REMOVED******REMOVED******REMOVED*** UI Hooks
+### UI Hooks
 
 UI hooks handle presentation concerns:
 
@@ -76,7 +76,7 @@ UI hooks handle presentation concerns:
 - **useSwipe**: Detect and handle swipe gestures
 - **useHapticFeedback**: Trigger device vibration feedback
 
-***REMOVED******REMOVED******REMOVED*** Performance Hooks
+### Performance Hooks
 
 Performance hooks optimize rendering and data flow:
 
@@ -85,7 +85,7 @@ Performance hooks optimize rendering and data flow:
 - **useDebouncedEffect**: useEffect with debounce to prevent rapid re-executions
 - **useLazyRef**: Lazy initialization of refs with complex values
 
-***REMOVED******REMOVED******REMOVED*** Navigation Hooks
+### Navigation Hooks
 
 Navigation hooks simplify routing and navigation:
 
@@ -94,7 +94,7 @@ Navigation hooks simplify routing and navigation:
 - **useNavigation**: Navigate between routes with type safety
 - **useScrollRestoration**: Restore scroll position when navigating
 
-***REMOVED******REMOVED******REMOVED*** Filter Hooks
+### Filter Hooks
 
 Filter hooks handle data filtering and sorting:
 
@@ -103,7 +103,7 @@ Filter hooks handle data filtering and sorting:
 - **useFilterURL**: Synchronize filters with URL parameters
 - **useInfiniteScroll**: Load more data on scroll
 
-***REMOVED******REMOVED*** 🚀 Usage
+## 🚀 Usage
 
 All hooks should be imported from the main `hooks` directory:
 
@@ -111,7 +111,7 @@ All hooks should be imported from the main `hooks` directory:
 import { useMovie, useAuth, useDebounce } from "@/hooks";
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example: Domain Hook
+### Example: Domain Hook
 
 ```tsx
 // Inside a component
@@ -130,7 +130,7 @@ function MovieDetail({ id }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example: UI Hook
+### Example: UI Hook
 
 ```tsx
 function SearchBar() {
@@ -154,7 +154,7 @@ function SearchBar() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example: Combined Hooks
+### Example: Combined Hooks
 
 ```tsx
 function MovieFilterPage() {
@@ -187,7 +187,7 @@ function MovieFilterPage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example: Advanced Hook Composition
+### Example: Advanced Hook Composition
 
 ```tsx
 // A custom hook built from multiple hooks
@@ -222,7 +222,7 @@ function useMovieFilters() {
 }
 ```
 
-***REMOVED******REMOVED*** 📝 Guidelines
+## 📝 Guidelines
 
 When creating new hooks:
 
@@ -237,7 +237,7 @@ When creating new hooks:
 9. **Composability**: Design hooks to be composable with other hooks
 10. **SSR Compatibility**: Ensure hooks work with server-side rendering
 
-***REMOVED******REMOVED******REMOVED*** React Query Pattern
+### React Query Pattern
 
 For data fetching hooks, use React Query's patterns:
 
@@ -264,7 +264,7 @@ export function useToggleMovieLike(id: number) {
 }
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 Hooks should be tested using React Testing Library and its hooks testing utilities:
 
@@ -287,7 +287,7 @@ test("my hook works correctly", () => {
 });
 ```
 
-***REMOVED******REMOVED*** 🔄 Data Flow
+## 🔄 Data Flow
 
 The hooks layer connects the domain layer to the UI layer:
 
@@ -296,7 +296,7 @@ The hooks layer connects the domain layer to the UI layer:
 3. **Hooks** transform API data to domain entities
 4. **UI Components** receive domain entities
 
-***REMOVED******REMOVED*** 📚 Related Documentation
+## 📚 Related Documentation
 
 For more details on specific hook categories:
 

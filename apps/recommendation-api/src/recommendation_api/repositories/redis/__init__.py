@@ -12,7 +12,7 @@ from recommendation_api.repositories.redis.repository import (
     store_similar_movies,
 )
 
-***REMOVED*** Define the public API
+# Define the public API
 __all__ = [
     "RedisRepository",
     "get_redis_repository",

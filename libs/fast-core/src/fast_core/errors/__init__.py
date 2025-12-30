@@ -10,7 +10,7 @@ It includes:
 """
 
 from .exceptions import (
-    ***REMOVED*** Exception classes (full names)
+    # Exception classes (full names)
     APIException,
     AuthenticationException,
     AuthorizationException,
@@ -31,9 +31,9 @@ from .handlers import (
     service_error_handler,
 )
 
-***REMOVED*** Export all public classes and functions
+# Export all public classes and functions
 __all__ = [
-    ***REMOVED*** Exception classes (full names)
+    # Exception classes (full names)
     "APIException",
     "AuthenticationException",
     "AuthorizationException",
@@ -44,7 +44,7 @@ __all__ = [
     "ResourceNotFoundException",
     "ServiceUnavailableException",
     "ValidationException",
-    ***REMOVED*** Handler functions and utilities
+    # Handler functions and utilities
     "handle_service_error",
     "service_error_handler",
     "critical_service_handler",

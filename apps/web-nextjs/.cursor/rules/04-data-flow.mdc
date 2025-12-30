@@ -1,6 +1,6 @@
-***REMOVED*** Next Watch - Data Flow Patterns
+# Next Watch - Data Flow Patterns
 
-***REMOVED******REMOVED*** 🔗 Hooks-Based Architecture
+## 🔗 Hooks-Based Architecture
 
 **MANDATORY** hooks organization by responsibility:
 
@@ -17,11 +17,11 @@ import { useMovie, useAuth, useDebounce } from "@/hooks";
 // - filter/: Data filtering and sorting
 ```
 
-***REMOVED******REMOVED*** 🏪 State Management Strategy
+## 🏪 State Management Strategy
 
 **STRICT** separation of concerns across different state management solutions:
 
-***REMOVED******REMOVED******REMOVED*** 1. React Query - Server State
+### 1. React Query - Server State
 
 **USE FOR**: Data fetching, caching, synchronization with server
 
@@ -45,7 +45,7 @@ const useMovies = (filters: MovieFilters) => {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Zustand - Client State
+### 2. Zustand - Client State
 
 **USE FOR**: UI preferences, filters, local application state
 
@@ -69,7 +69,7 @@ const useMovieFilterStore = create<MovieFilterStore>((set) => ({
 }));
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Context Providers - App-Wide Concerns
+### 3. Context Providers - App-Wide Concerns
 
 **USE FOR**: Authentication, theme, responsive state, global configuration
 
@@ -89,9 +89,9 @@ const AuthProvider = ({ children }) => {
 };
 ```
 
-***REMOVED******REMOVED*** 🎯 Data Flow Patterns
+## 🎯 Data Flow Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Component Data Access Pattern
+### 1. Component Data Access Pattern
 
 ```typescript
 // ✅ CORRECT - Proper separation of concerns
@@ -122,7 +122,7 @@ function MovieComponent({ movieId }: { movieId: string }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Optimistic Updates Pattern
+### 2. Optimistic Updates Pattern
 
 **REQUIRED** for better user experience:
 
@@ -168,7 +168,7 @@ const useMovieActions = (movieId: string) => {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Data Synchronization Pattern
+### 3. Data Synchronization Pattern
 
 ```typescript
 // ✅ CORRECT - Coordinated updates across components
@@ -202,9 +202,9 @@ const useMovieSync = () => {
 };
 ```
 
-***REMOVED******REMOVED*** 🎣 Custom Hooks Patterns
+## 🎣 Custom Hooks Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Domain Hook Structure
+### 1. Domain Hook Structure
 
 ```typescript
 // hooks/domain/movie/useMovie.ts
@@ -233,7 +233,7 @@ export const useMovie = (id: string) => {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Composite Hook Pattern
+### 2. Composite Hook Pattern
 
 ```typescript
 // hooks/domain/movie/useMovieFilters.ts
@@ -271,7 +271,7 @@ export const useMovieFilters = () => {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Performance Hook Pattern
+### 3. Performance Hook Pattern
 
 ```typescript
 // hooks/performance/useDebouncedEffect.ts
@@ -298,9 +298,9 @@ export const useDebouncedEffect = (
 };
 ```
 
-***REMOVED******REMOVED*** 🔄 Error Handling Patterns
+## 🔄 Error Handling Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Query Error Handling
+### 1. Query Error Handling
 
 ```typescript
 // ✅ CORRECT - Comprehensive error handling
@@ -331,7 +331,7 @@ const useMovieWithErrorHandling = (id: string) => {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Mutation Error Handling
+### 2. Mutation Error Handling
 
 ```typescript
 // ✅ CORRECT - Mutation with error recovery
@@ -360,9 +360,9 @@ const useMovieMutation = () => {
 };
 ```
 
-***REMOVED******REMOVED*** 🚨 Data Flow Anti-Patterns
+## 🚨 Data Flow Anti-Patterns
 
-***REMOVED******REMOVED******REMOVED*** Forbidden Practices
+### Forbidden Practices
 
 ```typescript
 // ❌ NEVER - Direct API calls in components

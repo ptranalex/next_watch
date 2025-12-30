@@ -1,7 +1,7 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Start services with Tempo dependency management
-***REMOVED*** This script ensures Tempo is healthy before starting application services
+# Start services with Tempo dependency management
+# This script ensures Tempo is healthy before starting application services
 
 set -e
 
@@ -19,7 +19,7 @@ else
     exit 1
 fi
 
-***REMOVED*** Function to check if Tempo is ready
+# Function to check if Tempo is ready
 check_tempo_ready() {
     local max_attempts=30
     local attempt=1
@@ -41,7 +41,7 @@ check_tempo_ready() {
     return 1
 }
 
-***REMOVED*** Function to check if Tempo container exists and is running
+# Function to check if Tempo container exists and is running
 check_tempo_container() {
     if ! docker ps --format "table {{.Names}}" | grep -q "tempo-"; then
         echo "❌ Tempo container not found. Please start the monitoring stack first:"
@@ -54,14 +54,14 @@ check_tempo_container() {
     fi
 }
 
-***REMOVED*** Check if Tempo container exists
+# Check if Tempo container exists
 check_tempo_container
 
-***REMOVED*** Wait for Tempo to be ready
+# Wait for Tempo to be ready
 if check_tempo_ready; then
     echo "🎯 Starting application services..."
 
-    ***REMOVED*** Start services in order with dependencies
+    # Start services in order with dependencies
     cd "$INFRA_DIR"
 
     if [ "$1" = "prod" ]; then

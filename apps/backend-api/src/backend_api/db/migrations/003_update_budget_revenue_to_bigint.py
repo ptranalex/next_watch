@@ -10,7 +10,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.sql import text
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "003_update_budget_revenue_to_bigint"
 MIGRATION_DESCRIPTION = "Update budget and revenue fields to BIGINT type"
 
@@ -21,7 +21,7 @@ def upgrade(engine: Engine) -> None:
     """Upgrade from previous revision."""
     logger.info("Updating budget and revenue columns to BIGINT type")
 
-    ***REMOVED*** Alter budget and revenue columns to BIGINT
+    # Alter budget and revenue columns to BIGINT
     with engine.begin() as connection:
         connection.execute(
             text("ALTER TABLE movie ALTER COLUMN budget TYPE BIGINT USING budget::BIGINT")
@@ -30,7 +30,7 @@ def upgrade(engine: Engine) -> None:
             text("ALTER TABLE movie ALTER COLUMN revenue TYPE BIGINT USING revenue::BIGINT")
         )
 
-        ***REMOVED*** Record the migration in the migrations table
+        # Record the migration in the migrations table
         try:
             connection.execute(
                 text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
@@ -45,7 +45,7 @@ def downgrade(engine: Engine) -> None:
     """Downgrade to previous revision."""
     logger.info("Downgrading budget and revenue columns back to INTEGER")
 
-    ***REMOVED*** Note: Downgrading could potentially lose data if values exceed INTEGER limits
+    # Note: Downgrading could potentially lose data if values exceed INTEGER limits
     with engine.begin() as connection:
         connection.execute(
             text(
@@ -58,7 +58,7 @@ def downgrade(engine: Engine) -> None:
             )
         )
 
-        ***REMOVED*** Remove the migration record
+        # Remove the migration record
         try:
             connection.execute(
                 text("DELETE FROM migrations WHERE id = :id"),

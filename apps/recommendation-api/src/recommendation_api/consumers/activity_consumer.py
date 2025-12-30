@@ -83,15 +83,15 @@ class ActivityConsumer(KafkaEventConsumer):
             movie_id=event.movie_id,
         )
 
-        ***REMOVED*** TODO: Implement logic to:
-        ***REMOVED*** 1. Update user's view history
-        ***REMOVED*** 2. Invalidate cached recommendations for this user
-        ***REMOVED*** 3. Update collaborative filtering data
-        ***REMOVED*** 4. Trigger recommendation cache warming for active user
+        # TODO: Implement logic to:
+        # 1. Update user's view history
+        # 2. Invalidate cached recommendations for this user
+        # 3. Update collaborative filtering data
+        # 4. Trigger recommendation cache warming for active user
 
-        ***REMOVED*** Example:
-        ***REMOVED*** await self.recommendation_service.invalidate_user_cache(event.user_id)
-        ***REMOVED*** await self.recommendation_service.update_user_preferences(event.user_id)
+        # Example:
+        # await self.recommendation_service.invalidate_user_cache(event.user_id)
+        # await self.recommendation_service.update_user_preferences(event.user_id)
 
     async def _handle_movie_rated(self, event_data: dict[str, Any]) -> None:
         """Handle movie rated event.
@@ -108,11 +108,11 @@ class ActivityConsumer(KafkaEventConsumer):
             rating=event.rating,
         )
 
-        ***REMOVED*** TODO: Implement logic to:
-        ***REMOVED*** 1. Update user preference vector based on rating
-        ***REMOVED*** 2. Invalidate cached recommendations
-        ***REMOVED*** 3. Update collaborative filtering matrix
-        ***REMOVED*** 4. Potentially trigger model retraining if significant rating
+        # TODO: Implement logic to:
+        # 1. Update user preference vector based on rating
+        # 2. Invalidate cached recommendations
+        # 3. Update collaborative filtering matrix
+        # 4. Potentially trigger model retraining if significant rating
 
     async def _handle_watchlist_changed(self, event_data: dict[str, Any]) -> None:
         """Handle watchlist changed event.
@@ -129,10 +129,10 @@ class ActivityConsumer(KafkaEventConsumer):
             action=event.action,
         )
 
-        ***REMOVED*** TODO: Implement logic to:
-        ***REMOVED*** 1. Update user's watchlist preferences
-        ***REMOVED*** 2. Adjust recommendation weights
-        ***REMOVED*** 3. Invalidate relevant caches
+        # TODO: Implement logic to:
+        # 1. Update user's watchlist preferences
+        # 2. Adjust recommendation weights
+        # 3. Invalidate relevant caches
 
 
 async def start_activity_consumer() -> None:

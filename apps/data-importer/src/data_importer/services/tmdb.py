@@ -131,10 +131,10 @@ class TMDBClient:
         params: Dict[str, Any] = {
             "primary_release_year": year,
             "language": "en-US",
-            "sort_by": "vote_count.desc",  ***REMOVED*** Sort by vote count instead of popularity
+            "sort_by": "vote_count.desc",  # Sort by vote count instead of popularity
             "include_adult": "false",
             "include_video": "false",
-            "vote_count.gte": 100,  ***REMOVED*** Only movies with at least 100 votes
+            "vote_count.gte": 100,  # Only movies with at least 100 votes
         }
 
         movies: List[Dict[str, Any]] = []
@@ -146,26 +146,26 @@ class TMDBClient:
 
                 response = await self._make_request("/discover/movie", params)
 
-                ***REMOVED*** If _make_request returns an empty dict, there was an error
+                # If _make_request returns an empty dict, there was an error
                 if not response:
                     raise ValueError(f"Error fetching movies for year {year}")
 
-                ***REMOVED*** Check if we have results
+                # Check if we have results
                 results = response.get("results", [])
                 if not results:
                     break
 
-                ***REMOVED*** Add only up to the limit
+                # Add only up to the limit
                 remaining = limit - len(movies)
                 movies.extend(results[:remaining])
 
-                ***REMOVED*** Check if we've reached the last page
+                # Check if we've reached the last page
                 if page >= response.get("total_pages", 1) or not remaining:
                     break
 
                 page += 1
 
-            return movies[:limit]  ***REMOVED*** Ensure we don't exceed the limit
+            return movies[:limit]  # Ensure we don't exceed the limit
 
         except aiohttp.ClientError as e:
             logger.error(f"Network error fetching movies for year {year}: {str(e)}")
@@ -196,7 +196,7 @@ class TMDBClient:
         """
         params: Dict[str, Any] = {"language": language}
 
-        ***REMOVED*** Build append_to_response parameter
+        # Build append_to_response parameter
         append_items = []
         if append_credits:
             append_items.append("credits")

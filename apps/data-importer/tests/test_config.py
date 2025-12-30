@@ -24,11 +24,11 @@ def test_config_str_masks_secrets() -> None:
 
     cfg = Config(tmdb_access_token="abcd1234", imdb_api_key="wxyz9876", omdb_api_key="zzzz9999")
     s = str(cfg)
-    ***REMOVED*** should not show full secrets
+    # should not show full secrets
     assert "abcd1234" not in s
     assert "wxyz9876" not in s
     assert "zzzz9999" not in s
-    ***REMOVED*** should keep last 4 chars
+    # should keep last 4 chars
     assert "1234" in s
     assert "9876" in s
     assert "9999" in s

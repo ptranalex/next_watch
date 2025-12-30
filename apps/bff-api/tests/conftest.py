@@ -58,7 +58,7 @@ def app(test_config, mock_backend_client):
     """FastAPI test application fixture."""
     app = get_app()
 
-    ***REMOVED*** Override dependencies
+    # Override dependencies
     app.dependency_overrides = {
         get_backend_client: lambda: mock_backend_client,
     }

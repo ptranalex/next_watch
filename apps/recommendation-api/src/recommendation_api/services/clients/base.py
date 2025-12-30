@@ -32,7 +32,7 @@ class BaseBackendClient:
             base_url: Base URL for the backend service (uses settings if None)
             timeout: Request timeout in seconds (uses settings if None)
         """
-        ***REMOVED*** Backward compatibility: use settings if parameters not provided
+        # Backward compatibility: use settings if parameters not provided
         if base_url is None or timeout is None:
             from recommendation_api.config import settings
 
@@ -57,7 +57,7 @@ class BaseBackendClient:
         Returns:
             Full API path with version prefix
         """
-        ***REMOVED*** Remove leading slash if present to avoid double slashes
+        # Remove leading slash if present to avoid double slashes
         clean_path = path.lstrip("/")
         return f"/api/v1/{clean_path}"
 
@@ -110,7 +110,7 @@ class BaseBackendClient:
                 headers=headers or {},
             )
 
-            ***REMOVED*** Handle HTTP status errors with semantic preservation
+            # Handle HTTP status errors with semantic preservation
             if response.status_code >= 400:
                 error_detail = "Unknown error"
                 try:
@@ -119,7 +119,7 @@ class BaseBackendClient:
                 except Exception:
                     error_detail = response.text
 
-                ***REMOVED*** Map HTTP status codes to semantic exceptions
+                # Map HTTP status codes to semantic exceptions
                 if response.status_code == 400:
                     raise ValidationException(f"Invalid request: {error_detail}")
                 elif response.status_code == 404:
@@ -145,7 +145,7 @@ class BaseBackendClient:
 
             if response.headers.get("content-type", "").startswith("application/json"):
                 json_response = response.json()
-                ***REMOVED*** If the response is a list, wrap it in a dict for consistency
+                # If the response is a list, wrap it in a dict for consistency
                 if isinstance(json_response, list):
                     return {"data": json_response}
                 return cast(dict[str, Any], json_response)
@@ -161,7 +161,7 @@ class BaseBackendClient:
             logger.error(error_msg)
             raise ExternalServiceException(error_msg) from e
         except (ValidationException, ResourceNotFoundException, ExternalServiceException):
-            ***REMOVED*** Re-raise semantic exceptions without wrapping
+            # Re-raise semantic exceptions without wrapping
             raise
         except Exception as e:
             error_msg = f"Unexpected error calling Backend API: {str(e)}"

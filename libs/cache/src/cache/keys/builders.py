@@ -40,7 +40,7 @@ def build_cache_key(
         >>> build_cache_key("movie", ["details", 123, "user", 456])
         "nextwatch:movie:details:123:user:456"
     """
-    ***REMOVED*** Filter out None values and convert to strings
+    # Filter out None values and convert to strings
     clean_parts = [str(part) for part in key_parts if part is not None]
     key_string = ":".join(clean_parts)
     return f"{prefix}:{namespace}:{key_string}"
@@ -62,10 +62,10 @@ def hash_parameters(params: dict[str, Any], length: int = 8) -> str:
         >>> hash_parameters({"genre": 1, "year": 2023, "rating": 8.5})
         "a1b2c3d4"
     """
-    ***REMOVED*** Create a consistent string representation
+    # Create a consistent string representation
     param_string = "&".join(f"{k}={v}" for k, v in sorted(params.items()) if v is not None)
 
-    ***REMOVED*** Generate MD5 hash and truncate
+    # Generate MD5 hash and truncate
     hash_obj = hashlib.md5(param_string.encode())
     return hash_obj.hexdigest()[:length]
 
@@ -95,10 +95,10 @@ def build_filtered_key(
         >>> build_filtered_key("genre", 1, {"year": 2023, "rating": 8.5}, user_id=123)
         "nextwatch:genre:1:filters:a1b2c3d4:user:123"
     """
-    ***REMOVED*** Hash the filters for a consistent, short key
+    # Hash the filters for a consistent, short key
     filter_hash = hash_parameters(filters)
 
-    ***REMOVED*** Build key parts
+    # Build key parts
     key_parts: list[str | int | None] = [str(base_id), "filters", filter_hash]
 
     if user_id is not None:

@@ -74,30 +74,30 @@ class VectorRepository:
             logger.warning(f"Empty embedding for movie {movie_id}")
             return False
 
-        ***REMOVED*** Ensure collection exists
+        # Ensure collection exists
         if not self.client.collection_exists(self.collection_name):
             logger.info(f"Collection '{self.collection_name}' does not exist, creating...")
             if not self.create_collection():
                 logger.error(f"Failed to create collection '{self.collection_name}'")
                 return False
 
-        ***REMOVED*** Prepare payload with metadata and version info
+        # Prepare payload with metadata and version info
         payload = metadata or {}
 
-        ***REMOVED*** Add metadata version to track schema changes
+        # Add metadata version to track schema changes
         payload["metadata_version"] = "v2"
 
-        ***REMOVED*** Add timestamp for tracking
+        # Add timestamp for tracking
         payload["indexed_at"] = time.time()
 
-        ***REMOVED*** Create point
+        # Create point
         point = models.PointStruct(
             id=movie_id,
             vector=embedding,
             payload=payload,
         )
 
-        ***REMOVED*** Upsert point
+        # Upsert point
         return self.client.upsert_points(
             points=[point],
             collection_name=self.collection_name,
@@ -121,7 +121,7 @@ class VectorRepository:
         Returns:
             List of tuples (movie_id, similarity_score)
         """
-        ***REMOVED*** Create filter to exclude specific movie IDs if needed
+        # Create filter to exclude specific movie IDs if needed
         query_filter = None
         if exclude_movie_ids and len(exclude_movie_ids) > 0:
             query_filter = models.Filter(
@@ -134,7 +134,7 @@ class VectorRepository:
             )
 
         try:
-            ***REMOVED*** Search for similar vectors
+            # Search for similar vectors
             search_results = self.client.search(
                 query_vector=query_embedding,
                 limit=limit,
@@ -143,7 +143,7 @@ class VectorRepository:
                 query_filter=query_filter,
             )
 
-            ***REMOVED*** Extract movie IDs and scores
+            # Extract movie IDs and scores
             similar_movies = [(int(result.id), result.score) for result in search_results]
 
             logger.debug(f"Found {len(similar_movies)} similar movies")
@@ -216,7 +216,7 @@ class VectorRepository:
         if not embeddings_data:
             return False
 
-        ***REMOVED*** Ensure collection exists
+        # Ensure collection exists
         if not self.client.collection_exists(self.collection_name):
             logger.info(f"Collection '{self.collection_name}' does not exist, creating...")
             if not self.create_collection():
@@ -229,12 +229,12 @@ class VectorRepository:
                 logger.warning(f"Empty embedding for movie {movie_id}, skipping")
                 continue
 
-            ***REMOVED*** Add metadata version and timestamp
+            # Add metadata version and timestamp
             payload = (metadata or {}).copy()
             payload["metadata_version"] = "v2"
             payload["indexed_at"] = time.time()
 
-            ***REMOVED*** Create point
+            # Create point
             point = models.PointStruct(
                 id=movie_id,
                 vector=embedding,
@@ -245,7 +245,7 @@ class VectorRepository:
         if not points:
             return False
 
-        ***REMOVED*** Batch upsert
+        # Batch upsert
         return self.client.upsert_points(
             points=points,
             collection_name=self.collection_name,
@@ -271,10 +271,10 @@ class VectorRepository:
             embedding = item["vector"]
             metadata = item.get("metadata", {})
 
-            ***REMOVED*** Ensure movie_id is in metadata
+            # Ensure movie_id is in metadata
             metadata["movie_id"] = movie_id
 
-            ***REMOVED*** Create point
+            # Create point
             point = models.PointStruct(
                 id=movie_id,
                 vector=embedding,
@@ -282,7 +282,7 @@ class VectorRepository:
             )
             points.append(point)
 
-        ***REMOVED*** Use wait=true to ensure all points are properly indexed
+        # Use wait=true to ensure all points are properly indexed
         return (
             client.client.upsert(collection_name=client.collection_name, points=points, wait=True)
             is not None
@@ -304,43 +304,43 @@ class VectorRepository:
         Returns:
             List of tuples (movie_id, similarity_score)
         """
-        ***REMOVED*** Get the embedding for the movie
+        # Get the embedding for the movie
         embedding = self.get_movie_embedding(movie_id)
 
-        ***REMOVED*** If embedding is successfully retrieved, use standard similarity search
+        # If embedding is successfully retrieved, use standard similarity search
         if embedding:
             logger.debug(f"Found embedding for movie {movie_id}, using standard similarity search")
             return self.search_similar_movies(
                 query_embedding=embedding,
-                limit=limit + 1,  ***REMOVED*** +1 to account for excluding the original
+                limit=limit + 1,  # +1 to account for excluding the original
                 score_threshold=score_threshold,
                 exclude_movie_ids=[movie_id],
-            )[:limit]  ***REMOVED*** Limit to requested number
+            )[:limit]  # Limit to requested number
 
-        ***REMOVED*** If embedding retrieval failed, try direct search with filtering
+        # If embedding retrieval failed, try direct search with filtering
         logger.warning(f"No embedding found for movie {movie_id}, using fallback search approach")
 
-        ***REMOVED*** Get Qdrant client
+        # Get Qdrant client
         client = get_qdrant_client()
 
-        ***REMOVED*** Check if the movie exists in the database first
+        # Check if the movie exists in the database first
         point = client.get_point(movie_id)
         if not point:
             logger.warning(f"Movie {movie_id} not found in vector database")
             return []
 
-        ***REMOVED*** If movie exists but vector couldn't be retrieved, use fallback approach
+        # If movie exists but vector couldn't be retrieved, use fallback approach
         try:
-            ***REMOVED*** Use a dummy vector to search and filter by movie_id
+            # Use a dummy vector to search and filter by movie_id
             from qdrant_client.http import models
 
             from recommendation_api.config import settings
 
-            ***REMOVED*** Use a random-ish vector as query (exact values don't matter)
+            # Use a random-ish vector as query (exact values don't matter)
             vector_size = settings.embedding_dimension
             dummy_vector = [0.1] * vector_size
 
-            ***REMOVED*** Search for all other movies, excluding this one
+            # Search for all other movies, excluding this one
             similar_response = client.search(
                 collection_name=settings.qdrant_collection_name,
                 query_vector=dummy_vector,
@@ -356,7 +356,7 @@ class VectorRepository:
             )
 
             if similar_response:
-                ***REMOVED*** Convert to our standard format
+                # Convert to our standard format
                 results = [(int(point.id), float(point.score)) for point in similar_response]
                 logger.debug(f"Found {len(results)} similar movies with fallback approach")
                 return results
@@ -364,7 +364,7 @@ class VectorRepository:
         except Exception as e:
             logger.error(f"Error in fallback search: {e}")
 
-        ***REMOVED*** If all approaches failed
+        # If all approaches failed
         return []
 
     def get_embeddings_stats(self) -> dict[str, Any]:
@@ -378,13 +378,13 @@ class VectorRepository:
             "collection_exists": False,
         }
 
-        ***REMOVED*** Check if collection exists
+        # Check if collection exists
         if not self.client.collection_exists(self.collection_name):
             return stats
 
         stats["collection_exists"] = True
 
-        ***REMOVED*** Get collection info
+        # Get collection info
         collection_info = self.get_collection_info()
         if collection_info:
             stats["total_embeddings"] = collection_info.get("vectors_count", 0)
@@ -392,7 +392,7 @@ class VectorRepository:
             stats["indexed_vectors_count"] = collection_info.get("indexed_vectors_count", 0)
             stats["segments_count"] = collection_info.get("segments_count", 0)
 
-            ***REMOVED*** Add config info if available
+            # Add config info if available
             config = collection_info.get("config", {})
             if config:
                 stats["vector_size"] = config.get("vector_size")
@@ -418,7 +418,7 @@ class VectorRepository:
         Returns:
             List of tuples (movie_id, similarity_score, metadata)
         """
-        ***REMOVED*** Create filter to exclude specific movie IDs if needed
+        # Create filter to exclude specific movie IDs if needed
         query_filter = None
         if exclude_movie_ids and len(exclude_movie_ids) > 0:
             query_filter = models.Filter(
@@ -431,7 +431,7 @@ class VectorRepository:
             )
 
         try:
-            ***REMOVED*** Search for similar vectors
+            # Search for similar vectors
             search_results = self.client.search(
                 collection_name=self.collection_name,
                 query_vector=query_embedding,
@@ -440,14 +440,14 @@ class VectorRepository:
                 score_threshold=score_threshold,
             )
 
-            ***REMOVED*** Since we can't get payload directly, fetch it separately for each result
+            # Since we can't get payload directly, fetch it separately for each result
             similar_movies = []
 
             for result in search_results:
                 movie_id = int(result.id)
                 score = result.score
 
-                ***REMOVED*** Get the point with payload
+                # Get the point with payload
                 try:
                     point = self.client.get_point(
                         collection_name=self.collection_name,
@@ -483,32 +483,32 @@ class VectorRepository:
         Returns:
             List of tuples (movie_id, similarity_score, metadata)
         """
-        ***REMOVED*** Get the embedding for the movie
+        # Get the embedding for the movie
         embedding = self.get_movie_embedding(movie_id)
 
-        ***REMOVED*** If embedding is successfully retrieved, use enhanced similarity search
+        # If embedding is successfully retrieved, use enhanced similarity search
         if embedding:
             logger.debug(f"Found embedding for movie {movie_id}, using metadata similarity search")
             return self.search_similar_movies_with_metadata(
                 query_embedding=embedding,
-                limit=limit + 1,  ***REMOVED*** +1 to account for excluding the original
+                limit=limit + 1,  # +1 to account for excluding the original
                 score_threshold=score_threshold,
                 exclude_movie_ids=[movie_id],
-            )[:limit]  ***REMOVED*** Limit to requested number
+            )[:limit]  # Limit to requested number
 
-        ***REMOVED*** If embedding retrieval failed, fallback to old approach
+        # If embedding retrieval failed, fallback to old approach
         logger.warning(f"No embedding found for movie {movie_id}, falling back to standard search")
 
-        ***REMOVED*** Fallback to standard search and then fetch metadata separately
+        # Fallback to standard search and then fetch metadata separately
         standard_results = self.search_by_movie_id(movie_id, limit, score_threshold)
 
-        ***REMOVED*** Convert to metadata format by fetching individual payloads
+        # Convert to metadata format by fetching individual payloads
         client = get_qdrant_client()
         results_with_metadata = []
 
         for similar_movie_id, score in standard_results:
             try:
-                point = client.get_point(similar_movie_id)  ***REMOVED*** Payload is included by default
+                point = client.get_point(similar_movie_id)  # Payload is included by default
                 if point and point.payload:
                     metadata = {
                         "id": similar_movie_id,
@@ -538,7 +538,7 @@ class VectorRepository:
                     }
                     results_with_metadata.append((similar_movie_id, score, metadata))
                 else:
-                    ***REMOVED*** If no metadata available, skip this result
+                    # If no metadata available, skip this result
                     logger.warning(f"No metadata found for movie {similar_movie_id}, skipping")
             except Exception as e:
                 logger.warning(f"Error fetching metadata for movie {similar_movie_id}: {e}")
@@ -547,12 +547,12 @@ class VectorRepository:
 
     async def close(self) -> None:
         """Close the repository and release resources."""
-        ***REMOVED*** Currently, no async resources to close in the repository itself
-        ***REMOVED*** But we'll keep this method async for future compatibility
+        # Currently, no async resources to close in the repository itself
+        # But we'll keep this method async for future compatibility
         pass
 
 
-***REMOVED*** Create a singleton instance for global use
+# Create a singleton instance for global use
 _vector_repository: VectorRepository | None = None
 
 
@@ -570,7 +570,7 @@ def get_vector_repository() -> VectorRepository:
     return _vector_repository
 
 
-***REMOVED*** For backward compatibility, provide standalone functions that use the singleton
+# For backward compatibility, provide standalone functions that use the singleton
 def create_collection() -> bool:
     """Create the movie embeddings collection.
 
@@ -760,5 +760,5 @@ async def close_vector_repository() -> None:
         await _vector_repository.close()
         _vector_repository = None
 
-    ***REMOVED*** Close the underlying Qdrant client
+    # Close the underlying Qdrant client
     close_qdrant_client()

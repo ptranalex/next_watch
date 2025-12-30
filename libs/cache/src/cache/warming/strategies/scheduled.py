@@ -46,17 +46,17 @@ class ScheduledStrategy(BaseWarmingStrategy):
         """
         return {
             "peak_hours": {
-                "weekday": [(18, 23)],  ***REMOVED*** 6 PM - 11 PM
-                "weekend": [(12, 24)],  ***REMOVED*** 12 PM - 12 AM
+                "weekday": [(18, 23)],  # 6 PM - 11 PM
+                "weekend": [(12, 24)],  # 12 PM - 12 AM
             },
             "off_peak_hours": {
-                "weekday": [(2, 6)],  ***REMOVED*** 2 AM - 6 AM
-                "weekend": [(3, 8)],  ***REMOVED*** 3 AM - 8 AM
+                "weekday": [(2, 6)],  # 2 AM - 6 AM
+                "weekend": [(3, 8)],  # 3 AM - 8 AM
             },
             "daily_schedules": {
-                "morning_prep": time(6, 0),  ***REMOVED*** 6 AM
-                "evening_prep": time(17, 0),  ***REMOVED*** 5 PM
-                "night_cleanup": time(1, 0),  ***REMOVED*** 1 AM
+                "morning_prep": time(6, 0),  # 6 AM
+                "evening_prep": time(17, 0),  # 5 PM
+                "night_cleanup": time(1, 0),  # 1 AM
             },
             "weekly_schedules": {
                 "monday": ["new_releases", "trending"],
@@ -86,16 +86,16 @@ class ScheduledStrategy(BaseWarmingStrategy):
 
         targets = []
 
-        ***REMOVED*** Determine current schedule context
+        # Determine current schedule context
         schedule_context = self._analyze_schedule_context(current_time)
 
-        ***REMOVED*** Generate targets based on schedule context
+        # Generate targets based on schedule context
         targets.extend(await self._create_peak_hour_targets(current_time, schedule_context))
         targets.extend(await self._create_daily_schedule_targets(current_time, schedule_context))
         targets.extend(await self._create_weekly_schedule_targets(current_time, schedule_context))
         targets.extend(await self._create_seasonal_targets(current_time, schedule_context))
 
-        ***REMOVED*** Sort by priority and apply limit
+        # Sort by priority and apply limit
         targets.sort(key=lambda t: t.priority, reverse=True)
         if limit:
             targets = targets[:limit]
@@ -117,11 +117,11 @@ class ScheduledStrategy(BaseWarmingStrategy):
         day_name = current_time.strftime("%A").lower()
         month_name = current_time.strftime("%B").lower()
 
-        ***REMOVED*** Determine if it's peak hours
+        # Determine if it's peak hours
         peak_ranges = self.schedule_config["peak_hours"]["weekend" if is_weekend else "weekday"]
         is_peak_hour = any(start <= current_hour <= end for start, end in peak_ranges)
 
-        ***REMOVED*** Determine if it's off-peak hours
+        # Determine if it's off-peak hours
         off_peak_ranges = self.schedule_config["off_peak_hours"][
             "weekend" if is_weekend else "weekday"
         ]
@@ -170,7 +170,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
         targets = []
 
         if schedule_context["is_peak_hour"]:
-            ***REMOVED*** During peak hours, warm high-traffic content
+            # During peak hours, warm high-traffic content
             priority_base = self.calculate_priority(
                 {
                     "schedule_type": ScheduleType.PEAK_HOURS.value,
@@ -179,8 +179,8 @@ class ScheduledStrategy(BaseWarmingStrategy):
                 }
             )
 
-            ***REMOVED*** Popular movie screens
-            popular_movie_ids = [1, 2, 3, 254, 550]  ***REMOVED*** Would come from analytics
+            # Popular movie screens
+            popular_movie_ids = [1, 2, 3, 254, 550]  # Would come from analytics
             for movie_id in popular_movie_ids:
                 targets.append(
                     self.create_warming_target(
@@ -191,7 +191,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
                     )
                 )
 
-            ***REMOVED*** Homepage and trending content
+            # Homepage and trending content
             targets.append(
                 self.create_warming_target(
                     function_name="get_homepage_data",
@@ -211,7 +211,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
             )
 
         elif schedule_context["is_off_peak"]:
-            ***REMOVED*** During off-peak, prepare for upcoming peak
+            # During off-peak, prepare for upcoming peak
             priority_base = self.calculate_priority(
                 {
                     "schedule_type": ScheduleType.OFF_PEAK.value,
@@ -220,7 +220,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
                 }
             )
 
-            ***REMOVED*** Pre-warm content for next peak period
+            # Pre-warm content for next peak period
             targets.append(
                 self.create_warming_target(
                     function_name="get_homepage_data",
@@ -255,10 +255,10 @@ class ScheduledStrategy(BaseWarmingStrategy):
             }
         )
 
-        ***REMOVED*** Morning preparation (6 AM)
+        # Morning preparation (6 AM)
         morning_prep = self.schedule_config["daily_schedules"]["morning_prep"]
         if self._is_near_time(current_time_only, morning_prep, minutes=30):
-            ***REMOVED*** Warm content for morning viewers
+            # Warm content for morning viewers
             targets.append(
                 self.create_warming_target(
                     function_name="get_morning_recommendations",
@@ -277,10 +277,10 @@ class ScheduledStrategy(BaseWarmingStrategy):
                 )
             )
 
-        ***REMOVED*** Evening preparation (5 PM)
+        # Evening preparation (5 PM)
         evening_prep = self.schedule_config["daily_schedules"]["evening_prep"]
         if self._is_near_time(current_time_only, evening_prep, minutes=60):
-            ***REMOVED*** Warm content for evening prime time
+            # Warm content for evening prime time
             targets.append(
                 self.create_warming_target(
                     function_name="get_prime_time_content",
@@ -383,7 +383,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
             }
         )
 
-        ***REMOVED*** Summer blockbusters
+        # Summer blockbusters
         if month_name in self.schedule_config["seasonal_events"]["summer_blockbusters"]:
             targets.append(
                 self.create_warming_target(
@@ -394,7 +394,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
                 )
             )
 
-        ***REMOVED*** Holiday content
+        # Holiday content
         if self._is_holiday_season(current_time):
             targets.append(
                 self.create_warming_target(
@@ -435,11 +435,11 @@ class ScheduledStrategy(BaseWarmingStrategy):
         month = current_time.month
         day = current_time.day
 
-        ***REMOVED*** Holiday seasons (simplified)
+        # Holiday seasons (simplified)
         holiday_periods = [
-            (11, 20, 12, 31),  ***REMOVED*** Thanksgiving to New Year
-            (10, 15, 11, 5),  ***REMOVED*** Halloween season
-            (2, 1, 2, 20),  ***REMOVED*** Valentine's season
+            (11, 20, 12, 31),  # Thanksgiving to New Year
+            (10, 15, 11, 5),  # Halloween season
+            (2, 1, 2, 20),  # Valentine's season
         ]
 
         for start_month, start_day, end_month, end_day in holiday_periods:
@@ -465,7 +465,7 @@ class ScheduledStrategy(BaseWarmingStrategy):
         urgency = target_data.get("urgency", "low")
         time_context = target_data.get("time_context", {})
 
-        ***REMOVED*** Base priority from schedule type
+        # Base priority from schedule type
         schedule_multipliers = {
             ScheduleType.PEAK_HOURS.value: 2.0,
             ScheduleType.OFF_PEAK.value: 1.5,
@@ -477,12 +477,12 @@ class ScheduledStrategy(BaseWarmingStrategy):
 
         base_priority = schedule_multipliers.get(schedule_type, 0.5)
 
-        ***REMOVED*** Urgency multipliers
+        # Urgency multipliers
         urgency_multipliers = {"high": 1.5, "medium": 1.0, "low": 0.7}
 
         urgency_multiplier = urgency_multipliers.get(urgency, 1.0)
 
-        ***REMOVED*** Time context boosts
+        # Time context boosts
         context_boost = 1.0
         if time_context.get("is_peak_hour"):
             context_boost *= 1.3

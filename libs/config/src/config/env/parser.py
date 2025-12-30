@@ -158,5 +158,5 @@ def get_env_list(key: str, default: list[str] | None = None, separator: str = ",
     if not value:
         return default or []
 
-    ***REMOVED*** Split and strip whitespace from each item
+    # Split and strip whitespace from each item
     return [item.strip() for item in value.split(separator) if item.strip()]

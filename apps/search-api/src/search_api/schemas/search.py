@@ -16,7 +16,7 @@ class SearchResult(BaseModel):
     name: str
     type: str = Field(..., description="Entity type: movie, actor, genre, etc.")
     image_path: str | None = None
-    year: int | None = None  ***REMOVED*** For movies
+    year: int | None = None  # For movies
     popularity: float | None = None
     additional_info: dict[str, Any] | None = None
 
@@ -56,7 +56,7 @@ class TextSuggestion(BaseModel):
     type: str = Field(..., description="Entity type: movie, actor, director")
     id: int | None = None
     image_path: str | None = None
-    year: int | None = None  ***REMOVED*** Useful for movies
+    year: int | None = None  # Useful for movies
     popularity: float | None = None
     is_partial: bool = Field(False, description="Whether this is a partial/incomplete match")
     search_type: str = Field(

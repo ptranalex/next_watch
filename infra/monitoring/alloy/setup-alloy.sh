@@ -1,13 +1,13 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Grafana Alloy Docker Setup Script for NextWatch
-***REMOVED*** This script sets up Grafana Alloy as a Docker container on AWS
+# Grafana Alloy Docker Setup Script for NextWatch
+# This script sets up Grafana Alloy as a Docker container on AWS
 
 set -e
 
 echo "🚀 Setting up Grafana Alloy for NextWatch monitoring migration..."
 
-***REMOVED*** Check if Docker Compose is available (prefer `docker compose`, fallback to `docker-compose`)
+# Check if Docker Compose is available (prefer `docker compose`, fallback to `docker-compose`)
 if docker compose version >/dev/null 2>&1; then
     DOCKER_COMPOSE_CMD="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
@@ -17,13 +17,13 @@ else
     exit 1
 fi
 
-***REMOVED*** Check if we're in the right directory
+# Check if we're in the right directory
 if [[ ! -f "docker-compose.alloy.yml" ]]; then
     echo "❌ Error: Please run this script from the infra/monitoring/alloy directory"
     exit 1
 fi
 
-***REMOVED*** Check if .env file exists
+# Check if .env file exists
 if [[ ! -f ".env" ]]; then
     echo "❌ Error: .env file not found!"
     echo "📝 Please copy .env.example to .env and fill in your Grafana Cloud credentials:"
@@ -32,7 +32,7 @@ if [[ ! -f ".env" ]]; then
     exit 1
 fi
 
-***REMOVED*** Validate environment variables
+# Validate environment variables
 echo "🔍 Validating Grafana Cloud credentials..."
 source .env
 
@@ -54,12 +54,12 @@ done
 
 echo "✅ Environment variables validated"
 
-***REMOVED*** Create necessary directories
+# Create necessary directories
 echo "📁 Creating directories..."
 mkdir -p logs
 mkdir -p data
 
-***REMOVED*** Check if NextWatch networks exist
+# Check if NextWatch networks exist
 echo "🔍 Checking Docker networks..."
 if ! docker network ls | grep -q "next_watch_default"; then
     echo "⚠️  Warning: next_watch_default network not found"
@@ -71,23 +71,23 @@ if ! docker network ls | grep -q "monitoring"; then
     docker network create monitoring
 fi
 
-***REMOVED*** Pull the latest Alloy image
+# Pull the latest Alloy image
 echo "📥 Pulling Grafana Alloy Docker image..."
 docker pull grafana/alloy:latest
 
-***REMOVED*** Stop existing Alloy container if running
+# Stop existing Alloy container if running
 echo "🛑 Stopping existing Alloy container..."
 $DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml down || true
 
-***REMOVED*** Start Alloy
+# Start Alloy
 echo "🚀 Starting Grafana Alloy..."
 $DOCKER_COMPOSE_CMD -f docker-compose.alloy.yml up -d
 
-***REMOVED*** Wait for Alloy to start
+# Wait for Alloy to start
 echo "⏳ Waiting for Alloy to start..."
 sleep 10
 
-***REMOVED*** Check Alloy health
+# Check Alloy health
 echo "🏥 Checking Alloy health..."
 if curl -s http://localhost:12345/-/healthy >/dev/null; then
     echo "✅ Alloy is healthy and running!"
@@ -97,7 +97,7 @@ else
     exit 1
 fi
 
-***REMOVED*** Display useful information
+# Display useful information
 echo ""
 echo "🎉 Grafana Alloy setup complete!"
 echo ""

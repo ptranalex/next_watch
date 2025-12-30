@@ -1,12 +1,12 @@
-***REMOVED*** Mobile Components Integration
+# Mobile Components Integration
 
 This directory contains mobile-specific components that are now fully integrated with dynamic data from the BFF API through `useSidebarData`.
 
-***REMOVED******REMOVED*** 🚀 **MobileHeader & MobileNavMenu Integration**
+## 🚀 **MobileHeader & MobileNavMenu Integration**
 
 The mobile header and navigation menu have been enhanced to use dynamic data from the BFF API instead of hardcoded navigation items.
 
-***REMOVED******REMOVED******REMOVED*** Key Integration Features
+### Key Integration Features
 
 - **Dynamic Navigation Data**: All navigation links now come from `/bff/v1/sidebar` endpoint
 - **User Authentication Aware**: Navigation adapts based on user authentication status
@@ -14,9 +14,9 @@ The mobile header and navigation menu have been enhanced to use dynamic data fro
 - **Fallback Support**: Hardcoded fallbacks when API data is unavailable
 - **Icon Mapping**: Intelligent icon assignment based on navigation paths
 
-***REMOVED******REMOVED*** 📁 **Updated Components**
+## 📁 **Updated Components**
 
-***REMOVED******REMOVED******REMOVED*** `MobileHeader.tsx`
+### `MobileHeader.tsx`
 
 Enhanced with `useSidebarData` integration:
 
@@ -48,7 +48,7 @@ interface AppMobileHeaderProps extends MobileHeaderProps {
 />
 ```
 
-***REMOVED******REMOVED******REMOVED*** `MobileNavMenu.tsx`
+### `MobileNavMenu.tsx`
 
 Updated to accept and use sidebar data:
 
@@ -68,7 +68,7 @@ interface MobileNavMenuProps {
 - ✅ Loading skeleton while fetching data
 - ✅ Intelligent icon mapping for dynamic links
 
-***REMOVED******REMOVED*** 🔄 **Data Flow**
+## 🔄 **Data Flow**
 
 ```
 BFF API (/bff/v1/sidebar)
@@ -82,7 +82,7 @@ BFF API (/bff/v1/sidebar)
  Dynamic Navigation
 ```
 
-***REMOVED******REMOVED******REMOVED*** Sidebar Data Structure
+### Sidebar Data Structure
 
 ```typescript
 interface SidebarData {
@@ -98,7 +98,7 @@ interface SidebarData {
 }
 ```
 
-***REMOVED******REMOVED*** 🎯 **Icon Mapping Strategy**
+## 🎯 **Icon Mapping Strategy**
 
 The `getIconForPath` function intelligently assigns icons based on URL patterns:
 
@@ -121,9 +121,9 @@ const getIconForPath = (path: string, label: string): IconType => {
 };
 ```
 
-***REMOVED******REMOVED*** 📱 **Loading States**
+## 📱 **Loading States**
 
-***REMOVED******REMOVED******REMOVED*** MobileNavMenu Loading Skeleton
+### MobileNavMenu Loading Skeleton
 
 When `isLoading={true}`, displays skeleton placeholders:
 
@@ -142,7 +142,7 @@ const renderLoadingSkeleton = () => (
 );
 ```
 
-***REMOVED******REMOVED*** 🛡️ **Fallback Strategy**
+## 🛡️ **Fallback Strategy**
 
 When sidebar data is unavailable, components fall back to hardcoded navigation:
 
@@ -163,9 +163,9 @@ const fallbackTopMovies = [
 ];
 ```
 
-***REMOVED******REMOVED*** 🔧 **Usage Examples**
+## 🔧 **Usage Examples**
 
-***REMOVED******REMOVED******REMOVED*** Basic Implementation
+### Basic Implementation
 
 ```tsx
 import MobileHeader from "@/components/mobile/core/layout/MobileHeader";
@@ -180,7 +180,7 @@ function MyMobilePage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Navigation Handlers
+### Custom Navigation Handlers
 
 ```tsx
 function CustomMobilePage() {
@@ -200,7 +200,7 @@ function CustomMobilePage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Actions
+### Custom Actions
 
 ```tsx
 function PageWithCustomActions() {
@@ -226,35 +226,35 @@ function PageWithCustomActions() {
 }
 ```
 
-***REMOVED******REMOVED*** 🚀 **Benefits of Integration**
+## 🚀 **Benefits of Integration**
 
-***REMOVED******REMOVED******REMOVED*** 1. **Dynamic Content**
+### 1. **Dynamic Content**
 
 - Navigation items reflect current backend configuration
 - User-specific links based on authentication
 - Genre navigation updated from CMS/backend
 
-***REMOVED******REMOVED******REMOVED*** 2. **Consistency**
+### 2. **Consistency**
 
 - Mobile navigation matches desktop sidebar
 - Single source of truth for navigation structure
 - Consistent authentication state across all components
 
-***REMOVED******REMOVED******REMOVED*** 3. **Performance**
+### 3. **Performance**
 
 - Efficient caching via React Query
 - Loading states prevent UI flashing
 - Intelligent prefetching and background updates
 
-***REMOVED******REMOVED******REMOVED*** 4. **Maintainability**
+### 4. **Maintainability**
 
 - No hardcoded navigation items to maintain
 - Navigation changes managed via backend
 - Automatic updates when backend data changes
 
-***REMOVED******REMOVED*** 🔍 **Testing Integration**
+## 🔍 **Testing Integration**
 
-***REMOVED******REMOVED******REMOVED*** Manual Testing Checklist
+### Manual Testing Checklist
 
 1. **API Integration**
 
@@ -279,7 +279,7 @@ function PageWithCustomActions() {
    - [ ] Proper error fallbacks
    - [ ] No UI flashing or broken states
 
-***REMOVED******REMOVED******REMOVED*** Dev Tools Debugging
+### Dev Tools Debugging
 
 ```typescript
 // Check sidebar data in console
@@ -287,7 +287,7 @@ const { data, isLoading, error } = useSidebarData();
 console.log("Sidebar Data:", { data, isLoading, error });
 ```
 
-***REMOVED******REMOVED*** 📚 **Related Documentation**
+## 📚 **Related Documentation**
 
 - [`useSidebarData.ts`](../../../services/hooks/navigation/useSidebarData.ts) - API hook
 - [BFF API Documentation](../../../services/api/bff/) - Backend for Frontend

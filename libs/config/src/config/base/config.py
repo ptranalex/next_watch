@@ -17,7 +17,7 @@ class BaseConfig(BaseSettings):
     services should implement with a simplified approach.
     """
 
-    ***REMOVED*** Common fields across all services
+    # Common fields across all services
     environment: str = Field(default="development", description="Deployment environment")
     debug: bool = Field(default=False, description="Enable debug mode")
     log_level: str = Field(default="INFO", description="Base logging level")
@@ -56,7 +56,7 @@ class BaseConfig(BaseSettings):
         """
         issues = []
 
-        ***REMOVED*** Basic production checks
+        # Basic production checks
         if self.environment == "production":
             if self.debug:
                 issues.append("Debug mode should be disabled in production")
@@ -96,7 +96,7 @@ class BaseConfig(BaseSettings):
 
         logger = get_logger(__name__)
 
-        ***REMOVED*** Force disable debug mode in production
+        # Force disable debug mode in production
         if self.debug:
             logger.warning(f"Debug mode disabled in production for {self.service_name}")
             object.__setattr__(self, "debug", False)
@@ -107,16 +107,16 @@ class BaseConfig(BaseSettings):
 
         logger = get_logger(__name__)
 
-        ***REMOVED*** Basic service info - always log this
+        # Basic service info - always log this
         logger.info(f"Initializing {self.service_name} ({self.environment})")
 
-        ***REMOVED*** Group related settings
+        # Group related settings
         if self.debug:
             logger.info(f"Debug mode enabled, log level: {self.log_level}")
         else:
             logger.info(f"Log level: {self.log_level}")
 
-        ***REMOVED*** Only log detailed configuration in debug mode
+        # Only log detailed configuration in debug mode
         if self.debug or self.log_level == "DEBUG":
             logger.debug(f"Service version: {self.version}")
             logger.debug(f"Config hash: {self.config_hash}")
@@ -197,11 +197,11 @@ class ServiceConfig(BaseConfig):
         issues = super().validate_production_settings()
 
         if self.is_production:
-            ***REMOVED*** Check CORS settings
+            # Check CORS settings
             if "*" in self.cors_origins:
                 issues.append("Wildcard CORS origin should not be used in production")
 
-            ***REMOVED*** Check allowed hosts
+            # Check allowed hosts
             if "*" in self.allowed_hosts:
                 issues.append("Wildcard allowed hosts should not be used in production")
 
@@ -209,19 +209,19 @@ class ServiceConfig(BaseConfig):
 
     def log_configuration_summary(self) -> None:
         """Log service configuration summary with reduced verbosity."""
-        ***REMOVED*** Call parent method first
+        # Call parent method first
         super().log_configuration_summary()
 
         from config.logging import get_logger
 
         logger = get_logger(__name__)
 
-        ***REMOVED*** Log HTTP service info in compact format
+        # Log HTTP service info in compact format
         logger.info(f"HTTP service: {self.host}:{self.port}")
 
-        ***REMOVED*** Only log detailed configuration in debug mode
+        # Only log detailed configuration in debug mode
         if self.debug or self.log_level == "DEBUG":
-            ***REMOVED*** Log CORS and allowed hosts settings
+            # Log CORS and allowed hosts settings
             if len(self.cors_origins) == 1 and self.cors_origins[0] == "*":
                 logger.debug("CORS: Allow all origins")
             else:
@@ -274,7 +274,7 @@ class WorkerConfig(BaseConfig):
         issues = super().validate_production_settings()
 
         if self.is_production:
-            ***REMOVED*** Ensure workers are properly configured for production
+            # Ensure workers are properly configured for production
             if self.workers < 2:
                 issues.append("At least 2 workers recommended for production")
 
@@ -282,16 +282,16 @@ class WorkerConfig(BaseConfig):
 
     def log_configuration_summary(self) -> None:
         """Log service configuration summary with reduced verbosity."""
-        ***REMOVED*** Call parent method first
+        # Call parent method first
         super().log_configuration_summary()
 
         from config.logging import get_logger
 
         logger = get_logger(__name__)
 
-        ***REMOVED*** Log worker settings in compact format
+        # Log worker settings in compact format
         logger.info(f"Worker config: {self.workers} workers, {self.max_concurrent_tasks} max tasks")
 
-        ***REMOVED*** Only log detailed configuration in debug mode
+        # Only log detailed configuration in debug mode
         if self.debug or self.log_level == "DEBUG":
             logger.debug(f"Task timeout: {self.task_timeout_seconds} seconds")

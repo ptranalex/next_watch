@@ -13,7 +13,7 @@ from tenacity import (
     wait_exponential,
 )
 
-***REMOVED*** Import BaseBackendClient for inheritance instead of BaseServiceClient
+# Import BaseBackendClient for inheritance instead of BaseServiceClient
 from bff_api.services.clients.base import (
     BackendClientError,
     BackendClientPermanentError,
@@ -24,7 +24,7 @@ from bff_api.services.clients.base import (
 logger = get_logger(__name__)
 
 
-***REMOVED*** Use BackendClient error classes instead of duplicating
+# Use BackendClient error classes instead of duplicating
 class AuthClientError(BackendClientError):
     """Base exception for auth client errors - inherits from BackendClientError."""
 
@@ -57,7 +57,7 @@ class AuthClient(BaseBackendClient):
             config: Service client configuration
         """
         super().__init__(config)
-        ***REMOVED*** Override service name for proper error attribution
+        # Override service name for proper error attribution
         self.service_name = "auth-api"
 
     def _build_api_path(self, path: str) -> str:
@@ -71,7 +71,7 @@ class AuthClient(BaseBackendClient):
         Returns:
             Full API path with auth service prefix (e.g., "/auth/v1/tokens")
         """
-        ***REMOVED*** Remove leading slash if present to avoid double slashes
+        # Remove leading slash if present to avoid double slashes
         clean_path = path.lstrip("/")
         return f"/auth/v1/{clean_path}"
 
@@ -98,7 +98,7 @@ class AuthClient(BaseBackendClient):
         3. Delegates to parent for all standard HTTP logic
         """
         if form_data:
-            ***REMOVED*** Handle OAuth2 form data requests
+            # Handle OAuth2 form data requests
             client = await self._get_client()
             request_headers = self._get_request_headers(headers)
 
@@ -138,7 +138,7 @@ class AuthClient(BaseBackendClient):
                 logger.error(f"Unexpected error for {method} {path}: {e}")
                 raise AuthClientPermanentError(f"Unexpected auth error: {e}")
         else:
-            ***REMOVED*** Delegate standard JSON requests to parent implementation
+            # Delegate standard JSON requests to parent implementation
             return await super()._make_request(method, path, params, data, headers)
 
     async def login(self, email: str, password: str) -> dict[str, Any]:
@@ -180,7 +180,7 @@ class AuthClient(BaseBackendClient):
         user_data = {
             "email": email,
             "password": password,
-            "password_confirm": password,  ***REMOVED*** Auth-api requires password confirmation
+            "password_confirm": password,  # Auth-api requires password confirmation
         }
         if username:
             user_data["username"] = username

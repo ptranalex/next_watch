@@ -1,20 +1,20 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Fix Grafana Subpath Configuration for Nginx Reverse Proxy
+# Fix Grafana Subpath Configuration for Nginx Reverse Proxy
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🔧 Fixing Grafana Subpath Configuration${NC}"
 echo "=================================================================="
 
-***REMOVED*** Load environment variables
+# Load environment variables
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Loaded environment variables${NC}"
@@ -23,7 +23,7 @@ else
     exit 1
 fi
 
-***REMOVED*** Check SSH key
+# Check SSH key
 SSH_USER="${SSH_USER:-ubuntu}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
 if [ -z "$SSH_KEY_PATH" ]; then
@@ -43,7 +43,7 @@ fi
 echo "Target instance: $INSTANCE_ID ($PUBLIC_IP)"
 echo "Using SSH key: $SSH_KEY_PATH"
 
-***REMOVED*** Test SSH connection
+# Test SSH connection
 echo -e "${YELLOW}🔑 Testing SSH connection...${NC}"
 if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" "echo 'SSH connection successful'" 2>/dev/null; then
     echo -e "${RED}❌ SSH connection failed${NC}"
@@ -52,13 +52,13 @@ fi
 
 echo -e "${GREEN}✅ SSH connection successful${NC}"
 
-***REMOVED*** Fix Grafana configuration
+# Fix Grafana configuration
 echo -e "${YELLOW}🔧 Updating Grafana configuration for subpath serving...${NC}"
 
 ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" << 'REMOTE_SCRIPT'
 cd /opt/nextwatch-monitoring
 
-***REMOVED*** Load environment variables if present (do not hardcode secrets in this repo)
+# Load environment variables if present (do not hardcode secrets in this repo)
 set -a
 if [ -f .env.monitoring.prod ]; then
     source .env.monitoring.prod

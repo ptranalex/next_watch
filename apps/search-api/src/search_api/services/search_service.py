@@ -31,8 +31,8 @@ class SearchService:
 
     def __init__(self, config: SearchAPIConfig):
         self.config = config
-        ***REMOVED*** Remove backend_client - Search API should be self-contained
-        ***REMOVED*** Initialize Redis-backed suggestion engine
+        # Remove backend_client - Search API should be self-contained
+        # Initialize Redis-backed suggestion engine
         self.suggestion_engine = SuggestionEngine(
             redis_url=config.redis_url,
             max_connections=config.redis_max_connections,
@@ -100,7 +100,7 @@ class SearchService:
             Uses graceful degradation - returns empty results if Redis is unavailable
             instead of failing the entire search operation.
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if not query or not query.strip():
             raise SearchServiceException("Search query cannot be empty")
 
@@ -112,32 +112,32 @@ class SearchService:
                 f"Limit must be between 1 and {self.config.max_suggestions}"
             )
 
-        ***REMOVED*** Apply search-specific limits
+        # Apply search-specific limits
         search_limit = min(limit, self.config.max_suggestions)
 
         logger.info(
             f"Searching movies in Redis: query='{query}', page={page}, limit={search_limit}"
         )
 
-        ***REMOVED*** Initialize Redis connection if not already done
+        # Initialize Redis connection if not already done
         await self.suggestion_engine.initialize()
 
-        ***REMOVED*** Use suggestion engine to search for movies
+        # Use suggestion engine to search for movies
         movie_suggestions = await self.suggestion_engine.get_ranked_suggestions(
             query=query.strip(),
-            limit=search_limit * 3,  ***REMOVED*** Get more to allow filtering
+            limit=search_limit * 3,  # Get more to allow filtering
             fallback_to_fuzzy=True,
         )
 
-        ***REMOVED*** Filter to movies only
+        # Filter to movies only
         movies = [s for s in movie_suggestions if s.get("type") == "movie"]
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         start_idx = (page - 1) * search_limit
         end_idx = start_idx + search_limit
         paginated_movies = movies[start_idx:end_idx]
 
-        ***REMOVED*** Convert to expected response format
+        # Convert to expected response format
         results = []
         for movie in paginated_movies:
             movie_result = {
@@ -154,7 +154,7 @@ class SearchService:
             }
             results.append(movie_result)
 
-        ***REMOVED*** Calculate pagination info
+        # Calculate pagination info
         total = len(movies)
         total_pages = (total + search_limit - 1) // search_limit if total > 0 else 1
         has_next = page < total_pages
@@ -198,28 +198,28 @@ class SearchService:
             Uses graceful degradation - returns empty suggestions if Redis is unavailable
             instead of failing the suggestion operation.
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if not query or len(query.strip()) < self.config.min_query_length:
             return SuggestionsResponse(suggestions=[], total=0)
 
         if len(query) > self.config.max_query_length:
             query = query[: self.config.max_query_length]
 
-        ***REMOVED*** Apply suggestion-specific limits
+        # Apply suggestion-specific limits
         suggestion_limit = min(limit, self.config.max_suggestions)
 
         logger.info(f"Getting suggestions from Redis: query='{query}', limit={suggestion_limit}")
 
-        ***REMOVED*** Initialize Redis connection if not already done
+        # Initialize Redis connection if not already done
         await self.suggestion_engine.initialize()
 
-        ***REMOVED*** Get enhanced entity suggestions from Redis
+        # Get enhanced entity suggestions from Redis
         redis_suggestions = await self.suggestion_engine.get_entity_suggestions(
             query=query.strip(),
             limit=suggestion_limit,
         )
 
-        ***REMOVED*** Convert to our suggestion format
+        # Convert to our suggestion format
         suggestions_data = []
         for i, sugg in enumerate(redis_suggestions):
             suggestion_obj = Suggestion(
@@ -262,31 +262,31 @@ class SearchService:
             Uses graceful degradation - returns empty suggestions if Redis is unavailable
             instead of failing the suggestion operation.
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if not query or len(query.strip()) < self.config.min_query_length:
             return TextSuggestionsResponse(suggestions=[], total=0)
 
         if len(query) > self.config.max_query_length:
             query = query[: self.config.max_query_length]
 
-        ***REMOVED*** Apply suggestion-specific limits
+        # Apply suggestion-specific limits
         suggestion_limit = min(limit, self.config.max_suggestions)
 
         logger.info(
             f"Getting text suggestions from Redis: query='{query}', limit={suggestion_limit}"
         )
 
-        ***REMOVED*** Initialize Redis connection if not already done
+        # Initialize Redis connection if not already done
         await self.suggestion_engine.initialize()
 
-        ***REMOVED*** Get ranked entity suggestions from Redis
+        # Get ranked entity suggestions from Redis
         redis_suggestions = await self.suggestion_engine.get_ranked_suggestions(
             query=query.strip(),
             limit=suggestion_limit,
             fallback_to_fuzzy=True,
         )
 
-        ***REMOVED*** Convert to our TextSuggestion format
+        # Convert to our TextSuggestion format
         suggestions_data = []
         for sugg in redis_suggestions:
             suggestion_obj = TextSuggestion(
@@ -346,7 +346,7 @@ class SearchService:
             Uses graceful degradation - returns empty results if Redis is unavailable
             instead of failing the search operation.
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if not query or not query.strip():
             raise SearchServiceException("Search query cannot be empty")
 
@@ -358,35 +358,35 @@ class SearchService:
                 f"Limit must be between 1 and {self.config.max_suggestions}"
             )
 
-        ***REMOVED*** Apply search-specific limits
+        # Apply search-specific limits
         search_limit = min(limit, self.config.max_suggestions)
 
         logger.info(
             f"Searching all entities in Redis: query='{query}', page={page}, limit={search_limit}, types={types}"
         )
 
-        ***REMOVED*** Initialize Redis connection if not already done
+        # Initialize Redis connection if not already done
         await self.suggestion_engine.initialize()
 
-        ***REMOVED*** Get suggestions from Redis
+        # Get suggestions from Redis
         all_suggestions = await self.suggestion_engine.get_ranked_suggestions(
             query=query.strip(),
-            limit=search_limit * 5,  ***REMOVED*** Get more to allow filtering and pagination
+            limit=search_limit * 5,  # Get more to allow filtering and pagination
             fallback_to_fuzzy=True,
         )
 
-        ***REMOVED*** Filter by types if specified
+        # Filter by types if specified
         if types:
             filtered_suggestions = [s for s in all_suggestions if s.get("type") in types]
         else:
             filtered_suggestions = all_suggestions
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         start_idx = (page - 1) * search_limit
         end_idx = start_idx + search_limit
         paginated_suggestions = filtered_suggestions[start_idx:end_idx]
 
-        ***REMOVED*** Convert to SearchResult format
+        # Convert to SearchResult format
         suggestions_data = []
         for sugg in paginated_suggestions:
             suggestion_obj = SearchResult(
@@ -400,7 +400,7 @@ class SearchService:
             )
             suggestions_data.append(suggestion_obj)
 
-        ***REMOVED*** Calculate pagination info
+        # Calculate pagination info
         total = len(filtered_suggestions)
         total_pages = (total + search_limit - 1) // search_limit
         has_next = page < total_pages

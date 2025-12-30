@@ -1,4 +1,4 @@
-***REMOVED***!/usr/bin/env python3
+#!/usr/bin/env python3
 """Main CLI entry point for NextWatch Cache library."""
 
 import typer
@@ -10,7 +10,7 @@ from cache.config.settings import CacheSettings
 
 console = Console()
 
-***REMOVED*** Main cache CLI application
+# Main cache CLI application
 cache_app = typer.Typer(
     name="cache",
     help="NextWatch Cache Management CLI",
@@ -18,7 +18,7 @@ cache_app = typer.Typer(
     rich_markup_mode="rich",
 )
 
-***REMOVED*** Add subcommands
+# Add subcommands
 cache_app.add_typer(metrics_app, name="metrics", help="Cache metrics and performance tracking")
 cache_app.add_typer(warming_app, name="warming", help="Cache warming and preloading")
 

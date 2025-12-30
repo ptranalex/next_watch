@@ -28,7 +28,7 @@ def format_config_table(config: BFFAPIConfig, title: str = "BFF Configuration") 
     table.add_column("Value", style="green")
     table.add_column("Source", style="yellow", no_wrap=True)
 
-    ***REMOVED*** Configuration settings to display
+    # Configuration settings to display
     config_settings = [
         ("Host", config.host, "ENV/DEFAULT"),
         ("Port", str(config.port), "ENV/DEFAULT"),
@@ -49,7 +49,7 @@ def format_config_table(config: BFFAPIConfig, title: str = "BFF Configuration") 
         ),
     ]
 
-    ***REMOVED*** Add sensitive settings with masking
+    # Add sensitive settings with masking
     jwt_display = _mask_sensitive_value(config.jwt_secret)
     config_settings.append(("JWT Secret", jwt_display, "ENV/DEFAULT"))
 
@@ -80,7 +80,7 @@ def print_config(
         console = Console()
 
     if show_secrets:
-        ***REMOVED*** Create a modified table for showing secrets
+        # Create a modified table for showing secrets
         table = Table(
             title=f"{title} (Secrets Visible)",
             show_header=True,
@@ -90,7 +90,7 @@ def print_config(
         table.add_column("Value", style="green")
         table.add_column("Source", style="yellow", no_wrap=True)
 
-        ***REMOVED*** Add settings with unmasked secrets
+        # Add settings with unmasked secrets
         settings = [
             ("JWT Secret", config.jwt_secret or "[red]Not Set[/red]", "ENV/DEFAULT"),
             (
@@ -185,13 +185,13 @@ def _mask_sensitive_value(value: str | None) -> str:
 def _mask_redis_url(redis_url: str) -> str:
     """Mask password in Redis URL if present."""
     if ":" in redis_url and "@" in redis_url:
-        ***REMOVED*** Format like redis://user:pass@host:port/db
+        # Format like redis://user:pass@host:port/db
         try:
             parts = redis_url.split("@")
             auth_part = parts[0]
             host_part = parts[1]
 
-            ***REMOVED*** Get username/password part
+            # Get username/password part
             if ":" in auth_part:
                 protocol_user, password = auth_part.rsplit(":", 1)
                 return f"{protocol_user}:****@{host_part}"
@@ -224,7 +224,7 @@ def display_service_status(
         url = info.get("url", "N/A")
         response_time = info.get("response_time", "N/A")
 
-        ***REMOVED*** Color code status
+        # Color code status
         if status == "Healthy":
             status_display = "[green]✅ Healthy[/green]"
         elif status == "Unhealthy":

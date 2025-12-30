@@ -67,13 +67,13 @@ def register(
     """
 
     async def _register():
-        ***REMOVED*** Find schema directory (look for it in parent dirs if not found)
+        # Find schema directory (look for it in parent dirs if not found)
         search_path = schema_dir if schema_dir.is_absolute() else Path.cwd() / schema_dir
 
-        ***REMOVED*** Try to find schemas directory by walking up
+        # Try to find schemas directory by walking up
         if not search_path.exists():
             current = Path.cwd()
-            for _ in range(5):  ***REMOVED*** Search up to 5 levels
+            for _ in range(5):  # Search up to 5 levels
                 test_path = current / "schemas"
                 if test_path.exists() and test_path.is_dir():
                     search_path = test_path
@@ -87,7 +87,7 @@ def register(
             console.print(f"  - {Path.cwd() / 'schemas'}")
             raise typer.Exit(code=1)
 
-        ***REMOVED*** Find all .avsc files
+        # Find all .avsc files
         schema_files = list(search_path.glob("*.avsc"))
 
         if not schema_files:
@@ -96,7 +96,7 @@ def register(
 
         console.print(f"[cyan]Found {len(schema_files)} schema files in {search_path}[/cyan]\n")
 
-        ***REMOVED*** Create config with custom registry URL
+        # Create config with custom registry URL
         config = KafkaConfig(schema_registry_url=registry_url)
         config.check_schema_compatibility = not force
 
@@ -106,7 +106,7 @@ def register(
         if dry_run:
             console.print("[yellow]DRY RUN MODE - No schemas will be registered[/yellow]\n")
 
-        ***REMOVED*** Create results table
+        # Create results table
         table = Table(title="Schema Registration Results")
         table.add_column("Event Type", style="cyan")
         table.add_column("Subject", style="magenta")
@@ -117,24 +117,24 @@ def register(
         failed_count = 0
 
         for avsc_file in sorted(schema_files):
-            ***REMOVED*** Extract event type from filename
-            ***REMOVED*** e.g., "user.registered.v1.avsc" → "user.registered"
+            # Extract event type from filename
+            # e.g., "user.registered.v1.avsc" → "user.registered"
             event_type = (
                 avsc_file.stem.rsplit(".v", 1)[0] if ".v" in avsc_file.stem else avsc_file.stem
             )
             subject = f"{event_type}-value"
 
             try:
-                ***REMOVED*** Load schema from file
+                # Load schema from file
                 with open(avsc_file) as f:
                     schema = json.load(f)
 
                 if dry_run:
-                    ***REMOVED*** Just show what would be registered
+                    # Just show what would be registered
                     table.add_row(event_type, subject, "Would register", "N/A")
                     registered_count += 1
                 else:
-                    ***REMOVED*** Actually register the schema
+                    # Actually register the schema
                     schema_id = await client.register_schema(subject, schema)
                     table.add_row(
                         event_type,
@@ -203,7 +203,7 @@ def list_schemas(
         await client.start()
 
         try:
-            ***REMOVED*** Get all subjects
+            # Get all subjects
             subjects = await client.list_subjects()
 
             if subject:
@@ -213,7 +213,7 @@ def list_schemas(
                 console.print("[yellow]No schemas found[/yellow]")
                 return
 
-            ***REMOVED*** Create results table
+            # Create results table
             table = Table(title="Registered Schemas")
             table.add_column("Subject", style="cyan")
             table.add_column("Version", style="magenta")
@@ -222,7 +222,7 @@ def list_schemas(
 
             for subj in subjects:
                 try:
-                    ***REMOVED*** Get schema metadata from the registry response
+                    # Get schema metadata from the registry response
                     response = await client._client.get(f"/subjects/{subj}/versions/latest")
                     data = response.json()
                     table.add_row(
@@ -284,7 +284,7 @@ def validate(
     """
 
     async def _validate():
-        ***REMOVED*** Find schema directory
+        # Find schema directory
         search_path = schema_dir if schema_dir.is_absolute() else Path.cwd() / schema_dir
 
         if not search_path.exists():
@@ -300,7 +300,7 @@ def validate(
             console.print(f"[red]Schema directory not found: {schema_dir}[/red]")
             raise typer.Exit(code=1)
 
-        ***REMOVED*** Find the schema file for this event type
+        # Find the schema file for this event type
         schema_files = list(search_path.glob(f"{event_type}*.avsc"))
 
         if not schema_files:
@@ -308,9 +308,9 @@ def validate(
             console.print(f"[yellow]Searched in: {search_path}[/yellow]")
             raise typer.Exit(code=1)
 
-        schema_file = schema_files[0]  ***REMOVED*** Take first match
+        schema_file = schema_files[0]  # Take first match
 
-        ***REMOVED*** Load local schema
+        # Load local schema
         with open(schema_file) as f:
             local_schema = json.load(f)
 
@@ -321,10 +321,10 @@ def validate(
         subject = f"{event_type}-value"
 
         try:
-            ***REMOVED*** Get latest schema from registry
+            # Get latest schema from registry
             registered_schema = await client.get_latest_schema(subject)
 
-            ***REMOVED*** Get metadata
+            # Get metadata
             response = await client._client.get(f"/subjects/{subject}/versions/latest")
             data = response.json()
             version = data.get("version")
@@ -336,7 +336,7 @@ def validate(
             console.print(f"  Schema ID: {schema_id}")
             console.print(f"  Local file: {schema_file.name}")
 
-            ***REMOVED*** Compare schemas
+            # Compare schemas
             if local_schema == registered_schema:
                 console.print("\n[green]✓ Local schema matches registered schema[/green]")
             else:
@@ -383,7 +383,7 @@ def show(
         kafka-schemas show user.registered
         kafka-schemas show movie.viewed
     """
-    ***REMOVED*** Find schema directory
+    # Find schema directory
     search_path = schema_dir if schema_dir.is_absolute() else Path.cwd() / schema_dir
 
     if not search_path.exists():
@@ -399,7 +399,7 @@ def show(
         console.print(f"[red]Schema directory not found: {schema_dir}[/red]")
         raise typer.Exit(code=1)
 
-    ***REMOVED*** Find the schema file
+    # Find the schema file
     schema_files = list(search_path.glob(f"{event_type}*.avsc"))
 
     if not schema_files:
@@ -416,7 +416,7 @@ def show(
 
     schema_file = schema_files[0]
 
-    ***REMOVED*** Load and display schema
+    # Load and display schema
     with open(schema_file) as f:
         schema = json.load(f)
 

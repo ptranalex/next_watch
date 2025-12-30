@@ -1,8 +1,8 @@
-***REMOVED*** Vector Repository Module
+# Vector Repository Module
 
 This module provides a high-level interface for interacting with the vector database (Qdrant) used for similarity search and recommendations.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The vector repository module is responsible for:
 
@@ -12,9 +12,9 @@ The vector repository module is responsible for:
 - Handling vector database operations
 - Providing fallback mechanisms for embedding retrieval
 
-***REMOVED******REMOVED*** Components
+## Components
 
-***REMOVED******REMOVED******REMOVED*** `client.py`
+### `client.py`
 
 Manages the low-level connection to Qdrant:
 
@@ -23,7 +23,7 @@ Manages the low-level connection to Qdrant:
 - Connection management and configuration
 - Error handling and retries
 
-***REMOVED******REMOVED******REMOVED*** `repository.py`
+### `repository.py`
 
 Provides high-level repository functions:
 
@@ -34,7 +34,7 @@ Provides high-level repository functions:
 - Batch operations for efficiency
 - Fallback mechanisms for retrieval
 
-***REMOVED******REMOVED******REMOVED*** `__init__.py`
+### `__init__.py`
 
 Exports key functions and classes:
 
@@ -42,9 +42,9 @@ Exports key functions and classes:
 - Standalone functions for backward compatibility
 - Type definitions
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Basic Operations
+### Basic Operations
 
 ```python
 from recommendation_api.repositories.vector import (
@@ -54,19 +54,19 @@ from recommendation_api.repositories.vector import (
     search_similar_movies
 )
 
-***REMOVED*** Create collection if needed
+# Create collection if needed
 create_collection()
 
-***REMOVED*** Store an embedding
+# Store an embedding
 movie_id = 123
-embedding = [0.1, 0.2, 0.3, ...]  ***REMOVED*** Vector from embedding model
+embedding = [0.1, 0.2, 0.3, ...]  # Vector from embedding model
 metadata = {"title": "Movie Title", "release_year": 2023}
 store_movie_embedding(movie_id, embedding, metadata)
 
-***REMOVED*** Retrieve an embedding
+# Retrieve an embedding
 vector = get_movie_embedding(movie_id)
 
-***REMOVED*** Find similar movies
+# Find similar movies
 similar_movies = search_similar_movies(
     query_embedding=vector,
     limit=10,
@@ -74,34 +74,34 @@ similar_movies = search_similar_movies(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using the Repository Class
+### Using the Repository Class
 
 ```python
 from recommendation_api.repositories.vector import VectorRepository
 
-***REMOVED*** Create repository instance
+# Create repository instance
 repo = VectorRepository()
 
-***REMOVED*** Store embedding
+# Store embedding
 repo.store_movie_embedding(movie_id, embedding, metadata)
 
-***REMOVED*** Search by movie ID
+# Search by movie ID
 similar_movies = repo.search_by_movie_id(
     movie_id=123,
     limit=20,
     score_threshold=0.6
 )
 
-***REMOVED*** Batch operations
+# Batch operations
 embeddings_data = [
     (movie_id1, embedding1, metadata1),
     (movie_id2, embedding2, metadata2),
-    ***REMOVED*** ...
+    # ...
 ]
 repo.batch_store_embeddings(embeddings_data)
 ```
 
-***REMOVED******REMOVED*** Vector Database Schema
+## Vector Database Schema
 
 The module works with the following Qdrant collection structure:
 
@@ -115,7 +115,7 @@ The module works with the following Qdrant collection structure:
   - `genres`: List of genres (array of strings)
   - `imdb_rating`: IMDb rating (float)
 
-***REMOVED******REMOVED*** Fallback Mechanisms
+## Fallback Mechanisms
 
 The repository implements several fallback mechanisms:
 
@@ -125,7 +125,7 @@ The repository implements several fallback mechanisms:
 
 These fallbacks ensure robust operation even when embeddings have issues.
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 The repository provides robust error handling:
 
@@ -134,7 +134,7 @@ The repository provides robust error handling:
 - Graceful degradation with fallbacks
 - Retry mechanisms for transient errors
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 Vector database connection is configured via:
 

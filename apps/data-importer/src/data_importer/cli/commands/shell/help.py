@@ -87,11 +87,11 @@ def get_banner_text() -> str:
         "  - sync_movies(start_year, end_year) - Sync movies for a year range",
         "",
         "Example commands:",
-        "  - movies = async_run(tmdb_client.get_popular_movies(page=1))  ***REMOVED*** Get popular movies",
-        "  - movies = async_run(tmdb_client.fetch_movies_by_year(2023))  ***REMOVED*** Get 2023 movies",
-        "  - movies = imdb_client.get_top_movies(limit=10)  ***REMOVED*** Get top IMDb movies",
-        "  - movie = async_run(omdb_client.get_movie_by_imdb_id('tt1285016'))  ***REMOVED*** Get movie details",
-        "  - sync_movies(2022, 2023)  ***REMOVED*** Import movies from 2022-2023",
+        "  - movies = async_run(tmdb_client.get_popular_movies(page=1))  # Get popular movies",
+        "  - movies = async_run(tmdb_client.fetch_movies_by_year(2023))  # Get 2023 movies",
+        "  - movies = imdb_client.get_top_movies(limit=10)  # Get top IMDb movies",
+        "  - movie = async_run(omdb_client.get_movie_by_imdb_id('tt1285016'))  # Get movie details",
+        "  - sync_movies(2022, 2023)  # Import movies from 2022-2023",
     ]
 
     return "\n".join(banner_lines)
@@ -140,7 +140,7 @@ Examples:
 ---------
 Fetch popular movies:
   popular = async_run(tmdb_client.get_popular_movies())
-  jprint(popular[0])  ***REMOVED*** Show the first movie
+  jprint(popular[0])  # Show the first movie
 
 Search for a movie:
   results = async_run(omdb_client.search_movie("The Matrix"))
@@ -150,13 +150,13 @@ Import movies with credits and trailers:
   sync_movies(2020, 2023, include_credits=True, include_videos=True, save_to_db=True)
 
 Import a single movie with all data:
-  sync_movie_by_id(550, include_credits=True, include_videos=True)  ***REMOVED*** Import Fight Club
-  last_synced_movie  ***REMOVED*** Access the imported movie
+  sync_movie_by_id(550, include_credits=True, include_videos=True)  # Import Fight Club
+  last_synced_movie  # Access the imported movie
 
 Import movies for a range of years:
-  sync_movies(2022, 2023)  ***REMOVED*** Import movies from 2022-2023
-  sync_movies(2022, 2022, limit_per_year=5)  ***REMOVED*** Import 5 movies from 2022
-  synced_movies  ***REMOVED*** List of all movies after running sync_movies()
+  sync_movies(2022, 2023)  # Import movies from 2022-2023
+  sync_movies(2022, 2022, limit_per_year=5)  # Import 5 movies from 2022
+  synced_movies  # List of all movies after running sync_movies()
 
 Check available genres from TMDB:
   genres = async_run(tmdb_client.get_movie_genres())
@@ -177,8 +177,8 @@ Available commands:
 
 Examples:
 ---------
-  help()  ***REMOVED*** Show help
-  list_services()  ***REMOVED*** List available services
-  sync_movies(2022, 2023)  ***REMOVED*** Import movies from 2022-2023
-  exit()  ***REMOVED*** Exit the shell
+  help()  # Show help
+  list_services()  # List available services
+  sync_movies(2022, 2023)  # Import movies from 2022-2023
+  exit()  # Exit the shell
 """

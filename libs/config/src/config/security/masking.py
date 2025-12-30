@@ -3,7 +3,7 @@
 import re
 from typing import Any
 
-***REMOVED*** Common patterns for sensitive field names
+# Common patterns for sensitive field names
 SENSITIVE_FIELD_PATTERNS = [
     "secret",
     "password",
@@ -44,20 +44,20 @@ def mask_sensitive_value(
     value_str = str(value)
     field_lower = field_name.lower()
 
-    ***REMOVED*** Combine default patterns with any additional ones
+    # Combine default patterns with any additional ones
     patterns = SENSITIVE_FIELD_PATTERNS + (sensitive_patterns or [])
 
-    ***REMOVED*** Check if field name contains sensitive patterns
+    # Check if field name contains sensitive patterns
     is_sensitive = any(pattern in field_lower for pattern in patterns)
 
     if not is_sensitive:
         return value_str
 
-    ***REMOVED*** Handle very short values
+    # Handle very short values
     if len(value_str) <= show_length * 2:
         return mask_char * len(value_str)
 
-    ***REMOVED*** Show first and last few characters
+    # Show first and last few characters
     if len(value_str) > show_length * 2:
         masked_middle_length = len(value_str) - (show_length * 2)
         return (
@@ -83,14 +83,14 @@ def mask_url_credentials(url: str, mask_char: str = "*") -> str:
         >>> mask_url_credentials("postgresql://user:pass@localhost/db")
         'postgresql://user:***@localhost/db'
     """
-    ***REMOVED*** Pattern to match URLs with credentials
+    # Pattern to match URLs with credentials
     pattern = r"([a-zA-Z][a-zA-Z0-9+.-]*://)([^:/@]+):([^@]+)@"
 
     def mask_password(match: re.Match[str]) -> str:
         protocol = match.group(1)
         username = match.group(2)
         password = match.group(3)
-        ***REMOVED*** Mask the password but keep username
+        # Mask the password but keep username
         masked_password = mask_char * min(len(password), 8)
         return f"{protocol}{username}:{masked_password}@"
 
@@ -110,18 +110,18 @@ def mask_config_for_display(
     Returns:
         Dictionary with sensitive values masked
     """
-    ***REMOVED*** Convert config to dictionary if it's not already
+    # Convert config to dictionary if it's not already
     if hasattr(config, "dict"):
-        ***REMOVED*** Pydantic model
+        # Pydantic model
         config_dict = config.dict()
     elif hasattr(config, "__dict__"):
-        ***REMOVED*** Regular object
+        # Regular object
         config_dict = config.__dict__
     elif isinstance(config, dict):
-        ***REMOVED*** Already a dictionary
+        # Already a dictionary
         config_dict = config
     else:
-        ***REMOVED*** Try to extract attributes
+        # Try to extract attributes
         config_dict = {
             attr: getattr(config, attr)
             for attr in dir(config)
@@ -131,17 +131,17 @@ def mask_config_for_display(
     masked_dict: dict[str, Any] = {}
 
     for key, value in config_dict.items():
-        ***REMOVED*** Skip private attributes
+        # Skip private attributes
         if key.startswith("_"):
             continue
 
-        ***REMOVED*** Handle nested dictionaries recursively
+        # Handle nested dictionaries recursively
         if isinstance(value, dict):
             masked_dict[key] = mask_config_for_display(value, sensitive_patterns, mask_char)
-        ***REMOVED*** Handle URLs specially
+        # Handle URLs specially
         elif "url" in key.lower() and isinstance(value, str):
             masked_dict[key] = mask_url_credentials(value, mask_char)
-        ***REMOVED*** Handle other sensitive values
+        # Handle other sensitive values
         else:
             masked_dict[key] = mask_sensitive_value(
                 value, key, mask_char, sensitive_patterns=sensitive_patterns

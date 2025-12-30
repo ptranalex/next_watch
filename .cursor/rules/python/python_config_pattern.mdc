@@ -3,18 +3,18 @@ description:
 globs:
 alwaysApply: true
 ---
-***REMOVED*** Python Configuration Best Practices
+# Python Configuration Best Practices
 
 When implementing Python configuration systems, follow these patterns and best practices:
 
-***REMOVED******REMOVED*** 📁 Configuration Organization
+## 📁 Configuration Organization
 - Place configuration in a dedicated `config` package with specialized modules:
   - 📄 `__init__.py`: Re-exports configuration classes and utilities
   - 📄 `app.py`: Core application configuration with environment variable handling
   - 📄 `logging.py`: Logging-specific configuration (formatters, handlers, levels)
   - 📄 Domain-specific config files as needed (e.g., `api.py`, `storage.py`)
 
-***REMOVED******REMOVED*** 🏗️ Config Class Pattern
+## 🏗️ Config Class Pattern
 - Implement configuration as a singleton class with type hints:
   ```python
   class Config:
@@ -38,7 +38,7 @@ When implementing Python configuration systems, follow these patterns and best p
   ```
 - Include secure string representation that masks sensitive data
 
-***REMOVED******REMOVED*** 🔒 Environment Configuration
+## 🔒 Environment Configuration
 - Load settings with clear hierarchy:
   1. Environment variables (highest priority)
   2. Local .env files (.env.local)
@@ -47,7 +47,7 @@ When implementing Python configuration systems, follow these patterns and best p
 - Use dotenv with try/except for optional dependency
 - Centralize default values as constants at module level
 
-***REMOVED******REMOVED*** 📝 Logging Configuration
+## 📝 Logging Configuration
 - Create a dedicated function to configure logging:
   ```python
   def configure_logging(
@@ -64,7 +64,7 @@ When implementing Python configuration systems, follow these patterns and best p
       logger.info("This will be properly configured")
   ```
 
-***REMOVED******REMOVED*** 🧰 Best Practices
+## 🧰 Best Practices
 - Separate configuration access from business logic
 - Use dependency injection rather than global state
 - Implement validation for configuration values

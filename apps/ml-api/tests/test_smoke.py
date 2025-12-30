@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 
 def _make_app() -> FastAPI:
-    ***REMOVED*** Import inside to ensure coverage sees package import
+    # Import inside to ensure coverage sees package import
     from ml_api.routes.health import router as health_router
 
     app = FastAPI()
@@ -39,7 +39,7 @@ def test_model_health_is_unavailable_without_loading_model() -> None:
     client = TestClient(_make_app())
     res = client.get("/health/model")
 
-    ***REMOVED*** By default the model is not loaded, so health should not be ok.
+    # By default the model is not loaded, so health should not be ok.
     assert res.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     detail = res.json().get("detail", "")
     assert "Model health" in detail

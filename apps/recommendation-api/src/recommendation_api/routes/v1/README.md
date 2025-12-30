@@ -1,10 +1,10 @@
-***REMOVED*** Recommendation API v1
+# Recommendation API v1
 
 This directory contains the v1 API endpoints for the Next Watch recommendation service.
 
-***REMOVED******REMOVED*** Endpoints
+## Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Trending Movies
+### Trending Movies
 
 ```http
 GET /v1/trending
@@ -18,7 +18,7 @@ Get trending movie recommendations based on recent activity.
 - `days` (int, optional): Number of days to look back (1-30, default: 7)
 - `min_rating` (float, optional): Minimum IMDb rating filter (0-10)
 
-***REMOVED******REMOVED******REMOVED*** Popular Movies
+### Popular Movies
 
 ```http
 GET /v1/popular
@@ -32,7 +32,7 @@ Get popular movie recommendations based on ratings and vote counts.
 - `min_rating` (float, optional): Minimum IMDb rating (0-10, default: 7.0)
 - `min_vote_count` (int, optional): Minimum vote count threshold (default: 1000)
 
-***REMOVED******REMOVED******REMOVED*** Personalized Recommendations
+### Personalized Recommendations
 
 ```http
 GET /v1/user/{user_id}
@@ -50,7 +50,7 @@ Get personalized movie recommendations for a specific user.
 - `min_rating` (float, optional): Minimum IMDb rating (0-10, default: 7.0)
 - `min_vote_count` (int, optional): Minimum vote count threshold (default: 1000)
 
-***REMOVED******REMOVED******REMOVED*** Similar Movies
+### Similar Movies
 
 ```http
 GET /v1/similar/{movie_id}
@@ -68,7 +68,7 @@ Get movies similar to a specific movie.
 - `min_rating` (float, optional): Minimum IMDb rating (0-10, default: 7.0)
 - `min_vote_count` (int, optional): Minimum vote count threshold (default: 1000)
 
-***REMOVED******REMOVED*** Response Models
+## Response Models
 
 All endpoints return a response with the following structure:
 
@@ -98,7 +98,7 @@ All endpoints return a response with the following structure:
 }
 ```
 
-***REMOVED******REMOVED*** Error Responses
+## Error Responses
 
 The API uses standard HTTP status codes:
 
@@ -116,14 +116,14 @@ Error responses include a detail message:
 }
 ```
 
-***REMOVED******REMOVED*** Rate Limiting
+## Rate Limiting
 
 The API implements rate limiting based on the following configuration:
 
 - Maximum concurrent requests: 100 (configurable via `MAX_CONCURRENT_REQUESTS`)
 - Request timeout: 30 seconds (configurable via `REQUEST_TIMEOUT`)
 
-***REMOVED******REMOVED*** Caching
+## Caching
 
 Recommendations are cached by default with the following settings:
 

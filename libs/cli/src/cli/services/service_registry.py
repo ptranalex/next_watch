@@ -34,7 +34,7 @@ class ServiceConfig:
 
     def __post_init__(self) -> None:
         """Validate service configuration."""
-        ***REMOVED*** Validate URL
+        # Validate URL
         try:
             parsed = urlparse(self.url)
             if not parsed.scheme or not parsed.netloc:
@@ -42,15 +42,15 @@ class ServiceConfig:
         except Exception as e:
             raise ValueError(f"Invalid service URL '{self.url}': {e}") from e
 
-        ***REMOVED*** Validate timeout
+        # Validate timeout
         if self.timeout <= 0:
             raise ValueError("Service timeout must be positive")
 
-        ***REMOVED*** Validate retry attempts
+        # Validate retry attempts
         if self.retry_attempts < 0:
             raise ValueError("Retry attempts cannot be negative")
 
-        ***REMOVED*** Validate retry backoff strategy
+        # Validate retry backoff strategy
         valid_backoff = ["linear", "exponential", "fixed"]
         if self.retry_backoff not in valid_backoff:
             raise ValueError(
@@ -234,7 +234,7 @@ class ServiceRegistry:
         registry = cls()
 
         for service_name, config_dict in services_config.items():
-            ***REMOVED*** Ensure the name is set in the config
+            # Ensure the name is set in the config
             config_dict["name"] = service_name
             config = ServiceConfig(**config_dict)
             registry.register_service(config)

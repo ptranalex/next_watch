@@ -18,7 +18,7 @@ def get_search_config(request: Request) -> SearchAPIConfig:
 
 logger = get_logger(__name__)
 
-***REMOVED*** Service version - should ideally come from package metadata or environment
+# Service version - should ideally come from package metadata or environment
 SERVICE_VERSION = getattr(settings, "version", "1.0.0")
 
 router = APIRouter()
@@ -45,10 +45,10 @@ async def service_clients_health() -> JSONResponse:
         Health status for all registered service clients
     """
     try:
-        ***REMOVED*** Get health status from Service Client Factory
+        # Get health status from Service Client Factory
         health_status = await get_all_services_health()
 
-        ***REMOVED*** Determine overall status
+        # Determine overall status
         all_healthy = all(status.get("status") == "healthy" for status in health_status.values())
         overall_status = "healthy" if all_healthy else "degraded"
         status_code = 200 if all_healthy else 503
@@ -115,21 +115,21 @@ async def health_check(request: Request) -> JSONResponse:
     Returns:
         Health status information with dependency details
     """
-    ***REMOVED*** Get health service from application state
+    # Get health service from application state
     health_service = getattr(request.app.state, "health_service", None)
 
     if health_service:
         try:
-            ***REMOVED*** Use comprehensive health service
+            # Use comprehensive health service
             health_results = await health_service.check_all()
 
-            ***REMOVED*** Determine overall health status
+            # Determine overall health status
             all_critical_healthy = health_results.get("backend_api", {}).is_healthy
             redis_healthy = health_results.get("redis", {}).is_healthy
             overall_status = "healthy" if all_critical_healthy and redis_healthy else "unhealthy"
             status_code = 200 if overall_status == "healthy" else 503
 
-            ***REMOVED*** Build detailed response
+            # Build detailed response
             checks = {}
             for service_name, result in health_results.items():
                 checks[service_name] = {
@@ -188,7 +188,7 @@ async def health_check(request: Request) -> JSONResponse:
                 },
             )
     else:
-        ***REMOVED*** Fallback: basic health check without external service monitoring
+        # Fallback: basic health check without external service monitoring
         logger.info(
             "Health check response",
             status="healthy",
@@ -226,10 +226,10 @@ async def readiness_check(request: Request) -> JSONResponse:
     Checks if the service is ready to accept traffic.
     """
     try:
-        ***REMOVED*** Check critical dependencies
+        # Check critical dependencies
         health_status = await get_all_services_health()
 
-        ***REMOVED*** For search API, we need backend and redis to be healthy
+        # For search API, we need backend and redis to be healthy
         backend_healthy = health_status.get("backend", {}).get("status") == "healthy"
         redis_healthy = health_status.get("redis", {}).get("status") == "healthy"
 

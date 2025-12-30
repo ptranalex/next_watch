@@ -14,7 +14,7 @@ from redis.exceptions import RedisError
 
 logger = get_logger(__name__)
 
-***REMOVED*** TMDB image base URLs for different sizes
+# TMDB image base URLs for different sizes
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
 
@@ -36,7 +36,7 @@ class SuggestionEngine:
             pool_size: Size of the Redis connection pool
         """
         self._redis_url = redis_url
-        self._pool: redis.asyncio.ConnectionPool | None = None  ***REMOVED*** type: ignore
+        self._pool: redis.asyncio.ConnectionPool | None = None  # type: ignore
         self._pool_size = pool_size
 
     async def initialize(self) -> None:
@@ -49,7 +49,7 @@ class SuggestionEngine:
             self._pool = redis.asyncio.ConnectionPool.from_url(
                 self._redis_url,
                 max_connections=self._pool_size,
-                decode_responses=True,  ***REMOVED*** Auto-decode bytes to strings
+                decode_responses=True,  # Auto-decode bytes to strings
             )
 
     async def shutdown(self) -> None:
@@ -91,18 +91,18 @@ class SuggestionEngine:
 
         try:
             async with redis.asyncio.Redis(connection_pool=self._pool) as redis_client:
-                ***REMOVED*** First try exact match to catch known titles
+                # First try exact match to catch known titles
                 exact_key = f"suggestions:{query_prefix}"
                 exists = await redis_client.exists(exact_key)
                 if exists:
-                    ***REMOVED*** If exact match exists, prioritize it
+                    # If exact match exists, prioritize it
                     suggestions = [query_prefix]
-                    ***REMOVED*** But still get other matches to fill up to limit
+                    # But still get other matches to fill up to limit
                     return suggestions + await self._get_prefix_matches(
                         redis_client, query_prefix, limit - len(suggestions)
                     )
 
-                ***REMOVED*** If no exact match, try prefix matching
+                # If no exact match, try prefix matching
                 return await self._get_prefix_matches(redis_client, query_prefix, limit)
 
         except RedisError as e:
@@ -123,25 +123,25 @@ class SuggestionEngine:
         Returns:
             List of matching suggestion strings
         """
-        ***REMOVED*** Method 1: Use sorted set with lexicographical range
+        # Method 1: Use sorted set with lexicographical range
         try:
-            ***REMOVED*** Get suggestions using lexicographical range query (Redis 6.2+)
-            ***REMOVED*** Implementation depends on Redis version:
+            # Get suggestions using lexicographical range query (Redis 6.2+)
+            # Implementation depends on Redis version:
             try:
-                ***REMOVED*** Redis 6.2+ method - Using simplified approach for type safety
+                # Redis 6.2+ method - Using simplified approach for type safety
                 suggestions = await redis_client.zrange(
                     "suggestions",
-                    0,  ***REMOVED*** Start index (simplified)
-                    -1,  ***REMOVED*** End index (simplified)
+                    0,  # Start index (simplified)
+                    -1,  # End index (simplified)
                 )
-                ***REMOVED*** Filter the results manually since we can't use the params directly
+                # Filter the results manually since we can't use the params directly
                 filtered_suggestions = [
                     s for s in suggestions if isinstance(s, str) and s.startswith(query_prefix)
                 ]
                 if filtered_suggestions:
                     return filtered_suggestions[:limit]
             except Exception:
-                ***REMOVED*** Older Redis versions fallback
+                # Older Redis versions fallback
                 logger.warning("Falling back to older Redis zrangebylex method")
                 suggestions = await redis_client.execute_command(
                     "ZRANGEBYLEX",
@@ -152,7 +152,7 @@ class SuggestionEngine:
                     "0",
                     str(limit),
                 )
-                ***REMOVED*** Convert bytes to strings if needed
+                # Convert bytes to strings if needed
                 if suggestions and isinstance(suggestions[0], bytes):
                     suggestions = [s.decode("utf-8") for s in suggestions]
                 if suggestions:
@@ -160,14 +160,14 @@ class SuggestionEngine:
         except Exception as e:
             logger.warning(f"Error using sorted set method: {str(e)}")
 
-        ***REMOVED*** Method 2: Use keys with pattern matching as fallback
-        ***REMOVED*** This is less efficient but more compatible
+        # Method 2: Use keys with pattern matching as fallback
+        # This is less efficient but more compatible
         pattern = f"suggestions:{query_prefix}*"
 
-        ***REMOVED*** Try KEYS command for small datasets
+        # Try KEYS command for small datasets
         try:
             keys = await redis_client.keys(pattern)
-            ***REMOVED*** Extract suggestions from keys (format: suggestions:<suggestion>)
+            # Extract suggestions from keys (format: suggestions:<suggestion>)
             suggestions = []
             for key in keys:
                 if ":" in key:
@@ -180,7 +180,7 @@ class SuggestionEngine:
         except Exception as e:
             logger.warning(f"Error using KEYS: {str(e)}")
 
-        ***REMOVED*** Method 3: Use SCAN as final fallback (most compatible but slowest)
+        # Method 3: Use SCAN as final fallback (most compatible but slowest)
         try:
             cursor = 0
             suggestions = []
@@ -188,7 +188,7 @@ class SuggestionEngine:
             scan_complete = False
             while len(suggestions) < limit and not scan_complete:
                 cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
-                ***REMOVED*** Extract suggestions from keys
+                # Extract suggestions from keys
                 for key in keys:
                     if ":" in key:
                         parts = key.split(":", 1)
@@ -197,21 +197,21 @@ class SuggestionEngine:
                             if len(suggestions) >= limit:
                                 break
 
-                ***REMOVED*** Check if we've scanned all keys
+                # Check if we've scanned all keys
                 if cursor == 0:
                     scan_complete = True
 
-            ***REMOVED*** If we still don't have any matches, try a more flexible approach
+            # If we still don't have any matches, try a more flexible approach
             if not suggestions and len(query_prefix) > 2:
-                ***REMOVED*** Try with * wildcard for more flexible matching
+                # Try with * wildcard for more flexible matching
                 pattern = f"suggestions:*{query_prefix}*"
                 cursor = 0
 
                 while len(suggestions) < limit:
                     cursor, keys = await redis_client.scan(cursor=cursor, match=pattern, count=100)
-                    ***REMOVED*** Extract suggestions from keys
+                    # Extract suggestions from keys
                     for key in keys:
-                        ***REMOVED*** Process key properly based on its type
+                        # Process key properly based on its type
                         key_str = key if isinstance(key, str) else key.decode("utf-8")
 
                         if ":" in key_str:
@@ -221,7 +221,7 @@ class SuggestionEngine:
                                 if len(suggestions) >= limit:
                                     break
 
-                    ***REMOVED*** Break if we've scanned all keys
+                    # Break if we've scanned all keys
                     if cursor == 0:
                         break
 
@@ -255,32 +255,32 @@ class SuggestionEngine:
 
         try:
             async with redis.asyncio.Redis(connection_pool=self._pool) as redis_client:
-                ***REMOVED*** First try with the query as is
+                # First try with the query as is
                 suggestions = await self.get_suggestions(query_prefix, limit)
 
-                ***REMOVED*** If we didn't get enough results, try more aggressive matching
+                # If we didn't get enough results, try more aggressive matching
                 if len(suggestions) < min(3, limit) and len(query_prefix) >= 3:
-                    ***REMOVED*** Try again using just the first part of the query if it has spaces
+                    # Try again using just the first part of the query if it has spaces
                     if " " in query_prefix:
                         first_word = query_prefix.split()[0]
                         if len(first_word) >= 3:
                             more_suggestions = await self.get_suggestions(
                                 first_word, limit - len(suggestions)
                             )
-                            ***REMOVED*** Add suggestions that aren't already included
+                            # Add suggestions that aren't already included
                             for sugg in more_suggestions:
                                 if sugg not in suggestions:
                                     suggestions.append(sugg)
                                     if len(suggestions) >= limit:
                                         break
 
-                    ***REMOVED*** If the query might be a word prefix, try a more aggressive matching approach
+                    # If the query might be a word prefix, try a more aggressive matching approach
                     if len(suggestions) < min(5, limit):
-                        ***REMOVED*** Try with prefix wildcard matching for shorter queries
+                        # Try with prefix wildcard matching for shorter queries
                         pattern = f"suggestions:*{query_prefix}*"
                         keys = await redis_client.keys(pattern)
                         for key in keys:
-                            ***REMOVED*** Process key properly based on its type
+                            # Process key properly based on its type
                             key_str = key.decode("utf-8") if isinstance(key, bytes) else key
 
                             if ":" in key_str:
@@ -290,12 +290,12 @@ class SuggestionEngine:
                                     if len(suggestions) >= limit:
                                         break
 
-                ***REMOVED*** For each suggestion, try to get detailed entity information
+                # For each suggestion, try to get detailed entity information
                 detailed_suggestions = []
 
                 for suggestion in suggestions:
-                    ***REMOVED*** Look for a detailed entity record in Redis
-                    ***REMOVED*** Format: entity:type:name (e.g. entity:movie:inception)
+                    # Look for a detailed entity record in Redis
+                    # Format: entity:type:name (e.g. entity:movie:inception)
                     entity_types = ["movie", "actor", "director"]
                     entity_data = None
                     entity_type = None
@@ -312,12 +312,12 @@ class SuggestionEngine:
                                 logger.warning(f"Invalid JSON in Redis for key {entity_key}")
 
                     if entity_data and entity_type:
-                        ***REMOVED*** Build a rich suggestion with entity data
+                        # Build a rich suggestion with entity data
 
-                        ***REMOVED*** Process image path to ensure it has base URL
+                        # Process image path to ensure it has base URL
                         image_path = entity_data.get("image_path")
                         if image_path and image_path.startswith("/"):
-                            ***REMOVED*** Add TMDB base URL to image path
+                            # Add TMDB base URL to image path
                             image_path = f"{TMDB_IMAGE_BASE_URL}{image_path}"
 
                         detailed_suggestion = {
@@ -334,7 +334,7 @@ class SuggestionEngine:
                             },
                         }
                     else:
-                        ***REMOVED*** Fallback to basic suggestion if no entity data found
+                        # Fallback to basic suggestion if no entity data found
                         detailed_suggestion = {
                             "text": suggestion,
                             "type": "unknown",
@@ -342,18 +342,18 @@ class SuggestionEngine:
 
                     detailed_suggestions.append(detailed_suggestion)
 
-                ***REMOVED*** Sort suggestions by relevance (exact matches first, then by score)
+                # Sort suggestions by relevance (exact matches first, then by score)
                 def sort_key(sugg: dict[str, Any]) -> tuple[int, float]:
-                    ***REMOVED*** Exact matches should be prioritized
+                    # Exact matches should be prioritized
                     if sugg["text"] == query_prefix:
                         return (0, sugg.get("popularity", 0) or 0)
-                    ***REMOVED*** Then prioritize by how closely the text starts with the query
+                    # Then prioritize by how closely the text starts with the query
                     elif sugg["text"].startswith(query_prefix):
                         return (1, sugg.get("popularity", 0) or 0)
-                    ***REMOVED*** Then suggestions where the query is a word in the text
+                    # Then suggestions where the query is a word in the text
                     elif f" {query_prefix}" in f" {sugg['text']} ":
                         return (2, sugg.get("popularity", 0) or 0)
-                    ***REMOVED*** Finally by default popularity/score
+                    # Finally by default popularity/score
                     else:
                         return (3, sugg.get("popularity", 0) or 0)
 
@@ -407,79 +407,79 @@ class SuggestionEngine:
 
         query_prefix = query.lower().strip()
 
-        ***REMOVED*** Get raw suggestions with increased limit to account for duplicates we'll remove
+        # Get raw suggestions with increased limit to account for duplicates we'll remove
         raw_suggestions = await self.get_entity_suggestions(query_prefix, limit * 3)
 
-        ***REMOVED*** Create a mapping to deduplicate by ID while keeping the best match for each entity
-        entity_map = {}  ***REMOVED*** ID -> best suggestion
-        matched_ids = defaultdict(list)  ***REMOVED*** ID -> list of matches (to find best)
+        # Create a mapping to deduplicate by ID while keeping the best match for each entity
+        entity_map = {}  # ID -> best suggestion
+        matched_ids = defaultdict(list)  # ID -> list of matches (to find best)
 
-        ***REMOVED*** First pass: Group by ID and collect all matches
+        # First pass: Group by ID and collect all matches
         for suggestion in raw_suggestions:
             entity_id = suggestion.get("id")
             entity_type = suggestion.get("type")
 
-            ***REMOVED*** Skip items without an ID unless they're our last resort
+            # Skip items without an ID unless they're our last resort
             if entity_id is None and entity_type == "unknown":
                 continue
 
-            ***REMOVED*** If this is a new ID or a better match for existing ID, store it
+            # If this is a new ID or a better match for existing ID, store it
             if entity_id is not None:
                 matched_ids[entity_id].append(suggestion)
 
-        ***REMOVED*** Second pass: For each ID, select the best suggestion
+        # Second pass: For each ID, select the best suggestion
         for entity_id, matches in matched_ids.items():
-            ***REMOVED*** Skip if no valid matches
+            # Skip if no valid matches
             if not matches:
                 continue
 
-            ***REMOVED*** Score function to determine the best match for an entity
+            # Score function to determine the best match for an entity
             def get_match_score(match: dict[str, Any]) -> float:
-                ***REMOVED*** Base score is 0
+                # Base score is 0
                 score = 0
                 text = match.get("text", "").lower()
 
-                ***REMOVED*** Prioritize exact matches with the query
+                # Prioritize exact matches with the query
                 if text == query_prefix:
                     score += 1000
-                ***REMOVED*** Then matches that start with query
+                # Then matches that start with query
                 elif text.startswith(query_prefix):
                     score += 500
-                ***REMOVED*** Then matches containing the query as a word
+                # Then matches containing the query as a word
                 elif f" {query_prefix}" in f" {text} ":
                     score += 200
-                ***REMOVED*** Finally matches containing the query anywhere
+                # Finally matches containing the query anywhere
                 elif query_prefix in text:
                     score += 100
 
-                ***REMOVED*** Adjust score by entity type
+                # Adjust score by entity type
                 type_scores = {"movie": 10, "actor": 8, "director": 6, "unknown": 0}
                 score += type_scores.get(match.get("type", "unknown"), 0)
 
-                ***REMOVED*** Boost by popularity
+                # Boost by popularity
                 popularity = match.get("popularity") or 0
                 if popularity:
-                    score += min(popularity, 20)  ***REMOVED*** Cap popularity impact
+                    score += min(popularity, 20)  # Cap popularity impact
 
                 return score
 
-            ***REMOVED*** Get the best match for this entity
+            # Get the best match for this entity
             best_match = max(matches, key=get_match_score)
             entity_map[entity_id] = best_match
 
-        ***REMOVED*** Prepare final suggestions
+        # Prepare final suggestions
         final_suggestions = list(entity_map.values())
 
-        ***REMOVED*** Calculate composite score for ranking
+        # Calculate composite score for ranking
         for suggestion in final_suggestions:
-            ***REMOVED*** Create a composite score using vote_average and popularity
+            # Create a composite score using vote_average and popularity
             vote_avg = suggestion.get("additional_info", {}).get("vote_average", 0) or 0
             popularity = suggestion.get("popularity", 0) or 0
 
-            ***REMOVED*** Basic composite score formula
+            # Basic composite score formula
             composite_score: float = 0
             if vote_avg and popularity:
-                ***REMOVED*** This formula prioritizes highly rated popular content
+                # This formula prioritizes highly rated popular content
                 composite_score = vote_avg * math.log1p(popularity)
             elif vote_avg:
                 composite_score = vote_avg
@@ -488,11 +488,11 @@ class SuggestionEngine:
 
             suggestion["composite_score"] = composite_score
 
-            ***REMOVED*** Add flags for client-side rendering
+            # Add flags for client-side rendering
             entity_type = suggestion.get("type")
             suggestion["is_partial"] = entity_type == "unknown" or not suggestion.get("id")
 
-            ***REMOVED*** Determine search_type - how this result was matched
+            # Determine search_type - how this result was matched
             text = suggestion.get("text", "").lower()
             if text == query_prefix:
                 suggestion["search_type"] = "exact"
@@ -503,27 +503,27 @@ class SuggestionEngine:
             else:
                 suggestion["search_type"] = "contains"
 
-            ***REMOVED*** Normalize and enhance additional_info
+            # Normalize and enhance additional_info
             if "additional_info" not in suggestion:
                 suggestion["additional_info"] = {}
 
-            ***REMOVED*** Set proper title in additional_info if available
+            # Set proper title in additional_info if available
             if entity_type == "movie" and "title" not in suggestion["additional_info"]:
                 suggestion["additional_info"]["title"] = suggestion.get("text", "").title()
 
-        ***REMOVED*** Sort by composite score (descending)
+        # Sort by composite score (descending)
         final_suggestions.sort(key=lambda x: x.get("composite_score", 0), reverse=True)
 
-        ***REMOVED*** If we don't have enough good suggestions and fallback is enabled, try fuzzy matching
+        # If we don't have enough good suggestions and fallback is enabled, try fuzzy matching
         if fallback_to_fuzzy and len(final_suggestions) < min(limit, 3) and len(query_prefix) >= 3:
-            ***REMOVED*** We'd implement fuzzy matching here, but for now we'll just use our
-            ***REMOVED*** existing suggestion engine with modified parameters
+            # We'd implement fuzzy matching here, but for now we'll just use our
+            # existing suggestion engine with modified parameters
             pass
 
-        ***REMOVED*** Ensure we only return the requested limit
+        # Ensure we only return the requested limit
         final_suggestions = final_suggestions[:limit]
 
-        ***REMOVED*** Remove the temporary composite_score from the output
+        # Remove the temporary composite_score from the output
         for suggestion in final_suggestions:
             suggestion.pop("composite_score", None)
 

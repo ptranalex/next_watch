@@ -1,9 +1,9 @@
 global:
-  ***REMOVED*** SMTP configuration for email alerts
+  # SMTP configuration for email alerts
   smtp_smarthost: "localhost:587"
   smtp_from: "alertmanager@nextwatch.local"
 
-***REMOVED*** Alert routing configuration
+# Alert routing configuration
 route:
   group_by: ["alertname"]
   group_wait: 10s
@@ -11,14 +11,14 @@ route:
   repeat_interval: 1h
   receiver: "web.hook"
 
-***REMOVED*** Notification receivers
+# Notification receivers
 receivers:
-  ***REMOVED*** Default receiver
+  # Default receiver
   - name: "web.hook"
     webhook_configs:
       - url: "http://127.0.0.1:5001/"
 
-***REMOVED*** Inhibition rules - prevent alert spam
+# Inhibition rules - prevent alert spam
 inhibit_rules:
   - source_match:
       severity: "critical"

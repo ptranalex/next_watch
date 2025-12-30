@@ -1,29 +1,29 @@
-***REMOVED*** Health Status Metrics Integration
+# Health Status Metrics Integration
 
 This document describes the health status metrics integration in fast-core, which provides industry-standard health monitoring metrics that eliminate the need for complex Blackbox Exporter JSON parsing.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The fast-core framework now automatically exposes health status metrics through the `/metrics` endpoint whenever health checks are configured. This follows industry best practices used by Spring Boot, Kubernetes, and other platforms.
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Integration Points
+### Integration Points
 
 1. **MetricsRegistry**: Extended with health-specific metrics
 2. **HealthCheckRegistry**: Automatically updates metrics when health checks run
 3. **Health Endpoints**: Metrics are updated whenever `/health`, `/health/ready`, or `/health/deep` are called
 
-***REMOVED******REMOVED******REMOVED*** Automatic Operation
+### Automatic Operation
 
 - ✅ **Zero Configuration**: Health metrics are automatically created when health checks are registered
 - ✅ **Real-time Updates**: Metrics are updated every time health checks execute
 - ✅ **Category Support**: Metrics include check categories (critical, important, informational)
 - ✅ **Performance Tracking**: Response times and execution counts are tracked
 
-***REMOVED******REMOVED*** Available Metrics
+## Available Metrics
 
-***REMOVED******REMOVED******REMOVED*** 1. Overall Service Health Status
+### 1. Overall Service Health Status
 
 ```prometheus
 service_health_status{service="service-name"}
@@ -36,7 +36,7 @@ service_health_status{service="service-name"}
 - `1` = unhealthy (any critical service down)
 - `0` = unknown (no health checks or error)
 
-***REMOVED******REMOVED******REMOVED*** 2. Individual Health Check Status
+### 2. Individual Health Check Status
 
 ```prometheus
 health_check_status{service="service-name",check_name="database",check_category="critical"}
@@ -47,7 +47,7 @@ health_check_status{service="service-name",check_name="database",check_category=
 - `1` = healthy
 - `0` = unhealthy
 
-***REMOVED******REMOVED******REMOVED*** 3. Health Check Response Times
+### 3. Health Check Response Times
 
 ```prometheus
 health_check_duration_seconds{service="service-name",check_name="database",check_category="critical"}
@@ -55,7 +55,7 @@ health_check_duration_seconds{service="service-name",check_name="database",check
 
 Histogram tracking health check execution times.
 
-***REMOVED******REMOVED******REMOVED*** 4. Health Check Execution Counts
+### 4. Health Check Execution Counts
 
 ```prometheus
 health_check_executions_total{service="service-name",check_name="database",check_category="critical",status="healthy"}
@@ -63,21 +63,21 @@ health_check_executions_total{service="service-name",check_name="database",check
 
 Counter tracking health check executions by status.
 
-***REMOVED******REMOVED*** Usage in Services
+## Usage in Services
 
-***REMOVED******REMOVED******REMOVED*** Automatic Integration
+### Automatic Integration
 
 If your service already uses fast-core health checks, metrics are automatically available:
 
 ```python
-***REMOVED*** Your existing health check setup
+# Your existing health check setup
 from fast_core.monitoring import setup_kubernetes_health_checks
 
-***REMOVED*** This automatically enables health metrics
+# This automatically enables health metrics
 registry = setup_kubernetes_health_checks(app, settings)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Manual Integration
+### Manual Integration
 
 For custom health check setups:
 
@@ -89,13 +89,13 @@ from fast_core.monitoring import (
     initialize_metrics,
 )
 
-***REMOVED*** Initialize metrics (required)
+# Initialize metrics (required)
 metrics_registry = initialize_metrics("my-service")
 
-***REMOVED*** Create health registry
+# Create health registry
 health_registry = HealthCheckRegistry()
 
-***REMOVED*** Add health checks - metrics are automatically updated
+# Add health checks - metrics are automatically updated
 health_registry.add_check(HealthCheckDefinition(
     name="database",
     check_func=check_database,
@@ -103,9 +103,9 @@ health_registry.add_check(HealthCheckDefinition(
 ))
 ```
 
-***REMOVED******REMOVED*** Grafana Integration
+## Grafana Integration
 
-***REMOVED******REMOVED******REMOVED*** Replacing Blackbox Complexity
+### Replacing Blackbox Complexity
 
 **Before (Complex Blackbox JSON Parsing):**
 
@@ -121,53 +121,53 @@ health_registry.add_check(HealthCheckDefinition(
 service_health_status{service="bff-api"}
 ```
 
-***REMOVED******REMOVED******REMOVED*** Recommended Queries
+### Recommended Queries
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Overall Service Health Dashboard
+#### Overall Service Health Dashboard
 
 ```promql
-***REMOVED*** Service health status
+# Service health status
 service_health_status
 
-***REMOVED*** Service health over time
+# Service health over time
 service_health_status[5m]
 
-***REMOVED*** Services by health status
-count by (service) (service_health_status == 3)  ***REMOVED*** healthy
-count by (service) (service_health_status == 2)  ***REMOVED*** degraded
-count by (service) (service_health_status == 1)  ***REMOVED*** unhealthy
+# Services by health status
+count by (service) (service_health_status == 3)  # healthy
+count by (service) (service_health_status == 2)  # degraded
+count by (service) (service_health_status == 1)  # unhealthy
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Individual Health Check Dashboard
+#### Individual Health Check Dashboard
 
 ```promql
-***REMOVED*** Check status by service
+# Check status by service
 health_check_status
 
-***REMOVED*** Failed checks
+# Failed checks
 health_check_status == 0
 
-***REMOVED*** Check response times
+# Check response times
 rate(health_check_duration_seconds_sum[5m]) / rate(health_check_duration_seconds_count[5m])
 
-***REMOVED*** Check failure rate
+# Check failure rate
 rate(health_check_executions_total{status="unhealthy"}[5m])
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Alert Rules
+#### Alert Rules
 
 ```promql
-***REMOVED*** Service unhealthy
+# Service unhealthy
 service_health_status < 2
 
-***REMOVED*** Critical check failed
+# Critical check failed
 health_check_status{check_category="critical"} == 0
 
-***REMOVED*** Check response time high
+# Check response time high
 rate(health_check_duration_seconds_sum[5m]) / rate(health_check_duration_seconds_count[5m]) > 5
 ```
 
-***REMOVED******REMOVED******REMOVED*** Value Mappings for Grafana
+### Value Mappings for Grafana
 
 Configure these value mappings in Grafana panels:
 
@@ -178,9 +178,9 @@ Configure these value mappings in Grafana panels:
 | 1     | Unhealthy | Red    |
 | 0     | Unknown   | Gray   |
 
-***REMOVED******REMOVED*** Service Examples
+## Service Examples
 
-***REMOVED******REMOVED******REMOVED*** BFF API Health Metrics
+### BFF API Health Metrics
 
 Available metrics:
 
@@ -191,7 +191,7 @@ health_check_status{service="bff-api",check_name="redis_cache",check_category="i
 health_check_status{service="bff-api",check_name="auth_api",check_category="important"}
 ```
 
-***REMOVED******REMOVED******REMOVED*** Backend API Health Metrics
+### Backend API Health Metrics
 
 Available metrics:
 
@@ -201,16 +201,16 @@ health_check_status{service="backend-api",check_name="postgres",check_category="
 health_check_status{service="backend-api",check_name="redis_cache",check_category="important"}
 ```
 
-***REMOVED******REMOVED*** Migration Guide
+## Migration Guide
 
-***REMOVED******REMOVED******REMOVED*** From Blackbox JSON Parsing
+### From Blackbox JSON Parsing
 
 1. **Remove complex Blackbox modules** - No longer need `http_health_healthy_only` or `http_health_degraded_only`
 2. **Simplify Prometheus jobs** - Use standard scraping of `/metrics` endpoints
 3. **Update Grafana queries** - Replace complex Blackbox queries with simple native metrics
 4. **Keep external monitoring** - Continue using Blackbox for external/synthetic monitoring
 
-***REMOVED******REMOVED******REMOVED*** Step-by-Step Migration
+### Step-by-Step Migration
 
 1. **Phase 1: Verify metrics are available**
 
@@ -227,38 +227,38 @@ health_check_status{service="backend-api",check_name="redis_cache",check_categor
    - Remove complex Blackbox configurations
    - Keep simple Blackbox for external monitoring
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Health Check Categories
+### 1. Health Check Categories
 
 - **CRITICAL**: Essential for service operation (database, core APIs)
 - **IMPORTANT**: Affects functionality but not blocking (cache, optional APIs)
 - **INFORMATIONAL**: Monitoring and diagnostics only
 
-***REMOVED******REMOVED******REMOVED*** 2. Monitoring Strategy
+### 2. Monitoring Strategy
 
 - **Native Metrics**: Use for detailed health status and internal monitoring
 - **Blackbox Monitoring**: Use for external/synthetic monitoring and user experience validation
 - **Dual Layer**: Combine both approaches for comprehensive monitoring
 
-***REMOVED******REMOVED******REMOVED*** 3. Alert Configuration
+### 3. Alert Configuration
 
 ```yaml
-***REMOVED*** Critical service down
+# Critical service down
 - alert: ServiceUnhealthy
   expr: service_health_status < 2
   for: 1m
   labels:
     severity: critical
 
-***REMOVED*** Service degraded
+# Service degraded
 - alert: ServiceDegraded
   expr: service_health_status == 2
   for: 5m
   labels:
     severity: warning
 
-***REMOVED*** Critical check failed
+# Critical check failed
 - alert: CriticalCheckFailed
   expr: health_check_status{check_category="critical"} == 0
   for: 30s
@@ -266,9 +266,9 @@ health_check_status{service="backend-api",check_name="redis_cache",check_categor
     severity: critical
 ```
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Metrics Not Appearing
+### Metrics Not Appearing
 
 1. **Check metrics registry initialization**:
 
@@ -289,13 +289,13 @@ health_check_status{service="backend-api",check_name="redis_cache",check_categor
    curl http://localhost:8001/metrics | grep -E "(service_health|health_check)"
    ```
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 - **Metrics not updating**: Ensure health checks are actually running
 - **Missing categories**: Check that health checks have proper categories assigned
 - **Stale metrics**: Health checks may be cached - check TTL settings
 
-***REMOVED******REMOVED*** Integration with Existing Services
+## Integration with Existing Services
 
 All NextWatch services already use fast-core health checks, so health metrics are automatically available at:
 
@@ -307,7 +307,7 @@ All NextWatch services already use fast-core health checks, so health metrics ar
 
 No code changes required - metrics are automatically exposed when health checks are configured.
 
-***REMOVED******REMOVED*** Conclusion
+## Conclusion
 
 The health status metrics integration provides:
 

@@ -12,8 +12,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-***REMOVED*** Movie operations are now handled via MovieDataAdapter and Backend API
-***REMOVED*** See services/movie_adapter.py for the new API-based approach
+# Movie operations are now handled via MovieDataAdapter and Backend API
+# See services/movie_adapter.py for the new API-based approach
 
 
 def get_movie_by_id(session: Any, movie_id: int, *_: Any, **__: Any) -> dict[str, Any] | None:

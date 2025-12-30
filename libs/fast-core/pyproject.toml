@@ -24,10 +24,10 @@ dependencies = [
     "httpx>=0.24.0",
     "python-multipart>=0.0.6",
     "structlog>=23.1.0",
-    "prometheus-client>=0.17.0",  ***REMOVED*** Prometheus metrics
+    "prometheus-client>=0.17.0",  # Prometheus metrics
     "psutil>=5.9.0",
-    "config",  ***REMOVED*** Local dependency
-    ***REMOVED*** OpenTelemetry tracing (core observability feature)
+    "config",  # Local dependency
+    # OpenTelemetry tracing (core observability feature)
     "opentelemetry-api>=1.20.0",
     "opentelemetry-sdk>=1.20.0",
     "opentelemetry-instrumentation-fastapi>=0.41b0",
@@ -51,13 +51,13 @@ dev = [
     "ruff>=0.0.285",
 ]
 monitoring = [
-    ***REMOVED*** Additional monitoring tools (OpenTelemetry included by default)
-    "py-spy>=0.3.14",  ***REMOVED*** CPU profiler
-    "memory-profiler>=0.60.0",  ***REMOVED*** Memory profiler
+    # Additional monitoring tools (OpenTelemetry included by default)
+    "py-spy>=0.3.14",  # CPU profiler
+    "memory-profiler>=0.60.0",  # Memory profiler
 ]
 cache = [
     "redis>=5.0.0",
-    "cache",  ***REMOVED*** Local dependency
+    "cache",  # Local dependency
 ]
 security = [
     "PyJWT>=2.8.0",
@@ -76,7 +76,7 @@ all = [
 [project.urls]
 Repository = "https://github.com/yourusername/next_watch"
 
-***REMOVED*** Hatch configuration
+# Hatch configuration
 [tool.hatch.version]
 source = "vcs"
 
@@ -96,7 +96,7 @@ include = [
 [tool.hatch.build.sources]
 "src" = ""
 
-***REMOVED*** Single consolidated environment
+# Single consolidated environment
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"
@@ -106,14 +106,14 @@ features = ["dev"]
 PYTHONPATH = "src"
 
 [tool.hatch.envs.default.scripts]
-***REMOVED*** Install local libraries, so they can be reloaded after changes
+# Install local libraries, so they can be reloaded after changes
 install-libs = [
   "pip install -e ../../libs/config",
   "pip install -e ../../libs/cache",
   "pip install -e ../../libs/cli"
 ]
 
-***REMOVED*** Development tools
+# Development tools
 lint = [
     "black .",
     "isort .",
@@ -127,7 +127,7 @@ format = [
     "isort ."
 ]
 
-***REMOVED*** Example app
+# Example app
 example = "PYTHONPATH=src python examples/basic_app.py"
 
 [tool.black]

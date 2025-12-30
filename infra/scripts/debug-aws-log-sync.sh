@@ -1,22 +1,22 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** NextWatch Monitoring Log Sync Debugging Script
-***REMOVED*** This script helps diagnose log sync issues in the AWS-deployed monitoring stack
+# NextWatch Monitoring Log Sync Debugging Script
+# This script helps diagnose log sync issues in the AWS-deployed monitoring stack
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🔍 NextWatch Monitoring - Log Sync Debugging${NC}"
 echo "========================================================"
 echo ""
 
-***REMOVED*** Check if we have AWS environment variables
+# Check if we have AWS environment variables
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Found AWS environment variables${NC}"
@@ -26,7 +26,7 @@ else
     read -p "AWS Instance Public IP: " PUBLIC_IP
 fi
 
-***REMOVED*** SSH key (do not hardcode local user paths in a public repo)
+# SSH key (do not hardcode local user paths in a public repo)
 SSH_USER="${SSH_USER:-ubuntu}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
 if [ -z "$SSH_KEY_PATH" ]; then
@@ -54,11 +54,11 @@ fi
 echo ""
 echo -e "${BLUE}🚀 Connecting to AWS instance...${NC}"
 
-***REMOVED*** Create the remote debugging script
+# Create the remote debugging script
 cat << 'REMOTE_SCRIPT' > /tmp/aws-log-debug.sh
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Colors for remote output
+# Colors for remote output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -69,7 +69,7 @@ echo -e "${BLUE}🔍 NextWatch Log Sync Diagnostics${NC}"
 echo "=================================="
 echo ""
 
-***REMOVED*** Navigate to monitoring directory
+# Navigate to monitoring directory
 cd /opt/nextwatch-monitoring || {
     echo -e "${RED}❌ Monitoring directory not found at /opt/nextwatch-monitoring${NC}"
     echo "Checking alternative locations..."
@@ -196,7 +196,7 @@ echo ""
 
 REMOTE_SCRIPT
 
-***REMOVED*** Copy script to remote server and execute
+# Copy script to remote server and execute
 echo -e "${BLUE}📤 Uploading diagnostic script...${NC}"
 scp -i "$SSH_KEY_PATH" /tmp/aws-log-debug.sh "$SSH_USER@$PUBLIC_IP:/tmp/"
 
@@ -211,24 +211,24 @@ echo "ssh -i $SSH_KEY_PATH $SSH_USER@$PUBLIC_IP"
 echo ""
 echo -e "${YELLOW}Common Fix Commands (run on AWS instance):${NC}"
 echo ""
-echo "***REMOVED*** Restart just the logging components:"
+echo "# Restart just the logging components:"
 echo "cd /opt/nextwatch-monitoring"
 echo "sudo docker compose -f docker-compose.monitoring.yml restart promtail loki"
 echo "  (or) sudo docker-compose -f docker-compose.monitoring.yml restart promtail loki"
 echo ""
-echo "***REMOVED*** Restart entire monitoring stack:"
+echo "# Restart entire monitoring stack:"
 echo "sudo docker compose -f docker-compose.monitoring.yml down"
 echo "sudo docker compose -f docker-compose.monitoring.yml up -d"
 echo "  (or) sudo docker-compose -f docker-compose.monitoring.yml down"
 echo "  (or) sudo docker-compose -f docker-compose.monitoring.yml up -d"
 echo ""
-echo "***REMOVED*** Check if NextWatch services are running:"
+echo "# Check if NextWatch services are running:"
 echo "sudo docker compose -f docker-compose.prod.yml ps"
 echo "  (or) sudo docker-compose -f docker-compose.prod.yml ps"
 echo ""
-echo "***REMOVED*** Start NextWatch services if needed:"
+echo "# Start NextWatch services if needed:"
 echo "sudo docker compose -f docker-compose.prod.yml up -d"
 echo "  (or) sudo docker-compose -f docker-compose.prod.yml up -d"
 
-***REMOVED*** Clean up
+# Clean up
 rm -f /tmp/aws-log-debug.sh

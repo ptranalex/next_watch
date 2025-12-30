@@ -102,7 +102,7 @@ class RedisStore:
                         for prefix_len in range(min_word_length, min(len(word), 6)):
                             prefix = word[:prefix_len]
                             pipeline.zadd("suggestions", {prefix: 0})
-                            ***REMOVED*** only set mapping once if not exists
+                            # only set mapping once if not exists
                             pipeline.setnx(f"suggestions:{prefix}", str(movie_id))
                             pipeline.setnx(f"suggestions_meta:{prefix}", f"movie:{movie_id}")
 

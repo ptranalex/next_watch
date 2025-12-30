@@ -45,21 +45,21 @@ async def run_concurrently(
 
     try:
         if timeout:
-            ***REMOVED*** Use wait_for with asyncio.gather for timeout support
+            # Use wait_for with asyncio.gather for timeout support
             results_list = await asyncio.wait_for(
                 asyncio.gather(*tasks.values(), return_exceptions=return_exceptions),
                 timeout=timeout,
             )
         else:
-            ***REMOVED*** Use gather without timeout
+            # Use gather without timeout
             results_list = await asyncio.gather(
                 *tasks.values(), return_exceptions=return_exceptions
             )
 
-        ***REMOVED*** Map results back to task names
-        results: dict[str, T | Exception] = dict(zip(tasks.keys(), results_list))  ***REMOVED*** type: ignore
+        # Map results back to task names
+        results: dict[str, T | Exception] = dict(zip(tasks.keys(), results_list))  # type: ignore
 
-        ***REMOVED*** Log summary
+        # Log summary
         successes = sum(1 for r in results.values() if not isinstance(r, Exception))
         failures = len(results) - successes
 
@@ -111,10 +111,10 @@ async def gather_with_timeout(
                 asyncio.gather(*awaitables, return_exceptions=return_exceptions),
                 timeout=timeout,
             )
-            return result  ***REMOVED*** type: ignore[return-value]
+            return result  # type: ignore[return-value]
         else:
             result = await asyncio.gather(*awaitables, return_exceptions=return_exceptions)
-            return result  ***REMOVED*** type: ignore[return-value]
+            return result  # type: ignore[return-value]
 
     except TimeoutError:
         logger.error("Gather operation timed out", timeout=timeout)
@@ -185,11 +185,11 @@ async def run_with_retries(
                 )
                 raise
 
-    ***REMOVED*** This shouldn't be reached, but just in case
+    # This shouldn't be reached, but just in case
     if last_exception:
         raise last_exception
 
-    ***REMOVED*** This really shouldn't be reached
+    # This really shouldn't be reached
     raise RuntimeError("Unexpected end of retry loop")
 
 
@@ -226,7 +226,7 @@ async def run_in_batches(
     if not items:
         return []
 
-    ***REMOVED*** Split items into batches
+    # Split items into batches
     batches = [items[i : i + batch_size] for i in range(0, len(items), batch_size)]
 
     logger.info(
@@ -251,7 +251,7 @@ async def run_in_batches(
                 logger.error("Batch processing failed", batch_size=len(batch), error=str(e))
                 raise
 
-    ***REMOVED*** Process all batches concurrently (limited by semaphore)
+    # Process all batches concurrently (limited by semaphore)
     try:
         results = await asyncio.gather(
             *[process_batch_with_semaphore(batch) for batch in batches], return_exceptions=False
@@ -319,7 +319,7 @@ class ConcurrentRunner:
                 self.logger.warning("Operation failed", operation=name, error=str(e))
                 return name, e
 
-        ***REMOVED*** Run all operations
+        # Run all operations
         tasks = [run_operation(name, op) for name, op in operations.items()]
 
         if effective_timeout:
@@ -327,5 +327,5 @@ class ConcurrentRunner:
         else:
             completed = await asyncio.gather(*tasks)
 
-        ***REMOVED*** Convert back to dictionary
+        # Convert back to dictionary
         return dict(completed)

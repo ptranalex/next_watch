@@ -34,7 +34,7 @@ class ServiceConfig:
         if self.version is not None and not self.version:
             raise ValueError("version must be a non-empty string or None")
 
-        ***REMOVED*** Remove trailing slash from base_url for consistency
+        # Remove trailing slash from base_url for consistency
         self.base_url = self.base_url.rstrip("/")
 
 
@@ -48,10 +48,10 @@ class ServiceClient:
         config = ServiceConfig("http://localhost:8000", version="v1")
         client = ServiceClient(config)
 
-        ***REMOVED*** Makes request to: http://localhost:8000/api/v1/users/123
+        # Makes request to: http://localhost:8000/api/v1/users/123
         response = await client.get("users/123")
 
-        ***REMOVED*** Makes request to: http://localhost:8000/api/v1/movies
+        # Makes request to: http://localhost:8000/api/v1/movies
         response = await client.post("movies", json={"title": "Movie"})
     """
 
@@ -83,21 +83,21 @@ class ServiceClient:
             >>> client._build_endpoint("/movies")
             "/api/v1/movies"
         """
-        ***REMOVED*** Clean and normalize path
+        # Clean and normalize path
         clean_path = path.strip().lstrip("/")
 
-        ***REMOVED*** Replace multiple consecutive slashes with single slash
+        # Replace multiple consecutive slashes with single slash
         if clean_path:
             clean_path = re.sub(r"/+", "/", clean_path)
 
-        ***REMOVED*** Build path components
+        # Build path components
         components = [self.config.api_prefix]
         if self.config.version:
             components.append(self.config.version)
         if clean_path:
             components.append(clean_path)
 
-        ***REMOVED*** Join with single slashes and ensure leading slash
+        # Join with single slashes and ensure leading slash
         return "/" + "/".join(components)
 
     async def get(self, path: str, **kwargs: Any) -> httpx.Response:

@@ -25,27 +25,27 @@ def create_fast_core_config(backend_config: BackendAPIConfig) -> FastAPIConfig:
     """
     logger.info("Converting Backend API config to fast-core config")
 
-    ***REMOVED*** Create fast-core config with backend-specific settings
+    # Create fast-core config with backend-specific settings
     fast_core_config = FastAPIConfig(
-        ***REMOVED*** Basic service configuration (inherited from ServiceConfig)
+        # Basic service configuration (inherited from ServiceConfig)
         service_name=getattr(backend_config, "service_name", "Next Watch Backend API"),
         environment=backend_config.environment,
         debug=backend_config.debug,
         host=backend_config.host,
         port=backend_config.port,
         log_level=backend_config.log_level,
-        ***REMOVED*** CORS configuration - backend API serves frontend and other services
+        # CORS configuration - backend API serves frontend and other services
         cors_origins=getattr(backend_config, "cors_origins", ["*"]),
         cors_allow_credentials=True,
         cors_allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         cors_allow_headers=["*"],
-        ***REMOVED*** No external service URLs - backend API is independent
+        # No external service URLs - backend API is independent
         service_urls={},
-        ***REMOVED*** No external service timeouts needed
+        # No external service timeouts needed
         service_timeouts={
             "default": 30,
         },
-        ***REMOVED*** Feature flags for backend API functionality
+        # Feature flags for backend API functionality
         feature_flags={
             "health_checks": True,
             "user_interactions": True,
@@ -55,14 +55,14 @@ def create_fast_core_config(backend_config: BackendAPIConfig) -> FastAPIConfig:
             "movie_trailers": True,
             "bulk_operations": True,
         },
-        ***REMOVED*** FastAPI-specific configuration
+        # FastAPI-specific configuration
         docs_url="/docs" if backend_config.debug else None,
         redoc_url="/redoc" if backend_config.debug else None,
         openapi_url="/openapi.json" if backend_config.debug else None,
     )
 
-    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
-    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    # Set monitoring configuration (MonitoringConfigMixin fields)
+    # Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
     fast_core_config.enable_tracing = backend_config.enable_tracing
     fast_core_config.tracing_endpoint = backend_config.tracing_endpoint
     fast_core_config.tracing_sample_rate = backend_config.tracing_sample_rate

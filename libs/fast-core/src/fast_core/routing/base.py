@@ -44,7 +44,7 @@ class BaseRouter(APIRouter):
             route_class: Custom route class
             **kwargs: Additional arguments for APIRouter
         """
-        ***REMOVED*** Add standard responses for common status codes
+        # Add standard responses for common status codes
         standard_responses: dict[int | str, dict[str, Any]] = {
             400: {"description": "Bad Request", "model": None},
             401: {"description": "Unauthorized", "model": None},
@@ -54,12 +54,12 @@ class BaseRouter(APIRouter):
             500: {"description": "Internal Server Error", "model": None},
         }
 
-        ***REMOVED*** Merge with user-provided responses
+        # Merge with user-provided responses
         if responses:
             for status_code, response in responses.items():
                 standard_responses[status_code] = response
 
-        ***REMOVED*** Initialize with enhanced defaults
+        # Initialize with enhanced defaults
         super().__init__(
             prefix=prefix,
             tags=list(tags) if tags else None,
@@ -100,7 +100,7 @@ class BaseRouter(APIRouter):
             exc_class: Exception class to handle
             handler: Handler function
         """
-        ***REMOVED*** Store handlers to be added when router is included in an app
+        # Store handlers to be added when router is included in an app
         if not hasattr(self, "_error_handlers"):
             self._error_handlers = []
 

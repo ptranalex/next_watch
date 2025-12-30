@@ -77,7 +77,7 @@ def get_recommendation_service(
     )
 
 
-***REMOVED*** Backward compatibility aliases (deprecated - use the new _dependency functions)
+# Backward compatibility aliases (deprecated - use the new _dependency functions)
 def get_backend_client(request: Request) -> BackendClient:
     """Legacy dependency - deprecated, use get_backend_client_dependency instead."""
     logger.warning("get_backend_client is deprecated, use get_backend_client_dependency")

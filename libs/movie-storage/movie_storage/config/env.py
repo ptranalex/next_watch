@@ -27,7 +27,7 @@ def find_project_root(start_path: Path | None = None) -> Path:
 
     current = start_path.resolve()
 
-    ***REMOVED*** Look for common project root markers
+    # Look for common project root markers
     markers = [".env", "pyproject.toml", "setup.py", ".git", "README.md"]
 
     while current != current.parent:
@@ -35,8 +35,8 @@ def find_project_root(start_path: Path | None = None) -> Path:
             return current
         current = current.parent
 
-    ***REMOVED*** Fallback: assume project root is 3 levels up from this file
-    ***REMOVED*** (movie_storage/config/env.py -> project_root)
+    # Fallback: assume project root is 3 levels up from this file
+    # (movie_storage/config/env.py -> project_root)
     fallback_root = Path(__file__).parent.parent.parent
     if fallback_root.exists():
         return fallback_root
@@ -60,7 +60,7 @@ def load_environment_variables(project_root: Path | None = None) -> bool:
     Example:
         >>> load_environment_variables()
         True
-        >>> os.getenv("DATABASE_URL")  ***REMOVED*** Now available if set in .env files
+        >>> os.getenv("DATABASE_URL")  # Now available if set in .env files
         'postgresql://postgres:postgres@localhost:5432/next_watch'
     """
     try:
@@ -76,18 +76,18 @@ def load_environment_variables(project_root: Path | None = None) -> bool:
             print("Warning: Could not find project root. Skipping .env file loading.")
             return False
 
-    ***REMOVED*** Define .env file paths in loading order
+    # Define .env file paths in loading order
     env_files = [
-        project_root / ".env",  ***REMOVED*** Default values
-        project_root / ".env.local",  ***REMOVED*** Local overrides (git-ignored)
+        project_root / ".env",  # Default values
+        project_root / ".env.local",  # Local overrides (git-ignored)
     ]
 
     files_loaded = []
 
-    ***REMOVED*** Load .env files in order
+    # Load .env files in order
     for env_file in env_files:
         if env_file.exists():
-            ***REMOVED*** For .env.local, override existing values
+            # For .env.local, override existing values
             override = env_file.name == ".env.local"
             load_dotenv(dotenv_path=env_file, override=override)
             files_loaded.append(env_file.name)
@@ -202,6 +202,6 @@ def get_env_int(key: str, default: int | None = None) -> int | None:
         return default
 
 
-***REMOVED*** Auto-load environment variables when module is imported
-***REMOVED*** This ensures .env files are loaded early in the application lifecycle
+# Auto-load environment variables when module is imported
+# This ensures .env files are loaded early in the application lifecycle
 _env_loaded = load_environment_variables()

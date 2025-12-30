@@ -41,14 +41,14 @@ def start_warming(
 
     async def _start_warming() -> None:
         try:
-            ***REMOVED*** Configure logging if verbose mode is enabled
+            # Configure logging if verbose mode is enabled
             if verbose:
                 logger.info("Verbose logging enabled")
 
-            ***REMOVED*** Use global warming engine if available, otherwise create default
+            # Use global warming engine if available, otherwise create default
             engine = get_global_warming_engine()
             if engine is None:
-                ***REMOVED*** Initialize default warming engine
+                # Initialize default warming engine
                 cache_manager = CacheManager.from_settings()
                 metrics_collector = get_global_collector()
                 config = WarmingConfig()
@@ -59,7 +59,7 @@ def start_warming(
                     config=config,
                 )
 
-            ***REMOVED*** Prepare context
+            # Prepare context
             context = {}
             if user_ids:
                 context["user_ids"] = [int(uid.strip()) for uid in user_ids.split(",")]
@@ -68,14 +68,14 @@ def start_warming(
             if dry_run:
                 console.print("[yellow]Dry run mode - no actual warming will be performed[/yellow]")
 
-            ***REMOVED*** Execute warming based on strategy
+            # Execute warming based on strategy
             if strategy == "all":
                 results = await engine.warm_all_strategies(
                     limit_per_strategy=limit, dry_run=dry_run, context=context
                 )
                 _display_all_strategy_results(results, dry_run)
             else:
-                ***REMOVED*** Map string to enum
+                # Map string to enum
                 strategy_map = {
                     "metrics_driven": WarmingStrategy.METRICS_DRIVEN,
                     "popular_content": WarmingStrategy.POPULAR_CONTENT,
@@ -109,12 +109,12 @@ def warming_status() -> None:
 
     async def _show_status() -> None:
         try:
-            ***REMOVED*** Use global warming engine if available, otherwise create default
+            # Use global warming engine if available, otherwise create default
             engine = get_global_warming_engine()
             config = None
 
             if engine is None:
-                ***REMOVED*** Initialize default warming engine
+                # Initialize default warming engine
                 cache_manager = CacheManager.from_settings()
                 metrics_collector = get_global_collector()
                 config = WarmingConfig()
@@ -125,13 +125,13 @@ def warming_status() -> None:
                     config=config,
                 )
             else:
-                ***REMOVED*** Use config from global engine
+                # Use config from global engine
                 config = engine.config
 
-            ***REMOVED*** Get available strategies
+            # Get available strategies
             available_strategies = engine.get_available_strategies()
 
-            ***REMOVED*** Status table
+            # Status table
             status_table = Table(title="🔥 Warming System Status")
             status_table.add_column("Strategy", style="cyan")
             status_table.add_column("Status", style="green")
@@ -156,7 +156,7 @@ def warming_status() -> None:
 
             console.print(status_table)
 
-            ***REMOVED*** Configuration summary
+            # Configuration summary
             config_panel = Panel(
                 f"Max Concurrent: {config.max_concurrent_operations}\n"
                 f"Max Items Per Strategy: {config.max_items_per_strategy}\n"
@@ -176,11 +176,11 @@ def warming_status() -> None:
 @warming_app.command("config")
 def show_config() -> None:
     """Show warming configuration."""
-    ***REMOVED*** Use global warming engine config if available, otherwise default
+    # Use global warming engine config if available, otherwise default
     engine = get_global_warming_engine()
     config = engine.config if engine else WarmingConfig()
 
-    ***REMOVED*** General configuration
+    # General configuration
     general_table = Table(title="🔥 General Configuration")
     general_table.add_column("Setting", style="cyan")
     general_table.add_column("Value", style="green")
@@ -196,7 +196,7 @@ def show_config() -> None:
 
     console.print(general_table)
 
-    ***REMOVED*** Strategy configuration
+    # Strategy configuration
     strategy_table = Table(title="🔧 Strategy Configuration")
     strategy_table.add_column("Strategy", style="cyan")
     strategy_table.add_column("Enabled", style="green")
@@ -220,7 +220,7 @@ def show_config() -> None:
 
     console.print(strategy_table)
 
-    ***REMOVED*** Thresholds configuration
+    # Thresholds configuration
     threshold_table = Table(title="📊 Threshold Configuration")
     threshold_table.add_column("Threshold", style="cyan")
     threshold_table.add_column("Value", style="green")
@@ -246,7 +246,7 @@ def show_candidates(
 
     async def _show_candidates() -> None:
         try:
-            ***REMOVED*** For now, just show placeholder
+            # For now, just show placeholder
             console.print("[yellow]Warming candidates feature coming soon[/yellow]")
         except Exception as e:
             console.print(f"[red]Error getting warming candidates: {e}[/red]")
@@ -274,7 +274,7 @@ def _display_warming_stats(stats: WarmingStats, dry_run: bool = False) -> None:
 
     console.print(stats_table)
 
-    ***REMOVED*** Show status message
+    # Show status message
     if stats.total_targets == 0:
         console.print("[yellow]No warming targets identified[/yellow]")
     elif stats.success_rate == 1.0:
@@ -292,7 +292,7 @@ def _display_all_strategy_results(
 
     title = "🔥 All Strategies Results (Dry Run)" if dry_run else "🔥 All Strategies Results"
 
-    ***REMOVED*** Summary table
+    # Summary table
     summary_table = Table(title=title)
     summary_table.add_column("Strategy", style="cyan")
     summary_table.add_column("Targets", style="green")
@@ -325,7 +325,7 @@ def _display_all_strategy_results(
             ),
         )
 
-    ***REMOVED*** Add totals row
+    # Add totals row
     overall_success_rate = total_successful / total_targets if total_targets > 0 else 0.0
     summary_table.add_row(
         "[bold]TOTAL[/bold]",
@@ -338,7 +338,7 @@ def _display_all_strategy_results(
 
     console.print(summary_table)
 
-    ***REMOVED*** Overall status message
+    # Overall status message
     if total_targets == 0:
         console.print("[yellow]No warming targets identified across all strategies[/yellow]")
     elif overall_success_rate == 1.0:

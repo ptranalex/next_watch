@@ -105,7 +105,7 @@ const ExpandableText = ({
           }}
           _focus={{
             boxShadow: `0 0 0 3px ${
-              theme.colors?.brand?.primary?.[300] || "***REMOVED***63B3ED"
+              theme.colors?.brand?.primary?.[300] || "#63B3ED"
             }66`,
             outline: "none",
           }}

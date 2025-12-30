@@ -1,21 +1,21 @@
-***REMOVED*** Development docker-compose for Search API
-***REMOVED*** Use this for local testing of the search-api service
-***REMOVED***
-***REMOVED*** Usage:
-***REMOVED***   docker-compose -f docker-compose.dev.yml up --build
+# Development docker-compose for Search API
+# Use this for local testing of the search-api service
+#
+# Usage:
+#   docker-compose -f docker-compose.dev.yml up --build
 
 version: "3.8"
 
 services:
   search-api:
     build:
-      context: ../.. ***REMOVED*** Build from monorepo root
+      context: ../.. # Build from monorepo root
       dockerfile: apps/search-api/Dockerfile
     container_name: search-api-dev
     ports:
       - "8004:8004"
     environment:
-      ***REMOVED*** Core Service Configuration
+      # Core Service Configuration
       - ENVIRONMENT=development
       - SERVICE_NAME=search-api
       - HOST=0.0.0.0
@@ -24,37 +24,37 @@ services:
       - LOG_LEVEL=debug
       - LOGS_DIR=/app/logs
 
-      ***REMOVED*** External Service URLs (pointing to host services)
+      # External Service URLs (pointing to host services)
       - BACKEND_API_URL=http://host.docker.internal:8000
       - BACKEND_API_TIMEOUT=30
       - ML_API_URL=http://host.docker.internal:8005
       - ML_API_TIMEOUT=60
 
-      ***REMOVED*** Redis Configuration
+      # Redis Configuration
       - REDIS_URL=redis://redis:6379/2
       - REDIS_MAX_CONNECTIONS=20
       - REDIS_SOCKET_TIMEOUT=5
       - REDIS_RETRY_ON_TIMEOUT=true
 
-      ***REMOVED*** Search-specific Settings
+      # Search-specific Settings
       - MAX_SUGGESTIONS=50
       - SEARCH_CACHE_TTL=300
       - SUGGESTION_CACHE_TTL=3600
       - MIN_QUERY_LENGTH=1
       - MAX_QUERY_LENGTH=100
 
-      ***REMOVED*** Feature Flags
+      # Feature Flags
       - ENABLE_SEMANTIC_SEARCH=false
       - ENABLE_SEARCH_ANALYTICS=true
       - ENABLE_FUZZY_MATCHING=true
       - ENABLE_TYPO_TOLERANCE=true
 
-      ***REMOVED*** Security (development settings)
+      # Security (development settings)
       - CORS_ORIGINS=["http://localhost:3000", "http://localhost:3001"]
       - ALLOWED_HOSTS=["localhost", "127.0.0.1", "search-api", "0.0.0.0"]
       - INTERNAL_API_KEY=search-to-backend-secret-key
 
-      ***REMOVED*** Performance Settings
+      # Performance Settings
       - ENABLE_PERFORMANCE_METRICS=true
       - ENABLE_METRICS=true
       - CACHE_ENABLE_METRICS=true
@@ -77,7 +77,7 @@ services:
         max-size: "50m"
         max-file: "2"
 
-  ***REMOVED*** Redis for search suggestions and caching
+  # Redis for search suggestions and caching
   redis:
     image: redis:7-alpine
     container_name: search-redis-dev

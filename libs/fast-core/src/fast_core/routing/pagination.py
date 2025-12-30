@@ -179,7 +179,7 @@ class Paginator:
         return PaginatedResult(data=data, pagination=meta)
 
 
-***REMOVED*** Default paginator instance
+# Default paginator instance
 default_paginator = Paginator()
 
 

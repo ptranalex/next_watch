@@ -1,27 +1,27 @@
-***REMOVED*** Backend API Configuration
+# Backend API Configuration
 
 This package provides centralized configuration management for the Backend API service, handling database connections, API settings, Redis configuration, and JWT authentication.
 
 > **📦 Migration Notice**: Logging configuration has been moved to the shared NextWatch config library (`config.logging`). This ensures consistent logging setup across all services while eliminating code duplication.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The configuration system follows a hierarchical approach where environment variables take precedence over defaults, and supports both development and production environments with appropriate security measures.
 
-***REMOVED******REMOVED*** Package Structure
+## Package Structure
 
 ```
 config/
-├── __init__.py          ***REMOVED*** Package exports and imports
-├── app.py              ***REMOVED*** Main configuration class and settings
-└── README.md           ***REMOVED*** This documentation
+├── __init__.py          # Package exports and imports
+├── app.py              # Main configuration class and settings
+└── README.md           # This documentation
 ```
 
 **Note**: Logging configuration is now provided by the shared NextWatch config library (`config.logging`) rather than a local module.
 
-***REMOVED******REMOVED*** Core Components
+## Core Components
 
-***REMOVED******REMOVED******REMOVED*** Configuration Class (`app.py`)
+### Configuration Class (`app.py`)
 
 The main `Config` class provides a singleton instance with comprehensive settings for:
 
@@ -32,14 +32,14 @@ The main `Config` class provides a singleton instance with comprehensive setting
 - **Security**: Allowed hosts and environment-specific settings
 - **Logging**: File and console output configuration
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Key Features
+#### Key Features
 
 - **Singleton Pattern**: Ensures consistent configuration across the application
 - **Environment-Aware**: Automatically adjusts settings based on `ENVIRONMENT` variable
 - **Secure Defaults**: Masks sensitive information in logs and string representations
 - **Type Safety**: Comprehensive type hints and validation
 
-***REMOVED******REMOVED******REMOVED*** Shared Logging Configuration
+### Shared Logging Configuration
 
 Logging is now handled by the shared NextWatch config library (`config.logging`) which provides:
 
@@ -50,18 +50,18 @@ Logging is now handled by the shared NextWatch config library (`config.logging`)
 - **Production Ready**: Automatic fallbacks and error handling
 - **Consistent**: Same logging setup across all NextWatch services
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 ```python
 from backend_api.config import Config
 from config.logging import configure_logging, get_logger
 
-***REMOVED*** Get configuration instance
+# Get configuration instance
 config = Config.get_instance()
 
-***REMOVED*** Set up logging (using shared library)
+# Set up logging (using shared library)
 configure_logging(
     log_level=config.log_level,
     log_dir=Path(config.logs_dir) if config.logs_dir else None,
@@ -69,18 +69,18 @@ configure_logging(
     logger_name="backend_api"
 )
 
-***REMOVED*** Get a logger
+# Get a logger
 logger = get_logger(__name__)
 
-***REMOVED*** Use configuration
+# Use configuration
 logger.info("API starting", port=config.api_port)
 print(f"Database: {config.database_url}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Configuration
+### Custom Configuration
 
 ```python
-***REMOVED*** Override defaults during initialization
+# Override defaults during initialization
 config = Config(
     api_port=8080,
     database_url="postgresql://user:pass@localhost/mydb",
@@ -89,26 +89,26 @@ config = Config(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment-Specific Setup
+### Environment-Specific Setup
 
 ```python
 from backend_api.config import Config
 from config.logging import get_logger
 
-***REMOVED*** Get configuration instance (automatically loads .env files)
+# Get configuration instance (automatically loads .env files)
 config = Config.get_instance()
 logger = get_logger(__name__)
 
-***REMOVED*** Check environment
+# Check environment
 if config.is_production:
     logger.info("Running in production mode", environment=config.environment)
 else:
     logger.info("Running in development mode", environment=config.environment)
 ```
 
-***REMOVED******REMOVED*** Environment Variables
+## Environment Variables
 
-***REMOVED******REMOVED******REMOVED*** Database Configuration
+### Database Configuration
 
 | Variable                | Default                                                    | Description                       |
 | ----------------------- | ---------------------------------------------------------- | --------------------------------- |
@@ -118,7 +118,7 @@ else:
 | `DATABASE_MAX_OVERFLOW` | `10`                                                       | Maximum pool overflow             |
 | `DATABASE_POOL_TIMEOUT` | `30`                                                       | Pool connection timeout (seconds) |
 
-***REMOVED******REMOVED******REMOVED*** API Configuration
+### API Configuration
 
 | Variable           | Default       | Description                            |
 | ------------------ | ------------- | -------------------------------------- |
@@ -128,7 +128,7 @@ else:
 | `ENVIRONMENT`      | `development` | Environment name                       |
 | `LOGS_DIR`         | `logs`        | Log directory (disabled in production) |
 
-***REMOVED******REMOVED******REMOVED*** Redis Configuration
+### Redis Configuration
 
 | Variable                       | Default                    | Description                  |
 | ------------------------------ | -------------------------- | ---------------------------- |
@@ -138,7 +138,7 @@ else:
 | `REDIS_SOCKET_CONNECT_TIMEOUT` | `10`                       | Connection timeout (seconds) |
 | `REDIS_RETRY_ON_TIMEOUT`       | `true`                     | Retry on timeout             |
 
-***REMOVED******REMOVED******REMOVED*** Authentication Configuration
+### Authentication Configuration
 
 | Variable                      | Default                                    | Description            |
 | ----------------------------- | ------------------------------------------ | ---------------------- |
@@ -147,7 +147,7 @@ else:
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30`                                       | Access token lifetime  |
 | `REFRESH_TOKEN_EXPIRE_DAYS`   | `7`                                        | Refresh token lifetime |
 
-***REMOVED******REMOVED******REMOVED*** Monitoring & Performance
+### Monitoring & Performance
 
 | Variable                      | Default | Description                          |
 | ----------------------------- | ------- | ------------------------------------ |
@@ -156,28 +156,28 @@ else:
 | `SLOW_QUERY_THRESHOLD_MS`     | `100`   | Slow query threshold (ms)            |
 | `ENABLE_DB_PROFILING`         | `false` | Enable database profiling (dev only) |
 
-***REMOVED******REMOVED******REMOVED*** Logging Configuration
+### Logging Configuration
 
 | Variable        | Default   | Description             |
 | --------------- | --------- | ----------------------- |
 | `LOG_LEVEL`     | `INFO`    | Base logging level      |
 | `SQL_LOG_LEVEL` | `WARNING` | SQL query logging level |
 
-***REMOVED******REMOVED*** Logging Features
+## Logging Features
 
-***REMOVED******REMOVED******REMOVED*** Advanced Configuration
+### Advanced Configuration
 
 ```python
 from pathlib import Path
 from config.logging import configure_logging, get_logger
 
-***REMOVED*** Comprehensive logging setup (using shared library)
+# Comprehensive logging setup (using shared library)
 config = configure_logging(
     log_level="DEBUG",
     log_dir=Path("./logs"),
     verbose=True,
     logger_name="backend_api",
-    http_verbose=False,  ***REMOVED*** Suppress HTTP noise
+    http_verbose=False,  # Suppress HTTP noise
     component_levels={
         "health": "INFO",
         "db": "DEBUG",
@@ -186,12 +186,12 @@ config = configure_logging(
     color_theme="solarized"
 )
 
-***REMOVED*** Get structured logger (using __name__ for hierarchical logging)
+# Get structured logger (using __name__ for hierarchical logging)
 logger = get_logger(__name__)
 logger.info("Request processed", user_id=123, status_code=200, duration_ms=45)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Color Themes
+### Color Themes
 
 Available themes for console output:
 
@@ -200,59 +200,59 @@ Available themes for console output:
 - **minimal**: Subtle styling with bold/dim variations
 - **solarized**: Solarized color palette
 
-***REMOVED******REMOVED******REMOVED*** Component-Level Logging
+### Component-Level Logging
 
 Control logging verbosity for different components:
 
 ```python
 component_levels = {
-    "health": "INFO",      ***REMOVED*** Health checks
-    "db": "DEBUG",         ***REMOVED*** Database operations
-    "auth": "WARNING",     ***REMOVED*** Authentication
-    "cache": "ERROR"       ***REMOVED*** Redis cache operations
+    "health": "INFO",      # Health checks
+    "db": "DEBUG",         # Database operations
+    "auth": "WARNING",     # Authentication
+    "cache": "ERROR"       # Redis cache operations
 }
 ```
 
-***REMOVED******REMOVED*** Production Considerations
+## Production Considerations
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 
 - JWT secrets are masked in logs and string representations
 - Database passwords are automatically masked in URLs
 - Sensitive configuration is not exposed in error messages
 
-***REMOVED******REMOVED******REMOVED*** Performance
+### Performance
 
 - File logging is disabled in production by default
 - HTTP access logs are suppressed unless explicitly enabled
 - Connection pooling is optimized for production workloads
 
-***REMOVED******REMOVED******REMOVED*** Environment Files
+### Environment Files
 
 Create these files in your project root:
 
 ```bash
-***REMOVED*** .env - Default values (committed to git)
+# .env - Default values (committed to git)
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/next_watch
 LOG_LEVEL=INFO
 DEBUG=false
 
-***REMOVED*** .env.local - Local overrides (git-ignored)
+# .env.local - Local overrides (git-ignored)
 DATABASE_URL=postgresql://myuser:mypass@localhost:5432/mydb
 DEBUG=true
 JWT_SECRET=my-local-secret
 ```
 
-***REMOVED******REMOVED*** Integration Examples
+## Integration Examples
 
-***REMOVED******REMOVED******REMOVED*** FastAPI Application
+### FastAPI Application
 
 ```python
 from fastapi import FastAPI
 from backend_api.config import Config
 from config.logging import configure_logging, get_logger
 
-***REMOVED*** Initialize configuration and logging
+# Initialize configuration and logging
 config = Config.get_instance()
 configure_logging(
     log_level=config.log_level,
@@ -268,7 +268,7 @@ async def startup():
     logger.info("Application starting", environment=config.environment, port=config.api_port)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Database Connection
+### Database Connection
 
 ```python
 from sqlalchemy import create_engine
@@ -284,7 +284,7 @@ engine = create_engine(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Redis Connection
+### Redis Connection
 
 ```python
 import redis
@@ -300,7 +300,7 @@ redis_client = redis.from_url(
 )
 ```
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 The configuration system includes comprehensive error handling:
 
@@ -309,7 +309,7 @@ The configuration system includes comprehensive error handling:
 - **File Permissions**: Graceful fallback for log file creation issues
 - **Missing Dependencies**: Optional dependency handling (e.g., python-dotenv)
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 For testing, you can override configuration:
 
@@ -321,13 +321,13 @@ from backend_api.config import Config
 def test_config():
     return Config(
         database_url="sqlite:///:memory:",
-        redis_url="redis://localhost:6379/1",  ***REMOVED*** Test database
+        redis_url="redis://localhost:6379/1",  # Test database
         log_level="DEBUG",
         debug=True
     )
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 1. **Always use environment variables** for sensitive configuration
 2. **Set up logging early** in your application lifecycle

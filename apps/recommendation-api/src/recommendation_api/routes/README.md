@@ -1,8 +1,8 @@
-***REMOVED*** Routes Module
+# Routes Module
 
 This module defines all the API routes and endpoints for the Recommendation API service, organizing them into logical groups with proper separation of concerns.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The routes module provides:
 
@@ -14,28 +14,28 @@ The routes module provides:
 - API versioning
 - OpenAPI documentation integration
 
-***REMOVED******REMOVED*** Structure
+## Structure
 
 ```
 routes/
-├── __init__.py         ***REMOVED*** Package initialization and exports
-├── api_v1.py          ***REMOVED*** Main router for API version 1
-├── meta.py            ***REMOVED*** Meta endpoints (root, API info)
-├── health.py          ***REMOVED*** Health check endpoints
-└── v1/                ***REMOVED*** Version 1 route modules
-    ├── __init__.py    ***REMOVED*** Package initialization
-    ├── personalized.py ***REMOVED*** Personalized recommendation endpoints
-    ├── popular.py     ***REMOVED*** Popular movie endpoints
-    ├── similar.py     ***REMOVED*** Similar movie endpoints
-    └── trending.py    ***REMOVED*** Trending movie endpoints
+├── __init__.py         # Package initialization and exports
+├── api_v1.py          # Main router for API version 1
+├── meta.py            # Meta endpoints (root, API info)
+├── health.py          # Health check endpoints
+└── v1/                # Version 1 route modules
+    ├── __init__.py    # Package initialization
+    ├── personalized.py # Personalized recommendation endpoints
+    ├── popular.py     # Popular movie endpoints
+    ├── similar.py     # Similar movie endpoints
+    └── trending.py    # Trending movie endpoints
 ```
 
-***REMOVED******REMOVED*** Core Endpoints
+## Core Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Meta Endpoints (`meta.py`)
+### Meta Endpoints (`meta.py`)
 
 ```
-GET /                   ***REMOVED*** Root endpoint with API information
+GET /                   # Root endpoint with API information
 ```
 
 Returns API information including:
@@ -45,12 +45,12 @@ Returns API information including:
 - Health check endpoints
 - Documentation links
 
-***REMOVED******REMOVED******REMOVED*** Health Check Endpoints (`health.py`)
+### Health Check Endpoints (`health.py`)
 
 ```
-GET /health            ***REMOVED*** Comprehensive health check
-GET /health/live       ***REMOVED*** Simple liveness check
-GET /health/ready      ***REMOVED*** Readiness check for critical dependencies
+GET /health            # Comprehensive health check
+GET /health/live       # Simple liveness check
+GET /health/ready      # Readiness check for critical dependencies
 ```
 
 Health checks monitor:
@@ -59,20 +59,20 @@ Health checks monitor:
 - Redis cache connectivity
 - Qdrant vector database connectivity
 
-***REMOVED******REMOVED*** API Version 1 Endpoints
+## API Version 1 Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Recommendation Endpoints
+### Recommendation Endpoints
 
 ```
-GET /reco/v1/recommendations/personalized/{user_id}  ***REMOVED*** Personalized recommendations
-GET /reco/v1/recommendations/popular                 ***REMOVED*** Popular movies
-GET /reco/v1/recommendations/similar/{movie_id}      ***REMOVED*** Similar movies
-GET /reco/v1/recommendations/trending                ***REMOVED*** Trending movies
+GET /reco/v1/recommendations/personalized/{user_id}  # Personalized recommendations
+GET /reco/v1/recommendations/popular                 # Popular movies
+GET /reco/v1/recommendations/similar/{movie_id}      # Similar movies
+GET /reco/v1/recommendations/trending                # Trending movies
 ```
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Including Routes in the Application
+### Including Routes in the Application
 
 The routes are included in the main FastAPI application using the modular structure:
 
@@ -84,13 +84,13 @@ from recommendation_api.routes import api_v1_router
 
 app = FastAPI()
 
-***REMOVED*** Include routers with appropriate tags
+# Include routers with appropriate tags
 app.include_router(meta_router, tags=["meta"])
 app.include_router(health_router, tags=["health"])
 app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 ```
 
-***REMOVED******REMOVED******REMOVED*** Creating a New Route Module
+### Creating a New Route Module
 
 To add a new route module:
 
@@ -102,7 +102,7 @@ To add a new route module:
 Example:
 
 ```python
-***REMOVED*** In routes/v1/new_feature.py
+# In routes/v1/new_feature.py
 from fastapi import APIRouter, HTTPException
 from typing import List
 from recommendation_api.models.response import FeatureResponse
@@ -113,13 +113,13 @@ router = APIRouter()
 async def get_feature():
     """Get feature data."""
     try:
-        ***REMOVED*** Implementation here
+        # Implementation here
         return feature_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding Routes to Existing Modules
+### Adding Routes to Existing Modules
 
 To add a new endpoint to an existing module:
 
@@ -128,32 +128,32 @@ To add a new endpoint to an existing module:
 3. Add Pydantic models for request/response validation
 4. Include proper error handling
 
-***REMOVED******REMOVED*** Health Check Implementation
+## Health Check Implementation
 
 The health check system provides comprehensive monitoring:
 
-***REMOVED******REMOVED******REMOVED*** Comprehensive Health Check (`/health`)
+### Comprehensive Health Check (`/health`)
 
 - Checks all dependencies (PostgreSQL, Redis, Qdrant)
 - Returns detailed status for each service
 - Includes response times and connection details
 - Returns HTTP 200 if all healthy, 503 if any unhealthy
 
-***REMOVED******REMOVED******REMOVED*** Liveness Check (`/health/live`)
+### Liveness Check (`/health/live`)
 
 - Simple endpoint that returns if the service is running
 - No dependency checks
 - Used by load balancers and orchestrators
 - Always returns HTTP 200 if service is responsive
 
-***REMOVED******REMOVED******REMOVED*** Readiness Check (`/health/ready`)
+### Readiness Check (`/health/ready`)
 
 - Checks critical dependencies only (PostgreSQL, Qdrant)
 - Redis is considered non-critical
 - Returns HTTP 200 if ready, 503 if not ready
 - Used to determine if service can handle requests
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 The routes implement consistent error handling:
 
@@ -173,7 +173,7 @@ Example error response:
 }
 ```
 
-***REMOVED******REMOVED*** Response Models
+## Response Models
 
 All endpoints use Pydantic models for response validation:
 
@@ -182,7 +182,7 @@ All endpoints use Pydantic models for response validation:
 - Type safety and validation
 - Clear documentation
 
-***REMOVED******REMOVED*** Authentication & Authorization
+## Authentication & Authorization
 
 Currently, the API operates without authentication, but the structure supports:
 
@@ -191,7 +191,7 @@ Currently, the API operates without authentication, but the structure supports:
 - Rate limiting for unauthenticated requests
 - User context for personalized recommendations
 
-***REMOVED******REMOVED*** Documentation
+## Documentation
 
 API documentation is automatically generated and available at:
 
@@ -206,24 +206,24 @@ Documentation includes:
 - Error codes and descriptions
 - Health check endpoint details
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 Routes can be tested using:
 
 ```bash
-***REMOVED*** Test health endpoints
+# Test health endpoints
 curl http://localhost:8002/health
 curl http://localhost:8002/health/live
 curl http://localhost:8002/health/ready
 
-***REMOVED*** Test meta endpoints
+# Test meta endpoints
 curl http://localhost:8002/
 
-***REMOVED*** Test recommendation endpoints
+# Test recommendation endpoints
 curl http://localhost:8002/reco/v1/recommendations/popular
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 When working with routes:
 

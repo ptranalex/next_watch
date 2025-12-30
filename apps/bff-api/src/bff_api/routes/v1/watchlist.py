@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 router = APIRouter(tags=["watchlist"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "pagination": {
@@ -91,7 +91,7 @@ async def _get_movies_bulk(
 async def get_user_watchlist(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    ***REMOVED*** Filter parameters
+    # Filter parameters
     imdb_rating: float | None = Query(None, ge=0, le=10, description="Minimum IMDb rating"),
     rotten_tomatoes_rating: float | None = Query(
         None, ge=0, le=100, description="Minimum Rotten Tomatoes rating"
@@ -133,7 +133,7 @@ async def get_user_watchlist(
             - 401 if not authenticated
             - 502 if backend service is unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("watchlist_view")
@@ -143,7 +143,7 @@ async def get_user_watchlist(
     logger.debug(f"📋 Fetching watchlist for user {user_id} (page {page}, limit {limit})")
 
     try:
-        ***REMOVED*** Get watchlist interactions from backend using new collection API
+        # Get watchlist interactions from backend using new collection API
         watchlist_interactions_response = await _get_user_watchlist(
             backend=backend,
             user_id=user_id,
@@ -152,20 +152,20 @@ async def get_user_watchlist(
             page=page,
         )
 
-        ***REMOVED*** The new backend returns fast-core ResponseBuilder format with results array
-        ***REMOVED*** Extract the collection items from the response
+        # The new backend returns fast-core ResponseBuilder format with results array
+        # Extract the collection items from the response
         collection_items: list[dict[str, Any]] = watchlist_interactions_response.get("results", [])
 
-        ***REMOVED*** Convert collection items to interaction format for compatibility
-        ***REMOVED*** Collection items have: {movie_id, user_id, added_at}
-        ***REMOVED*** We need to convert them to interaction format: {movie_id, in_watchlist: True, ...}
+        # Convert collection items to interaction format for compatibility
+        # Collection items have: {movie_id, user_id, added_at}
+        # We need to convert them to interaction format: {movie_id, in_watchlist: True, ...}
         actually_watchlisted = [
             {
                 "movie_id": item.get("movie_id"),
                 "user_id": item.get("user_id"),
-                "in_watchlist": True,  ***REMOVED*** Always true for watchlist collection items
-                "watched": False,  ***REMOVED*** We don't have this info from collection endpoint
-                "liked": False,  ***REMOVED*** We don't have this info from collection endpoint
+                "in_watchlist": True,  # Always true for watchlist collection items
+                "watched": False,  # We don't have this info from collection endpoint
+                "liked": False,  # We don't have this info from collection endpoint
                 "created_at": item.get("added_at"),
             }
             for item in collection_items
@@ -201,7 +201,7 @@ async def get_user_watchlist(
             )
             return cast(dict[str, Any], response)
 
-        ***REMOVED*** Extract movie IDs for bulk fetching - filter out None values first and then convert to int
+        # Extract movie IDs for bulk fetching - filter out None values first and then convert to int
         valid_movie_ids = [
             mid
             for mid in [interaction.get("movie_id") for interaction in actually_watchlisted]
@@ -239,52 +239,52 @@ async def get_user_watchlist(
             )
             return cast(dict[str, Any], response)
 
-        ***REMOVED*** Fetch movie details in bulk
+        # Fetch movie details in bulk
         try:
             movies_response = await _get_movies_bulk(
                 backend=backend,
                 movie_ids=movie_ids,
                 user_id=user_id,
-                page=1,  ***REMOVED*** Get all movies in one request since we already paginated the interactions
-                limit=len(movie_ids),  ***REMOVED*** Get all movies
+                page=1,  # Get all movies in one request since we already paginated the interactions
+                limit=len(movie_ids),  # Get all movies
             )
 
             movies_data = movies_response.get("results", [])
 
         except Exception as e:
             logger.error(f"Failed to fetch bulk movie details for user {user_id}: {e}")
-            ***REMOVED*** Fallback to empty response instead of failing completely
+            # Fallback to empty response instead of failing completely
             movies_data = []
 
-        ***REMOVED*** Create a mapping of movie_id to interaction data for efficient lookup
+        # Create a mapping of movie_id to interaction data for efficient lookup
         interaction_map = {
             interaction.get("movie_id"): interaction
             for interaction in actually_watchlisted
             if interaction.get("movie_id")
         }
 
-        ***REMOVED*** Merge movie details with interaction data
+        # Merge movie details with interaction data
         enriched_movies: list[dict[str, Any]] = []
         for movie in movies_data:
             movie_id = movie.get("id")
             if movie_id and movie_id in interaction_map:
                 interaction = interaction_map[movie_id]
 
-                ***REMOVED*** Merge interaction data with movie details
+                # Merge interaction data with movie details
                 enriched_movie = {**movie}
 
-                ***REMOVED*** Set the frontend-expected interaction fields
+                # Set the frontend-expected interaction fields
                 enriched_movie["watched"] = interaction.get("watched", False)
                 enriched_movie["liked"] = interaction.get("liked", False)
                 enriched_movie["in_watchlist"] = interaction.get(
                     "in_watchlist", True
-                )  ***REMOVED*** Always true for watchlist movies
+                )  # Always true for watchlist movies
 
-                ***REMOVED*** Ensure user_interactions object is present with complete structure
+                # Ensure user_interactions object is present with complete structure
                 enriched_movie["user_interactions"] = {
                     "in_watchlist": interaction.get(
                         "in_watchlist", True
-                    ),  ***REMOVED*** Always true for watchlist movies
+                    ),  # Always true for watchlist movies
                     "is_favorite": interaction.get("liked", False),
                     "user_rating": interaction.get("user_rating"),
                     "watch_progress": interaction.get("watch_progress", 0),
@@ -293,7 +293,7 @@ async def get_user_watchlist(
 
                 enriched_movies.append(enriched_movie)
 
-        ***REMOVED*** Apply filtering to the enriched movies (since we now have full movie data)
+        # Apply filtering to the enriched movies (since we now have full movie data)
         if enriched_movies:
             if imdb_rating is not None:
                 enriched_movies = [
@@ -323,7 +323,7 @@ async def get_user_watchlist(
                     and str(m.get("release_date", "")).startswith(str(year))
                 ]
 
-            ***REMOVED*** Apply sorting
+            # Apply sorting
             reverse = sort_desc
             if sort_by == "title":
                 enriched_movies.sort(key=lambda x: (x.get("title") or "").lower(), reverse=reverse)
@@ -340,14 +340,14 @@ async def get_user_watchlist(
             elif sort_by == "metacritic_rating":
                 enriched_movies.sort(key=lambda x: x.get("metacritic_rating") or 0, reverse=reverse)
 
-        ***REMOVED*** Calculate pagination metadata using backend response pagination data
+        # Calculate pagination metadata using backend response pagination data
         backend_pagination = watchlist_interactions_response.get("pagination", {})
         total_count = backend_pagination.get("total", len(enriched_movies))
         has_next = backend_pagination.get("has_next", len(actually_watchlisted) == limit)
         has_prev = backend_pagination.get("has_prev", page > 1)
         total_pages = backend_pagination.get("total_pages", 1)
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=enriched_movies,
             page=page,
@@ -381,7 +381,7 @@ async def get_user_watchlist(
             },
         )
 
-        ***REMOVED*** Manually update pagination fields if ResponseBuilder doesn't support them directly
+        # Manually update pagination fields if ResponseBuilder doesn't support them directly
         if isinstance(response, dict) and "pagination" in response:
             response["pagination"].update(
                 {
@@ -401,14 +401,14 @@ async def get_user_watchlist(
             user_id=user_id,
             status_code=e.status_code,
         )
-        ***REMOVED*** Map backend service errors to appropriate HTTP status codes
+        # Map backend service errors to appropriate HTTP status codes
         if e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
             )
         else:
-            ***REMOVED*** This is a legitimate backend service issue (down, timeout, etc.)
+            # This is a legitimate backend service issue (down, timeout, etc.)
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
@@ -420,9 +420,9 @@ async def get_user_watchlist(
             service="bff",
             endpoint="watchlist_movies",
             user_id=user_id,
-            exc_info=True,  ***REMOVED*** Include stack trace for debugging
+            exc_info=True,  # Include stack trace for debugging
         )
-        ***REMOVED*** Return 500 for internal errors (bugs in our code)
+        # Return 500 for internal errors (bugs in our code)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while processing your request",

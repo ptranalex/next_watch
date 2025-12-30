@@ -49,16 +49,16 @@ class HealthService:
         Returns:
             Dictionary mapping service names to health check results
         """
-        ***REMOVED*** Run all health checks concurrently
+        # Run all health checks concurrently
         postgres_task = asyncio.create_task(self.check_postgres())
         redis_task = asyncio.create_task(self.check_redis())
 
-        ***REMOVED*** Wait for all checks to complete
+        # Wait for all checks to complete
         postgres_result, redis_result = await asyncio.gather(
             postgres_task, redis_task, return_exceptions=True
         )
 
-        ***REMOVED*** Handle any exceptions and build results
+        # Handle any exceptions and build results
         results: dict[str, HealthCheckResult] = {}
 
         if isinstance(postgres_result, Exception):
@@ -68,7 +68,7 @@ class HealthService:
         elif isinstance(postgres_result, HealthCheckResult):
             results["postgres"] = postgres_result
         else:
-            ***REMOVED*** This shouldn't happen, but handle it
+            # This shouldn't happen, but handle it
             results["postgres"] = HealthCheckResult(
                 is_healthy=False, status="error", error="Unexpected result type"
             )
@@ -80,7 +80,7 @@ class HealthService:
         elif isinstance(redis_result, HealthCheckResult):
             results["redis"] = redis_result
         else:
-            ***REMOVED*** This shouldn't happen, but handle it
+            # This shouldn't happen, but handle it
             results["redis"] = HealthCheckResult(
                 is_healthy=False, status="error", error="Unexpected result type"
             )
@@ -93,7 +93,7 @@ class HealthService:
         Returns:
             Health check result for PostgreSQL
         """
-        ***REMOVED*** Use the sync version since we don't have asyncpg dependency
+        # Use the sync version since we don't have asyncpg dependency
         return self.check_postgres_sync()
 
     async def check_redis(self) -> HealthCheckResult:
@@ -105,10 +105,10 @@ class HealthService:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Create Redis client if not exists
+            # Create Redis client if not exists
             if self._redis_client is None:
-                ***REMOVED*** For cache health check, we specifically want the cache Redis URL
-                ***REMOVED*** This is checking the cache system, not the suggestion engine
+                # For cache health check, we specifically want the cache Redis URL
+                # This is checking the cache system, not the suggestion engine
                 redis_url = os.getenv("CACHE_REDIS_URL")
                 if not redis_url:
                     redis_url = settings.redis_url
@@ -123,11 +123,11 @@ class HealthService:
                     max_connections=settings.redis_max_connections,
                 )
 
-            ***REMOVED*** Ping Redis
+            # Ping Redis
             ping_result = self._redis_client.ping()
 
             if ping_result:
-                ***REMOVED*** Get Redis info
+                # Get Redis info
                 info = self._redis_client.info()
                 response_time = (time.time() - start_time) * 1000
 
@@ -185,16 +185,16 @@ class HealthService:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Use the existing database session
+            # Use the existing database session
             with next(get_db()) as db:
-                ***REMOVED*** Try a simple query
+                # Try a simple query
                 result = db.execute(text("SELECT 1")).scalar()
 
-                ***REMOVED*** Get version
+                # Get version
                 version_result = db.execute(text("SELECT version()")).scalar()
                 version = version_result if version_result else "Unknown"
 
-                ***REMOVED*** Get database size
+                # Get database size
                 db_size_result = db.execute(
                     text("SELECT pg_size_pretty(pg_database_size(current_database())) as size")
                 ).scalar()
@@ -236,7 +236,7 @@ class HealthService:
                 self._redis_client = None
 
 
-***REMOVED*** Global health service instance
+# Global health service instance
 _health_service: HealthService | None = None
 
 
@@ -263,9 +263,9 @@ def close_health_service() -> None:
         _health_service = None
 
 
-***REMOVED***
-***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
-***REMOVED***
+#
+# NEW HEALTH CHECK REGISTRY INTEGRATION
+#
 
 
 def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
@@ -284,16 +284,16 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
     )
     from sqlmodel import text
 
-    ***REMOVED*** PostgreSQL Database - CRITICAL dependency
+    # PostgreSQL Database - CRITICAL dependency
     async def check_postgres() -> HealthCheckResult:
         """Check PostgreSQL database health."""
         start_time = time.time()
         try:
             with next(get_db()) as db:
-                ***REMOVED*** Simple connectivity test
+                # Simple connectivity test
                 db.execute(text("SELECT 1")).scalar()
 
-                ***REMOVED*** Get version for details
+                # Get version for details
                 version_result = db.execute(text("SELECT version()")).scalar()
                 version = version_result if version_result else "Unknown"
 
@@ -321,7 +321,7 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Redis Cache - IMPORTANT but not critical
+    # Redis Cache - IMPORTANT but not critical
     async def check_redis() -> HealthCheckResult:
         """Check Redis cache health."""
         start_time = time.time()
@@ -329,7 +329,7 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
             redis_url = os.getenv("CACHE_REDIS_URL") or settings.redis_url
             client = redis.Redis.from_url(redis_url, decode_responses=True, socket_timeout=3.0)
 
-            ***REMOVED*** Ping Redis
+            # Ping Redis
             ping_result = client.ping()
             response_time = (time.time() - start_time) * 1000
 
@@ -364,9 +364,9 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+    # Register health checks with industry-standard category-driven endpoint mapping
 
-    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
+    # CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
             name="database",
@@ -376,7 +376,7 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
         )
     )
 
-    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    # IMPORTANT services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
             name="redis_cache",

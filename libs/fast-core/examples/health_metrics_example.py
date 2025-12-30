@@ -17,15 +17,15 @@ from fast_core.monitoring import (
 )
 
 
-***REMOVED*** Example health check functions
+# Example health check functions
 async def check_database() -> HealthCheckResult:
     """Example database health check."""
     start_time = time.time()
 
-    ***REMOVED*** Simulate database check
+    # Simulate database check
     await asyncio.sleep(0.1)
 
-    ***REMOVED*** Simulate random failure (20% chance)
+    # Simulate random failure (20% chance)
     import random
 
     is_healthy = random.random() > 0.2
@@ -45,10 +45,10 @@ async def check_redis() -> HealthCheckResult:
     """Example Redis health check."""
     start_time = time.time()
 
-    ***REMOVED*** Simulate Redis check
+    # Simulate Redis check
     await asyncio.sleep(0.05)
 
-    ***REMOVED*** Simulate random degradation (30% chance)
+    # Simulate random degradation (30% chance)
     import random
 
     rand = random.random()
@@ -80,10 +80,10 @@ async def check_external_api() -> HealthCheckResult:
     """Example external API health check."""
     start_time = time.time()
 
-    ***REMOVED*** Simulate API check
+    # Simulate API check
     await asyncio.sleep(0.2)
 
-    ***REMOVED*** Always healthy for this example
+    # Always healthy for this example
     response_time = (time.time() - start_time) * 1000
 
     return HealthCheckResult(
@@ -99,16 +99,16 @@ async def main():
     print("🏥 Health Status Metrics Integration Example")
     print("=" * 50)
 
-    ***REMOVED*** Initialize metrics registry
+    # Initialize metrics registry
     print("\n1. Initializing metrics registry...")
     metrics_registry = initialize_metrics("example-service")
     print(f"   ✓ Metrics registry initialized for: {metrics_registry.service_name}")
 
-    ***REMOVED*** Create health check registry
+    # Create health check registry
     print("\n2. Setting up health checks...")
     health_registry = HealthCheckRegistry()
 
-    ***REMOVED*** Add health checks with different categories
+    # Add health checks with different categories
     health_registry.add_check(
         HealthCheckDefinition(
             name="database",
@@ -141,13 +141,13 @@ async def main():
     print("     - redis_cache (IMPORTANT)")
     print("     - external_api (INFORMATIONAL)")
 
-    ***REMOVED*** Run health checks multiple times to demonstrate metrics
+    # Run health checks multiple times to demonstrate metrics
     print("\n3. Running health checks and updating metrics...")
 
     for i in range(5):
         print(f"\n   Run {i+1}:")
 
-        ***REMOVED*** Run comprehensive health checks (all categories)
+        # Run comprehensive health checks (all categories)
         results = await health_registry.run_checks_for_type(HealthCheckType.DEEP)
 
         print(f"     Overall Status: {results['status']}")
@@ -158,7 +158,7 @@ async def main():
             response_time = check_result.get("response_time_ms", 0)
             print(f"       {status} {check_name}: {check_result['status']} ({response_time:.1f}ms)")
 
-        ***REMOVED*** Wait a bit between runs
+        # Wait a bit between runs
         await asyncio.sleep(1)
 
     print("\n4. Metrics that would be available in /metrics endpoint:")
@@ -178,18 +178,18 @@ async def main():
     print("      - Counter of check executions by status")
 
     print("\n5. Grafana Query Examples:")
-    print("   ***REMOVED*** Overall service health status")
+    print("   # Overall service health status")
     print('   service_health_status{service="example-service"}')
     print()
-    print("   ***REMOVED*** Individual check health (replace blackbox complexity)")
+    print("   # Individual check health (replace blackbox complexity)")
     print('   health_check_status{service="example-service"}')
     print()
-    print("   ***REMOVED*** Check response times")
+    print("   # Check response times")
     print(
         "   rate(health_check_duration_seconds_sum[5m]) / rate(health_check_duration_seconds_count[5m])"
     )
     print()
-    print("   ***REMOVED*** Check failure rate")
+    print("   # Check failure rate")
     print('   rate(health_check_executions_total{status="unhealthy"}[5m])')
 
     print("\n🎉 Example completed! Health status metrics are now integrated.")

@@ -1,8 +1,8 @@
-***REMOVED*** Services Layer
+# Services Layer
 
 This package contains service classes that implement the core business logic for the Recommendation API, following the principles of Clean Architecture and the Service Layer pattern.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The services layer sits between the API routes and data access repositories, providing:
 
@@ -12,7 +12,7 @@ The services layer sits between the API routes and data access repositories, pro
 4. **Caching Strategy**: Intelligent caching of recommendations and embeddings
 5. **Health Monitoring**: Comprehensive health checks for all dependencies
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
 The services layer follows Clean Architecture principles with clear separation of concerns:
 
@@ -33,22 +33,22 @@ The services layer follows Clean Architecture principles with clear separation o
                        └─────────────────┘
 ```
 
-***REMOVED******REMOVED*** Components
+## Components
 
-***REMOVED******REMOVED******REMOVED*** Health Service (`health_service.py`)
+### Health Service (`health_service.py`)
 
 Provides comprehensive health monitoring for all system dependencies:
 
 ```python
 from recommendation_api.services.health_service import get_health_service
 
-***REMOVED*** Get the global health service instance
+# Get the global health service instance
 health_service = get_health_service()
 
-***REMOVED*** Check all dependencies
+# Check all dependencies
 health_results = await health_service.check_all()
 
-***REMOVED*** Check specific dependency
+# Check specific dependency
 postgres_health = await health_service.check_postgres()
 redis_health = await health_service.check_redis()
 qdrant_health = await health_service.check_qdrant()
@@ -67,7 +67,7 @@ qdrant_health = await health_service.check_qdrant()
 - **Redis**: Cache connectivity and basic operations
 - **Qdrant**: Vector database connectivity and collection status
 
-***REMOVED******REMOVED******REMOVED*** Recommendation Service (`recommendation.py`)
+### Recommendation Service (`recommendation.py`)
 
 Implements the core recommendation algorithms and business logic:
 
@@ -75,17 +75,17 @@ Implements the core recommendation algorithms and business logic:
 from recommendation_api.services.recommendation import RecommendationService
 from sqlmodel import Session
 
-***REMOVED*** Create service with database session
+# Create service with database session
 service = RecommendationService(session)
 
-***REMOVED*** Get trending recommendations
+# Get trending recommendations
 recommendations, filters = service.get_trending_recommendations(
     limit=20,
     days=7,
     min_rating=7.0
 )
 
-***REMOVED*** Get personalized recommendations for a user
+# Get personalized recommendations for a user
 recommendations, filters = service.get_user_recommendations(
     user_id=123,
     limit=20
@@ -99,7 +99,7 @@ recommendations, filters = service.get_user_recommendations(
 - **Caching Integration**: Intelligent caching of recommendation results
 - **Filter Support**: Dynamic filtering based on user preferences
 
-***REMOVED******REMOVED******REMOVED*** Vector Service (`vector_service.py`)
+### Vector Service (`vector_service.py`)
 
 Manages vector embeddings and similarity search operations:
 
@@ -107,16 +107,16 @@ Manages vector embeddings and similarity search operations:
 from recommendation_api.services.vector_service import get_vector_service
 from sqlmodel import Session
 
-***REMOVED*** Get the global vector service instance
+# Get the global vector service instance
 vector_service = get_vector_service()
 
-***REMOVED*** Generate and store an embedding for a movie (uses ML API)
+# Generate and store an embedding for a movie (uses ML API)
 embedding = await vector_service.generate_and_store_movie_embedding(
     session=session,
     movie_id=123
 )
 
-***REMOVED*** Find similar movies
+# Find similar movies
 similar_movies = vector_service.find_similar_movies_by_id(
     movie_id=123,
     limit=10
@@ -130,17 +130,17 @@ similar_movies = vector_service.find_similar_movies_by_id(
 - **Similarity Search**: Fast approximate nearest neighbor search
 - **Batch Processing**: Efficient bulk operations for large datasets
 
-***REMOVED******REMOVED******REMOVED*** ML API Client (`ml_api_client.py`)
+### ML API Client (`ml_api_client.py`)
 
 Handles communication with the external ML API service:
 
 ```python
 from recommendation_api.services.ml_api_client import get_ml_api_client
 
-***REMOVED*** Get the ML API client
+# Get the ML API client
 ml_client = get_ml_api_client()
 
-***REMOVED*** Generate an embedding for movie features
+# Generate an embedding for movie features
 features = {
     "title": "The Matrix",
     "overview": "A computer hacker learns about the true nature of reality",
@@ -148,7 +148,7 @@ features = {
 }
 embedding = await ml_client.generate_movie_embedding(features)
 
-***REMOVED*** Test the connection to the ML API
+# Test the connection to the ML API
 is_connected = await ml_client.test_connection()
 ```
 
@@ -159,7 +159,7 @@ is_connected = await ml_client.test_connection()
 - **Connection Testing**: Health check integration
 - **Resource Offloading**: Moves ML computation to dedicated service
 
-***REMOVED******REMOVED******REMOVED*** EmbeddingService (Deprecated)
+### EmbeddingService (Deprecated)
 
 `embedding.py` previously contained local ML functionality, but has been replaced by the ML API client:
 
@@ -168,43 +168,43 @@ is_connected = await ml_client.test_connection()
 - Provides warning messages to guide developers to use the ML API client directly
 - No longer performs local ML computation (removed SentenceTransformer dependency)
 
-***REMOVED******REMOVED*** Integration with Core Module
+## Integration with Core Module
 
 The services layer integrates closely with the core module for application lifecycle management:
 
-***REMOVED******REMOVED******REMOVED*** Health Service Integration
+### Health Service Integration
 
 ```python
-***REMOVED*** In core/app.py lifespan function
+# In core/app.py lifespan function
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    ***REMOVED*** Startup
+    # Startup
     app.state.health_service = get_health_service()
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     if hasattr(app.state, 'health_service') and app.state.health_service:
         app.state.health_service.close()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Route Integration
+### Route Integration
 
 ```python
-***REMOVED*** In routes/health.py
+# In routes/health.py
 @router.get("/health")
 async def health_check(request: Request) -> JSONResponse:
     health_service = request.app.state.health_service
     health_results = await health_service.check_all()
-    ***REMOVED*** ... process results
+    # ... process results
 ```
 
-***REMOVED******REMOVED*** Integration with Repositories
+## Integration with Repositories
 
 Services use the repository pattern for data access:
 
 ```python
-***REMOVED*** Example service using repositories
+# Example service using repositories
 from recommendation_api.repositories.redis import RedisRepository
 from recommendation_api.repositories.vector import VectorRepository
 
@@ -222,7 +222,7 @@ class RecommendationService:
         return await self.vector_repo.search_similar_movies_by_id(movie_id)
 ```
 
-***REMOVED******REMOVED*** Microservices Architecture
+## Microservices Architecture
 
 The recommendation service now follows a microservices architecture for ML computation:
 
@@ -257,7 +257,7 @@ The recommendation service now follows a microservices architecture for ML compu
 - **Specialized Hardware**: ML service can use GPU-optimized infrastructure
 - **Simplified Deployment**: Fewer dependencies in main service
 
-***REMOVED******REMOVED*** Service Layer Design Principles
+## Service Layer Design Principles
 
 This services layer follows these design principles:
 
@@ -270,7 +270,7 @@ This services layer follows these design principles:
 7. **Health Monitoring**: All external dependencies are monitored for health
 8. **Resource Management**: Proper lifecycle management of connections and resources
 
-***REMOVED******REMOVED*** Error Handling and Resilience
+## Error Handling and Resilience
 
 Services implement comprehensive error handling:
 
@@ -285,13 +285,13 @@ from recommendation_api.services.exceptions import (
 try:
     recommendations = await recommendation_service.get_user_recommendations(user_id)
 except DataNotFoundError:
-    ***REMOVED*** Handle missing user data
+    # Handle missing user data
     recommendations = await recommendation_service.get_popular_recommendations()
 except ExternalServiceError:
-    ***REMOVED*** Handle ML API failures
+    # Handle ML API failures
     recommendations = await recommendation_service.get_cached_recommendations(user_id)
 except ServiceError as e:
-    ***REMOVED*** Handle general service errors
+    # Handle general service errors
     logger.error(f"Service error: {e}")
     raise
 ```
@@ -304,14 +304,14 @@ except ServiceError as e:
 - **Timeout Handling**: Prevent hanging requests
 - **Health Checks**: Proactive monitoring of service health
 
-***REMOVED******REMOVED*** Caching Strategy
+## Caching Strategy
 
 Services implement intelligent caching at multiple levels:
 
-***REMOVED******REMOVED******REMOVED*** Response Caching
+### Response Caching
 
 ```python
-***REMOVED*** Cache recommendation results
+# Cache recommendation results
 cache_key = f"recommendations:user:{user_id}:trending"
 cached_result = await redis_repo.get(cache_key)
 
@@ -323,10 +323,10 @@ if not cached_result:
 return cached_result
 ```
 
-***REMOVED******REMOVED******REMOVED*** Embedding Caching
+### Embedding Caching
 
 ```python
-***REMOVED*** Cache vector embeddings
+# Cache vector embeddings
 embedding = await vector_repo.get_movie_embedding(movie_id)
 
 if not embedding:
@@ -337,7 +337,7 @@ if not embedding:
 return embedding
 ```
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 Services are designed for comprehensive testing:
 
@@ -358,9 +358,9 @@ def recommendation_service(mock_session):
     return service
 
 async def test_get_trending_recommendations(recommendation_service):
-    ***REMOVED*** Mock database response
+    # Mock database response
     recommendation_service.session.exec.return_value.all.return_value = [
-        ***REMOVED*** Mock movie objects
+        # Mock movie objects
     ]
 
     recommendations, filters = recommendation_service.get_trending_recommendations()
@@ -369,7 +369,7 @@ async def test_get_trending_recommendations(recommendation_service):
     assert filters is not None
 ```
 
-***REMOVED******REMOVED*** Performance Monitoring
+## Performance Monitoring
 
 Services include performance monitoring and metrics:
 
@@ -389,7 +389,7 @@ async def get_recommendations(self, user_id: int):
         raise
 ```
 
-***REMOVED******REMOVED*** Future Enhancements
+## Future Enhancements
 
 Planned improvements for the services layer:
 

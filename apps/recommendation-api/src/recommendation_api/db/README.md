@@ -1,8 +1,8 @@
-***REMOVED*** Database Module
+# Database Module
 
 This module handles all database interactions for the Recommendation API service, providing connection management and data operations.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The database module provides:
 
@@ -11,9 +11,9 @@ The database module provides:
 - Data access operations
 - Entity mapping and conversion
 
-***REMOVED******REMOVED*** Components
+## Components
 
-***REMOVED******REMOVED******REMOVED*** `connection.py`
+### `connection.py`
 
 Manages database connections:
 
@@ -22,7 +22,7 @@ Manages database connections:
 - `get_db_context()`: Provides a context manager for database sessions
 - `test_connection()`: Tests database connectivity
 
-***REMOVED******REMOVED******REMOVED*** `operations.py`
+### `operations.py`
 
 Contains all data access operations:
 
@@ -32,31 +32,31 @@ Contains all data access operations:
 - Recommendation operations (fetch, store)
 - Movie metadata operations (fetch features for embeddings)
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Database Sessions
+### Database Sessions
 
 ```python
-***REMOVED*** For FastAPI endpoints
+# For FastAPI endpoints
 from recommendation_api.db import get_db_session
 from fastapi import Depends
 
 @app.get("/movies/{movie_id}")
 async def get_movie(movie_id: int, session: Session = Depends(get_db_session)):
-    ***REMOVED*** Use session for database operations
+    # Use session for database operations
     movie = get_movie_by_id(session, movie_id)
     return movie
 
-***REMOVED*** For CLI commands or background tasks
+# For CLI commands or background tasks
 from recommendation_api.db import get_db_context
 
-***REMOVED*** Using a context manager for automatic session handling
+# Using a context manager for automatic session handling
 with get_db_context() as session:
-    ***REMOVED*** Use session for database operations
+    # Use session for database operations
     movies = session.query(Movie).all()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Movie Operations
+### Movie Operations
 
 ```python
 from recommendation_api.db.operations import (
@@ -66,24 +66,24 @@ from recommendation_api.db.operations import (
     get_movie_features
 )
 
-***REMOVED*** Get a single movie
+# Get a single movie
 with get_db_context() as session:
     movie = get_movie_by_id(session, movie_id=123)
 
-***REMOVED*** Get multiple movies
+# Get multiple movies
 with get_db_context() as session:
     movies = get_movies_by_ids(session, [123, 456, 789])
 
-***REMOVED*** Get movies for embedding generation
+# Get movies for embedding generation
 with get_db_context() as session:
     movies = get_movies_for_embeddings(session, limit=100)
 
-***REMOVED*** Get movie features for embedding generation
+# Get movie features for embedding generation
 with get_db_context() as session:
     features = get_movie_features(session, movie_id=123)
 ```
 
-***REMOVED******REMOVED*** Database Schema
+## Database Schema
 
 The module interacts with the following tables:
 
@@ -95,7 +95,7 @@ The module interacts with the following tables:
 - `cast_members`: Movie cast information
 - `directors`: Movie directors
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 Database operations use consistent error handling:
 
@@ -103,7 +103,7 @@ Database operations use consistent error handling:
 - Logging of database errors with context
 - Graceful handling of connection issues
 
-***REMOVED******REMOVED*** Connection Configuration
+## Connection Configuration
 
 Database connection is configured via:
 
@@ -117,7 +117,7 @@ The URL format follows SQLAlchemy's connection string format:
 postgresql://username:password@host:port/database
 ```
 
-***REMOVED******REMOVED*** Enhanced Connection Pool Settings
+## Enhanced Connection Pool Settings
 
 The database connection is configured with enhanced pool settings to handle high concurrency:
 

@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from recommendation_api.config.app import RecommendationAPIConfig
 from recommendation_api.config.fast_core_config import create_fast_core_config
 
-***REMOVED*** Add Recommendation meta configuration constants after imports
+# Add Recommendation meta configuration constants after imports
 RECOMMENDATION_FEATURES = [
     "ML-powered personalized movie recommendations",
     "Similar movies discovery and suggestions",
@@ -37,9 +37,9 @@ RECOMMENDATION_ENDPOINTS = {
     "/api/v1/recommendations/feedback": "User feedback collection endpoint",
 }
 
-***REMOVED*** Import recommendation routes
+# Import recommendation routes
 
-***REMOVED*** from recommendation_api.routes import api_v1_router  ***REMOVED*** Move this import to avoid circular dependency
+# from recommendation_api.routes import api_v1_router  # Move this import to avoid circular dependency
 
 logger = get_logger(__name__)
 
@@ -54,13 +54,13 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Yields:
         None: Application runs between startup and shutdown
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Starting Recommendation API service with fast-core", service="recommendation-api")
 
-    ***REMOVED*** Get settings from app state
+    # Get settings from app state
     settings = getattr(app.state, "settings", None)
 
-    ***REMOVED*** Setup new multi-endpoint health checks
+    # Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
 
@@ -72,20 +72,20 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
-    ***REMOVED*** Initialize recommendation-specific services
+    # Initialize recommendation-specific services
     try:
-        ***REMOVED*** Initialize Recommendation-specific metrics (always enabled for observability)
+        # Initialize Recommendation-specific metrics (always enabled for observability)
         try:
-            ***REMOVED*** First initialize the global metrics registry
+            # First initialize the global metrics registry
             from fast_core.monitoring.metrics import initialize_metrics
 
             from recommendation_api.core.metrics import initialize_recommendation_metrics
 
-            ***REMOVED*** Initialize global metrics registry with service name
+            # Initialize global metrics registry with service name
             initialize_metrics("recommendation-api")
             logger.info("Global metrics registry initialized for service: recommendation-api")
 
-            ***REMOVED*** Now initialize Recommendation-specific metrics
+            # Now initialize Recommendation-specific metrics
             metrics_instance = initialize_recommendation_metrics()
             if metrics_instance:
                 logger.info("Recommendation metrics initialized successfully")
@@ -102,10 +102,10 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.error(f"Failed to initialize Recommendation metrics: {e}", exc_info=True)
             if settings and getattr(settings, "is_production", False):
-                ***REMOVED*** In production, we want to know about metrics failures
+                # In production, we want to know about metrics failures
                 raise
 
-        ***REMOVED*** Initialize cache service if enabled
+        # Initialize cache service if enabled
         config = getattr(app.state, "settings", None)
         if config and getattr(config, "enable_caching", True):
             logger.info("Initializing cache service", service="recommendation-api")
@@ -117,21 +117,21 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 "Cache service initialized", service="recommendation-api", healthy=is_healthy
             )
 
-        ***REMOVED*** Initialize vector service
+        # Initialize vector service
         logger.info("Initializing vector service", service="recommendation-api")
         from recommendation_api.services.vector_service import get_vector_service
 
         get_vector_service()
         logger.info("Vector service initialized", service="recommendation-api")
 
-        ***REMOVED*** Initialize backend client
+        # Initialize backend client
         logger.info("Initializing backend client", service="recommendation-api")
         from recommendation_api.services.backend_client import get_backend_client
 
         get_backend_client()
         logger.info("Backend client initialized", service="recommendation-api")
 
-        ***REMOVED*** Initialize movie adapter
+        # Initialize movie adapter
         logger.info("Initializing movie adapter", service="recommendation-api")
         from recommendation_api.services.movie_adapter import get_movie_adapter
 
@@ -152,11 +152,11 @@ async def recommendation_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info("Shutting down Recommendation API service", service="recommendation-api")
 
     try:
-        ***REMOVED*** Close recommendation-specific services
+        # Close recommendation-specific services
         from recommendation_api.services.backend_client import close_backend_client
         from recommendation_api.services.cache_service import close_cache_service
         from recommendation_api.services.vector_service import close_vector_service
@@ -188,7 +188,7 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
 
     middleware = MiddlewareConfig()
 
-    ***REMOVED*** CORS - recommendations API is often accessed from web frontends
+    # CORS - recommendations API is often accessed from web frontends
     cors_origins = ["*"] if config.environment == "development" else []
     middleware.cors(
         origins=cors_origins,
@@ -197,7 +197,7 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
         headers=["*"],
     )
 
-    ***REMOVED*** Security headers
+    # Security headers
     middleware.security_headers(
         hsts=config.environment == "production",
         csp="default-src 'self'" if config.environment == "production" else None,
@@ -206,12 +206,12 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
         xss_protection=True,
     )
 
-    ***REMOVED*** Rate limiting - protect against abuse
+    # Rate limiting - protect against abuse
     rate_limits = {
-        "/api/v1/recommendations/trending": "60/minute",  ***REMOVED*** Popular endpoints
+        "/api/v1/recommendations/trending": "60/minute",  # Popular endpoints
         "/api/v1/recommendations/popular": "60/minute",
-        "/api/v1/recommendations/similar/*": "30/minute",  ***REMOVED*** More expensive operations
-        "/api/v1/recommendations/personalized/*": "20/minute",  ***REMOVED*** Most expensive
+        "/api/v1/recommendations/similar/*": "30/minute",  # More expensive operations
+        "/api/v1/recommendations/personalized/*": "20/minute",  # Most expensive
     }
 
     middleware.rate_limiting(
@@ -220,38 +220,38 @@ def create_recommendation_middleware_config(config: RecommendationAPIConfig) -> 
         storage_url=config.redis_url if config.enable_caching else None,
     )
 
-    ***REMOVED*** Request logging - env-aware level; never log bodies
+    # Request logging - env-aware level; never log bodies
     log_level = "INFO" if config.is_production else "DEBUG"
     middleware.logging(
         level=log_level,
-        exclude_additional=["/docs", "/redoc", "/openapi.json"],  ***REMOVED*** Add to defaults
-        include_request_body=False,  ***REMOVED*** Never log request bodies
-        include_response_body=False,  ***REMOVED*** Never log response bodies
+        exclude_additional=["/docs", "/redoc", "/openapi.json"],  # Add to defaults
+        include_request_body=False,  # Never log request bodies
+        include_response_body=False,  # Never log response bodies
         max_body_size=1024,
     )
 
-    ***REMOVED*** Request processing - important for recommendation APIs
+    # Request processing - important for recommendation APIs
     middleware.request_processing(
-        max_request_size=1024 * 1024,  ***REMOVED*** 1MB - recommendations don't need large payloads
+        max_request_size=1024 * 1024,  # 1MB - recommendations don't need large payloads
         timeout=config.request_timeout_seconds,
         include_request_id=True,
         request_id_header="X-Request-ID",
         include_process_time=True,
         process_time_header="X-Process-Time",
         gzip_compression=True,
-        gzip_minimum_size=1000,  ***REMOVED*** Compress recommendation lists
+        gzip_minimum_size=1000,  # Compress recommendation lists
     )
 
-    ***REMOVED*** Configure metrics middleware for Recommendation API monitoring
+    # Configure metrics middleware for Recommendation API monitoring
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_additional=["/favicon.ico"],  ***REMOVED*** Add to standard excludes
+        exclude_additional=["/favicon.ico"],  # Add to standard excludes
         exclude_methods=["OPTIONS"],
         custom_buckets=[0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+        enabled=True,  # Always enable metrics for production observability
     )
     logger.info("Metrics middleware enabled for Recommendation API monitoring")
 
@@ -268,50 +268,50 @@ def create_recommendation_app(config: RecommendationAPIConfig | None = None) -> 
     Returns:
         Configured FastAPI application
     """
-    ***REMOVED*** Create or use provided configuration
+    # Create or use provided configuration
     if config is None:
         config = RecommendationAPIConfig()
 
     logger.info("Creating Recommendation API application with fast-core and enhanced middleware")
 
-    ***REMOVED*** Convert recommendation config to fast-core config
+    # Convert recommendation config to fast-core config
     fast_core_config = create_fast_core_config(config)
 
-    ***REMOVED*** Create recommendation-specific middleware configuration
+    # Create recommendation-specific middleware configuration
     middleware_config = create_recommendation_middleware_config(config)
 
-    ***REMOVED*** Create app options with enhanced meta endpoint configuration
+    # Create app options with enhanced meta endpoint configuration
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
+        health_checks=False,  # CRITICAL: Disable to prevent conflicts
         docs=True,
-        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_endpoints=True,  # ✅ Enable auto-setup with static config
         meta_features=RECOMMENDATION_FEATURES,
         meta_endpoints_map=RECOMMENDATION_ENDPOINTS,
     )
 
-    ***REMOVED*** Create the FastAPI app using fast-core with enhanced middleware
+    # Create the FastAPI app using fast-core with enhanced middleware
     app = create_app(
         settings=fast_core_config,
         title="Recommendation API",
         description="Movie recommendation service for Next Watch platform with ML-powered suggestions",
         version="1.0.0",
         options=app_options,
-        middleware=middleware_config,  ***REMOVED*** Use the new Middleware Builder
-        routers=[],  ***REMOVED*** We'll add routers manually with proper configuration
+        middleware=middleware_config,  # Use the new Middleware Builder
+        routers=[],  # We'll add routers manually with proper configuration
         lifespan=recommendation_lifespan,
     )
 
-    ***REMOVED*** Add routers with their specific configuration
-    ***REMOVED*** app.include_router(health_router, tags=["health"])  ***REMOVED*** Removed: Using new multi-endpoint health system
+    # Add routers with their specific configuration
+    # app.include_router(health_router, tags=["health"])  # Removed: Using new multi-endpoint health system
     from recommendation_api.routes import api_v1_router
 
     app.include_router(api_v1_router, prefix="/reco", tags=["reco-v1"])
 
-    ***REMOVED*** Store the original recommendation config for backward compatibility
+    # Store the original recommendation config for backward compatibility
     app.state.reco_config = config
 
-    ***REMOVED*** Meta endpoints are now automatically configured with Recommendation-specific data
+    # Meta endpoints are now automatically configured with Recommendation-specific data
     logger.info("Recommendation API meta endpoints configured automatically with static config")
     logger.info("Recommendation API application created successfully with enhanced middleware")
     return app
@@ -329,7 +329,7 @@ def get_recommendation_app() -> FastAPI:
     return create_recommendation_app()
 
 
-***REMOVED*** Export the main functions
+# Export the main functions
 __all__ = [
     "create_recommendation_app",
     "get_recommendation_app",

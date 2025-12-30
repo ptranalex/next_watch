@@ -98,16 +98,16 @@ def sync_movies(
         data-importer sync movies --start-year 2022 --end-year 2023 --credits --save
         data-importer sync movies --start-year 2010 --end-year 2010 --limit 5 --no-save --verbose
     """
-    ***REMOVED*** Configure logging level based on flags
+    # Configure logging level based on flags
     log_level = "DEBUG" if debug else ("INFO" if verbose else "WARNING")
 
-    ***REMOVED*** Apply logging configuration with the specified level
+    # Apply logging configuration with the specified level
     @with_logging(log_level=log_level)
     def run_sync_operation() -> None:
-        ***REMOVED*** Get configuration instance
+        # Get configuration instance
         config = Config.get_instance()
 
-        ***REMOVED*** Use config values if not specified
+        # Use config values if not specified
         actual_start_year = start_year if start_year is not None else config.movie_sync_start_year
         actual_end_year = end_year if end_year is not None else config.movie_sync_end_year
         actual_limit = (
@@ -125,7 +125,7 @@ def sync_movies(
             min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
         )
 
-        ***REMOVED*** Display configuration if verbose
+        # Display configuration if verbose
         if verbose or debug:
             console.print("[bold cyan]Movie Sync Configuration:[/bold cyan]")
             console.print(f"Year range: {actual_start_year} to {actual_end_year}")
@@ -140,7 +140,7 @@ def sync_movies(
             console.print(f"OMDB API key: {'Provided' if omdb_api_key else 'Not provided'}")
             console.print()
 
-        ***REMOVED*** Get API keys using the standardized utility
+        # Get API keys using the standardized utility
         actual_tmdb_access_token = get_api_key(
             tmdb_access_token,
             "TMDB_ACCESS_TOKEN",
@@ -152,11 +152,11 @@ def sync_movies(
             omdb_api_key, "OMDB_API_KEY", "OMDB API key", console, required=True
         )
 
-        ***REMOVED*** Initialize clients
+        # Initialize clients
         tmdb_client = TMDBClient(access_token=actual_tmdb_access_token)
         omdb_client = OMDBClient(api_key=actual_omdb_api_key)
 
-        ***REMOVED*** Prepare database session if saving to database
+        # Prepare database session if saving to database
         db_session = None
         if actual_save_to_db:
             engine = get_engine()
@@ -171,7 +171,7 @@ def sync_movies(
             console.print("[cyan]Including video/trailer information[/cyan]")
 
         try:
-            ***REMOVED*** Run the sync operation
+            # Run the sync operation
             results = asyncio.run(
                 sync_movies_by_year_range(
                     tmdb_client=tmdb_client,
@@ -190,11 +190,11 @@ def sync_movies(
                 )
             )
 
-            ***REMOVED*** Calculate end time and duration
+            # Calculate end time and duration
             end_time = datetime.now()
             results["end_time"] = end_time.isoformat()
 
-            ***REMOVED*** Display formatted results
+            # Display formatted results
             formatted_results = format_sync_results(results)
             console.print(formatted_results)
 
@@ -208,11 +208,11 @@ def sync_movies(
             logger.exception("Error during movie sync")
             raise typer.Exit(code=1)
         finally:
-            ***REMOVED*** Clean up resources
+            # Clean up resources
             if db_session:
                 db_session.close()
             asyncio.run(tmdb_client.close())
             asyncio.run(omdb_client.close())
 
-    ***REMOVED*** Execute the sync operation with configured logging
+    # Execute the sync operation with configured logging
     run_sync_operation()

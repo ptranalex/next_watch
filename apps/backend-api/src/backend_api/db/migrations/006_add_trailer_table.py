@@ -10,7 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "006_add_trailer_table"
 MIGRATION_DESCRIPTION = "Add trailer table for storing movie trailers"
 
@@ -27,7 +27,7 @@ def upgrade(engine: Engine) -> None:
     logger.info("Creating trailer table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Create trailer table
+        # Create trailer table
         conn.execute(
             text(
                 """
@@ -45,15 +45,15 @@ def upgrade(engine: Engine) -> None:
             )
         )
 
-        ***REMOVED*** Create index on youtube_key
+        # Create index on youtube_key
         conn.execute(
             text("CREATE INDEX IF NOT EXISTS idx_trailer_youtube_key ON trailer(youtube_key)")
         )
 
-        ***REMOVED*** Create index on movie_id
+        # Create index on movie_id
         conn.execute(text("CREATE INDEX IF NOT EXISTS idx_trailer_movie_id ON trailer(movie_id)"))
 
-        ***REMOVED*** Record the migration
+        # Record the migration
         try:
             conn.execute(
                 text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
@@ -74,10 +74,10 @@ def downgrade(engine: Engine) -> None:
     logger.info("Removing trailer table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Drop the trailer table
+        # Drop the trailer table
         conn.execute(text("DROP TABLE IF EXISTS trailer"))
 
-        ***REMOVED*** Remove the migration record
+        # Remove the migration record
         try:
             conn.execute(
                 text("DELETE FROM migrations WHERE id = :id"),

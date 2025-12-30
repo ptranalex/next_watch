@@ -37,13 +37,13 @@ class RecommendationDataProviders:
             Dictionary containing popular and trending movies
         """
         try:
-            ***REMOVED*** Get popular movies - use max 50 per request to comply with backend API limits
+            # Get popular movies - use max 50 per request to comply with backend API limits
             popular_movie_ids = await self._get_popular_movie_ids(limit=50)
 
-            ***REMOVED*** Get trending movies
+            # Get trending movies
             trending_movie_ids = await self._get_trending_movie_ids(limit=50)
 
-            ***REMOVED*** Get recently updated movies (for similar movies warming)
+            # Get recently updated movies (for similar movies warming)
             recent_movie_ids = await self._get_recently_updated_movie_ids(limit=50)
 
             return {
@@ -72,10 +72,10 @@ class RecommendationDataProviders:
             List of popular movie IDs
         """
         try:
-            ***REMOVED*** Ensure limit doesn't exceed backend API maximum
+            # Ensure limit doesn't exceed backend API maximum
             safe_limit = min(limit, 50)
 
-            ***REMOVED*** Get popular movies from movie adapter
+            # Get popular movies from movie adapter
             popular_movies, _ = await self.movie_adapter.get_popular_movies(
                 limit=safe_limit, min_rating=7.0, min_vote_count=1000
             )
@@ -94,10 +94,10 @@ class RecommendationDataProviders:
             List of trending movie IDs
         """
         try:
-            ***REMOVED*** Ensure limit doesn't exceed backend API maximum
+            # Ensure limit doesn't exceed backend API maximum
             safe_limit = min(limit, 50)
 
-            ***REMOVED*** Get trending movies from movie adapter
+            # Get trending movies from movie adapter
             trending_movies, _ = await self.movie_adapter.get_trending_movies(
                 limit=safe_limit, days=7
             )
@@ -116,10 +116,10 @@ class RecommendationDataProviders:
             List of recently updated movie IDs
         """
         try:
-            ***REMOVED*** Ensure limit doesn't exceed backend API maximum
+            # Ensure limit doesn't exceed backend API maximum
             safe_limit = min(limit, 50)
 
-            ***REMOVED*** Get recently updated movies from movie adapter
+            # Get recently updated movies from movie adapter
             recent_movies, _ = await self.movie_adapter.get_recent_movies(limit=safe_limit)
             return [movie.id for movie in recent_movies if movie.id]
         except Exception as e:

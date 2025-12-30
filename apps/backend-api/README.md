@@ -1,36 +1,36 @@
-***REMOVED*** Next Watch Backend API
+# Next Watch Backend API
 
 > FastAPI service for movies, genres, actors, search, and user collections. Includes Fast Core middleware, multi-endpoint health checks, and a robust Typer CLI.
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
 ```bash
-***REMOVED*** From repo root
+# From repo root
 cd apps/backend-api
 
-***REMOVED*** Create environment
+# Create environment
 hatch env create
 
-***REMOVED*** Configure environment (create .env and set DATABASE_URL, optional REDIS_URL)
+# Configure environment (create .env and set DATABASE_URL, optional REDIS_URL)
 ${EDITOR:-vi} .env
 
-***REMOVED*** Initialize database schema (Alembic-based)
+# Initialize database schema (Alembic-based)
 hatch run migrate
 
-***REMOVED*** Start dev server with auto-reload
+# Start dev server with auto-reload
 hatch run dev
 ```
 
 API: `http://localhost:8000`
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - Python 3.12+
 - Hatch
 - PostgreSQL
 - Redis (optional; used by cache tooling and data loaders)
 
-***REMOVED******REMOVED*** 📋 Table of Contents
+## 📋 Table of Contents
 
 - Features
 - Architecture
@@ -42,7 +42,7 @@ API: `http://localhost:8000`
 - Development
 - Docker Deployment
 
-***REMOVED******REMOVED*** ✨ Features
+## ✨ Features
 
 - Movies listing, detail, search, bulk fetch
 - Genres listing and detail
@@ -51,22 +51,22 @@ API: `http://localhost:8000`
 - Multi-endpoint health checks: `/health`, `/health/live`, `/health/ready`
 - Consistent pagination shape: `total, page, per_page, total_pages, has_next, has_prev`
 
-***REMOVED******REMOVED*** 🏗 Architecture
+## 🏗 Architecture
 
 ```
 src/backend_api/
-  core/               ***REMOVED*** Fast Core integration (factory, middleware, metrics)
-  config/             ***REMOVED*** Service configuration (shared config library)
-  db/                 ***REMOVED*** Engine/session, migrations, operations
-  routes/             ***REMOVED*** API v1 routers (movies, genres, actors, search, user collections)
-  schemas/            ***REMOVED*** Pydantic models
-  services/           ***REMOVED*** Domain services
-  cli/                ***REMOVED*** Typer CLI (db, health, cache, serve, config, version)
-  main.py             ***REMOVED*** create_app() factory
-  __main__.py         ***REMOVED*** Production launcher
+  core/               # Fast Core integration (factory, middleware, metrics)
+  config/             # Service configuration (shared config library)
+  db/                 # Engine/session, migrations, operations
+  routes/             # API v1 routers (movies, genres, actors, search, user collections)
+  schemas/            # Pydantic models
+  services/           # Domain services
+  cli/                # Typer CLI (db, health, cache, serve, config, version)
+  main.py             # create_app() factory
+  __main__.py         # Production launcher
 ```
 
-***REMOVED******REMOVED*** 🏥 Health Monitoring
+## 🏥 Health Monitoring
 
 Endpoints provided via Fast Core health integration:
 
@@ -83,7 +83,7 @@ readinessProbe:
   httpGet: { path: /health/ready, port: 8000 }
 ```
 
-***REMOVED******REMOVED*** 🏗 API Reference
+## 🏗 API Reference
 
 - Movies
 
@@ -127,7 +127,7 @@ readinessProbe:
   - `GET /api/v1/user/interactions/movies/{movie_id}`
   - `POST /api/v1/user/interactions/movies/batch`
 
-***REMOVED******REMOVED*** 💻 CLI Reference
+## 💻 CLI Reference
 
 Installed console script: `backend-api`
 
@@ -137,70 +137,70 @@ Installed console script: `backend-api`
 Examples:
 
 ```bash
-***REMOVED*** Show config
+# Show config
 backend-api config --verbose
 
-***REMOVED*** Start server (dev recommended: hatch run dev)
+# Start server (dev recommended: hatch run dev)
 python -m backend_api.main
 
-***REMOVED*** DB management
+# DB management
 backend-api db init --create-tables
 backend-api db migrate
 backend-api db downgrade --steps 1
-backend-api db teardown --confirm  ***REMOVED*** DEV ONLY
+backend-api db teardown --confirm  # DEV ONLY
 
-***REMOVED*** Health
-backend-api health            ***REMOVED*** same as 'health check'
+# Health
+backend-api health            # same as 'health check'
 backend-api health db
 backend-api health redis
 
-***REMOVED*** Cache
+# Cache
 backend-api cache info -v
 backend-api cache keys --pattern "user:*" --limit 50
 backend-api cache get "movie:123"
 backend-api cache delete "session:456" --confirm
 backend-api cache clear --pattern "temp:*" --confirm
 
-***REMOVED*** Cache → Redis suggestion loader
+# Cache → Redis suggestion loader
 backend-api cache redis populate-suggestions --limit 5000 --no-actors --no-directors
 ```
 
 Hatch shortcuts (pyproject):
 
 ```bash
-***REMOVED*** Server
-hatch run dev          ***REMOVED*** uvicorn backend_api.main:create_app --factory --reload
-hatch run serve        ***REMOVED*** python -m backend_api.main
+# Server
+hatch run dev          # uvicorn backend_api.main:create_app --factory --reload
+hatch run serve        # python -m backend_api.main
 
-***REMOVED*** CLI
-hatch run cli          ***REMOVED*** python -m backend_api.cli
+# CLI
+hatch run cli          # python -m backend_api.cli
 
-***REMOVED*** DB
+# DB
 hatch run migrate
 hatch run db-init
 hatch run db-init-tables
 hatch run db-downgrade
 hatch run db-teardown
 
-***REMOVED*** Health
+# Health
 hatch run health-check
 hatch run health-db
 hatch run health-cache
 
-***REMOVED*** Cache
+# Cache
 hatch run cache-info
 hatch run cache-keys
 hatch run cache-get
 hatch run cache-clear
 
-***REMOVED*** Tooling
+# Tooling
 hatch run lint
 hatch run format
 hatch run test
 hatch run test-cov
 ```
 
-***REMOVED******REMOVED*** ⚙️ Configuration
+## ⚙️ Configuration
 
 Powered by the shared `config` library with environment loading and masking.
 
@@ -219,26 +219,26 @@ Core settings:
 
 Security and auth-related settings are available via the shared mixins (e.g., JWT), even though auth endpoints are not exposed by this service.
 
-***REMOVED******REMOVED*** 🗄 Database Setup
+## 🗄 Database Setup
 
 Typer utilities under `backend_api.scripts.setup_db`:
 
 ```bash
-***REMOVED*** All-in-one storage setup
+# All-in-one storage setup
 python -m backend_api.scripts.setup_db setup-storage
 
-***REMOVED*** Manual flow
+# Manual flow
 python -m backend_api.scripts.setup_db initialize-db
 python -m backend_api.scripts.setup_db run-migrations
 python -m backend_api.scripts.setup_db check-schema
 
-***REMOVED*** Development profiling
+# Development profiling
 python -m backend_api.scripts.setup_db profile-db --duration 30
 ```
 
 Note: The app does not auto-create tables. Run migrations before serving.
 
-***REMOVED******REMOVED*** 🛠 Development
+## 🛠 Development
 
 ```bash
 hatch run test
@@ -247,7 +247,7 @@ hatch run lint
 hatch run format
 ```
 
-***REMOVED******REMOVED*** 🐳 Docker
+## 🐳 Docker
 
 ```bash
 docker build -f apps/backend-api/Dockerfile -t backend-api .
@@ -261,7 +261,7 @@ Production checklist:
 - Run `run-migrations`
 - Configure probes to `/health/live` and `/health/ready`
 
-***REMOVED******REMOVED*** 📚 More Docs
+## 📚 More Docs
 
 - `src/backend_api/cli/README.md` – CLI details
 - `src/backend_api/core/README.md` – App factory and middleware

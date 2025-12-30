@@ -54,7 +54,7 @@ class EntityHydrator:
         detailed_suggestions = []
         seen_ids: set[int] = set()
 
-        ***REMOVED*** Step 1: fetch meta (type:id) in batch, fallback to id-only
+        # Step 1: fetch meta (type:id) in batch, fallback to id-only
         meta_keys = [f"suggestions_meta:{s}" for s in suggestions]
         id_keys = [f"{self._suggestion_key_prefix}{s}" for s in suggestions]
         pipeline = redis_client.pipeline()
@@ -68,11 +68,11 @@ class EntityHydrator:
             meta_results = res[: len(meta_keys)]
             id_results = res[len(meta_keys) :]
         except Exception:
-            ***REMOVED*** If pipeline fails, fall back to sequential gets (rare)
+            # If pipeline fails, fall back to sequential gets (rare)
             meta_results = [await redis_client.get(k) for k in meta_keys]
             id_results = [await redis_client.get(k) for k in id_keys]
 
-        ***REMOVED*** Resolve type and id per suggestion
+        # Resolve type and id per suggestion
         types: list[str | None] = []
         ids: list[int | None] = []
         for meta_val, id_val in zip(meta_results, id_results, strict=False):
@@ -87,13 +87,13 @@ class EntityHydrator:
                 try:
                     vid = int(id_val.decode() if isinstance(id_val, bytes) else id_val)
                     if t is None:
-                        t = "movie"  ***REMOVED*** default
+                        t = "movie"  # default
                 except Exception:
                     vid = None
             types.append(t)
             ids.append(vid)
 
-        ***REMOVED*** Step 2: batch fetch entities by id
+        # Step 2: batch fetch entities by id
         id_to_entity: dict[int, dict[str, Any]] = {}
         to_fetch_ids = [vid for vid in ids if isinstance(vid, int)]
         if to_fetch_ids:
@@ -108,7 +108,7 @@ class EntityHydrator:
                     except Exception:
                         continue
 
-        ***REMOVED*** Step 3: for unresolved, try entity by name in batch
+        # Step 3: for unresolved, try entity by name in batch
         unresolved_names = [
             s
             for s, vid in zip(suggestions, ids, strict=False)
@@ -135,7 +135,7 @@ class EntityHydrator:
                     except Exception:
                         pass
 
-        ***REMOVED*** Build final hydrated objects
+        # Build final hydrated objects
         for s, t, vid in zip(suggestions, types, ids, strict=False):
             entity_data = None
             entity_type = t
@@ -146,7 +146,7 @@ class EntityHydrator:
                 entity_data = name_map[s]
                 entity_type = entity_type or entity_data.get("type", "movie")
             else:
-                ***REMOVED*** fallback minimal
+                # fallback minimal
                 entity_data = {
                     "title": s,
                     "type": entity_type or "movie",
@@ -197,7 +197,7 @@ class EntityHydrator:
                 continue
             suggestion_texts_seen.add(sugg)
 
-            ***REMOVED*** Hydrate the extra suggestion into detailed entity object
+            # Hydrate the extra suggestion into detailed entity object
             suggestion_key = f"{self._suggestion_key_prefix}{sugg}"
             movie_id = await redis_client.get(suggestion_key)
 
@@ -281,7 +281,7 @@ class EntityHydrator:
             },
         }
 
-        ***REMOVED*** Build complete image URL
+        # Build complete image URL
         suggestion_obj["image_path"] = build_image_url(suggestion_obj["image_path"])
 
         return suggestion_obj

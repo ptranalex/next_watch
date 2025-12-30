@@ -16,16 +16,16 @@ def setup_middleware(app: FastAPI) -> None:
     Args:
         app: FastAPI application instance
     """
-    ***REMOVED*** Add CORS middleware
+    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  ***REMOVED*** In production, restrict this to specific origins
+        allow_origins=["*"],  # In production, restrict this to specific origins
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    ***REMOVED*** Add TrustedHost middleware in production
+    # Add TrustedHost middleware in production
     if settings.is_production:
         logger.info(f"Adding TrustedHostMiddleware with allowed_hosts: {settings.allowed_hosts}")
         app.add_middleware(

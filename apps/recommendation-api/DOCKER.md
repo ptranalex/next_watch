@@ -1,28 +1,28 @@
-***REMOVED*** Recommendation API Docker Build Guide
+# Recommendation API Docker Build Guide
 
 This document explains how to properly build and run the Recommendation API Docker container.
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
 - Docker installed on your system
 - Access to the Next Watch monorepo
 
-***REMOVED******REMOVED*** Building the Docker Image
+## Building the Docker Image
 
 The Recommendation API depends on the `movie-storage` package from the monorepo. The Dockerfile is designed to be built from the monorepo root to access all dependencies.
 
-***REMOVED******REMOVED******REMOVED*** Building from Monorepo Root
+### Building from Monorepo Root
 
 Always build the Docker image from the monorepo root directory:
 
 ```bash
-***REMOVED*** From the monorepo root (/Users/alex/Sandbox/next_watch)
+# From the monorepo root (/Users/alex/Sandbox/next_watch)
 docker build -t recommendation-api:latest -f apps/recommendation-api/Dockerfile .
 ```
 
 This ensures that all dependencies, including the `movie-storage` package, are correctly included in the build.
 
-***REMOVED******REMOVED*** Running the Container
+## Running the Container
 
 To run the container:
 
@@ -35,7 +35,7 @@ docker run -d --name recommendation-api \
   recommendation-api:latest
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 The following environment variables can be set:
 
@@ -47,7 +47,7 @@ The following environment variables can be set:
 - `HOST`: Host to bind to (default: 0.0.0.0)
 - `PORT`: Port to listen on (default: 8002)
 
-***REMOVED******REMOVED*** Health Check
+## Health Check
 
 The container includes a health check endpoint at `/health`. You can test it with:
 
@@ -55,7 +55,7 @@ The container includes a health check endpoint at `/health`. You can test it wit
 curl http://localhost:8002/health
 ```
 
-***REMOVED******REMOVED*** Docker Compose Example
+## Docker Compose Example
 
 ```yaml
 version: "3.8"

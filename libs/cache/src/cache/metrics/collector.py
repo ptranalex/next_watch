@@ -72,7 +72,7 @@ class MetricsCollector:
         return None
 
 
-***REMOVED*** Global metrics collector instance
+# Global metrics collector instance
 _global_collector: MetricsCollector | None = None
 
 
@@ -120,7 +120,7 @@ class TimingContext:
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """End timing and record metrics."""
         end_time = time.perf_counter()
-        duration_ms = (end_time - self.start_time) * 1000  ***REMOVED*** Convert to milliseconds
+        duration_ms = (end_time - self.start_time) * 1000  # Convert to milliseconds
 
         if self.is_cache_hit:
             self.collector.record_cache_hit(self.function_name, duration_ms)

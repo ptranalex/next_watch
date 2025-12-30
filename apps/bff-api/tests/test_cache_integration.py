@@ -1,4 +1,4 @@
-***REMOVED*** type: ignore
+# type: ignore
 
 """Tests for BFF cache integration."""
 
@@ -25,19 +25,19 @@ class TestBFFCacheIntegration:
         """Test movie data caching functionality."""
         cache = get_cache()
 
-        ***REMOVED*** Mock the cache manager to avoid Redis dependency
+        # Mock the cache manager to avoid Redis dependency
         with (
             patch.object(cache, "set_json_safe", return_value=True) as mock_set,
             patch.object(cache, "get_dict", return_value=None) as mock_get,
         ):
-            ***REMOVED*** Test setting movie data
+            # Test setting movie data
             movie_data = {"id": 123, "title": "Test Movie", "year": 2023}
             key = "movie:123"
             result = await cache.set_json_safe(key, movie_data)
             assert result is True
             mock_set.assert_called_once()
 
-            ***REMOVED*** Test getting movie data (cache miss)
+            # Test getting movie data (cache miss)
             cached_data = await cache.get_dict(key)
             assert cached_data is None
             mock_get.assert_called_once()
@@ -51,7 +51,7 @@ class TestBFFCacheIntegration:
             patch.object(cache, "set_json_safe", return_value=True) as mock_set,
             patch.object(cache, "get_dict", return_value=None) as mock_get,
         ):
-            ***REMOVED*** Test setting trending data
+            # Test setting trending data
             trending_data = {
                 "results": [{"id": 1, "title": "Trending Movie"}],
                 "page": 1,
@@ -61,7 +61,7 @@ class TestBFFCacheIntegration:
             assert result is True
             mock_set.assert_called_once()
 
-            ***REMOVED*** Test getting trending data (cache miss)
+            # Test getting trending data (cache miss)
             cached_data = await cache.get_dict(key)
             assert cached_data is None
             mock_get.assert_called_once()
@@ -76,7 +76,7 @@ class TestBFFCacheIntegration:
             patch.object(cache, "get_list", return_value=None) as mock_get,
             patch.object(cache, "delete_key_safe", return_value=True) as mock_delete,
         ):
-            ***REMOVED*** Test setting watchlist data
+            # Test setting watchlist data
             watchlist_data = [
                 {"id": 1, "title": "Movie 1"},
                 {"id": 2, "title": "Movie 2"},
@@ -86,12 +86,12 @@ class TestBFFCacheIntegration:
             assert result is True
             mock_set.assert_called_once()
 
-            ***REMOVED*** Test getting watchlist data (cache miss)
+            # Test getting watchlist data (cache miss)
             cached_data = await cache.get_list(key)
             assert cached_data is None
             mock_get.assert_called_once()
 
-            ***REMOVED*** Test invalidating watchlist
+            # Test invalidating watchlist
             result = await cache.delete_key_safe(key)
             assert result is True
             mock_delete.assert_called_once()
@@ -105,7 +105,7 @@ class TestBFFCacheIntegration:
             patch.object(cache, "set_json_safe", return_value=True) as mock_set,
             patch.object(cache, "get_dict", return_value=None) as mock_get,
         ):
-            ***REMOVED*** Test setting search results
+            # Test setting search results
             search_data = {
                 "results": [{"id": 1, "title": "Search Result"}],
                 "query": "test",
@@ -115,7 +115,7 @@ class TestBFFCacheIntegration:
             assert result is True
             mock_set.assert_called_once()
 
-            ***REMOVED*** Test getting search results (cache miss)
+            # Test getting search results (cache miss)
             cached_data = await cache.get_dict(key)
             assert cached_data is None
             mock_get.assert_called_once()

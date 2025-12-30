@@ -9,7 +9,7 @@ import logging
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "005_add_ratings_and_awards"
 MIGRATION_DESCRIPTION = "Add Rotten Tomatoes, Metacritic ratings and awards columns"
 
@@ -26,14 +26,14 @@ def upgrade(engine, config=None):
     logger.info("Adding new rating and awards columns to movie table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Add new rating columns
+        # Add new rating columns
         conn.execute(
             text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS rotten_tomatoes_rating INTEGER")
         )
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS metacritic_rating INTEGER"))
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS awards TEXT"))
 
-        ***REMOVED*** Record the migration
+        # Record the migration
         try:
             conn.execute(
                 text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
@@ -54,12 +54,12 @@ def downgrade(engine, config=None):
     logger.info("Removing rating and awards columns from movie table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Remove the added columns
+        # Remove the added columns
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS rotten_tomatoes_rating"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS metacritic_rating"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS awards"))
 
-        ***REMOVED*** Remove the migration record
+        # Remove the migration record
         try:
             conn.execute(
                 text("DELETE FROM migrations WHERE id = :id"),

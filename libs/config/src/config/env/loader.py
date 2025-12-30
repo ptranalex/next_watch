@@ -41,7 +41,7 @@ class EnvironmentLoader:
             from dotenv import dotenv_values
 
             values = dotenv_values(env_file)
-            ***REMOVED*** Filter out None values and ensure all values are strings
+            # Filter out None values and ensure all values are strings
             return {k: str(v) for k, v in values.items() if v is not None}
         except ImportError:
             return self._parse_env_file_manual(env_file)
@@ -53,7 +53,7 @@ class EnvironmentLoader:
             with open(env_file, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    if not line or line.startswith("***REMOVED***"):
+                    if not line or line.startswith("#"):
                         continue
                     if "=" in line:
                         key, value = line.split("=", 1)

@@ -117,7 +117,7 @@ def service_error_to_http_exception(error: ServiceError) -> HTTPException:
             detail={"message": error.message, "details": error.details},
         )
     else:
-        ***REMOVED*** Default for other service errors
+        # Default for other service errors
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message": error.message, "details": error.details},

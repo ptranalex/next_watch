@@ -45,16 +45,16 @@ class HealthService:
         Returns:
             Dictionary mapping service names to health check results
         """
-        ***REMOVED*** Run all health checks concurrently (only postgres for auth-api)
+        # Run all health checks concurrently (only postgres for auth-api)
         postgres_task = asyncio.create_task(self.check_postgres())
 
-        ***REMOVED*** Wait for all checks to complete
+        # Wait for all checks to complete
         gather_results = await asyncio.gather(postgres_task, return_exceptions=True)
 
-        ***REMOVED*** Handle any exceptions and build results
+        # Handle any exceptions and build results
         results: dict[str, HealthCheckResult] = {}
 
-        postgres_result = gather_results[0]  ***REMOVED*** Extract from list
+        postgres_result = gather_results[0]  # Extract from list
         if isinstance(postgres_result, Exception):
             results["postgres"] = HealthCheckResult(
                 is_healthy=False, status="error", error=str(postgres_result)
@@ -62,7 +62,7 @@ class HealthService:
         elif isinstance(postgres_result, HealthCheckResult):
             results["postgres"] = postgres_result
         else:
-            ***REMOVED*** This shouldn't happen, but handle it
+            # This shouldn't happen, but handle it
             results["postgres"] = HealthCheckResult(
                 is_healthy=False, status="error", error="Unexpected result type"
             )
@@ -75,7 +75,7 @@ class HealthService:
         Returns:
             Health check result for PostgreSQL
         """
-        ***REMOVED*** Use the sync version since we don't have asyncpg dependency
+        # Use the sync version since we don't have asyncpg dependency
         return self.check_postgres_sync()
 
     def check_postgres_sync(self) -> HealthCheckResult:
@@ -87,16 +87,16 @@ class HealthService:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Use the existing database session
+            # Use the existing database session
             with next(get_db()) as db:
-                ***REMOVED*** Try a simple query
+                # Try a simple query
                 result = db.execute(text("SELECT 1")).scalar()
 
-                ***REMOVED*** Get version
+                # Get version
                 version_result = db.execute(text("SELECT version()")).scalar()
                 version = version_result if version_result else "Unknown"
 
-                ***REMOVED*** Get database size
+                # Get database size
                 db_size_result = db.execute(
                     text("SELECT pg_size_pretty(pg_database_size(current_database())) as size")
                 ).scalar()
@@ -132,7 +132,7 @@ class HealthService:
         pass
 
 
-***REMOVED*** Global health service instance
+# Global health service instance
 _health_service: HealthService | None = None
 
 
@@ -159,9 +159,9 @@ def close_health_service() -> None:
         _health_service = None
 
 
-***REMOVED***
-***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
-***REMOVED***
+#
+# NEW HEALTH CHECK REGISTRY INTEGRATION
+#
 
 
 def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
@@ -179,16 +179,16 @@ def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
     )
     from sqlmodel import text
 
-    ***REMOVED*** PostgreSQL Database - CRITICAL dependency (auth service requires database for user data)
+    # PostgreSQL Database - CRITICAL dependency (auth service requires database for user data)
     async def check_postgres() -> HealthCheckResult:
         """Check PostgreSQL database health."""
         start_time = time.time()
         try:
             with next(get_db()) as db:
-                ***REMOVED*** Simple connectivity test
+                # Simple connectivity test
                 _ = db.execute(text("SELECT 1")).scalar()
 
-                ***REMOVED*** Get version for details
+                # Get version for details
                 version_result = db.execute(text("SELECT version()")).scalar()
                 version = version_result if version_result else "Unknown"
 
@@ -216,12 +216,12 @@ def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** JWT Token validation check - INFORMATIONAL (for monitoring)
+    # JWT Token validation check - INFORMATIONAL (for monitoring)
     async def check_jwt_config() -> HealthCheckResult:
         """Check JWT configuration is valid."""
         start_time = time.time()
         try:
-            ***REMOVED*** Basic check that JWT secret is configured (correct field name)
+            # Basic check that JWT secret is configured (correct field name)
             if (
                 hasattr(settings, "jwt_secret")
                 and settings.jwt_secret
@@ -260,9 +260,9 @@ def setup_auth_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+    # Register health checks with industry-standard category-driven endpoint mapping
 
-    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
+    # CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
             name="database",

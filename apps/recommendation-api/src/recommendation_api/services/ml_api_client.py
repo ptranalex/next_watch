@@ -72,7 +72,7 @@ class MLApiClient:
         Raises:
             httpx.HTTPError: If the request fails
         """
-        ***REMOVED*** Prepare request data
+        # Prepare request data
         request_data = {
             "movie_id": str(movie_features.get("movie_id", "")),
             "title": movie_features.get("title", ""),
@@ -86,11 +86,11 @@ class MLApiClient:
             },
         }
 
-        ***REMOVED*** Make request
+        # Make request
         logger.debug(f"Generating embedding for movie {request_data['movie_id']}")
         response = await self._make_request("POST", "/api/v1/embeddings/movie", request_data)
 
-        ***REMOVED*** Process response
+        # Process response
         response_data = response.json()
         return cast(list[float], response_data["embedding"])
 
@@ -113,18 +113,18 @@ class MLApiClient:
         Raises:
             httpx.HTTPError: If the request fails
         """
-        ***REMOVED*** Prepare request data
+        # Prepare request data
         request_data = {
             "user_id": user_id,
             "liked_movies": liked_movies,
             "watched_genres": watched_genres,
         }
 
-        ***REMOVED*** Make request
+        # Make request
         logger.debug(f"Generating preference vector for user {user_id}")
         response = await self._make_request("POST", "/api/v1/embeddings/user", request_data)
 
-        ***REMOVED*** Process response
+        # Process response
         response_data = response.json()
         return cast(list[float], response_data["preference_vector"])
 
@@ -137,14 +137,14 @@ class MLApiClient:
         Raises:
             httpx.HTTPError: If the request fails
         """
-        ***REMOVED*** Make request
+        # Make request
         response = await self._make_request("GET", "/api/v1/embeddings/info")
 
-        ***REMOVED*** Process response
+        # Process response
         return cast(dict[str, Any], response.json())
 
 
-***REMOVED*** Singleton instance
+# Singleton instance
 _ml_api_client: MLApiClient | None = None
 
 

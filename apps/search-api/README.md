@@ -1,8 +1,8 @@
-***REMOVED*** Search API
+# Search API
 
 A dedicated search and suggestion service for the Next Watch platform, providing fast and intelligent search capabilities across movies, actors, and directors.
 
-***REMOVED******REMOVED*** 🚀 Features
+## 🚀 Features
 
 - **Movie Search**: Comprehensive movie search with advanced filtering
 - **Real-time Suggestions**: Redis-backed autocomplete and typeahead
@@ -12,7 +12,7 @@ A dedicated search and suggestion service for the Next Watch platform, providing
 - **Semantic Search**: Enhanced search using ML embeddings (optional)
 - **Performance Optimized**: Redis caching and optimized queries
 
-***REMOVED******REMOVED*** 🏗️ Architecture
+## 🏗️ Architecture
 
 The Search API is built using:
 
@@ -22,127 +22,127 @@ The Search API is built using:
 - **PostgreSQL**: Data persistence (via Backend API)
 - **Pydantic**: Data validation and serialization
 
-***REMOVED******REMOVED*** 📚 API Endpoints
+## 📚 API Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Search Endpoints
+### Search Endpoints
 
 - `GET /api/v1/search` - Movie search with filtering
 - `GET /api/v1/search/all` - Multi-entity search
 - `GET /api/v1/search/suggestions` - Basic search suggestions
 - `GET /api/v1/search/suggestions/text` - Enhanced text suggestions
 
-***REMOVED******REMOVED******REMOVED*** System Endpoints
+### System Endpoints
 
 - `GET /health` - Comprehensive health check
 - `GET /health/ready` - Readiness probe
 - `GET /health/live` - Liveness probe
 - `GET /health/services` - Service client factory status
 
-***REMOVED******REMOVED*** 🔧 Configuration
+## 🔧 Configuration
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 ```bash
-***REMOVED*** Service Configuration
-PORT=8004                         ***REMOVED*** Default service port
-HOST=0.0.0.0                      ***REMOVED*** Bind host
+# Service Configuration
+PORT=8004                         # Default service port
+HOST=0.0.0.0                      # Bind host
 ENVIRONMENT=development
 LOG_LEVEL=INFO
 
-***REMOVED*** External Services
+# External Services
 BACKEND_API_URL=http://localhost:8000
 BACKEND_API_TIMEOUT=30
-ML_API_URL=http://localhost:8005   ***REMOVED*** Optional
+ML_API_URL=http://localhost:8005   # Optional
 ML_API_TIMEOUT=60
 
-***REMOVED*** Redis Configuration
+# Redis Configuration
 REDIS_URL=redis://localhost:6379/2
 REDIS_MAX_CONNECTIONS=20
 
-***REMOVED*** Search Settings
+# Search Settings
 MAX_SUGGESTIONS=50
 SEARCH_CACHE_TTL=300
 SUGGESTION_CACHE_TTL=3600
 MIN_QUERY_LENGTH=1
 MAX_QUERY_LENGTH=100
 
-***REMOVED*** Feature Flags
+# Feature Flags
 ENABLE_SEMANTIC_SEARCH=false
 ENABLE_SEARCH_ANALYTICS=true
 ENABLE_FUZZY_MATCHING=true
 ENABLE_TYPO_TOLERANCE=true
 
-***REMOVED*** Security
+# Security
 INTERNAL_API_KEY=search-to-backend-secret-key
 CORS_ORIGINS=["http://localhost:3000"]
 ```
 
-***REMOVED******REMOVED*** 🚀 Development
+## 🚀 Development
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - Python 3.12+
 - Redis server
 - Access to Backend API
 
-***REMOVED******REMOVED******REMOVED*** Setup
+### Setup
 
 ```bash
-***REMOVED*** Navigate to search-api directory
+# Navigate to search-api directory
 cd apps/search-api
 
-***REMOVED*** Install dependencies
+# Install dependencies
 hatch shell
 hatch run install-libs
 
-***REMOVED*** Run development server (auto-reload on port 8005)
+# Run development server (auto-reload on port 8005)
 hatch run dev
 ```
 
-***REMOVED******REMOVED******REMOVED*** Available Commands
+### Available Commands
 
 ```bash
-***REMOVED*** Development server
-hatch run dev                     ***REMOVED*** Auto-reload on port 8005 (dev)
+# Development server
+hatch run dev                     # Auto-reload on port 8005 (dev)
 
-***REMOVED*** CLI access (Typer app)
-hatch run cli -- --help           ***REMOVED*** Show CLI help
-hatch run cli -- redis info       ***REMOVED*** Redis info summary
+# CLI access (Typer app)
+hatch run cli -- --help           # Show CLI help
+hatch run cli -- redis info       # Redis info summary
 hatch run cli -- redis test-suggestions "star" -l 5
 hatch run cli -- redis populate-suggestions --limit 5000 --verbose
 
-***REMOVED*** Health checks (via hatch scripts)
-hatch run health-check            ***REMOVED*** Comprehensive health check
-hatch run health-redis            ***REMOVED*** Redis health check
-hatch run health-backend          ***REMOVED*** Backend API health check
+# Health checks (via hatch scripts)
+hatch run health-check            # Comprehensive health check
+hatch run health-redis            # Redis health check
+hatch run health-backend          # Backend API health check
 
-***REMOVED*** Development tools
-hatch run lint                    ***REMOVED*** Code linting
-hatch run format                  ***REMOVED*** Code formatting
-hatch run test                    ***REMOVED*** Run tests
-hatch run test-cov                ***REMOVED*** Run tests with coverage
+# Development tools
+hatch run lint                    # Code linting
+hatch run format                  # Code formatting
+hatch run test                    # Run tests
+hatch run test-cov                # Run tests with coverage
 
-***REMOVED*** Docker testing
-./scripts/test-docker-build.sh    ***REMOVED*** Test Docker build and basic functionality
+# Docker testing
+./scripts/test-docker-build.sh    # Test Docker build and basic functionality
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 hatch run test
 
-***REMOVED*** Run with coverage
+# Run with coverage
 hatch run test-cov
 
-***REMOVED*** Test specific functionality
+# Test specific functionality
 pytest tests/test_search.py -v
 pytest tests/test_suggestions.py -v
 ```
 
-***REMOVED******REMOVED*** 📊 Monitoring
+## 📊 Monitoring
 
-***REMOVED******REMOVED******REMOVED*** Health Checks
+### Health Checks
 
 The service provides multiple health check endpoints:
 
@@ -151,7 +151,7 @@ The service provides multiple health check endpoints:
 - `/health/live` - Kubernetes liveness probe
 - `/health/services` - Service client factory status
 
-***REMOVED******REMOVED******REMOVED*** Metrics
+### Metrics
 
 When enabled, the service exposes metrics for:
 
@@ -161,18 +161,18 @@ When enabled, the service exposes metrics for:
 - Error rates and types
 - Redis connection status
 
-***REMOVED******REMOVED*** 🔄 Integration
+## 🔄 Integration
 
-***REMOVED******REMOVED******REMOVED*** With BFF API
+### With BFF API
 
 The Search API is called by the BFF API for all search-related operations:
 
 ```python
-***REMOVED*** BFF API search routes will be updated to call Search API
-***REMOVED*** instead of Backend API directly
+# BFF API search routes will be updated to call Search API
+# instead of Backend API directly
 ```
 
-***REMOVED******REMOVED******REMOVED*** With Backend API
+### With Backend API
 
 Search API calls Backend API for:
 
@@ -180,7 +180,7 @@ Search API calls Backend API for:
 - User-specific search results
 - Search result enrichment
 
-***REMOVED******REMOVED******REMOVED*** With ML API (Optional)
+### With ML API (Optional)
 
 When semantic search is enabled:
 
@@ -188,17 +188,17 @@ When semantic search is enabled:
 - Semantic similarity calculations
 - Enhanced search ranking
 
-***REMOVED******REMOVED*** 🚢 Deployment
+## 🚢 Deployment
 
-***REMOVED******REMOVED******REMOVED*** Docker
+### Docker
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Building from Monorepo Root
+#### Building from Monorepo Root
 
 ```bash
-***REMOVED*** Build image from monorepo root (required for local dependencies)
+# Build image from monorepo root (required for local dependencies)
 docker build -f apps/search-api/Dockerfile -t search-api:latest .
 
-***REMOVED*** Run container
+# Run container
 docker run -p 8004:8004 \
   -e REDIS_URL=redis://redis:6379/2 \
   -e BACKEND_API_URL=http://backend:8000 \
@@ -206,62 +206,62 @@ docker run -p 8004:8004 \
   search-api:latest
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Development with Docker Compose
+#### Development with Docker Compose
 
 ```bash
-***REMOVED*** From search-api directory
+# From search-api directory
 cd apps/search-api
 
-***REMOVED*** Start search-api with Redis
+# Start search-api with Redis
 docker-compose -f docker-compose.dev.yml up --build
 
-***REMOVED*** Stop services
+# Stop services
 docker-compose -f docker-compose.dev.yml down
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Production Environment Variables
+#### Production Environment Variables
 
 ```bash
-***REMOVED*** Core Configuration
+# Core Configuration
 ENVIRONMENT=production
 PORT=8004
 LOG_LEVEL=info
 WORKERS=2
 
-***REMOVED*** External Services
+# External Services
 BACKEND_API_URL=http://backend:8000
 REDIS_URL=redis://redis:6379/2
 
-***REMOVED*** Search Configuration
+# Search Configuration
 MAX_SUGGESTIONS=50
 SEARCH_CACHE_TTL=300
 SUGGESTION_CACHE_TTL=3600
 
-***REMOVED*** Feature Flags
+# Feature Flags
 ENABLE_SEARCH_ANALYTICS=true
 ENABLE_FUZZY_MATCHING=true
 ENABLE_TYPO_TOLERANCE=true
 ENABLE_SEMANTIC_SEARCH=false
 
-***REMOVED*** Security
+# Security
 INTERNAL_API_KEY=your-secret-key
 CORS_ORIGINS=["https://yourdomain.com"]
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment-specific Configuration
+### Environment-specific Configuration
 
 - **Development**: Full debugging, verbose logging
 - **Staging**: Production-like with debug endpoints
 - **Production**: Optimized performance, security hardened
 
-***REMOVED******REMOVED*** 📝 Migration Notes
+## 📝 Migration Notes
 
 This service consolidates search functionality that was previously split between:
 
 - Backend API (`/api/v1/search/*` endpoints)
 - BFF API (search aggregation logic)
 
-***REMOVED******REMOVED******REMOVED*** Migration Steps
+### Migration Steps
 
 1. ✅ Create Search API service structure
 2. ✅ **Move search routes from Backend API**
@@ -278,30 +278,30 @@ This service consolidates search functionality that was previously split between
 
 **🎉 Search API is now production-ready with Redis-enhanced suggestions!**
 
-***REMOVED******REMOVED******REMOVED*** ✅ Working Endpoints (Live)
+### ✅ Working Endpoints (Live)
 
 ```bash
-***REMOVED*** Movie search with filters
+# Movie search with filters
 curl "http://localhost:8004/api/v1/search?q=batman&limit=5"
 
-***REMOVED*** Enhanced text suggestions with Redis-backed ranking and metadata
+# Enhanced text suggestions with Redis-backed ranking and metadata
 curl "http://localhost:8004/api/v1/search/suggestions/text?query=star&limit=3"
 
-***REMOVED*** Multi-entity search
+# Multi-entity search
 curl "http://localhost:8004/api/v1/search/all?query=action&limit=10"
 
-***REMOVED*** Service health
+# Service health
 curl "http://localhost:8004/health"
 ```
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
 1. Follow existing code patterns from other services
 2. Add comprehensive tests for new functionality
 3. Update documentation for API changes
 4. Ensure health checks cover new dependencies
 
-***REMOVED******REMOVED*** 📄 License
+## 📄 License
 
 MIT License - see LICENSE file for details.
 

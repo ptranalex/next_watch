@@ -41,19 +41,19 @@ async def _determine_service_status(
         Service status: "operational", "degraded", "unhealthy", or "unknown"
     """
     try:
-        ***REMOVED*** Primary: Use health registry from app state (respects CRITICAL flags)
+        # Primary: Use health registry from app state (respects CRITICAL flags)
         if hasattr(request.app.state, "health_registry") and request.app.state.health_registry:
             return await _get_status_from_registry(request.app.state.health_registry)
 
-        ***REMOVED*** Fallback: Use custom health check provider
+        # Fallback: Use custom health check provider
         if health_check_provider:
             return await _get_status_from_provider(health_check_provider, request)
 
-        ***REMOVED*** No health system available
+        # No health system available
         return "unknown"
 
     except Exception as e:
-        ***REMOVED*** Log error but don't fail the meta endpoint
+        # Log error but don't fail the meta endpoint
         import logging
 
         logging.warning(f"Failed to determine service status: {e}")
@@ -64,12 +64,12 @@ async def _get_status_from_registry(registry: "HealthCheckRegistry") -> str:
     """Get status from health registry with CRITICAL flag support."""
     from fast_core.monitoring.health import HealthCheckCategory, HealthCheckType
 
-    ***REMOVED*** Get comprehensive health status (CRITICAL + IMPORTANT services)
-    ***REMOVED*** This matches the logic used by the /health endpoint for consistent status
+    # Get comprehensive health status (CRITICAL + IMPORTANT services)
+    # This matches the logic used by the /health endpoint for consistent status
     comprehensive_results = await registry.run_checks_for_type(HealthCheckType.DEEP)
     checks = comprehensive_results.get("checks", {})
 
-    ***REMOVED*** Count critical vs important health status (aligns with comprehensive health endpoint)
+    # Count critical vs important health status (aligns with comprehensive health endpoint)
     critical_healthy = 0
     critical_total = 0
     important_healthy = 0
@@ -87,18 +87,18 @@ async def _get_status_from_registry(registry: "HealthCheckRegistry") -> str:
             important_total += 1
             if is_healthy:
                 important_healthy += 1
-        ***REMOVED*** Note: INFORMATIONAL checks don't affect meta endpoint status
+        # Note: INFORMATIONAL checks don't affect meta endpoint status
 
-    ***REMOVED*** Status determination logic (matches /health endpoint behavior)
+    # Status determination logic (matches /health endpoint behavior)
     all_critical_healthy = critical_total == 0 or critical_healthy == critical_total
     all_important_healthy = important_total == 0 or important_healthy == important_total
 
     if all_critical_healthy and all_important_healthy:
-        return "operational"  ***REMOVED*** All critical and important services healthy
+        return "operational"  # All critical and important services healthy
     elif all_critical_healthy:
-        return "degraded"  ***REMOVED*** Critical services up, some important down
+        return "degraded"  # Critical services up, some important down
     else:
-        return "unhealthy"  ***REMOVED*** Any critical service down
+        return "unhealthy"  # Any critical service down
 
 
 async def _get_status_from_provider(health_check_provider: Callable, request: Request) -> str:
@@ -113,7 +113,7 @@ async def _get_status_from_provider(health_check_provider: Callable, request: Re
             status_value = health_data["status"]
             return str(status_value) if status_value else "unknown"
 
-        ***REMOVED*** Fallback: simple count-based logic
+        # Fallback: simple count-based logic
         checks = health_data.get("checks", {})
         if checks:
             healthy_count = sum(
@@ -167,7 +167,7 @@ def create_meta_router(
         Returns essential information for service registries and discovery mechanisms.
         Following patterns from Kubernetes service discovery and Spring Boot.
         """
-        ***REMOVED*** Get dynamic status
+        # Get dynamic status
         status = await _determine_service_status(request, health_check_provider)
 
         meta_info = {
@@ -192,7 +192,7 @@ def create_meta_router(
             "documentation": "/docs" if not is_production else None,
         }
 
-        ***REMOVED*** Add status details for non-operational states
+        # Add status details for non-operational states
         if status != "operational":
             meta_info["status_details"] = {
                 "operational": "All systems functioning normally",
@@ -201,7 +201,7 @@ def create_meta_router(
                 "unknown": "Unable to determine health status",
             }.get(status, "Status check unavailable")
 
-        ***REMOVED*** Add versioning information if available
+        # Add versioning information if available
         if VERSIONING_AVAILABLE and endpoints:
             try:
                 current_version = APIVersion.from_string(version)
@@ -212,7 +212,7 @@ def create_meta_router(
                     "url_pattern": f"/v{current_version.major}.{current_version.minor}/*",
                 }
             except Exception:
-                ***REMOVED*** If version parsing fails, continue without versioning info
+                # If version parsing fails, continue without versioning info
                 pass
 
         return meta_info
@@ -279,7 +279,7 @@ def create_meta_router(
                 },
             }
 
-            ***REMOVED*** Add custom debug info if provider is available
+            # Add custom debug info if provider is available
             if debug_info_provider:
                 try:
                     custom_debug = debug_info_provider(request)
@@ -363,8 +363,8 @@ def setup_meta_endpoints(
         is_production=is_production,
     )
 
-    ***REMOVED*** Include the meta router at root level (no prefix)
+    # Include the meta router at root level (no prefix)
     app.include_router(meta_router)
 
 
-***REMOVED*** TEST
+# TEST

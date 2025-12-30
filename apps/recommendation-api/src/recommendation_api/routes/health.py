@@ -25,14 +25,14 @@ async def health_check(request: Request) -> JSONResponse:
     health_service = request.app.state.health_service
 
     try:
-        ***REMOVED*** Get health status for all services
+        # Get health status for all services
         health_results = await health_service.check_all()
 
-        ***REMOVED*** Determine overall health
+        # Determine overall health
         all_healthy = all(result.is_healthy for result in health_results.values())
         overall_status = "healthy" if all_healthy else "unhealthy"
 
-        ***REMOVED*** Build response
+        # Build response
         response: dict[str, Any] = {
             "status": overall_status,
             "service": "recommendation-api",
@@ -42,7 +42,7 @@ async def health_check(request: Request) -> JSONResponse:
             "checks": {},
         }
 
-        ***REMOVED*** Add individual service checks
+        # Add individual service checks
         for service_name, result in health_results.items():
             check_data = {
                 "status": result.status,
@@ -60,7 +60,7 @@ async def health_check(request: Request) -> JSONResponse:
 
             response["checks"][service_name] = check_data
 
-        ***REMOVED*** Set appropriate HTTP status code
+        # Set appropriate HTTP status code
         status_code = 200 if all_healthy else 503
 
         return JSONResponse(status_code=status_code, content=response)
@@ -110,11 +110,11 @@ async def readiness_check(request: Request) -> JSONResponse:
     health_service = request.app.state.health_service
 
     try:
-        ***REMOVED*** Check only critical dependencies for readiness
+        # Check only critical dependencies for readiness
         health_results = await health_service.check_all()
 
-        ***REMOVED*** For readiness, we need database and qdrant to be healthy
-        ***REMOVED*** Redis is nice to have but not critical for basic functionality
+        # For readiness, we need database and qdrant to be healthy
+        # Redis is nice to have but not critical for basic functionality
         critical_services = ["postgres", "qdrant"]
         critical_healthy = all(
             health_results[service].is_healthy

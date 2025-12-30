@@ -69,14 +69,14 @@ class PopularContentStrategy(BaseWarmingStrategy):
             return await self._get_default_popular_targets(limit)
 
         try:
-            ***REMOVED*** Get popularity data from application
+            # Get popularity data from application
             popularity_data = await self.popularity_provider()
             targets = []
 
-            ***REMOVED*** Process different types of popular content using registered factories
+            # Process different types of popular content using registered factories
             for content_type, items in popularity_data.items():
                 if content_type in self.target_factories:
-                    ***REMOVED*** Delegate target creation to application-specific factory
+                    # Delegate target creation to application-specific factory
                     factory = self.target_factories[content_type]
                     for item in items:
                         try:
@@ -89,7 +89,7 @@ class PopularContentStrategy(BaseWarmingStrategy):
                 else:
                     logger.warning(f"No target factory registered for content type: {content_type}")
 
-            ***REMOVED*** Sort by priority and apply limit
+            # Sort by priority and apply limit
             targets.sort(key=lambda t: t.priority, reverse=True)
             if limit:
                 targets = targets[:limit]
@@ -113,15 +113,15 @@ class PopularContentStrategy(BaseWarmingStrategy):
         popularity_score = target_data.get("popularity_score", 1.0)
         view_count = target_data.get("view_count", 0)
 
-        ***REMOVED*** Base priority from popularity
+        # Base priority from popularity
         base_priority = popularity_score
 
-        ***REMOVED*** Boost based on view count (logarithmic scale)
+        # Boost based on view count (logarithmic scale)
         import math
 
         view_boost = math.log10(max(view_count, 1)) / 10.0
 
-        ***REMOVED*** Generic priority calculation - no content-specific logic
+        # Generic priority calculation - no content-specific logic
         return (base_priority + view_boost) * self.config.popular_content_weight
 
     async def _get_default_popular_targets(self, limit: int | None = None) -> list[WarmingTarget]:
@@ -135,6 +135,6 @@ class PopularContentStrategy(BaseWarmingStrategy):
         """
         targets = []
 
-        ***REMOVED*** Only include generic examples - no business-specific logic
+        # Only include generic examples - no business-specific logic
         logger.info("Using default popular content targets (no provider available)")
         return targets

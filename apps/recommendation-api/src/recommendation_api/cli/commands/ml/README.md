@@ -1,10 +1,10 @@
-***REMOVED*** ML API Commands
+# ML API Commands
 
 This module provides CLI commands for interacting with the ML API service, which is responsible for generating vector embeddings and providing other machine learning functionality for the Recommendation API.
 
-***REMOVED******REMOVED*** Commands
+## Commands
 
-***REMOVED******REMOVED******REMOVED*** `test-connection`
+### `test-connection`
 
 Test connectivity to the ML API service.
 
@@ -18,7 +18,7 @@ Options:
 - `--verbose, -v`: Show detailed information
 - `--quiet, -q`: Suppress most console output
 
-***REMOVED******REMOVED******REMOVED*** `generate-embedding`
+### `generate-embedding`
 
 Generate a vector embedding for a movie. This embedding can be used for similarity search and recommendations.
 
@@ -39,7 +39,7 @@ Options:
 - `--verbose, -v`: Show detailed information
 - `--quiet, -q`: Suppress most console output
 
-***REMOVED******REMOVED*** Examples
+## Examples
 
 Test connection to the ML API with verbose output:
 
@@ -57,6 +57,6 @@ python -m recommendation_api.cli.main ml generate-embedding \
     --id "inception-2010"
 ```
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 If the ML API service is unavailable or returns an error, the commands will display detailed error information and exit with a non-zero status code. Use the `--verbose` flag to see additional troubleshooting tips.

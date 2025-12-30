@@ -1,6 +1,6 @@
-***REMOVED*** 🎯 Next Steps for Alloy Configuration
+# 🎯 Next Steps for Alloy Configuration
 
-***REMOVED******REMOVED*** ✅ **Metrics (Prometheus) - COMPLETED**
+## ✅ **Metrics (Prometheus) - COMPLETED**
 
 Your metrics configuration is now set up with:
 
@@ -8,11 +8,11 @@ Your metrics configuration is now set up with:
 - **Username**: `your-metrics-username`
 - **Password**: `glc_eyJ...` (API key)
 
-***REMOVED******REMOVED*** 📝 **Logs (Loki) - NEEDED**
+## 📝 **Logs (Loki) - NEEDED**
 
 You still need to get the Loki configuration for logs. Here's how:
 
-***REMOVED******REMOVED******REMOVED*** **Step 1: Get Loki Configuration**
+### **Step 1: Get Loki Configuration**
 
 1. **Go to Grafana Cloud Console**
 2. **Navigate to**: Your Stack → Connections → Data Sources
@@ -33,31 +33,31 @@ loki.write "logs_hosted_loki" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** **Step 2: Update Your .env File**
+### **Step 2: Update Your .env File**
 
 Once you get the Loki details, update these lines in `.env`:
 
 ```bash
-***REMOVED*** Replace these placeholder values:
+# Replace these placeholder values:
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-XX-XX-X.grafana.net/loki/api/v1/push
 GRAFANA_CLOUD_LOGS_USERNAME=your-logs-username
 GRAFANA_CLOUD_LOGS_PASSWORD=your-logs-api-key
 ```
 
-***REMOVED******REMOVED*** 🚀 **Testing Your Current Setup**
+## 🚀 **Testing Your Current Setup**
 
 Even with just metrics configured, you can test:
 
 ```bash
 cd infra/monitoring/alloy
 
-***REMOVED*** Test configuration
+# Test configuration
 docker compose -f docker-compose.alloy.yml config
 
-***REMOVED*** Start Alloy
+# Start Alloy
 docker compose -f docker-compose.alloy.yml up -d
 
-***REMOVED*** Check logs for successful metrics connection
+# Check logs for successful metrics connection
 docker compose -f docker-compose.alloy.yml logs grafana-alloy
 ```
 
@@ -67,7 +67,7 @@ Look for messages like:
 - ✅ `"Connected to Prometheus remote write endpoint"`
 - ❌ `"authentication failed"` or `"connection refused"`
 
-***REMOVED******REMOVED*** 📊 **Verify Metrics in Grafana**
+## 📊 **Verify Metrics in Grafana**
 
 1. **Go to your Grafana Cloud dashboard**
 2. **Navigate to Explore**
@@ -75,26 +75,26 @@ Look for messages like:
 4. **Try this query**: `up{job="backend_api"}`
 5. **Should see**: Metrics from your NextWatch services
 
-***REMOVED******REMOVED*** 🔍 **Common Issues**
+## 🔍 **Common Issues**
 
-***REMOVED******REMOVED******REMOVED*** **If Authentication Fails**
+### **If Authentication Fails**
 
 ```bash
-***REMOVED*** Test connection manually
+# Test connection manually
 curl -u "your-metrics-username:glc_eyJ..." \
   "https://prometheus-prod-37-prod-ap-southeast-1.grafana.net/api/prom/push" \
   -X POST \
-  --data-raw "***REMOVED*** TYPE test_metric counter
+  --data-raw "# TYPE test_metric counter
 test_metric 1"
 ```
 
-***REMOVED******REMOVED******REMOVED*** **If No Metrics Appear**
+### **If No Metrics Appear**
 
 - Check if your services are exposing `/metrics` endpoints
 - Verify Docker networks are connected
 - Check Alloy UI at `http://localhost:12345/alloy`
 
-***REMOVED******REMOVED*** 🎯 **Expected Results**
+## 🎯 **Expected Results**
 
 With metrics configured, you should see in Grafana:
 
@@ -103,7 +103,7 @@ With metrics configured, you should see in Grafana:
 - **System metrics**: CPU, memory usage
 - **Custom metrics**: Cache warming performance, etc.
 
-***REMOVED******REMOVED*** 📋 **Complete Configuration Checklist**
+## 📋 **Complete Configuration Checklist**
 
 - [x] ✅ Prometheus/Metrics configured
 - [ ] ⏳ Loki/Logs configuration needed

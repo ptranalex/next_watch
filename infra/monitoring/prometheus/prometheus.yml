@@ -1,5 +1,5 @@
-***REMOVED*** Prometheus Configuration for NextWatch Platform
-***REMOVED*** Clean, production-ready configuration for containerized deployment
+# Prometheus Configuration for NextWatch Platform
+# Clean, production-ready configuration for containerized deployment
 
 global:
   scrape_interval: 15s
@@ -19,7 +19,7 @@ alerting:
             - alertmanager:9093
 
 scrape_configs:
-  ***REMOVED*** NextWatch Services (Working Services Only)
+  # NextWatch Services (Working Services Only)
   - job_name: "nextwatch-backend-api"
     static_configs:
       - targets: ["backend-api:8000"]
@@ -36,7 +36,7 @@ scrape_configs:
 
   - job_name: "nextwatch-bff-api"
     static_configs:
-      - targets: ["bff-api:8000"] ***REMOVED*** BFF API runs on internal port 8000
+      - targets: ["bff-api:8000"] # BFF API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -50,7 +50,7 @@ scrape_configs:
 
   - job_name: "nextwatch-auth-api"
     static_configs:
-      - targets: ["auth-api:8000"] ***REMOVED*** Auth API runs on internal port 8000
+      - targets: ["auth-api:8000"] # Auth API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -64,7 +64,7 @@ scrape_configs:
 
   - job_name: "nextwatch-search-api"
     static_configs:
-      - targets: ["search-api:8000"] ***REMOVED*** Search API runs on internal port 8000
+      - targets: ["search-api:8000"] # Search API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -76,7 +76,7 @@ scrape_configs:
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
-  ***REMOVED*** Monitoring Stack Self-Monitoring
+  # Monitoring Stack Self-Monitoring
   - job_name: "prometheus"
     static_configs:
       - targets: ["localhost:9090"]
@@ -103,7 +103,7 @@ scrape_configs:
     scrape_interval: 30s
   - job_name: "nextwatch-ml-api"
     static_configs:
-      - targets: ["ml-api:8000"] ***REMOVED*** ML API runs on internal port 8000
+      - targets: ["ml-api:8000"] # ML API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -117,7 +117,7 @@ scrape_configs:
 
   - job_name: "nextwatch-recommendation-api"
     static_configs:
-      - targets: ["recommendation-api:8000"] ***REMOVED*** Recommendation API runs on internal port 8000
+      - targets: ["recommendation-api:8000"] # Recommendation API runs on internal port 8000
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s
@@ -129,7 +129,7 @@ scrape_configs:
       - target_label: instance_id
         replacement: "i-0c78dddbab78124cb"
 
-  ***REMOVED*** Health Check Trigger - Calls /health endpoints to update native metrics
+  # Health Check Trigger - Calls /health endpoints to update native metrics
   - job_name: "nextwatch-health-trigger"
     static_configs:
       - targets:
@@ -152,17 +152,17 @@ scrape_configs:
       - target_label: probe_type
         replacement: "health_trigger"
 
-  ***REMOVED*** Blackbox Exporter Self-Monitoring
+  # Blackbox Exporter Self-Monitoring
   - job_name: "blackbox-exporter"
     static_configs:
       - targets: ["blackbox-exporter:9115"]
     scrape_interval: 30s
 
-  ***REMOVED*** Health Endpoint Monitoring via Blackbox Exporter
+  # Health Endpoint Monitoring via Blackbox Exporter
   - job_name: "nextwatch-health-endpoints"
     metrics_path: /probe
     params:
-      module: [http_health] ***REMOVED*** Use module that accepts 200 or 503
+      module: [http_health] # Use module that accepts 200 or 503
     static_configs:
       - targets:
           - "http://backend-api:8000/health"
@@ -187,11 +187,11 @@ scrape_configs:
       - target_label: environment
         replacement: "production"
 
-  ***REMOVED*** Readiness Endpoint Monitoring via Blackbox Exporter
+  # Readiness Endpoint Monitoring via Blackbox Exporter
   - job_name: "nextwatch-readiness-endpoints"
     metrics_path: /probe
     params:
-      module: [http_readiness] ***REMOVED*** Must be 200 only
+      module: [http_readiness] # Must be 200 only
     static_configs:
       - targets:
           - "http://backend-api:8000/health/ready"
@@ -216,7 +216,7 @@ scrape_configs:
       - target_label: environment
         replacement: "production"
 
-  ***REMOVED*** Service Connectivity Check (TCP)
+  # Service Connectivity Check (TCP)
   - job_name: "nextwatch-service-connectivity"
     metrics_path: /probe
     params:

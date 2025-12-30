@@ -1,8 +1,8 @@
-***REMOVED*** Database Migrations
+# Database Migrations
 
 This directory contains database migration scripts for the Backend API. Migrations are used to manage database schema changes in a version-controlled, repeatable manner.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The migration system allows you to:
 
@@ -11,11 +11,11 @@ The migration system allows you to:
 - Rollback changes when needed
 - Maintain database consistency across environments
 
-***REMOVED******REMOVED*** Migration Files
+## Migration Files
 
 Migrations are numbered sequentially and follow the naming pattern: `XXX_description.py`
 
-***REMOVED******REMOVED******REMOVED*** Current Migrations
+### Current Migrations
 
 | Migration                                        | Description                                        | Purpose                                                              |
 | ------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------------- |
@@ -31,7 +31,7 @@ Migrations are numbered sequentially and follow the naming pattern: `XXX_descrip
 | `010_create_movie_metadata_materialized_view.py` | Create materialized view for movie metadata        | Precomputes and optimizes bulk metadata access                       |
 | `011_add_credit_director_index.py`               | Add partial covering index for director lookups    | Speeds up `Directing/Director` by `movie_id` queries                 |
 
-***REMOVED******REMOVED*** Migration Structure
+## Migration Structure
 
 Each migration file contains:
 
@@ -45,7 +45,7 @@ from sqlalchemy import text
 from backend_api.config.app import Config
 from backend_api.config.logging import get_logger
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "XXX_migration_name"
 MIGRATION_DESCRIPTION = "Brief description"
 
@@ -53,54 +53,54 @@ logger = get_logger(__name__)
 
 def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Apply the migration."""
-    ***REMOVED*** Migration logic here
+    # Migration logic here
 
 def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     """Revert the migration."""
-    ***REMOVED*** Rollback logic here
+    # Rollback logic here
 ```
 
-***REMOVED******REMOVED*** Running Migrations
+## Running Migrations
 
-***REMOVED******REMOVED******REMOVED*** Apply All Pending Migrations
+### Apply All Pending Migrations
 
 ```bash
 python -m backend_api.cli database migrate
 ```
 
-***REMOVED******REMOVED******REMOVED*** Apply Migrations with Verbose Output
+### Apply Migrations with Verbose Output
 
 ```bash
 python -m backend_api.cli database migrate --verbose
 ```
 
-***REMOVED******REMOVED******REMOVED*** Check Migration Status
+### Check Migration Status
 
 ```bash
 python -m backend_api.cli database status
 ```
 
-***REMOVED******REMOVED*** Rolling Back Migrations
+## Rolling Back Migrations
 
-***REMOVED******REMOVED******REMOVED*** Rollback One Migration
+### Rollback One Migration
 
 ```bash
 python -m backend_api.cli database downgrade --steps 1
 ```
 
-***REMOVED******REMOVED******REMOVED*** Rollback to Specific Migration
+### Rollback to Specific Migration
 
 ```bash
 python -m backend_api.cli database downgrade --target 008_add_user_movie_interactions_table
 ```
 
-***REMOVED******REMOVED******REMOVED*** Rollback All Migrations (⚠️ Destructive)
+### Rollback All Migrations (⚠️ Destructive)
 
 ```bash
 python -m backend_api.cli database downgrade --all
 ```
 
-***REMOVED******REMOVED*** Creating New Migrations
+## Creating New Migrations
 
 1. **Determine the next migration number** by looking at existing migrations
 2. **Create a new file** following the naming pattern: `XXX_description.py`
@@ -108,9 +108,9 @@ python -m backend_api.cli database downgrade --all
 4. **Implement both `upgrade` and `downgrade` functions**
 5. **Test the migration** in a development environment
 
-***REMOVED******REMOVED******REMOVED*** Migration Best Practices
+### Migration Best Practices
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** ✅ Do's
+#### ✅ Do's
 
 - **Always implement both upgrade and downgrade functions**
 - **Use transactions** to ensure atomicity
@@ -121,7 +121,7 @@ python -m backend_api.cli database downgrade --all
 - **Recording applied migrations is automatic**: The migration runner will insert a record into the `migrations` table after a successful `upgrade()` using an idempotent upsert. You may still insert manually within a migration for clarity; duplicates are ignored.
 - **Removing migration records on downgrade is automatic**: The CLI downgrade flow deletes the corresponding `migrations` record after a successful `downgrade()`. You don't need to delete it inside the migration; doing so is harmless (a second delete is a no-op).
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** ❌ Don'ts
+#### ❌ Don'ts
 
 - **Don't modify existing migrations** once they've been applied
 - **Don't create destructive migrations** without careful consideration
@@ -129,7 +129,7 @@ python -m backend_api.cli database downgrade --all
 - **Don't create migrations that depend on application code**
 - **Don't skip testing downgrades**
 
-***REMOVED******REMOVED******REMOVED*** Example: Adding a New Table
+### Example: Adding a New Table
 
 ```python
 """Migration to add example table."""
@@ -151,7 +151,7 @@ def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
     logger.info("Creating example table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Create table
+        # Create table
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS example (
                 id SERIAL PRIMARY KEY,
@@ -160,12 +160,12 @@ def upgrade(engine: Engine, config: Optional[Config] = None) -> None:
             )
         """))
 
-        ***REMOVED*** Add index
+        # Add index
         conn.execute(text("""
             CREATE INDEX IF NOT EXISTS idx_example_name ON example(name)
         """))
 
-        ***REMOVED*** Record migration
+        # Record migration
         conn.execute(text("""
             INSERT INTO migrations (id, description)
             VALUES (:id, :description)
@@ -181,10 +181,10 @@ def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     logger.info("Dropping example table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Drop table
+        # Drop table
         conn.execute(text("DROP TABLE IF EXISTS example"))
 
-        ***REMOVED*** Remove migration record
+        # Remove migration record
         conn.execute(text("""
             DELETE FROM migrations WHERE id = :id
         """), {"id": MIGRATION_ID})
@@ -192,9 +192,9 @@ def downgrade(engine: Engine, config: Optional[Config] = None) -> None:
     logger.info("Example table dropped successfully")
 ```
 
-***REMOVED******REMOVED*** Performance Considerations
+## Performance Considerations
 
-***REMOVED******REMOVED******REMOVED*** Indexing Strategy
+### Indexing Strategy
 
 The migration system includes several performance optimizations:
 
@@ -203,7 +203,7 @@ The migration system includes several performance optimizations:
 - **Trigram indexes** for text search capabilities
 - **Foreign key indexes** for relationship queries
 
-***REMOVED******REMOVED******REMOVED*** Query Optimization Examples
+### Query Optimization Examples
 
 Migration `010_add_credit_department_job_index.py` specifically addresses slow queries like:
 
@@ -219,24 +219,24 @@ AND c.job IN ('Director', 'Screenplay')
 -- Uses idx_credit_movie_dept_job and idx_credit_directors_writers
 ```
 
-***REMOVED******REMOVED*** Database Schema Evolution
+## Database Schema Evolution
 
-***REMOVED******REMOVED******REMOVED*** Schema Versioning
+### Schema Versioning
 
 - Each migration increments the database schema version
 - The `migrations` table tracks applied migrations and timestamps
 - Migrations are applied in sequential order
 - No migration should be skipped or applied out of order
 
-***REMOVED******REMOVED******REMOVED*** Environment Consistency
+### Environment Consistency
 
 - Development, staging, and production should use the same migrations
 - Always test migrations in a staging environment first
 - Use database backups before applying migrations in production
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 1. **Migration fails partway through**
 
@@ -253,7 +253,7 @@ AND c.job IN ('Director', 'Screenplay')
    - Ensure downgrade function is properly implemented
    - Check for dependent data that prevents rollback
 
-***REMOVED******REMOVED******REMOVED*** Recovery Procedures
+### Recovery Procedures
 
 1. **If migration fails during upgrade:**
 
@@ -270,13 +270,13 @@ AND c.job IN ('Director', 'Screenplay')
    - Re-apply migrations from known good state
    - Contact database administrator if needed
 
-***REMOVED******REMOVED*** Related Documentation
+## Related Documentation
 
 - [Database Operations Guide](../operations/README.md)
 - [API Configuration](../../config/README.md)
 - [CLI Commands](../../cli/README.md)
 
-***REMOVED******REMOVED*** Support
+## Support
 
 For migration-related issues:
 

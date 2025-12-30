@@ -1,8 +1,8 @@
-***REMOVED*** Google Analytics Integration
+# Google Analytics Integration
 
 This document explains how Google Analytics is integrated into the Next Watch application using modern Next.js best practices and a consolidated architecture.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The application uses the `@next/third-parties` package for Google Analytics integration, which is the official Next.js solution for third-party scripts. This approach provides:
 
@@ -11,15 +11,15 @@ The application uses the `@next/third-parties` package for Google Analytics inte
 - **Type safety** - Full TypeScript support
 - **No custom providers needed** - Simple, clean integration
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** 🏗️ **Consolidated Design (Best Practice)**
+### 🏗️ **Consolidated Design (Best Practice)**
 
 We follow a **single source of truth** pattern:
 
 ```
-📁 utils/analytics.ts          ***REMOVED*** ✅ Core implementation (logging, error handling, dev tools)
-📁 hooks/core/useAnalytics.ts  ***REMOVED*** ✅ Thin React wrapper (useCallback optimization)
+📁 utils/analytics.ts          # ✅ Core implementation (logging, error handling, dev tools)
+📁 hooks/core/useAnalytics.ts  # ✅ Thin React wrapper (useCallback optimization)
 ```
 
 **Benefits:**
@@ -30,7 +30,7 @@ We follow a **single source of truth** pattern:
 - ✅ **Consistent Behavior** - Same logging/error handling everywhere
 - ✅ **Type Safety** - Centralized type definitions
 
-***REMOVED******REMOVED******REMOVED*** 🚫 **Anti-Pattern (What We Avoided)**
+### 🚫 **Anti-Pattern (What We Avoided)**
 
 ```
 ❌ Duplicated logging in both files
@@ -39,15 +39,15 @@ We follow a **single source of truth** pattern:
 ❌ Hard to maintain
 ```
 
-***REMOVED******REMOVED*** Setup
+## Setup
 
-***REMOVED******REMOVED******REMOVED*** 1. Package Installation
+### 1. Package Installation
 
 ```bash
 pnpm add @next/third-parties
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Root Layout Integration
+### 2. Root Layout Integration
 
 The Google Analytics component is added to the root layout (`app/layout.tsx`):
 
@@ -66,9 +66,9 @@ export default function RootLayout({ children }) {
 }
 ```
 
-***REMOVED******REMOVED*** Usage Patterns
+## Usage Patterns
 
-***REMOVED******REMOVED******REMOVED*** 🎯 **Pattern 1: useAnalytics Hook (Recommended for Components)**
+### 🎯 **Pattern 1: useAnalytics Hook (Recommended for Components)**
 
 **Use when:** Inside React components or custom hooks that need React context
 
@@ -95,7 +95,7 @@ function MovieCard({ movie }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 🔧 **Pattern 2: Direct Utility Functions (For Non-React Code)**
+### 🔧 **Pattern 2: Direct Utility Functions (For Non-React Code)**
 
 **Use when:** Inside utility functions, middleware, or non-React code
 
@@ -115,7 +115,7 @@ export function middleware(request) {
 }
 ```
 
-***REMOVED******REMOVED*** When to Use Which Pattern?
+## When to Use Which Pattern?
 
 | Scenario              | Use                   | Why                                     |
 | --------------------- | --------------------- | --------------------------------------- |
@@ -125,50 +125,50 @@ export function middleware(request) {
 | Middleware/API Routes | Direct imports        | No React context available              |
 | Event Handlers        | `useAnalytics()` hook | Component-level tracking                |
 
-***REMOVED******REMOVED*** Available Tracking Functions
+## Available Tracking Functions
 
 All functions return `boolean` indicating success/failure:
 
-***REMOVED******REMOVED******REMOVED*** Movie Interactions
+### Movie Interactions
 
 - `trackMovie(action, movieId, movieTitle?)` → `boolean`
 - Actions: `"view"`, `"like"`, `"unlike"`, `"add_to_watchlist"`, `"remove_from_watchlist"`, `"mark_watched"`, `"unmark_watched"`
 
-***REMOVED******REMOVED******REMOVED*** Search Events
+### Search Events
 
 - `trackSearch(query, resultsCount, filters?)` → `boolean`
 - Filters: `{ genre?, year?, sortBy? }`
 
-***REMOVED******REMOVED******REMOVED*** Navigation
+### Navigation
 
 - `trackNavigation(destination, source?)` → `boolean`
 
-***REMOVED******REMOVED******REMOVED*** Authentication
+### Authentication
 
 - `trackAuth(action, method?)` → `boolean`
 - Actions: `"login"`, `"logout"`, `"signup"`
 - Methods: `"google"`, `"email"`
 
-***REMOVED******REMOVED******REMOVED*** Feature Usage
+### Feature Usage
 
 - `trackFeature(feature, action, value?)` → `boolean`
 
-***REMOVED******REMOVED******REMOVED*** Performance
+### Performance
 
 - `trackPerformance(metric, value, unit?)` → `boolean`
 
-***REMOVED******REMOVED******REMOVED*** Errors
+### Errors
 
 - `trackError(errorType, errorMessage, errorLocation?)` → `boolean`
 
-***REMOVED******REMOVED******REMOVED*** Page Views
+### Page Views
 
 - `trackPage(pagePath, pageTitle?)` → `boolean`
 - Note: Page views are automatically tracked by the GoogleAnalytics component
 
-***REMOVED******REMOVED*** Real Examples in the Codebase
+## Real Examples in the Codebase
 
-***REMOVED******REMOVED******REMOVED*** 1. Movie Interactions (useMovieInteractions Hook)
+### 1. Movie Interactions (useMovieInteractions Hook)
 
 ```tsx
 // ✅ Using useAnalytics hook in a custom hook
@@ -184,7 +184,7 @@ export function useMovieInteractions({ movieId, movie }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Search Page Component
+### 2. Search Page Component
 
 ```tsx
 // ✅ Using useAnalytics hook in a component
@@ -203,7 +203,7 @@ export function SearchPage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Movie Card Component
+### 3. Movie Card Component
 
 ```tsx
 // ✅ Using useAnalytics hook for user interactions
@@ -221,7 +221,7 @@ export function MovieCard({ movie }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Authentication Utility
+### 4. Authentication Utility
 
 ```tsx
 // ✅ Using direct imports in utility functions
@@ -234,9 +234,9 @@ export async function loginUser(method: "google" | "email") {
 }
 ```
 
-***REMOVED******REMOVED*** Development Features
+## Development Features
 
-***REMOVED******REMOVED******REMOVED*** 🧪 **Testing Utilities**
+### 🧪 **Testing Utilities**
 
 ```javascript
 // Test all analytics events at once
@@ -249,7 +249,7 @@ window.analyticsDevUtils.checkGAStatus();
 window.analyticsDevUtils.getLastEvent();
 ```
 
-***REMOVED******REMOVED******REMOVED*** 📊 **Enhanced Logging**
+### 📊 **Enhanced Logging**
 
 In development mode, you'll see:
 
@@ -261,7 +261,7 @@ In development mode, you'll see:
   Environment: development
 ```
 
-***REMOVED******REMOVED******REMOVED*** 🔍 **Error Handling**
+### 🔍 **Error Handling**
 
 ```tsx
 const success = analytics.trackMovie("like", movieId, movieTitle);
@@ -271,20 +271,20 @@ if (!success) {
 }
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. **Use the Consolidated Architecture**
+### 1. **Use the Consolidated Architecture**
 
 - ✅ All logic in `utils/analytics.ts`
 - ✅ Hook is just a thin wrapper
 - ✅ No duplicated code
 
-***REMOVED******REMOVED******REMOVED*** 2. **Choose the Right Pattern**
+### 2. **Choose the Right Pattern**
 
 - **Components/Hooks**: Use `useAnalytics()` hook
 - **Utilities/Middleware**: Use direct imports
 
-***REMOVED******REMOVED******REMOVED*** 3. **Handle Return Values**
+### 3. **Handle Return Values**
 
 ```tsx
 // Good - Check success
@@ -297,7 +297,7 @@ if (!success) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. **Track User Intent**
+### 4. **Track User Intent**
 
 Track meaningful user actions, not just technical events:
 
@@ -306,7 +306,7 @@ Track meaningful user actions, not just technical events:
 - ❌ Component mounted
 - ❌ API call started
 
-***REMOVED******REMOVED******REMOVED*** 5. **Include Context**
+### 5. **Include Context**
 
 Provide relevant context with events:
 
@@ -322,31 +322,31 @@ analytics.trackSearch("batman", 25, {
 });
 ```
 
-***REMOVED******REMOVED*** Development vs Production
+## Development vs Production
 
-***REMOVED******REMOVED******REMOVED*** Development
+### Development
 
 - Detailed console logs with 📊 emoji
 - `window.analyticsDevUtils` for testing
 - Enhanced error reporting
 - `window.lastAnalyticsEvent` tracking
 
-***REMOVED******REMOVED******REMOVED*** Production
+### Production
 
 - Minimal logging (debug level)
 - Error tracking without console spam
 - Performance optimized
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Events Not Appearing
+### Events Not Appearing
 
 1. Check that the GA tracking ID is correct
 2. Verify the `@next/third-parties` package is installed
 3. Check browser console for errors
 4. Use GA Real-time reports to verify events
 
-***REMOVED******REMOVED******REMOVED*** TypeScript Errors
+### TypeScript Errors
 
 Make sure to import types correctly:
 
@@ -354,7 +354,7 @@ Make sure to import types correctly:
 import { useAnalytics } from "@/services/hooks/core";
 ```
 
-***REMOVED******REMOVED******REMOVED*** Performance Issues
+### Performance Issues
 
 The `@next/third-parties` package automatically optimizes script loading. If you experience issues:
 
@@ -362,11 +362,11 @@ The `@next/third-parties` package automatically optimizes script loading. If you
 2. Check for conflicting analytics implementations
 3. Monitor Core Web Vitals in GA
 
-***REMOVED******REMOVED*** Migration Guide
+## Migration Guide
 
 If you have existing analytics code:
 
-***REMOVED******REMOVED******REMOVED*** ❌ Old Pattern (Duplicated Logic)
+### ❌ Old Pattern (Duplicated Logic)
 
 ```tsx
 // Don't do this
@@ -381,7 +381,7 @@ const trackEvent = () => {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** ✅ New Pattern (Consolidated)
+### ✅ New Pattern (Consolidated)
 
 ```tsx
 // Do this instead

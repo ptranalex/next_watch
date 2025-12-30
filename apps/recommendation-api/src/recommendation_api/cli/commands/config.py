@@ -27,7 +27,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         verbose: Enable verbose logging
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging based on verbosity
+    # Configure logging based on verbosity
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
@@ -66,7 +66,7 @@ def show(
         verbose: Show additional configuration details
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
@@ -105,11 +105,11 @@ def validate(
         verbose: Show detailed validation information
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
-        ***REMOVED*** Check required settings (Note: recommendation-api doesn't use database)
+        # Check required settings (Note: recommendation-api doesn't use database)
         required_settings = [
             ("Qdrant URL", settings.qdrant_url),
             ("Embedding Model", settings.embedding_model),
@@ -126,10 +126,10 @@ def validate(
             else:
                 console.print(f"[green]✅ {name} is set[/green]")
 
-        ***REMOVED*** Add optional settings validation if verbose
+        # Add optional settings validation if verbose
         if verbose:
             console.print("\n[bold cyan]Optional Settings:[/bold cyan]")
-            ***REMOVED*** Create properly typed list of tuples
+            # Create properly typed list of tuples
             optional_settings: list[tuple[str, Any, Any]] = [
                 ("Host", settings.host, "0.0.0.0"),
                 ("Port", settings.port, 8000),
@@ -173,7 +173,7 @@ def env(
         verbose: Show additional environment details
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
@@ -187,7 +187,7 @@ def env(
         if verbose:
             table.add_column("Description", style="dim")
 
-        ***REMOVED*** Environment-specific settings
+        # Environment-specific settings
         settings_list = [
             ("Environment", settings.environment, "Current environment"),
             (

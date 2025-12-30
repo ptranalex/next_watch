@@ -1,13 +1,13 @@
-***REMOVED*** Logging Utilities
+# Logging Utilities
 
 This directory contains utilities for logging in the application.
 
-***REMOVED******REMOVED*** Files
+## Files
 
 - `loggerConfig.ts` - Main logging utility with multiple log levels and features
 - `examples/` - Example implementations of the logging utilities
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 ```typescript
 import { createLogger, loggerConfig, LogLevel } from "@/utils/logging";

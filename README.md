@@ -1,8 +1,8 @@
-***REMOVED*** Next Watch
+# Next Watch
 
 A comprehensive movie discovery and tracking platform built with modern microservices architecture.
 
-***REMOVED******REMOVED*** 🏗️ Architecture
+## 🏗️ Architecture
 
 Next Watch is a microservices-based platform with 8 main services:
 
@@ -43,7 +43,7 @@ flowchart LR
   Importer --> Postgres
 ```
 
-***REMOVED******REMOVED******REMOVED*** Core Services
+### Core Services
 
 - **Frontend** (`apps/web-nextjs`): Next.js 15 web application with modern UI/UX
 - **BFF API** (`apps/bff-api`): Backend for Frontend - aggregation and orchestration layer
@@ -54,13 +54,13 @@ flowchart LR
 - **Search API** (`apps/search-api`): Dedicated search service with Redis-powered autocomplete and suggestions
 - **Data Importer** (`apps/data-importer`): Movie data synchronization from TMDB and OMDB
 
-***REMOVED******REMOVED******REMOVED*** Infrastructure & Storage
+### Infrastructure & Storage
 
 - **PostgreSQL**: Primary database for movie metadata, users, and relational data
 - **Redis**: Caching layer and search suggestion storage
 - **Qdrant**: Vector database for similarity-based movie recommendations
 
-***REMOVED******REMOVED******REMOVED*** Shared Libraries
+### Shared Libraries
 
 - **Fast-Core** (`libs/fast-core`): Standardized FastAPI middleware, configuration, and monitoring framework
   - Consistent middleware stack (CORS, security headers, rate limiting, logging, metrics)
@@ -83,9 +83,9 @@ flowchart LR
   - Output handling and formatting
   - Common command patterns
 
-***REMOVED******REMOVED*** 🛠️ Technology Stack
+## 🛠️ Technology Stack
 
-***REMOVED******REMOVED******REMOVED*** Backend Services (Python)
+### Backend Services (Python)
 
 - **Framework**: FastAPI with fast-core standardization
 - **Language**: Python 3.12+
@@ -95,7 +95,7 @@ flowchart LR
 - **Testing**: pytest
 - **Code Quality**: varies by service (commonly mypy/ruff/black/isort); see each service’s `pyproject.toml`
 
-***REMOVED******REMOVED******REMOVED*** Frontend (TypeScript)
+### Frontend (TypeScript)
 
 - **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript
@@ -104,14 +104,14 @@ flowchart LR
 - **State Management**: React Context + Zustand
 - **Styling**: Emotion CSS-in-JS
 
-***REMOVED******REMOVED******REMOVED*** Machine Learning
+### Machine Learning
 
 - **Embeddings**: sentence-transformers (all-MiniLM-L6-v2)
 - **Vector Search**: Qdrant vector database
 - **Dimensions**: 384-dimensional embeddings
 - **Distance Metric**: Cosine similarity
 
-***REMOVED******REMOVED******REMOVED*** Infrastructure
+### Infrastructure
 
 - **Database**: PostgreSQL 14+
 - **Cache**: Redis 7+
@@ -120,7 +120,7 @@ flowchart LR
 - **Containerization**: Docker & Docker Compose
 - **Orchestration**: Docker Compose (production), Hatch (development)
 
-***REMOVED******REMOVED******REMOVED*** Observability
+### Observability
 
 - **Metrics**: Prometheus
 - **Visualization**: Grafana
@@ -128,28 +128,28 @@ flowchart LR
 - **Logging**: Structured JSON logs with coloredlogs (development)
 - **Alerts**: AlertManager
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
 New to the repo? Start here:
 
 - `docs/getting-started/ONBOARDING.md` (recommended local development path)
 
-***REMOVED******REMOVED******REMOVED*** Production-like stack (Docker Compose)
+### Production-like stack (Docker Compose)
 
 Note: `infra/compose/prod.yml` expects PostgreSQL and Redis to be reachable on the host (`host.docker.internal`).
 
 ```bash
-***REMOVED*** Clone the repository
+# Clone the repository
 git clone https://github.com/your-username/next_watch.git
 cd next_watch
 
-***REMOVED*** Copy environment template
+# Copy environment template
 cp infra/env/prod.example .env.prod
 
-***REMOVED*** Edit environment variables
+# Edit environment variables
 nano .env.prod
 
-***REMOVED*** Build all services
+# Build all services
 docker build -f apps/backend-api/Dockerfile -t next-watch-backend:latest .
 docker build -f apps/auth-api/Dockerfile -t next-watch-auth:latest .
 docker build -f apps/bff-api/Dockerfile -t next-watch-bff:latest .
@@ -159,35 +159,35 @@ docker build -f apps/search-api/Dockerfile -t next-watch-search:latest .
 docker build -f apps/web-nextjs/Dockerfile -t next-watch-frontend:latest .
 docker build -f apps/data-importer/Dockerfile -t next-watch-importer:latest .
 
-***REMOVED*** Start services
+# Start services
 docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 
-***REMOVED*** Check status
+# Check status
 docker ps
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using the Deployment Script
+### Using the Deployment Script
 
 ```bash
-***REMOVED*** Make executable
+# Make executable
 chmod +x scripts/deploy-prod.sh
 
-***REMOVED*** Deploy all services
+# Deploy all services
 ./scripts/deploy-prod.sh
 
-***REMOVED*** Deploy with data import
+# Deploy with data import
 ./scripts/deploy-prod.sh --import
 
-***REMOVED*** Build only (no deployment)
+# Build only (no deployment)
 ./scripts/deploy-prod.sh --build-only
 ```
 
-***REMOVED******REMOVED*** 🔧 Configuration
+## 🔧 Configuration
 
-***REMOVED******REMOVED******REMOVED*** Required Environment Variables
+### Required Environment Variables
 
 ```bash
-***REMOVED*** Docker Images
+# Docker Images
 DOCKER_BACKEND_IMAGE=next-watch-backend:latest
 DOCKER_AUTH_IMAGE=next-watch-auth:latest
 DOCKER_BFF_IMAGE=next-watch-bff:latest
@@ -197,20 +197,20 @@ DOCKER_SEARCH_IMAGE=next-watch-search:latest
 DOCKER_FRONTEND_IMAGE=next-watch-frontend:latest
 DOCKER_IMPORTER_IMAGE=next-watch-importer:latest
 
-***REMOVED*** Database
+# Database
 POSTGRES_USER=next_watch_user
 POSTGRES_PASSWORD=your-secure-password
 POSTGRES_DB=next_watch
 
-***REMOVED*** Security
+# Security
 JWT_SECRET=your-super-secure-jwt-secret
 INTERNAL_API_KEY=your-internal-api-key
 
-***REMOVED*** External APIs
+# External APIs
 TMDB_ACCESS_TOKEN=your-tmdb-token
 OMDB_API_KEY=your-omdb-key
 
-***REMOVED*** Service URLs (for inter-service communication)
+# Service URLs (for inter-service communication)
 BACKEND_API_URL=http://backend-api:8000
 ML_API_URL=http://ml-api:8000
 RECOMMENDATION_API_URL=http://recommendation-api:8000
@@ -219,34 +219,34 @@ SEARCH_API_URL=http://search-api:8000
 
 See `infra/env/prod.example` for complete configuration options.
 
-***REMOVED******REMOVED*** 🔄 CI/CD Workflows
+## 🔄 CI/CD Workflows
 
-***REMOVED******REMOVED******REMOVED*** GitHub Actions
+### GitHub Actions
 
 The project includes comprehensive GitHub Actions workflows:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Build Workflow** (`.github/workflows/build.yml`)
+#### **Build Workflow** (`.github/workflows/build.yml`)
 
 - Builds all 8 services when their code changes
 - Supports building shared libraries (`libs/fast-core`, `libs/cache`, `libs/config`, `libs/cli`)
 - Pushes images to GitHub Container Registry
 - Supports manual builds with `build_all` option
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Deploy Workflow** (`.github/workflows/deploy.yml`)
+#### **Deploy Workflow** (`.github/workflows/deploy.yml`)
 
 - Deploys services to production server
 - Uses Docker Compose with proper environment configuration
 - Supports selective deployment of individual services
 - Includes health checks and cleanup
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Release Workflow** (`.github/workflows/release.yml`)
+#### **Release Workflow** (`.github/workflows/release.yml`)
 
 - Automatically builds and deploys on `main` branch pushes
 - Detects changes in each service
 - Orchestrates build → deploy pipeline
 - Supports manual releases with custom service selection
 
-***REMOVED******REMOVED******REMOVED*** Workflow Triggers
+### Workflow Triggers
 
 **Automatic (on push to main):**
 
@@ -260,39 +260,39 @@ The project includes comprehensive GitHub Actions workflows:
 - Deploy specific services
 - Full stack deployment
 
-***REMOVED******REMOVED******REMOVED*** Required Secrets
+### Required Secrets
 
 Configure these in your GitHub repository settings:
 
 ```bash
-***REMOVED*** Deployment
-DEPLOY_KEY          ***REMOVED*** SSH private key for server access
-DEPLOY_HOST         ***REMOVED*** Server hostname/IP
-DEPLOY_USER         ***REMOVED*** SSH username
-GH_PAT             ***REMOVED*** GitHub Personal Access Token
+# Deployment
+DEPLOY_KEY          # SSH private key for server access
+DEPLOY_HOST         # Server hostname/IP
+DEPLOY_USER         # SSH username
+GH_PAT             # GitHub Personal Access Token
 
-***REMOVED*** Database
-POSTGRES_USER       ***REMOVED*** Database username
-POSTGRES_PASSWORD   ***REMOVED*** Database password
-POSTGRES_DB         ***REMOVED*** Database name
+# Database
+POSTGRES_USER       # Database username
+POSTGRES_PASSWORD   # Database password
+POSTGRES_DB         # Database name
 
-***REMOVED*** Security
-JWT_SECRET          ***REMOVED*** JWT signing secret
-INTERNAL_API_KEY    ***REMOVED*** Service-to-service API key
+# Security
+JWT_SECRET          # JWT signing secret
+INTERNAL_API_KEY    # Service-to-service API key
 
-***REMOVED*** External APIs (optional)
-TMDB_ACCESS_TOKEN   ***REMOVED*** The Movie Database API token
-OMDB_API_KEY        ***REMOVED*** Open Movie Database API key
+# External APIs (optional)
+TMDB_ACCESS_TOKEN   # The Movie Database API token
+OMDB_API_KEY        # Open Movie Database API key
 ```
 
-***REMOVED******REMOVED*** 📊 Monitoring & Health Checks
+## 📊 Monitoring & Health Checks
 
-***REMOVED******REMOVED******REMOVED*** Production Monitoring Stack
+### Production Monitoring Stack
 
 Deploy comprehensive monitoring to your AWS infrastructure:
 
 ```bash
-***REMOVED*** One-click monitoring deployment to existing AWS instance
+# One-click monitoring deployment to existing AWS instance
 cd infra/aws
 ./deploy-monitoring-one-click.sh
 ```
@@ -305,7 +305,7 @@ This deploys:
 - **AlertManager**: Alert routing and notifications
 - **Node Exporter**: System resource monitoring
 
-***REMOVED******REMOVED******REMOVED*** 📊 Observability Features
+### 📊 Observability Features
 
 All services include built-in observability:
 
@@ -327,7 +327,7 @@ All services include built-in observability:
   - `/health/ready` - Readiness probe (dependencies)
   - `/health/deep` - Detailed diagnostics
 
-***REMOVED******REMOVED******REMOVED*** 🔒 Security Features
+### 🔒 Security Features
 
 - **Localhost Binding**: All services bind to `127.0.0.1` only
 - **Nginx Reverse Proxy**: Controlled external access
@@ -343,7 +343,7 @@ Access your monitoring:
 - **Prometheus**: <https://your-domain.com/prometheus/>
 - **AlertManager**: <https://your-domain.com/alertmanager/>
 
-***REMOVED******REMOVED******REMOVED*** Service Health Checks
+### Service Health Checks
 
 All services include comprehensive health checks:
 
@@ -364,55 +364,55 @@ Health checks include:
 - Resource monitoring (memory, CPU)
 - Deep diagnostics (detailed component status)
 
-***REMOVED******REMOVED*** 🛠️ Development
+## 🛠️ Development
 
-***REMOVED******REMOVED******REMOVED*** Individual Service Development
+### Individual Service Development
 
 Each service can be developed independently using Hatch (Python services) or pnpm (Frontend):
 
 ```bash
-***REMOVED*** Backend API
+# Backend API
 cd apps/backend-api
 hatch env create
 hatch run dev
 
-***REMOVED*** Auth API
+# Auth API
 cd apps/auth-api
 hatch env create
 hatch run dev
 
-***REMOVED*** BFF API
+# BFF API
 cd apps/bff-api
 hatch env create
 hatch run dev
 
-***REMOVED*** Recommendation API
+# Recommendation API
 cd apps/recommendation-api
 hatch env create
 hatch run dev
 
-***REMOVED*** ML API
+# ML API
 cd apps/ml-api
 hatch env create
 hatch run dev
 
-***REMOVED*** Search API
+# Search API
 cd apps/search-api
 hatch env create
 hatch run dev
 
-***REMOVED*** Frontend
+# Frontend
 cd apps/web-nextjs
 pnpm install
 pnpm dev
 
-***REMOVED*** Data Importer
+# Data Importer
 cd apps/data-importer
 hatch env create
 hatch run cli sync --verbose
 ```
 
-***REMOVED******REMOVED******REMOVED*** Python Project Configuration
+### Python Project Configuration
 
 Python services are **mostly** configured via `pyproject.toml`, and use Hatch for env management.
 
@@ -421,54 +421,54 @@ Notes:
 - Some apps may also include additional config files (for example `hatch.toml` or `requirements.txt`) to support legacy workflows or Docker builds.
 - Always follow the service’s README and config in `apps/<service>/`.
 
-***REMOVED******REMOVED******REMOVED*** CLI Tools
+### CLI Tools
 
 Each Python service includes comprehensive CLI tools accessible via Hatch:
 
 ```bash
-***REMOVED*** Backend API
+# Backend API
 cd apps/backend-api
 hatch run cli --help
 hatch run cli serve start --reload
 hatch run cli health check
 
-***REMOVED*** Auth API
+# Auth API
 cd apps/auth-api
 hatch run cli --help
 hatch run cli serve start --reload
 hatch run cli health check
 
-***REMOVED*** BFF API
+# BFF API
 cd apps/bff-api
 hatch run cli --help
 hatch run cli serve start --reload
 hatch run cli cache info
 
-***REMOVED*** Recommendation API
+# Recommendation API
 cd apps/recommendation-api
 hatch run cli --help
 hatch run cli embeddings generate --batch-size 100
 hatch run cli cache precompute --limit 1000
 
-***REMOVED*** ML API
+# ML API
 cd apps/ml-api
 hatch run cli --help
 hatch run cli model info
 hatch run cli health check
 
-***REMOVED*** Search API
+# Search API
 cd apps/search-api
 hatch run cli --help
 hatch run cli redis populate --force
 hatch run cli health check
 
-***REMOVED*** Data Importer
+# Data Importer
 cd apps/data-importer
 hatch run cli --help
 hatch run cli sync --verbose
 ```
 
-***REMOVED******REMOVED******REMOVED*** Available Hatch Scripts
+### Available Hatch Scripts
 
 Each service provides these common scripts:
 
@@ -481,9 +481,9 @@ Each service provides these common scripts:
 - `lint` - Code linting
 - `format` - Code formatting
 
-***REMOVED******REMOVED*** 📚 Documentation
+## 📚 Documentation
 
-***REMOVED******REMOVED******REMOVED*** Service Documentation
+### Service Documentation
 
 Each service has comprehensive documentation:
 
@@ -513,7 +513,7 @@ Each service has comprehensive documentation:
   - TMDB/OMDB sync
   - CLI commands
 
-***REMOVED******REMOVED******REMOVED*** API Documentation
+### API Documentation
 
 Interactive API documentation available at `/docs` on each service:
 
@@ -524,7 +524,7 @@ Interactive API documentation available at `/docs` on each service:
 - **ML API**: <http://localhost:8004/docs>
 - **Search API**: <http://localhost:8005/docs>
 
-***REMOVED******REMOVED******REMOVED*** Infrastructure Documentation
+### Infrastructure Documentation
 
 - **Docs index**: `docs/README.md`
 - **Onboarding (New Devs)**: `docs/getting-started/ONBOARDING.md`
@@ -536,7 +536,7 @@ Interactive API documentation available at `/docs` on each service:
 - **AWS Infrastructure**: `infra/aws/`
 - **Security cleanup (making repo public)**: `docs/security/SECURITY_CLEANUP.md` and `cleanup-git-history.sh`
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -550,15 +550,15 @@ The CI/CD pipeline will automatically:
 - Run tests
 - Deploy to staging (if configured)
 
-***REMOVED******REMOVED*** 📝 License
+## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-***REMOVED******REMOVED*** Type Checking Standards
+## Type Checking Standards
 
 This project uses strict type checking with mypy across all Python services. We follow these principles:
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+### Configuration
 
 - All type checking configuration is stored in each service's `pyproject.toml` file
 - We use Python 3.12 for type checking
@@ -573,30 +573,30 @@ This project uses strict type checking with mypy across all Python services. We 
   - `disallow_untyped_globals = true` - All module-level variables must have type annotations
   - Full warnings for redundant casts, unused ignores, unreachable code, etc.
 
-***REMOVED******REMOVED******REMOVED*** Type Annotations Style
+### Type Annotations Style
 
 ```python
-***REMOVED*** Use explicit imports from typing
+# Use explicit imports from typing
 from typing import Dict, List, Optional, Union, Any, Callable, TypeVar, Generic
 
-***REMOVED*** All module-level variables must have explicit type annotations
+# All module-level variables must have explicit type annotations
 app: Typer = typer.Typer(name="app")
 user_data: Dict[str, Any] = get_user()
 items: List[int] = [1, 2, 3]
 DEFAULT_TIMEOUT: int = 30
 RETRY_COUNT: int = 3
 
-***REMOVED*** Function annotations with return type
+# Function annotations with return type
 def process_data(input_value: str, count: int = 0) -> List[Dict[str, Any]]:
     ...
 
-***REMOVED*** Generic types with constraints
+# Generic types with constraints
 T = TypeVar('T', bound=BaseModel)
 def get_item(item_id: str) -> Optional[T]:
     ...
 ```
 
-***REMOVED******REMOVED******REMOVED*** Enforcement
+### Enforcement
 
 Type checking is enforced through:
 
@@ -604,34 +604,34 @@ Type checking is enforced through:
 2. CI pipeline checks
 3. Code reviews
 
-***REMOVED******REMOVED******REMOVED*** Running Type Checks
+### Running Type Checks
 
 To run type checks manually:
 
 ```bash
-***REMOVED*** Check a specific service
+# Check a specific service
 cd apps/bff-api && python -m mypy src/
 
-***REMOVED*** Or for recommendation-api
+# Or for recommendation-api
 cd apps/recommendation-api && python -m mypy src/
 ```
 
 To fix common type issues:
 
 ```bash
-***REMOVED*** Install type stubs for libraries
+# Install type stubs for libraries
 pip install types-redis types-requests
 
-***REMOVED*** Add explicit type annotations to functions
+# Add explicit type annotations to functions
 def my_function(param: str) -> None:
     ...
 ```
 
-***REMOVED******REMOVED*** Next Watch Development Progress
+## Next Watch Development Progress
 
-***REMOVED******REMOVED******REMOVED*** 🎯 Service Features
+### 🎯 Service Features
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Backend API
+#### Backend API
 
 - Movie metadata retrieval with precomputed materialized views
 - Bulk movie operations with Redis caching
@@ -639,7 +639,7 @@ def my_function(param: str) -> None:
 - PostgreSQL with optimized queries using `ANY()` operator
 - Netflix-style "cache forever" pattern for static content
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Recommendation API
+#### Recommendation API
 
 - Vector similarity search using Qdrant
 - Collaborative filtering recommendations
@@ -648,7 +648,7 @@ def my_function(param: str) -> None:
 - Redis caching with background cache warming
 - CLI tools for embedding generation and cache management
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** ML API
+#### ML API
 
 - Movie embedding generation using sentence-transformers
 - User preference vector calculation
@@ -656,7 +656,7 @@ def my_function(param: str) -> None:
 - Batch processing support
 - Model caching and health monitoring
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Search API
+#### Search API
 
 - Redis-powered autocomplete suggestions
 - Prefix and substring search
@@ -664,7 +664,7 @@ def my_function(param: str) -> None:
 - Optimized lexicographical range queries
 - CLI for populating and managing search indices
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Auth API
+#### Auth API
 
 - JWT-based authentication
 - Access and refresh token management
@@ -672,7 +672,7 @@ def my_function(param: str) -> None:
 - Password reset functionality
 - Rate limiting for security
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** BFF API
+#### BFF API
 
 - Frontend aggregation layer
 - Response caching with TTL management
@@ -680,11 +680,11 @@ def my_function(param: str) -> None:
 - User-specific data enrichment
 - Cache warming with cron jobs
 
-***REMOVED******REMOVED******REMOVED*** Current Status 🚀
+### Current Status 🚀
 
 All core services are integrated with fast-core framework for standardized patterns.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **✅ Fast-Core Integration Status**
+#### **✅ Fast-Core Integration Status**
 
 1. **BFF API** - ✅ Complete - Middleware builder integration with cache warming
 2. **Backend API** - ✅ Complete - Independent service architecture with materialized views
@@ -693,11 +693,11 @@ All core services are integrated with fast-core framework for standardized patte
 5. **ML API** - ✅ Complete - Embedding service with model management
 6. **Search API** - ✅ Complete - Redis-powered search with suggestion engine
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **✅ Completed: Auth API Fast-Core Integration**
+#### **✅ Completed: Auth API Fast-Core Integration**
 
 Successfully integrated auth-api with fast-core following established patterns with authentication-specific security enhancements.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Integration Achievements**
+#### **Integration Achievements**
 
 The Auth API integration delivers a security-first approach with:
 
@@ -707,30 +707,30 @@ The Auth API integration delivers a security-first approach with:
 - **📊 Enhanced Monitoring**: Request tracing and authentication flow monitoring
 - **🛡️ Authentication Security**: Aggressive rate limiting and restrictive CORS for auth endpoints
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **📁 Planned Integration Structure**
+#### **📁 Planned Integration Structure**
 
 ```text
 auth-api/
 ├── src/auth_api/
 │   ├── config/
-│   │   ├── app.py                    ***REMOVED*** Original configuration (preserved)
-│   │   └── fast_core_config.py       ***REMOVED*** Fast-core adapter (NEW)
+│   │   ├── app.py                    # Original configuration (preserved)
+│   │   └── fast_core_config.py       # Fast-core adapter (NEW)
 │   ├── core/
-│   │   ├── app.py                    ***REMOVED*** Original app factory (preserved)
-│   │   └── app_fast_core.py          ***REMOVED*** Fast-core app factory (NEW)
-│   └── main.py                       ***REMOVED*** Updated to use fast-core
+│   │   ├── app.py                    # Original app factory (preserved)
+│   │   └── app_fast_core.py          # Fast-core app factory (NEW)
+│   └── main.py                       # Updated to use fast-core
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **🎯 Key Integration Components**
+#### **🎯 Key Integration Components**
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **1. Configuration Adapter (`config/fast_core_config.py`)**
+##### **1. Configuration Adapter (`config/fast_core_config.py`)**
 
 Convert Auth API configuration to fast-core compatible format:
 
 ```python
 def create_fast_core_config(auth_config: Config) -> FastAPIConfig:
     """Convert Auth API configuration to fast-core configuration."""
-    ***REMOVED*** Maps JWT settings, security configs, service URLs, etc.
+    # Maps JWT settings, security configs, service URLs, etc.
 ```
 
 **Features:**
@@ -741,14 +741,14 @@ def create_fast_core_config(auth_config: Config) -> FastAPIConfig:
 - Feature flags for auth service capabilities
 - Development vs production security profiles
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **2. Fast-Core App Factory (`core/app_fast_core.py`)**
+##### **2. Fast-Core App Factory (`core/app_fast_core.py`)**
 
 Create FastAPI application using fast-core patterns:
 
 ```python
 def create_auth_app(config: Optional[Config] = None) -> FastAPI:
     """Create Auth API application using fast-core."""
-    ***REMOVED*** Uses MiddlewareConfig, JWT integration, security features
+    # Uses MiddlewareConfig, JWT integration, security features
 ```
 
 **Features:**
@@ -758,47 +758,47 @@ def create_auth_app(config: Optional[Config] = None) -> FastAPI:
 - **Router Integration**: Auth, health, and meta routes with fast-core patterns
 - **Error Handling**: Consistent auth-specific error responses
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **3. Auth-Specific Middleware Configuration**
+##### **3. Auth-Specific Middleware Configuration**
 
 Authentication service middleware with security-first approach:
 
 ```python
-***REMOVED*** CORS Configuration (restrictive for auth service)
+# CORS Configuration (restrictive for auth service)
 middleware.cors(
-    origins=config.cors_origins,  ***REMOVED*** Specific allowed origins only
-    credentials=True,             ***REMOVED*** Required for auth cookies/tokens
-    methods=["POST", "GET", "OPTIONS"],  ***REMOVED*** Limited to auth operations
+    origins=config.cors_origins,  # Specific allowed origins only
+    credentials=True,             # Required for auth cookies/tokens
+    methods=["POST", "GET", "OPTIONS"],  # Limited to auth operations
     headers=["Content-Type", "Authorization"],
-    max_age=300,  ***REMOVED*** Short cache for auth endpoints
+    max_age=300,  # Short cache for auth endpoints
 )
 
-***REMOVED*** Enhanced Security Headers
+# Enhanced Security Headers
 security_headers = {
-    "hsts": True,                 ***REMOVED*** Force HTTPS in production
-    "csp": "default-src 'self'",  ***REMOVED*** Strict content policy
-    "frame_protection": True,     ***REMOVED*** Prevent iframe attacks
-    "xss_protection": True,       ***REMOVED*** XSS prevention
+    "hsts": True,                 # Force HTTPS in production
+    "csp": "default-src 'self'",  # Strict content policy
+    "frame_protection": True,     # Prevent iframe attacks
+    "xss_protection": True,       # XSS prevention
 }
 
-***REMOVED*** Auth-Specific Rate Limiting
+# Auth-Specific Rate Limiting
 rate_limit_config = {
-    "/auth/login": "10/minute",           ***REMOVED*** Login attempts
-    "/auth/register": "5/minute",         ***REMOVED*** Registration attempts
-    "/auth/refresh": "30/minute",         ***REMOVED*** Token refresh
-    "/auth/logout": "20/minute",          ***REMOVED*** Logout requests
-    "/auth/password/reset": "3/minute",   ***REMOVED*** Password reset
-    "/auth/verify": "100/minute",         ***REMOVED*** Token verification
+    "/auth/login": "10/minute",           # Login attempts
+    "/auth/register": "5/minute",         # Registration attempts
+    "/auth/refresh": "30/minute",         # Token refresh
+    "/auth/logout": "20/minute",          # Logout requests
+    "/auth/password/reset": "3/minute",   # Password reset
+    "/auth/verify": "100/minute",         # Token verification
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **4. JWT Integration with Fast-Core**
+##### **4. JWT Integration with Fast-Core**
 
 Leverage fast-core's JWT utilities:
 
 ```python
 from fast_core.security.jwt import create_jwt_manager, JWTConfig
 
-***REMOVED*** Configure JWT with auth-api settings
+# Configure JWT with auth-api settings
 jwt_config = JWTConfig(
     secret_key=config.jwt_secret,
     algorithm=config.jwt_algorithm,
@@ -809,73 +809,73 @@ jwt_config = JWTConfig(
 jwt_manager = create_jwt_manager(jwt_config)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **🔄 Migration Strategy**
+#### **🔄 Migration Strategy**
 
 Following backend-api's successful approach:
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 1: Dependencies & Configuration** (Target: 2 days)
+##### **Phase 1: Dependencies & Configuration** (Target: 2 days)
 
 - [ ] Add fast-core dependency to pyproject.toml
 - [ ] Install fast-core library
 - [ ] Create configuration adapter (`config/fast_core_config.py`)
 - [ ] Test configuration conversion and validation
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 2: Core App Integration** (Target: 3 days)
+##### **Phase 2: Core App Integration** (Target: 3 days)
 
 - [ ] Create fast-core app factory (`core/app_fast_core.py`)
 - [ ] Update main.py to use fast-core integration
 - [ ] Implement auth-specific middleware configuration
 - [ ] Test basic application functionality
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 3: Security Enhancement** (Target: 2 days)
+##### **Phase 3: Security Enhancement** (Target: 2 days)
 
 - [ ] Integrate fast-core JWT utilities
 - [ ] Implement enhanced rate limiting for auth endpoints
 - [ ] Add comprehensive security headers
 - [ ] Test authentication flows with new middleware
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 4: Testing & Validation** (Target: 2 days)
+##### **Phase 4: Testing & Validation** (Target: 2 days)
 
 - [ ] Comprehensive testing of all auth endpoints
 - [ ] Performance validation with middleware stack
 - [ ] Security testing and validation
 - [ ] Integration testing with other services
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 5: Documentation & Cleanup** (Target: 1 day)
+##### **Phase 5: Documentation & Cleanup** (Target: 1 day)
 
 - [ ] Create FAST_CORE_INTEGRATION.md documentation
 - [ ] Update README and configuration docs
 - [ ] Clean up any legacy code if needed
 - [ ] Final integration validation
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **🔧 Auth-Specific Benefits**
+#### **🔧 Auth-Specific Benefits**
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **1. Enhanced Security**
+##### **1. Enhanced Security**
 
 - **Built-in rate limiting** protecting against brute force attacks
 - **Comprehensive security headers** for production-ready auth service
 - **JWT token validation** with fast-core utilities
 - **CORS configuration** tailored for authentication workflows
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **2. Consistent Error Handling**
+##### **2. Consistent Error Handling**
 
 - **Standardized auth error responses** across all endpoints
 - **Detailed logging** for security events and authentication attempts
 - **Request tracking** with correlation IDs for debugging
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **3. Performance Optimization**
+##### **3. Performance Optimization**
 
 - **Singleton database connections** for improved performance
 - **Efficient middleware stack** with minimal overhead
 - **Response compression** and optimized headers
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** **4. Observability**
+##### **4. Observability**
 
 - **Health checks** for database, cache, and JWT services
 - **Performance metrics** for authentication operations
 - **Structured logging** with security-focused log levels
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **📊 Feature Flags**
+#### **📊 Feature Flags**
 
 Auth API specific feature toggles:
 
@@ -886,13 +886,13 @@ feature_flags = {
     "password_reset": True,
     "user_registration": True,
     "session_management": True,
-    "two_factor_auth": False,  ***REMOVED*** Future feature
-    "social_login": False,     ***REMOVED*** Future feature
+    "two_factor_auth": False,  # Future feature
+    "social_login": False,     # Future feature
     "health_checks": True,
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **🔄 Backward Compatibility**
+#### **🔄 Backward Compatibility**
 
 Maintain full backward compatibility during integration:
 
@@ -902,12 +902,12 @@ Maintain full backward compatibility during integration:
 - **Database and auth services** maintain same initialization
 - **Gradual migration** path with rollback capability
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **🧪 Testing Strategy**
+#### **🧪 Testing Strategy**
 
 Comprehensive testing approach:
 
 ```python
-***REMOVED*** Test fast-core integration
+# Test fast-core integration
 from auth_api.core.app_fast_core import create_auth_app
 
 def test_auth_app_creation():
@@ -916,15 +916,15 @@ def test_auth_app_creation():
     assert "fast-core" in str(app.middleware_stack)
 
 def test_jwt_integration():
-    ***REMOVED*** Test JWT validation with fast-core
+    # Test JWT validation with fast-core
     pass
 
 def test_rate_limiting():
-    ***REMOVED*** Test auth endpoint rate limits
+    # Test auth endpoint rate limits
     pass
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **📚 Reference Implementation**
+#### **📚 Reference Implementation**
 
 Following the successful patterns from:
 
@@ -934,9 +934,9 @@ Following the successful patterns from:
 
 This integration will establish Auth API as a fully fast-core compatible service while maintaining security-first principles and providing enhanced authentication capabilities for the Next Watch platform.
 
-***REMOVED******REMOVED*** 🔧 Troubleshooting
+## 🔧 Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** BFF API OpenTelemetry Dependencies Issue
+### BFF API OpenTelemetry Dependencies Issue
 
 **Problem**: BFF API Docker builds were not including OpenTelemetry dependencies required by fast-core, causing deployment failures with missing modules.
 
@@ -945,7 +945,7 @@ This integration will establish Auth API as a fully fast-core compatible service
 **Solution**: Modified the Dockerfile to install local dependencies with the `-e` (editable) flag to ensure all transitive dependencies are properly resolved:
 
 ```dockerfile
-***REMOVED*** Install local dependencies with dependencies to ensure all transitive dependencies are resolved
+# Install local dependencies with dependencies to ensure all transitive dependencies are resolved
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --user -e ./libs/config/ && \
     pip install --user -e ./libs/cache/ && \
@@ -956,7 +956,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 **Verification**: After this fix, all OpenTelemetry packages are properly installed:
 
 ```bash
-***REMOVED*** Check installed packages
+# Check installed packages
 docker run --rm bff-api:latest pip list | grep -i opentelemetry
 ```
 

@@ -35,17 +35,17 @@ def setup_backend_api_storage(
     Returns:
         Dictionary with setup information
     """
-    ***REMOVED*** Create config instance
+    # Create config instance
     config = Config()
 
-    ***REMOVED*** Override database URL if provided
+    # Override database URL if provided
     if database_url:
         config.database_url = database_url
 
-    ***REMOVED*** Initialize database
+    # Initialize database
     init_db(create_tables=create_tables)
 
-    ***REMOVED*** Run database migrations if requested
+    # Run database migrations if requested
     if run_migrations:
         logger.info("Running database migrations")
         run_migration(db_url=config.database_url if database_url else None)
@@ -53,7 +53,7 @@ def setup_backend_api_storage(
 
     logger.info(f"Backend API storage set up with database URL: {config.get_database_url_masked()}")
 
-    ***REMOVED*** Return setup information
+    # Return setup information
     return {
         "config": config,
         "database_url": config.database_url,

@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 T = TypeVar("T")
 
-***REMOVED*** Global singleton registry
+# Global singleton registry
 _singleton_registry: dict[str, Any] = {}
 _singleton_factories: dict[str, Callable] = {}
 _singleton_lifecycle_hooks: dict[str, dict[str, Callable]] = {}
@@ -87,7 +87,7 @@ class SingletonManager:
             config = self._factories[name]
             logger.info(f"Creating singleton instance: {name}")
 
-            ***REMOVED*** Resolve dependencies
+            # Resolve dependencies
             resolved_deps = []
             for dep in config.dependencies:
                 if callable(dep):
@@ -95,11 +95,11 @@ class SingletonManager:
                 else:
                     resolved_deps.append(dep)
 
-            ***REMOVED*** Create instance
+            # Create instance
             instance = config.factory(*resolved_deps, *args, **kwargs)
             self._instances[name] = instance
 
-            ***REMOVED*** Register cleanup hook if needed
+            # Register cleanup hook if needed
             if (
                 config.cleanup_on_shutdown
                 and hasattr(instance, "close")
@@ -118,7 +118,7 @@ class SingletonManager:
         if name:
             await self._cleanup_single(name)
         else:
-            ***REMOVED*** Cleanup all singletons
+            # Cleanup all singletons
             for singleton_name in list(self._instances.keys()):
                 await self._cleanup_single(singleton_name)
 
@@ -131,7 +131,7 @@ class SingletonManager:
         if name in self._instances:
             logger.info(f"Cleaning up singleton: {name}")
 
-            ***REMOVED*** Call cleanup hook if available
+            # Call cleanup hook if available
             if name in self._cleanup_hooks:
                 cleanup_func = self._cleanup_hooks[name]
                 try:
@@ -142,7 +142,7 @@ class SingletonManager:
                 except Exception as e:
                     logger.error(f"Error cleaning up singleton {name}: {e}")
 
-            ***REMOVED*** Remove from registry
+            # Remove from registry
             del self._instances[name]
             if name in self._cleanup_hooks:
                 del self._cleanup_hooks[name]
@@ -160,7 +160,7 @@ class SingletonManager:
         return result
 
 
-***REMOVED*** Global singleton manager instance
+# Global singleton manager instance
 _singleton_manager = SingletonManager()
 
 
@@ -209,7 +209,7 @@ def get_singleton_client(
     """
 
     def decorator(factory_func: Callable[..., T]) -> Callable[[], Any]:
-        ***REMOVED*** Register the singleton
+        # Register the singleton
         register_singleton(
             name=name,
             factory=factory_func,
@@ -218,11 +218,11 @@ def get_singleton_client(
             dependencies=dependencies,
         )
 
-        ***REMOVED*** Create dependency function
+        # Create dependency function
         def dependency() -> Any:
             return _singleton_manager.get_or_create(name)
 
-        ***REMOVED*** Preserve function metadata
+        # Preserve function metadata
         dependency.__name__ = f"get_{name}_singleton"
         dependency.__doc__ = f"Get {name} singleton instance"
 
@@ -268,7 +268,7 @@ def list_singletons() -> dict[str, str]:
     return _singleton_manager.list_singletons()
 
 
-***REMOVED*** Application lifecycle integration
+# Application lifecycle integration
 @asynccontextmanager
 async def singleton_lifespan(app: Any) -> AsyncGenerator[None, None]:
     """Application lifespan manager for singleton cleanup.
@@ -276,15 +276,15 @@ async def singleton_lifespan(app: Any) -> AsyncGenerator[None, None]:
     This should be used as the lifespan parameter in FastAPI app creation
     to ensure proper singleton cleanup on shutdown.
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Application startup - singletons ready")
     yield
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info("Application shutdown - cleaning up singletons")
     await cleanup_singletons()
 
 
-***REMOVED*** Convenience functions for common patterns
+# Convenience functions for common patterns
 def create_singleton_dependency(
     name: str,
     factory: Callable[..., T],
@@ -304,7 +304,7 @@ def create_singleton_dependency(
     return get_singleton(name)
 
 
-***REMOVED*** Export all public functions
+# Export all public functions
 __all__ = [
     "SingletonConfig",
     "SingletonManager",

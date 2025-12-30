@@ -24,7 +24,7 @@ def get_movie_genres(db_session: DBSession, movie_id: int | None = None) -> list
         List of genre rows, or empty list if movie_id is None
     """
     if movie_id is None:
-        return []  ***REMOVED*** Return empty list if movie_id is None
+        return []  # Return empty list if movie_id is None
 
     query = """
     SELECT g.*
@@ -34,7 +34,7 @@ def get_movie_genres(db_session: DBSession, movie_id: int | None = None) -> list
     """
 
     result = db_session.execute(text(query), {"movie_id": int(movie_id)})
-    return [dict(row._mapping) for row in result.all()]  ***REMOVED*** Convert Row objects to dictionaries
+    return [dict(row._mapping) for row in result.all()]  # Convert Row objects to dictionaries
 
 
 def get_movie_genres_bulk(
@@ -56,7 +56,7 @@ def get_movie_genres_bulk(
     if not movie_ids:
         return {}
 
-    ***REMOVED*** Single query to get all genres for all movies
+    # Single query to get all genres for all movies
     query = """
     SELECT g.*, mgl.movie_id
     FROM genre g
@@ -67,14 +67,14 @@ def get_movie_genres_bulk(
 
     result = db_session.execute(text(query), {"movie_ids": movie_ids})
 
-    ***REMOVED*** Group genres by movie_id
+    # Group genres by movie_id
     genres_by_movie: dict[int, list[dict[str, Any]]] = {}
 
-    ***REMOVED*** Initialize all movie IDs with empty lists
+    # Initialize all movie IDs with empty lists
     for movie_id in movie_ids:
         genres_by_movie[movie_id] = []
 
-    ***REMOVED*** Populate with actual genre data
+    # Populate with actual genre data
     for row in result.all():
         movie_id = row.movie_id
         genre_data = {key: value for key, value in row._mapping.items() if key != "movie_id"}
@@ -96,7 +96,7 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> dict[str, A
     Returns:
         Movie details dictionary or None if not found
     """
-    ***REMOVED*** Get basic movie information
+    # Get basic movie information
     movie_query = """
     SELECT m.*
     FROM movie m
@@ -109,8 +109,8 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> dict[str, A
     if not movie:
         return None
 
-    ***REMOVED*** Get director and writer information with optimized query using LIMIT
-    ***REMOVED*** This query will be much faster with the new composite index
+    # Get director and writer information with optimized query using LIMIT
+    # This query will be much faster with the new composite index
     director_query = """
     SELECT c.name
     FROM credit c
@@ -129,14 +129,14 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> dict[str, A
     LIMIT 1
     """
 
-    ***REMOVED*** Execute both queries
+    # Execute both queries
     director_result = db_session.execute(text(director_query), {"movie_id": movie_id})
     writer_result = db_session.execute(text(writer_query), {"movie_id": movie_id})
 
     director = director_result.scalar()
     writer = writer_result.scalar()
 
-    ***REMOVED*** Get all credits for completeness
+    # Get all credits for completeness
     all_credits_query = """
     SELECT c.*
     FROM credit c
@@ -146,7 +146,7 @@ def get_movie_details_by_id(db_session: DBSession, movie_id: int) -> dict[str, A
     all_credits_result = db_session.execute(text(all_credits_query), {"movie_id": movie_id})
     credits = [dict(row._mapping) for row in all_credits_result.all()]
 
-    ***REMOVED*** Combine movie and credits
+    # Combine movie and credits
     movie_dict = dict(movie._mapping)
     movie_dict["director"] = director
     movie_dict["writer"] = writer
@@ -178,7 +178,7 @@ def get_movie_details_by_tmdb_id(db_session: DBSession, tmdb_id: int) -> dict[st
     if not movie:
         return None
 
-    ***REMOVED*** Convert to dictionary
+    # Convert to dictionary
     return dict(movie._mapping)
 
 
@@ -199,7 +199,7 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: list[int]) -> list[
     if not movie_ids:
         return []
 
-    ***REMOVED*** Step 1: Get basic movie information using PostgreSQL ANY() for better performance
+    # Step 1: Get basic movie information using PostgreSQL ANY() for better performance
     movie_query = """
     SELECT m.*
     FROM movie m
@@ -213,7 +213,7 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: list[int]) -> list[
     if not movies:
         return []
 
-    ***REMOVED*** Step 2: Bulk fetch director and writer information for all movies
+    # Step 2: Bulk fetch director and writer information for all movies
     credits_query = """
     SELECT
         c.movie_id,
@@ -229,7 +229,7 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: list[int]) -> list[
 
     credits_result = db_session.execute(text(credits_query), {"movie_ids": movie_ids})
 
-    ***REMOVED*** Organize credits by movie_id
+    # Organize credits by movie_id
     directors_by_movie = {}
     writers_by_movie = {}
 
@@ -242,7 +242,7 @@ def get_movies_by_ids_bulk(db_session: DBSession, movie_ids: list[int]) -> list[
             if movie_id not in writers_by_movie:
                 writers_by_movie[movie_id] = row.name
 
-    ***REMOVED*** Step 3: Add director and writer information to movies
+    # Step 3: Add director and writer information to movies
     for movie in movies:
         movie_id = movie["id"]
         movie["director"] = directors_by_movie.get(movie_id)

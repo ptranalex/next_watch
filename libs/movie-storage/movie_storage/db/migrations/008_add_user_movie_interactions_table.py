@@ -18,7 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "008_add_user_movie_interactions_table"
 MIGRATION_DESCRIPTION = "Add user movie interactions table"
 
@@ -37,7 +37,7 @@ def upgrade(engine: Engine, config: Any | None = None) -> None:
     meta = MetaData()
     meta.reflect(bind=engine)
 
-    ***REMOVED*** Create user_movie_interactions table
+    # Create user_movie_interactions table
     Table(
         "user_movie_interactions",
         meta,
@@ -55,7 +55,7 @@ def upgrade(engine: Engine, config: Any | None = None) -> None:
     meta.create_all(engine)
     logger.info("Created user_movie_interactions table")
 
-    ***REMOVED*** Record the migration
+    # Record the migration
     with engine.begin() as conn:
         try:
             conn.execute(
@@ -86,7 +86,7 @@ def downgrade(engine: Engine, config: Any | None = None) -> None:
     else:
         logger.warning("user_movie_interactions table does not exist")
 
-    ***REMOVED*** Remove the migration record
+    # Remove the migration record
     with engine.begin() as conn:
         try:
             conn.execute(

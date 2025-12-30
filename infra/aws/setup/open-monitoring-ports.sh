@@ -1,20 +1,20 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Open monitoring ports in existing AWS security groups
+# Open monitoring ports in existing AWS security groups
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🔓 Opening NextWatch Monitoring Ports${NC}"
 echo "=================================================="
 
-***REMOVED*** Load environment variables
+# Load environment variables
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Loaded environment variables${NC}"
@@ -23,16 +23,16 @@ else
     exit 1
 fi
 
-***REMOVED*** Get current public IP for secure access
+# Get current public IP for secure access
 echo -e "${YELLOW}🌐 Getting your current public IP...${NC}"
 CURRENT_IP=$(curl -s ifconfig.me)
 echo "Your current IP: $CURRENT_IP"
 
-***REMOVED*** Open monitoring ports in security groups
+# Open monitoring ports in security groups
 for sg in $SECURITY_GROUPS; do
     echo -e "${YELLOW}🔒 Configuring security group: $sg${NC}"
 
-    ***REMOVED*** Prometheus (9090) - restrict to current IP
+    # Prometheus (9090) - restrict to current IP
     echo "Opening port 9090 (Prometheus) for $CURRENT_IP..."
     aws ec2 authorize-security-group-ingress \
         --group-id $sg \
@@ -41,7 +41,7 @@ for sg in $SECURITY_GROUPS; do
         --cidr "$CURRENT_IP/32" \
         --description "Prometheus monitoring access" 2>/dev/null || echo "  Port 9090 already open"
 
-    ***REMOVED*** Grafana (3001) - restrict to current IP
+    # Grafana (3001) - restrict to current IP
     echo "Opening port 3001 (Grafana) for $CURRENT_IP..."
     aws ec2 authorize-security-group-ingress \
         --group-id $sg \
@@ -50,7 +50,7 @@ for sg in $SECURITY_GROUPS; do
         --cidr "$CURRENT_IP/32" \
         --description "Grafana dashboard access" 2>/dev/null || echo "  Port 3001 already open"
 
-    ***REMOVED*** AlertManager (9093) - restrict to current IP
+    # AlertManager (9093) - restrict to current IP
     echo "Opening port 9093 (AlertManager) for $CURRENT_IP..."
     aws ec2 authorize-security-group-ingress \
         --group-id $sg \
@@ -59,7 +59,7 @@ for sg in $SECURITY_GROUPS; do
         --cidr "$CURRENT_IP/32" \
         --description "AlertManager access" 2>/dev/null || echo "  Port 9093 already open"
 
-    ***REMOVED*** Node Exporter (9100) - internal only
+    # Node Exporter (9100) - internal only
     echo "Opening port 9100 (Node Exporter) for internal access..."
     aws ec2 authorize-security-group-ingress \
         --group-id $sg \
@@ -69,11 +69,11 @@ for sg in $SECURITY_GROUPS; do
         --description "Node Exporter internal access" 2>/dev/null || echo "  Port 9100 already open"
 done
 
-***REMOVED*** Option to open ports for your domain (if using reverse proxy)
+# Option to open ports for your domain (if using reverse proxy)
 echo ""
 echo -e "${YELLOW}🌐 Domain Access Configuration${NC}"
 
-***REMOVED*** Check if we're in one-click mode (non-interactive)
+# Check if we're in one-click mode (non-interactive)
 if [ "${ONE_CLICK_MODE:-}" = "true" ]; then
     echo "One-click mode: Automatically configuring domain access for ${NEXTWATCH_DOMAIN:-your-domain.com}"
     domain_access="y"
@@ -82,13 +82,13 @@ else
 fi
 
 if [[ $domain_access =~ ^[Yy]$ ]]; then
-    ***REMOVED*** Get domain IP
+    # Get domain IP
     DOMAIN_IP=$(dig +short "${NEXTWATCH_DOMAIN:-your-domain.com}" | tail -n1)
     if [ -n "$DOMAIN_IP" ]; then
         echo "Domain IP: $DOMAIN_IP"
 
         for sg in $SECURITY_GROUPS; do
-            ***REMOVED*** Open for domain IP
+            # Open for domain IP
             aws ec2 authorize-security-group-ingress \
                 --group-id $sg \
                 --protocol tcp \
@@ -106,7 +106,7 @@ if [[ $domain_access =~ ^[Yy]$ ]]; then
     fi
 fi
 
-***REMOVED*** Display current security group rules
+# Display current security group rules
 echo ""
 echo -e "${BLUE}📋 Current Security Group Rules:${NC}"
 for sg in $SECURITY_GROUPS; do

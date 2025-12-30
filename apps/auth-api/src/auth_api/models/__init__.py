@@ -1,6 +1,6 @@
 """Model definitions for the auth API."""
 
-***REMOVED*** Re-export all models from their respective modules
+# Re-export all models from their respective modules
 from auth_api.models.user import User
 
 __all__: list[str] = [

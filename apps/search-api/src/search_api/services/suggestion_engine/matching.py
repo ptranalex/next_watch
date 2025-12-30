@@ -59,7 +59,7 @@ class MatchingStrategies:
         Returns:
             List of matching suggestion strings
         """
-        ***REMOVED*** Method 1: Attempt lexicographical range on zset (primary index)
+        # Method 1: Attempt lexicographical range on zset (primary index)
         try:
             try:
                 zlex_suggestions = await redis_client.zrange(
@@ -73,7 +73,7 @@ class MatchingStrategies:
                 if zlex_suggestions:
                     return list(zlex_suggestions[:limit])
             except Exception:
-                ***REMOVED*** Fallback to explicit command for older servers/clients
+                # Fallback to explicit command for older servers/clients
                 logger.warning("Falling back to older Redis ZRANGEBYLEX command")
                 zlex_suggestions = await redis_client.execute_command(
                     "ZRANGEBYLEX",
@@ -91,7 +91,7 @@ class MatchingStrategies:
         except Exception as e:
             logger.warning(f"Error using lexicographical range for prefix matches: {str(e)}")
 
-        ***REMOVED*** Method 2: Use SCAN on suggestion keys with a small time budget (fallback)
+        # Method 2: Use SCAN on suggestion keys with a small time budget (fallback)
         try:
             deadline = time.monotonic() + (self._substring_time_budget_ms / 1000.0)
             pattern = f"{self._suggestion_key_prefix}{query_prefix}*"
@@ -147,7 +147,7 @@ class MatchingStrategies:
         deadline = time.monotonic() + (self._substring_time_budget_ms / 1000.0)
 
         try:
-            ***REMOVED*** If query is too short for substring matching, return early
+            # If query is too short for substring matching, return early
             if len(query_prefix) < self._substring_min_length:
                 return []
 
@@ -184,9 +184,9 @@ class MatchingStrategies:
                 f"{self._entity_key_prefix}{e_type}:*{query_prefix}*"
                 for e_type in self._entity_types
             ]
-            ***REMOVED*** Run scans concurrently per entity type
+            # Run scans concurrently per entity type
             results_per_type = await asyncio.gather(*[_scan_entity(p) for p in patterns])
-            ***REMOVED*** Merge results preserving order and uniqueness
+            # Merge results preserving order and uniqueness
             seen: set[str] = set()
             for result_list in results_per_type:
                 for name in result_list:
@@ -203,11 +203,11 @@ class MatchingStrategies:
 
         finally:
             duration = time.time() - start_time
-            if duration > 0.1:  ***REMOVED*** Log slow queries (>100ms)
+            if duration > 0.1:  # Log slow queries (>100ms)
                 logger.warning(
                     f"Slow substring search: '{query_prefix}' took {duration:.3f}s, found {len(matches)} matches"
                 )
-            elif duration > 0.05:  ***REMOVED*** Debug log for moderately slow queries (>50ms)
+            elif duration > 0.05:  # Debug log for moderately slow queries (>50ms)
                 logger.debug(
                     f"Substring search: '{query_prefix}' took {duration:.3f}s, found {len(matches)} matches"
                 )

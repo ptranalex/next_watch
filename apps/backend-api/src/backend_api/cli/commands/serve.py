@@ -42,7 +42,7 @@ def start_server(
         verbose: Enable verbose console output
         quiet: Suppress console output except errors
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(
         logger_name="backend_api",
         log_level=log_level.upper(),
@@ -66,7 +66,7 @@ def start_server(
     )
 
 
-***REMOVED*** Alias for convenience (so users can run either "serve" or "serve start")
+# Alias for convenience (so users can run either "serve" or "serve start")
 @app.callback(invoke_without_command=True)
 def serve(ctx: typer.Context) -> None:
     """Start the backend API server."""
@@ -74,8 +74,8 @@ def serve(ctx: typer.Context) -> None:
         start_server()
 
 
-***REMOVED*** Register serve command directly with main app
-from backend_api.cli import app as main_app  ***REMOVED*** noqa: E402
+# Register serve command directly with main app
+from backend_api.cli import app as main_app  # noqa: E402
 
-***REMOVED*** Register the start_server command directly as "serve"
+# Register the start_server command directly as "serve"
 main_app.command("serve")(start_server)

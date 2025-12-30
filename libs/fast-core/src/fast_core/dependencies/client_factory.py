@@ -14,7 +14,7 @@ from config.logging import get_logger
 
 from .singleton import get_singleton, register_singleton
 
-***REMOVED*** Import tracing functionality
+# Import tracing functionality
 try:
     from fast_core.middleware.context import get_request_context
 
@@ -102,19 +102,19 @@ class BaseServiceClient(ABC):
         Returns:
             Headers dictionary with trace context injected
         """
-        ***REMOVED*** Start with base headers from config
+        # Start with base headers from config
         headers = dict(self.config.headers)
 
-        ***REMOVED*** Add any additional headers provided
+        # Add any additional headers provided
         if additional_headers:
             headers.update(additional_headers)
 
-        ***REMOVED*** Add automatic trace headers if tracing is enabled
+        # Add automatic trace headers if tracing is enabled
         if self.config.enable_tracing and TRACING_AVAILABLE:
             try:
                 context = get_request_context()
                 if context:
-                    ***REMOVED*** Inject trace propagation headers
+                    # Inject trace propagation headers
                     trace_headers = context.get_propagation_headers()
                     headers.update(trace_headers)
 
@@ -169,7 +169,7 @@ class GenericServiceClient(BaseServiceClient):
     async def get(self, path: str, **kwargs: Any) -> httpx.Response:
         """Make GET request with automatic trace header injection."""
         client = await self._get_client()
-        ***REMOVED*** Inject trace headers into request headers
+        # Inject trace headers into request headers
         headers = self._get_request_headers(kwargs.get("headers"))
         kwargs["headers"] = headers
         return await client.get(path, **kwargs)
@@ -177,7 +177,7 @@ class GenericServiceClient(BaseServiceClient):
     async def post(self, path: str, **kwargs: Any) -> httpx.Response:
         """Make POST request with automatic trace header injection."""
         client = await self._get_client()
-        ***REMOVED*** Inject trace headers into request headers
+        # Inject trace headers into request headers
         headers = self._get_request_headers(kwargs.get("headers"))
         kwargs["headers"] = headers
         return await client.post(path, **kwargs)
@@ -185,7 +185,7 @@ class GenericServiceClient(BaseServiceClient):
     async def put(self, path: str, **kwargs: Any) -> httpx.Response:
         """Make PUT request with automatic trace header injection."""
         client = await self._get_client()
-        ***REMOVED*** Inject trace headers into request headers
+        # Inject trace headers into request headers
         headers = self._get_request_headers(kwargs.get("headers"))
         kwargs["headers"] = headers
         return await client.put(path, **kwargs)
@@ -193,7 +193,7 @@ class GenericServiceClient(BaseServiceClient):
     async def delete(self, path: str, **kwargs: Any) -> httpx.Response:
         """Make DELETE request with automatic trace header injection."""
         client = await self._get_client()
-        ***REMOVED*** Inject trace headers into request headers
+        # Inject trace headers into request headers
         headers = self._get_request_headers(kwargs.get("headers"))
         kwargs["headers"] = headers
         return await client.delete(path, **kwargs)
@@ -264,7 +264,7 @@ class ServiceClientFactory:
         """
         self._client_types[service_name] = client_class
 
-        ***REMOVED*** Update existing config if present
+        # Update existing config if present
         if service_name in self._configs:
             self._configs[service_name].client_class = client_class
             self._configs[service_name].singleton = singleton
@@ -289,14 +289,14 @@ class ServiceClientFactory:
 
         config = self._configs[service_name]
 
-        ***REMOVED*** Use custom client class if registered
+        # Use custom client class if registered
         if service_name in self._client_types:
             client_class = self._client_types[service_name]
-            ***REMOVED*** Check if it's a BaseServiceClient subclass
+            # Check if it's a BaseServiceClient subclass
             if issubclass(client_class, BaseServiceClient):
                 return client_class(config, **kwargs)
         else:
-            ***REMOVED*** For non-BaseServiceClient classes (like httpx.AsyncClient)
+            # For non-BaseServiceClient classes (like httpx.AsyncClient)
             client_kwargs = {**config.client_kwargs, **kwargs}
             return config.client_class(
                 base_url=config.base_url,
@@ -320,21 +320,21 @@ class ServiceClientFactory:
         config = self._configs[service_name]
 
         if config.singleton:
-            ***REMOVED*** Use singleton pattern
+            # Use singleton pattern
             def factory() -> Any:
                 return self.create_client(service_name)
 
-            ***REMOVED*** Register as singleton if not already done
+            # Register as singleton if not already done
             singleton_name = f"{service_name}_client"
             try:
                 register_singleton(name=singleton_name, factory=factory)
             except Exception:
-                ***REMOVED*** Already registered, that's fine
+                # Already registered, that's fine
                 pass
 
             return get_singleton(singleton_name)
         else:
-            ***REMOVED*** Per-request instance
+            # Per-request instance
             def dependency() -> Any:
                 return self.create_client(service_name)
 
@@ -372,7 +372,7 @@ class ServiceClientFactory:
                 if hasattr(client, "health_check"):
                     result = await client.health_check()
                 else:
-                    ***REMOVED*** Fallback for non-BaseServiceClient instances
+                    # Fallback for non-BaseServiceClient instances
                     result = await self._basic_health_check(service_name, client)
                 results[service_name] = result
             except Exception as e:
@@ -416,7 +416,7 @@ class ServiceClientFactory:
             }
 
 
-***REMOVED*** Global service client factory instance
+# Global service client factory instance
 _service_factory = ServiceClientFactory()
 
 
@@ -524,7 +524,7 @@ def get_service_factory() -> ServiceClientFactory:
     return _service_factory
 
 
-***REMOVED*** Convenience decorator for creating custom service clients
+# Convenience decorator for creating custom service clients
 def service_client(
     service_name: str,
     singleton: bool = True,
@@ -546,7 +546,7 @@ def service_client(
     return decorator
 
 
-***REMOVED*** Export all public functions
+# Export all public functions
 __all__ = [
     "BaseServiceClient",
     "GenericServiceClient",

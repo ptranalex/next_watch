@@ -18,7 +18,7 @@ from bff_api.utils.auth import extract_user_id_from_token
 logger = get_logger(__name__)
 router = APIRouter(tags=["actors"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "pagination": {
@@ -28,12 +28,12 @@ responses = ResponseBuilder(
     }
 )
 
-***REMOVED*** Security scheme for optional authentication
+# Security scheme for optional authentication
 security = HTTPBearer(auto_error=False)
 
 
 @redis_cache(
-    ttl=1800,  ***REMOVED*** 30 minutes - actor data changes infrequently
+    ttl=1800,  # 30 minutes - actor data changes infrequently
     key_builder=lambda actor_id, page, limit, backend, credentials=None: build_paginated_key(
         "screen:actor", [actor_id], page, limit, prefix=""
     ),
@@ -55,15 +55,15 @@ async def _get_actor_screen_data(
         component="actor_screen_data",
     )
 
-    ***REMOVED*** Get actor details
+    # Get actor details
     actor = await backend.get_actor(actor_id)
     if not actor:
         raise HTTPException(status_code=404, detail="Actor not found")
 
-    ***REMOVED*** Get actor's movies with pagination support
+    # Get actor's movies with pagination support
     movies_response = await backend.get_movies(page=page, limit=limit, actor_id=actor_id)
 
-    ***REMOVED*** Extract pagination data
+    # Extract pagination data
     movies = movies_response.get("results", [])
     total_count = movies_response.get("total", 0)
     current_page = movies_response.get("page", page)
@@ -72,7 +72,7 @@ async def _get_actor_screen_data(
     has_next = movies_response.get("has_next", False)
     has_prev = movies_response.get("has_prev", False)
 
-    ***REMOVED*** For anonymous users, set all interaction fields to false
+    # For anonymous users, set all interaction fields to false
     logger.debug(
         "Setting default interaction values for actor movies",
         actor_id=actor_id,
@@ -92,7 +92,7 @@ async def _get_actor_screen_data(
             "is_watched": False,
         }
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     actor_screen_data = {
         "actor": actor,
         "movies": {
@@ -154,7 +154,7 @@ def _build_actor_movies_cache_key(
 
 @redis_cache(
     ttl=900,
-    key_builder=_build_actor_movies_cache_key,  ***REMOVED*** 15 minutes for filtered movie lists
+    key_builder=_build_actor_movies_cache_key,  # 15 minutes for filtered movie lists
 )
 async def _get_actor_movies_data(
     actor_id: int,
@@ -184,8 +184,8 @@ async def _get_actor_movies_data(
         component="actor_movies_data",
     )
 
-    ***REMOVED*** Build filter parameters
-    filters: dict[str, Any] = {"actor_id": actor_id}  ***REMOVED*** Always include actor_id filter
+    # Build filter parameters
+    filters: dict[str, Any] = {"actor_id": actor_id}  # Always include actor_id filter
     if genre_id is not None:
         filters["genre_id"] = genre_id
     if sort_by:
@@ -205,10 +205,10 @@ async def _get_actor_movies_data(
     if end_year is not None:
         filters["end_year"] = end_year
 
-    ***REMOVED*** Get movies from backend
+    # Get movies from backend
     movies_response = await backend.get_movies(page=page, limit=limit, **filters)
 
-    ***REMOVED*** Extract pagination data
+    # Extract pagination data
     movies = movies_response.get("results", [])
     total_count = movies_response.get("total", 0)
     current_page = movies_response.get("page", page)
@@ -217,7 +217,7 @@ async def _get_actor_movies_data(
     has_next = movies_response.get("has_next", False)
     has_prev = movies_response.get("has_prev", False)
 
-    ***REMOVED*** For anonymous users, set all interaction fields to false
+    # For anonymous users, set all interaction fields to false
     logger.debug(
         "Setting default interaction values for actor movies",
         actor_id=actor_id,
@@ -237,7 +237,7 @@ async def _get_actor_movies_data(
             "is_watched": False,
         }
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     movies_data = {
         "total": total_count,
         "page": current_page,
@@ -283,12 +283,12 @@ async def get_actor_screen(
     Raises:
         HTTPException: 404 if actor not found, 502 if backend unavailable
     """
-    ***REMOVED*** Record movie request metrics
+    # Record movie request metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_movie_request("actor", "started")
 
-    ***REMOVED*** Extract user ID from JWT token if provided
+    # Extract user ID from JWT token if provided
     user_id = None
     logger.debug(
         "Processing actor screen request",
@@ -316,12 +316,12 @@ async def get_actor_screen(
         )
 
     try:
-        ***REMOVED*** Use the cached function - decorator handles all cache logic
+        # Use the cached function - decorator handles all cache logic
         actor_screen_dict = await _get_actor_screen_data(
             actor_id, page, limit, backend, credentials
         )
 
-        ***REMOVED*** Handle user interactions for authenticated users (not cached due to user-specific nature)
+        # Handle user interactions for authenticated users (not cached due to user-specific nature)
         if user_id and credentials:
             movies = actor_screen_dict["movies"]["results"]
             logger.debug(
@@ -340,7 +340,7 @@ async def get_actor_screen(
                             user_id, movie_id, jwt_token=credentials.credentials
                         )
                         if interaction_data:
-                            ***REMOVED*** Map user interaction data directly to movie fields
+                            # Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
                             movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
@@ -352,7 +352,7 @@ async def get_actor_screen(
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
-                            ***REMOVED*** Set default values if no interaction data exists
+                            # Set default values if no interaction data exists
                             movie["liked"] = False
                             movie["watched"] = False
                             movie["in_watchlist"] = False
@@ -373,7 +373,7 @@ async def get_actor_screen(
                             service="bff",
                             component="user_interactions",
                         )
-                        ***REMOVED*** Set default values if fetching interaction data fails
+                        # Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False
                         movie["in_watchlist"] = False
@@ -385,11 +385,11 @@ async def get_actor_screen(
                             "is_watched": False,
                         }
 
-        ***REMOVED*** Record successful movie request metrics
+        # Record successful movie request metrics
         if metrics:
             metrics.record_movie_request("actor", "success")
 
-        ***REMOVED*** Use ResponseBuilder detail pattern for consistent response structure
+        # Use ResponseBuilder detail pattern for consistent response structure
         response = responses.detail(
             item=actor_screen_dict["actor"],
             related={
@@ -418,7 +418,7 @@ async def get_actor_screen(
         return cast(dict[str, Any], response)
 
     except ExternalServiceException as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_movie_request("actor", "service_error")
 
@@ -481,7 +481,7 @@ async def get_actor_movies(
     Raises:
         HTTPException: If backend service is unavailable (502)
     """
-    ***REMOVED*** Extract user ID from JWT token if provided
+    # Extract user ID from JWT token if provided
     user_id = None
     logger.debug(
         "Processing actor movies request",
@@ -509,7 +509,7 @@ async def get_actor_movies(
         )
 
     try:
-        ***REMOVED*** Use the cached function - decorator handles all cache logic
+        # Use the cached function - decorator handles all cache logic
         movies_data_dict = await _get_actor_movies_data(
             actor_id=actor_id,
             page=page,
@@ -528,7 +528,7 @@ async def get_actor_movies(
             credentials=credentials,
         )
 
-        ***REMOVED*** Handle user interactions for authenticated users (not cached due to user-specific nature)
+        # Handle user interactions for authenticated users (not cached due to user-specific nature)
         if user_id and credentials:
             movies = movies_data_dict["results"]
             logger.debug(f"🔄 Fetching user interactions for {len(movies)} movies")
@@ -540,7 +540,7 @@ async def get_actor_movies(
                             user_id, movie_id, jwt_token=credentials.credentials
                         )
                         if interaction_data:
-                            ***REMOVED*** Map user interaction data directly to movie fields
+                            # Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
                             movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
@@ -552,7 +552,7 @@ async def get_actor_movies(
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
-                            ***REMOVED*** Set default values if no interaction data exists
+                            # Set default values if no interaction data exists
                             movie["liked"] = False
                             movie["watched"] = False
                             movie["in_watchlist"] = False
@@ -565,7 +565,7 @@ async def get_actor_movies(
                             }
                     except Exception as e:
                         logger.warning(f"Failed to get user interaction for movie {movie_id}: {e}")
-                        ***REMOVED*** Set default values if fetching interaction data fails
+                        # Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False
                         movie["in_watchlist"] = False
@@ -577,7 +577,7 @@ async def get_actor_movies(
                             "is_watched": False,
                         }
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         filters_applied = {
             "actor_id": actor_id,
             "genre_id": genre_id,

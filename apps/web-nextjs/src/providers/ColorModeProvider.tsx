@@ -52,7 +52,7 @@ export function ColorModeProvider({ children }: ColorModeProviderProps) {
     return (
       <div
         style={{
-          backgroundColor: isDark ? "***REMOVED***0d1117" : "***REMOVED***ffffff",
+          backgroundColor: isDark ? "#0d1117" : "#ffffff",
           minHeight: "100vh",
           display: "flex",
           alignItems: "center",

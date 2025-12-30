@@ -13,7 +13,7 @@ def test_fast_core_config_adapter() -> None:
     fc = create_fast_core_config(cfg)
 
     assert fc.service_name == "search-api"
-    ***REMOVED*** ml url filtered out when None
+    # ml url filtered out when None
     assert fc.get_service_url("ml") is None
 
 
@@ -41,7 +41,7 @@ def test_ranker_sort_and_merge() -> None:
     ]
 
     sorted_s = SuggestionRanker.sort_suggestions(suggs, query_prefix="leo")
-    ***REMOVED*** exact match should be first
+    # exact match should be first
     assert sorted_s[0]["text"] == "leo"
 
     enhanced = SuggestionRanker.enhance_with_search_metadata(
@@ -65,7 +65,7 @@ async def test_entity_hydrator_build_and_hydrate() -> None:
 
     hydrator = EntityHydrator()
 
-    ***REMOVED*** Direct helper path
+    # Direct helper path
     obj = hydrator._build_suggestion_object(
         text="t",
         entity_type="movie",
@@ -83,7 +83,7 @@ async def test_entity_hydrator_build_and_hydrate() -> None:
             return self
 
         async def execute(self):
-            ***REMOVED*** return meta (type:id) then id
+            # return meta (type:id) then id
             return ["movie:1", "1"]
 
     class FakeRedis:

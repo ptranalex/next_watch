@@ -19,7 +19,7 @@ from recommendation_api.repositories.vector.repository import (
     store_movie_embedding,
 )
 
-***REMOVED*** Define the public API
+# Define the public API
 __all__ = [
     "VectorRepository",
     "create_collection",
@@ -37,5 +37,5 @@ __all__ = [
     "search_by_movie_id_with_metadata",
 ]
 
-***REMOVED*** For backward compatibility and cleaner imports, also export the repository class
+# For backward compatibility and cleaner imports, also export the repository class
 from recommendation_api.repositories.vector.repository import VectorRepository

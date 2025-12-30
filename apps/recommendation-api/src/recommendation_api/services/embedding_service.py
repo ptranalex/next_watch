@@ -18,7 +18,7 @@ from recommendation_api.services.vector_service import VectorService
 
 logger = get_logger(__name__)
 
-***REMOVED*** Type variables for decorators
+# Type variables for decorators
 F = TypeVar("F", bound=Callable[..., Any])
 AF = TypeVar("AF", bound=Callable[..., Awaitable[Any]])
 
@@ -97,12 +97,12 @@ class EmbeddingService:
 
             movies.extend(batch_movies)
 
-            ***REMOVED*** Apply limit if specified
+            # Apply limit if specified
             if limit and len(movies) >= limit:
                 movies = movies[:limit]
                 break
 
-            ***REMOVED*** Check if there are more pages
+            # Check if there are more pages
             if not response.get("has_next", False):
                 break
 
@@ -130,23 +130,23 @@ class EmbeddingService:
         Returns:
             Dictionary with processing statistics
         """
-        ***REMOVED*** Use config defaults if not provided
+        # Use config defaults if not provided
         actual_batch_size = batch_size or settings.batch_size
 
-        ***REMOVED*** Ensure vector collection exists
+        # Ensure vector collection exists
         if not self.vector_service.ensure_collection_exists():
             raise RuntimeError("Failed to create vector database collection")
 
-        ***REMOVED*** Get movies to process
+        # Get movies to process
         if movie_ids:
-            ***REMOVED*** Get specific movies by IDs
+            # Get specific movies by IDs
             movies_data = []
             for movie_id in movie_ids:
                 movie_data = await self.movie_adapter.get_movie_by_id(movie_id)
                 if movie_data:
                     movies_data.append(movie_data)
         else:
-            ***REMOVED*** Get all movies from API
+            # Get all movies from API
             movies_data = await self.get_movies_for_embeddings(limit=limit)
 
         if not movies_data:
@@ -156,14 +156,14 @@ class EmbeddingService:
         total_movies = len(movies_data)
         start_time = time.time()
 
-        ***REMOVED*** Statistics
+        # Statistics
         processed = 0
         skipped = 0
         failed = 0
 
         logger.info(f"Starting embedding generation for {total_movies} movies")
 
-        ***REMOVED*** Process movies in batches
+        # Process movies in batches
         for i in range(0, total_movies, actual_batch_size):
             batch = movies_data[i : i + actual_batch_size]
             batch_num = i // actual_batch_size + 1
@@ -171,7 +171,7 @@ class EmbeddingService:
 
             logger.info(f"Processing batch {batch_num}/{total_batches} ({len(batch)} movies)")
 
-            ***REMOVED*** Process each movie in the batch
+            # Process each movie in the batch
             for movie_data in batch:
                 movie_id = movie_data.get("id")
                 if not movie_id:
@@ -180,7 +180,7 @@ class EmbeddingService:
                     continue
 
                 try:
-                    ***REMOVED*** Check if embedding already exists (if not forcing)
+                    # Check if embedding already exists (if not forcing)
                     if not force:
                         existing_embedding = self.vector_repo.get_movie_embedding(movie_id)
                         if existing_embedding:
@@ -188,7 +188,7 @@ class EmbeddingService:
                             logger.debug(f"Movie {movie_id}: Embedding already exists, skipping")
                             continue
 
-                    ***REMOVED*** Generate and store embedding
+                    # Generate and store embedding
                     success = await self._generate_movie_embedding(movie_data)
                     if success:
                         processed += 1
@@ -201,7 +201,7 @@ class EmbeddingService:
                     failed += 1
                     logger.error(f"Movie {movie_id}: Error generating embedding - {e}")
 
-            ***REMOVED*** Log batch progress
+            # Log batch progress
             elapsed = time.time() - start_time
             total_processed = processed + skipped + failed
             movies_per_second = total_processed / elapsed if elapsed > 0 else 0
@@ -214,7 +214,7 @@ class EmbeddingService:
 
         elapsed_time = time.time() - start_time
 
-        ***REMOVED*** Final statistics
+        # Final statistics
         result = {
             "total": total_movies,
             "processed": processed,
@@ -245,12 +245,12 @@ class EmbeddingService:
             if not movie_id:
                 return False
 
-            ***REMOVED*** Create text representation for embedding
+            # Create text representation for embedding
             title = movie_data.get("title", "")
             overview = movie_data.get("overview", "")
             genres = movie_data.get("genres", [])
 
-            ***REMOVED*** Handle genres - they might be strings or objects
+            # Handle genres - they might be strings or objects
             genre_names = []
             for genre in genres:
                 if isinstance(genre, str):
@@ -258,7 +258,7 @@ class EmbeddingService:
                 elif isinstance(genre, dict) and "name" in genre:
                     genre_names.append(genre["name"])
 
-            ***REMOVED*** Create combined text for embedding
+            # Create combined text for embedding
             text_parts = [title]
             if overview:
                 text_parts.append(overview)
@@ -271,10 +271,10 @@ class EmbeddingService:
                 logger.warning(f"Movie {movie_id}: No text content for embedding")
                 return False
 
-            ***REMOVED*** Generate embedding using ML API client
+            # Generate embedding using ML API client
             ml_client = get_ml_api_client()
 
-            ***REMOVED*** Prepare movie features for the ML API
+            # Prepare movie features for the ML API
             movie_features = {
                 "movie_id": movie_id,
                 "title": title,
@@ -290,13 +290,13 @@ class EmbeddingService:
             if not embedding:
                 return False
 
-            ***REMOVED*** Store embedding in vector database with comprehensive metadata
+            # Store embedding in vector database with comprehensive metadata
             metadata = {
                 "movie_id": movie_id,
                 "title": title,
                 "genres": genre_names,
                 "has_overview": bool(overview),
-                ***REMOVED*** Add comprehensive metadata to eliminate backend API calls
+                # Add comprehensive metadata to eliminate backend API calls
                 "overview": overview,
                 "release_date": movie_data.get("release_date"),
                 "imdb_rating": movie_data.get("imdb_rating"),
@@ -310,11 +310,11 @@ class EmbeddingService:
                 "popularity": movie_data.get("popularity"),
                 "vote_count": movie_data.get("vote_count"),
                 "adult": movie_data.get("adult", False),
-                ***REMOVED*** Store additional metadata that might be useful
+                # Store additional metadata that might be useful
                 "metacritic_rating": movie_data.get("metacritic_rating"),
                 "rotten_tomatoes_rating": movie_data.get("rotten_tomatoes_rating"),
                 "awards": movie_data.get("awards"),
-                ***REMOVED*** Store metadata version for future migrations
+                # Store metadata version for future migrations
                 "metadata_version": "v2",
             }
 
@@ -337,10 +337,10 @@ class EmbeddingService:
             Dictionary with embedding status information
         """
         try:
-            ***REMOVED*** Get vector service stats
+            # Get vector service stats
             vector_stats = self.vector_service.get_vector_stats()
 
-            ***REMOVED*** Get collection info if available
+            # Get collection info if available
             collection_info = {}
             try:
                 from recommendation_api.repositories.vector import get_collection_info
@@ -392,9 +392,9 @@ class EmbeddingService:
             List of movie IDs needing repair
         """
         try:
-            ***REMOVED*** Get all points with vectors explicitly requested
+            # Get all points with vectors explicitly requested
 
-            ***REMOVED*** Use scroll to get all points
+            # Use scroll to get all points
             movies_needing_repair = []
             offset = None
 
@@ -408,14 +408,14 @@ class EmbeddingService:
                     with_vectors=True,
                 )
 
-                if not result[0]:  ***REMOVED*** No more points
+                if not result[0]:  # No more points
                     break
 
                 for point in result[0]:
                     if point.vector is None:
                         movies_needing_repair.append(int(point.id))
 
-                offset = result[1]  ***REMOVED*** Next offset
+                offset = result[1]  # Next offset
                 if offset is None:
                     break
 
@@ -444,11 +444,11 @@ class EmbeddingService:
         """
         start_time = time.time()
 
-        ***REMOVED*** Find movies needing repair
+        # Find movies needing repair
         if movie_ids is None:
             movies_to_repair = self.find_movies_needing_repair()
         else:
-            ***REMOVED*** Check which of the specified movies need repair
+            # Check which of the specified movies need repair
             movies_to_repair = []
             for movie_id in movie_ids:
                 try:
@@ -456,7 +456,7 @@ class EmbeddingService:
                     if point and point.vector is None:
                         movies_to_repair.append(movie_id)
                 except Exception:
-                    ***REMOVED*** If we can't check, assume it needs repair
+                    # If we can't check, assume it needs repair
                     movies_to_repair.append(movie_id)
 
         stats = {
@@ -473,7 +473,7 @@ class EmbeddingService:
 
         logger.info(f"Repairing {len(movies_to_repair)} movies")
 
-        ***REMOVED*** Process repairs in batches
+        # Process repairs in batches
         for i in range(0, len(movies_to_repair), batch_size):
             batch = movies_to_repair[i : i + batch_size]
             batch_num = i // batch_size + 1
@@ -483,14 +483,14 @@ class EmbeddingService:
 
             for movie_id in batch:
                 try:
-                    ***REMOVED*** Get movie data from backend API
+                    # Get movie data from backend API
                     movie_data = await self.movie_adapter.get_movie_by_id(movie_id)
                     if not movie_data:
                         stats["failed"] += 1
                         logger.error(f"Movie {movie_id}: Not found in backend API")
                         continue
 
-                    ***REMOVED*** Generate and store embedding
+                    # Generate and store embedding
                     success = await self._generate_movie_embedding(movie_data)
                     if success:
                         stats["repaired"] += 1
@@ -521,14 +521,14 @@ class EmbeddingService:
             logger.error(f"Error closing EmbeddingService: {e}")
 
 
-***REMOVED*** Factory function to create an embedding service
+# Factory function to create an embedding service
 async def get_embedding_service() -> EmbeddingService:
     """Get an embedding service instance with API-based architecture.
 
     Returns:
         EmbeddingService instance
     """
-    ***REMOVED*** Initialize dependencies
+    # Initialize dependencies
     backend_client = BackendClient()
     movie_adapter = MovieDataAdapter(backend_client)
     vector_repo = VectorRepository()

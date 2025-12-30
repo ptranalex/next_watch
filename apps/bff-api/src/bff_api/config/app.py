@@ -13,7 +13,7 @@ from config.services.cache import CacheConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
 from pydantic import Field, validator
 
-***REMOVED*** Configure basic logging first for this module
+# Configure basic logging first for this module
 logger = get_logger(__name__)
 
 
@@ -23,16 +23,16 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
     Provides configuration for the BFF API service with cache, auth, and monitoring support.
     """
 
-    ***REMOVED*** Service identification
+    # Service identification
     service_name: str = Field(default="bff-api", description="Service name")
     port: int = Field(default=8001, description="Service port")
 
-    ***REMOVED*** Logging configuration
+    # Logging configuration
     logs_dir: Optional[str] = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
 
-    ***REMOVED*** Backend service URLs
+    # Backend service URLs
     backend_api_url: str = Field(default="http://localhost:8000", description="Backend API URL")
     auth_api_url: str = Field(default="http://localhost:8003", description="Auth API URL")
     reco_api_url: str = Field(
@@ -42,7 +42,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
     search_api_url: str = Field(default="http://localhost:8005", description="Search API URL")
     ml_api_url: Optional[str] = Field(default=None, description="ML API URL (optional)")
 
-    ***REMOVED*** Service timeouts
+    # Service timeouts
     backend_api_timeout: int = Field(default=30, description="Backend API timeout in seconds")
     auth_api_timeout: int = Field(default=10, description="Auth API timeout in seconds")
     recommendation_api_timeout: int = Field(
@@ -51,33 +51,33 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
     search_api_timeout: int = Field(default=15, description="Search API timeout in seconds")
     ml_api_timeout: int = Field(default=60, description="ML API timeout in seconds")
 
-    ***REMOVED*** Service-to-service authentication
+    # Service-to-service authentication
     internal_api_key: str = Field(
         default="bff-to-backend-secret-key",
         description="API key for service-to-service authentication",
     )
 
-    ***REMOVED*** Admin/operations authentication
+    # Admin/operations authentication
     admin_api_key: Optional[str] = Field(
         default=None,
         description="API key for admin endpoints (set in production for security)",
     )
 
-    ***REMOVED*** Feature flags
+    # Feature flags
     enable_recommendations: bool = Field(default=True, description="Enable recommendation features")
     enable_ml_features: bool = Field(default=False, description="Enable machine learning features")
     enable_auth_service: bool = Field(
         default=True, description="Enable authentication service integration"
     )
 
-    ***REMOVED*** Monitoring settings
+    # Monitoring settings
     enable_performance_metrics: bool = Field(
         default=True, description="Enable performance metrics collection"
     )
 
     cache_enable_metrics: bool = Field(default=True, description="Enable cache metrics collection")
 
-    ***REMOVED*** Cache warming configuration
+    # Cache warming configuration
     warming_max_concurrent: int = Field(
         default=3, description="Maximum concurrent warming operations"
     )
@@ -115,7 +115,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
     class Config:
         """Pydantic configuration for environment handling."""
 
-        env_prefix = ""  ***REMOVED*** Remove BFF_ prefix requirement
+        env_prefix = ""  # Remove BFF_ prefix requirement
         env_file = [".env", ".env.local"]
         env_file_encoding = "utf-8"
         case_sensitive = False
@@ -123,10 +123,10 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize BFF API configuration."""
-        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        # Initialize with Pydantic Settings (will auto-load .env files)
         super().__init__(**kwargs)
 
-        ***REMOVED*** Apply shared security and logging patterns
+        # Apply shared security and logging patterns
         self.apply_production_security_overrides()
         self._apply_bff_specific_overrides()
         self.log_configuration_summary()
@@ -137,14 +137,14 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
         if not self.is_production:
             return
 
-        ***REMOVED*** Disable file logging in production to avoid volume permission issues
+        # Disable file logging in production to avoid volume permission issues
         if self.logs_dir:
             logger.warning("File logging disabled in production to avoid volume permission issues")
             object.__setattr__(self, "logs_dir", None)
 
     def _log_bff_specific_summary(self) -> None:
         """Log BFF-specific configuration details."""
-        ***REMOVED*** Log service URLs in compact format
+        # Log service URLs in compact format
         urls = {
             "backend": self.backend_api_url,
             "auth": self.auth_api_url,
@@ -156,7 +156,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
 
         logger.info(f"Service URLs: {urls}")
 
-        ***REMOVED*** Log feature flags in compact format if enabled
+        # Log feature flags in compact format if enabled
         if any(
             [
                 self.enable_recommendations,
@@ -169,7 +169,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
                 + f"ml={self.enable_ml_features}, auth={self.enable_auth_service}"
             )
 
-        ***REMOVED*** Log Redis URL
+        # Log Redis URL
         logger.info(f"Redis URL: {self.get_redis_url_masked()}")
 
     @validator(
@@ -208,14 +208,14 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
         """Validate configuration for production deployment."""
         issues = []
 
-        ***REMOVED*** Get validation from parent classes (includes basic debug mode checks)
+        # Get validation from parent classes (includes basic debug mode checks)
         issues.extend(super().validate_production_settings())
         issues.extend(self.validate_cache_production_settings())
         issues.extend(self.validate_auth_production_settings())
 
-        ***REMOVED*** BFF-specific production validations
+        # BFF-specific production validations
         if self.is_production:
-            ***REMOVED*** Check for secure service URLs
+            # Check for secure service URLs
             for url_name, url in [
                 ("backend_api_url", self.backend_api_url),
                 ("auth_api_url", self.auth_api_url),
@@ -225,7 +225,7 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
                 if url and url.startswith("http://"):
                     issues.append(f"{url_name} should use HTTPS in production")
 
-            ***REMOVED*** Check for localhost in URLs
+            # Check for localhost in URLs
             for url_name, url in [
                 ("backend_api_url", self.backend_api_url),
                 ("auth_api_url", self.auth_api_url),
@@ -270,17 +270,17 @@ class BFFAPIConfig(ServiceConfig, CacheConfigMixin, AuthConfigMixin, MonitoringC
     Logs Directory: {self.logs_dir or 'disabled'}"""
 
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** GLOBAL SETTINGS INSTANCE
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# GLOBAL SETTINGS INSTANCE
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Create global settings instance (simplified - no more wrapper!)
+# Create global settings instance (simplified - no more wrapper!)
 settings = BFFAPIConfig()
 
-***REMOVED*** Apply Gateway profile by default
+# Apply Gateway profile by default
 apply_profiles(settings, GatewayProfile)
 
-***REMOVED*** Override log level for development
+# Override log level for development
 if settings.is_development:
     object.__setattr__(settings, "log_level", "DEBUG")
 
@@ -294,7 +294,7 @@ def get_bff_settings() -> BFFAPIConfig:
     return settings
 
 
-***REMOVED*** Backward compatibility function for cache settings
+# Backward compatibility function for cache settings
 def get_cache_settings() -> Any:
     """Get cache settings from the global configuration.
 
@@ -311,7 +311,7 @@ def get_cache_settings() -> Any:
         )
         return cache_settings
     except Exception:
-        ***REMOVED*** Fallback to basic dict if CacheSettings import fails
+        # Fallback to basic dict if CacheSettings import fails
         return {
             "redis_url": settings.redis_url,
             "cache_key_prefix": settings.cache_key_prefix,

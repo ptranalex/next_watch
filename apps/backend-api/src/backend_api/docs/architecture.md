@@ -1,15 +1,15 @@
-***REMOVED*** Backend Architecture: CQRS Pattern
+# Backend Architecture: CQRS Pattern
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This application follows the Command Query Responsibility Segregation (CQRS) pattern, which separates read and write operations:
 
 - **Commands (Services)**: Handle state-changing operations (write, update, delete)
 - **Queries**: Handle data retrieval operations (read) optimized for specific views
 
-***REMOVED******REMOVED*** When to Use Services vs Queries
+## When to Use Services vs Queries
 
-***REMOVED******REMOVED******REMOVED*** Use Services When:
+### Use Services When:
 
 1. **Modifying State**: Creating, updating, or deleting records
 2. **Implementing Business Rules**: Applying domain logic or validation
@@ -18,7 +18,7 @@ This application follows the Command Query Responsibility Segregation (CQRS) pat
 5. **Handling Events**: Publishing domain events after state changes
 
 ```python
-***REMOVED*** Example Service Method
+# Example Service Method
 def toggle_movie_watched(user_id: int, movie_id: int) -> UserMovieInteraction:
     """
     Business logic for toggling watched status.
@@ -28,7 +28,7 @@ def toggle_movie_watched(user_id: int, movie_id: int) -> UserMovieInteraction:
     """
 ```
 
-***REMOVED******REMOVED******REMOVED*** Use Queries When:
+### Use Queries When:
 
 1. **Retrieving Data**: Complex read operations without state changes
 2. **Optimizing Read Paths**: SQL optimizations, joins, aggregations
@@ -37,7 +37,7 @@ def toggle_movie_watched(user_id: int, movie_id: int) -> UserMovieInteraction:
 5. **Reporting/Analytics**: Aggregated statistics
 
 ```python
-***REMOVED*** Example Query Method
+# Example Query Method
 def get_user_recommended_movies(user_id: int, limit: int) -> List[Movie]:
     """
     Complex read operation optimized for this specific use case.
@@ -47,7 +47,7 @@ def get_user_recommended_movies(user_id: int, limit: int) -> List[Movie]:
     """
 ```
 
-***REMOVED******REMOVED*** Standard Error Handling
+## Standard Error Handling
 
 All services and queries should use standardized error types:
 
@@ -59,7 +59,7 @@ All services and queries should use standardized error types:
 
 Routes translate these errors to appropriate HTTP status codes.
 
-***REMOVED******REMOVED*** Interface Guidelines
+## Interface Guidelines
 
 - Services and queries should have clear method signatures with type hints
 - Methods should have comprehensive docstrings

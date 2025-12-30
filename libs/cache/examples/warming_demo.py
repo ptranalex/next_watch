@@ -1,4 +1,4 @@
-***REMOVED***!/usr/bin/env python3
+#!/usr/bin/env python3
 """Demo script showing cache warming functionality."""
 
 import asyncio
@@ -8,15 +8,15 @@ from cache import CacheManager, get_global_collector, set_metrics_enabled
 from cache.decorators import redis_cache
 from cache.warming import WarmingConfig, WarmingEngine, WarmingStrategy
 
-***REMOVED*** Enable metrics for the demo
+# Enable metrics for the demo
 set_metrics_enabled(True)
 
 
 @redis_cache(ttl=300, enable_metrics=True)
 async def expensive_function(item_id: int, category: str = "default") -> dict:
     """Simulate an expensive function that benefits from caching."""
-    ***REMOVED*** Simulate expensive work
-    await asyncio.sleep(0.1)  ***REMOVED*** 100ms delay
+    # Simulate expensive work
+    await asyncio.sleep(0.1)  # 100ms delay
 
     return {
         "item_id": item_id,
@@ -29,7 +29,7 @@ async def expensive_function(item_id: int, category: str = "default") -> dict:
 @redis_cache(ttl=600, enable_metrics=True)
 async def another_expensive_function(user_id: int) -> dict:
     """Another expensive function for demo."""
-    await asyncio.sleep(0.05)  ***REMOVED*** 50ms delay
+    await asyncio.sleep(0.05)  # 50ms delay
 
     return {"user_id": user_id, "profile": f"User profile for {user_id}", "timestamp": time.time()}
 
@@ -38,18 +38,18 @@ async def simulate_traffic():
     """Simulate some traffic to generate metrics."""
     print("🚀 Simulating traffic to generate cache metrics...")
 
-    ***REMOVED*** Call functions multiple times to generate metrics
+    # Call functions multiple times to generate metrics
     tasks = []
 
-    ***REMOVED*** Popular items (will have high hit rates after first call)
+    # Popular items (will have high hit rates after first call)
     for i in range(5):
-        for item_id in [1, 2, 3]:  ***REMOVED*** Popular items
+        for item_id in [1, 2, 3]:  # Popular items
             tasks.append(expensive_function(item_id, "popular"))
 
-        for user_id in [101, 102]:  ***REMOVED*** Popular users
+        for user_id in [101, 102]:  # Popular users
             tasks.append(another_expensive_function(user_id))
 
-    ***REMOVED*** Less popular items (will have lower hit rates)
+    # Less popular items (will have lower hit rates)
     for item_id in range(10, 20):
         tasks.append(expensive_function(item_id, "rare"))
 
@@ -63,15 +63,15 @@ async def demonstrate_warming():
     print("🔥 CACHE WARMING DEMONSTRATION")
     print("=" * 60)
 
-    ***REMOVED*** Initialize cache and warming
+    # Initialize cache and warming
     cache_manager = CacheManager.from_settings()
     metrics_collector = get_global_collector()
 
-    ***REMOVED*** Configure warming with lower thresholds for demo
+    # Configure warming with lower thresholds for demo
     config = WarmingConfig(
-        min_miss_rate_threshold=0.1,  ***REMOVED*** Lower threshold for demo
-        min_avg_miss_time_ms=30.0,  ***REMOVED*** Lower threshold for demo
-        min_total_calls=3,  ***REMOVED*** Lower threshold for demo
+        min_miss_rate_threshold=0.1,  # Lower threshold for demo
+        min_avg_miss_time_ms=30.0,  # Lower threshold for demo
+        min_total_calls=3,  # Lower threshold for demo
         max_concurrent_operations=3,
         max_items_per_strategy=10,
     )
@@ -80,7 +80,7 @@ async def demonstrate_warming():
         cache_manager=cache_manager, metrics_collector=metrics_collector, config=config
     )
 
-    ***REMOVED*** Register warming functions
+    # Register warming functions
     warming_engine.register_warming_function("expensive_function", expensive_function)
     warming_engine.register_warming_function(
         "another_expensive_function", another_expensive_function
@@ -97,7 +97,7 @@ async def demonstrate_warming():
 
     print("\n🔥 Starting metrics-driven warming...")
 
-    ***REMOVED*** Perform warming
+    # Perform warming
     start_time = time.time()
     stats = await warming_engine.warm_by_strategy(
         strategy=WarmingStrategy.METRICS_DRIVEN, limit=10, dry_run=False
@@ -113,11 +113,11 @@ async def demonstrate_warming():
     print(f"  Total execution time: {stats.total_execution_time_ms:.1f}ms")
     print(f"  Average execution time: {stats.average_execution_time_ms:.1f}ms")
 
-    ***REMOVED*** Show warming history
+    # Show warming history
     history = warming_engine.get_warming_history()
     if history:
         print(f"\n📋 Warming History ({len(history)} operations):")
-        for result in history[-5:]:  ***REMOVED*** Show last 5
+        for result in history[-5:]:  # Show last 5
             status_emoji = "✅" if result.success else "❌"
             print(f"  {status_emoji} {result.target.function_name} - {result.status.value}")
             if result.error:
@@ -132,10 +132,10 @@ async def main():
     print("🔥 NextWatch Cache Warming Demo")
     print("This demo shows how cache warming uses metrics to improve performance")
 
-    ***REMOVED*** Step 1: Generate some traffic and metrics
+    # Step 1: Generate some traffic and metrics
     await simulate_traffic()
 
-    ***REMOVED*** Step 2: Demonstrate warming
+    # Step 2: Demonstrate warming
     await demonstrate_warming()
 
     print("\n" + "=" * 60)

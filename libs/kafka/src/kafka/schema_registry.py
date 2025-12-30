@@ -26,10 +26,10 @@ class SchemaRegistryClient:
         >>> client = SchemaRegistryClient(config)
         >>> await client.start()
         >>>
-        >>> ***REMOVED*** Register a schema
+        >>> # Register a schema
         >>> schema_id = await client.register_schema("user.activity-value", schema_dict)
         >>>
-        >>> ***REMOVED*** Get latest schema
+        >>> # Get latest schema
         >>> schema = await client.get_latest_schema("user.activity-value")
         >>>
         >>> await client.close()
@@ -84,7 +84,7 @@ class SchemaRegistryClient:
         if not self._client:
             raise RuntimeError("Schema Registry client not started")
 
-        ***REMOVED*** Check cache first
+        # Check cache first
         cache_key = f"{subject}:{json.dumps(schema, sort_keys=True)}"
         if cache_key in self._subject_cache:
             return self._subject_cache[cache_key]
@@ -101,7 +101,7 @@ class SchemaRegistryClient:
             data = response.json()
             schema_id = data["id"]
 
-            ***REMOVED*** Cache the schema
+            # Cache the schema
             self._schema_cache[schema_id] = schema
             self._subject_cache[cache_key] = schema_id
 
@@ -138,7 +138,7 @@ class SchemaRegistryClient:
         if not self._client:
             raise RuntimeError("Schema Registry client not started")
 
-        ***REMOVED*** Check cache first
+        # Check cache first
         if schema_id in self._schema_cache:
             return self._schema_cache[schema_id]
 
@@ -149,7 +149,7 @@ class SchemaRegistryClient:
             data = response.json()
             schema = json.loads(data["schema"])
 
-            ***REMOVED*** Cache the schema
+            # Cache the schema
             self._schema_cache[schema_id] = schema
 
             return schema
@@ -186,7 +186,7 @@ class SchemaRegistryClient:
             schema = json.loads(data["schema"])
             schema_id = data["id"]
 
-            ***REMOVED*** Cache the schema
+            # Cache the schema
             self._schema_cache[schema_id] = schema
 
             return schema
@@ -238,7 +238,7 @@ class SchemaRegistryClient:
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
-                ***REMOVED*** No existing version, so this is the first - compatible by definition
+                # No existing version, so this is the first - compatible by definition
                 return True
 
             self.logger.error(
@@ -264,11 +264,11 @@ class SchemaRegistryClient:
         schema_ids = {}
 
         for event_type, schema in AVRO_SCHEMAS.items():
-            ***REMOVED*** Use -value suffix for value schemas (Confluent convention)
+            # Use -value suffix for value schemas (Confluent convention)
             subject = f"{event_type}-value"
 
             try:
-                ***REMOVED*** Check compatibility before registering
+                # Check compatibility before registering
                 if await self.check_compatibility(subject, schema):
                     schema_id = await self.register_schema(subject, schema)
                     schema_ids[event_type] = schema_id
@@ -286,7 +286,7 @@ class SchemaRegistryClient:
                     error=str(e),
                     exc_info=True,
                 )
-                ***REMOVED*** Continue with other schemas
+                # Continue with other schemas
 
         self.logger.info(
             "Registered event schemas",

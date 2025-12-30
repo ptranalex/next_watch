@@ -1,8 +1,8 @@
-***REMOVED*** NextWatch CLI Framework
+# NextWatch CLI Framework
 
 A sophisticated, production-ready command-line interface framework for the NextWatch platform. Built on the battle-tested patterns from our BFF API CLI, this framework provides a unified, type-safe, and user-friendly foundation for all NextWatch service CLIs.
 
-***REMOVED******REMOVED*** 🎯 Vision
+## 🎯 Vision
 
 Create a shared CLI framework that enables:
 
@@ -13,60 +13,60 @@ Create a shared CLI framework that enables:
 
 **Current Status**: 75% complete - **Phases 1A, 1B, 2, 3, and 4 COMPLETED** ✅
 
-***REMOVED******REMOVED*** 🏗️ Architecture
+## 🏗️ Architecture
 
-***REMOVED******REMOVED******REMOVED*** Core Components
+### Core Components
 
 ```
 cli_framework/
-├── __init__.py              ***REMOVED*** Main exports and convenience functions
-├── output/                  ***REMOVED*** CLI output management
-│   ├── __init__.py          ***REMOVED*** Output handler exports
-│   ├── handler.py           ***REMOVED*** CLIOutput class and utilities
-│   └── formatters.py        ***REMOVED*** Rich formatters and styling
-├── config/                  ***REMOVED*** Configuration display framework
-│   ├── __init__.py          ***REMOVED*** Config utilities exports
-│   ├── display.py           ***REMOVED*** Configuration table formatting
-│   ├── masking.py           ***REMOVED*** Secret masking utilities
-│   └── overrides.py         ***REMOVED*** CLI config override patterns
-├── services/                ***REMOVED*** Service interaction framework
-│   ├── __init__.py          ***REMOVED*** Service utilities exports
-│   ├── client_factory.py    ***REMOVED*** HTTP client lifecycle management
-│   ├── service_registry.py  ***REMOVED*** Service discovery and registration
-│   └── retry_policies.py    ***REMOVED*** Retry logic and error handling
-├── health/                  ***REMOVED*** Health check display & command generators
-│   ├── __init__.py          ***REMOVED*** Health utilities exports
-│   ├── display.py           ***REMOVED*** Health result formatting (from BFF patterns)
-│   └── generators.py        ***REMOVED*** Health command generators
-├── commands/                ***REMOVED*** Common command patterns
-│   ├── __init__.py          ***REMOVED*** Command pattern exports
-│   ├── base.py              ***REMOVED*** Base command classes
-│   ├── version.py           ***REMOVED*** Version command generator
-│   ├── config.py            ***REMOVED*** Config command generator
-│   ├── serve.py             ***REMOVED*** Serve command generator
-│   └── generators/          ***REMOVED*** Service-specific command generators
-│       ├── __init__.py      ***REMOVED*** Generator exports
-│       ├── cache_commands.py  ***REMOVED*** Cache command generator
-│       └── service_commands.py ***REMOVED*** Generic service commands
-├── async_utils/             ***REMOVED*** Async CLI utilities
-│   ├── __init__.py          ***REMOVED*** Async utilities exports
-│   ├── lifecycle.py         ***REMOVED*** Client lifecycle management
-│   ├── concurrency.py       ***REMOVED*** Concurrent operation patterns
-│   └── context.py           ***REMOVED*** Async context managers
-├── logging/                 ***REMOVED*** CLI-specific logging
-│   ├── __init__.py          ***REMOVED*** Logging exports
-│   ├── setup.py             ***REMOVED*** CLI logging configuration
-│   └── structured.py        ***REMOVED*** Structured logging with service context
-└── utils/                   ***REMOVED*** Shared utilities
-    ├── __init__.py          ***REMOVED*** Utility exports
-    ├── validation.py        ***REMOVED*** Input validation helpers
-    ├── async_helpers.py     ***REMOVED*** Async CLI utilities
-    └── security.py          ***REMOVED*** URL masking and security utilities
+├── __init__.py              # Main exports and convenience functions
+├── output/                  # CLI output management
+│   ├── __init__.py          # Output handler exports
+│   ├── handler.py           # CLIOutput class and utilities
+│   └── formatters.py        # Rich formatters and styling
+├── config/                  # Configuration display framework
+│   ├── __init__.py          # Config utilities exports
+│   ├── display.py           # Configuration table formatting
+│   ├── masking.py           # Secret masking utilities
+│   └── overrides.py         # CLI config override patterns
+├── services/                # Service interaction framework
+│   ├── __init__.py          # Service utilities exports
+│   ├── client_factory.py    # HTTP client lifecycle management
+│   ├── service_registry.py  # Service discovery and registration
+│   └── retry_policies.py    # Retry logic and error handling
+├── health/                  # Health check display & command generators
+│   ├── __init__.py          # Health utilities exports
+│   ├── display.py           # Health result formatting (from BFF patterns)
+│   └── generators.py        # Health command generators
+├── commands/                # Common command patterns
+│   ├── __init__.py          # Command pattern exports
+│   ├── base.py              # Base command classes
+│   ├── version.py           # Version command generator
+│   ├── config.py            # Config command generator
+│   ├── serve.py             # Serve command generator
+│   └── generators/          # Service-specific command generators
+│       ├── __init__.py      # Generator exports
+│       ├── cache_commands.py  # Cache command generator
+│       └── service_commands.py # Generic service commands
+├── async_utils/             # Async CLI utilities
+│   ├── __init__.py          # Async utilities exports
+│   ├── lifecycle.py         # Client lifecycle management
+│   ├── concurrency.py       # Concurrent operation patterns
+│   └── context.py           # Async context managers
+├── logging/                 # CLI-specific logging
+│   ├── __init__.py          # Logging exports
+│   ├── setup.py             # CLI logging configuration
+│   └── structured.py        # Structured logging with service context
+└── utils/                   # Shared utilities
+    ├── __init__.py          # Utility exports
+    ├── validation.py        # Input validation helpers
+    ├── async_helpers.py     # Async CLI utilities
+    └── security.py          # URL masking and security utilities
 ```
 
-***REMOVED******REMOVED*** 🎨 Key Features
+## 🎨 Key Features
 
-***REMOVED******REMOVED******REMOVED*** 1. Unified Output Management
+### 1. Unified Output Management
 
 ```python
 from cli_framework import get_cli_output
@@ -74,14 +74,14 @@ from cli_framework import get_cli_output
 def my_command(verbose: bool = False, quiet: bool = False):
     out = get_cli_output("my-command", verbose=verbose, quiet=quiet)
 
-    out.info("User-facing message")           ***REMOVED*** Rich console (stdout)
-    out.success("Operation completed!")       ***REMOVED*** Green checkmark
-    out.warning("Something to note")          ***REMOVED*** Yellow warning
-    out.error("Something went wrong")         ***REMOVED*** Red error (stderr)
-    out.log_operation("Debug info", key=val) ***REMOVED*** Structured logging (verbose only)
+    out.info("User-facing message")           # Rich console (stdout)
+    out.success("Operation completed!")       # Green checkmark
+    out.warning("Something to note")          # Yellow warning
+    out.error("Something went wrong")         # Red error (stderr)
+    out.log_operation("Debug info", key=val) # Structured logging (verbose only)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Smart Configuration Display
+### 2. Smart Configuration Display
 
 ```python
 from cli_framework.config import print_config
@@ -98,7 +98,7 @@ def config(show_secrets: bool = False):
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Health Check Display & Command Generation
+### 3. Health Check Display & Command Generation
 
 ```python
 from cli_framework.health import display_health_results, create_health_commands
@@ -108,12 +108,12 @@ async def health(verbose: bool = False):
     """Health check using your service's health_service (where complexity lives)."""
     out = get_cli_output("health", verbose=verbose)
 
-    ***REMOVED*** Use your existing health service (BFF pattern)
+    # Use your existing health service (BFF pattern)
     health_service = get_health_service()
     try:
         results = await health_service.check_all()
 
-        ***REMOVED*** Framework provides display utilities
+        # Framework provides display utilities
         display_health_results(results, out)
 
         all_healthy = all(result.is_healthy for result in results.values())
@@ -122,7 +122,7 @@ async def health(verbose: bool = False):
     finally:
         await health_service.close()
 
-***REMOVED*** Or auto-generate health commands
+# Or auto-generate health commands
 health_app = create_health_commands(
     health_service_getter=get_health_service,
     service_checks={
@@ -134,7 +134,7 @@ health_app = create_health_commands(
 app.add_typer(health_app, name="health")
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Command Generators for Common Patterns
+### 4. Command Generators for Common Patterns
 
 ```python
 from cli_framework.health import create_health_commands
@@ -143,7 +143,7 @@ from cli_framework.commands import create_version_command, create_config_command
 
 app = typer.Typer()
 
-***REMOVED*** Health commands that use your existing health_service
+# Health commands that use your existing health_service
 health_app = create_health_commands(
     health_service_getter=lambda: get_health_service(),
     service_checks={
@@ -154,18 +154,18 @@ health_app = create_health_commands(
 )
 app.add_typer(health_app, name="health")
 
-***REMOVED*** Auto-generated cache commands for Redis
+# Auto-generated cache commands for Redis
 cache_app = create_cache_commands(
     redis_url=config.redis_url,
     default_patterns=["movie:*", "user:*", "cache:*"]
 )
 app.add_typer(cache_app, name="cache")
 
-***REMOVED*** Standard commands
+# Standard commands
 app.command("version")(create_version_command("my-service", "1.0.0"))
 app.command("config")(create_config_command(MyConfig, secret_fields=["jwt_secret"]))
 
-***REMOVED*** Serve commands for FastAPI applications
+# Serve commands for FastAPI applications
 serve_app = create_serve_app(
     service_name="My Service",
     app_import_string="my_service.main:app",
@@ -174,15 +174,15 @@ serve_app = create_serve_app(
 app.add_typer(serve_app, name="serve")
 ```
 
-***REMOVED******REMOVED*** 🚀 Design Principles
+## 🚀 Design Principles
 
-***REMOVED******REMOVED******REMOVED*** 1. **Separation of Concerns**
+### 1. **Separation of Concerns**
 
 - **User Output**: Rich console formatting for end users
 - **Operational Logging**: Structured logging for monitoring (verbose mode only)
 - **Error Handling**: Consistent error patterns with proper exit codes
 
-***REMOVED******REMOVED******REMOVED*** 2. **Production Ready**
+### 2. **Production Ready**
 
 - Secret masking and security consciousness
 - Enterprise-grade async/await support with connection pooling
@@ -191,33 +191,33 @@ app.add_typer(serve_app, name="serve")
 - Comprehensive error handling with service context
 - Structured logging integration with monitoring
 
-***REMOVED******REMOVED******REMOVED*** 3. **Developer Experience**
+### 3. **Developer Experience**
 
 - Type-safe throughout with comprehensive type hints
 - Rich help text and documentation
 - Intuitive API with sensible defaults
 - Easy integration with existing Typer apps
 
-***REMOVED******REMOVED******REMOVED*** 4. **Consistency**
+### 4. **Consistency**
 
 - Unified styling and color schemes
 - Standard command patterns and naming
 - Consistent argument handling
 - Shared validation and error messages
 
-***REMOVED******REMOVED*** 📦 Installation
+## 📦 Installation
 
 ```bash
-***REMOVED*** Install the framework
+# Install the framework
 pip install nextwatch-cli-framework
 
-***REMOVED*** Or in development mode
+# Or in development mode
 pip install -e libs/cli-framework
 ```
 
-***REMOVED******REMOVED*** 🎯 Usage Examples
+## 🎯 Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Basic CLI Setup
+### Basic CLI Setup
 
 ```python
 import typer
@@ -237,7 +237,7 @@ def deploy(
     out.info(f"Deploying to [blue]{environment}[/blue]...")
 
     try:
-        ***REMOVED*** Deployment logic here
+        # Deployment logic here
         result = deploy_service(environment)
         out.success(f"Deployed successfully! Version: {result.version}")
         out.log_operation("Deployment completed",
@@ -249,7 +249,7 @@ def deploy(
         raise typer.Exit(code=1)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Enterprise Service Management with Existing Health Services
+### Enterprise Service Management with Existing Health Services
 
 ````python
 from cli_framework.services import ServiceClientFactory
@@ -260,19 +260,19 @@ async def health_comprehensive():
     """Health check using your existing health service (proven BFF pattern)."""
     out = get_cli_output("health")
 
-    ***REMOVED*** Use your service's existing health_service (where complexity belongs)
+    # Use your service's existing health_service (where complexity belongs)
     health_service = get_health_service()
 
     try:
         out.info("🔍 Starting comprehensive health check...")
 
-        ***REMOVED*** Health service handles all the complex orchestration
+        # Health service handles all the complex orchestration
         results = await health_service.check_all()
 
-        ***REMOVED*** Framework provides consistent display
+        # Framework provides consistent display
         display_health_results(results, out)
 
-        ***REMOVED*** Simple success/failure logic
+        # Simple success/failure logic
         all_healthy = all(result.is_healthy for result in results.values())
         if all_healthy:
             out.success("All services are healthy!")
@@ -292,7 +292,7 @@ async def cache_clear_pattern():
     async with ServiceClientFactory(config) as factory:
         cache_client = await factory.get_redis_client()
 
-        ***REMOVED*** Use framework's confirmation and progress patterns
+        # Use framework's confirmation and progress patterns
         if await out.confirm("Clear all movie cache entries?"):
             async with out.progress("Clearing cache...") as progress:
                 keys = await cache_client.keys("movie:*")
@@ -302,7 +302,7 @@ async def cache_clear_pattern():
 
             out.success(f"Cleared {len(keys)} cache entries")
 
-***REMOVED******REMOVED******REMOVED*** Using Async Utilities
+### Using Async Utilities
 
 ```python
 from cli_framework import (
@@ -318,14 +318,14 @@ async def comprehensive_health_check():
     """Multi-service health check using async utilities."""
     out = get_cli_output("health")
 
-    ***REMOVED*** Coordinated lifecycle management for multiple services
+    # Coordinated lifecycle management for multiple services
     async with ServiceLifecycleManager() as manager:
-        ***REMOVED*** Register multiple services for coordinated cleanup
+        # Register multiple services for coordinated cleanup
         await manager.register_service("backend", backend_factory)
         await manager.register_service("auth", auth_factory)
         await manager.register_service("cache", redis_factory)
 
-        ***REMOVED*** Run health checks concurrently with timeout
+        # Run health checks concurrently with timeout
         health_tasks = {
             "backend": check_backend_health(),
             "auth": check_auth_health(),
@@ -335,7 +335,7 @@ async def comprehensive_health_check():
         async with with_progress(out, "Running health checks...", timeout=30):
             results = await run_concurrently(health_tasks, timeout=30.0)
 
-        ***REMOVED*** All services automatically cleaned up
+        # All services automatically cleaned up
 
 @app.command()
 async def robust_operation():
@@ -343,7 +343,7 @@ async def robust_operation():
     out = get_cli_output("operation")
 
     try:
-        ***REMOVED*** Retry unreliable operations
+        # Retry unreliable operations
         result = await run_with_retries(
             unreliable_api_call,
             retries=3,
@@ -364,7 +364,7 @@ async def batch_processing():
     out = get_cli_output("batch")
 
     async def process_batch(items):
-        ***REMOVED*** Process a batch of items
+        # Process a batch of items
         return [await process_item(item) for item in items]
 
     large_dataset = get_large_dataset()
@@ -380,13 +380,13 @@ async def batch_processing():
 
     out.success(f"Processed {len(results)} batches")
 
-***REMOVED******REMOVED******REMOVED*** Enterprise Logging Integration (Phase 3)
+### Enterprise Logging Integration (Phase 3)
 
 ```python
 from cli_framework import configure_cli_logging, get_cli_logger, with_logging
 from cli_framework.utils import validate_url, ValidationError
 
-***REMOVED*** Automatic logging setup with decorator
+# Automatic logging setup with decorator
 @with_logging(verbose=True, service_name="my-service")
 @app.command()
 def deploy(environment: str):
@@ -397,7 +397,7 @@ def deploy(environment: str):
         validate_url(f"https://{environment}.example.com")
         logger.operation("Deployment started", environment=environment)
 
-        ***REMOVED*** Your deployment logic here
+        # Your deployment logic here
         result = deploy_to_environment(environment)
 
         logger.operation("Deployment completed",
@@ -409,19 +409,19 @@ def deploy(environment: str):
         logger.error("Invalid environment URL", error=e)
         raise typer.Exit(1)
 
-***REMOVED*** Manual logging configuration
+# Manual logging configuration
 @app.command()
 def maintenance_task():
     """Task with manual logging setup."""
     configure_cli_logging(
         verbose=True,
         command_name="maintenance",
-        log_dir=Path("./logs")  ***REMOVED*** Structured JSON logs to file
+        log_dir=Path("./logs")  # Structured JSON logs to file
     )
 
     logger = get_cli_logger("maintenance", verbose=True)
 
-    ***REMOVED*** Rich user output + structured operational logging
+    # Rich user output + structured operational logging
     out = get_cli_output("maintenance", verbose=True)
     out.info("Starting maintenance tasks...")
 
@@ -429,7 +429,7 @@ def maintenance_task():
                     task_count=5,
                     scheduled_time=datetime.now().isoformat())
 
-***REMOVED*** Advanced async operations with validation
+# Advanced async operations with validation
 @app.command()
 async def validate_and_process():
     """Advanced validation and async processing."""
@@ -442,7 +442,7 @@ async def validate_and_process():
 
     out = get_cli_output("process", verbose=True)
 
-    ***REMOVED*** Input validation
+    # Input validation
     try:
         port = validate_port(8080)
         timeout = validate_timeout(30.5)
@@ -452,7 +452,7 @@ async def validate_and_process():
         out.error(f"Invalid configuration: {e}")
         raise typer.Exit(1)
 
-    ***REMOVED*** Enhanced async operations
+    # Enhanced async operations
     async with AsyncCommandRunner(out, timeout=timeout) as runner:
         operations = {
             "check_api": check_api_health(),
@@ -463,10 +463,10 @@ async def validate_and_process():
         results = await runner.run_concurrent(
             operations,
             timeout=timeout,
-            fail_fast=False  ***REMOVED*** Collect all results
+            fail_fast=False  # Collect all results
         )
 
-        ***REMOVED*** Process results with structured logging
+        # Process results with structured logging
         logger = get_cli_logger("process")
         for op_name, result in results.items():
             logger.operation("Operation completed",
@@ -474,24 +474,24 @@ async def validate_and_process():
                            success=result is not None)
 ````
 
-***REMOVED******REMOVED*** 🔧 Integration
+## 🔧 Integration
 
-***REMOVED******REMOVED******REMOVED*** With Existing Services
+### With Existing Services
 
 The framework is designed to integrate seamlessly with existing Typer-based CLIs:
 
 ```python
-***REMOVED*** Minimal integration - just replace output handling
+# Minimal integration - just replace output handling
 from cli_framework import get_cli_output
 
 @existing_command
 def my_command():
-    ***REMOVED*** Replace print() and console usage
+    # Replace print() and console usage
     out = get_cli_output("my-command")
     out.info("This now uses the framework!")
 ```
 
-***REMOVED******REMOVED******REMOVED*** With Configuration Systems
+### With Configuration Systems
 
 ```python
 from cli_framework.config import ConfigDisplayMixin
@@ -508,15 +508,15 @@ class MyConfig(ConfigDisplayMixin):
     def secret_fields(self) -> List[str]:
         return ["jwt_secret", "database_password"]
 
-***REMOVED*** Automatic config command generation
+# Automatic config command generation
 config_command = create_config_command(MyConfig)
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing Framework
+## 🧪 Testing Framework
 
 The framework includes comprehensive testing infrastructure based on NextWatch platform patterns:
 
-***REMOVED******REMOVED******REMOVED*** Base Test Classes
+### Base Test Classes
 
 ```python
 from tests.test_base import CLITestCase, AsyncTestCase, CLITestResult
@@ -549,27 +549,27 @@ class TestAsyncOperations(AsyncTestCase):
         assert results["backend-api"].is_healthy
 ```
 
-***REMOVED******REMOVED******REMOVED*** Mock Factories
+### Mock Factories
 
 ```python
-***REMOVED*** Create realistic mock services
+# Create realistic mock services
 redis_client = self.create_mock_redis_client()
 http_client = self.create_mock_http_client()
 health_service = self.create_mock_health_service()
 
-***REMOVED*** Create test data
+# Create test data
 health_results = create_sample_health_results()
 service_registry = create_test_service_registry()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Test Runner
+### Test Runner
 
 ```bash
-***REMOVED*** Run tests with the built-in runner
+# Run tests with the built-in runner
 cd libs/cli_framework
 python tests/run_tests.py
 
-***REMOVED*** Output:
+# Output:
 🧪 Running CLI Framework Tests
 ==================================================
 
@@ -589,7 +589,7 @@ Failed: 0 ❌
 🎉 All tests passed!
 ```
 
-***REMOVED******REMOVED******REMOVED*** Test Coverage
+### Test Coverage
 
 **Core Components Tested:**
 
@@ -599,9 +599,9 @@ Failed: 0 ❌
 - ✅ Integration tests with NextWatch-like configurations
 - ✅ Async test patterns with proper resource cleanup
 
-***REMOVED******REMOVED*** 📋 TODO List
+## 📋 TODO List
 
-***REMOVED******REMOVED******REMOVED*** Phase 1A: Core Framework Foundation (CRITICAL) ✅
+### Phase 1A: Core Framework Foundation (CRITICAL) ✅
 
 - [x] **Project Setup**
   - [x] Create `pyproject.toml` with proper dependencies (httpx, redis, tenacity)
@@ -623,7 +623,7 @@ Failed: 0 ❌
   - [x] Add `create_health_commands()` generator
   - [x] Follow lightweight approach where complexity stays in service health_service
 
-***REMOVED******REMOVED******REMOVED*** Phase 1B: Configuration & Async Framework ✅ COMPLETED
+### Phase 1B: Configuration & Async Framework ✅ COMPLETED
 
 - [x] **Enhanced Configuration Framework (`config/`)** ✅ COMPLETED
   - [x] Create `print_config()` universal function
@@ -638,7 +638,7 @@ Failed: 0 ❌
   - [x] Add connection pooling and timeout management
   - [x] Implement retry patterns and batch processing utilities
 
-***REMOVED******REMOVED******REMOVED*** Phase 2: Command Generators & Enhanced Utilities ✅ COMPLETED
+### Phase 2: Command Generators & Enhanced Utilities ✅ COMPLETED
 
 - [x] **Command Generators (`commands/generators/`)** ✅ COMPLETED
   - [x] Implement `create_cache_commands()` for Redis management following Backend API patterns
@@ -646,7 +646,7 @@ Failed: 0 ❌
   - [x] Create `create_database_commands()` for database management with connection testing and migration support
   - [x] Add pattern-based command generation with consistent output handling and error management
 
-***REMOVED******REMOVED******REMOVED*** Phase 3: Advanced Features ✅ COMPLETED
+### Phase 3: Advanced Features ✅ COMPLETED
 
 - [x] **Logging Integration (`logging/`)** ✅ COMPLETED
   - [x] Create CLI-specific logging configuration with `configure_cli_logging()`
@@ -660,7 +660,7 @@ Failed: 0 ❌
   - [x] Implement security utilities (`mask_url`, `mask_sensitive_value`, `is_sensitive_field`)
   - [x] Add comprehensive validation with custom `ValidationError` exception handling
 
-***REMOVED******REMOVED******REMOVED*** Phase 4: Testing & Documentation ✅ COMPLETED
+### Phase 4: Testing & Documentation ✅ COMPLETED
 
 - [x] **Testing Framework** ✅ COMPLETED
   - [x] Create `CLITestCase` base class with setup/teardown patterns
@@ -676,7 +676,7 @@ Failed: 0 ❌
   - [x] Mock factories for health services and data structures
   - [x] Test utilities for creating sample health results and service registries
 
-***REMOVED******REMOVED******REMOVED*** Phase 5: Integration & Migration
+### Phase 5: Integration & Migration
 
 - [ ] **Service Integration**
   - [ ] Migrate BFF API CLI to use framework
@@ -689,7 +689,7 @@ Failed: 0 ❌
   - [ ] Create auto-completion improvements
   - [ ] Add interactive command support
 
-***REMOVED******REMOVED******REMOVED*** Phase 6: Production Readiness
+### Phase 6: Production Readiness
 
 - [ ] **Performance & Monitoring**
   - [ ] Add CLI performance metrics
@@ -702,9 +702,9 @@ Failed: 0 ❌
   - [ ] Implement access logging
   - [ ] Create compliance reporting
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
-***REMOVED******REMOVED******REMOVED*** Development Setup
+### Development Setup
 
 ```bash
 git clone <repo>
@@ -713,53 +713,53 @@ pip install -e ".[dev]"
 pytest
 ```
 
-***REMOVED******REMOVED******REMOVED*** Code Standards
+### Code Standards
 
 - **Type Safety**: Comprehensive type hints required
 - **Testing**: 95%+ test coverage target
 - **Documentation**: Docstrings for all public APIs
 - **Async Support**: All I/O operations must be async-compatible
 
-***REMOVED******REMOVED******REMOVED*** Design Guidelines
+### Design Guidelines
 
 - Follow the established patterns from BFF API CLI
 - Prioritize user experience and developer productivity
 - Maintain backward compatibility
 - Keep dependencies minimal and well-justified
 
-***REMOVED******REMOVED*** 🔍 Real-World Patterns Discovered
+## 🔍 Real-World Patterns Discovered
 
 Based on deep analysis of the BFF API CLI, this framework addresses enterprise requirements:
 
-***REMOVED******REMOVED******REMOVED*** **Simplified Health Architecture**
+### **Simplified Health Architecture**
 
 - **Complexity lives in each service's `health_service.py`**, not CLI orchestration
 - CLI provides display utilities and command generators for existing health services
 - Follows proven BFF pattern: `health_service.check_all()` → `display_health_results()`
 - Service health services handle concurrent checks, retries, error handling
 
-***REMOVED******REMOVED******REMOVED*** **Production-Grade Service Integration**
+### **Production-Grade Service Integration**
 
 - HTTP client lifecycle management with connection pooling
 - Retry logic with exponential backoff (3 attempts, 1-10s intervals)
 - Proper resource cleanup with async context managers
 - Service-to-service authentication (JWT, API keys)
 
-***REMOVED******REMOVED******REMOVED*** **Sophisticated Configuration Management**
+### **Sophisticated Configuration Management**
 
 - CLI config overrides for individual commands
 - Service-specific timeout and retry configuration
 - Secret masking for multiple service credentials
 - Environment-aware configuration (dev/staging/prod)
 
-***REMOVED******REMOVED******REMOVED*** **Advanced CLI Patterns**
+### **Advanced CLI Patterns**
 
 - Rich progress indicators for long-running operations
 - Interactive confirmations for destructive operations (cache clear)
 - Command generators that wrap existing service logic
 - Bulk operations with pattern matching (cache keys movie:\*)
 
-***REMOVED******REMOVED*** 🔗 Related Projects
+## 🔗 Related Projects
 
 - **BFF API CLI**: Reference implementation and inspiration
 - **Backend API CLI**: Target for framework integration
@@ -768,7 +768,7 @@ Based on deep analysis of the BFF API CLI, this framework addresses enterprise r
 - **NextWatch Configuration**: Shared configuration patterns
 - **NextWatch Logging**: Structured logging integration
 
-***REMOVED******REMOVED*** 📄 License
+## 📄 License
 
 Part of the NextWatch platform - see main repository for license details.
 
@@ -776,7 +776,7 @@ Part of the NextWatch platform - see main repository for license details.
 
 **Built with ❤️ by the NextWatch Platform Team**
 
-***REMOVED******REMOVED******REMOVED*** Using Command Generators
+### Using Command Generators
 
 ```python
 from cli_framework import (
@@ -785,13 +785,13 @@ from cli_framework import (
     create_database_commands
 )
 
-***REMOVED*** Auto-generate cache management commands
+# Auto-generate cache management commands
 cache_app = create_cache_commands(
     get_redis_client=lambda: get_redis_client(),
     command_name="cache"
 )
 
-***REMOVED*** Auto-generate service management commands
+# Auto-generate service management commands
 service_app = create_service_commands(
     service_name="backend-api",
     get_health_service=lambda: get_health_service(),
@@ -799,7 +799,7 @@ service_app = create_service_commands(
     additional_commands={"migrate": migrate_db}
 )
 
-***REMOVED*** Auto-generate database commands
+# Auto-generate database commands
 db_app = create_database_commands(
     get_db_connection=lambda: get_db(),
     migration_commands={
@@ -809,41 +809,41 @@ db_app = create_database_commands(
     }
 )
 
-***REMOVED*** Add to main CLI app
+# Add to main CLI app
 main_app.add_typer(cache_app, name="cache")
 main_app.add_typer(service_app, name="service")
 main_app.add_typer(db_app, name="db")
 
-***REMOVED*** Generated commands provide Backend API equivalent functionality:
-***REMOVED*** my-cli cache info --verbose
-***REMOVED*** my-cli cache keys --pattern "movie:*" --limit 50
-***REMOVED*** my-cli cache get user:123 --verbose
-***REMOVED*** my-cli cache clear --pattern "temp:*" --confirm
-***REMOVED*** my-cli service serve --host 0.0.0.0 --port 8000 --reload
-***REMOVED*** my-cli service status --verbose --timeout 30
-***REMOVED*** my-cli db status --verbose
-***REMOVED*** my-cli db test-connection --retries 5 --delay 2.0
+# Generated commands provide Backend API equivalent functionality:
+# my-cli cache info --verbose
+# my-cli cache keys --pattern "movie:*" --limit 50
+# my-cli cache get user:123 --verbose
+# my-cli cache clear --pattern "temp:*" --confirm
+# my-cli service serve --host 0.0.0.0 --port 8000 --reload
+# my-cli service status --verbose --timeout 30
+# my-cli db status --verbose
+# my-cli db test-connection --retries 5 --delay 2.0
 ```
 
-***REMOVED******REMOVED*** 🎯 Phase 4 Achievements Summary
+## 🎯 Phase 4 Achievements Summary
 
 **Phase 4: Testing & Documentation** has been completed, delivering a robust testing infrastructure:
 
-***REMOVED******REMOVED******REMOVED*** **Testing Infrastructure Delivered:**
+### **Testing Infrastructure Delivered:**
 
 - **🧪 Production-Ready Test Framework**: Complete base test classes (`CLITestCase`, `AsyncTestCase`) with setup/teardown patterns matching NextWatch conventions
 - **🏭 Mock Factories**: Comprehensive mock creation for Redis clients, HTTP clients, health services, and test data structures
 - **🧩 Integration Tests**: Realistic service registry tests with NextWatch-like configurations
 - **🚀 Test Runner**: Self-contained test execution without external dependencies
 
-***REMOVED******REMOVED******REMOVED*** **Code Quality Achieved:**
+### **Code Quality Achieved:**
 
 - **📐 Type Safety**: Full type annotations throughout test framework
 - **🔧 Mock Patterns**: Enterprise-grade mocking following BFF API patterns
 - **✅ Validation Coverage**: Comprehensive testing of URL validation, timeout handling, retry logic
 - **📊 Test Utilities**: Helper functions for creating sample data and service configurations
 
-***REMOVED******REMOVED******REMOVED*** **Framework Maturity:**
+### **Framework Maturity:**
 
 **Total Implementation:** 65+ files, ~18,000+ lines of production-ready code across **5 completed phases** (1A, 1B, 2, 3, 4), representing **75% completion** of the planned framework.
 

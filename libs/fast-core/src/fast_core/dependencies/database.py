@@ -25,11 +25,11 @@ def get_db_session() -> Any:
     """
 
     async def _get_db_session(request: Request) -> AsyncGenerator[Any, None]:
-        ***REMOVED*** Try to get database session factory from app state
+        # Try to get database session factory from app state
         db_session_factory = getattr(request.app.state, "db_session_factory", None)
 
         if db_session_factory is None:
-            ***REMOVED*** Try to get from settings
+            # Try to get from settings
             settings = getattr(request.app.state, "settings", None)
             if settings and hasattr(settings, "db_session_factory"):
                 db_session_factory = settings.db_session_factory
@@ -37,7 +37,7 @@ def get_db_session() -> Any:
         if db_session_factory is None:
             raise RuntimeError("Database session factory not found in app state")
 
-        ***REMOVED*** Create and yield session
+        # Create and yield session
         session = None
         try:
             if callable(db_session_factory):
@@ -84,7 +84,7 @@ def get_db_transaction() -> Any:
     async def _get_db_transaction(
         session: Any = Depends(get_db_session()),
     ) -> AsyncGenerator[Any, None]:
-        ***REMOVED*** Start transaction
+        # Start transaction
         transaction = None
         try:
             if hasattr(session, "begin"):
@@ -92,14 +92,14 @@ def get_db_transaction() -> Any:
 
             yield session
 
-            ***REMOVED*** Commit transaction
+            # Commit transaction
             if transaction and hasattr(transaction, "commit"):
                 await transaction.commit()
             elif hasattr(session, "commit"):
                 await session.commit()
         except Exception as e:
             logger.error(f"Database transaction error: {e}")
-            ***REMOVED*** Rollback transaction
+            # Rollback transaction
             if transaction and hasattr(transaction, "rollback"):
                 try:
                     await transaction.rollback()
@@ -126,11 +126,11 @@ def get_database_engine() -> Any:
     """
 
     def _get_database_engine(request: Request) -> Any:
-        ***REMOVED*** Try to get database engine from app state
+        # Try to get database engine from app state
         db_engine = getattr(request.app.state, "db_engine", None)
 
         if db_engine is None:
-            ***REMOVED*** Try to get from settings
+            # Try to get from settings
             settings = getattr(request.app.state, "settings", None)
             if settings and hasattr(settings, "db_engine"):
                 db_engine = settings.db_engine
@@ -254,7 +254,7 @@ def get_read_only_session() -> Any:
     async def _get_read_only_session(
         session: Any = Depends(get_db_session()),
     ) -> Any:
-        ***REMOVED*** Mark session as read-only if supported
+        # Mark session as read-only if supported
         if hasattr(session, "info"):
             session.info["read_only"] = True
 

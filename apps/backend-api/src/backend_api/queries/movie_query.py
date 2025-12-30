@@ -26,7 +26,7 @@ from backend_api.queries.precomputed_metadata import (
     get_movies_precomputed_bulk,
 )
 
-***REMOVED*** Import query functions directly to avoid circular imports
+# Import query functions directly to avoid circular imports
 from backend_api.queries.top_movies import get_top_rated_movies
 from backend_api.queries.trailer import get_trailers_for_movie
 
@@ -81,7 +81,7 @@ class MovieQuery:
         Raises:
             ValidationError: If parameters are invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if skip < 0:
             raise ValidationError(
                 message="Invalid skip value",
@@ -106,7 +106,7 @@ class MovieQuery:
                 field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
             )
 
-        ***REMOVED*** Get movies
+        # Get movies
         return get_movies_with_filters(
             db,
             skip=skip,
@@ -138,14 +138,14 @@ class MovieQuery:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If movie_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if movie_id <= 0:
             raise ValidationError(
                 message="Invalid movie ID",
                 field_errors={"movie_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get movie
+        # Get movie
         movie = get_movie_details_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -171,14 +171,14 @@ class MovieQuery:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If tmdb_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if tmdb_id <= 0:
             raise ValidationError(
                 message="Invalid TMDB ID",
                 field_errors={"tmdb_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get movie
+        # Get movie
         movie = get_movie_details_by_tmdb_id(db, tmdb_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -203,14 +203,14 @@ class MovieQuery:
         Raises:
             ValidationError: If movie_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if movie_id <= 0:
             raise ValidationError(
                 message="Invalid movie ID",
                 field_errors={"movie_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get genres
+        # Get genres
         return get_movie_genres(db, movie_id)
 
     def get_movie_genres_bulk(
@@ -229,7 +229,7 @@ class MovieQuery:
         Raises:
             ValidationError: If movie_ids list is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if not movie_ids:
             return {}
 
@@ -239,13 +239,13 @@ class MovieQuery:
                 field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
             )
 
-        if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit
+        if len(movie_ids) > 1000:  # Reasonable limit
             raise ValidationError(
                 message="Too many movie IDs",
                 field_errors={"movie_ids": ["Maximum 1000 movie IDs allowed"]},
             )
 
-        ***REMOVED*** Get genres in bulk
+        # Get genres in bulk
         return get_movie_genres_bulk(db, movie_ids)
 
     def get_movies_by_ids(
@@ -270,7 +270,7 @@ class MovieQuery:
         Raises:
             ValidationError: If movie_ids list is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if not movie_ids:
             return []
 
@@ -280,7 +280,7 @@ class MovieQuery:
                 field_errors={"movie_ids": ["All movie IDs must be positive integers"]},
             )
 
-        if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit
+        if len(movie_ids) > 1000:  # Reasonable limit
             raise ValidationError(
                 message="Too many movie IDs",
                 field_errors={"movie_ids": ["Maximum 1000 movie IDs allowed"]},
@@ -288,14 +288,14 @@ class MovieQuery:
 
         if use_precomputed:
             try:
-                ***REMOVED*** Try precomputed metadata first (Netflix pattern)
+                # Try precomputed metadata first (Netflix pattern)
                 logger.debug(
                     f"Attempting precomputed metadata retrieval for {len(movie_ids)} movies"
                 )
                 precomputed_movies = get_movies_precomputed_bulk(db, movie_ids)
 
                 if precomputed_movies:
-                    ***REMOVED*** Check if we got all requested movies
+                    # Check if we got all requested movies
                     retrieved_ids = {movie["id"] for movie in precomputed_movies}
                     missing_ids = [mid for mid in movie_ids if mid not in retrieved_ids]
 
@@ -303,10 +303,10 @@ class MovieQuery:
                         logger.info(
                             f"Missing {len(missing_ids)} movies from precomputed data, falling back"
                         )
-                        ***REMOVED*** Fallback for missing movies
+                        # Fallback for missing movies
                         missing_movies = get_movies_by_ids_bulk(db, missing_ids)
 
-                        ***REMOVED*** Add genre information for missing movies (they won't have it precomputed)
+                        # Add genre information for missing movies (they won't have it precomputed)
                         if missing_movies:
                             missing_ids_for_genres = [
                                 movie_id
@@ -320,7 +320,7 @@ class MovieQuery:
                                 if movie_id:
                                     movie["genres"] = genres_by_movie.get(movie_id, [])
 
-                        ***REMOVED*** Combine results
+                        # Combine results
                         precomputed_movies.extend(missing_movies)
 
                     logger.debug(
@@ -333,7 +333,7 @@ class MovieQuery:
                     f"Precomputed metadata retrieval failed: {e}, falling back to real-time"
                 )
 
-        ***REMOVED*** Fallback to real-time aggregation (original implementation)
+        # Fallback to real-time aggregation (original implementation)
         logger.debug(f"Using real-time aggregation for {len(movie_ids)} movies")
         return get_movies_by_ids_bulk(db, movie_ids)
 
@@ -366,7 +366,7 @@ class MovieQuery:
         Raises:
             ValidationError: If parameters are invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if skip < 0:
             raise ValidationError(
                 message="Invalid skip value",
@@ -378,10 +378,10 @@ class MovieQuery:
                 field_errors={"limit": ["Must be between 1 and 50"]},
             )
 
-        ***REMOVED*** Get top movies by calculating page from skip
+        # Get top movies by calculating page from skip
         page = (skip // limit) + 1 if limit > 0 else 1
 
-        ***REMOVED*** Get top movies
+        # Get top movies
         return get_top_rated_movies(
             db_session=db,
             limit=limit,
@@ -432,7 +432,7 @@ class MovieQuery:
         Raises:
             ValidationError: If parameters are invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if not title_search or not title_search.strip():
             raise ValidationError(
                 message="Invalid search query",
@@ -463,7 +463,7 @@ class MovieQuery:
                 field_errors={"sort_by": [f"Must be one of: {', '.join(valid_sort_fields)}"]},
             )
 
-        ***REMOVED*** Use the search function from movie_listings
+        # Use the search function from movie_listings
         return search_movies_by_title(
             db_session=db,
             title_search=title_search.strip(),

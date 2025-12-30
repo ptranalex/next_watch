@@ -21,13 +21,13 @@ from bff_api.services.auth_client import (
 logger = get_logger(__name__)
 router = APIRouter(tags=["authentication"])
 
-***REMOVED*** Security scheme for protected routes
+# Security scheme for protected routes
 security = HTTPBearer()
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** Resource-Oriented Authentication Endpoints
-***REMOVED*** ============================================================================
+# ============================================================================
+# Resource-Oriented Authentication Endpoints
+# ============================================================================
 
 
 @router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -47,7 +47,7 @@ async def create_user(
     Raises:
         HTTPException: 400 if user already exists, 502 if auth service unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("register")
@@ -56,13 +56,13 @@ async def create_user(
         response = await auth_client.register(
             email=user_data.email,
             password=user_data.password,
-            username=user_data.name,  ***REMOVED*** Map name to username for auth-api
+            username=user_data.name,  # Map name to username for auth-api
         )
 
         return UserResponse(
             id=response["id"],
             email=response["email"],
-            name=response.get("username"),  ***REMOVED*** Map back from username
+            name=response.get("username"),  # Map back from username
             is_active=response.get("is_active", True),
             created_at=response.get("created_at", ""),
         )
@@ -109,14 +109,14 @@ async def get_user_profile(
         return UserResponse(
             id=user_info["id"],
             email=user_info["email"],
-            name=user_info.get("username"),  ***REMOVED*** Map from auth-api username
+            name=user_info.get("username"),  # Map from auth-api username
             is_active=user_info.get("is_active", True),
             created_at=user_info.get("created_at", ""),
         )
 
     except AuthClientError as e:
         if "401" in str(e):
-            ***REMOVED*** Token validation failures are normal - log as info
+            # Token validation failures are normal - log as info
             logger.debug("Token validation failed", service="bff", endpoint="get_user_profile")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -124,7 +124,7 @@ async def get_user_profile(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         else:
-            ***REMOVED*** Service errors are actual problems - log as error
+            # Service errors are actual problems - log as error
             logger.error(
                 "User profile service error",
                 error=str(e),
@@ -156,7 +156,7 @@ async def create_token(
     Raises:
         HTTPException: 401 if credentials are invalid, 502 if auth service unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("login")
@@ -168,12 +168,12 @@ async def create_token(
             access_token=response["access_token"],
             refresh_token=response["refresh_token"],
             token_type=response.get("token_type", "bearer"),
-            expires_in=response.get("expires_in", 1800),  ***REMOVED*** 30 minutes default
+            expires_in=response.get("expires_in", 1800),  # 30 minutes default
         )
 
     except AuthClientError as e:
         if "401" in str(e):
-            ***REMOVED*** Authentication failures are normal user behavior - log as info
+            # Authentication failures are normal user behavior - log as info
             logger.debug(
                 "Authentication attempt failed",
                 username=username,
@@ -186,7 +186,7 @@ async def create_token(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         else:
-            ***REMOVED*** Service errors are actual problems - log as error
+            # Service errors are actual problems - log as error
             logger.error(
                 "Authentication service error",
                 username=username,
@@ -217,7 +217,7 @@ async def update_token(
     Raises:
         HTTPException: 401 if refresh token invalid, 502 if auth service unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("token_refresh")
@@ -234,7 +234,7 @@ async def update_token(
 
     except AuthClientError as e:
         if "401" in str(e):
-            ***REMOVED*** Token refresh failures are normal - log as info
+            # Token refresh failures are normal - log as info
             logger.debug("Token refresh failed", service="bff", endpoint="update_token")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -242,7 +242,7 @@ async def update_token(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         else:
-            ***REMOVED*** Service errors are actual problems - log as error
+            # Service errors are actual problems - log as error
             logger.error(
                 "Token refresh service error",
                 error=str(e),

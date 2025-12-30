@@ -11,10 +11,10 @@ from cache.types import TTL, CacheKey, CacheResult, CacheSetResult, JSONSerializ
 
 logger = structlog.get_logger(__name__)
 
-***REMOVED*** Type variable for generic return types
+# Type variable for generic return types
 T = TypeVar("T")
 
-***REMOVED*** Global cache manager instance for singleton pattern
+# Global cache manager instance for singleton pattern
 _CACHE_MANAGER_INSTANCE: Optional["CacheManager"] = None
 
 
@@ -34,7 +34,7 @@ class CacheManager:
 
         self.logger.info("Cache manager initialized")
 
-        ***REMOVED*** Store instance in global variable for singleton pattern
+        # Store instance in global variable for singleton pattern
         global _CACHE_MANAGER_INSTANCE
         _CACHE_MANAGER_INSTANCE = self
 
@@ -54,7 +54,7 @@ class CacheManager:
         if settings is None:
             settings = CacheSettings()
 
-        ***REMOVED*** Log cache configuration for debugging
+        # Log cache configuration for debugging
         logger.info(
             "Cache manager created from environment variables",
             redis_url_masked=(
@@ -69,7 +69,7 @@ class CacheManager:
         provider = RedisProvider.from_settings(settings)
         return cls(provider=provider, settings=settings)
 
-    ***REMOVED*** Core cache operations - delegate to provider
+    # Core cache operations - delegate to provider
     async def get_json(self, key: CacheKey) -> CacheResult:
         """Get JSON value from cache.
 
@@ -94,7 +94,7 @@ class CacheManager:
         Returns:
             True if successful, False otherwise
         """
-        ***REMOVED*** Use default TTL from settings if not specified
+        # Use default TTL from settings if not specified
         if ttl is None:
             ttl = self.settings.cache_ttl_default
 
@@ -140,7 +140,7 @@ class CacheManager:
         """
         return await self.provider.exists(key)
 
-    ***REMOVED*** Domain-specific TTL helpers
+    # Domain-specific TTL helpers
     def get_ttl_for_domain(self, domain: str) -> int:
         """Get TTL for a specific domain.
 
@@ -168,7 +168,7 @@ class CacheManager:
         ttl = self.get_ttl_for_domain(domain)
         return await self.set_json(key, value, ttl)
 
-    ***REMOVED*** Enhanced methods with error handling and type safety
+    # Enhanced methods with error handling and type safety
     async def get_json_safe(
         self, key: CacheKey, log_errors: bool = True
     ) -> JSONSerializable | None:
@@ -270,7 +270,7 @@ class CacheManager:
                 self.logger.error(f"Failed to delete cache key {key}", error=str(e))
             return False
 
-    ***REMOVED*** Health and management operations
+    # Health and management operations
     async def health_check(self) -> bool:
         """Perform health check on the cache system.
 
@@ -297,7 +297,7 @@ class CacheManager:
         if hasattr(self.provider, "close"):
             await self.provider.close()
 
-    ***REMOVED*** Context manager support
+    # Context manager support
     async def __aenter__(self) -> "CacheManager":
         """Async context manager entry."""
         return self

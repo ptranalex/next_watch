@@ -18,7 +18,7 @@ from .types import (
     WarmingTarget,
 )
 
-***REMOVED*** Global warming engine registry for dependency injection
+# Global warming engine registry for dependency injection
 _global_warming_engine: WarmingEngine | None = None
 
 
@@ -51,7 +51,7 @@ def clear_global_warming_engine() -> None:
 
 
 __all__ = [
-    ***REMOVED*** Types
+    # Types
     "WarmingTarget",
     "WarmingResult",
     "WarmingBatch",
@@ -59,15 +59,15 @@ __all__ = [
     "WarmingConfig",
     "WarmingStatus",
     "WarmingStrategy",
-    ***REMOVED*** Core engine
+    # Core engine
     "WarmingEngine",
-    ***REMOVED*** Strategies
+    # Strategies
     "BaseWarmingStrategy",
     "MetricsDrivenStrategy",
     "PopularContentStrategy",
     "UserSpecificStrategy",
     "ScheduledStrategy",
-    ***REMOVED*** Global engine registry
+    # Global engine registry
     "set_global_warming_engine",
     "get_global_warming_engine",
     "clear_global_warming_engine",

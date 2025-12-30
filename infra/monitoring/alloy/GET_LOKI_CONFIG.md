@@ -1,8 +1,8 @@
-***REMOVED*** 🔍 How to Get Loki Configuration from Grafana Cloud
+# 🔍 How to Get Loki Configuration from Grafana Cloud
 
-***REMOVED******REMOVED*** 🎯 **Quick Steps**
+## 🎯 **Quick Steps**
 
-***REMOVED******REMOVED******REMOVED*** **Method 1: Through Data Sources (Recommended)**
+### **Method 1: Through Data Sources (Recommended)**
 
 1. **Login to Grafana Cloud Console**
 
@@ -30,7 +30,7 @@
      Password: glc_eyJ... (API key)
      ```
 
-***REMOVED******REMOVED******REMOVED*** **Method 2: Through Stack Settings**
+### **Method 2: Through Stack Settings**
 
 1. **Go to Stack Overview**
 
@@ -46,7 +46,7 @@
    - Some stacks show ready-made Alloy config blocks
    - Similar to the Prometheus config you got
 
-***REMOVED******REMOVED******REMOVED*** **Method 3: Through API Keys Page**
+### **Method 3: Through API Keys Page**
 
 1. **Go to API Keys**
 
@@ -65,24 +65,24 @@
    - Username: Same as metrics (`2603597`)
    - Password: The new API key you generated
 
-***REMOVED******REMOVED*** 📋 **What You're Looking For**
+## 📋 **What You're Looking For**
 
 You need these 3 values:
 
 ```bash
-***REMOVED*** Loki endpoint URL
+# Loki endpoint URL
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-XX-XX-X.grafana.net/loki/api/v1/push
 
-***REMOVED*** Usually same as metrics username
+# Usually same as metrics username
 GRAFANA_CLOUD_LOGS_USERNAME=2603597
 
-***REMOVED*** API key for logs (might be same as metrics or different)
+# API key for logs (might be same as metrics or different)
 GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ...
 ```
 
-***REMOVED******REMOVED*** 🔍 **Visual Guide**
+## 🔍 **Visual Guide**
 
-***REMOVED******REMOVED******REMOVED*** **In Grafana Cloud Console:**
+### **In Grafana Cloud Console:**
 
 ```
 📊 Grafana Cloud Console
@@ -97,7 +97,7 @@ GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ...
     └── 🔑 API Keys ← **Alternative: Create new key here**
 ```
 
-***REMOVED******REMOVED******REMOVED*** **In Loki Data Source Page:**
+### **In Loki Data Source Page:**
 
 ```
 📋 Loki Data Source Configuration
@@ -111,12 +111,12 @@ GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ...
 └── 🧪 Test & Save
 ```
 
-***REMOVED******REMOVED*** 🚀 **Quick Test**
+## 🚀 **Quick Test**
 
 Once you have the values, test them:
 
 ```bash
-***REMOVED*** Test Loki connection
+# Test Loki connection
 curl -u "2603597:YOUR_LOKI_API_KEY" \
   "https://logs-prod-XX-XX-X.grafana.net/loki/api/v1/push" \
   -H "Content-Type: application/json" \
@@ -132,35 +132,35 @@ curl -u "2603597:YOUR_LOKI_API_KEY" \
 
 Should return: `HTTP 204 No Content` (success)
 
-***REMOVED******REMOVED*** ❓ **If You Can't Find It**
+## ❓ **If You Can't Find It**
 
-***REMOVED******REMOVED******REMOVED*** **Option A: Use Same Credentials**
+### **Option A: Use Same Credentials**
 
 Often the logs use the same credentials as metrics:
 
 ```bash
-***REMOVED*** Try using the same values as metrics
+# Try using the same values as metrics
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-37-prod-ap-southeast-1.grafana.net/loki/api/v1/push
 GRAFANA_CLOUD_LOGS_USERNAME=2603597
 GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ...
 ```
 
-***REMOVED******REMOVED******REMOVED*** **Option B: Check Stack Documentation**
+### **Option B: Check Stack Documentation**
 
 - Look for **"Getting Started"** or **"Send Data"** guides
 - Often has copy-paste configuration blocks
 
-***REMOVED******REMOVED******REMOVED*** **Option C: Contact Support**
+### **Option C: Contact Support**
 
 - Grafana Cloud has good documentation
 - Check: `https://grafana.com/docs/grafana-cloud/send-data/logs/`
 
-***REMOVED******REMOVED*** 🎯 **Expected Result**
+## 🎯 **Expected Result**
 
 You should get values like:
 
 ```bash
-***REMOVED*** Pattern for ap-southeast-1 region (same as your metrics)
+# Pattern for ap-southeast-1 region (same as your metrics)
 GRAFANA_CLOUD_LOGS_URL=https://logs-prod-37-prod-ap-southeast-1.grafana.net/loki/api/v1/push
 GRAFANA_CLOUD_LOGS_USERNAME=2603597
 GRAFANA_CLOUD_LOGS_PASSWORD=glc_eyJ... (same or different API key)

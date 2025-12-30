@@ -30,18 +30,18 @@ async def test_get_entity_suggestions_cache_miss_full_flow(monkeypatch) -> None:
     redis.exists.return_value = 0
     redis.set.return_value = True
 
-    ***REMOVED*** avoid real redis
+    # avoid real redis
     import redis.asyncio
 
     monkeypatch.setattr(redis.asyncio, "Redis", lambda connection_pool=None: _RedisCM(redis))
 
-    ***REMOVED*** Force limited initial suggestions so substring path runs
+    # Force limited initial suggestions so substring path runs
     async def fake_get_suggestions(q: str, limit: int = 10):
         return ["leo"]
 
-    engine.get_suggestions = fake_get_suggestions  ***REMOVED*** type: ignore
+    engine.get_suggestions = fake_get_suggestions  # type: ignore
 
-    engine._matching.get_substring_matches = AsyncMock(return_value=["leon", "leonardo"])  ***REMOVED*** type: ignore
+    engine._matching.get_substring_matches = AsyncMock(return_value=["leon", "leonardo"])  # type: ignore
     engine._hydrator.hydrate_suggestions = AsyncMock(
         return_value=[{"text": "leo", "id": 1, "popularity": 1.0}]
     )
@@ -52,7 +52,7 @@ async def test_get_entity_suggestions_cache_miss_full_flow(monkeypatch) -> None:
     out = await engine.get_entity_suggestions("leo", limit=2)
     assert len(out) == 2
 
-    ***REMOVED*** write-through cache should be attempted
+    # write-through cache should be attempted
     assert redis.set.await_count >= 1
 
 
@@ -62,13 +62,13 @@ async def test_get_ranked_suggestions_fuzzy_path(monkeypatch) -> None:
 
     engine = SuggestionEngine(redis_url="redis://x")
 
-    ***REMOVED*** First call returns 1, second call returns 1 more
+    # First call returns 1, second call returns 1 more
     async def fake_entity(q: str, limit: int = 10):
         if q == "star wars":
             return [{"text": "star wars", "id": 1}]
         return [{"text": q, "id": 2}]
 
-    engine.get_entity_suggestions = fake_entity  ***REMOVED*** type: ignore
+    engine.get_entity_suggestions = fake_entity  # type: ignore
 
     out = await engine.get_ranked_suggestions("star wars", limit=2, fallback_to_fuzzy=True)
     assert len(out) == 2

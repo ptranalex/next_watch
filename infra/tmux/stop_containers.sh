@@ -1,13 +1,13 @@
-***REMOVED***!/usr/bin/env bash
-***REMOVED*** Helper script to stop NextWatch Docker containers
-***REMOVED*** Note: Redis is managed by Homebrew and not stopped by this script
+#!/usr/bin/env bash
+# Helper script to stop NextWatch Docker containers
+# Note: Redis is managed by Homebrew and not stopped by this script
 
 echo "🛑 Stopping NextWatch Docker containers..."
 
-***REMOVED*** Stop Qdrant container only (Redis is Homebrew service)
+# Stop Qdrant container only (Redis is Homebrew service)
 docker stop nextwatch-qdrant 2>/dev/null || echo "No Qdrant container to stop"
 
-***REMOVED*** Remove Qdrant container
+# Remove Qdrant container
 docker rm nextwatch-qdrant 2>/dev/null || echo "No Qdrant container to remove"
 
 echo "✅ NextWatch Docker containers stopped and removed"

@@ -34,7 +34,7 @@ class ResponseBuilder:
         """
         self.config = config or {}
 
-        ***REMOVED*** Default configuration
+        # Default configuration
         self._defaults: dict[str, dict[str, Any]] = {
             "pagination": {
                 "default_limit": 20,
@@ -78,7 +78,7 @@ class ResponseBuilder:
         Returns:
             Structured paginated response
         """
-        ***REMOVED*** Merge configuration
+        # Merge configuration
         pagination_config = {
             **self._defaults["pagination"],
             **(self.config.get("pagination") or {}),
@@ -86,12 +86,12 @@ class ResponseBuilder:
         if config_override:
             pagination_config.update(config_override)
 
-        ***REMOVED*** Calculate pagination info
+        # Calculate pagination info
         total_pages = math.ceil(total / limit) if limit > 0 else 0
         has_next = page < total_pages
         has_prev = page > 1
 
-        ***REMOVED*** Build pagination metadata
+        # Build pagination metadata
         pagination_info: PaginationInfo = {
             "page": page,
             "per_page": limit,
@@ -197,7 +197,7 @@ class ResponseBuilder:
         Returns:
             Structured search response
         """
-        ***REMOVED*** Merge configuration
+        # Merge configuration
         search_config = {
             **self._defaults["search"],
             **(self.config.get("search") or {}),
@@ -281,7 +281,7 @@ class ResponseBuilder:
         Returns:
             Structured error response
         """
-        ***REMOVED*** Merge configuration
+        # Merge configuration
         error_config = {
             **self._defaults["errors"],
             **(self.config.get("errors") or {}),
@@ -301,7 +301,7 @@ class ResponseBuilder:
             error_info["suggestions"] = suggestions
 
         response: ErrorResponse = {
-            "error": error_info,  ***REMOVED*** type: ignore
+            "error": error_info,  # type: ignore
         }
 
         if metadata:

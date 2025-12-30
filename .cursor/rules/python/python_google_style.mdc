@@ -3,43 +3,43 @@ description:
 globs: *.py
 alwaysApply: false
 ---
-***REMOVED*** Python Google Style Guide
+# Python Google Style Guide
 
 Whenever I'm writing Python code, enforce the following rules based on the Google Python Style Guide:
 
-***REMOVED******REMOVED*** ✅ Code Style & Naming
+## ✅ Code Style & Naming
 - Use snake_case for functions and variables
 - Use CapWords (PascalCase) for class names
 - Use ALL_CAPS for constants
 - Use self._private_method() naming for internal methods
 
-***REMOVED******REMOVED*** 📄 Docstrings
+## 📄 Docstrings
 - Every public module, class, and function must have a docstring using Google-style formatting:
   - Start with a 1-line summary
   - Include Args:, Returns:, and Raises: sections as needed
   - Use triple double-quotes """
 
-***REMOVED******REMOVED*** 🧪 Testing (TDD Support)
+## 🧪 Testing (TDD Support)
 - If I define a new function or class, ask me whether I want to generate a test
 - Prefer pytest style for tests
 - Tests should live in a mirrored tests/ directory and be named test_<module>.py
 
-***REMOVED******REMOVED*** 🧼 Code Quality
+## 🧼 Code Quality
 - All functions must include type hints
 - Enforce max line length of 100 characters
 - Favor clear, readable, and modular functions (ideally <40 lines)
 - Prefer exceptions over return codes for error handling
 - Suggest using logging instead of print
 
-***REMOVED******REMOVED*** 📦 Imports & Project Structure
+## 📦 Imports & Project Structure
 - Use absolute imports, not relative (e.g., from my_package.module import MyClass)
 - Order imports: Standard library → Third-party → Local modules
 - Organize each feature or module into its own file, named with snake_case
 
-***REMOVED******REMOVED*** 🛠️ Tools
+## 🛠️ Tools
 - Use black for formatting, ruff or pylint for linting, and mypy for type checking
 - Use pyproject.toml as the central config when applicable
 
-***REMOVED******REMOVED*** 🔍 Additional Guidelines
+## 🔍 Additional Guidelines
 - Offer to automatically fix formatting or docstring style issues
 - When reviewing code, proactively flag anything that breaks Google's conventions

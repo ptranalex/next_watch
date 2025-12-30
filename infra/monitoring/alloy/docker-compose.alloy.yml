@@ -14,7 +14,7 @@ services:
       - "--server.http.ui-path-prefix=/alloy"
       - "--stability.level=generally-available"
     ports:
-      - "12345:12345" ***REMOVED*** Alloy UI
+      - "12345:12345" # Alloy UI
     environment:
       - TZ=UTC
       - GRAFANA_CLOUD_METRICS_URL=${GRAFANA_CLOUD_METRICS_URL}
@@ -29,7 +29,7 @@ services:
       - /var/log:/var/log:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      ***REMOVED*** Mount NextWatch service log volumes (same as current Promtail)
+      # Mount NextWatch service log volumes (same as current Promtail)
       - next_watch_backend-logs:/app/logs/backend:ro
       - next_watch_bff-logs:/app/logs/bff:ro
       - next_watch_auth-logs:/app/logs/auth:ro
@@ -69,7 +69,7 @@ services:
 volumes:
   alloy-data:
     driver: local
-  ***REMOVED*** Use existing NextWatch log volumes (external)
+  # Use existing NextWatch log volumes (external)
   next_watch_backend-logs:
     external: true
   next_watch_bff-logs:

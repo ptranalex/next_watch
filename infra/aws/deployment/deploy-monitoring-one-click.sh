@@ -1,15 +1,15 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** One-Click NextWatch Monitoring Deployment to Existing AWS Infrastructure
+# One-Click NextWatch Monitoring Deployment to Existing AWS Infrastructure
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 NextWatch Monitoring - One-Click AWS Deployment${NC}"
 echo "============================================================"
@@ -20,7 +20,7 @@ echo "  2. 🔓 Configure security groups"
 echo "  3. 🐳 Deploy monitoring stack"
 echo ""
 
-***REMOVED*** Confirmation
+# Confirmation
 read -p "Continue with automated deployment? [y/N]: " confirm
 if [[ ! $confirm =~ ^[Yy]$ ]]; then
     echo "Deployment cancelled."
@@ -32,7 +32,7 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 1/3: Checking AWS Environment${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Step 1: Check Environment
+# Step 1: Check Environment
 if ! ./infra/aws/setup/check-environment.sh; then
     echo -e "${RED}❌ Environment check failed. Please resolve issues before continuing.${NC}"
     exit 1
@@ -43,7 +43,7 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 2/3: Configuring Security Groups${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Step 2: Configure Security Groups
+# Step 2: Configure Security Groups
 export ONE_CLICK_MODE=true
 if ! ./infra/aws/setup/open-monitoring-ports.sh; then
     echo -e "${RED}❌ Security group configuration failed.${NC}"
@@ -55,7 +55,7 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 3/4: Deploying Monitoring Stack${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Step 3: Deploy Monitoring
+# Step 3: Deploy Monitoring
 export ONE_CLICK_MODE=true
 if ! ./infra/aws/deployment/deploy-monitoring-to-existing.sh; then
     echo -e "${RED}❌ Monitoring deployment failed.${NC}"
@@ -67,7 +67,7 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 4/4: Configuring Log Sync${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Step 4: Fix Docker socket permissions for log sync
+# Step 4: Fix Docker socket permissions for log sync
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
 
@@ -101,7 +101,7 @@ echo -e "${GREEN}🎉 ONE-CLICK DEPLOYMENT SUCCESSFUL!${NC}"
 echo "================================================================"
 echo ""
 
-***REMOVED*** Load the environment variables to show final results
+# Load the environment variables to show final results
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
 

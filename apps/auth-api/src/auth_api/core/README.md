@@ -1,39 +1,39 @@
-***REMOVED*** Auth API Core Module
+# Auth API Core Module
 
 This directory contains the core components for the Authentication API application, following a modular architecture pattern similar to the recommendation-api.
 
-***REMOVED******REMOVED*** Structure
+## Structure
 
 ```
 auth_api/core/
-├── __init__.py          ***REMOVED*** Module exports
-├── app.py              ***REMOVED*** FastAPI application factory
-├── logging.py          ***REMOVED*** Logging configuration
-├── middleware.py       ***REMOVED*** Middleware setup
-└── README.md           ***REMOVED*** This file
+├── __init__.py          # Module exports
+├── app.py              # FastAPI application factory
+├── logging.py          # Logging configuration
+├── middleware.py       # Middleware setup
+└── README.md           # This file
 ```
 
-***REMOVED******REMOVED*** Components
+## Components
 
-***REMOVED******REMOVED******REMOVED*** `app.py` - Application Factory
+### `app.py` - Application Factory
 
 - **`create_app()`**: Main factory function that creates and configures the FastAPI application
 - **`lifespan()`**: Application lifespan manager for startup/shutdown logic
 - **`global_exception_handler()`**: Global exception handling for unhandled errors
 
-***REMOVED******REMOVED******REMOVED*** `middleware.py` - Middleware Configuration
+### `middleware.py` - Middleware Configuration
 
 - **`setup_middleware()`**: Configures all middleware including CORS and TrustedHost
 - Handles production-specific middleware configuration
 - Centralizes middleware logic for better maintainability
 
-***REMOVED******REMOVED******REMOVED*** `logging.py` - Logging Setup
+### `logging.py` - Logging Setup
 
 - **`setup_logging()`**: Initializes application logging using the config module
 - Uses the comprehensive logging configuration from `auth_api.config.logging`
 - Ensures consistent logging across the application
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 The core module is designed to be imported and used in `main.py`:
 
@@ -41,14 +41,14 @@ The core module is designed to be imported and used in `main.py`:
 from auth_api.core import create_app
 from auth_api.core.logging import setup_logging
 
-***REMOVED*** Setup logging first
+# Setup logging first
 setup_logging()
 
-***REMOVED*** Create the application
+# Create the application
 app = create_app()
 ```
 
-***REMOVED******REMOVED*** Benefits
+## Benefits
 
 1. **Separation of Concerns**: Each module has a specific responsibility
 2. **Maintainability**: Easy to modify individual components without affecting others
@@ -56,7 +56,7 @@ app = create_app()
 4. **Consistency**: Follows the same pattern as other services in the platform
 5. **Clean Architecture**: Clear boundaries between configuration, middleware, and application logic
 
-***REMOVED******REMOVED*** Dependencies
+## Dependencies
 
 - `fastapi`: Web framework
 - `auth_api.config`: Configuration management

@@ -14,7 +14,7 @@ from config.logging import get_logger
 from config.services.monitoring import MonitoringConfigMixin
 from pydantic import Field, validator
 
-***REMOVED*** Configure basic logging first for this module
+# Configure basic logging first for this module
 logger = get_logger(__name__)
 
 MAX_BATCH_SIZE = 1000
@@ -27,16 +27,16 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
     Provides configuration for the ML API service with ML-specific features and monitoring support.
     """
 
-    ***REMOVED*** Service identification
+    # Service identification
     service_name: str = Field(default="ml-api", description="Service name")
     port: int = Field(default=8000, description="Service port")
 
-    ***REMOVED*** Logging configuration
+    # Logging configuration
     logs_dir: str | None = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
 
-    ***REMOVED*** ML-specific configuration
+    # ML-specific configuration
     embedding_model: str = Field(
         default="all-MiniLM-L6-v2", description="Sentence transformer model name"
     )
@@ -46,7 +46,7 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
     max_batch_size: int = Field(default=32, description="Maximum batch size for embeddings")
     embeddings_db_path: str | None = Field(default=None, description="Path to embeddings database")
 
-    ***REMOVED*** Feature flags
+    # Feature flags
     enable_embeddings: bool = Field(default=True, description="Enable embedding features")
     enable_batch_processing: bool = Field(default=True, description="Enable batch processing")
     enable_model_caching: bool = Field(default=True, description="Enable model caching")
@@ -54,7 +54,7 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
     class Config:
         """Pydantic configuration for environment handling."""
 
-        env_prefix = ""  ***REMOVED*** Remove ML_ prefix requirement
+        env_prefix = ""  # Remove ML_ prefix requirement
         env_file = (".env", ".env.local")
         env_file_encoding = "utf-8"
         case_sensitive = False
@@ -62,10 +62,10 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize ML API configuration."""
-        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        # Initialize with Pydantic Settings (will auto-load .env files)
         super().__init__(**kwargs)
 
-        ***REMOVED*** Apply shared security and logging patterns
+        # Apply shared security and logging patterns
         self.apply_production_security_overrides()
         self._apply_ml_specific_overrides()
         self.log_configuration_summary()
@@ -76,12 +76,12 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         if not self.is_production:
             return
 
-        ***REMOVED*** Note: File logging works fine in production with Docker volume mounts
-        ***REMOVED*** Docker handles volume permissions properly, so no need to disable logging
+        # Note: File logging works fine in production with Docker volume mounts
+        # Docker handles volume permissions properly, so no need to disable logging
 
     def _log_ml_specific_summary(self) -> None:
         """Log ML-specific configuration details."""
-        ***REMOVED*** Log ML configuration in compact format
+        # Log ML configuration in compact format
         ml_config = {
             "model": self.embedding_model,
             "max_batch": self.max_batch_size,
@@ -89,12 +89,12 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         }
         logger.info(f"ML Configuration: {ml_config}")
 
-        ***REMOVED*** Log feature flags in compact format if any are disabled
+        # Log feature flags in compact format if any are disabled
         features = {
             "embeddings": self.enable_embeddings,
             "batch_processing": self.enable_batch_processing,
             "model_caching": self.enable_model_caching,
-            "metrics": True,  ***REMOVED*** Always enabled for production observability
+            "metrics": True,  # Always enabled for production observability
         }
         disabled_features = [k for k, v in features.items() if not v]
         if disabled_features:
@@ -115,7 +115,7 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         if v is None:
             return None
 
-        ***REMOVED*** Ensure it's a valid path
+        # Ensure it's a valid path
         try:
             Path(v)
         except Exception as e:
@@ -127,16 +127,16 @@ class MLAPIConfig(ServiceConfig, MonitoringConfigMixin):
         """Validate configuration for production deployment."""
         issues = []
 
-        ***REMOVED*** Get validation from parent class (includes basic debug mode checks)
+        # Get validation from parent class (includes basic debug mode checks)
         issues.extend(super().validate_production_settings())
 
-        ***REMOVED*** ML-specific production validations
+        # ML-specific production validations
         if self.is_production:
-            ***REMOVED*** Warn about model caching in production
+            # Warn about model caching in production
             if not self.enable_model_caching:
                 issues.append("Model caching should be enabled in production for performance")
 
-            ***REMOVED*** Check for reasonable batch size
+            # Check for reasonable batch size
             if self.max_batch_size > LARGE_BATCH_SIZE_WARNING:
                 issues.append("Large batch sizes (>100) may cause memory issues in production")
 
@@ -185,5 +185,5 @@ def get_ml_settings() -> MLAPIConfig:
     return MLAPIConfig()
 
 
-***REMOVED*** Default settings instance
+# Default settings instance
 settings = get_ml_settings()

@@ -79,7 +79,7 @@ jobs:
             set -e
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
-            ***REMOVED*** Check if backend-api container is running
+            # Check if backend-api container is running
             if ! docker ps --format "{{.Names}}" | grep -q "^backend-api$"; then
               echo "❌ Error: backend-api container is not running"
               echo "Containers currently running:"
@@ -90,10 +90,10 @@ jobs:
 
             echo "🚀 Running Redis populate suggestions on container: backend-api"
 
-            ***REMOVED*** Build the command to run on the existing container
+            # Build the command to run on the existing container
             CMD="docker exec backend-api python -m backend_api.cli redis populate-suggestions"
 
-            ***REMOVED*** Add parameters
+            # Add parameters
             CMD="${CMD} --limit ${{ github.event.inputs.limit }}"
 
             if [ "${{ github.event.inputs.clear }}" = "true" ]; then
@@ -121,9 +121,9 @@ jobs:
               CMD="${CMD} --verbose"
             fi
 
-            ***REMOVED*** Execute command
+            # Execute command
             echo "Running command: $CMD"
             eval "$CMD"
 
-            ***REMOVED*** Cleanup old images
+            # Cleanup old images
             docker image prune -f

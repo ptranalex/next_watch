@@ -1,8 +1,8 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 echo '🔍 Checking Next Watch Services Status...'
 echo
 
-***REMOVED*** Check infrastructure services first
+# Check infrastructure services first
 echo '🏗️ Infrastructure Services:'
 if redis-cli ping >/dev/null 2>&1; then
     echo "✅ Redis (Homebrew) - UP (localhost:6379)"

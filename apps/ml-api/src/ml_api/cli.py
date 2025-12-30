@@ -13,41 +13,41 @@ from ml_api import __version__
 from ml_api.config import settings
 from ml_api.services import embedding_service
 
-***REMOVED*** Create the Typer app
+# Create the Typer app
 app = typer.Typer(help="ML API for Next Watch platform")
 serve_app = typer.Typer(help="Server management commands")
 config_app = typer.Typer(help="Configuration commands")
 model_app = typer.Typer(help="Model management commands")
 health_app = typer.Typer(help="Health check commands")
 
-***REMOVED*** Add sub-apps
+# Add sub-apps
 app.add_typer(serve_app, name="serve")
 app.add_typer(config_app, name="config")
 app.add_typer(model_app, name="model")
 app.add_typer(health_app, name="health")
 
-***REMOVED*** Create console for rich output
+# Create console for rich output
 console = Console()
 
 
-***REMOVED*** Configure logging
+# Configure logging
 def configure_logging(log_level: str = "INFO", verbose: bool = False) -> None:
     """Configure logging for the CLI."""
     level = getattr(logging, log_level.upper(), logging.INFO)
 
-    ***REMOVED*** Configure root logger
+    # Configure root logger
     logging.basicConfig(
         level=level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
 
-    ***REMOVED*** Set more verbose logging for the ML API if requested
+    # Set more verbose logging for the ML API if requested
     if verbose:
         logging.getLogger("ml_api").setLevel(logging.DEBUG)
 
 
-***REMOVED*** Server commands
+# Server commands
 @serve_app.command("start")
 def start_server(
     host: str = typer.Option(settings.host, "--host", help="Host to bind the server to"),
@@ -59,7 +59,7 @@ def start_server(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
 ) -> None:
     """Start the ML API server."""
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(log_level, verbose)
 
     if not quiet:
@@ -70,7 +70,7 @@ def start_server(
         console.print(f"Log level: [cyan]{log_level}[/]")
         console.print(f"Reload: [cyan]{reload}[/]")
 
-    ***REMOVED*** Start the server
+    # Start the server
     uvicorn.run(
         "ml_api.app:app",
         host=host,
@@ -81,7 +81,7 @@ def start_server(
     )
 
 
-***REMOVED*** Configuration commands
+# Configuration commands
 @config_app.command("show")
 def show_config(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed information"),
@@ -93,7 +93,7 @@ def show_config(
     table.add_column("Value", style="green")
 
     for key, value in settings.__dict__.items():
-        if not key.startswith("_"):  ***REMOVED*** Skip private attributes
+        if not key.startswith("_"):  # Skip private attributes
             table.add_row(key, str(value))
 
     console.print(table)
@@ -104,9 +104,9 @@ def show_config(
 @config_app.command("validate")
 def validate_config() -> bool:
     """Validate the current configuration."""
-    ***REMOVED*** This is a simple validation that just checks if the config can be loaded
+    # This is a simple validation that just checks if the config can be loaded
     try:
-        ***REMOVED*** Try to access settings to validate it's properly loaded
+        # Try to access settings to validate it's properly loaded
         _ = settings.service_name
         console.print("[bold green]Configuration is valid[/]")
         return True
@@ -115,7 +115,7 @@ def validate_config() -> bool:
         return False
 
 
-***REMOVED*** Model commands
+# Model commands
 @model_app.command("load")
 def load_model(
     model_name: Optional[str] = typer.Option(
@@ -188,11 +188,11 @@ def model_status() -> int:
     return 0
 
 
-***REMOVED*** Health check commands
+# Health check commands
 @health_app.command("check")
 def health_check() -> None:
     """Check the health of the ML API."""
-    ***REMOVED*** Check model status
+    # Check model status
     model_info = embedding_service.get_model_info()
 
     table = Table(title="ML API Health Check")
@@ -201,10 +201,10 @@ def health_check() -> None:
     table.add_column("Status", style="green")
     table.add_column("Details", style="yellow")
 
-    ***REMOVED*** API status
+    # API status
     table.add_row("API", "OK", f"Version {__version__}")
 
-    ***REMOVED*** Model status
+    # Model status
     model_status = model_info["status"]
     model_health = model_info["health"]
 
@@ -220,7 +220,7 @@ def health_check() -> None:
     console.print(table)
 
 
-***REMOVED*** Version command
+# Version command
 @app.command("version")
 def version() -> None:
     """Show the version of the ML API."""

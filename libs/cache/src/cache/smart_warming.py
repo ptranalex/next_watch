@@ -58,12 +58,12 @@ class TokenBucketLimiter:
         async with self._lock:
             now = time.time()
 
-            ***REMOVED*** Add tokens based on elapsed time
+            # Add tokens based on elapsed time
             elapsed = now - self.last_update
             self.tokens = min(self.burst, self.tokens + elapsed * self.rate)
             self.last_update = now
 
-            ***REMOVED*** Check if we have tokens available
+            # Check if we have tokens available
             if self.tokens >= 1.0:
                 self.tokens -= 1.0
                 return True
@@ -132,7 +132,7 @@ class SmartWarmingService:
 
         self.warming_stats["operations_attempted"] += 1
 
-        ***REMOVED*** Check rate limiting
+        # Check rate limiting
         if not await self.rate_limiter.acquire():
             self.warming_stats["operations_rate_limited"] += 1
             logger.debug(
@@ -149,11 +149,11 @@ class SmartWarmingService:
                 context=context,
             )
 
-            ***REMOVED*** Execute warming function if provided
+            # Execute warming function if provided
             if warming_func:
                 await warming_func()
             else:
-                ***REMOVED*** Default warming logic based on context
+                # Default warming logic based on context
                 await self._warm_related_content(cache_key, context)
 
             self.warming_stats["operations_successful"] += 1
@@ -198,7 +198,7 @@ class SmartWarmingService:
 
         self.warming_stats["operations_attempted"] += 1
 
-        ***REMOVED*** Check rate limiting
+        # Check rate limiting
         if not await self.rate_limiter.acquire():
             self.warming_stats["operations_rate_limited"] += 1
             logger.debug(
@@ -215,7 +215,7 @@ class SmartWarmingService:
                 context=context,
             )
 
-            ***REMOVED*** Execute the provided warming function
+            # Execute the provided warming function
             if warming_func:
                 await warming_func()
             else:
@@ -287,11 +287,11 @@ class SmartWarmingService:
             context=context,
         )
 
-        ***REMOVED*** Small delay to prevent overwhelming downstream services
+        # Small delay to prevent overwhelming downstream services
         await asyncio.sleep(random.uniform(0.1, 0.5))
 
 
-***REMOVED*** Global smart warming service instance
+# Global smart warming service instance
 _global_smart_warming_service: SmartWarmingService | None = None
 
 

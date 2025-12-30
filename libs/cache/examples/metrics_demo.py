@@ -1,4 +1,4 @@
-***REMOVED***!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Cache Metrics Demo
 
@@ -16,10 +16,10 @@ from cache import get_global_collector, redis_cache
 from cache.manager import CacheManager
 
 
-***REMOVED*** Mock expensive operations
+# Mock expensive operations
 async def expensive_database_query(user_id: int) -> dict[str, Any]:
     """Simulate an expensive database query."""
-    await asyncio.sleep(0.1)  ***REMOVED*** 100ms delay
+    await asyncio.sleep(0.1)  # 100ms delay
     return {
         "user_id": user_id,
         "name": f"User {user_id}",
@@ -30,7 +30,7 @@ async def expensive_database_query(user_id: int) -> dict[str, Any]:
 
 async def expensive_api_call(product_id: int) -> dict[str, Any]:
     """Simulate an expensive external API call."""
-    await asyncio.sleep(0.05)  ***REMOVED*** 50ms delay
+    await asyncio.sleep(0.05)  # 50ms delay
     return {
         "product_id": product_id,
         "name": f"Product {product_id}",
@@ -39,7 +39,7 @@ async def expensive_api_call(product_id: int) -> dict[str, Any]:
     }
 
 
-***REMOVED*** Cached functions
+# Cached functions
 @redis_cache(ttl=300, key_prefix="user")
 async def get_user_profile(user_id: int) -> dict[str, Any]:
     """Get user profile with caching."""
@@ -56,30 +56,30 @@ async def simulate_traffic() -> None:
     """Simulate realistic application traffic patterns."""
     print("🚀 Simulating application traffic...")
 
-    ***REMOVED*** Simulate various access patterns
+    # Simulate various access patterns
     tasks = []
 
-    ***REMOVED*** Popular users (will have high cache hit rates)
+    # Popular users (will have high cache hit rates)
     popular_users = [1, 2, 3]
     for _ in range(10):
         for user_id in popular_users:
             tasks.append(get_user_profile(user_id))
 
-    ***REMOVED*** Less popular users (will have lower cache hit rates)
+    # Less popular users (will have lower cache hit rates)
     for user_id in range(4, 20):
         tasks.append(get_user_profile(user_id))
 
-    ***REMOVED*** Popular products
+    # Popular products
     popular_products = [101, 102, 103]
     for _ in range(8):
         for product_id in popular_products:
             tasks.append(get_product_details(product_id))
 
-    ***REMOVED*** Various products
+    # Various products
     for product_id in range(104, 115):
         tasks.append(get_product_details(product_id))
 
-    ***REMOVED*** Execute all requests concurrently
+    # Execute all requests concurrently
     print(f"📊 Executing {len(tasks)} requests...")
     start_time = time.time()
 
@@ -102,7 +102,7 @@ def display_metrics() -> None:
     print("📊 CACHE PERFORMANCE METRICS")
     print("=" * 60)
 
-    ***REMOVED*** Overall metrics
+    # Overall metrics
     overall = metrics["overall"]
     print("\n🎯 OVERALL PERFORMANCE:")
     print(f"   Total Calls: {overall['total_calls']}")
@@ -110,14 +110,14 @@ def display_metrics() -> None:
     print(f"   Cache Misses: {overall['total_misses']} ({overall['miss_ratio']:.1f}%)")
     print(f"   Started: {overall['started_at']}")
 
-    ***REMOVED*** Function-specific metrics
+    # Function-specific metrics
     functions = metrics["functions"]
     if functions:
         print("\n📈 FUNCTION PERFORMANCE:")
         print("-" * 60)
 
         for func_name, func_data in functions.items():
-            ***REMOVED*** Extract just the function name for cleaner display
+            # Extract just the function name for cleaner display
             clean_name = func_name.split(".")[-1]
 
             print(f"\n🔧 {clean_name}:")
@@ -169,7 +169,7 @@ async def main() -> None:
     print("🎬 Cache Metrics Demo")
     print("=" * 50)
 
-    ***REMOVED*** Initialize cache manager (this would normally be done in your app startup)
+    # Initialize cache manager (this would normally be done in your app startup)
     try:
         CacheManager.from_settings()
         print("✅ Cache manager initialized")
@@ -178,10 +178,10 @@ async def main() -> None:
         print("📝 Note: This demo requires Redis to be running")
         print("   You can still see the metrics structure with mock data")
 
-    ***REMOVED*** Simulate application traffic
+    # Simulate application traffic
     await simulate_traffic()
 
-    ***REMOVED*** Display metrics
+    # Display metrics
     display_metrics()
     display_summary()
 

@@ -4,7 +4,7 @@ from typing import Annotated
 
 from config.logging import get_logger
 
-***REMOVED*** Import enhanced error handling
+# Import enhanced error handling
 from fast_core.errors import (
     critical_service_handler,
 )
@@ -18,7 +18,7 @@ from auth_api.services.auth_service import AuthService
 
 logger = get_logger(__name__)
 
-***REMOVED*** OAuth2 scheme for token authentication
+# OAuth2 scheme for token authentication
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/tokens")
 
 
@@ -52,8 +52,8 @@ async def get_current_user(
     """
     user = auth_service.get_user_by_token(session, token)
     if not user:
-        ***REMOVED*** Convert to HTTPException for FastAPI compatibility
-        ***REMOVED*** The enhanced error handling preserves semantic information in logs
+        # Convert to HTTPException for FastAPI compatibility
+        # The enhanced error handling preserves semantic information in logs
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",

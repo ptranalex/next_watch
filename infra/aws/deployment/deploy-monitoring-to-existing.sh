@@ -1,20 +1,20 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Deploy NextWatch Monitoring Stack to Existing AWS Infrastructure
+# Deploy NextWatch Monitoring Stack to Existing AWS Infrastructure
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Deploying NextWatch Monitoring to Existing AWS Infrastructure${NC}"
 echo "=================================================================="
 
-***REMOVED*** Load environment variables
+# Load environment variables
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Loaded environment variables${NC}"
@@ -23,7 +23,7 @@ else
     exit 1
 fi
 
-***REMOVED*** Configuration
+# Configuration
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 INFRA_DIR="$PROJECT_ROOT/infra"
 MONITORING_ENV_FILE="$INFRA_DIR/.env.monitoring.prod"
@@ -31,7 +31,7 @@ MONITORING_ENV_FILE="$INFRA_DIR/.env.monitoring.prod"
 echo "Project root: $PROJECT_ROOT"
 echo "Target instance: $INSTANCE_ID ($PUBLIC_IP)"
 
-***REMOVED*** Verify monitoring environment file exists
+# Verify monitoring environment file exists
 if [ ! -f "$MONITORING_ENV_FILE" ]; then
     echo -e "${RED}❌ Monitoring environment file not found: $MONITORING_ENV_FILE${NC}"
     echo "Creating from template..."
@@ -40,7 +40,7 @@ if [ ! -f "$MONITORING_ENV_FILE" ]; then
     exit 1
 fi
 
-***REMOVED*** Check if SSH key is available
+# Check if SSH key is available
 SSH_KEY_PATH=""
 for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
     if [ -f "$key" ]; then
@@ -50,9 +50,9 @@ for key in ~/.ssh/*.pem ~/.ssh/id_rsa ~/.ssh/id_ed25519; do
 done
 
 if [ -z "$SSH_KEY_PATH" ]; then
-    ***REMOVED*** Check if we're in one-click mode (non-interactive)
+    # Check if we're in one-click mode (non-interactive)
     if [ "${ONE_CLICK_MODE:-}" = "true" ]; then
-        ***REMOVED*** In one-click mode, try common AWS key locations
+        # In one-click mode, try common AWS key locations
         for common_key in ~/.ssh/nextwatch*.pem ~/.ssh/*aws*.pem ~/.ssh/*.pem; do
             if [ -f "$common_key" ]; then
                 SSH_KEY_PATH="$common_key"
@@ -78,8 +78,8 @@ fi
 
 echo "Using SSH key: $SSH_KEY_PATH"
 
-***REMOVED*** Detect the user for SSH connection based on instance
-***REMOVED*** Try ubuntu first (common for NextWatch deployments), then ec2-user
+# Detect the user for SSH connection based on instance
+# Try ubuntu first (common for NextWatch deployments), then ec2-user
 SSH_USER="ubuntu"
 echo "Testing SSH connection with ubuntu user..."
 if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=5 -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP "echo 'test'" 2>/dev/null; then
@@ -93,7 +93,7 @@ fi
 
 echo "SSH user: $SSH_USER"
 
-***REMOVED*** Test SSH connection
+# Test SSH connection
 echo -e "${YELLOW}🔑 Testing SSH connection...${NC}"
 if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" "echo 'SSH connection successful'" 2>/dev/null; then
     echo -e "${RED}❌ SSH connection failed. Please check:${NC}"
@@ -105,16 +105,16 @@ fi
 
 echo -e "${GREEN}✅ SSH connection successful${NC}"
 
-***REMOVED*** Create temporary directory for files
+# Create temporary directory for files
 TEMP_DIR="/tmp/nextwatch-monitoring-$$"
 mkdir -p "$TEMP_DIR"
 
-***REMOVED*** Copy necessary files to temp directory
+# Copy necessary files to temp directory
 echo -e "${YELLOW}📁 Preparing deployment files...${NC}"
 cp -r "$INFRA_DIR/monitoring" "$TEMP_DIR/"
 cp "$INFRA_DIR/docker-compose.monitoring.yml" "$TEMP_DIR/docker-compose.monitoring.yml"
 
-***REMOVED*** Use the single monitoring environment file
+# Use the single monitoring environment file
 if [ -f "$MONITORING_ENV_FILE" ]; then
     cp "$MONITORING_ENV_FILE" "$TEMP_DIR/.env.monitoring.prod"
     echo "✅ Using monitoring environment file: $MONITORING_ENV_FILE"
@@ -124,47 +124,47 @@ else
     exit 1
 fi
 
-***REMOVED*** Use the unified Prometheus configuration (no need to generate AWS-specific config)
+# Use the unified Prometheus configuration (no need to generate AWS-specific config)
 echo -e "${YELLOW}⚙️  Using unified Prometheus configuration...${NC}"
 
-***REMOVED*** Use the standard monitoring Docker Compose file (no need for AWS-specific version)
+# Use the standard monitoring Docker Compose file (no need for AWS-specific version)
 echo -e "${YELLOW}🐳 Using standard monitoring Docker Compose configuration...${NC}"
 
-***REMOVED*** Create deployment script for the remote instance
+# Create deployment script for the remote instance
 cat > "$TEMP_DIR/remote-deploy.sh" << 'EOF'
-***REMOVED***!/bin/bash
+#!/bin/bash
 
 set -e
 
 echo "🚀 Starting NextWatch Monitoring Deployment on AWS Instance"
 
-***REMOVED*** Create monitoring directory
+# Create monitoring directory
 sudo mkdir -p /opt/nextwatch-monitoring
 cd /opt/nextwatch-monitoring
 
-***REMOVED*** Stop any existing monitoring services
+# Stop any existing monitoring services
 echo "🛑 Stopping existing monitoring services..."
 (sudo docker-compose -f docker-compose.monitoring.yml down || sudo docker compose -f docker-compose.monitoring.yml down) 2>/dev/null || true
 (sudo docker-compose -f docker-compose.aws.yml down || sudo docker compose -f docker-compose.aws.yml down) 2>/dev/null || true
 
-***REMOVED*** Clean up old monitoring containers
+# Clean up old monitoring containers
 echo "🧹 Cleaning up old containers..."
 sudo docker container prune -f
 sudo docker volume prune -f
 
-***REMOVED*** Check if Docker is running
+# Check if Docker is running
 if ! sudo docker info >/dev/null 2>&1; then
     echo "❌ Docker is not running. Starting Docker..."
     sudo systemctl start docker
     sudo systemctl enable docker
 fi
 
-***REMOVED*** Check if Docker Compose is installed
+# Check if Docker Compose is installed
 if ! command -v docker-compose >/dev/null 2>&1; then
     echo "📦 Installing Docker Compose..."
     sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
-    ***REMOVED*** Also try the newer 'docker compose' plugin approach
+    # Also try the newer 'docker compose' plugin approach
     if ! sudo docker compose version >/dev/null 2>&1; then
         echo "Installing Docker Compose plugin..."
         sudo apt-get update
@@ -172,19 +172,19 @@ if ! command -v docker-compose >/dev/null 2>&1; then
     fi
 fi
 
-***REMOVED*** Pull latest images
+# Pull latest images
 echo "📥 Pulling monitoring images..."
 (sudo docker-compose -f docker-compose.monitoring.yml pull || sudo docker compose -f docker-compose.monitoring.yml pull)
 
-***REMOVED*** Start monitoring stack
+# Start monitoring stack
 echo "🐳 Starting monitoring services..."
 (sudo docker-compose -f docker-compose.monitoring.yml up -d || sudo docker compose -f docker-compose.monitoring.yml up -d)
 
-***REMOVED*** Wait for services to be healthy
+# Wait for services to be healthy
 echo "⏳ Waiting for services to start..."
 sleep 30
 
-***REMOVED*** Check service status
+# Check service status
 echo "🏥 Checking service health..."
 for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod loki-prod promtail-prod cadvisor-prod blackbox-exporter-prod tempo-prod; do
     if sudo docker ps --filter "name=$service" --filter "status=running" | grep -q "$service"; then
@@ -195,15 +195,15 @@ for service in prometheus-prod grafana-prod alertmanager-prod node-exporter-prod
     fi
 done
 
-***REMOVED*** Configure tracing for NextWatch services
+# Configure tracing for NextWatch services
 echo "🔍 Configuring OpenTelemetry tracing..."
 cat > /opt/nextwatch-monitoring/.env.tracing << 'TRACING_EOF'
-***REMOVED*** Enable OpenTelemetry tracing for all services
+# Enable OpenTelemetry tracing for all services
 ENABLE_TRACING=true
 TRACING_ENDPOINT=http://tempo:4317
 TRACING_SAMPLE_RATE=0.1
 
-***REMOVED*** Service-specific tracing configuration
+# Service-specific tracing configuration
 BACKEND_API_ENABLE_TRACING=true
 BFF_API_ENABLE_TRACING=true
 AUTH_API_ENABLE_TRACING=true
@@ -211,23 +211,23 @@ SEARCH_API_ENABLE_TRACING=true
 RECOMMENDATION_API_ENABLE_TRACING=true
 ML_API_ENABLE_TRACING=true
 
-***REMOVED*** Logging configuration for trace correlation
+# Logging configuration for trace correlation
 LOG_FORMAT=json
 LOG_STRUCTURED=true
 OTEL_PYTHON_LOG_CORRELATION=true
 TRACING_EOF
 echo "✅ Tracing configuration created"
 
-***REMOVED*** Test Tempo health
+# Test Tempo health
 echo "🔍 Testing Tempo endpoint..."
-sleep 10  ***REMOVED*** Give Tempo time to start
+sleep 10  # Give Tempo time to start
 if curl -sf "http://localhost:3200/ready" >/dev/null 2>&1; then
     echo "✅ Tempo is ready and responding"
 else
     echo "⚠️  Tempo health check failed - service may still be starting"
 fi
 
-***REMOVED*** Display access information
+# Display access information
 echo ""
 echo "🎉 Monitoring stack deployment complete!"
 echo ""
@@ -243,14 +243,14 @@ EOF
 
 chmod +x "$TEMP_DIR/remote-deploy.sh"
 
-***REMOVED*** Transfer files to remote instance
+# Transfer files to remote instance
 echo -e "${YELLOW}📤 Transferring files to AWS instance...${NC}"
 scp -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -r "$TEMP_DIR"/* "$SSH_USER@$PUBLIC_IP:/tmp/"
 
-***REMOVED*** Execute deployment on remote instance
+# Execute deployment on remote instance
 echo -e "${YELLOW}🚀 Executing deployment on remote instance...${NC}"
 ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" << 'REMOTE_SCRIPT'
-***REMOVED*** Move files to the correct location
+# Move files to the correct location
 sudo mkdir -p /opt/nextwatch-monitoring
 sudo cp -r /tmp/monitoring /opt/nextwatch-monitoring/
 sudo cp /tmp/docker-compose.monitoring.yml /opt/nextwatch-monitoring/
@@ -258,12 +258,12 @@ sudo cp /tmp/.env.monitoring.prod /opt/nextwatch-monitoring/.env 2>/dev/null || 
 sudo cp /tmp/remote-deploy.sh /opt/nextwatch-monitoring/
 sudo chown -R ubuntu:ubuntu /opt/nextwatch-monitoring
 
-***REMOVED*** Execute the deployment
+# Execute the deployment
 cd /opt/nextwatch-monitoring
 bash remote-deploy.sh
 REMOTE_SCRIPT
 
-***REMOVED*** Clean up temporary files
+# Clean up temporary files
 rm -rf "$TEMP_DIR"
 
 echo ""

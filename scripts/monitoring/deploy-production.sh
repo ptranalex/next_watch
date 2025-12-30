@@ -1,24 +1,24 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** NextWatch Production Monitoring Stack Deployment Script
-***REMOVED*** This script deploys the monitoring infrastructure to production
+# NextWatch Production Monitoring Stack Deployment Script
+# This script deploys the monitoring infrastructure to production
 
 set -euo pipefail
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
-***REMOVED*** Configuration
+# Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$PROJECT_ROOT/infra"
 MONITORING_DIR="$INFRA_DIR/monitoring"
 
-***REMOVED*** Environment file
+# Environment file
 ENV_FILE="$INFRA_DIR/.env.monitoring.prod"
 COMPOSE_FILE="$INFRA_DIR/compose/monitoring.yml"
 
@@ -27,7 +27,7 @@ echo -e "${BLUE} NextWatch Production Monitoring Setup ${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo
 
-***REMOVED*** Function to print colored output
+# Function to print colored output
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -44,7 +44,7 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-***REMOVED*** Function to check if required tools are installed
+# Function to check if required tools are installed
 check_dependencies() {
     log_info "Checking dependencies..."
 
@@ -68,7 +68,7 @@ check_dependencies() {
     log_success "All dependencies are installed"
 }
 
-***REMOVED*** Function to check if environment file exists
+# Function to check if environment file exists
 check_environment() {
     log_info "Checking environment configuration..."
 
@@ -93,13 +93,13 @@ check_environment() {
         fi
     fi
 
-    ***REMOVED*** Source the environment file to validate
+    # Source the environment file to validate
     if ! source "$ENV_FILE"; then
         log_error "Failed to source environment file. Please check for syntax errors."
         exit 1
     fi
 
-    ***REMOVED*** Check required variables
+    # Check required variables
     local required_vars=("PRODUCTION_DOMAIN" "GRAFANA_ADMIN_PASSWORD" "SMTP_HOST" "ALERT_EMAIL_TO")
     for var in "${required_vars[@]}"; do
         if [[ -z "${!var:-}" ]]; then
@@ -111,7 +111,7 @@ check_environment() {
     log_success "Environment configuration validated"
 }
 
-***REMOVED*** Function to create necessary directories
+# Function to create necessary directories
 create_directories() {
     log_info "Creating monitoring directories..."
 
@@ -124,7 +124,7 @@ create_directories() {
 
     for dir in "${dirs[@]}"; do
         mkdir -p "$dir"
-        ***REMOVED*** Set appropriate permissions for Docker containers
+        # Set appropriate permissions for Docker containers
         sudo chown -R 472:472 "$MONITORING_DIR/grafana/data" 2>/dev/null || true
         sudo chown -R 65534:65534 "$MONITORING_DIR/prometheus/data" 2>/dev/null || true
         sudo chown -R 65534:65534 "$MONITORING_DIR/alertmanager/data" 2>/dev/null || true
@@ -134,7 +134,7 @@ create_directories() {
     log_success "Monitoring directories created"
 }
 
-***REMOVED*** Function to setup SSL certificates (if needed)
+# Function to setup SSL certificates (if needed)
 setup_ssl() {
     if [[ -n "${SSL_CERT_PATH:-}" ]] && [[ -n "${SSL_KEY_PATH:-}" ]]; then
         log_info "Checking SSL certificates..."
@@ -150,17 +150,17 @@ setup_ssl() {
     fi
 }
 
-***REMOVED*** Function to create Grafana database
+# Function to create Grafana database
 setup_grafana_database() {
     log_info "Setting up Grafana database..."
 
-    ***REMOVED*** Check if PostgreSQL is accessible
+    # Check if PostgreSQL is accessible
     if command -v psql &> /dev/null; then
-        ***REMOVED*** Create Grafana database and user
+        # Create Grafana database and user
         log_info "Creating Grafana database in PostgreSQL..."
 
-        ***REMOVED*** This assumes PostgreSQL is running and accessible
-        ***REMOVED*** You may need to adjust connection parameters
+        # This assumes PostgreSQL is running and accessible
+        # You may need to adjust connection parameters
         PGPASSWORD="${POSTGRES_PASSWORD}" psql -h localhost -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -c "
         CREATE DATABASE ${GRAFANA_DB_NAME};
         CREATE USER ${GRAFANA_DB_USER} WITH PASSWORD '${GRAFANA_DB_PASSWORD}';
@@ -176,7 +176,7 @@ setup_grafana_database() {
     fi
 }
 
-***REMOVED*** Function to validate configuration files
+# Function to validate configuration files
 validate_configs() {
     log_info "Validating configuration files..."
 
@@ -197,25 +197,25 @@ validate_configs() {
     log_success "Configuration files validated"
 }
 
-***REMOVED*** Function to deploy monitoring stack
+# Function to deploy monitoring stack
 deploy_monitoring() {
     log_info "Deploying monitoring stack to production..."
 
     cd "$INFRA_DIR"
 
-    ***REMOVED*** Pull latest images
+    # Pull latest images
     log_info "Pulling latest Docker images..."
     $DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
 
-    ***REMOVED*** Deploy monitoring stack
+    # Deploy monitoring stack
     log_info "Starting monitoring services..."
     $DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 
-    ***REMOVED*** Wait for services to be healthy
+    # Wait for services to be healthy
     log_info "Waiting for services to be healthy..."
     sleep 30
 
-    ***REMOVED*** Check service health
+    # Check service health
     local services=("prometheus-prod" "grafana-prod" "alertmanager-prod" "loki-prod")
     for service in "${services[@]}"; do
         if docker ps --filter "name=$service" --filter "status=running" | grep -q "$service"; then
@@ -228,7 +228,7 @@ deploy_monitoring() {
     done
 }
 
-***REMOVED*** Function to display access information
+# Function to display access information
 show_access_info() {
     echo
     log_success "Monitoring stack deployed successfully!"
@@ -253,29 +253,29 @@ show_access_info() {
     echo "  📋 Loki: $MONITORING_DIR/loki/data"
 }
 
-***REMOVED*** Function to create backup script
+# Function to create backup script
 create_backup_script() {
     log_info "Creating backup script..."
 
     cat > "$SCRIPT_DIR/backup-monitoring.sh" << 'EOF'
-***REMOVED***!/bin/bash
-***REMOVED*** Backup script for NextWatch monitoring data
+#!/bin/bash
+# Backup script for NextWatch monitoring data
 
 BACKUP_DIR="/backups/monitoring/$(date +%Y%m%d_%H%M%S)"
 MONITORING_DIR="/path/to/infra/monitoring"
 
 mkdir -p "$BACKUP_DIR"
 
-***REMOVED*** Backup Prometheus data
+# Backup Prometheus data
 docker run --rm -v prometheus-data:/data -v "$BACKUP_DIR":/backup alpine tar czf /backup/prometheus-data.tar.gz -C /data .
 
-***REMOVED*** Backup Grafana data
+# Backup Grafana data
 docker run --rm -v grafana-data:/data -v "$BACKUP_DIR":/backup alpine tar czf /backup/grafana-data.tar.gz -C /data .
 
-***REMOVED*** Backup AlertManager data
+# Backup AlertManager data
 docker run --rm -v alertmanager-data:/data -v "$BACKUP_DIR":/backup alpine tar czf /backup/alertmanager-data.tar.gz -C /data .
 
-***REMOVED*** Backup configuration files
+# Backup configuration files
 tar czf "$BACKUP_DIR/monitoring-configs.tar.gz" -C "$MONITORING_DIR" .
 
 echo "Backup completed: $BACKUP_DIR"
@@ -285,7 +285,7 @@ EOF
     log_success "Backup script created at $SCRIPT_DIR/backup-monitoring.sh"
 }
 
-***REMOVED*** Main execution
+# Main execution
 main() {
     log_info "Starting production monitoring deployment..."
 
@@ -302,5 +302,5 @@ main() {
     log_success "Production monitoring deployment completed!"
 }
 
-***REMOVED*** Run the main function
+# Run the main function
 main "$@"

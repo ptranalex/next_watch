@@ -268,7 +268,7 @@ class TestServiceRegistryIntegration(CLITestCase):
         """Test registry with NextWatch-like service configurations."""
         registry = ServiceRegistry()
 
-        ***REMOVED*** Backend API service
+        # Backend API service
         backend_config = ServiceConfig(
             name="backend-api",
             url="http://localhost:8000",
@@ -280,7 +280,7 @@ class TestServiceRegistryIntegration(CLITestCase):
             headers={"Authorization": "Bearer token"},
         )
 
-        ***REMOVED*** Auth API service
+        # Auth API service
         auth_config = ServiceConfig(
             name="auth-api",
             url="http://localhost:8001",
@@ -291,7 +291,7 @@ class TestServiceRegistryIntegration(CLITestCase):
             service_type="http",
         )
 
-        ***REMOVED*** Redis cache service
+        # Redis cache service
         redis_config = ServiceConfig(
             name="redis",
             url="redis://localhost:6379/0",
@@ -301,14 +301,14 @@ class TestServiceRegistryIntegration(CLITestCase):
             service_type="redis",
         )
 
-        ***REMOVED*** Register all services
+        # Register all services
         for config in [backend_config, auth_config, redis_config]:
             registry.register_service(config)
 
-        ***REMOVED*** Verify all services are registered correctly
+        # Verify all services are registered correctly
         assert len(registry) == 3
 
-        ***REMOVED*** Test retrieving specific services
+        # Test retrieving specific services
         backend = registry.get_service("backend-api")
         assert backend.timeout == 30
         assert backend.headers["Authorization"] == "Bearer token"
@@ -321,7 +321,7 @@ class TestServiceRegistryIntegration(CLITestCase):
         assert redis.service_type == "redis"
         assert redis.timeout == 5
 
-        ***REMOVED*** Test filtering by service type
+        # Test filtering by service type
         http_services = registry.get_services_by_type("http")
         redis_services = registry.get_services_by_type("redis")
 

@@ -22,22 +22,22 @@ async def health_check(request: Request) -> JSONResponse:
     Checks the health of all dependencies:
     - PostgreSQL database (via movie_storage)
     """
-    ***REMOVED*** Check if health service is available
+    # Check if health service is available
     if not hasattr(request.app.state, "health_service") or request.app.state.health_service is None:
-        ***REMOVED*** Fallback to basic checks if health service is not available
+        # Fallback to basic checks if health service is not available
         return await health_check_fallback()
 
     health_service = request.app.state.health_service
 
     try:
-        ***REMOVED*** Get health status for all services
+        # Get health status for all services
         health_results = await health_service.check_all()
 
-        ***REMOVED*** Determine overall health
+        # Determine overall health
         all_healthy = all(result.is_healthy for result in health_results.values())
         overall_status = "healthy" if all_healthy else "unhealthy"
 
-        ***REMOVED*** Build response
+        # Build response
         response: dict[str, Any] = {
             "status": overall_status,
             "service": "auth-api",
@@ -47,7 +47,7 @@ async def health_check(request: Request) -> JSONResponse:
             "checks": {},
         }
 
-        ***REMOVED*** Add individual service checks
+        # Add individual service checks
         for service_name, result in health_results.items():
             check_data: dict[str, Any] = {
                 "status": result.status,
@@ -65,7 +65,7 @@ async def health_check(request: Request) -> JSONResponse:
 
             response["checks"][service_name] = check_data
 
-        ***REMOVED*** Set appropriate HTTP status code
+        # Set appropriate HTTP status code
         status_code = 200 if all_healthy else 503
 
         return JSONResponse(status_code=status_code, content=response)
@@ -110,18 +110,18 @@ async def readiness_check(request: Request) -> JSONResponse:
     Checks if the service is ready to handle requests by verifying
     that all critical dependencies are available.
     """
-    ***REMOVED*** Check if health service is available
+    # Check if health service is available
     if not hasattr(request.app.state, "health_service") or request.app.state.health_service is None:
-        ***REMOVED*** Fallback to basic readiness check
+        # Fallback to basic readiness check
         return await readiness_check_fallback()
 
     health_service = request.app.state.health_service
 
     try:
-        ***REMOVED*** Check only critical dependencies for readiness
+        # Check only critical dependencies for readiness
         health_results = await health_service.check_all()
 
-        ***REMOVED*** For readiness, we need database to be healthy
+        # For readiness, we need database to be healthy
         critical_services = ["postgres"]
         critical_healthy = all(
             health_results[service].is_healthy
@@ -175,10 +175,10 @@ async def db_health_check(db: Session = Depends(get_db)) -> JSONResponse:
         Database health status and connection information
     """
     try:
-        ***REMOVED*** Try a simple query
+        # Try a simple query
         result = db.execute(text("SELECT 1")).scalar()
 
-        ***REMOVED*** Return success if query worked
+        # Return success if query worked
         return JSONResponse(
             status_code=200,
             content={
@@ -189,7 +189,7 @@ async def db_health_check(db: Session = Depends(get_db)) -> JSONResponse:
             },
         )
     except Exception as e:
-        ***REMOVED*** Avoid leaking stack traces to clients; keep details in logs.
+        # Avoid leaking stack traces to clients; keep details in logs.
         logger.error("Database health check failed", exc_info=True)
         return JSONResponse(
             status_code=503,
@@ -201,21 +201,21 @@ async def db_health_check(db: Session = Depends(get_db)) -> JSONResponse:
         )
 
 
-***REMOVED*** Fallback health check functions
+# Fallback health check functions
 async def health_check_fallback() -> JSONResponse:
     """Fallback health check when health service is not available."""
     logger.warning("Health service not available, using fallback health check")
 
     try:
-        ***REMOVED*** Basic database check using sync method
+        # Basic database check using sync method
         from auth_api.services.health_service import HealthService
 
         health_service = HealthService()
 
-        ***REMOVED*** Use sync postgres check
+        # Use sync postgres check
         postgres_result = health_service.check_postgres_sync()
 
-        ***REMOVED*** Simple response
+        # Simple response
         all_healthy = postgres_result.is_healthy
         overall_status = "healthy" if all_healthy else "unhealthy"
 
@@ -261,12 +261,12 @@ async def readiness_check_fallback() -> JSONResponse:
     logger.warning("Health service not available, using fallback readiness check")
 
     try:
-        ***REMOVED*** Basic database check
+        # Basic database check
         from auth_api.services.health_service import HealthService
 
         health_service = HealthService()
 
-        ***REMOVED*** Use sync postgres check
+        # Use sync postgres check
         postgres_result = health_service.check_postgres_sync()
 
         status = "ready" if postgres_result.is_healthy else "not_ready"

@@ -1,6 +1,6 @@
 """Database operations module."""
 
-***REMOVED*** Import user operations
+# Import user operations
 from auth_api.db.operations.user import (
     authenticate_user,
     create_user,
@@ -13,7 +13,7 @@ from auth_api.db.operations.user import (
 )
 
 __all__ = [
-    ***REMOVED*** User operations
+    # User operations
     "create_user",
     "get_user_by_id",
     "get_user_by_email",

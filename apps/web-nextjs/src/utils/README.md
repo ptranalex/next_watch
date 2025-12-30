@@ -1,51 +1,51 @@
-***REMOVED*** Utility Functions
+# Utility Functions
 
 This directory contains reusable utility functions that provide common functionality across the application.
 
-***REMOVED******REMOVED*** 📂 Current Directory Structure
+## 📂 Current Directory Structure
 
 ```
 utils/
-├── logging/             ***REMOVED*** Logging utilities
-│   ├── loggerConfig.ts  ***REMOVED*** Core logging utility
-│   ├── loggerConfig.md  ***REMOVED*** Documentation for logger
-│   ├── README.md        ***REMOVED*** Logging utilities overview
-│   ├── index.ts         ***REMOVED*** Exports from logging
-│   └── examples/        ***REMOVED*** Logger usage examples
+├── logging/             # Logging utilities
+│   ├── loggerConfig.ts  # Core logging utility
+│   ├── loggerConfig.md  # Documentation for logger
+│   ├── README.md        # Logging utilities overview
+│   ├── index.ts         # Exports from logging
+│   └── examples/        # Logger usage examples
 │       └── loggerConfigExample.tsx
-├── auth/                ***REMOVED*** Authentication utilities
-│   ├── authTokenManager.ts ***REMOVED*** Auth token management
-│   └── index.ts         ***REMOVED*** Exports from auth
-├── media/               ***REMOVED*** Media-related utilities
-│   ├── image-urls.ts    ***REMOVED*** Image URL handling
-│   └── index.ts         ***REMOVED*** Exports from media
-└── index.ts             ***REMOVED*** Main export for all utilities
+├── auth/                # Authentication utilities
+│   ├── authTokenManager.ts # Auth token management
+│   └── index.ts         # Exports from auth
+├── media/               # Media-related utilities
+│   ├── image-urls.ts    # Image URL handling
+│   └── index.ts         # Exports from media
+└── index.ts             # Main export for all utilities
 ```
 
-***REMOVED******REMOVED*** 🛠️ Ideal Utility Categories
+## 🛠️ Ideal Utility Categories
 
 For future development, consider these additional categories:
 
 ```
 utils/
-├── date/               ***REMOVED*** Date manipulation utilities
-│   ├── formatters.ts   ***REMOVED*** Date formatting utilities
-│   └── parsers.ts      ***REMOVED*** Date parsing utilities
-├── string/             ***REMOVED*** String manipulation utilities
-│   ├── formatters.ts   ***REMOVED*** String formatting utilities
-│   └── validators.ts   ***REMOVED*** String validation utilities
-├── array/              ***REMOVED*** Array manipulation utilities
-│   └── transformers.ts ***REMOVED*** Array transformation utilities
-├── number/             ***REMOVED*** Number manipulation utilities
-│   └── formatters.ts   ***REMOVED*** Number formatting utilities
-├── api/                ***REMOVED*** API-related utilities
-│   └── error-handler.ts ***REMOVED*** API error handling utilities
-└── storage/            ***REMOVED*** Storage-related utilities
-    ├── local-storage.ts ***REMOVED*** LocalStorage utilities
-    └── session-storage.ts ***REMOVED*** SessionStorage utilities
+├── date/               # Date manipulation utilities
+│   ├── formatters.ts   # Date formatting utilities
+│   └── parsers.ts      # Date parsing utilities
+├── string/             # String manipulation utilities
+│   ├── formatters.ts   # String formatting utilities
+│   └── validators.ts   # String validation utilities
+├── array/              # Array manipulation utilities
+│   └── transformers.ts # Array transformation utilities
+├── number/             # Number manipulation utilities
+│   └── formatters.ts   # Number formatting utilities
+├── api/                # API-related utilities
+│   └── error-handler.ts # API error handling utilities
+└── storage/            # Storage-related utilities
+    ├── local-storage.ts # LocalStorage utilities
+    └── session-storage.ts # SessionStorage utilities
 ```
 
-***REMOVED******REMOVED*** 🔄 Usage Pattern
+## 🔄 Usage Pattern
 
 Import utility functions directly from their modules:
 
@@ -69,7 +69,7 @@ import { createLogger, getAuthToken, getImageUrl } from "@/utils";
 const logger = createLogger("MyComponent");
 ```
 
-***REMOVED******REMOVED*** 📝 Utility Development Guidelines
+## 📝 Utility Development Guidelines
 
 When creating utility functions:
 
@@ -80,7 +80,7 @@ When creating utility functions:
 5. **Testing**: Write unit tests for each utility function
 6. **Categorization**: Place utilities in the appropriate category
 
-***REMOVED******REMOVED******REMOVED*** Example Pattern
+### Example Pattern
 
 ```typescript
 /**
@@ -101,7 +101,7 @@ export function formatRating(
 }
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing Utilities
+## 🧪 Testing Utilities
 
 Utility functions should be thoroughly tested:
 
@@ -127,7 +127,7 @@ describe("formatRating", () => {
 });
 ```
 
-***REMOVED******REMOVED*** 📚 Related Documentation
+## 📚 Related Documentation
 
 - [JavaScript MDN Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)

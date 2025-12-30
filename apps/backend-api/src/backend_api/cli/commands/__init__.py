@@ -1,8 +1,8 @@
 """Command implementations for the CLI."""
 
-***REMOVED*** Import command groups
-***REMOVED*** Import all command modules (this triggers registration with the appropriate apps)
-from backend_api.cli.commands import (  ***REMOVED*** Database commands (consolidated); Health commands; Cache commands; System commands (registered directly with main app)
+# Import command groups
+# Import all command modules (this triggers registration with the appropriate apps)
+from backend_api.cli.commands import (  # Database commands (consolidated); Health commands; Cache commands; System commands (registered directly with main app)
     cache,
     config,
     database,
@@ -13,14 +13,14 @@ from backend_api.cli.commands import (  ***REMOVED*** Database commands (consoli
 )
 
 __all__ = [
-    ***REMOVED*** Database commands
+    # Database commands
     "database",
-    ***REMOVED*** Health commands
+    # Health commands
     "health",
-    ***REMOVED*** Cache commands
+    # Cache commands
     "cache",
     "redis",
-    ***REMOVED*** System commands
+    # System commands
     "config",
     "serve",
     "version",

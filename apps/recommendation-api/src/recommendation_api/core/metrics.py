@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 from config.logging import get_logger
 from fast_core.monitoring.metrics import MetricsRegistry, get_metrics_registry, track_operation
 
-***REMOVED*** Type variable for function decorators
+# Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
 
 logger = get_logger(__name__)
@@ -34,19 +34,19 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
     if not endpoint:
         return endpoint
 
-    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    # Remove query parameters (they cause cardinality explosion)
     endpoint = endpoint.split("?")[0]
 
-    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    # Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
     normalized_parts = []
 
     for part in parts:
         if part.isdigit():
-            ***REMOVED*** Replace numeric IDs with generic placeholder
+            # Replace numeric IDs with generic placeholder
             normalized_parts.append("{id}")
         else:
-            ***REMOVED*** Keep non-numeric parts as-is
+            # Keep non-numeric parts as-is
             normalized_parts.append(part)
 
     return "/".join(normalized_parts)
@@ -70,7 +70,7 @@ class RecommendationMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Recommendation operation metrics
+        # Recommendation operation metrics
         self.recommendation_requests = self.registry.create_counter(
             "recommendation_requests_total",
             "Total recommendation requests by type and status",
@@ -91,7 +91,7 @@ class RecommendationMetrics:
             buckets=(0, 5, 10, 20, 50, 100, 200),
         )
 
-        ***REMOVED*** Vector similarity metrics
+        # Vector similarity metrics
         self.vector_operations = self.registry.create_counter(
             "recommendation_vector_operations_total",
             "Vector database operations",
@@ -105,7 +105,7 @@ class RecommendationMetrics:
             buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0),
         )
 
-        ***REMOVED*** Cache performance metrics
+        # Cache performance metrics
         self.cache_operations = self.registry.create_counter(
             "recommendation_cache_operations_total",
             "Cache operations by type and result",
@@ -118,7 +118,7 @@ class RecommendationMetrics:
             ["recommendation_type", "service"],
         )
 
-        ***REMOVED*** ML API integration metrics
+        # ML API integration metrics
         self.ml_api_requests = self.registry.create_counter(
             "recommendation_ml_api_requests_total",
             "ML API requests by operation and status",
@@ -132,7 +132,7 @@ class RecommendationMetrics:
             buckets=(0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0),
         )
 
-        ***REMOVED*** Backend API integration metrics
+        # Backend API integration metrics
         self.backend_api_requests = self.registry.create_counter(
             "recommendation_backend_api_requests_total",
             "Backend API requests by operation and status",
@@ -146,7 +146,7 @@ class RecommendationMetrics:
             buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0),
         )
 
-        ***REMOVED*** Filter usage metrics
+        # Filter usage metrics
         self.recommendation_filters_usage = self.registry.create_counter(
             "recommendation_filters_usage_total",
             "Usage of recommendation filters",
@@ -274,7 +274,7 @@ class RecommendationMetrics:
         self.cache_hit_ratio.labels(**labels).set(hit_ratio)
 
 
-***REMOVED*** Global Recommendation metrics instance
+# Global Recommendation metrics instance
 _recommendation_metrics: RecommendationMetrics | None = None
 
 
@@ -292,7 +292,7 @@ def initialize_recommendation_metrics() -> RecommendationMetrics | None:
     return _recommendation_metrics
 
 
-***REMOVED*** Decorators for tracking Recommendation operations
+# Decorators for tracking Recommendation operations
 def track_recommendation_operation(
     operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:

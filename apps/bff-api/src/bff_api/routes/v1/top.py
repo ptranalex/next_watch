@@ -16,7 +16,7 @@ from bff_api.utils.auth import extract_user_id_from_token
 logger = get_logger(__name__)
 router = APIRouter(tags=["top"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "pagination": {
@@ -26,7 +26,7 @@ responses = ResponseBuilder(
     }
 )
 
-***REMOVED*** Security scheme for optional authentication
+# Security scheme for optional authentication
 security = HTTPBearer(auto_error=False)
 
 
@@ -81,7 +81,7 @@ async def _get_user_movie_interaction(
         result = await backend.get_user_movie_interaction(user_id, movie_id, jwt_token)
         return result
     except Exception as e:
-        ***REMOVED*** Handle 404 case for not found interactions
+        # Handle 404 case for not found interactions
         if "404" in str(e):
             return None
         raise
@@ -144,12 +144,12 @@ async def get_top_movies(
     Raises:
         HTTPException: If backend service is unavailable (502)
     """
-    ***REMOVED*** Record movie request metrics
+    # Record movie request metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_movie_request("top", "started")
 
-    ***REMOVED*** Extract user ID from JWT token if provided
+    # Extract user ID from JWT token if provided
     user_id = None
     logger.debug("🔍 Debugging token extraction for top movies")
     logger.debug(f"📋 Credentials present: {bool(credentials)}")
@@ -158,14 +158,14 @@ async def get_top_movies(
         logger.debug(f"🔑 Token present: {bool(credentials.credentials)}")
         logger.debug(f"🔑 Token preview: {credentials.credentials[:20]}...")
 
-        ***REMOVED*** Temporarily enable debug logging for JWT extraction
+        # Temporarily enable debug logging for JWT extraction
         auth_logger = logging.getLogger("bff_api.utils.auth")
         original_level = auth_logger.level
         auth_logger.setLevel(logging.DEBUG)
 
         user_id = extract_user_id_from_token(credentials.credentials)
 
-        ***REMOVED*** Restore original logging level
+        # Restore original logging level
         auth_logger.setLevel(original_level)
 
         logger.debug(f"👤 Extracted user_id: {user_id}")
@@ -173,7 +173,7 @@ async def get_top_movies(
         logger.debug("❌ No credentials or token found - treating as anonymous user")
 
     try:
-        ***REMOVED*** Build filter parameters for top movies
+        # Build filter parameters for top movies
         filters: dict[str, Any] = {}
         if genre_id is not None:
             filters["genre_id"] = genre_id
@@ -198,17 +198,17 @@ async def get_top_movies(
 
         logger.debug(f"🎬 Fetching top movies with filters: {filters}")
 
-        ***REMOVED*** Get top movies from backend
+        # Get top movies from backend
         movies_response = await _get_movies(backend, page=page, limit=limit, **filters)
 
-        ***REMOVED*** Extract pagination data from backend's standardized format
+        # Extract pagination data from backend's standardized format
         movies = movies_response.get("results", [])
         total_count = movies_response.get("total", 0)
         current_page = movies_response.get("page", page)
         per_page = movies_response.get("per_page", limit)
         total_pages = movies_response.get("total_pages", 0)
 
-        ***REMOVED*** If user is authenticated, fetch user interactions for each movie
+        # If user is authenticated, fetch user interactions for each movie
         if user_id and credentials:
             logger.debug(f"🔄 Fetching user interactions for {len(movies)} top movies")
             for movie in movies:
@@ -222,13 +222,13 @@ async def get_top_movies(
                             jwt_token=credentials.credentials,
                         )
                         if interaction_data:
-                            ***REMOVED*** Map user interaction data directly to movie fields
-                            ***REMOVED*** for frontend compatibility
+                            # Map user interaction data directly to movie fields
+                            # for frontend compatibility
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
                             movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
 
-                            ***REMOVED*** Also include complete user_interactions object for reference
+                            # Also include complete user_interactions object for reference
                             movie["user_interactions"] = {
                                 "in_watchlist": interaction_data.get("in_watchlist", False),
                                 "is_favorite": interaction_data.get("liked", False),
@@ -237,7 +237,7 @@ async def get_top_movies(
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
-                            ***REMOVED*** Set default values if no interaction data exists
+                            # Set default values if no interaction data exists
                             movie["liked"] = False
                             movie["watched"] = False
                             movie["in_watchlist"] = False
@@ -253,7 +253,7 @@ async def get_top_movies(
                         logger.warning(
                             f"Failed to get user interaction for top movie {movie_id}: {e}"
                         )
-                        ***REMOVED*** Set default values if fetching interaction data fails
+                        # Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False
                         movie["in_watchlist"] = False
@@ -266,7 +266,7 @@ async def get_top_movies(
                             "is_watched": False,
                         }
         else:
-            ***REMOVED*** For anonymous users, set all interaction fields to false
+            # For anonymous users, set all interaction fields to false
             logger.debug(
                 "No user authenticated - setting default interaction values for top movies"
             )
@@ -284,11 +284,11 @@ async def get_top_movies(
 
         logger.debug(f"✅ Returning {len(movies)} top movies (page {current_page}/{total_pages})")
 
-        ***REMOVED*** Record successful movie request metrics
+        # Record successful movie request metrics
         if metrics:
             metrics.record_movie_request("top", "success")
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=movies,
             page=current_page,
@@ -309,7 +309,7 @@ async def get_top_movies(
         return cast(dict[str, Any], response)
 
     except Exception as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_movie_request("top", "error")
 

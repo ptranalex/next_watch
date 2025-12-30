@@ -26,7 +26,7 @@ from backend_api.models import Movie, UserMovieInteraction
 
 logger = get_logger(__name__)
 
-***REMOVED*** Cache invalidation is handled by short TTL on user interactions in BFF API
+# Cache invalidation is handled by short TTL on user interactions in BFF API
 
 
 class UserInteractionService:
@@ -40,7 +40,7 @@ class UserInteractionService:
     while leaving queries (data retrieval) to a separate query class.
     """
 
-    ***REMOVED*** Command methods (write operations)
+    # Command methods (write operations)
 
     def toggle_watchlist(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """
@@ -58,14 +58,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -76,22 +76,22 @@ class UserInteractionService:
 
         logger.info(f"Toggling watchlist for user {user_id} and movie {movie_id}")
 
-        ***REMOVED*** Get current interaction
+        # Get current interaction
         interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-        ***REMOVED*** If no interaction exists, create one with in_watchlist=True
+        # If no interaction exists, create one with in_watchlist=True
         if not interaction:
             result = create_user_movie_interaction(db, user_id, movie_id, in_watchlist=True)
             return result
 
-        ***REMOVED*** Toggle the watchlist flag
+        # Toggle the watchlist flag
         interaction.in_watchlist = not interaction.in_watchlist
         interaction.updated_at = datetime.utcnow()
 
-        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
-        ***REMOVED*** This ensures that operations work correctly even if the movie was previously unmarked
+        # Keep the interaction even if all flags are False to maintain history
+        # This ensures that operations work correctly even if the movie was previously unmarked
 
-        ***REMOVED*** Save changes to database
+        # Save changes to database
         db.add(interaction)
         db.commit()
         db.refresh(interaction)
@@ -114,14 +114,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -132,22 +132,22 @@ class UserInteractionService:
 
         logger.info(f"Toggling watched status for user {user_id} and movie {movie_id}")
 
-        ***REMOVED*** Get current interaction
+        # Get current interaction
         interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-        ***REMOVED*** If no interaction exists, create one with watched=True
+        # If no interaction exists, create one with watched=True
         if not interaction:
             result = create_user_movie_interaction(db, user_id, movie_id, watched=True)
             return result
 
-        ***REMOVED*** Toggle the watched flag
+        # Toggle the watched flag
         interaction.watched = not interaction.watched
         interaction.updated_at = datetime.utcnow()
 
-        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
-        ***REMOVED*** This ensures that operations work correctly even if the movie was previously unmarked
+        # Keep the interaction even if all flags are False to maintain history
+        # This ensures that operations work correctly even if the movie was previously unmarked
 
-        ***REMOVED*** Save changes to database
+        # Save changes to database
         db.add(interaction)
         db.commit()
         db.refresh(interaction)
@@ -170,14 +170,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -188,22 +188,22 @@ class UserInteractionService:
 
         logger.info(f"Toggling liked status for user {user_id} and movie {movie_id}")
 
-        ***REMOVED*** Get current interaction
+        # Get current interaction
         interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-        ***REMOVED*** If no interaction exists, create one with liked=True
+        # If no interaction exists, create one with liked=True
         if not interaction:
             result = create_user_movie_interaction(db, user_id, movie_id, liked=True)
             return result
 
-        ***REMOVED*** Toggle the liked flag
+        # Toggle the liked flag
         interaction.liked = not interaction.liked
         interaction.updated_at = datetime.utcnow()
 
-        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
-        ***REMOVED*** This ensures that operations work correctly even if the movie was previously unmarked
+        # Keep the interaction even if all flags are False to maintain history
+        # This ensures that operations work correctly even if the movie was previously unmarked
 
-        ***REMOVED*** Save changes to database
+        # Save changes to database
         db.add(interaction)
         db.commit()
         db.refresh(interaction)
@@ -226,14 +226,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -265,14 +265,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -300,21 +300,21 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid or flag is invalid
         """
-        ***REMOVED*** Validate flag
+        # Validate flag
         if flag not in ["watched", "liked", "in_watchlist"]:
             raise ValidationError(
                 message=f"Invalid flag: {flag}",
                 field_errors={"flag": ["Must be one of: watched, liked, in_watchlist"]},
             )
 
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -323,10 +323,10 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Get current interaction
+        # Get current interaction
         interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-        ***REMOVED*** If no interaction exists, create one with the flag set to True
+        # If no interaction exists, create one with the flag set to True
         if not interaction:
             logger.info(
                 f"Creating interaction with {flag}=True for user {user_id} and movie {movie_id}"
@@ -335,17 +335,17 @@ class UserInteractionService:
             result = create_user_movie_interaction(db, user_id, movie_id, **kwargs)
             return result
 
-        ***REMOVED*** If flag is already True, return as-is
+        # If flag is already True, return as-is
         if getattr(interaction, flag):
             logger.info(f"Flag {flag} already True for user {user_id} and movie {movie_id}")
             return interaction
 
-        ***REMOVED*** Set the flag to True directly on the interaction object
+        # Set the flag to True directly on the interaction object
         logger.info(f"Setting flag {flag} to True for user {user_id} and movie {movie_id}")
         setattr(interaction, flag, True)
         interaction.updated_at = datetime.utcnow()
 
-        ***REMOVED*** Save changes to database
+        # Save changes to database
         db.add(interaction)
         db.commit()
         db.refresh(interaction)
@@ -371,21 +371,21 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid or flag is invalid
         """
-        ***REMOVED*** Validate flag
+        # Validate flag
         if flag not in ["watched", "liked", "in_watchlist"]:
             raise ValidationError(
                 message=f"Invalid flag: {flag}",
                 field_errors={"flag": ["Must be one of: watched, liked, in_watchlist"]},
             )
 
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -394,13 +394,13 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Get current interaction
+        # Get current interaction
         interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-        ***REMOVED*** If no interaction exists, create a representation with the flag set to False
+        # If no interaction exists, create a representation with the flag set to False
         if not interaction:
             logger.info(f"No interaction exists for user {user_id} and movie {movie_id}")
-            ***REMOVED*** Create a representation (not saved to DB) with the flag set to False
+            # Create a representation (not saved to DB) with the flag set to False
             return UserMovieInteraction(
                 user_id=user_id,
                 movie_id=movie_id,
@@ -411,28 +411,28 @@ class UserInteractionService:
                 updated_at=datetime.utcnow(),
             )
 
-        ***REMOVED*** If flag is already False, return as-is
+        # If flag is already False, return as-is
         if not getattr(interaction, flag):
             logger.info(f"Flag {flag} already False for user {user_id} and movie {movie_id}")
             return interaction
 
-        ***REMOVED*** Set the flag to False directly on the interaction object
+        # Set the flag to False directly on the interaction object
         logger.info(f"Setting flag {flag} to False for user {user_id} and movie {movie_id}")
         setattr(interaction, flag, False)
         interaction.updated_at = datetime.utcnow()
 
-        ***REMOVED*** Keep the interaction even if all flags are False to maintain history
-        ***REMOVED*** This ensures that operations like "remove from watchlist" work correctly
-        ***REMOVED*** even if the movie was previously unmarked from all collections
+        # Keep the interaction even if all flags are False to maintain history
+        # This ensures that operations like "remove from watchlist" work correctly
+        # even if the movie was previously unmarked from all collections
 
-        ***REMOVED*** Save changes to database
+        # Save changes to database
         db.add(interaction)
         db.commit()
         db.refresh(interaction)
 
         return interaction
 
-    ***REMOVED*** Now add convenience methods for each flag type
+    # Now add convenience methods for each flag type
     def set_watched(self, db: Session, user_id: int, movie_id: int) -> UserMovieInteraction:
         """Set watched flag to True."""
         return self.set_flag(db, user_id, movie_id, "watched")
@@ -457,9 +457,9 @@ class UserInteractionService:
         """Set in_watchlist flag to False."""
         return self.unset_flag(db, user_id, movie_id, "in_watchlist")
 
-    ***REMOVED*** ============================================================================
-    ***REMOVED*** NEW COLLECTION-ORIENTED METHODS
-    ***REMOVED*** ============================================================================
+    # ============================================================================
+    # NEW COLLECTION-ORIENTED METHODS
+    # ============================================================================
 
     def add_to_watchlist(
         self, db: Session, user_id: int, movie_id: int
@@ -479,14 +479,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -495,13 +495,13 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Check if already in watchlist
+        # Check if already in watchlist
         existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
         if existing_interaction and existing_interaction.in_watchlist:
             logger.info(f"Movie {movie_id} already in watchlist for user {user_id}")
             return existing_interaction, False
 
-        ***REMOVED*** Add to watchlist
+        # Add to watchlist
         logger.info(f"Adding movie {movie_id} to watchlist for user {user_id}")
         interaction = self.set_watchlist(db, user_id, movie_id)
         return interaction, True
@@ -524,14 +524,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -540,7 +540,7 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Check if in watchlist
+        # Check if in watchlist
         existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
         if not existing_interaction or not existing_interaction.in_watchlist:
             logger.info(f"Movie {movie_id} not in watchlist for user {user_id}")
@@ -558,7 +558,7 @@ class UserInteractionService:
                 False,
             )
 
-        ***REMOVED*** Remove from watchlist
+        # Remove from watchlist
         logger.info(f"Removing movie {movie_id} from watchlist for user {user_id}")
         interaction = self.unset_watchlist(db, user_id, movie_id)
         return interaction, True
@@ -581,14 +581,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -597,13 +597,13 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Check if already watched
+        # Check if already watched
         existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
         if existing_interaction and existing_interaction.watched:
             logger.info(f"Movie {movie_id} already watched by user {user_id}")
             return existing_interaction, False
 
-        ***REMOVED*** Mark as watched
+        # Mark as watched
         logger.info(f"Marking movie {movie_id} as watched for user {user_id}")
         interaction = self.set_watched(db, user_id, movie_id)
         return interaction, True
@@ -626,14 +626,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -642,7 +642,7 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Check if watched
+        # Check if watched
         existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
         if not existing_interaction or not existing_interaction.watched:
             logger.info(f"Movie {movie_id} not watched by user {user_id}")
@@ -660,7 +660,7 @@ class UserInteractionService:
                 False,
             )
 
-        ***REMOVED*** Unmark as watched
+        # Unmark as watched
         logger.info(f"Unmarking movie {movie_id} as watched for user {user_id}")
         interaction = self.unset_watched(db, user_id, movie_id)
         return interaction, True
@@ -683,14 +683,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -699,13 +699,13 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Check if already liked
+        # Check if already liked
         existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
         if existing_interaction and existing_interaction.liked:
             logger.info(f"Movie {movie_id} already liked by user {user_id}")
             return existing_interaction, False
 
-        ***REMOVED*** Like movie
+        # Like movie
         logger.info(f"Liking movie {movie_id} for user {user_id}")
         interaction = self.set_liked(db, user_id, movie_id)
         return interaction, True
@@ -728,14 +728,14 @@ class UserInteractionService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If user_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Validate movie exists
+        # Validate movie exists
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -744,7 +744,7 @@ class UserInteractionService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Check if liked
+        # Check if liked
         existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
         if not existing_interaction or not existing_interaction.liked:
             logger.info(f"Movie {movie_id} not liked by user {user_id}")
@@ -762,7 +762,7 @@ class UserInteractionService:
                 False,
             )
 
-        ***REMOVED*** Unlike movie
+        # Unlike movie
         logger.info(f"Unliking movie {movie_id} for user {user_id}")
         interaction = self.unset_liked(db, user_id, movie_id)
         return interaction, True
@@ -785,14 +785,14 @@ class UserInteractionService:
         Raises:
             ValidationError: If user_id is invalid or CSV format is incorrect
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if user_id <= 0:
             raise ValidationError(
                 message="Invalid user ID",
                 field_errors={"user_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Initialize tracking variables
+        # Initialize tracking variables
         total_entries = 0
         matched_movies = 0
         already_marked_watched = 0
@@ -800,12 +800,12 @@ class UserInteractionService:
         unmatched_titles = []
 
         try:
-            ***REMOVED*** Parse CSV
+            # Parse CSV
             csv_io = io.StringIO(csv_content)
             reader = csv.reader(csv_io)
 
-            ***REMOVED*** Skip header if present
-            ***REMOVED*** Netflix format typically has: Title, Date
+            # Skip header if present
+            # Netflix format typically has: Title, Date
             header = next(reader, None)
             if not header or len(header) < 2:
                 raise ValidationError(
@@ -813,29 +813,29 @@ class UserInteractionService:
                     field_errors={"csv": ["Invalid CSV format"]},
                 )
 
-            ***REMOVED*** Process each row
+            # Process each row
             for row in reader:
                 if len(row) < 2:
-                    continue  ***REMOVED*** Skip incomplete rows
+                    continue  # Skip incomplete rows
 
                 total_entries += 1
                 title = row[0].strip()
                 watch_date_str = row[1].strip()
 
-                ***REMOVED*** Skip empty titles
+                # Skip empty titles
                 if not title:
                     continue
 
-                ***REMOVED*** Search for matching movie in database
+                # Search for matching movie in database
                 search_pattern = f"%{title}%"
-                ***REMOVED*** Use sqlalchemy's direct import to fix typing issues
+                # Use sqlalchemy's direct import to fix typing issues
                 from sqlalchemy.sql.expression import desc as sql_desc
 
                 stmt = (
                     select(Movie)
                     .where(func.lower(Movie.title).like(func.lower(search_pattern)))
                     .order_by(sql_desc(func.coalesce(Movie.popularity, 0)))
-                    .limit(1)  ***REMOVED*** Limit to one result since we only need the best match
+                    .limit(1)  # Limit to one result since we only need the best match
                 )
 
                 movie = db.exec(stmt).first()
@@ -846,31 +846,31 @@ class UserInteractionService:
 
                 movie_id = movie.id
 
-                ***REMOVED*** Check if already marked as watched
+                # Check if already marked as watched
                 existing_interaction = get_user_movie_interaction(db, user_id, movie_id)
 
                 if existing_interaction and existing_interaction.watched:
                     already_marked_watched += 1
                 else:
-                    ***REMOVED*** Mark as watched
+                    # Mark as watched
                     try:
-                        ***REMOVED*** Convert watch date if possible
+                        # Convert watch date if possible
                         try:
                             date_parser.parse(watch_date_str).date()
                         except Exception:
-                            ***REMOVED*** If date parsing fails, just use current date
+                            # If date parsing fails, just use current date
                             pass
 
-                        ***REMOVED*** Use the toggle_watched method
+                        # Use the toggle_watched method
                         self.toggle_watched(db, user_id, movie_id)
                         newly_marked_watched += 1
                         matched_movies += 1
                     except Exception as e:
-                        ***REMOVED*** Log but continue with next movie
+                        # Log but continue with next movie
                         logger.error(f"Error marking movie {movie_id} as watched: {str(e)}")
                         continue
 
-            ***REMOVED*** Return results summary
+            # Return results summary
             return {
                 "total_entries": total_entries,
                 "matched_movies": matched_movies,

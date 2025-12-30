@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy import MetaData, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "009_add_performance_optimization_indexes"
 MIGRATION_DESCRIPTION = "Add performance optimization indexes"
 
@@ -32,13 +32,13 @@ def upgrade(engine, config=None):
     """
     logger.info("Adding performance optimization indexes")
 
-    ***REMOVED*** Create metadata
+    # Create metadata
     meta = MetaData()
     meta.reflect(bind=engine)
 
-    ***REMOVED*** Execute SQL queries to create indexes
+    # Execute SQL queries to create indexes
     with engine.begin() as conn:
-        ***REMOVED*** User interaction indexes for faster watchlist, watched, and liked queries
+        # User interaction indexes for faster watchlist, watched, and liked queries
         logger.info("Creating index on user_movie_interactions")
         conn.execute(
             text(
@@ -49,7 +49,7 @@ def upgrade(engine, config=None):
             )
         )
 
-        ***REMOVED*** Create index for filtering movies by release year
+        # Create index for filtering movies by release year
         logger.info("Creating index for release year filtering")
         conn.execute(
             text(
@@ -60,7 +60,7 @@ def upgrade(engine, config=None):
             )
         )
 
-        ***REMOVED*** Create index for filtering by ratings
+        # Create index for filtering by ratings
         logger.info("Creating index for ratings filtering")
         conn.execute(
             text(
@@ -71,7 +71,7 @@ def upgrade(engine, config=None):
             )
         )
 
-        ***REMOVED*** Add trigram index for title search (requires pg_trgm extension)
+        # Add trigram index for title search (requires pg_trgm extension)
         logger.info("Creating index for title text search")
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
         conn.execute(
@@ -83,7 +83,7 @@ def upgrade(engine, config=None):
             )
         )
 
-        ***REMOVED*** Optimized indexes for common sorting patterns
+        # Optimized indexes for common sorting patterns
         logger.info("Creating sorting indexes")
         conn.execute(
             text(
@@ -110,7 +110,7 @@ def upgrade(engine, config=None):
             )
         )
 
-        ***REMOVED*** Indexes for genre filtering
+        # Indexes for genre filtering
         logger.info("Creating movie-genre relationship indexes")
         conn.execute(
             text(
@@ -129,7 +129,7 @@ def upgrade(engine, config=None):
             )
         )
 
-        ***REMOVED*** Index for credits filtering (actors in movies)
+        # Index for credits filtering (actors in movies)
         logger.info("Creating index for actor-movie filtering")
         conn.execute(
             text(
@@ -140,7 +140,7 @@ def upgrade(engine, config=None):
             )
         )
 
-        ***REMOVED*** Index for TMDB ID lookups
+        # Index for TMDB ID lookups
         logger.info("Creating index for TMDB ID lookups")
         conn.execute(
             text(
@@ -151,7 +151,7 @@ def upgrade(engine, config=None):
             )
         )
 
-    ***REMOVED*** Record the migration
+    # Record the migration
     with engine.begin() as conn:
         try:
             conn.execute(
@@ -173,7 +173,7 @@ def downgrade(engine, config=None):
     """
     logger.info("Removing performance optimization indexes")
 
-    ***REMOVED*** Drop all created indexes
+    # Drop all created indexes
     with engine.begin() as conn:
         conn.execute(text("DROP INDEX IF EXISTS idx_user_movie_flags"))
         conn.execute(text("DROP INDEX IF EXISTS idx_movie_release_year"))
@@ -187,7 +187,7 @@ def downgrade(engine, config=None):
         conn.execute(text("DROP INDEX IF EXISTS idx_credit_tmdb_person"))
         conn.execute(text("DROP INDEX IF EXISTS idx_movie_tmdb_id"))
 
-    ***REMOVED*** Remove the migration record
+    # Remove the migration record
     with engine.begin() as conn:
         try:
             conn.execute(

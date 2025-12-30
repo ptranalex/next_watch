@@ -104,7 +104,7 @@ def shell(
         - Get movies by year: movies = run_async(tmdb_client.fetch_movies_by_year(2023))
         - Get top IMDb movies: movies = imdb_client.get_top_movies(limit=10)
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     log_level = "DEBUG" if verbose else "INFO"
     configure_logging(
         log_level=log_level,
@@ -116,11 +116,11 @@ def shell(
     logger.debug("Shell command started")
 
     try:
-        ***REMOVED*** Create directories if they don't exist
+        # Create directories if they don't exist
         logs_dir.mkdir(parents=True, exist_ok=True)
         data_dir.mkdir(parents=True, exist_ok=True)
 
-        ***REMOVED*** Ensure API keys are available
+        # Ensure API keys are available
         tmdb_access_token = get_api_key(
             tmdb_access_token,
             "TMDB_ACCESS_TOKEN",
@@ -135,7 +135,7 @@ def shell(
             omdb_api_key, "OMDB_API_KEY", "OMDB API key", console, required=False
         )
 
-        ***REMOVED*** Create config
+        # Create config
         config = Config(
             logs_dir=logs_dir,
             data_dir=data_dir,
@@ -147,10 +147,10 @@ def shell(
             quiet=quiet,
         )
 
-        ***REMOVED*** Display the config
+        # Display the config
         print_config(config, title="Shell Configuration", console=console)
 
-        ***REMOVED*** Check if ptpython is installed
+        # Check if ptpython is installed
         try:
             from ptpython.repl import embed
         except ImportError:
@@ -160,7 +160,7 @@ def shell(
             )
             raise typer.Exit(1)
 
-        ***REMOVED*** Create client instances
+        # Create client instances
         tmdb_client = TMDBClient(
             access_token=tmdb_access_token,
             base_url="https://api.themoviedb.org/3",
@@ -171,33 +171,33 @@ def shell(
             base_url="http://www.omdbapi.com",
         )
 
-        ***REMOVED*** TMDB API key warning
+        # TMDB API key warning
         if not tmdb_access_token:
             console.print(
                 "[yellow]! TMDB access token not set. API calls will fail without authentication.[/yellow]"
             )
             console.print("  Get a bearer token from your TMDB account settings")
 
-        ***REMOVED*** OMDB API key warning
+        # OMDB API key warning
         if not omdb_api_key:
             console.print(
                 "[yellow]! OMDB API key not set. API calls will fail without authentication.[/yellow]"
             )
             console.print("  Get an API key from: https://www.omdbapi.com/apikey.aspx")
 
-        ***REMOVED*** Create the shell help function
+        # Create the shell help function
         shell_help: Callable[[], None] = create_shell_help_function(namespace={})
 
-        ***REMOVED*** Install pretty printer for the shell session
+        # Install pretty printer for the shell session
         pretty.install()
 
-        ***REMOVED*** Get the banner text
+        # Get the banner text
         banner = get_banner_text()
 
-        ***REMOVED*** Display the banner with help information
+        # Display the banner with help information
         console.print(banner)
 
-        ***REMOVED*** Create the namespace with all available functionality
+        # Create the namespace with all available functionality
         namespace: Dict[str, Any] = {
             "tmdb_client": tmdb_client,
             "imdb_client": imdb_client,
@@ -213,14 +213,14 @@ def shell(
             "console": console,
         }
 
-        ***REMOVED*** Add utility functions to namespace
+        # Add utility functions to namespace
         create_loading_functions(namespace)
 
-        ***REMOVED*** Get the banner text
+        # Get the banner text
         theme_text = "plain (no highlighting)" if plain else theme
         console.print(f"[dim]Theme: {theme_text}[/dim]")
 
-        ***REMOVED*** Launch ptpython with configuration
+        # Launch ptpython with configuration
         embed(
             globals=namespace,
             history_filename=os.path.expanduser("~/.data_importer_history"),
@@ -228,7 +228,7 @@ def shell(
             configure=lambda repl: configure_repl(repl, theme=theme, plain=plain),
         )
 
-        ***REMOVED*** Cleanup async resources
+        # Cleanup async resources
         try:
             asyncio.run(tmdb_client.close())
             asyncio.run(omdb_client.close())

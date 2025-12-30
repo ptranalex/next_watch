@@ -43,7 +43,7 @@ async def async_context_manager(
     """
     resource = None
     try:
-        ***REMOVED*** Setup phase
+        # Setup phase
         if setup_fn:
             if timeout:
                 resource = await asyncio.wait_for(
@@ -53,7 +53,7 @@ async def async_context_manager(
             else:
                 resource = await setup_fn() if asyncio.iscoroutinefunction(setup_fn) else setup_fn()
 
-        ***REMOVED*** Context body
+        # Context body
         if timeout:
             async with asyncio.timeout(timeout):
                 yield resource
@@ -67,7 +67,7 @@ async def async_context_manager(
         logger.error("Context manager error", error=str(e))
         raise
     finally:
-        ***REMOVED*** Cleanup phase
+        # Cleanup phase
         if cleanup_fn and resource is not None:
             try:
                 if asyncio.iscoroutinefunction(cleanup_fn):
@@ -96,7 +96,7 @@ async def with_progress(
     progress = out.progress(message)
 
     try:
-        with progress:  ***REMOVED*** Rich Progress uses regular context manager
+        with progress:  # Rich Progress uses regular context manager
             if timeout:
                 async with asyncio.timeout(timeout):
                     yield
@@ -185,7 +185,7 @@ async def with_retry_context(
                         )
                         raise
 
-            ***REMOVED*** This shouldn't be reached, but just in case
+            # This shouldn't be reached, but just in case
             if last_exception:
                 raise last_exception
 

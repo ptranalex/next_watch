@@ -69,18 +69,18 @@ jobs:
             set -e
             cd /home/${{ secrets.DEPLOY_USER }}/next_watch
 
-            ***REMOVED*** Docker login
+            # Docker login
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-            ***REMOVED*** Pull the latest image
-            REPO_NAME="${GITHUB_REPOSITORY***REMOVED****/}"
+            # Pull the latest image
+            REPO_NAME="${GITHUB_REPOSITORY#*/}"
             IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-data-importer:latest"
             docker pull $IMAGE
 
-            ***REMOVED*** Run the data importer
+            # Run the data importer
             echo "🚀 Running movie sync for years ${{ github.event.inputs.start_year }}-${{ github.event.inputs.end_year }}"
 
-            ***REMOVED*** Build the command as a single string without line breaks
+            # Build the command as a single string without line breaks
             CMD="docker run --rm --memory=512m --cpus=0.75"
             CMD="${CMD} -e POSTGRES_HOST=host.docker.internal"
             CMD="${CMD} -e POSTGRES_PORT=5432"
@@ -96,7 +96,7 @@ jobs:
             CMD="${CMD} --start-year ${{ github.event.inputs.start_year }}"
             CMD="${CMD} --end-year ${{ github.event.inputs.end_year }}"
 
-            ***REMOVED*** Add optional parameters
+            # Add optional parameters
             if [ "${{ github.event.inputs.limit }}" != "0" ]; then
               CMD="${CMD} --limit ${{ github.event.inputs.limit }}"
             fi
@@ -109,9 +109,9 @@ jobs:
               CMD="${CMD} --save"
             fi
 
-            ***REMOVED*** Execute command
+            # Execute command
             echo "Running command: $CMD"
             eval "$CMD"
 
-            ***REMOVED*** Cleanup old images
+            # Cleanup old images
             docker image prune -f

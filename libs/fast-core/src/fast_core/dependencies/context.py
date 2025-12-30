@@ -140,6 +140,6 @@ def get_trace_context_injector() -> TraceContextInjector:
     return TraceContextInjector()
 
 
-***REMOVED*** Backwards compatibility aliases
+# Backwards compatibility aliases
 get_request_id_dependency = get_current_request_id
 get_trace_headers_dependency = get_current_trace_headers

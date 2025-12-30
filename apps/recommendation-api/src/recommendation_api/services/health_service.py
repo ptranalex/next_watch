@@ -52,16 +52,16 @@ class HealthService:
         """
         results = {}
 
-        ***REMOVED*** Run all health checks concurrently
+        # Run all health checks concurrently
         redis_task = asyncio.create_task(self.check_redis())
         qdrant_task = asyncio.create_task(self.check_qdrant())
 
-        ***REMOVED*** Wait for all checks to complete
+        # Wait for all checks to complete
         redis_result, qdrant_result = await asyncio.gather(
             redis_task, qdrant_task, return_exceptions=True
         )
 
-        ***REMOVED*** Handle any exceptions
+        # Handle any exceptions
         if isinstance(redis_result, Exception):
             redis_result = HealthCheckResult(
                 is_healthy=False, status="error", error=str(redis_result)
@@ -86,9 +86,9 @@ class HealthService:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Create Redis client if not exists
+            # Create Redis client if not exists
             if self._redis_client is None:
-                ***REMOVED*** Get Redis URL from environment variable first, then fall back to settings
+                # Get Redis URL from environment variable first, then fall back to settings
                 redis_url = os.getenv("CACHE_REDIS_URL")
                 if not redis_url:
                     redis_url = settings.redis_url
@@ -102,11 +102,11 @@ class HealthService:
                     retry_on_timeout=True,
                 )
 
-            ***REMOVED*** Ping Redis
+            # Ping Redis
             ping_result = self._redis_client.ping()
 
             if ping_result:
-                ***REMOVED*** Get Redis info
+                # Get Redis info
                 info = self._redis_client.info()
                 response_time = (time.time() - start_time) * 1000
 
@@ -163,7 +163,7 @@ class HealthService:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Create Qdrant client if not exists
+            # Create Qdrant client if not exists
             if self._qdrant_client is None:
                 self._qdrant_client = QdrantClient(
                     url=settings.qdrant_url,
@@ -171,11 +171,11 @@ class HealthService:
                     timeout=10,
                 )
 
-            ***REMOVED*** Get collections to test connectivity
+            # Get collections to test connectivity
             collections = self._qdrant_client.get_collections()
             response_time = (time.time() - start_time) * 1000
 
-            ***REMOVED*** Check if our collection exists
+            # Check if our collection exists
             collection_exists = any(
                 col.name == settings.qdrant_collection_name for col in collections.collections
             )
@@ -242,7 +242,7 @@ class HealthService:
                 self._qdrant_client = None
 
 
-***REMOVED*** Global health service instance
+# Global health service instance
 _health_service: HealthService | None = None
 
 
@@ -269,9 +269,9 @@ async def close_health_service() -> None:
         _health_service = None
 
 
-***REMOVED***
-***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
-***REMOVED***
+#
+# NEW HEALTH CHECK REGISTRY INTEGRATION
+#
 
 
 def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
@@ -290,7 +290,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
     )
     from qdrant_client import QdrantClient
 
-    ***REMOVED*** Backend Client - CRITICAL (recommendation service needs movie data)
+    # Backend Client - CRITICAL (recommendation service needs movie data)
     async def check_backend_client() -> HealthCheckResult:
         """Check backend API client connectivity."""
         start_time = time.time()
@@ -298,8 +298,8 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
             from recommendation_api.services.backend_client import get_backend_client
 
             get_backend_client()
-            ***REMOVED*** Simple health check - try to get a basic endpoint
-            ***REMOVED*** This is a mock check since we don't have direct health endpoint access
+            # Simple health check - try to get a basic endpoint
+            # This is a mock check since we don't have direct health endpoint access
             response_time = (time.time() - start_time) * 1000
 
             return HealthCheckResult(
@@ -317,7 +317,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Redis Cache - IMPORTANT (improves performance but not critical)
+    # Redis Cache - IMPORTANT (improves performance but not critical)
     async def check_redis_cache() -> HealthCheckResult:
         """Check Redis cache connectivity."""
         start_time = time.time()
@@ -359,7 +359,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Qdrant Vector Database - IMPORTANT (for ML recommendations)
+    # Qdrant Vector Database - IMPORTANT (for ML recommendations)
     async def check_vector_service() -> HealthCheckResult:
         """Check Qdrant vector database connectivity."""
         start_time = time.time()
@@ -368,11 +368,11 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
                 url=settings.qdrant_url, api_key=settings.qdrant_api_key, timeout=5
             )
 
-            ***REMOVED*** Quick connectivity test
+            # Quick connectivity test
             collections = client.get_collections()
             response_time = (time.time() - start_time) * 1000
 
-            ***REMOVED*** Check if our collection exists
+            # Check if our collection exists
             collection_exists = any(
                 col.name == settings.qdrant_collection_name for col in collections.collections
             )
@@ -398,9 +398,9 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+    # Register health checks with industry-standard category-driven endpoint mapping
 
-    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
+    # CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
             name="backend_client",
@@ -410,7 +410,7 @@ def setup_recommendation_health_checks(registry: "HealthCheckRegistry") -> None:
         )
     )
 
-    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    # IMPORTANT services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
             name="redis_cache",

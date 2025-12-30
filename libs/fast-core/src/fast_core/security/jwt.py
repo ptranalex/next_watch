@@ -123,7 +123,7 @@ class JWTManager:
             "exp": int(expire.timestamp()),
             "iat": int(now.timestamp()),
             "type": "refresh",
-            "jti": secrets.token_urlsafe(32),  ***REMOVED*** Unique token ID for refresh tokens
+            "jti": secrets.token_urlsafe(32),  # Unique token ID for refresh tokens
         }
 
         if self.config.issuer:
@@ -167,7 +167,7 @@ class JWTManager:
             logger.debug(f"JWT verification failed: {e}")
             raise
 
-        ***REMOVED*** Check token type
+        # Check token type
         token_type = payload.get("type", "access")
         if token_type != expected_type:
             raise ValueError(f"Invalid token type: expected {expected_type}, got {token_type}")
@@ -211,7 +211,7 @@ class JWTManager:
         Raises:
             PyJWTError: If token is malformed
         """
-        ***REMOVED*** Decode without verification for subject extraction
+        # Decode without verification for subject extraction
         payload = jwt.decode(token, options={"verify_signature": False})
         return str(payload.get("sub", ""))
 

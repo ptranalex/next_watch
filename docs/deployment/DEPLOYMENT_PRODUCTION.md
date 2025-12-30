@@ -1,8 +1,8 @@
-***REMOVED*** Production Deployment Guide
+# Production Deployment Guide
 
 Complete guide for deploying Next Watch to production with proper security configuration.
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
 - Docker & Docker Compose installed
 - PostgreSQL database (local or hosted)
@@ -10,48 +10,48 @@ Complete guide for deploying Next Watch to production with proper security confi
 - Domain name with DNS configured
 - SSL certificates (via Let's Encrypt or provider)
 
-***REMOVED******REMOVED*** 1. Initial Setup
+## 1. Initial Setup
 
-***REMOVED******REMOVED******REMOVED*** Clone Repository
+### Clone Repository
 
 ```bash
 git clone https://github.com/YOUR-USERNAME/next_watch.git
 cd next_watch
 ```
 
-***REMOVED******REMOVED******REMOVED*** Create Production Environment File
+### Create Production Environment File
 
 ```bash
-***REMOVED*** Copy the template
+# Copy the template
 cp .env.production.local.example .env.production.local
 
-***REMOVED*** Edit with your values
+# Edit with your values
 nano .env.production.local
 ```
 
-***REMOVED******REMOVED*** 2. Configure Required Secrets
+## 2. Configure Required Secrets
 
-***REMOVED******REMOVED******REMOVED*** Generate Strong Secrets
+### Generate Strong Secrets
 
 ```bash
-***REMOVED*** JWT Secret (required)
+# JWT Secret (required)
 openssl rand -base64 32
 
-***REMOVED*** Internal API Key (required)
+# Internal API Key (required)
 openssl rand -base64 32
 
-***REMOVED*** Grafana Secret Key (if self-hosting)
+# Grafana Secret Key (if self-hosting)
 openssl rand -base64 32
 ```
 
-***REMOVED******REMOVED******REMOVED*** Set Production Domain
+### Set Production Domain
 
 ```env
 PRODUCTION_DOMAIN=your-domain.com
 NEXT_PUBLIC_BFF_API_URL=https://your-domain.com
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configure Database
+### Configure Database
 
 ```env
 POSTGRES_USER=next_watch_prod
@@ -59,9 +59,9 @@ POSTGRES_PASSWORD=<strong-password-here>
 POSTGRES_DB=next_watch
 ```
 
-***REMOVED******REMOVED*** 3. External API Keys (Optional)
+## 3. External API Keys (Optional)
 
-***REMOVED******REMOVED******REMOVED*** TMDB API (for movie data import)
+### TMDB API (for movie data import)
 
 1. Create account at https://www.themoviedb.org
 2. Go to Settings → API
@@ -72,7 +72,7 @@ POSTGRES_DB=next_watch
 TMDB_ACCESS_TOKEN=your-token-here
 ```
 
-***REMOVED******REMOVED******REMOVED*** OMDB API (for additional movie data)
+### OMDB API (for additional movie data)
 
 1. Get key from http://www.omdbapi.com/apikey.aspx
 2. Add to `.env.production.local`:
@@ -81,7 +81,7 @@ TMDB_ACCESS_TOKEN=your-token-here
 OMDB_API_KEY=your-key-here
 ```
 
-***REMOVED******REMOVED******REMOVED*** Google OAuth (for social login)
+### Google OAuth (for social login)
 
 1. Go to https://console.cloud.google.com/apis/credentials
 2. Create OAuth 2.0 Client ID
@@ -92,9 +92,9 @@ OMDB_API_KEY=your-key-here
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 
-***REMOVED******REMOVED*** 4. Observability Setup (Optional)
+## 4. Observability Setup (Optional)
 
-***REMOVED******REMOVED******REMOVED*** Grafana Cloud
+### Grafana Cloud
 
 1. Sign up at https://grafana.com
 2. Create a stack
@@ -124,7 +124,7 @@ GRAFANA_CLOUD_TRACES_USERNAME=your-username
 GRAFANA_CLOUD_TRACES_PASSWORD=your-api-key
 ```
 
-***REMOVED******REMOVED******REMOVED*** Self-Hosted Monitoring
+### Self-Hosted Monitoring
 
 If self-hosting Grafana:
 
@@ -134,10 +134,10 @@ GRAFANA_DB_PASSWORD=<strong-password>
 GRAFANA_SECRET_KEY=<generated-with-openssl>
 ```
 
-***REMOVED******REMOVED*** 5. Build Docker Images
+## 5. Build Docker Images
 
 ```bash
-***REMOVED*** Build all services
+# Build all services
 docker build -f apps/backend-api/Dockerfile -t next-watch-backend:latest .
 docker build -f apps/auth-api/Dockerfile -t next-watch-auth:latest .
 docker build -f apps/bff-api/Dockerfile -t next-watch-bff:latest .
@@ -155,23 +155,23 @@ chmod +x scripts/deploy-prod.sh
 ./scripts/deploy-prod.sh --build-only
 ```
 
-***REMOVED******REMOVED*** 6. Deploy Services
+## 6. Deploy Services
 
 ```bash
-***REMOVED*** Start all services
+# Start all services
 docker compose -f infra/compose/prod.yml --env-file .env.production.local up -d
 
-***REMOVED*** Check status
+# Check status
 docker ps
 
-***REMOVED*** View logs
+# View logs
 docker compose -f infra/compose/prod.yml logs -f
 ```
 
-***REMOVED******REMOVED*** 7. Initial Data Import (Optional)
+## 7. Initial Data Import (Optional)
 
 ```bash
-***REMOVED*** Import movie data from TMDB
+# Import movie data from TMDB
 docker run --rm \
   --env-file .env.production.local \
   --network host \
@@ -179,7 +179,7 @@ docker run --rm \
   python -m data_importer.cli sync --verbose
 ```
 
-***REMOVED******REMOVED*** 8. Configure Nginx Reverse Proxy
+## 8. Configure Nginx Reverse Proxy
 
 Create `/etc/nginx/sites-available/nextwatch`:
 
@@ -197,7 +197,7 @@ server {
     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
 
-    ***REMOVED*** Frontend
+    # Frontend
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
@@ -206,14 +206,14 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    ***REMOVED*** BFF API
+    # BFF API
     location /api/ {
         proxy_pass http://127.0.0.1:8001/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
 
-    ***REMOVED*** Grafana (if self-hosting)
+    # Grafana (if self-hosting)
     location /grafana/ {
         proxy_pass http://127.0.0.1:3001/;
         proxy_set_header Host $host;
@@ -229,7 +229,7 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-***REMOVED******REMOVED*** 9. SSL Certificate Setup
+## 9. SSL Certificate Setup
 
 Using Let's Encrypt:
 
@@ -238,22 +238,22 @@ sudo apt install certbot python3-certbot-nginx
 sudo certbot --nginx -d your-domain.com -d www.your-domain.com
 ```
 
-***REMOVED******REMOVED*** 10. Health Checks
+## 10. Health Checks
 
 Verify all services are running:
 
 ```bash
-***REMOVED*** Backend API
+# Backend API
 curl https://your-domain.com/api/health
 
-***REMOVED*** Frontend
+# Frontend
 curl https://your-domain.com
 
-***REMOVED*** Check all containers
+# Check all containers
 docker ps
 ```
 
-***REMOVED******REMOVED*** 11. Monitoring Access
+## 11. Monitoring Access
 
 Access your monitoring:
 
@@ -261,7 +261,7 @@ Access your monitoring:
 - **Prometheus**: https://your-domain.com/prometheus/
 - **Application**: https://your-domain.com
 
-***REMOVED******REMOVED*** Security Checklist
+## Security Checklist
 
 Before going live:
 
@@ -279,73 +279,73 @@ Before going live:
 - [ ] Backups configured for database
 - [ ] Rate limiting enabled
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Services won't start
+### Services won't start
 
 ```bash
-***REMOVED*** Check logs
+# Check logs
 docker compose -f infra/compose/prod.yml logs
 
-***REMOVED*** Check environment variables
+# Check environment variables
 docker compose -f infra/compose/prod.yml config
 ```
 
-***REMOVED******REMOVED******REMOVED*** Database connection errors
+### Database connection errors
 
 ```bash
-***REMOVED*** Verify database is accessible
+# Verify database is accessible
 psql -h localhost -U your_user -d next_watch
 
-***REMOVED*** Check connection string in .env.production.local
+# Check connection string in .env.production.local
 ```
 
-***REMOVED******REMOVED******REMOVED*** API returns 502 Bad Gateway
+### API returns 502 Bad Gateway
 
 ```bash
-***REMOVED*** Check if backend services are running
+# Check if backend services are running
 docker ps | grep next-watch
 
-***REMOVED*** Check nginx error log
+# Check nginx error log
 sudo tail -f /var/log/nginx/error.log
 ```
 
-***REMOVED******REMOVED*** Maintenance
+## Maintenance
 
-***REMOVED******REMOVED******REMOVED*** Update Deployment
+### Update Deployment
 
 ```bash
-***REMOVED*** Pull latest code
+# Pull latest code
 git pull origin main
 
-***REMOVED*** Rebuild images
+# Rebuild images
 ./scripts/deploy-prod.sh
 
-***REMOVED*** Restart services
+# Restart services
 docker compose -f infra/compose/prod.yml restart
 ```
 
-***REMOVED******REMOVED******REMOVED*** Backup Database
+### Backup Database
 
 ```bash
-***REMOVED*** Create backup
+# Create backup
 pg_dump -h localhost -U your_user next_watch > backup_$(date +%Y%m%d).sql
 
-***REMOVED*** Restore backup
+# Restore backup
 psql -h localhost -U your_user next_watch < backup_20240101.sql
 ```
 
-***REMOVED******REMOVED******REMOVED*** View Logs
+### View Logs
 
 ```bash
-***REMOVED*** All services
+# All services
 docker compose -f infra/compose/prod.yml logs -f
 
-***REMOVED*** Specific service
+# Specific service
 docker logs -f backend-api
 ```
 
-***REMOVED******REMOVED*** Support
+## Support
 
 For issues or questions:
 
@@ -353,6 +353,6 @@ For issues or questions:
 - Review service-specific READMEs in `/apps`
 - Open an issue on GitHub
 
-***REMOVED******REMOVED*** License
+## License
 
 MIT License - see LICENSE file for details

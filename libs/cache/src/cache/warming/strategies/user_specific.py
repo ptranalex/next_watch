@@ -55,7 +55,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
 
         all_targets = []
 
-        ***REMOVED*** Process each user
+        # Process each user
         for user_id in user_ids:
             try:
                 user_targets = await self._process_user(user_id, limit)
@@ -64,7 +64,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
                 logger.error(f"Error processing user {user_id}: {e}")
                 continue
 
-        ***REMOVED*** Sort by priority and apply global limit
+        # Sort by priority and apply global limit
         all_targets.sort(key=lambda t: t.priority, reverse=True)
         if limit:
             all_targets = all_targets[:limit]
@@ -84,7 +84,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         """
         targets = []
 
-        ***REMOVED*** Get user profile data
+        # Get user profile data
         user_data = {}
         if self.user_data_provider:
             try:
@@ -92,7 +92,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
             except Exception as e:
                 logger.error(f"Error getting user data for {user_id}: {e}")
 
-        ***REMOVED*** Get user recommendations
+        # Get user recommendations
         recommendations = []
         if self.recommendation_provider:
             try:
@@ -100,16 +100,16 @@ class UserSpecificStrategy(BaseWarmingStrategy):
             except Exception as e:
                 logger.error(f"Error getting recommendations for {user_id}: {e}")
 
-        ***REMOVED*** Create targets based on user profile
+        # Create targets based on user profile
         targets.extend(self._create_profile_targets(user_id, user_data))
 
-        ***REMOVED*** Create targets based on recommendations
+        # Create targets based on recommendations
         targets.extend(self._create_recommendation_targets(user_id, recommendations, user_data))
 
-        ***REMOVED*** Create targets based on user preferences
+        # Create targets based on user preferences
         targets.extend(self._create_preference_targets(user_id, user_data))
 
-        ***REMOVED*** Sort and limit per user
+        # Sort and limit per user
         targets.sort(key=lambda t: t.priority, reverse=True)
         if limit:
             targets = targets[:limit]
@@ -130,9 +130,9 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         """
         targets = []
 
-        ***REMOVED*** User's watchlist
+        # User's watchlist
         watchlist = user_data.get("watchlist", [])
-        for movie_id in watchlist[:10]:  ***REMOVED*** Top 10 watchlist items
+        for movie_id in watchlist[:10]:  # Top 10 watchlist items
             priority = self.calculate_priority(
                 {
                     "user_engagement": "high",
@@ -146,11 +146,11 @@ class UserSpecificStrategy(BaseWarmingStrategy):
                     function_name="get_movie_screen_data",
                     parameters={"movie_id": movie_id, "user_id": user_id},
                     priority=priority,
-                    estimated_benefit=150.0,  ***REMOVED*** High benefit for watchlist items
+                    estimated_benefit=150.0,  # High benefit for watchlist items
                 )
             )
 
-        ***REMOVED*** User's favorite genres
+        # User's favorite genres
         favorite_genres = user_data.get("favorite_genres", [])
         for genre_id in favorite_genres[:5]:
             priority = self.calculate_priority(
@@ -170,7 +170,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
                 )
             )
 
-        ***REMOVED*** User's recently viewed
+        # User's recently viewed
         recently_viewed = user_data.get("recently_viewed", [])
         for movie_id in recently_viewed[:5]:
             priority = self.calculate_priority(
@@ -185,7 +185,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
                 self.create_warming_target(
                     function_name="get_movie_screen_data",
                     parameters={"movie_id": movie_id, "user_id": user_id},
-                    priority=priority * 0.8,  ***REMOVED*** Slightly lower priority
+                    priority=priority * 0.8,  # Slightly lower priority
                     estimated_benefit=80.0,
                 )
             )
@@ -210,7 +210,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         """
         targets = []
 
-        for rec in recommendations[:15]:  ***REMOVED*** Top 15 recommendations
+        for rec in recommendations[:15]:  # Top 15 recommendations
             movie_id = rec.get("movie_id")
             confidence = rec.get("confidence", 0.5)
             rec_type = rec.get("type", "general")
@@ -252,7 +252,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         """
         targets = []
 
-        ***REMOVED*** User's preferred actors
+        # User's preferred actors
         favorite_actors = user_data.get("favorite_actors", [])
         for actor_id in favorite_actors[:5]:
             priority = self.calculate_priority(
@@ -272,7 +272,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
                 )
             )
 
-        ***REMOVED*** User's preferred time periods
+        # User's preferred time periods
         preferred_decades = user_data.get("preferred_decades", [])
         for decade in preferred_decades[:3]:
             priority = self.calculate_priority(
@@ -292,7 +292,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
                 )
             )
 
-        ***REMOVED*** User dashboard/profile screens
+        # User dashboard/profile screens
         priority = self.calculate_priority(
             {
                 "user_engagement": "high",
@@ -306,7 +306,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
                 function_name="get_user_dashboard_data",
                 parameters={"user_id": user_id},
                 priority=priority,
-                estimated_benefit=200.0,  ***REMOVED*** High benefit for personal dashboard
+                estimated_benefit=200.0,  # High benefit for personal dashboard
             )
         )
 
@@ -325,12 +325,12 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         content_type = target_data.get("content_type", "unknown")
         confidence = target_data.get("confidence", 0.5)
 
-        ***REMOVED*** Base priority from engagement level
+        # Base priority from engagement level
         engagement_multipliers = {"high": 3.0, "medium": 2.0, "low": 1.0}
 
         base_priority = engagement_multipliers.get(engagement_level, 1.0)
 
-        ***REMOVED*** Content type multipliers
+        # Content type multipliers
         content_multipliers = {
             "watchlist": 1.5,
             "user_dashboard": 1.4,
@@ -345,7 +345,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
 
         content_multiplier = content_multipliers.get(content_type, 0.5)
 
-        ***REMOVED*** Confidence boost for recommendations
+        # Confidence boost for recommendations
         confidence_boost = confidence if "recommendation" in content_type else 1.0
 
         return (
@@ -363,7 +363,7 @@ class UserSpecificStrategy(BaseWarmingStrategy):
         """
         targets = []
 
-        ***REMOVED*** Common user screens that are frequently accessed
+        # Common user screens that are frequently accessed
         common_screens = [
             ("get_user_dashboard_data", {"user_id": None}, 4.0),
             ("get_watchlist_data", {"user_id": None}, 3.5),

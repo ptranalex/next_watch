@@ -43,13 +43,13 @@ class HealthService:
         Returns:
             Dictionary mapping service names to health check results
         """
-        ***REMOVED*** Run all health checks concurrently
+        # Run all health checks concurrently
         model_task = asyncio.create_task(self.check_embedding_model())
 
-        ***REMOVED*** Wait for all checks to complete
+        # Wait for all checks to complete
         gather_results = await asyncio.gather(model_task, return_exceptions=True)
 
-        ***REMOVED*** Handle any exceptions and build results
+        # Handle any exceptions and build results
         results: dict[str, HealthCheckResult] = {}
 
         model_result = gather_results[0]
@@ -75,18 +75,18 @@ class HealthService:
         start_time = time.time()
 
         try:
-            ***REMOVED*** Check if embedding service is available
+            # Check if embedding service is available
             from ml_api.config.app import get_ml_settings
 
             settings = get_ml_settings()
             response_time = (time.time() - start_time) * 1000
 
             if settings.enable_embeddings:
-                ***REMOVED*** Check if embedding service is loaded by calling the info endpoint
+                # Check if embedding service is loaded by calling the info endpoint
                 try:
                     from ml_api.services import embedding_service
 
-                    ***REMOVED*** Get actual model info from the service
+                    # Get actual model info from the service
                     model_info = embedding_service.get_model_info()
                     model_loaded = model_info.get("status") == "loaded"
                     model_health = model_info.get("health", "unknown")
@@ -154,9 +154,9 @@ def close_health_service() -> None:
     get_health_service.cache_clear()
 
 
-***REMOVED***
-***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
-***REMOVED***
+#
+# NEW HEALTH CHECK REGISTRY INTEGRATION
+#
 
 
 def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
@@ -173,7 +173,7 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckResult,
     )
 
-    ***REMOVED*** Embedding Model - CRITICAL (core ML functionality)
+    # Embedding Model - CRITICAL (core ML functionality)
     async def check_embedding_model() -> HealthCheckResult:
         """Check embedding model availability."""
         start_time = time.time()
@@ -184,11 +184,11 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
             response_time = (time.time() - start_time) * 1000
 
             if settings.enable_embeddings:
-                ***REMOVED*** Check if embedding service is loaded by calling the info endpoint
+                # Check if embedding service is loaded by calling the info endpoint
                 try:
                     from ml_api.services import embedding_service
 
-                    ***REMOVED*** Get actual model info from the service
+                    # Get actual model info from the service
                     model_info = embedding_service.get_model_info()
                     model_loaded = model_info.get("status") == "loaded"
                     model_health = model_info.get("health", "unknown")
@@ -214,7 +214,7 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
                         error="Embedding service not available",
                     )
             else:
-                ***REMOVED*** Embeddings disabled - this is OK for development
+                # Embeddings disabled - this is OK for development
                 return HealthCheckResult(
                     is_healthy=True,
                     status="disabled",
@@ -233,12 +233,12 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Vector Storage - IMPORTANT (for similarity search)
+    # Vector Storage - IMPORTANT (for similarity search)
     async def check_vector_storage() -> HealthCheckResult:
         """Check vector storage systems."""
         start_time = time.time()
         try:
-            ***REMOVED*** Basic check - could be enhanced with actual vector DB connectivity
+            # Basic check - could be enhanced with actual vector DB connectivity
             response_time = (time.time() - start_time) * 1000
 
             return HealthCheckResult(
@@ -247,7 +247,7 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
                 response_time_ms=round(response_time, 2),
                 details={
                     "vector_storage": "configured",
-                    "storage_type": "in_memory",  ***REMOVED*** Could be enhanced
+                    "storage_type": "in_memory",  # Could be enhanced
                 },
             )
         except Exception as e:
@@ -259,12 +259,12 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Model Performance - INFORMATIONAL (monitoring only)
+    # Model Performance - INFORMATIONAL (monitoring only)
     async def check_model_performance() -> HealthCheckResult:
         """Check ML model performance metrics."""
         start_time = time.time()
         try:
-            ***REMOVED*** Performance metrics check - could be enhanced with actual benchmarks
+            # Performance metrics check - could be enhanced with actual benchmarks
             response_time = (time.time() - start_time) * 1000
 
             return HealthCheckResult(
@@ -286,9 +286,9 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+    # Register health checks with industry-standard category-driven endpoint mapping
 
-    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
+    # CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
             name="embedding_model",
@@ -298,7 +298,7 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
         )
     )
 
-    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    # IMPORTANT services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
             name="vector_storage",
@@ -308,7 +308,7 @@ def setup_ml_health_checks(registry: "HealthCheckRegistry") -> None:
         )
     )
 
-    ***REMOVED*** INFORMATIONAL services - automatically included in DEEP only
+    # INFORMATIONAL services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
             name="model_performance",

@@ -1,6 +1,6 @@
 """Database operations module."""
 
-***REMOVED*** Import repositories and operations
+# Import repositories and operations
 from movie_storage.db.operations.credit import (
     create_credit,
     create_credits_from_tmdb_data,
@@ -54,7 +54,7 @@ from movie_storage.db.operations.user_interaction import (
 )
 
 __all__ = [
-    ***REMOVED*** Movie operations
+    # Movie operations
     "create_movie",
     "get_movie_by_tmdb_id",
     "get_movie_by_id",
@@ -62,7 +62,7 @@ __all__ = [
     "get_movies",
     "update_movie",
     "delete_movie",
-    ***REMOVED*** Genre operations
+    # Genre operations
     "create_genre",
     "get_genre_by_id",
     "get_genre_by_name",
@@ -70,7 +70,7 @@ __all__ = [
     "get_genres",
     "update_genre",
     "delete_genre",
-    ***REMOVED*** Credit operations
+    # Credit operations
     "create_credit",
     "get_credit_by_id",
     "get_credits_by_movie_id",
@@ -80,7 +80,7 @@ __all__ = [
     "delete_credit",
     "delete_credits_for_movie",
     "create_credits_from_tmdb_data",
-    ***REMOVED*** User operations
+    # User operations
     "create_user",
     "get_user_by_id",
     "get_user_by_email",
@@ -89,9 +89,9 @@ __all__ = [
     "update_user",
     "delete_user",
     "authenticate_user",
-    ***REMOVED*** Trailer operations
+    # Trailer operations
     "create_trailer",
-    ***REMOVED*** User interaction operations
+    # User interaction operations
     "create_user_movie_interaction",
     "get_user_movie_interaction",
     "get_user_movie_interactions",

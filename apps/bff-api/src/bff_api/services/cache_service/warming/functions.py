@@ -21,7 +21,7 @@ from bff_api.services.clients.recommendation import RecommendationClient
 
 logger = get_logger(__name__)
 
-***REMOVED*** Global rate limiter for warming operations
+# Global rate limiter for warming operations
 _global_warming_rate_limiter: WarmingRateLimiter | None = None
 
 
@@ -61,7 +61,7 @@ async def _rate_limited_operation(
 
     for attempt in range(max_retries + 1):
         try:
-            ***REMOVED*** Apply rate limiting before each attempt
+            # Apply rate limiting before each attempt
             await rate_limiter.acquire()
 
             logger.debug(
@@ -71,7 +71,7 @@ async def _rate_limited_operation(
                 max_retries=max_retries + 1,
             )
 
-            ***REMOVED*** Execute the operation
+            # Execute the operation
             result = await operation_func()
 
             if attempt > 0:
@@ -88,10 +88,10 @@ async def _rate_limited_operation(
             is_last_attempt = attempt == max_retries
 
             if is_rate_limit_error and not is_last_attempt:
-                ***REMOVED*** Calculate exponential backoff with jitter
+                # Calculate exponential backoff with jitter
                 delay = min(base_delay**attempt, max_delay)
                 if use_jitter:
-                    delay *= 0.5 + random.random() * 0.5  ***REMOVED*** Add 0-50% jitter
+                    delay *= 0.5 + random.random() * 0.5  # Add 0-50% jitter
 
                 logger.warning(
                     "Rate limited during warming operation, retrying",
@@ -105,7 +105,7 @@ async def _rate_limited_operation(
                 await asyncio.sleep(delay)
                 continue
             else:
-                ***REMOVED*** Non-rate-limit error or final attempt
+                # Non-rate-limit error or final attempt
                 if is_last_attempt:
                     logger.error(
                         "Warming operation failed after all retries",
@@ -122,7 +122,7 @@ async def _rate_limited_operation(
                     )
                 raise
 
-    ***REMOVED*** This should never be reached, but add for type safety
+    # This should never be reached, but add for type safety
     raise Exception(f"Rate-limited operation {operation_name} failed after all attempts")
 
 
@@ -148,10 +148,10 @@ class WarmingFunctions:
         """
 
         async def _warm_operation() -> dict[str, Any]:
-            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            # Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.movies import _get_movie_screen_data
 
-            ***REMOVED*** Create client configurations
+            # Create client configurations
             backend_config = ServiceClientConfig(
                 name="backend", base_url=self.settings.backend_api_url, timeout=30
             )
@@ -159,11 +159,11 @@ class WarmingFunctions:
                 name="recommendation", base_url=self.settings.reco_api_url, timeout=30
             )
 
-            ***REMOVED*** Create client instances
+            # Create client instances
             backend_client = BackendClient(backend_config, self.settings)
             recommendation_client = RecommendationClient(recommendation_config, self.settings)
 
-            ***REMOVED*** Warm the movie screen data (this will populate the cache)
+            # Warm the movie screen data (this will populate the cache)
             warmed_data = await _get_movie_screen_data(
                 movie_id=movie_id,
                 user_id=user_id,
@@ -202,20 +202,20 @@ class WarmingFunctions:
         """
 
         async def _warm_operation() -> dict[str, Any]:
-            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            # Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.movies import _get_movies_list_data
 
-            ***REMOVED*** Create client configurations
+            # Create client configurations
             backend_config = ServiceClientConfig(
                 name="backend", base_url=self.settings.backend_api_url, timeout=30
             )
 
-            ***REMOVED*** Create client instance
+            # Create client instance
             backend_client = BackendClient(backend_config, self.settings)
 
-            ***REMOVED*** Warm the movies list data with correct signature
+            # Warm the movies list data with correct signature
             warmed_data = await _get_movies_list_data(
-                page=1,  ***REMOVED*** Start with page 1
+                page=1,  # Start with page 1
                 limit=limit,
                 genre_id=genre_id,
                 actor_id=None,
@@ -259,18 +259,18 @@ class WarmingFunctions:
         """
 
         async def _warm_operation() -> dict[str, Any]:
-            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            # Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.actors import _get_actor_screen_data
 
-            ***REMOVED*** Create client configurations
+            # Create client configurations
             backend_config = ServiceClientConfig(
                 name="backend", base_url=self.settings.backend_api_url, timeout=30
             )
 
-            ***REMOVED*** Create client instance
+            # Create client instance
             backend_client = BackendClient(backend_config, self.settings)
 
-            ***REMOVED*** Warm the actor screen data with correct signature
+            # Warm the actor screen data with correct signature
             warmed_data = await _get_actor_screen_data(
                 actor_id=actor_id,
                 page=1,
@@ -304,18 +304,18 @@ class WarmingFunctions:
         """
 
         async def _warm_operation() -> dict[str, Any]:
-            ***REMOVED*** Import the cached function dynamically to avoid circular imports
+            # Import the cached function dynamically to avoid circular imports
             from bff_api.routes.v1.genres import _get_genre_screen_data
 
-            ***REMOVED*** Create client configurations
+            # Create client configurations
             backend_config = ServiceClientConfig(
                 name="backend", base_url=self.settings.backend_api_url, timeout=30
             )
 
-            ***REMOVED*** Create client instance
+            # Create client instance
             backend_client = BackendClient(backend_config, self.settings)
 
-            ***REMOVED*** Warm the genre screen data with correct signature
+            # Warm the genre screen data with correct signature
             warmed_data = await _get_genre_screen_data(
                 genre_id=genre_id,
                 page=1,

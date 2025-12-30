@@ -1,46 +1,46 @@
-***REMOVED*** Backend API Command Line Interface
+# Backend API Command Line Interface
 
 This module provides a comprehensive command-line interface (CLI) for the Backend API service, built using Typer.
 
-***REMOVED******REMOVED*** Structure
+## Structure
 
 The CLI is organized as follows:
 
 ```Text
 backend_api/cli/
 │
-├── __init__.py       ***REMOVED*** Main CLI application entry point
-├── __main__.py       ***REMOVED*** Entry point for direct module execution
-├── README.md         ***REMOVED*** This documentation file
-├── utils.py          ***REMOVED*** Utility functions for CLI commands
-└── commands/         ***REMOVED*** Individual command groups
-    ├── cache.py      ***REMOVED*** Cache management commands
-    ├── config.py     ***REMOVED*** Configuration commands
-    ├── database.py   ***REMOVED*** Database management commands (consolidated)
-    ├── health.py     ***REMOVED*** Health check commands
-    ├── redis.py      ***REMOVED*** Redis data management commands
-    ├── serve.py      ***REMOVED*** Server commands
-    ├── version.py    ***REMOVED*** Version information commands
-    └── __init__.py   ***REMOVED*** Command module initialization
+├── __init__.py       # Main CLI application entry point
+├── __main__.py       # Entry point for direct module execution
+├── README.md         # This documentation file
+├── utils.py          # Utility functions for CLI commands
+└── commands/         # Individual command groups
+    ├── cache.py      # Cache management commands
+    ├── config.py     # Configuration commands
+    ├── database.py   # Database management commands (consolidated)
+    ├── health.py     # Health check commands
+    ├── redis.py      # Redis data management commands
+    ├── serve.py      # Server commands
+    ├── version.py    # Version information commands
+    └── __init__.py   # Command module initialization
 ```
 
-***REMOVED******REMOVED*** Command Structure
+## Command Structure
 
 The CLI follows a clean, flat structure with logical grouping:
 
-***REMOVED******REMOVED******REMOVED*** Top-Level Commands
+### Top-Level Commands
 
 - `config` - Display and manage configuration settings
 - `serve` - Start the Backend API server
 - `version` - Display version information
 
-***REMOVED******REMOVED******REMOVED*** Command Groups
+### Command Groups
 
 - `db` - Database management commands
 - `health` - Health check commands
 - `cache` - Cache management commands
 
-***REMOVED******REMOVED*** Command Groups
+## Command Groups
 
 - **db**: Database management commands
 
@@ -81,12 +81,12 @@ The CLI follows a clean, flat structure with logical grouping:
   - `version`: Show Backend API version
   - Options: `--verbose`
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 The CLI is installed as part of the Backend API package:
 
 ```bash
-***REMOVED*** Install in development mode
+# Install in development mode
 cd /path/to/backend-api
 pip install -e .
 ```
@@ -94,16 +94,16 @@ pip install -e .
 After installation, the CLI is available via:
 
 ```bash
-***REMOVED*** As a console script
+# As a console script
 backend-api [COMMAND] [OPTIONS]
 
-***REMOVED*** As a Python module
+# As a Python module
 python -m backend_api.cli [COMMAND] [OPTIONS]
 ```
 
-***REMOVED******REMOVED*** Usage Examples
+## Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Database Management
+### Database Management
 
 Initialize the database:
 
@@ -159,7 +159,7 @@ Teardown database (development only):
 backend-api db teardown --confirm
 ```
 
-***REMOVED******REMOVED******REMOVED*** Server Management
+### Server Management
 
 Start the server with default settings:
 
@@ -179,7 +179,7 @@ Start in development mode with auto-reload:
 backend-api serve --reload
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Checks
+### Health Checks
 
 Check the Backend API health:
 
@@ -205,7 +205,7 @@ Check database health:
 backend-api health db --timeout 10
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration Management
+### Configuration Management
 
 Display current configuration:
 
@@ -225,7 +225,7 @@ Show configuration including secrets (use with caution):
 backend-api config --show-secrets
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cache Management
+### Cache Management
 
 Display cache information:
 
@@ -263,7 +263,7 @@ Clear cache keys matching a pattern:
 backend-api cache clear --pattern "temp:*" --confirm
 ```
 
-***REMOVED******REMOVED******REMOVED*** Version Information
+### Version Information
 
 Display version information:
 
@@ -277,7 +277,7 @@ Show detailed version information:
 backend-api version --verbose
 ```
 
-***REMOVED******REMOVED*** Environment Variables
+## Environment Variables
 
 The CLI respects the following environment variables:
 
@@ -291,7 +291,7 @@ The CLI respects the following environment variables:
 | `DATABASE_URL` | PostgreSQL connection URL | postgresql://alex@localhost:5432/next_watch |
 | `REDIS_URL`    | URL for Redis connection  | redis://localhost:6379/0                    |
 
-***REMOVED******REMOVED*** Design Principles
+## Design Principles
 
 1. **Flat Command Structure**: Minimal nesting for intuitive usage
 2. **Logical Grouping**: Related commands grouped under clear namespaces
@@ -303,25 +303,25 @@ The CLI respects the following environment variables:
 8. **Error Handling**: Robust error reporting and appropriate exit codes
 9. **Consolidated Commands**: Related functionality is grouped in single files for better maintainability
 
-***REMOVED******REMOVED*** Database Commands Details
+## Database Commands Details
 
 The database commands provide comprehensive database management functionality:
 
-***REMOVED******REMOVED******REMOVED*** Database Initialization
+### Database Initialization
 
 - Creates database connection
 - Optionally creates all tables
 - Supports custom database URLs
 - Provides verbose output for debugging
 
-***REMOVED******REMOVED******REMOVED*** Database Migrations
+### Database Migrations
 
 - Applies pending migrations in sequence
 - Tracks applied migrations in database
 - Shows detailed migration information
 - Supports custom database URLs
 
-***REMOVED******REMOVED******REMOVED*** Database Downgrades
+### Database Downgrades
 
 - Supports single or multiple migration downgrades
 - Can target specific migrations
@@ -329,25 +329,25 @@ The database commands provide comprehensive database management functionality:
 - Shows detailed downgrade information
 - Supports downgrading all migrations
 
-***REMOVED******REMOVED******REMOVED*** Database Teardown
+### Database Teardown
 
 - **DEVELOPMENT ONLY** - Destroys all data
 - Multiple confirmation prompts for safety
 - Environment-aware (blocks production by default)
 - Complete schema reset functionality
 
-***REMOVED******REMOVED*** Extending the CLI
+## Extending the CLI
 
 To add new command groups or commands:
 
-***REMOVED******REMOVED******REMOVED*** Adding Top-Level Commands
+### Adding Top-Level Commands
 
 1. Create a new module in the `commands/` directory
 2. Define command functions using `@app.command()`
 3. Register directly with main app: `main_app.command("name")(function)`
 4. Import in `commands/__init__.py`
 
-***REMOVED******REMOVED******REMOVED*** Adding Command Groups
+### Adding Command Groups
 
 1. Create a new module in the `commands/` directory
 2. Define command functions using `@app.command()`
@@ -356,11 +356,11 @@ To add new command groups or commands:
 5. Register group with main app: `app.add_typer(group_app, name="group")`
 6. Import in `commands/__init__.py`
 
-***REMOVED******REMOVED******REMOVED*** Adding Database Commands
+### Adding Database Commands
 
 For database commands specifically, add new commands directly to the existing `database.py` file and register them with `db_app.command()`.
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 - Commands should have clear, descriptive names
 - Use verb-noun format for commands (e.g., `cache clear`, `health check`)
@@ -373,34 +373,34 @@ For database commands specifically, add new commands directly to the existing `d
 - Keep command structure flat and intuitive
 - Avoid unnecessary nesting (e.g., avoid `cache cache info`)
 
-***REMOVED******REMOVED*** Shell Completion
+## Shell Completion
 
 The Backend API CLI supports shell completion for Bash, Zsh, and Fish shells.
 
-***REMOVED******REMOVED******REMOVED*** Setup
+### Setup
 
 Enable shell completion by running:
 
 ```bash
-***REMOVED*** For Bash
+# For Bash
 backend-api --install-completion bash
 
-***REMOVED*** For Zsh
+# For Zsh
 backend-api --install-completion zsh
 
-***REMOVED*** For Fish
+# For Fish
 backend-api --install-completion fish
 ```
 
 Or manually by adding to your shell configuration:
 
 ```bash
-***REMOVED*** Bash
+# Bash
 eval "$(backend-api --completion bash)"
 
-***REMOVED*** Zsh
+# Zsh
 eval "$(backend-api --completion zsh)"
 
-***REMOVED*** Fish
+# Fish
 backend-api --completion fish | source
 ```

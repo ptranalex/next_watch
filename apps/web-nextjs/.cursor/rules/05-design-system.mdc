@@ -1,10 +1,10 @@
-***REMOVED*** Next Watch - Design System Rules
+# Next Watch - Design System Rules
 
-***REMOVED******REMOVED*** 🎨 Chakra UI Integration Rules
+## 🎨 Chakra UI Integration Rules
 
 **MANDATORY** usage patterns for consistent design system implementation.
 
-***REMOVED******REMOVED******REMOVED*** 1. Semantic Token Usage
+### 1. Semantic Token Usage
 
 **ALWAYS** use semantic tokens instead of direct color values:
 
@@ -25,16 +25,16 @@
 </Box>
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Required Semantic Color Tokens
+### 2. Required Semantic Color Tokens
 
 **MANDATORY** color tokens to use throughout the application:
 
 ```typescript
 // Brand colors
-"colors.primary"; // Main brand color (***REMOVED***1A73E8)
+"colors.primary"; // Main brand color (#1A73E8)
 "colors.primary.lighter"; // Lighter brand variant
 "colors.primary.darker"; // Darker brand variant
-"colors.secondary"; // Secondary brand color (***REMOVED***00B8A9)
+"colors.secondary"; // Secondary brand color (#00B8A9)
 "colors.secondary.lighter"; // Lighter secondary variant
 "colors.secondary.darker"; // Darker secondary variant
 
@@ -55,7 +55,7 @@
 "bg.disabled"; // Disabled background
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Spacing and Layout Tokens
+### 3. Spacing and Layout Tokens
 
 ```typescript
 // ✅ CORRECT - Use theme spacing
@@ -72,9 +72,9 @@
 <Stack spacing={{ base: 2, md: 4, lg: 6 }}>
 ```
 
-***REMOVED******REMOVED*** 📱 Responsive Design Rules
+## 📱 Responsive Design Rules
 
-***REMOVED******REMOVED******REMOVED*** 1. Mobile-First Approach
+### 1. Mobile-First Approach
 
 **REQUIRED** mobile-first responsive design:
 
@@ -97,7 +97,7 @@
 </Hide>
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Breakpoint System
+### 2. Breakpoint System
 
 **MANDATORY** breakpoint usage:
 
@@ -124,7 +124,7 @@ const breakpoints = {
 >
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Touch-Friendly Design
+### 3. Touch-Friendly Design
 
 **REQUIRED** for mobile optimization:
 
@@ -151,9 +151,9 @@ const { swipeHandlers } = useSwipe({
 </Box>
 ```
 
-***REMOVED******REMOVED*** 🎭 Theme Customization Patterns
+## 🎭 Theme Customization Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Component Style Overrides
+### 1. Component Style Overrides
 
 ```typescript
 // theme.ts - Component customizations
@@ -190,7 +190,7 @@ const components = {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Dark Mode Support
+### 2. Dark Mode Support
 
 **REQUIRED** dark mode implementation:
 
@@ -220,9 +220,9 @@ const cardStyle = useColorModeValue(
 );
 ```
 
-***REMOVED******REMOVED*** 🧩 Component Styling Patterns
+## 🧩 Component Styling Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Style Props Pattern
+### 1. Style Props Pattern
 
 ```typescript
 // ✅ CORRECT - Chakra UI style props
@@ -243,7 +243,7 @@ const cardStyle = useColorModeValue(
 >
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Variant-Based Styling
+### 2. Variant-Based Styling
 
 ```typescript
 // ✅ CORRECT - Variant-based component design
@@ -280,7 +280,7 @@ const Card = ({ variant = "elevated", size = "md", children }) => {
 };
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Animation and Transitions
+### 3. Animation and Transitions
 
 ```typescript
 // ✅ CORRECT - Consistent animations
@@ -312,9 +312,9 @@ const Card = ({ variant = "elevated", size = "md", children }) => {
 >
 ```
 
-***REMOVED******REMOVED*** 📐 Layout Patterns
+## 📐 Layout Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Container and Grid Systems
+### 1. Container and Grid Systems
 
 ```typescript
 // ✅ CORRECT - Responsive containers
@@ -347,7 +347,7 @@ const Card = ({ variant = "elevated", size = "md", children }) => {
 >
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Flexible Layouts
+### 2. Flexible Layouts
 
 ```typescript
 // ✅ CORRECT - Responsive flex layouts
@@ -367,16 +367,16 @@ const Card = ({ variant = "elevated", size = "md", children }) => {
 >
 ```
 
-***REMOVED******REMOVED*** 🚨 Design System Anti-Patterns
+## 🚨 Design System Anti-Patterns
 
-***REMOVED******REMOVED******REMOVED*** Forbidden Practices
+### Forbidden Practices
 
 ```typescript
 // ❌ NEVER - Direct color values
 <Box bg="gray.100" color="black">
 
 // ❌ NEVER - Inline styles
-<div style={{ marginTop: '10px', backgroundColor: '***REMOVED***f0f0f0' }}>
+<div style={{ marginTop: '10px', backgroundColor: '#f0f0f0' }}>
 
 // ❌ NEVER - Non-responsive designs
 <Box width="300px" height="200px"> // Use responsive values
@@ -397,7 +397,7 @@ const Card = ({ variant = "elevated", size = "md", children }) => {
 <Box cursor="pointer"> // Add proper interactive states
 ```
 
-***REMOVED******REMOVED******REMOVED*** Required Accessibility
+### Required Accessibility
 
 ```typescript
 // ✅ CORRECT - Proper accessibility

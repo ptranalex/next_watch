@@ -28,7 +28,7 @@ def format_config_table(config: Config, title: str = "Auth API Configuration") -
     table.add_column("Value", style="green")
     table.add_column("Source", style="yellow", no_wrap=True)
 
-    ***REMOVED*** Configuration settings to display
+    # Configuration settings to display
     settings = [
         ("Environment", config.environment, "ENV/DEFAULT"),
         ("API Port", str(config.port), "ENV/DEFAULT"),
@@ -79,11 +79,11 @@ def format_config_table(config: Config, title: str = "Auth API Configuration") -
         ),
     ]
 
-    ***REMOVED*** Add sensitive settings with masking
+    # Add sensitive settings with masking
     jwt_display = _mask_sensitive_value(config.jwt_secret)
     settings.append(("JWT Secret", jwt_display, "ENV/DEFAULT"))
 
-    ***REMOVED*** Add JWK status
+    # Add JWK status
     jwk_status = "[green]Configured[/green]" if config.jwt_jwk else "[yellow]Not Set[/yellow]"
     settings.append(("JWK Configuration", jwk_status, "ENV/DEFAULT"))
 
@@ -111,7 +111,7 @@ def print_config(
         console = Console()
 
     if show_secrets:
-        ***REMOVED*** Create a modified table for showing secrets
+        # Create a modified table for showing secrets
         table = Table(
             title=f"{title} (Secrets Visible)",
             show_header=True,
@@ -121,7 +121,7 @@ def print_config(
         table.add_column("Value", style="green")
         table.add_column("Source", style="yellow", no_wrap=True)
 
-        ***REMOVED*** Add settings with unmasked secrets
+        # Add settings with unmasked secrets
         settings = [
             ("JWT Secret", config.jwt_secret or "[red]Not Set[/red]", "ENV/DEFAULT"),
             (
@@ -223,7 +223,7 @@ def display_service_status(
         url = info.get("url", "N/A")
         response_time = info.get("response_time", "N/A")
 
-        ***REMOVED*** Color code status
+        # Color code status
         if status == "Healthy":
             status_display = "[green]✅ Healthy[/green]"
         elif status == "Unhealthy":
@@ -263,11 +263,11 @@ def display_user_table(
     table.add_column("Last Login", style="yellow")
 
     for user in users:
-        ***REMOVED*** Format active status
+        # Format active status
         is_active = user.get("is_active", False)
         active_display = "[green]✓ Active[/green]" if is_active else "[red]✗ Inactive[/red]"
 
-        ***REMOVED*** Format dates
+        # Format dates
         created_at = user.get("created_at", "Unknown")
         if created_at and created_at != "Unknown":
             try:
@@ -324,7 +324,7 @@ def _mask_database_url(database_url: str) -> str:
     if not database_url:
         return "[red]Not Set[/red]"
 
-    ***REMOVED*** Handle PostgreSQL URLs like postgresql://user:pass@host:port/db
+    # Handle PostgreSQL URLs like postgresql://user:pass@host:port/db
     if "://" in database_url and "@" in database_url:
         try:
             protocol_part, rest = database_url.split("://", 1)

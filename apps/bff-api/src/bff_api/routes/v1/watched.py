@@ -15,7 +15,7 @@ from bff_api.services.clients import BackendClient
 logger = get_logger(__name__)
 router = APIRouter(tags=["watched"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "pagination": {
@@ -113,7 +113,7 @@ async def get_watched_movies(
             - 500 if internal server error occurs
             - 502 if backend service is unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("watched_view")
@@ -123,7 +123,7 @@ async def get_watched_movies(
     logger.debug(f"🎬 Fetching watched movies for user {user_id} (page {page}, limit {limit})")
 
     try:
-        ***REMOVED*** Get watched movies interactions from backend
+        # Get watched movies interactions from backend
         watched_interactions_response = await _get_user_watched_movies(
             backend=backend,
             user_id=user_id,
@@ -132,14 +132,14 @@ async def get_watched_movies(
             page=page,
         )
 
-        ***REMOVED*** The backend client now returns fast-core format with {"results": [...]} format
-        ***REMOVED*** Extract the collection items from the watched-movies collection endpoint
+        # The backend client now returns fast-core format with {"results": [...]} format
+        # Extract the collection items from the watched-movies collection endpoint
         watched_collection_items: list[dict[str, Any]] = watched_interactions_response.get(
             "results", []
         )
 
-        ***REMOVED*** All items from the watched-movies collection are watched by definition
-        ***REMOVED*** No need to filter - these are already the watched movies
+        # All items from the watched-movies collection are watched by definition
+        # No need to filter - these are already the watched movies
         actually_watched = watched_collection_items
 
         if not actually_watched:
@@ -163,7 +163,7 @@ async def get_watched_movies(
             )
             return cast(dict[str, Any], response)
 
-        ***REMOVED*** Extract movie IDs for bulk fetching - collection items have movie_id directly
+        # Extract movie IDs for bulk fetching - collection items have movie_id directly
         valid_movie_ids = [
             item["movie_id"] for item in actually_watched if item.get("movie_id") is not None
         ]
@@ -191,62 +191,62 @@ async def get_watched_movies(
             )
             return cast(dict[str, Any], response)
 
-        ***REMOVED*** Fetch movie details in bulk
+        # Fetch movie details in bulk
         try:
             movies_response = await _get_movies_bulk(
                 backend=backend,
                 movie_ids=movie_ids,
                 user_id=user_id,
-                page=1,  ***REMOVED*** Get all movies in one request since we already paginated the interactions
-                limit=len(movie_ids),  ***REMOVED*** Get all movies
+                page=1,  # Get all movies in one request since we already paginated the interactions
+                limit=len(movie_ids),  # Get all movies
             )
 
             movies_data = movies_response.get("results", [])
 
         except Exception as e:
             logger.error(f"Failed to fetch bulk movie details for user {user_id}: {e}")
-            ***REMOVED*** Fallback to empty response instead of failing completely
+            # Fallback to empty response instead of failing completely
             movies_data = []
 
-        ***REMOVED*** Create a mapping of movie_id to collection item data for efficient lookup
+        # Create a mapping of movie_id to collection item data for efficient lookup
         collection_item_map = {
             item["movie_id"]: item for item in actually_watched if item.get("movie_id")
         }
 
-        ***REMOVED*** Merge movie details with collection item data
+        # Merge movie details with collection item data
         enriched_movies: list[dict[str, Any]] = []
         for movie in movies_data:
             movie_id = movie.get("id")
             if movie_id and movie_id in collection_item_map:
                 collection_item = collection_item_map[movie_id]
 
-                ***REMOVED*** Merge collection item data with movie details
+                # Merge collection item data with movie details
                 enriched_movie = {**movie}
 
-                ***REMOVED*** Set the frontend-expected interaction fields for watched movies
+                # Set the frontend-expected interaction fields for watched movies
                 enriched_movie["watched"] = (
-                    True  ***REMOVED*** Always true since this is from watched collection
+                    True  # Always true since this is from watched collection
                 )
                 enriched_movie["liked"] = (
-                    False  ***REMOVED*** Unknown from collection data, would need separate lookup
+                    False  # Unknown from collection data, would need separate lookup
                 )
                 enriched_movie["in_watchlist"] = (
-                    False  ***REMOVED*** Unknown from collection data, would need separate lookup
+                    False  # Unknown from collection data, would need separate lookup
                 )
 
-                ***REMOVED*** Ensure user_interactions object is present with complete structure
+                # Ensure user_interactions object is present with complete structure
                 enriched_movie["user_interactions"] = {
-                    "in_watchlist": False,  ***REMOVED*** Unknown from collection data
-                    "is_favorite": False,  ***REMOVED*** Unknown from collection data
-                    "user_rating": None,  ***REMOVED*** Unknown from collection data
-                    "watch_progress": 100,  ***REMOVED*** Assume 100% for watched movies
-                    "is_watched": True,  ***REMOVED*** Always true for watched movies
-                    "watched_at": collection_item.get("added_at"),  ***REMOVED*** Use added_at as watched_at
+                    "in_watchlist": False,  # Unknown from collection data
+                    "is_favorite": False,  # Unknown from collection data
+                    "user_rating": None,  # Unknown from collection data
+                    "watch_progress": 100,  # Assume 100% for watched movies
+                    "is_watched": True,  # Always true for watched movies
+                    "watched_at": collection_item.get("added_at"),  # Use added_at as watched_at
                 }
 
                 enriched_movies.append(enriched_movie)
 
-        ***REMOVED*** Calculate pagination metadata using backend response pagination data
+        # Calculate pagination metadata using backend response pagination data
         backend_pagination = watched_interactions_response.get("pagination", {})
         total_count = backend_pagination.get("total", len(enriched_movies))
         has_next = backend_pagination.get("has_next", len(actually_watched) == limit)
@@ -257,7 +257,7 @@ async def get_watched_movies(
             f"✅ Returning {len(enriched_movies)} watched movies for user {user_id} (enriched from {len(actually_watched)} interactions)"
         )
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=enriched_movies,
             page=page,
@@ -283,7 +283,7 @@ async def get_watched_movies(
             },
         )
 
-        ***REMOVED*** Manually update pagination fields if ResponseBuilder doesn't support them directly
+        # Manually update pagination fields if ResponseBuilder doesn't support them directly
         if isinstance(response, dict) and "pagination" in response:
             response["pagination"].update(
                 {
@@ -303,14 +303,14 @@ async def get_watched_movies(
             user_id=user_id,
             status_code=e.status_code,
         )
-        ***REMOVED*** Map backend service errors to appropriate HTTP status codes
+        # Map backend service errors to appropriate HTTP status codes
         if e.status_code == 401:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication failed",
             )
         else:
-            ***REMOVED*** This is a legitimate backend service issue (down, timeout, etc.)
+            # This is a legitimate backend service issue (down, timeout, etc.)
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Backend service unavailable",
@@ -322,9 +322,9 @@ async def get_watched_movies(
             service="bff",
             endpoint="watched_movies",
             user_id=user_id,
-            exc_info=True,  ***REMOVED*** Include stack trace for debugging
+            exc_info=True,  # Include stack trace for debugging
         )
-        ***REMOVED*** Return 500 for internal errors (bugs in our code)
+        # Return 500 for internal errors (bugs in our code)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while processing your request",

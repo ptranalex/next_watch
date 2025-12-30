@@ -19,12 +19,12 @@ from search_api.services.search_service import SearchService, SearchServiceExcep
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["suggestions"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "search": {
             "include_suggestions": True,
-            "include_facets": False,  ***REMOVED*** Not needed for simple suggestions
+            "include_facets": False,  # Not needed for simple suggestions
         },
     }
 )
@@ -34,17 +34,17 @@ def get_search_service(request: Request) -> SearchService:
     """Get SearchService instance from app state."""
     search_config = request.app.state.search_config
 
-    ***REMOVED*** Create SearchService with shared suggestion engine from app state
+    # Create SearchService with shared suggestion engine from app state
     search_service = SearchService(search_config)
 
-    ***REMOVED*** Use the global suggestion engine instance if available
+    # Use the global suggestion engine instance if available
     if hasattr(request.app.state, "suggestion_engine") and request.app.state.suggestion_engine:
         search_service.suggestion_engine = request.app.state.suggestion_engine
 
     return search_service
 
 
-@rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute (higher for typeahead)
+@rate_limit(requests=200, window=60)  # 200 suggestions per minute (higher for typeahead)
 @router.get("/suggestions")
 @track_suggestion_operation
 async def get_search_suggestions(
@@ -61,12 +61,12 @@ async def get_search_suggestions(
     try:
         logger.debug("Basic suggestions request", query=query, limit=limit)
 
-        ***REMOVED*** Record suggestion analytics
+        # Record suggestion analytics
         metrics = get_search_metrics()
         if metrics:
             metrics.record_query_pattern("basic_suggestion", len(query))
 
-        ***REMOVED*** Use the search service to get suggestions
+        # Use the search service to get suggestions
         result = await search_service.get_suggestions(
             query=query,
             limit=limit,
@@ -74,14 +74,14 @@ async def get_search_suggestions(
 
         logger.debug("Basic suggestions completed successfully", total=result.total, query=query)
 
-        ***REMOVED*** Record successful suggestion metrics
+        # Record successful suggestion metrics
         if metrics:
             metrics.record_suggestion_request(
                 "basic", "success", 0.0, len(query)
-            )  ***REMOVED*** Duration tracked by decorator
+            )  # Duration tracked by decorator
             metrics.record_search_request("suggestion", "success", 0.0, result.total)
 
-        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        # Use ResponseBuilder search pattern for consistent response structure
         response = responses.search(
             query=query,
             results=result.suggestions,
@@ -111,7 +111,7 @@ async def get_search_suggestions(
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
-@rate_limit(requests=200, window=60)  ***REMOVED*** 200 suggestions per minute
+@rate_limit(requests=200, window=60)  # 200 suggestions per minute
 @router.get("/suggestions/text")
 @track_suggestion_operation
 async def get_text_suggestions(
@@ -128,7 +128,7 @@ async def get_text_suggestions(
     Returns deduplicated and ranked suggestions from the Redis-powered
     suggestion engine with enhanced metadata and scoring.
     """
-    ***REMOVED*** Record suggestion analytics
+    # Record suggestion analytics
     metrics = get_search_metrics()
     if metrics:
         metrics.record_query_pattern("text_suggestion", len(query))
@@ -136,7 +136,7 @@ async def get_text_suggestions(
     try:
         logger.debug("Text suggestions request", query=query, limit=limit)
 
-        ***REMOVED*** Use the search service to get text suggestions
+        # Use the search service to get text suggestions
         result = await search_service.get_text_suggestions(
             query=query,
             limit=limit,
@@ -144,12 +144,12 @@ async def get_text_suggestions(
 
         logger.debug("Text suggestions completed successfully", total=result.total, query=query)
 
-        ***REMOVED*** Record successful suggestion metrics
+        # Record successful suggestion metrics
         if metrics:
             metrics.record_suggestion_request("text", "success", 0.0, len(query))
             metrics.record_search_request("suggestion", "success", 0.0, result.total)
 
-        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        # Use ResponseBuilder search pattern for consistent response structure
         response = responses.search(
             query=query,
             results=result.suggestions,
@@ -170,7 +170,7 @@ async def get_text_suggestions(
         return cast(dict[str, Any], response)
 
     except SearchServiceException as e:
-        ***REMOVED*** Record search service errors
+        # Record search service errors
         if metrics:
             metrics.record_search_error("service_error", "text_suggestion")
             metrics.record_suggestion_request("text", "error", 0.0, len(query))
@@ -178,7 +178,7 @@ async def get_text_suggestions(
         logger.error(f"Search service error: {str(e)}", query=query)
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        ***REMOVED*** Record unexpected errors
+        # Record unexpected errors
         if metrics:
             metrics.record_search_error("internal_error", "text_suggestion")
             metrics.record_suggestion_request("text", "error", 0.0, len(query))

@@ -1,8 +1,8 @@
-***REMOVED*** loggerConfig Utility
+# loggerConfig Utility
 
 A powerful and lightweight development logging utility for Next.js applications.
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - 📊 **Log Levels**: Supports DEBUG, INFO, WARN, and ERROR log levels
 - 🏠 **Environment Aware**: Only enabled in development mode by default
@@ -14,7 +14,7 @@ A powerful and lightweight development logging utility for Next.js applications.
 - 🔍 **Auto-Group**: Automatically detect caller module
 - 😊 **Emoji Prefixes**: Visual indicators for log levels
 
-***REMOVED******REMOVED*** Basic Usage
+## Basic Usage
 
 ```tsx
 import { createLogger } from "@/utils/logging";
@@ -41,7 +41,7 @@ function MovieComponent({ id, title }) {
 }
 ```
 
-***REMOVED******REMOVED*** Pre-configured Loggers
+## Pre-configured Loggers
 
 For common application areas, you can use pre-configured loggers:
 
@@ -60,7 +60,7 @@ storeLogger.debug("State updated", newState);
 routeLogger.info("Navigated to", path);
 ```
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 You can customize the logging behavior globally:
 
@@ -90,7 +90,7 @@ loggerConfig.clearLoggedMessages();
 loggerConfig.reset();
 ```
 
-***REMOVED******REMOVED*** Production Setup
+## Production Setup
 
 In `_app.tsx` or similar initialization file:
 
@@ -101,9 +101,9 @@ import { setupProductionLogging } from "@/utils/logging";
 setupProductionLogging();
 ```
 
-***REMOVED******REMOVED*** Advanced Usage
+## Advanced Usage
 
-***REMOVED******REMOVED******REMOVED*** Using "Once" Methods to Prevent Duplicate Logs
+### Using "Once" Methods to Prevent Duplicate Logs
 
 ```tsx
 function Component() {
@@ -117,7 +117,7 @@ function Component() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Conditional Rendering Based on Logging State
+### Conditional Rendering Based on Logging State
 
 ```tsx
 import { createLogger } from "@/utils/logging";
@@ -137,7 +137,7 @@ function DebugPanel() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Object Logging
+### Object Logging
 
 The logger supports passing objects for inspection:
 
@@ -149,7 +149,7 @@ logger.info("User data:", {
 });
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 1. **Use namespaced loggers**: Create a logger per component or logical module
 2. **Let auto-grouping work for you**: When no group name is provided, the logger will automatically use the calling file or function name

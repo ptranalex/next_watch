@@ -61,10 +61,10 @@ def health_check(
         console.print("[blue]🔍 Starting comprehensive health check...[/blue]")
         console.print()
 
-    ***REMOVED*** Use provided URLs or construct from config
+    # Use provided URLs or construct from config
     auth_url = auth_api_url or f"http://localhost:{settings.port}"
 
-    ***REMOVED*** Run async health checks
+    # Run async health checks
     asyncio.run(
         _run_health_checks(
             auth_url=auth_url,
@@ -147,7 +147,7 @@ async def _run_health_checks(
     """
     services: dict[str, dict[str, Any]] = {}
 
-    ***REMOVED*** Check Auth API (self)
+    # Check Auth API (self)
     start_time = time.time()
     auth_healthy = await check_service_health(auth_url, "Auth API", timeout, console)
     auth_time = round((time.time() - start_time) * 1000, 2)
@@ -158,7 +158,7 @@ async def _run_health_checks(
         "response_time": f"{auth_time}ms" if auth_healthy else "N/A",
     }
 
-    ***REMOVED*** Check Backend API if URL provided
+    # Check Backend API if URL provided
     if backend_url:
         start_time = time.time()
         backend_healthy = await check_service_health(backend_url, "Backend API", timeout, console)
@@ -170,7 +170,7 @@ async def _run_health_checks(
             "response_time": f"{backend_time}ms" if backend_healthy else "N/A",
         }
 
-    ***REMOVED*** Check Database
+    # Check Database
     start_time = time.time()
     db_healthy = await _check_database_health(verbose=False)
     db_time = round((time.time() - start_time) * 1000, 2)
@@ -184,7 +184,7 @@ async def _run_health_checks(
     console.print()
     display_service_status(services, console)
 
-    ***REMOVED*** Overall status
+    # Overall status
     all_healthy = all(service["status"] == "Healthy" for service in services.values())
 
     if all_healthy:
@@ -230,14 +230,14 @@ async def _check_database_health(verbose: bool = False) -> bool:
     try:
         from sqlalchemy import create_engine, text
 
-        ***REMOVED*** Create engine with connection timeout
+        # Create engine with connection timeout
         engine = create_engine(
             settings.database_url,
             pool_timeout=5,
             pool_recycle=300,
         )
 
-        ***REMOVED*** Test connection with a simple query
+        # Test connection with a simple query
         with engine.connect() as connection:
             result = connection.execute(text("SELECT 1"))
             result.fetchone()
@@ -271,7 +271,7 @@ def _mask_db_url(database_url: str) -> str:
     if not database_url:
         return "Not configured"
 
-    ***REMOVED*** Handle PostgreSQL URLs like postgresql://user:pass@host:port/db
+    # Handle PostgreSQL URLs like postgresql://user:pass@host:port/db
     if "://" in database_url and "@" in database_url:
         try:
             protocol_part, rest = database_url.split("://", 1)

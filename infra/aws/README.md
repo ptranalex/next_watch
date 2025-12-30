@@ -1,22 +1,22 @@
-***REMOVED*** NextWatch AWS Infrastructure Scripts
+# NextWatch AWS Infrastructure Scripts
 
 This directory contains all AWS-related scripts and documentation for deploying and managing NextWatch monitoring infrastructure.
 
-***REMOVED******REMOVED*** 📁 Directory Structure
+## 📁 Directory Structure
 
 ```
 aws/
-├── deployment/          ***REMOVED*** Main deployment scripts
-├── setup/              ***REMOVED*** Environment and configuration setup
-├── monitoring/         ***REMOVED*** Monitoring-specific utilities
-├── troubleshooting/    ***REMOVED*** Fix and diagnostic scripts
-├── docs/              ***REMOVED*** Documentation and guides
-└── README.md          ***REMOVED*** This file
+├── deployment/          # Main deployment scripts
+├── setup/              # Environment and configuration setup
+├── monitoring/         # Monitoring-specific utilities
+├── troubleshooting/    # Fix and diagnostic scripts
+├── docs/              # Documentation and guides
+└── README.md          # This file
 ```
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** One-Click Deployment
+### One-Click Deployment
 
 ```bash
 ./deployment/deploy-monitoring-one-click.sh
@@ -28,9 +28,9 @@ This master script will:
 2. Configure security groups
 3. Deploy the complete monitoring stack
 
-***REMOVED******REMOVED*** 📂 Script Categories
+## 📂 Script Categories
 
-***REMOVED******REMOVED******REMOVED*** 🚀 **Deployment Scripts** (`deployment/`)
+### 🚀 **Deployment Scripts** (`deployment/`)
 
 | Script                             | Purpose                                                   | Usage                                         |
 | ---------------------------------- | --------------------------------------------------------- | --------------------------------------------- |
@@ -46,7 +46,7 @@ deploy-monitoring-one-click.sh
 └── deployment/deploy-monitoring-to-existing.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** ⚙️ **Setup Scripts** (`setup/`)
+### ⚙️ **Setup Scripts** (`setup/`)
 
 | Script                     | Purpose                                           | Usage                              |
 | -------------------------- | ------------------------------------------------- | ---------------------------------- |
@@ -54,64 +54,64 @@ deploy-monitoring-one-click.sh
 | `open-monitoring-ports.sh` | Configures security groups for monitoring access  | `./setup/open-monitoring-ports.sh` |
 | `setup-ssl-monitoring.sh`  | Sets up SSL/TLS with Let's Encrypt for monitoring | `./setup/setup-ssl-monitoring.sh`  |
 
-***REMOVED******REMOVED******REMOVED*** 📊 **Monitoring Scripts** (`monitoring/`)
+### 📊 **Monitoring Scripts** (`monitoring/`)
 
 | Script                    | Purpose                                          | Usage                                  |
 | ------------------------- | ------------------------------------------------ | -------------------------------------- |
 | `add-loki-integration.sh` | Adds Loki log aggregation to existing monitoring | `./monitoring/add-loki-integration.sh` |
 
-***REMOVED******REMOVED******REMOVED*** 🔧 **Troubleshooting Scripts** (`troubleshooting/`)
+### 🔧 **Troubleshooting Scripts** (`troubleshooting/`)
 
 | Script                   | Purpose                                               | Usage                                      |
 | ------------------------ | ----------------------------------------------------- | ------------------------------------------ |
 | `fix-grafana-subpath.sh` | Fixes Grafana subpath configuration for reverse proxy | `./troubleshooting/fix-grafana-subpath.sh` |
 
-***REMOVED******REMOVED******REMOVED*** 📚 **Documentation** (`docs/`)
+### 📚 **Documentation** (`docs/`)
 
 | Document                   | Purpose                                                 |
 | -------------------------- | ------------------------------------------------------- |
 | `DOCKER_NETWORKING_FIX.md` | Explains Docker networking configuration for monitoring |
 
-***REMOVED******REMOVED*** 🎯 Common Use Cases
+## 🎯 Common Use Cases
 
-***REMOVED******REMOVED******REMOVED*** First-Time Deployment
+### First-Time Deployment
 
 ```bash
-***REMOVED*** Complete setup from scratch
+# Complete setup from scratch
 ./deployment/deploy-monitoring-one-click.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment Validation Only
+### Environment Validation Only
 
 ```bash
-***REMOVED*** Check if your AWS environment is ready
+# Check if your AWS environment is ready
 ./setup/check-environment.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** Security Configuration Only
+### Security Configuration Only
 
 ```bash
-***REMOVED*** Just configure monitoring ports
+# Just configure monitoring ports
 ./setup/open-monitoring-ports.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** Add SSL to Existing Monitoring
+### Add SSL to Existing Monitoring
 
 ```bash
-***REMOVED*** Set up HTTPS for your monitoring stack
+# Set up HTTPS for your monitoring stack
 ./setup/setup-ssl-monitoring.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** Fix Grafana Issues
+### Fix Grafana Issues
 
 ```bash
-***REMOVED*** Fix Grafana subpath problems
+# Fix Grafana subpath problems
 ./troubleshooting/fix-grafana-subpath.sh
 ```
 
-***REMOVED******REMOVED*** 📊 Environment Configuration
+## 📊 Environment Configuration
 
-***REMOVED******REMOVED******REMOVED*** Monitoring Environment Files
+### Monitoring Environment Files
 
 The monitoring stack uses environment files for configuration:
 
@@ -126,73 +126,73 @@ cp env/monitoring.prod.example .env.monitoring.prod
 nano .env.monitoring.prod
 ```
 
-***REMOVED******REMOVED*** 🔍 Script Dependencies
+## 🔍 Script Dependencies
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - AWS CLI configured
 - SSH key for EC2 access
 - NextWatch services running on target instance
 
-***REMOVED******REMOVED******REMOVED*** Dependency Chain
+### Dependency Chain
 
 ```
 check-environment.sh → open-monitoring-ports.sh → deploy-monitoring-to-existing.sh
 ```
 
-***REMOVED******REMOVED*** 🌐 Access URLs (After Deployment)
+## 🌐 Access URLs (After Deployment)
 
 - **📊 Grafana**: `http://YOUR_IP:3001` (admin/<GRAFANA_ADMIN_PASSWORD>)
 - **🔍 Prometheus**: `http://YOUR_IP:9090`
 - **📢 AlertManager**: `http://YOUR_IP:9093`
 - **📋 Loki**: `http://YOUR_IP:3100`
 
-***REMOVED******REMOVED*** 🛡️ Security Notes
+## 🛡️ Security Notes
 
 - Scripts automatically detect and configure your current IP
 - Monitoring ports are restricted to your IP by default
 - SSL setup available for production environments
 - Domain-based access supported
 
-***REMOVED******REMOVED*** 📋 Troubleshooting
+## 📋 Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 1. **SSH Connection Failed**: Check SSH key path and security groups
 2. **Monitoring Ports Blocked**: Run `./setup/open-monitoring-ports.sh`
 3. **Services Not Found**: Verify NextWatch services are running
 4. **Grafana Subpath Issues**: Run `./troubleshooting/fix-grafana-subpath.sh`
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
 ```bash
-***REMOVED*** Check environment
+# Check environment
 ./setup/check-environment.sh
 
-***REMOVED*** Verify monitoring stack
+# Verify monitoring stack
 ssh -i ~/.ssh/your-key.pem ubuntu@YOUR_IP 'cd /opt/nextwatch-monitoring && sudo docker compose ps'
 
-***REMOVED*** Check logs
+# Check logs
 ssh -i ~/.ssh/your-key.pem ubuntu@YOUR_IP 'cd /opt/nextwatch-monitoring && sudo docker compose logs grafana'
 ```
 
-***REMOVED******REMOVED*** 🔄 Updates and Maintenance
+## 🔄 Updates and Maintenance
 
-***REMOVED******REMOVED******REMOVED*** Update Monitoring Stack
+### Update Monitoring Stack
 
 ```bash
-***REMOVED*** Re-run deployment to update
+# Re-run deployment to update
 ./deployment/deploy-monitoring-to-existing.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** Add New Monitoring Features
+### Add New Monitoring Features
 
 ```bash
-***REMOVED*** Add log aggregation
+# Add log aggregation
 ./monitoring/add-loki-integration.sh
 ```
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
 When adding new scripts:
 

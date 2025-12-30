@@ -27,7 +27,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         verbose: Enable verbose logging
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging based on verbosity
+    # Configure logging based on verbosity
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
@@ -44,21 +44,21 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
     )
 
 
-***REMOVED*** Note: Recommendation API doesn't use a database - it uses Redis and Qdrant
-***REMOVED*** async def check_database_health() -> bool:
-***REMOVED***     """Check database health by attempting to connect and execute a simple query.
-***REMOVED***
-***REMOVED***     Returns:
-***REMOVED***         bool: True if database is healthy, False otherwise
-***REMOVED***     """
-***REMOVED***     try:
-***REMOVED***         conn = await asyncpg.connect(settings.database_url)
-***REMOVED***         await conn.execute("SELECT 1")
-***REMOVED***         await conn.close()
-***REMOVED***         return True
-***REMOVED***     except Exception as e:
-***REMOVED***         logger.error(f"Database health check failed: {e}")
-***REMOVED***         return False
+# Note: Recommendation API doesn't use a database - it uses Redis and Qdrant
+# async def check_database_health() -> bool:
+#     """Check database health by attempting to connect and execute a simple query.
+#
+#     Returns:
+#         bool: True if database is healthy, False otherwise
+#     """
+#     try:
+#         conn = await asyncpg.connect(settings.database_url)
+#         await conn.execute("SELECT 1")
+#         await conn.close()
+#         return True
+#     except Exception as e:
+#         logger.error(f"Database health check failed: {e}")
+#         return False
 
 
 async def check_qdrant_health() -> bool:
@@ -92,18 +92,18 @@ def check(
         verbose: Show detailed health information
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
-        ***REMOVED*** Define services to check
+        # Define services to check
         services = {
             "Recommendation API": {
                 "url": f"http://{settings.host}:{settings.port}",
                 "status": "Unknown",
                 "response_time": "N/A",
             },
-            ***REMOVED*** Note: Recommendation API doesn't use a database
+            # Note: Recommendation API doesn't use a database
             "Qdrant": {
                 "url": settings.qdrant_url,
                 "status": "Unknown",
@@ -113,9 +113,9 @@ def check(
 
         console.print("[cyan]Checking health of services...[/cyan]")
 
-        ***REMOVED*** Check each service
+        # Check each service
         async def check_services() -> None:
-            ***REMOVED*** Check Recommendation API
+            # Check Recommendation API
             is_healthy = await check_service_health(
                 services["Recommendation API"]["url"],
                 "Recommendation API",
@@ -124,9 +124,9 @@ def check(
             )
             services["Recommendation API"]["status"] = "Healthy" if is_healthy else "Unhealthy"
 
-            ***REMOVED*** Note: Database check removed - recommendation API doesn't use a database
+            # Note: Database check removed - recommendation API doesn't use a database
 
-            ***REMOVED*** Check Qdrant
+            # Check Qdrant
             is_healthy = await check_qdrant_health()
             services["Qdrant"]["status"] = "Healthy" if is_healthy else "Unhealthy"
             if is_healthy:
@@ -134,13 +134,13 @@ def check(
             else:
                 console.print("❌ Qdrant is unhealthy")
 
-        ***REMOVED*** Run health checks
+        # Run health checks
         asyncio.run(check_services())
 
-        ***REMOVED*** Display results
+        # Display results
         display_service_status(services, console)
 
-        ***REMOVED*** Check overall health
+        # Check overall health
         all_healthy = all(service["status"] == "Healthy" for service in services.values())
 
         if all_healthy:
@@ -191,7 +191,7 @@ def ping(
         verbose: Show detailed ping information
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
@@ -206,13 +206,13 @@ def ping(
                     console=console,
                 )
             )
-        ***REMOVED*** Note: Database check removed - recommendation API doesn't use a database
-        ***REMOVED*** elif service == "db":
-        ***REMOVED***     is_healthy = asyncio.run(check_database_health())
-        ***REMOVED***     if is_healthy:
-        ***REMOVED***         console.print("✅ Database is healthy")
-        ***REMOVED***     else:
-        ***REMOVED***         console.print("❌ Database is unhealthy")
+        # Note: Database check removed - recommendation API doesn't use a database
+        # elif service == "db":
+        #     is_healthy = asyncio.run(check_database_health())
+        #     if is_healthy:
+        #         console.print("✅ Database is healthy")
+        #     else:
+        #         console.print("❌ Database is unhealthy")
         elif service == "qdrant":
             is_healthy = asyncio.run(check_qdrant_health())
             if is_healthy:
@@ -224,7 +224,7 @@ def ping(
             console.print("[yellow]Available services: api, qdrant[/yellow]")
             raise typer.Exit(code=1)
 
-        ***REMOVED*** Show summary
+        # Show summary
         if is_healthy:
             console.print(f"[green]✅ {service.upper()} service is healthy[/green]")
         else:

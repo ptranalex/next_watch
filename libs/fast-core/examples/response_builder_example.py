@@ -7,7 +7,7 @@ well-structured API responses across different patterns.
 import os
 import sys
 
-***REMOVED*** Add the src directory to Python path for imports
+# Add the src directory to Python path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from fast_core.responses import ResponseBuilder
@@ -20,14 +20,14 @@ def demo_paginated_response():
 
     builder = ResponseBuilder()
 
-    ***REMOVED*** Sample movie data
+    # Sample movie data
     movies = [
         {"id": 1, "title": "The Matrix", "year": 1999, "rating": 8.7},
         {"id": 2, "title": "Inception", "year": 2010, "rating": 8.8},
         {"id": 3, "title": "Interstellar", "year": 2014, "rating": 8.6},
     ]
 
-    ***REMOVED*** Create paginated response
+    # Create paginated response
     response = builder.paginated(
         items=movies,
         page=1,
@@ -59,7 +59,7 @@ def demo_detail_response():
 
     builder = ResponseBuilder()
 
-    ***REMOVED*** Sample movie detail data
+    # Sample movie detail data
     movie = {
         "id": 1,
         "title": "The Matrix",
@@ -92,7 +92,7 @@ def demo_detail_response():
         "personalized": True,
     }
 
-    ***REMOVED*** Create detail response
+    # Create detail response
     response = builder.detail(
         item=movie,
         related=related_data,
@@ -123,7 +123,7 @@ def demo_search_response():
 
     builder = ResponseBuilder()
 
-    ***REMOVED*** Sample search results
+    # Sample search results
     search_results = [
         {"id": 1, "title": "Action Movie 1", "relevance": 0.95},
         {"id": 2, "title": "Action Hero", "relevance": 0.87},
@@ -137,7 +137,7 @@ def demo_search_response():
 
     suggestions = ["action movies", "action films", "adventure movies"]
 
-    ***REMOVED*** Create search response
+    # Create search response
     response = builder.search(
         query="action movies",
         results=search_results,
@@ -166,7 +166,7 @@ def demo_action_response():
 
     builder = ResponseBuilder()
 
-    ***REMOVED*** Successful action
+    # Successful action
     success_response = builder.action(
         success=True,
         action="movie_added_to_watchlist",
@@ -184,7 +184,7 @@ def demo_action_response():
     print(f"  💬 Message: {success_response['message']}")
     print(f"  📦 Data: {success_response['data']}")
 
-    ***REMOVED*** Failed action
+    # Failed action
     failure_response = builder.action(
         success=False,
         action="movie_removal_failed",
@@ -208,7 +208,7 @@ def demo_error_response():
 
     builder = ResponseBuilder()
 
-    ***REMOVED*** Error with details and suggestions
+    # Error with details and suggestions
     error_response = builder.error(
         code="MOVIE_NOT_FOUND",
         message="The requested movie could not be found",
@@ -248,7 +248,7 @@ def demo_collection_response():
 
     builder = ResponseBuilder()
 
-    ***REMOVED*** Grouped movie collections
+    # Grouped movie collections
     collections = {
         "popular": [
             {"id": 1, "title": "The Matrix", "popularity": 95},
@@ -263,7 +263,7 @@ def demo_collection_response():
         ],
     }
 
-    ***REMOVED*** Create collection response
+    # Create collection response
     response = builder.collection(
         groups=collections,
         metadata={
@@ -286,7 +286,7 @@ def demo_custom_configuration():
     print("\n🔹 CUSTOM CONFIGURATION DEMO")
     print("=" * 50)
 
-    ***REMOVED*** Custom configuration
+    # Custom configuration
     custom_config = {
         "pagination": {
             "include_total_pages": False,
@@ -302,14 +302,14 @@ def demo_custom_configuration():
 
     builder = ResponseBuilder(config=custom_config)
 
-    ***REMOVED*** Test pagination with custom config
+    # Test pagination with custom config
     paginated = builder.paginated(items=[{"id": 1}], page=1, limit=20, total=100)
 
     print("Custom Pagination (minimal):")
     print(f"  📊 Fields: {list(paginated['pagination'].keys())}")
     print("  🚫 Missing: total_pages, has_next, has_prev")
 
-    ***REMOVED*** Test search with custom config
+    # Test search with custom config
     search = builder.search(
         query="test", results=[{"id": 1}], suggestions=["suggestion1", "suggestion2"]
     )

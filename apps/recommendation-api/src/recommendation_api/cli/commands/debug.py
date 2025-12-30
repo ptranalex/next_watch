@@ -38,7 +38,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         verbose: Enable verbose logging
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging based on verbosity
+    # Configure logging based on verbosity
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
@@ -54,9 +54,9 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         http_verbose=False,
     )
 
-    ***REMOVED*** Suppress noisy logs unless in verbose mode
+    # Suppress noisy logs unless in verbose mode
     if not verbose:
-        ***REMOVED*** Set higher log levels for noisy libraries
+        # Set higher log levels for noisy libraries
         logging.getLogger("httpx").setLevel(logging.WARNING)
         logging.getLogger("qdrant_client").setLevel(logging.WARNING)
         logging.getLogger("recommendation_api.repositories.vector.repository").setLevel(
@@ -64,7 +64,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         )
         logging.getLogger("recommendation_api.repositories.vector.client").setLevel(logging.WARNING)
 
-    ***REMOVED*** Set to ERROR level in quiet mode
+    # Set to ERROR level in quiet mode
     if quiet:
         for logger_name in [
             "httpx",
@@ -85,11 +85,11 @@ def cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
     Returns:
         Cosine similarity score (0-1)
     """
-    ***REMOVED*** Convert to numpy arrays for efficient calculation
+    # Convert to numpy arrays for efficient calculation
     v1 = np.array(vec1)
     v2 = np.array(vec2)
 
-    ***REMOVED*** Calculate cosine similarity
+    # Calculate cosine similarity
     dot_product = np.dot(v1, v2)
     norm_a = np.linalg.norm(v1)
     norm_b = np.linalg.norm(v2)
@@ -116,17 +116,17 @@ def check_embedding(
         verbose: Show detailed vector data
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     console.print(f"[cyan]Checking embedding for movie ID: {movie_id}[/cyan]")
 
-    ***REMOVED*** Get Qdrant client
+    # Get Qdrant client
     client = get_qdrant_client()
 
-    ***REMOVED*** Check if the embedding exists
+    # Check if the embedding exists
     try:
-        ***REMOVED*** Try direct point retrieval
+        # Try direct point retrieval
         response = client.get_point(
             collection_name=settings.qdrant_collection_name, point_id=movie_id, with_vectors=verbose
         )
@@ -136,15 +136,15 @@ def check_embedding(
                 f"[green]✓ Movie ID {movie_id} has an embedding in the vector database[/green]"
             )
 
-            ***REMOVED*** Create a table for metadata
+            # Create a table for metadata
             table = Table(title=f"Embedding Metadata for Movie ID {movie_id}")
             table.add_column("Property", style="cyan")
             table.add_column("Value", style="green")
 
-            ***REMOVED*** Add metadata from payload
+            # Add metadata from payload
             if hasattr(response, "payload") and response.payload:
                 for key, value in response.payload.items():
-                    ***REMOVED*** Format value for display
+                    # Format value for display
                     if isinstance(value, list) and len(value) > 10:
                         display_value = f"{str(value[:3])[:-1]}, ... {len(value)} items]"
                     else:
@@ -153,16 +153,16 @@ def check_embedding(
 
             console.print(table)
 
-            ***REMOVED*** Show vector status
+            # Show vector status
             vector_status = (
                 "Present" if hasattr(response, "vector") and response.vector else "Missing"
             )
             console.print(f"[yellow]Vector status: {vector_status}[/yellow]")
 
-            ***REMOVED*** Show vector data if verbose and vector exists
+            # Show vector data if verbose and vector exists
             if verbose and hasattr(response, "vector") and response.vector:
                 console.print("[yellow]Vector Data (first 10 dimensions):[/yellow]")
-                ***REMOVED*** Use a safer approach to get the first elements of the vector
+                # Use a safer approach to get the first elements of the vector
                 if isinstance(response.vector, list):
                     console.print(response.vector[:10])
                     console.print(f"[yellow]Vector Dimensions: {len(response.vector)}[/yellow]")
@@ -177,7 +177,7 @@ def check_embedding(
                 f"[red]✗ Movie ID {movie_id} does not have an embedding in the vector database[/red]"
             )
 
-            ***REMOVED*** Try searching by metadata as fallback
+            # Try searching by metadata as fallback
             console.print("[yellow]Trying to find via metadata search...[/yellow]")
             dummy_vector = [0.1] * settings.embedding_dimension
             similar_response = client.search(
@@ -203,7 +203,7 @@ def check_embedding(
             else:
                 console.print("[red]No embedding found via any method[/red]")
 
-                ***REMOVED*** Check if movie exists in database
+                # Check if movie exists in database
                 with get_db_context() as session:
                     movie = get_movie_by_id(session, movie_id)
                     if movie:
@@ -256,7 +256,7 @@ def similar_movies(
         verbose: Show detailed progress
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     console.print(f"[cyan]Finding similar movies for movie ID: {movie_id}[/cyan]")
@@ -266,27 +266,27 @@ def similar_movies(
 
     try:
         if direct_search:
-            ***REMOVED*** Use direct repository search
+            # Use direct repository search
             console.print("[yellow]Using direct repository search method[/yellow]")
             repo = VectorRepository()
             similar_movies = repo.search_by_movie_id(
                 movie_id=movie_id, limit=limit, score_threshold=min_score
             )
         else:
-            ***REMOVED*** Use service layer (standard approach)
+            # Use service layer (standard approach)
             console.print("[yellow]Using service layer search method[/yellow]")
             service = VectorService()
             similar_movies = service.find_similar_movies_by_id(
                 movie_id=movie_id, limit=limit, min_score=min_score
             )
 
-        ***REMOVED*** If no results with standard approach, try fallback
+        # If no results with standard approach, try fallback
         if not similar_movies:
             console.print(
                 "[yellow]No results from standard search, trying fallback approach[/yellow]"
             )
 
-            ***REMOVED*** Use direct search with dummy vector
+            # Use direct search with dummy vector
             client = get_qdrant_client()
             dummy_vector = [0.1] * settings.embedding_dimension
             similar_response = client.search(
@@ -306,21 +306,21 @@ def similar_movies(
             if similar_response:
                 similar_movies = [(int(point.id), float(point.score)) for point in similar_response]
 
-        ***REMOVED*** Display results
+        # Display results
         if similar_movies and len(similar_movies) > 0:
             console.print(f"[green]Found {len(similar_movies)} similar movies[/green]")
 
             if show_ids_only:
-                ***REMOVED*** Show just IDs and scores
+                # Show just IDs and scores
                 for i, (m_id, score) in enumerate(similar_movies, 1):
                     console.print(f"{i}. Movie ID: {m_id}, Score: {score:.4f}")
             else:
-                ***REMOVED*** Get movie details from database
+                # Get movie details from database
                 with get_db_context() as session:
                     movie_ids = [m_id for m_id, _ in similar_movies]
                     movies = get_movies_by_ids(session, movie_ids)
 
-                    ***REMOVED*** Create a table
+                    # Create a table
                     table = Table(title=f"Similar Movies to ID {movie_id}")
                     table.add_column("Movie ID", style="cyan")
                     table.add_column("Title", style="green")
@@ -328,7 +328,7 @@ def similar_movies(
                     table.add_column("IMDb Rating", style="magenta")
                     table.add_column("Release Year", style="blue")
 
-                    ***REMOVED*** Map IDs to movies
+                    # Map IDs to movies
                     id_to_movie: dict[int, dict[str, Any]] = {}
                     for m in movies:
                         if not isinstance(m, dict):
@@ -337,7 +337,7 @@ def similar_movies(
                         if isinstance(m_id, int):
                             id_to_movie[m_id] = m
 
-                    ***REMOVED*** Add rows
+                    # Add rows
                     for m_id, score in similar_movies:
                         movie = id_to_movie.get(m_id)
                         if movie:
@@ -394,15 +394,15 @@ def compare_movies(
         verbose: Show detailed embedding data
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     console.print(f"[cyan]Comparing movies: {movie_id1} and {movie_id2}[/cyan]")
 
-    ***REMOVED*** Create vector service
+    # Create vector service
     service = VectorService()
 
-    ***REMOVED*** Get embeddings
+    # Get embeddings
     embedding1 = service.get_movie_embedding(movie_id1)
     embedding2 = service.get_movie_embedding(movie_id2)
 
@@ -416,18 +416,18 @@ def compare_movies(
 
     console.print("[green]Found embeddings for both movies[/green]")
 
-    ***REMOVED*** Get movie details
+    # Get movie details
     try:
         with get_db_context() as session:
             movies = get_movies_by_ids(session, [movie_id1, movie_id2])
 
-            ***REMOVED*** Create a table for movie details
+            # Create a table for movie details
             table = Table(title="Movie Comparison")
             table.add_column("Property", style="cyan")
             table.add_column(f"Movie {movie_id1}", style="green")
             table.add_column(f"Movie {movie_id2}", style="yellow")
 
-            ***REMOVED*** Get movie objects
+            # Get movie objects
             movie1 = next(
                 (m for m in movies if isinstance(m, dict) and m.get("id") == movie_id1),
                 None,
@@ -454,11 +454,11 @@ def compare_movies(
                     str(movie2.get("imdb_rating")) if movie2.get("imdb_rating") else "N/A",
                 )
 
-                ***REMOVED*** Handle genres correctly (either as list of strings or list of Genre objects)
+                # Handle genres correctly (either as list of strings or list of Genre objects)
                 genres1 = movie1.get("genres") or []
                 genres2 = movie2.get("genres") or []
 
-                ***REMOVED*** Convert genre objects to strings if needed
+                # Convert genre objects to strings if needed
                 if (
                     genres1
                     and isinstance(genres1, list)
@@ -483,16 +483,16 @@ def compare_movies(
 
                 console.print(table)
 
-            ***REMOVED*** Calculate similarity using our local implementation
+            # Calculate similarity using our local implementation
             similarity = cosine_similarity(embedding1, embedding2)
 
             console.print(f"[cyan]Similarity Score: {similarity:.4f}[/cyan]")
 
             if verbose:
-                ***REMOVED*** Display vector information
+                # Display vector information
                 console.print(f"[yellow]Embedding dimensions: {len(embedding1)}[/yellow]")
 
-                ***REMOVED*** Show first few dimensions of each vector
+                # Show first few dimensions of each vector
                 console.print(f"[yellow]First 5 dimensions of Movie {movie_id1}:[/yellow]")
                 console.print(embedding1[:5])
                 console.print(f"[yellow]First 5 dimensions of Movie {movie_id2}:[/yellow]")
@@ -520,23 +520,23 @@ def vector_status(
         verbose: Show detailed information
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     console.print("[cyan]Checking vector database status...[/cyan]")
 
     try:
-        ***REMOVED*** Get client
+        # Get client
         client = get_qdrant_client()
 
-        ***REMOVED*** Test connection
+        # Test connection
         if client.test_connection():
             console.print("[green]✓ Vector database connection successful[/green]")
         else:
             console.print("[red]✗ Vector database connection failed[/red]")
             return
 
-        ***REMOVED*** Get collection info
+        # Get collection info
         collection_name = settings.qdrant_collection_name
 
         collection_info = None
@@ -547,12 +547,12 @@ def vector_status(
 
         if collection_info:
             info = cast(dict[str, Any], collection_info)
-            ***REMOVED*** Display collection info in a table
+            # Display collection info in a table
             table = Table(title=f"Vector Collection: {collection_name}")
             table.add_column("Property", style="cyan")
             table.add_column("Value", style="green")
 
-            ***REMOVED*** Add basic info
+            # Add basic info
             table.add_row("Points Count", str(info.get("points_count", "Unknown")))
             table.add_row("Vectors Count", str(info.get("vectors_count", "Unknown")))
             table.add_row("Segments Count", str(info.get("segments_count", "Unknown")))
@@ -564,7 +564,7 @@ def vector_status(
 
             console.print(table)
 
-            ***REMOVED*** Provide some helpful context about the data
+            # Provide some helpful context about the data
             points_count = info.get("points_count")
             vectors_count = info.get("vectors_count")
             if (
@@ -610,17 +610,17 @@ def recreate_embedding(
         verbose: Show detailed progress
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     console.print(f"[cyan]Recreating embedding for movie ID: {movie_id}[/cyan]")
 
-    ***REMOVED*** Get repositories and services
+    # Get repositories and services
     repo = VectorRepository()
     vector_service = get_vector_service()
     client = get_qdrant_client()
 
-    ***REMOVED*** First check if point exists
+    # First check if point exists
     point = client.get_point(movie_id, with_vectors=True)
     if point:
         console.print(f"[yellow]Found existing point for movie ID {movie_id}[/yellow]")
@@ -632,7 +632,7 @@ def recreate_embedding(
             )
             return
 
-        ***REMOVED*** Delete the existing point
+        # Delete the existing point
         console.print("[yellow]Deleting existing point...[/yellow]")
         success = repo.delete_movie_embedding(movie_id)
 
@@ -664,7 +664,7 @@ def recreate_embedding(
             f"[green]✓ Successfully generated and stored embedding for movie ID {movie_id}[/green]"
         )
 
-        ***REMOVED*** Verify the embedding was stored correctly
+        # Verify the embedding was stored correctly
         console.print("[cyan]Verifying embedding...[/cyan]")
         point = client.get_point(point_id=movie_id, with_vectors=True)
 
@@ -707,7 +707,7 @@ def test_metadata_optimization(
     from recommendation_api.services.movie_adapter import MovieDataAdapter
     from recommendation_api.services.recommendation import RecommendationService
 
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     console.print(f"[cyan]Testing metadata optimization for movie ID: {movie_id}[/cyan]")
@@ -715,12 +715,12 @@ def test_metadata_optimization(
 
     async def run_test():
         try:
-            ***REMOVED*** Create services
+            # Create services
             backend_client = BackendClient()
             movie_adapter = MovieDataAdapter(backend_client)
             recommendation_service = RecommendationService(movie_adapter)
 
-            ***REMOVED*** Test both paths
+            # Test both paths
             console.print("\n[yellow]Testing optimized path (metadata from vector DB)...[/yellow]")
             start_time = time.time()
 
@@ -734,7 +734,7 @@ def test_metadata_optimization(
             optimized_time = time.time() - start_time
             optimized_used = filters.get("optimized_path", False)
 
-            ***REMOVED*** Display results
+            # Display results
             if optimized_used:
                 console.print(
                     f"[green]✓ Optimized path used successfully in {optimized_time:.3f}s[/green]"
@@ -748,7 +748,7 @@ def test_metadata_optimization(
             console.print(f"[blue]Found {len(recommendations)} recommendations[/blue]")
 
             if recommendations and not quiet:
-                ***REMOVED*** Show first few recommendations
+                # Show first few recommendations
                 table = Table(title=f"Similar Movies to ID {movie_id}")
                 table.add_column("Movie ID", style="cyan")
                 table.add_column("Title", style="green")
@@ -756,7 +756,7 @@ def test_metadata_optimization(
                 table.add_column("IMDb Rating", style="magenta")
                 table.add_column("Release Date", style="blue")
 
-                for _i, rec in enumerate(recommendations[:5]):  ***REMOVED*** Show first 5
+                for _i, rec in enumerate(recommendations[:5]):  # Show first 5
                     table.add_row(
                         str(rec.id),
                         rec.title,
@@ -767,9 +767,9 @@ def test_metadata_optimization(
 
                 console.print(table)
 
-            ***REMOVED*** Performance analysis
+            # Performance analysis
             if optimized_used:
-                api_time_estimate = 4.5  ***REMOVED*** Typical API path time
+                api_time_estimate = 4.5  # Typical API path time
                 speedup = api_time_estimate / optimized_time
                 console.print("\n[green]Performance Improvement:[/green]")
                 console.print(f"  Optimized path: {optimized_time:.3f}s")
@@ -790,7 +790,7 @@ def test_metadata_optimization(
 
                 console.print(traceback.format_exc())
 
-    ***REMOVED*** Run the test
+    # Run the test
     asyncio.run(run_test())
 
 

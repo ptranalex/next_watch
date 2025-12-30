@@ -29,7 +29,7 @@ def check_health(
         verbose: Show detailed output including response data
         timeout: Timeout for health check requests in seconds
     """
-    ***REMOVED*** Configure minimal logging for health check
+    # Configure minimal logging for health check
     configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
     logger = get_logger(__name__)
 
@@ -46,7 +46,7 @@ def check_health(
         data = response.json()
 
         if verbose:
-            ***REMOVED*** Create a table for the detailed health information
+            # Create a table for the detailed health information
             table = Table(title="Backend API Health Status")
             table.add_column("Service", style="cyan")
             table.add_column("Status", style="green")
@@ -94,7 +94,7 @@ def check_redis_health(
     import redis
     from redis.exceptions import RedisError
 
-    ***REMOVED*** Configure minimal logging
+    # Configure minimal logging
     configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
     logger = get_logger(__name__)
 
@@ -104,22 +104,22 @@ def check_redis_health(
         if verbose:
             console.print(f"🔍 Checking Redis health at {redis_url}")
 
-        ***REMOVED*** Create a Redis client with the specified timeout
+        # Create a Redis client with the specified timeout
         redis_client = redis.from_url(redis_url, socket_timeout=timeout)
 
-        ***REMOVED*** Simple ping to check connectivity
+        # Simple ping to check connectivity
         response = redis_client.ping()
 
         if response:
             if verbose:
-                ***REMOVED*** Get more info
+                # Get more info
                 info = redis_client.info()
 
                 table = Table(title="Redis Health Status")
                 table.add_column("Attribute", style="cyan")
                 table.add_column("Value", style="green")
 
-                ***REMOVED*** Add key redis info
+                # Add key redis info
                 table.add_row("Status", "✅ Healthy")
                 table.add_row("Version", info.get("redis_version", "Unknown"))
                 table.add_row("Mode", info.get("redis_mode", "Unknown"))
@@ -161,11 +161,11 @@ def check_db_health(
     from sqlalchemy import create_engine, text
     from sqlalchemy.exc import SQLAlchemyError
 
-    ***REMOVED*** Configure minimal logging
+    # Configure minimal logging
     configure_logging(logger_name="backend_api", log_level="ERROR", quiet=not verbose)
     logger = get_logger(__name__)
 
-    ***REMOVED*** Get database URL from settings
+    # Get database URL from settings
     db_url = getattr(settings, "database_url", "")
 
     if not db_url:
@@ -174,7 +174,7 @@ def check_db_health(
 
     try:
         if verbose:
-            ***REMOVED*** Mask password in URL for display
+            # Mask password in URL for display
             display_url = db_url
             if "@" in db_url:
                 parts = db_url.split("@")
@@ -187,16 +187,16 @@ def check_db_health(
 
             console.print(f"🔍 Checking database health at {display_url}")
 
-        ***REMOVED*** Create engine with timeout
+        # Create engine with timeout
         engine = create_engine(db_url, connect_args={"connect_timeout": timeout})
 
-        ***REMOVED*** Try simple query to test connection
+        # Try simple query to test connection
         with engine.connect() as conn:
             result = conn.execute(text("SELECT 1"))
             assert result.scalar() == 1
 
         if verbose:
-            ***REMOVED*** Get database info
+            # Get database info
             with engine.connect() as conn:
                 db_info = conn.execute(text("SELECT version()")).scalar()
 
@@ -223,16 +223,16 @@ def check_db_health(
         raise typer.Exit(1)
 
 
-***REMOVED*** Register health commands directly with health_app
-from backend_api.cli import health_app  ***REMOVED*** noqa: E402
+# Register health commands directly with health_app
+from backend_api.cli import health_app  # noqa: E402
 
-***REMOVED*** Register each command directly
+# Register each command directly
 health_app.command("check")(check_health)
 health_app.command("redis")(check_redis_health)
 health_app.command("db")(check_db_health)
 
 
-***REMOVED*** Set default command
+# Set default command
 @health_app.callback(invoke_without_command=True)
 def health_default(ctx: typer.Context) -> None:
     """Check the health of all services."""

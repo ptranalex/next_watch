@@ -1,8 +1,8 @@
-***REMOVED*** Models Module
+# Models Module
 
 This module defines all data models and schemas for the Recommendation API service, providing type safety and data validation.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The models module provides:
 
@@ -11,9 +11,9 @@ The models module provides:
 - Type definitions and validation
 - Schema documentation for OpenAPI/Swagger
 
-***REMOVED******REMOVED*** Components
+## Components
 
-***REMOVED******REMOVED******REMOVED*** `movie.py`
+### `movie.py`
 
 Defines movie-related models:
 
@@ -22,7 +22,7 @@ Defines movie-related models:
 - `MovieListItem`: Simplified movie model for list views
 - `MovieFilter`: Request model for filtering movies
 
-***REMOVED******REMOVED******REMOVED*** `user.py`
+### `user.py`
 
 Defines user-related models:
 
@@ -31,7 +31,7 @@ Defines user-related models:
 - `UserUpdate`: Model for user profile updates
 - `UserPreferences`: User preference settings
 
-***REMOVED******REMOVED******REMOVED*** `recommendation.py`
+### `recommendation.py`
 
 Defines recommendation-related models:
 
@@ -40,9 +40,9 @@ Defines recommendation-related models:
 - `RecommendationSource`: Enum of recommendation sources/algorithms
 - `RecommendationRequest`: Request parameters for recommendations
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** API Response Models
+### API Response Models
 
 ```python
 from recommendation_api.models.movie import Movie
@@ -50,37 +50,37 @@ from recommendation_api.models.recommendation import MovieRecommendation
 
 @app.get("/movies/{movie_id}", response_model=Movie)
 def get_movie(movie_id: int):
-    ***REMOVED*** Fetch movie from database
+    # Fetch movie from database
     db_movie = get_movie_by_id(movie_id)
-    ***REMOVED*** Return as Pydantic model
+    # Return as Pydantic model
     return Movie.from_orm(db_movie)
 
 @app.get("/recommendations", response_model=List[MovieRecommendation])
 def get_recommendations(user_id: int):
-    ***REMOVED*** Generate recommendations
+    # Generate recommendations
     recommendations = generate_recommendations(user_id)
-    ***REMOVED*** Return as list of Pydantic models
+    # Return as list of Pydantic models
     return [MovieRecommendation.from_movie(movie, score) for movie, score in recommendations]
 ```
 
-***REMOVED******REMOVED******REMOVED*** Request Validation
+### Request Validation
 
 ```python
 from recommendation_api.models.movie import MovieFilter
 
 @app.post("/movies/search", response_model=List[Movie])
 def search_movies(filters: MovieFilter):
-    ***REMOVED*** Access validated filter parameters
+    # Access validated filter parameters
     genre = filters.genre
     min_rating = filters.min_rating
     release_year = filters.release_year
 
-    ***REMOVED*** Search with validated parameters
+    # Search with validated parameters
     results = search_movies_with_filters(genre, min_rating, release_year)
     return results
 ```
 
-***REMOVED******REMOVED*** Model Design Principles
+## Model Design Principles
 
 The models follow these design principles:
 
@@ -90,7 +90,7 @@ The models follow these design principles:
 4. **Documentation**: All models and fields have docstrings
 5. **Consistency**: Naming conventions and patterns are consistent
 
-***REMOVED******REMOVED*** Extending Models
+## Extending Models
 
 To add new models or extend existing ones:
 

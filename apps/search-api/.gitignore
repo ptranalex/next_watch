@@ -1,4 +1,4 @@
-***REMOVED*** Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -23,7 +23,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-***REMOVED*** Environment files
+# Environment files
 .env.local
 .env.production
 .env.staging
@@ -31,19 +31,19 @@ MANIFEST
 *.env.production
 *.env.staging
 
-***REMOVED*** Logs
+# Logs
 logs/
 *.log
 *.log.*
 
-***REMOVED*** IDE
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-***REMOVED*** OS
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -52,15 +52,15 @@ logs/
 ehthumbs.db
 Thumbs.db
 
-***REMOVED*** Redis dumps
+# Redis dumps
 dump.rdb
 
-***REMOVED*** Pytest
+# Pytest
 .pytest_cache/
 .coverage
 htmlcov/
 
-***REMOVED*** mypy
+# mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json

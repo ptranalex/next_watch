@@ -16,8 +16,8 @@ import time
 
 import uvicorn
 
-***REMOVED*** Import Fast Core components
-from fast_core import (  ***REMOVED*** Exceptions; Responses; Health checks; Security
+# Import Fast Core components
+from fast_core import (  # Exceptions; Responses; Health checks; Security
     APIException,
     APIVersion,
     AppOptions,
@@ -48,7 +48,7 @@ from fastapi import Depends, Query
 from pydantic import BaseModel, Field
 
 
-***REMOVED*** Configuration
+# Configuration
 class AdvancedAppConfig(FastAPIConfig):
     """Advanced application configuration."""
 
@@ -56,29 +56,29 @@ class AdvancedAppConfig(FastAPIConfig):
     version: str = "1.0.0"
     debug: bool = True
 
-    ***REMOVED*** Security settings
+    # Security settings
     secret_key: str = "super-secret-key-for-demo-only"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
-    ***REMOVED*** Rate limiting
+    # Rate limiting
     enable_rate_limiting: bool = True
     requests_per_minute: int = 100
 
-    ***REMOVED*** CORS settings
+    # CORS settings
     cors_origins: list = ["http://localhost:3000", "http://localhost:8080"]
     cors_allow_credentials: bool = True
 
-    ***REMOVED*** Caching
+    # Caching
     enable_caching: bool = True
-    cache_ttl: int = 300  ***REMOVED*** 5 minutes
+    cache_ttl: int = 300  # 5 minutes
 
-    ***REMOVED*** Monitoring
+    # Monitoring
     enable_health_checks: bool = True
     health_check_interval: int = 30
 
 
-***REMOVED*** Data models
+# Data models
 class User(BaseModel):
     """User model."""
 
@@ -136,7 +136,7 @@ class ProductCreate(BaseModel):
     in_stock: bool = True
 
 
-***REMOVED*** In-memory data stores
+# In-memory data stores
 users_db = [
     User(id=1, username="admin", email="admin@example.com", roles=["admin", "user"]),
     User(id=2, username="user", email="user@example.com", roles=["user"]),
@@ -171,7 +171,7 @@ products_db = [
     ),
 ]
 
-***REMOVED*** Mock password storage (in real app, use proper hashing)
+# Mock password storage (in real app, use proper hashing)
 user_passwords = {
     "admin": "admin123",
     "user": "user123",
@@ -179,7 +179,7 @@ user_passwords = {
 }
 
 
-***REMOVED*** JWT Manager setup
+# JWT Manager setup
 def create_jwt_manager(settings: AdvancedAppConfig) -> JWTManager:
     """Create JWT manager."""
     config = JWTConfig(
@@ -190,18 +190,18 @@ def create_jwt_manager(settings: AdvancedAppConfig) -> JWTManager:
     return JWTManager(config)
 
 
-***REMOVED*** Rate limiter setup
+# Rate limiter setup
 rate_limiter = MemoryRateLimiter(requests_per_minute=100)
 
 
-***REMOVED*** Authentication functions
+# Authentication functions
 async def authenticate_user(username: str, password: str) -> User | None:
     """Authenticate user credentials."""
     user = next((u for u in users_db if u.username == username), None)
     if not user or not user.is_active:
         return None
 
-    ***REMOVED*** Check password (in real app, use proper hashing)
+    # Check password (in real app, use proper hashing)
     if user_passwords.get(username) != password:
         return None
 
@@ -213,29 +213,29 @@ async def get_user_by_username(username: str) -> User | None:
     return next((u for u in users_db if u.username == username), None)
 
 
-***REMOVED*** Health check functions
+# Health check functions
 async def check_database() -> bool:
     """Check database connection."""
-    ***REMOVED*** Simulate database check
+    # Simulate database check
     await asyncio.sleep(0.1)
     return len(users_db) > 0 and len(products_db) > 0
 
 
 async def check_external_service() -> bool:
     """Check external service."""
-    ***REMOVED*** Simulate external service check
+    # Simulate external service check
     await asyncio.sleep(0.1)
     return True
 
 
 async def check_cache() -> bool:
     """Check cache service."""
-    ***REMOVED*** Simulate cache check
+    # Simulate cache check
     await asyncio.sleep(0.05)
     return True
 
 
-***REMOVED*** Create routers with versioning
+# Create routers with versioning
 auth_router = VersionedRouter(
     prefix="/auth",
     tags=["Authentication"],
@@ -255,21 +255,21 @@ admin_router = VersionedRouter(
 )
 
 
-***REMOVED*** Authentication routes
+# Authentication routes
 @auth_router.post("/login", response_model=TokenResponse)
 async def login(
     credentials: UserLogin,
     settings: AdvancedAppConfig = Depends(get_settings),
 ):
     """Login user and return tokens."""
-    ***REMOVED*** Rate limiting
+    # Rate limiting
     if await rate_limiter.is_rate_limited("login", "global"):
         raise RateLimitException(
             detail="Too many login attempts",
             retry_after=60,
         )
 
-    ***REMOVED*** Authenticate user
+    # Authenticate user
     user = await authenticate_user(credentials.username, credentials.password)
     if not user:
         raise AuthenticationException(
@@ -277,7 +277,7 @@ async def login(
             error_code="INVALID_CREDENTIALS",
         )
 
-    ***REMOVED*** Create JWT manager and generate tokens
+    # Create JWT manager and generate tokens
     jwt_manager = create_jwt_manager(settings)
     token_data = TokenData(
         sub=user.username,
@@ -306,9 +306,9 @@ async def get_current_user_info(
     )
 
 
-***REMOVED*** Product routes
+# Product routes
 @products_router.get("", response_model=dict)
-@rate_limit(requests=50, window=60)  ***REMOVED*** 50 requests per minute
+@rate_limit(requests=50, window=60)  # 50 requests per minute
 async def list_products(
     pagination: PaginationParams = Depends(get_pagination_params),
     category: str | None = Query(None, description="Filter by category"),
@@ -317,7 +317,7 @@ async def list_products(
 ):
     """List products with filtering and pagination."""
     try:
-        ***REMOVED*** Apply filters
+        # Apply filters
         filtered_products = products_db
 
         if category:
@@ -336,7 +336,7 @@ async def list_products(
                 if search_lower in p.name.lower() or search_lower in p.description.lower()
             ]
 
-        ***REMOVED*** Apply pagination
+        # Apply pagination
         start = pagination.offset
         end = start + pagination.page_size
         paginated_products = filtered_products[start:end]
@@ -380,14 +380,14 @@ async def create_product(
     current_user: User = Depends(require_auth),
 ):
     """Create a new product (requires authentication)."""
-    ***REMOVED*** Check if user has permission
+    # Check if user has permission
     if "admin" not in current_user.roles and "manager" not in current_user.roles:
         raise AuthorizationException(
             detail="Insufficient permissions to create products",
             required_permissions=["admin", "manager"],
         )
 
-    ***REMOVED*** Check for duplicate product name
+    # Check for duplicate product name
     existing_product = next(
         (p for p in products_db if p.name.lower() == product_data.name.lower()), None
     )
@@ -397,7 +397,7 @@ async def create_product(
             conflicting_resource={"id": existing_product.id, "name": existing_product.name},
         )
 
-    ***REMOVED*** Business logic validation
+    # Business logic validation
     if product_data.price > 10000:
         raise BusinessLogicException(
             detail="Product price cannot exceed $10,000",
@@ -405,7 +405,7 @@ async def create_product(
             context={"max_price": 10000, "provided_price": product_data.price},
         )
 
-    ***REMOVED*** Create new product
+    # Create new product
     new_id = max((p.id for p in products_db), default=0) + 1
     new_product = Product(
         id=new_id,
@@ -425,13 +425,13 @@ async def create_product(
     )
 
 
-***REMOVED*** Create application
+# Create application
 def create_advanced_app():
     """Create the advanced FastAPI application."""
-    ***REMOVED*** Configuration
+    # Configuration
     settings = AdvancedAppConfig()
 
-    ***REMOVED*** Application options
+    # Application options
     options = AppOptions(
         middleware=True,
         exception_handlers=True,
@@ -440,7 +440,7 @@ def create_advanced_app():
         docs=True,
     )
 
-    ***REMOVED*** Create app
+    # Create app
     app = create_app(
         settings,
         options=options,
@@ -449,7 +449,7 @@ def create_advanced_app():
         version="1.0.0",
     )
 
-    ***REMOVED*** Add health checks
+    # Add health checks
     health_checks = [
         HealthCheck(name="database", check_func=check_database),
         HealthCheck(name="cache", check_func=check_cache),
@@ -457,7 +457,7 @@ def create_advanced_app():
     ]
     setup_health_checks(app, health_checks)
 
-    ***REMOVED*** Include routers
+    # Include routers
     app.include_router(auth_router)
     app.include_router(products_router)
     app.include_router(admin_router)
@@ -465,7 +465,7 @@ def create_advanced_app():
     return app
 
 
-***REMOVED*** Create the app
+# Create the app
 app = create_advanced_app()
 
 

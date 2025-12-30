@@ -1,15 +1,15 @@
-***REMOVED*** Feature Components
+# Feature Components
 
 This directory contains domain-specific feature components that combine UI elements with business logic.
 
-***REMOVED******REMOVED*** Structure
+## Structure
 
 - **movies/**: Movie-related components (listings, details, cards)
 - **actors/**: Actor-related components (profiles, filmography)
 - **auth/**: Authentication and authorization components
 - **profile/**: User profile management components
 
-***REMOVED******REMOVED*** Guidelines
+## Guidelines
 
 - Feature components should be organized by domain, not by UI structure
 - Each feature directory should represent a coherent business concept

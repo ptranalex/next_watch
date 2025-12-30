@@ -8,7 +8,7 @@ from typing import Any, cast
 import jwt
 from config.logging import get_logger
 
-***REMOVED*** Import enhanced error handling
+# Import enhanced error handling
 from fast_core.errors import (
     AuthenticationException,
     critical_service_handler,
@@ -43,7 +43,7 @@ class AuthService:
             config: Configuration instance
         """
         self.config = config or settings
-        ***REMOVED*** Get JWT settings from config
+        # Get JWT settings from config
         self.jwt_secret = self.config.jwt_secret
         self.jwt_algorithm = self.config.jwt_algorithm
         self.access_token_expire_minutes = self.config.jwt_access_token_expire_minutes
@@ -165,28 +165,28 @@ class AuthService:
             ExternalServiceException: If database is unavailable (critical failure)
         """
         try:
-            ***REMOVED*** Decode and validate token
+            # Decode and validate token
             payload = self.decode_token(token)
 
-            ***REMOVED*** Extract user ID
+            # Extract user ID
             sub = payload.get("sub")
             if sub is None:
                 return TokenVerificationResponse(valid=False, error="Token missing user identifier")
 
             user_id = int(sub)
 
-            ***REMOVED*** Get user from database
+            # Get user from database
             user = get_user_by_id(session, user_id)
             if not user:
                 return TokenVerificationResponse(valid=False, error="User not found")
 
-            ***REMOVED*** Return successful verification with user info
+            # Return successful verification with user info
             return TokenVerificationResponse(
                 valid=True, user_id=user.id, email=user.email, username=user.username
             )
 
         except AuthenticationException as e:
-            ***REMOVED*** Token validation errors are expected and should not be treated as system failures
+            # Token validation errors are expected and should not be treated as system failures
             error_msg = str(e)
             if "expired" in error_msg.lower():
                 return TokenVerificationResponse(valid=False, error="Token has expired")
@@ -296,15 +296,15 @@ class AuthService:
             New token pair if refresh token is valid, None otherwise
         """
         try:
-            ***REMOVED*** Decode the refresh token
+            # Decode the refresh token
             payload = self.decode_token(refresh_token)
 
-            ***REMOVED*** Verify it's a refresh token
+            # Verify it's a refresh token
             if payload.get("type") != "refresh":
                 logger.warning("Invalid token type for refresh operation")
                 return None
 
-            ***REMOVED*** Extract user ID
+            # Extract user ID
             user_id_str = payload.get("sub")
             if not user_id_str:
                 logger.warning("Refresh token missing user ID")
@@ -312,7 +312,7 @@ class AuthService:
 
             user_id = int(user_id_str)
 
-            ***REMOVED*** Generate new tokens
+            # Generate new tokens
             return self.generate_tokens(user_id)
 
         except (AuthenticationException, ValueError) as e:

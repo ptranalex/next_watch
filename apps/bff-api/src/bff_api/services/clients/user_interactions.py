@@ -44,7 +44,7 @@ class UserInteractionsClient(BaseBackendClient):
                 headers=headers,
             )
         except ResourceNotFoundException:
-            ***REMOVED*** Return None if interaction not found
+            # Return None if interaction not found
             return None
 
     @critical_service_handler("backend-api", logger)
@@ -72,7 +72,7 @@ class UserInteractionsClient(BaseBackendClient):
         if not movie_ids:
             return {}
 
-        ***REMOVED*** Remove duplicates and limit to reasonable batch size
+        # Remove duplicates and limit to reasonable batch size
         unique_movie_ids = list(set(movie_ids))[:100]
 
         try:
@@ -86,7 +86,7 @@ class UserInteractionsClient(BaseBackendClient):
                 headers=headers,
             )
 
-            ***REMOVED*** Convert string keys back to integers and handle the response format
+            # Convert string keys back to integers and handle the response format
             interactions_dict = response.get("interactions", {})
             result: dict[int, dict[str, Any] | None] = {}
 
@@ -106,7 +106,7 @@ class UserInteractionsClient(BaseBackendClient):
                 component="user_interactions_client",
             )
 
-            ***REMOVED*** Fallback to individual requests if batch fails
+            # Fallback to individual requests if batch fails
             result = {}
             for movie_id in unique_movie_ids:
                 try:
@@ -119,9 +119,9 @@ class UserInteractionsClient(BaseBackendClient):
 
             return result
 
-    ***REMOVED*** ============================================================================
-    ***REMOVED*** Watchlist Operations (CRITICAL - Core User Feature)
-    ***REMOVED*** ============================================================================
+    # ============================================================================
+    # Watchlist Operations (CRITICAL - Core User Feature)
+    # ============================================================================
 
     @critical_service_handler("backend-api", logger)
     async def get_user_watchlist(
@@ -154,7 +154,7 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
-        ***REMOVED*** Return the fast-core response directly (contains results, pagination, metadata)
+        # Return the fast-core response directly (contains results, pagination, metadata)
         return response
 
     @critical_service_handler("backend-api", logger)
@@ -231,19 +231,19 @@ class UserInteractionsClient(BaseBackendClient):
         Raises:
             ExternalServiceException: If request fails
         """
-        ***REMOVED*** Check current interaction status
+        # Check current interaction status
         interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if interaction and interaction.get("in_watchlist", False):
-            ***REMOVED*** Remove from watchlist
+            # Remove from watchlist
             return await self.unset_user_movie_watchlist(user_id, movie_id, jwt_token)
         else:
-            ***REMOVED*** Add to watchlist
+            # Add to watchlist
             return await self.set_user_movie_watchlist(user_id, movie_id, jwt_token)
 
-    ***REMOVED*** ============================================================================
-    ***REMOVED*** Watched Operations (OPTIONAL - Nice-to-have tracking)
-    ***REMOVED*** ============================================================================
+    # ============================================================================
+    # Watched Operations (OPTIONAL - Nice-to-have tracking)
+    # ============================================================================
 
     @optional_service_handler(
         service_name="backend-api",
@@ -289,7 +289,7 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
-        ***REMOVED*** Return the fast-core response directly
+        # Return the fast-core response directly
         return response
 
     @optional_service_handler(
@@ -375,19 +375,19 @@ class UserInteractionsClient(BaseBackendClient):
         Returns:
             Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
-        ***REMOVED*** Check current interaction status
+        # Check current interaction status
         interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if interaction and interaction.get("watched", False):
-            ***REMOVED*** Remove from watched
+            # Remove from watched
             return await self.unset_user_movie_watched(user_id, movie_id, jwt_token)
         else:
-            ***REMOVED*** Mark as watched
+            # Mark as watched
             return await self.set_user_movie_watched(user_id, movie_id, jwt_token)
 
-    ***REMOVED*** ============================================================================
-    ***REMOVED*** Liked Operations (OPTIONAL - Social features)
-    ***REMOVED*** ============================================================================
+    # ============================================================================
+    # Liked Operations (OPTIONAL - Social features)
+    # ============================================================================
 
     @optional_service_handler(
         service_name="backend-api",
@@ -433,7 +433,7 @@ class UserInteractionsClient(BaseBackendClient):
             headers=headers,
         )
 
-        ***REMOVED*** Return the fast-core response directly
+        # Return the fast-core response directly
         return response
 
     @optional_service_handler(
@@ -519,19 +519,19 @@ class UserInteractionsClient(BaseBackendClient):
         Returns:
             Fast-core ActionResponse with success status and operation data (fallback if service unavailable)
         """
-        ***REMOVED*** Check current interaction status
+        # Check current interaction status
         interaction = await self.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if interaction and interaction.get("liked", False):
-            ***REMOVED*** Remove like
+            # Remove like
             return await self.unset_user_movie_liked(user_id, movie_id, jwt_token)
         else:
-            ***REMOVED*** Add like
+            # Add like
             return await self.set_user_movie_liked(user_id, movie_id, jwt_token)
 
-    ***REMOVED*** ============================================================================
-    ***REMOVED*** User Details & Category Operations (OPTIONAL - Profile features)
-    ***REMOVED*** ============================================================================
+    # ============================================================================
+    # User Details & Category Operations (OPTIONAL - Profile features)
+    # ============================================================================
 
     @optional_service_handler(service_name="backend-api", logger=logger, fallback_value=[])
     async def get_user_favorites(self, user_id: int) -> list[dict[str, Any]]:
@@ -592,7 +592,7 @@ class UserInteractionsClient(BaseBackendClient):
         headers = self._get_auth_headers(user_id)
         params = {"page": page, "limit": limit}
 
-        ***REMOVED*** Map old category names to new endpoints
+        # Map old category names to new endpoints
         endpoint_map = {
             "watchlist": "/user/watchlist",
             "watched": "/user/watched-movies",
@@ -605,8 +605,8 @@ class UserInteractionsClient(BaseBackendClient):
                 f"Invalid category: {category}. Must be one of: watchlist, watched, liked"
             )
 
-        ***REMOVED*** Note: Additional filters may not be supported by new collection endpoints
-        ***REMOVED*** They were part of the old detailed movie category endpoint that we removed
+        # Note: Additional filters may not be supported by new collection endpoints
+        # They were part of the old detailed movie category endpoint that we removed
 
         return await self._make_request(
             "GET",

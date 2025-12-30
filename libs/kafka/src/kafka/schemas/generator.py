@@ -17,7 +17,7 @@ def python_type_to_avro_type(field_type: Any, field_default: Any = None) -> Any:
     Returns:
         Avro type definition (string or dict)
     """
-    ***REMOVED*** Handle Optional types
+    # Handle Optional types
     origin = get_origin(field_type)
     if origin is Optional or (origin is type(None)):
         args = get_args(field_type)
@@ -26,12 +26,12 @@ def python_type_to_avro_type(field_type: Any, field_default: Any = None) -> Any:
             return ["null", python_type_to_avro_type(inner_type)]
         return "null"
 
-    ***REMOVED*** Handle Union types (excluding Optional which is handled above)
+    # Handle Union types (excluding Optional which is handled above)
     if origin is Union:
         args = get_args(field_type)
         return [python_type_to_avro_type(arg) for arg in args if arg is not type(None)]
 
-    ***REMOVED*** Basic types
+    # Basic types
     if field_type is str:
         return "string"
     elif field_type is int:
@@ -43,11 +43,11 @@ def python_type_to_avro_type(field_type: Any, field_default: Any = None) -> Any:
     elif field_type is bytes:
         return "bytes"
 
-    ***REMOVED*** datetime -> long with logicalType
+    # datetime -> long with logicalType
     elif field_type is datetime:
         return {"type": "long", "logicalType": "timestamp-millis"}
 
-    ***REMOVED*** Enum -> string with enum constraint
+    # Enum -> string with enum constraint
     elif isinstance(field_type, type) and issubclass(field_type, Enum):
         return {
             "type": "enum",
@@ -55,23 +55,23 @@ def python_type_to_avro_type(field_type: Any, field_default: Any = None) -> Any:
             "symbols": [e.value for e in field_type],
         }
 
-    ***REMOVED*** Dict -> map
+    # Dict -> map
     elif origin is dict or field_type is dict:
         args = get_args(field_type)
         value_type = args[1] if len(args) > 1 else "string"
         return {"type": "map", "values": python_type_to_avro_type(value_type)}
 
-    ***REMOVED*** List -> array
+    # List -> array
     elif origin is list or field_type is list:
         args = get_args(field_type)
         item_type = args[0] if args else "string"
         return {"type": "array", "items": python_type_to_avro_type(item_type)}
 
-    ***REMOVED*** Nested BaseModel -> record
+    # Nested BaseModel -> record
     elif isinstance(field_type, type) and issubclass(field_type, BaseModel):
         return generate_avro_schema_from_pydantic(field_type)
 
-    ***REMOVED*** Default to string for unknown types
+    # Default to string for unknown types
     return "string"
 
 
@@ -101,11 +101,11 @@ def generate_avro_schema_from_pydantic(
             "type": python_type_to_avro_type(field_type, default),
         }
 
-        ***REMOVED*** Add doc if available
+        # Add doc if available
         if field_info.description:
             avro_field["doc"] = field_info.description
 
-        ***REMOVED*** Add default value if present and not a factory
+        # Add default value if present and not a factory
         if default is not None and not callable(default):
             if isinstance(default, Enum):
                 avro_field["default"] = default.value
@@ -121,7 +121,7 @@ def generate_avro_schema_from_pydantic(
         "fields": fields,
     }
 
-    ***REMOVED*** Add doc if available
+    # Add doc if available
     if model.__doc__:
         schema["doc"] = model.__doc__.strip()
 

@@ -1,10 +1,10 @@
-***REMOVED*** Enhanced Error Handling Training Guide
+# Enhanced Error Handling Training Guide
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This training guide provides hands-on exercises and practical examples for mastering the enhanced error handling system. It's designed for developers who need to understand and implement the patterns across Next Watch services.
 
-***REMOVED******REMOVED*** 🎯 Learning Objectives
+## 🎯 Learning Objectives
 
 By the end of this training, you will be able to:
 
@@ -15,7 +15,7 @@ By the end of this training, you will be able to:
 5. **Set up monitoring and observability** for error tracking
 6. **Debug and troubleshoot** error handling issues
 
-***REMOVED******REMOVED*** 📚 Prerequisites
+## 📚 Prerequisites
 
 - Python 3.8+
 - FastAPI knowledge
@@ -23,21 +23,21 @@ By the end of this training, you will be able to:
 - Familiarity with async/await
 - pytest experience
 
-***REMOVED******REMOVED*** 🧪 Lab Environment Setup
+## 🧪 Lab Environment Setup
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Install Dependencies
+### Step 1: Install Dependencies
 
 ```bash
-***REMOVED*** In your service directory
+# In your service directory
 pip install fast-core pytest pytest-asyncio httpx
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Basic Service Setup
+### Step 2: Basic Service Setup
 
 Create a sample service for practice:
 
 ```python
-***REMOVED*** training_service.py
+# training_service.py
 from typing import Optional, List, Dict, Any
 import asyncio
 import random
@@ -56,22 +56,22 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Error Handling Training Service")
 
-***REMOVED*** Simulated external services
+# Simulated external services
 class DatabaseService:
     async def get_user(self, user_id: int) -> Optional[Dict]:
-        await asyncio.sleep(0.1)  ***REMOVED*** Simulate DB latency
+        await asyncio.sleep(0.1)  # Simulate DB latency
         if user_id <= 0:
             raise ValueError("Invalid user ID")
-        if user_id == 999:  ***REMOVED*** Simulate user not found
+        if user_id == 999:  # Simulate user not found
             return None
-        if user_id == 500:  ***REMOVED*** Simulate database error
+        if user_id == 500:  # Simulate database error
             raise ConnectionError("Database connection failed")
         return {"id": user_id, "name": f"User {user_id}"}
 
 class RecommendationService:
     async def get_similar_items(self, item_id: int) -> List[Dict]:
-        await asyncio.sleep(0.2)  ***REMOVED*** Simulate API latency
-        if random.random() < 0.3:  ***REMOVED*** 30% chance of failure
+        await asyncio.sleep(0.2)  # Simulate API latency
+        if random.random() < 0.3:  # 30% chance of failure
             raise ConnectionError("Recommendation service unavailable")
         return [{"id": i, "title": f"Recommendation {i}"} for i in range(3)]
 
@@ -88,27 +88,27 @@ class AuthService:
             raise ConnectionError("Auth service down")
         return {"user_id": 123, "email": "user@example.com"}
 
-***REMOVED*** Service instances
+# Service instances
 db_service = DatabaseService()
 reco_service = RecommendationService()
 auth_service = AuthService()
 ```
 
-***REMOVED******REMOVED*** 🏋️ Exercise 1: Critical Service Handler
+## 🏋️ Exercise 1: Critical Service Handler
 
 **Objective**: Learn when and how to use `@critical_service_handler`
 
-***REMOVED******REMOVED******REMOVED*** Task 1.1: Basic Critical Operation
+### Task 1.1: Basic Critical Operation
 
 Implement a user retrieval function that must always work:
 
 ```python
-***REMOVED*** TODO: Add the appropriate decorator
+# TODO: Add the appropriate decorator
 async def get_user_profile(user_id: int) -> Dict[str, Any]:
     """Get user profile - critical for app functionality."""
-    ***REMOVED*** TODO: Add input validation
-    ***REMOVED*** TODO: Call db_service.get_user(user_id)
-    ***REMOVED*** TODO: Handle case when user is not found
+    # TODO: Add input validation
+    # TODO: Call db_service.get_user(user_id)
+    # TODO: Handle case when user is not found
     pass
 ```
 
@@ -134,7 +134,7 @@ async def get_user_profile(user_id: int) -> Dict[str, Any]:
 
 </details>
 
-***REMOVED******REMOVED******REMOVED*** Task 1.2: Add FastAPI Endpoint
+### Task 1.2: Add FastAPI Endpoint
 
 Create a FastAPI endpoint that uses your critical function:
 
@@ -142,7 +142,7 @@ Create a FastAPI endpoint that uses your critical function:
 @app.get("/users/{user_id}")
 async def get_user_endpoint(user_id: int):
     """Get user profile endpoint."""
-    ***REMOVED*** TODO: Call get_user_profile and return the result
+    # TODO: Call get_user_profile and return the result
     pass
 ```
 
@@ -158,10 +158,10 @@ async def get_user_endpoint(user_id: int):
 
 </details>
 
-***REMOVED******REMOVED******REMOVED*** Test Your Implementation
+### Test Your Implementation
 
 ```python
-***REMOVED*** test_exercise_1.py
+# test_exercise_1.py
 import pytest
 from unittest.mock import patch, AsyncMock
 from fast_core.errors import ValidationException, ResourceNotFoundException, ExternalServiceException
@@ -201,20 +201,20 @@ Run the tests:
 pytest test_exercise_1.py -v
 ```
 
-***REMOVED******REMOVED*** 🏋️ Exercise 2: Optional Service Handler
+## 🏋️ Exercise 2: Optional Service Handler
 
 **Objective**: Learn graceful degradation for non-critical services
 
-***REMOVED******REMOVED******REMOVED*** Task 2.1: Implement Recommendation Function
+### Task 2.1: Implement Recommendation Function
 
 Create a recommendation function that gracefully degrades:
 
 ```python
-***REMOVED*** TODO: Add the appropriate decorator with fallback
+# TODO: Add the appropriate decorator with fallback
 async def get_item_recommendations(item_id: int) -> List[Dict[str, Any]]:
     """Get recommendations - nice to have but not essential."""
-    ***REMOVED*** TODO: Add input validation
-    ***REMOVED*** TODO: Call reco_service.get_similar_items(item_id)
+    # TODO: Add input validation
+    # TODO: Call reco_service.get_similar_items(item_id)
     pass
 ```
 
@@ -237,7 +237,7 @@ async def get_item_recommendations(item_id: int) -> List[Dict[str, Any]]:
 
 </details>
 
-***REMOVED******REMOVED******REMOVED*** Task 2.2: Create Composite Endpoint
+### Task 2.2: Create Composite Endpoint
 
 Build an endpoint that combines critical and optional data:
 
@@ -245,9 +245,9 @@ Build an endpoint that combines critical and optional data:
 @app.get("/items/{item_id}/details")
 async def get_item_details(item_id: int):
     """Get item details with optional recommendations."""
-    ***REMOVED*** TODO: Get user profile (critical)
-    ***REMOVED*** TODO: Get recommendations (optional)
-    ***REMOVED*** TODO: Return combined response
+    # TODO: Get user profile (critical)
+    # TODO: Get recommendations (optional)
+    # TODO: Return combined response
     pass
 ```
 
@@ -258,10 +258,10 @@ async def get_item_details(item_id: int):
 @app.get("/items/{item_id}/details")
 async def get_item_details(item_id: int):
     """Get item details with optional recommendations."""
-    ***REMOVED*** Critical: Basic user data (reusing user_id as item_id for simplicity)
+    # Critical: Basic user data (reusing user_id as item_id for simplicity)
     user = await get_user_profile(item_id)
 
-    ***REMOVED*** Optional: Recommendations (will be empty list if service fails)
+    # Optional: Recommendations (will be empty list if service fails)
     recommendations = await get_item_recommendations(item_id)
 
     return {
@@ -273,14 +273,14 @@ async def get_item_details(item_id: int):
 
 </details>
 
-***REMOVED******REMOVED******REMOVED*** Test Graceful Degradation
+### Test Graceful Degradation
 
 ```python
-***REMOVED*** test_exercise_2.py
+# test_exercise_2.py
 @pytest.mark.asyncio
 async def test_recommendations_success():
     """Test successful recommendation retrieval."""
-    ***REMOVED*** May succeed or fail due to random behavior - that's the point!
+    # May succeed or fail due to random behavior - that's the point!
     result = await get_item_recommendations(123)
     assert isinstance(result, list)
 
@@ -291,7 +291,7 @@ async def test_recommendations_graceful_degradation():
         mock_reco.side_effect = ConnectionError("Service down")
 
         result = await get_item_recommendations(123)
-        assert result == []  ***REMOVED*** Fallback value
+        assert result == []  # Fallback value
 
 @pytest.mark.asyncio
 async def test_item_details_with_recommendations():
@@ -304,21 +304,21 @@ async def test_item_details_with_recommendations():
     assert result["user"]["id"] == 123
 ```
 
-***REMOVED******REMOVED*** 🏋️ Exercise 3: Custom Error Mapping
+## 🏋️ Exercise 3: Custom Error Mapping
 
 **Objective**: Learn to preserve business logic semantics
 
-***REMOVED******REMOVED******REMOVED*** Task 3.1: Authentication with Error Mapping
+### Task 3.1: Authentication with Error Mapping
 
 Implement authentication with semantic error preservation:
 
 ```python
-***REMOVED*** TODO: Add service_error_handler with custom error mapping
+# TODO: Add service_error_handler with custom error mapping
 async def authenticate_user(token: str) -> Dict[str, Any]:
     """Authenticate user with semantic error mapping."""
-    ***REMOVED*** TODO: Add input validation
-    ***REMOVED*** TODO: Call auth_service.authenticate(token)
-    ***REMOVED*** TODO: Handle None result appropriately
+    # TODO: Add input validation
+    # TODO: Call auth_service.authenticate(token)
+    # TODO: Handle None result appropriately
     pass
 ```
 
@@ -350,7 +350,7 @@ async def authenticate_user(token: str) -> Dict[str, Any]:
 
 </details>
 
-***REMOVED******REMOVED******REMOVED*** Task 3.2: Protected Endpoint
+### Task 3.2: Protected Endpoint
 
 Create an endpoint that requires authentication:
 
@@ -358,9 +358,9 @@ Create an endpoint that requires authentication:
 @app.get("/protected")
 async def protected_endpoint(authorization: str = None):
     """Protected endpoint requiring authentication."""
-    ***REMOVED*** TODO: Extract token from authorization header
-    ***REMOVED*** TODO: Authenticate user
-    ***REMOVED*** TODO: Return protected data
+    # TODO: Extract token from authorization header
+    # TODO: Authenticate user
+    # TODO: Return protected data
     pass
 ```
 
@@ -386,10 +386,10 @@ async def protected_endpoint(authorization: str = None):
 
 </details>
 
-***REMOVED******REMOVED******REMOVED*** Test Error Mapping
+### Test Error Mapping
 
 ```python
-***REMOVED*** test_exercise_3.py
+# test_exercise_3.py
 @pytest.mark.asyncio
 async def test_authentication_success():
     """Test successful authentication."""
@@ -418,11 +418,11 @@ async def test_authentication_service_failure():
     assert exc_info.value.status_code == 502
 ```
 
-***REMOVED******REMOVED*** 🏋️ Exercise 4: Real-World Scenario
+## 🏋️ Exercise 4: Real-World Scenario
 
 **Objective**: Combine all patterns in a realistic scenario
 
-***REMOVED******REMOVED******REMOVED*** Task 4.1: Movie Service Implementation
+### Task 4.1: Movie Service Implementation
 
 Build a movie service that demonstrates all patterns:
 
@@ -433,15 +433,15 @@ class MovieService:
         self.reco = RecommendationService()
         self.auth = AuthService()
 
-    ***REMOVED*** TODO: Implement get_movie (critical)
+    # TODO: Implement get_movie (critical)
     async def get_movie(self, movie_id: int) -> Dict[str, Any]:
         pass
 
-    ***REMOVED*** TODO: Implement get_movie_recommendations (optional)
+    # TODO: Implement get_movie_recommendations (optional)
     async def get_movie_recommendations(self, movie_id: int) -> List[Dict[str, Any]]:
         pass
 
-    ***REMOVED*** TODO: Implement get_movie_for_user (authentication + optional features)
+    # TODO: Implement get_movie_for_user (authentication + optional features)
     async def get_movie_for_user(self, movie_id: int, token: str) -> Dict[str, Any]:
         pass
 
@@ -464,7 +464,7 @@ class MovieService:
         if movie_id <= 0:
             raise ValidationException("Movie ID must be positive")
 
-        movie = await self.db.get_user(movie_id)  ***REMOVED*** Reusing user service as movie service
+        movie = await self.db.get_user(movie_id)  # Reusing user service as movie service
         if not movie:
             raise ResourceNotFoundException(
                 detail=f"Movie with ID {movie_id} not found",
@@ -496,7 +496,7 @@ class MovieService:
     )
     async def get_movie_for_user(self, movie_id: int, token: str) -> Dict[str, Any]:
         """Get movie with user-specific data and recommendations."""
-        ***REMOVED*** Authenticate user first
+        # Authenticate user first
         if not token:
             raise ValidationException("Authentication token required")
 
@@ -504,10 +504,10 @@ class MovieService:
         if not user:
             raise ValueError("invalid_credentials")
 
-        ***REMOVED*** Get core movie data (critical)
+        # Get core movie data (critical)
         movie = await self.get_movie(movie_id)
 
-        ***REMOVED*** Get recommendations (optional)
+        # Get recommendations (optional)
         recommendations = await self.get_movie_recommendations(movie_id)
 
         return {
@@ -522,7 +522,7 @@ movie_service = MovieService()
 
 </details>
 
-***REMOVED******REMOVED******REMOVED*** Task 4.2: Complete API Endpoints
+### Task 4.2: Complete API Endpoints
 
 ```python
 @app.get("/movies/{movie_id}")
@@ -540,10 +540,10 @@ async def get_personalized_movie(movie_id: int, authorization: str = None):
     return await movie_service.get_movie_for_user(movie_id, token)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Comprehensive Testing
+### Comprehensive Testing
 
 ```python
-***REMOVED*** test_exercise_4.py
+# test_exercise_4.py
 @pytest.mark.asyncio
 async def test_movie_service_success():
     """Test successful movie retrieval."""
@@ -574,43 +574,43 @@ async def test_graceful_degradation_in_personalized():
 
         result = await movie_service.get_movie_for_user(123, "valid_token")
 
-        ***REMOVED*** Core functionality still works
+        # Core functionality still works
         assert "movie" in result
         assert "user" in result
-        ***REMOVED*** Recommendations gracefully degrade
+        # Recommendations gracefully degrade
         assert result["recommendations"] == []
 ```
 
-***REMOVED******REMOVED*** 🏋️ Exercise 5: Monitoring and Observability
+## 🏋️ Exercise 5: Monitoring and Observability
 
 **Objective**: Learn to monitor and debug error handling
 
-***REMOVED******REMOVED******REMOVED*** Task 5.1: Add Custom Metrics
+### Task 5.1: Add Custom Metrics
 
 ```python
 from prometheus_client import Counter, Histogram, generate_latest
 
-***REMOVED*** TODO: Create metrics for tracking errors
+# TODO: Create metrics for tracking errors
 error_counter = Counter('service_errors_total', 'Total service errors', ['service', 'error_type'])
 degradation_counter = Counter('graceful_degradations_total', 'Graceful degradations', ['service'])
 operation_duration = Histogram('operation_duration_seconds', 'Operation duration', ['operation'])
 
-***REMOVED*** TODO: Add metrics endpoint
+# TODO: Add metrics endpoint
 @app.get("/metrics")
 async def metrics():
     return generate_latest()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Task 5.2: Enhanced Logging
+### Task 5.2: Enhanced Logging
 
 ```python
 import structlog
 
-***REMOVED*** Configure structured logging
+# Configure structured logging
 logger = structlog.get_logger()
 
-***REMOVED*** TODO: Add logging to your service methods
-***REMOVED*** Example for movie service:
+# TODO: Add logging to your service methods
+# Example for movie service:
 async def get_movie_with_logging(movie_id: int) -> Dict[str, Any]:
     start_time = time.time()
 
@@ -654,9 +654,9 @@ async def get_movie_with_logging(movie_id: int) -> Dict[str, Any]:
         raise
 ```
 
-***REMOVED******REMOVED*** 🧩 Challenge Exercises
+## 🧩 Challenge Exercises
 
-***REMOVED******REMOVED******REMOVED*** Challenge 1: Circuit Breaker Integration
+### Challenge 1: Circuit Breaker Integration
 
 Implement a circuit breaker pattern with the error handling decorators:
 
@@ -667,36 +667,36 @@ class CircuitBreaker:
         self.reset_timeout = reset_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  ***REMOVED*** CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
 
-    ***REMOVED*** TODO: Implement circuit breaker logic
-    ***REMOVED*** TODO: Integrate with optional_service_handler
+    # TODO: Implement circuit breaker logic
+    # TODO: Integrate with optional_service_handler
 ```
 
-***REMOVED******REMOVED******REMOVED*** Challenge 2: Retry Strategy
+### Challenge 2: Retry Strategy
 
 Add intelligent retry logic to your error handlers:
 
 ```python
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-***REMOVED*** TODO: Combine tenacity retry with error handling decorators
-***REMOVED*** TODO: Implement different retry strategies for different error types
+# TODO: Combine tenacity retry with error handling decorators
+# TODO: Implement different retry strategies for different error types
 ```
 
-***REMOVED******REMOVED******REMOVED*** Challenge 3: Error Rate Limiting
+### Challenge 3: Error Rate Limiting
 
 Implement error rate limiting to prevent cascading failures:
 
 ```python
-***REMOVED*** TODO: Track error rates per service
-***REMOVED*** TODO: Implement backoff when error rates are high
-***REMOVED*** TODO: Integrate with graceful degradation
+# TODO: Track error rates per service
+# TODO: Implement backoff when error rates are high
+# TODO: Integrate with graceful degradation
 ```
 
-***REMOVED******REMOVED*** 📝 Assessment Questions
+## 📝 Assessment Questions
 
-***REMOVED******REMOVED******REMOVED*** Knowledge Check
+### Knowledge Check
 
 1. **When should you use `@critical_service_handler` vs `@optional_service_handler`?**
 
@@ -708,7 +708,7 @@ Implement error rate limiting to prevent cascading failures:
 
 5. **How should you handle authentication errors in a multi-service architecture?**
 
-***REMOVED******REMOVED******REMOVED*** Practical Scenarios
+### Practical Scenarios
 
 **Scenario 1**: You have a product page that shows:
 
@@ -729,9 +729,9 @@ How would you classify and handle errors for each component?
 
 How would you map these to appropriate HTTP status codes and user messages?
 
-***REMOVED******REMOVED*** 🎓 Graduation Project
+## 🎓 Graduation Project
 
-***REMOVED******REMOVED******REMOVED*** Build a Complete Service
+### Build a Complete Service
 
 Create a realistic service that demonstrates all error handling patterns:
 
@@ -758,37 +758,37 @@ Create a realistic service that demonstrates all error handling patterns:
    - Monitoring dashboard config
    - Performance benchmarks
 
-***REMOVED******REMOVED*** 📚 Additional Resources
+## 📚 Additional Resources
 
-***REMOVED******REMOVED******REMOVED*** Documentation
+### Documentation
 
 - [Migration Guide](./MIGRATION_GUIDE.md)
 - [Best Practices](./ERROR_HANDLING_BEST_PRACTICES.md)
 - [Enhanced Error Handling](./ENHANCED_ERROR_HANDLING.md)
 
-***REMOVED******REMOVED******REMOVED*** Examples
+### Examples
 
 - [Working demos](../examples/error_handling_demo.py)
 - [Service implementations](../../apps/*/src/*/services/)
 - [Test patterns](../../apps/*/tests/)
 
-***REMOVED******REMOVED******REMOVED*** Tools
+### Tools
 
 - [pytest-asyncio](https://pytest-asyncio.readthedocs.io/)
 - [httpx](https://www.python-httpx.org/)
 - [structlog](https://www.structlog.org/)
 - [prometheus-client](https://github.com/prometheus/client_python)
 
-***REMOVED******REMOVED*** 🆘 Getting Help
+## 🆘 Getting Help
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 1. **Import Errors**: Ensure fast-core is properly installed
 2. **Circular Imports**: Move router imports to function level
 3. **Type Errors**: Check decorator return type compatibility
 4. **Test Failures**: Verify mock configurations match expected error types
 
-***REMOVED******REMOVED******REMOVED*** Support Channels
+### Support Channels
 
 1. Check examples in `libs/fast-core/examples/`
 2. Review working implementations in service directories

@@ -12,7 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "007_add_users_table"
 MIGRATION_DESCRIPTION = "Add users table for authentication"
 
@@ -30,7 +30,7 @@ def upgrade(engine: Engine) -> None:
     logger.info("Creating users table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Create users table
+        # Create users table
         conn.execute(
             text(
                 """
@@ -46,13 +46,13 @@ def upgrade(engine: Engine) -> None:
             )
         )
 
-        ***REMOVED*** Create index on email
+        # Create index on email
         conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_email ON "user"(email)'))
 
-        ***REMOVED*** Create index on username
+        # Create index on username
         conn.execute(text('CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username)'))
 
-        ***REMOVED*** Record the migration
+        # Record the migration
         try:
             conn.execute(
                 text("INSERT INTO migrations (id, description) VALUES (:id, :description)"),
@@ -74,10 +74,10 @@ def downgrade(engine: Engine) -> None:
     logger.info("Dropping users table")
 
     with engine.begin() as conn:
-        ***REMOVED*** Drop the users table
+        # Drop the users table
         conn.execute(text('DROP TABLE IF EXISTS "user"'))
 
-        ***REMOVED*** Remove the migration record
+        # Remove the migration record
         try:
             conn.execute(
                 text("DELETE FROM migrations WHERE id = :id"),

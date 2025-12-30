@@ -57,10 +57,10 @@ async def default_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Yields:
         None: Application runs between startup and shutdown
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Starting application")
 
-    ***REMOVED*** Get settings if available
+    # Get settings if available
     settings = getattr(app.state, "settings", None)
     if settings:
         environment = getattr(settings, "environment", "unknown")
@@ -69,7 +69,7 @@ async def default_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info("Shutting down application")
 
 
@@ -117,11 +117,11 @@ def create_app(
         Configured FastAPI application
 
     Example:
-        ***REMOVED*** Create middleware configuration
+        # Create middleware configuration
         middleware_config = MiddlewareConfig()
         middleware_config.cors(origins=["https://app.example.com"]).security_headers()
 
-        ***REMOVED*** Create app
+        # Create app
         app = create_app(
             settings=settings,
             middleware=middleware_config,
@@ -130,11 +130,11 @@ def create_app(
     """
     options = options or AppOptions()
 
-    ***REMOVED*** Get values from settings
+    # Get values from settings
     service_name = getattr(settings, "service_name", "FastAPI Service")
     debug_mode = getattr(settings, "debug", False)
 
-    ***REMOVED*** Configure FastAPI application
+    # Configure FastAPI application
     app = FastAPI(
         title=title or service_name,
         description=description or f"API for {service_name}",
@@ -146,12 +146,12 @@ def create_app(
         lifespan=lifespan or default_lifespan,
     )
 
-    ***REMOVED*** Store settings in app state
+    # Store settings in app state
     app.state.settings = settings
 
-    ***REMOVED*** Setup observability infrastructure (before middleware)
-    ***REMOVED*** This configures the foundational OpenTelemetry instrumentation that
-    ***REMOVED*** enables distributed tracing across the entire application
+    # Setup observability infrastructure (before middleware)
+    # This configures the foundational OpenTelemetry instrumentation that
+    # enables distributed tracing across the entire application
     try:
         from fast_core.middleware.tracing import setup_tracing
 
@@ -161,9 +161,9 @@ def create_app(
     except Exception as e:
         logger.warning("Failed to setup tracing", error=str(e))
 
-    ***REMOVED*** Setup request processing middleware (after observability infrastructure)
-    ***REMOVED*** This includes request context middleware that propagates trace headers
-    ***REMOVED*** and correlates requests with the tracing infrastructure set up above
+    # Setup request processing middleware (after observability infrastructure)
+    # This includes request context middleware that propagates trace headers
+    # and correlates requests with the tracing infrastructure set up above
     if middleware is not None:
         try:
             from fast_core.middleware import setup_middleware
@@ -172,29 +172,29 @@ def create_app(
         except ImportError:
             logger.warning("Middleware module not available, skipping middleware setup")
 
-    ***REMOVED*** Setup exception handlers
+    # Setup exception handlers
     if options.exception_handlers:
-        ***REMOVED*** For now, just use the global exception handler
-        ***REMOVED*** In the future, we can add more sophisticated error handling
+        # For now, just use the global exception handler
+        # In the future, we can add more sophisticated error handling
         app.add_exception_handler(Exception, global_exception_handler)
 
-    ***REMOVED*** Setup health checks
+    # Setup health checks
     if options.health_checks:
-        ***REMOVED*** BREAKING CHANGE: Old health check system removed
-        ***REMOVED*** Services must now use setup_kubernetes_health_checks() directly
-        ***REMOVED*** and set health_checks=False in AppOptions
+        # BREAKING CHANGE: Old health check system removed
+        # Services must now use setup_kubernetes_health_checks() directly
+        # and set health_checks=False in AppOptions
         raise RuntimeError(
             "Built-in health_checks=True is no longer supported. "
             "Set health_checks=False and use setup_kubernetes_health_checks() directly in your service."
         )
 
-    ***REMOVED*** Setup standardized meta endpoints (optional)
+    # Setup standardized meta endpoints (optional)
     meta_endpoints = getattr(options, "meta_endpoints", True)
     if meta_endpoints:
         try:
             from fast_core.meta import setup_meta_endpoints
 
-            ***REMOVED*** Extract service description from title or use default
+            # Extract service description from title or use default
             service_description = description or f"API service for {service_name}"
 
             setup_meta_endpoints(
@@ -208,17 +208,17 @@ def create_app(
         except ImportError:
             logger.warning("Meta endpoints module not available, skipping meta endpoint setup")
 
-    ***REMOVED*** Include routers
+    # Include routers
     if routers:
         for router in routers:
             app.include_router(router)
 
-    ***REMOVED*** Add startup event handlers
+    # Add startup event handlers
     if on_startup:
         for handler in on_startup:
             app.add_event_handler("startup", handler)
 
-    ***REMOVED*** Add shutdown event handlers
+    # Add shutdown event handlers
     if on_shutdown:
         for handler in on_shutdown:
             app.add_event_handler("shutdown", handler)

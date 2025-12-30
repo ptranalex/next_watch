@@ -1,11 +1,11 @@
-***REMOVED*** Prometheus Alerting Rules for Kafka
-***REMOVED*** These alerts monitor Kafka cluster health and performance
+# Prometheus Alerting Rules for Kafka
+# These alerts monitor Kafka cluster health and performance
 
 groups:
   - name: kafka_alerts
     interval: 30s
     rules:
-      ***REMOVED*** Kafka Broker Down
+      # Kafka Broker Down
       - alert: KafkaBrokerDown
         expr: up{job="kafka-broker"} == 0
         for: 1m
@@ -16,7 +16,7 @@ groups:
           summary: "Kafka broker is down"
           description: "Kafka broker {{ $labels.instance }} has been down for more than 1 minute."
 
-      ***REMOVED*** High Consumer Lag
+      # High Consumer Lag
       - alert: KafkaConsumerLagHigh
         expr: kafka_consumer_lag_sum > 10000
         for: 5m
@@ -27,7 +27,7 @@ groups:
           summary: "High consumer lag detected"
           description: "Consumer group {{ $labels.consumer_group }} has lag of {{ $value }} messages on topic {{ $labels.topic }}."
 
-      ***REMOVED*** Critical Consumer Lag
+      # Critical Consumer Lag
       - alert: KafkaConsumerLagCritical
         expr: kafka_consumer_lag_sum > 50000
         for: 5m
@@ -38,7 +38,7 @@ groups:
           summary: "Critical consumer lag detected"
           description: "Consumer group {{ $labels.consumer_group }} has critical lag of {{ $value }} messages on topic {{ $labels.topic }}."
 
-      ***REMOVED*** No Active Controller
+      # No Active Controller
       - alert: KafkaNoActiveController
         expr: kafka_controller_active_controller_count == 0
         for: 1m
@@ -49,7 +49,7 @@ groups:
           summary: "No active Kafka controller"
           description: "No active controller found in the Kafka cluster."
 
-      ***REMOVED*** Under Replicated Partitions
+      # Under Replicated Partitions
       - alert: KafkaUnderReplicatedPartitions
         expr: kafka_server_replica_manager_under_replicated_partitions > 0
         for: 5m
@@ -60,7 +60,7 @@ groups:
           summary: "Under-replicated partitions detected"
           description: "{{ $value }} partitions are under-replicated on broker {{ $labels.instance }}."
 
-      ***REMOVED*** Offline Partitions
+      # Offline Partitions
       - alert: KafkaOfflinePartitions
         expr: kafka_controller_offline_partitions_count > 0
         for: 1m
@@ -71,7 +71,7 @@ groups:
           summary: "Offline partitions detected"
           description: "{{ $value }} partitions are offline in the Kafka cluster."
 
-      ***REMOVED*** High Request Latency
+      # High Request Latency
       - alert: KafkaHighRequestLatency
         expr: kafka_network_request_metrics_request_latency_percentile{percentile="99"} > 1000
         for: 5m
@@ -82,7 +82,7 @@ groups:
           summary: "High Kafka request latency"
           description: "P99 latency for {{ $labels.request }} requests is {{ $value }}ms on broker {{ $labels.instance }}."
 
-      ***REMOVED*** High Memory Usage
+      # High Memory Usage
       - alert: KafkaHighMemoryUsage
         expr: (jvm_memory_heap_used{job="kafka-broker"} / jvm_memory_heap_max{job="kafka-broker"}) > 0.85
         for: 5m
@@ -93,7 +93,7 @@ groups:
           summary: "Kafka broker high memory usage"
           description: "Kafka broker {{ $labels.instance }} is using {{ $value | humanizePercentage }} of heap memory."
 
-      ***REMOVED*** High GC Time
+      # High GC Time
       - alert: KafkaHighGCTime
         expr: rate(jvm_gc_collection_time_ms_total{job="kafka-broker"}[5m]) > 100
         for: 5m
@@ -104,7 +104,7 @@ groups:
           summary: "Kafka broker high GC time"
           description: "Kafka broker {{ $labels.instance }} is spending {{ $value }}ms/s in garbage collection."
 
-      ***REMOVED*** Producer Send Errors
+      # Producer Send Errors
       - alert: KafkaProducerSendErrors
         expr: rate(kafka_producer_send_errors_total[5m]) > 0.05
         for: 5m
@@ -115,7 +115,7 @@ groups:
           summary: "High producer send error rate"
           description: "Producer {{ $labels.client_id }} has error rate of {{ $value | humanizePercentage }} on topic {{ $labels.topic }}."
 
-      ***REMOVED*** Dead Letter Queue Depth
+      # Dead Letter Queue Depth
       - alert: KafkaDLQDepthHigh
         expr: kafka_log_size{topic="dlq.events"} > 100
         for: 10m
@@ -126,7 +126,7 @@ groups:
           summary: "High DLQ message count"
           description: "Dead letter queue has {{ $value }} messages. Investigate failed message processing."
 
-      ***REMOVED*** Topic Partition Imbalance
+      # Topic Partition Imbalance
       - alert: KafkaTopicPartitionImbalance
         expr: stddev(kafka_log_size) by (topic) > 1000000
         for: 30m
@@ -137,7 +137,7 @@ groups:
           summary: "Topic partition size imbalance"
           description: "Topic {{ $labels.topic }} has unbalanced partition sizes."
 
-      ***REMOVED*** Zookeeper Down
+      # Zookeeper Down
       - alert: ZookeeperDown
         expr: up{job="zookeeper"} == 0
         for: 1m

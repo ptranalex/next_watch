@@ -25,21 +25,21 @@ def create_fast_core_config(bff_config: BFFAPIConfig) -> FastAPIConfig:
     """
     logger.info("Converting BFF config to fast-core config")
 
-    ***REMOVED*** Create fast-core config using enhanced configuration
+    # Create fast-core config using enhanced configuration
     fast_core_config = FastAPIConfig(
-        ***REMOVED*** Basic service configuration (inherited from ServiceConfig)
+        # Basic service configuration (inherited from ServiceConfig)
         service_name=bff_config.service_name,
         environment=bff_config.environment,
         debug=bff_config.debug,
         host=bff_config.host,
         port=bff_config.port,
         log_level=bff_config.log_level,
-        ***REMOVED*** CORS configuration
+        # CORS configuration
         cors_origins=bff_config.cors_origins,
         cors_allow_credentials=True,
         cors_allow_methods=["*"],
         cors_allow_headers=["*"],
-        ***REMOVED*** Service URLs for external services (filter out None values)
+        # Service URLs for external services (filter out None values)
         service_urls={
             k: v
             for k, v in {
@@ -51,7 +51,7 @@ def create_fast_core_config(bff_config: BFFAPIConfig) -> FastAPIConfig:
             }.items()
             if v is not None
         },
-        ***REMOVED*** Service timeouts
+        # Service timeouts
         service_timeouts={
             "backend": bff_config.backend_api_timeout,
             "auth": bff_config.auth_api_timeout,
@@ -59,23 +59,23 @@ def create_fast_core_config(bff_config: BFFAPIConfig) -> FastAPIConfig:
             "search": bff_config.search_api_timeout,
             "ml": bff_config.ml_api_timeout,
         },
-        ***REMOVED*** Feature flags
+        # Feature flags
         feature_flags={
             "recommendations": bff_config.enable_recommendations,
             "ml_features": bff_config.enable_ml_features,
             "auth_service": bff_config.enable_auth_service,
             "performance_metrics": bff_config.enable_performance_metrics,
-            "metrics": True,  ***REMOVED*** Always enabled for production observability
+            "metrics": True,  # Always enabled for production observability
             "cache_metrics": bff_config.cache_enable_metrics,
         },
-        ***REMOVED*** FastAPI-specific configuration
+        # FastAPI-specific configuration
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
     )
 
-    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
-    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    # Set monitoring configuration (MonitoringConfigMixin fields)
+    # Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
     fast_core_config.enable_tracing = bff_config.enable_tracing
     fast_core_config.tracing_endpoint = bff_config.tracing_endpoint
     fast_core_config.tracing_sample_rate = bff_config.tracing_sample_rate

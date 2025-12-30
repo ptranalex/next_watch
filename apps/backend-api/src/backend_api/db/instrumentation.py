@@ -42,17 +42,17 @@ def setup_database_instrumentation(engine: Engine, slow_query_threshold_ms: floa
         if not hasattr(context, "_query_start_time"):
             return
 
-        ***REMOVED*** Calculate duration
+        # Calculate duration
         duration_ms = (time.perf_counter() - context._query_start_time) * 1000
 
-        ***REMOVED*** Prepare structured log data
+        # Prepare structured log data
         log_kwargs = {
             "statement": _clean_statement(statement),
             "duration_ms": round(duration_ms, 2),
             "row_count": cursor.rowcount if cursor.rowcount >= 0 else 0,
         }
 
-        ***REMOVED*** Log at appropriate level with structured data
+        # Log at appropriate level with structured data
         if duration_ms >= slow_query_threshold_ms:
             logger.warning("Slow database query detected", slow_query=True, **log_kwargs)
         else:
@@ -90,10 +90,10 @@ def _clean_statement(statement: str, max_length: int = 200) -> str:
     Returns:
         Cleaned and truncated statement
     """
-    ***REMOVED*** Remove extra whitespace and normalize
+    # Remove extra whitespace and normalize
     cleaned = " ".join(statement.strip().split())
 
-    ***REMOVED*** Truncate if too long
+    # Truncate if too long
     if len(cleaned) > max_length:
         cleaned = cleaned[: max_length - 3] + "..."
 

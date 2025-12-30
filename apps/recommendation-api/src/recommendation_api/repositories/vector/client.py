@@ -10,7 +10,7 @@ from recommendation_api.config import settings
 
 logger = get_logger(__name__)
 
-***REMOVED*** Global client instance
+# Global client instance
 _qdrant_client: Optional["QdrantClient"] = None
 
 
@@ -82,7 +82,7 @@ class QdrantClient:
                 logger.info(f"Collection '{name}' already exists")
                 return True
 
-            ***REMOVED*** Map distance string to Qdrant distance enum
+            # Map distance string to Qdrant distance enum
             distance_map = {
                 "Cosine": models.Distance.COSINE,
                 "Euclidean": models.Distance.EUCLID,
@@ -129,7 +129,7 @@ class QdrantClient:
                 "config": {},
             }
 
-            ***REMOVED*** Safe attribute access with proper checking
+            # Safe attribute access with proper checking
             if hasattr(info, "config") and info.config is not None:
                 config = info.config
                 if hasattr(config, "params") and config.params is not None:
@@ -137,13 +137,13 @@ class QdrantClient:
                     if hasattr(params, "vectors") and params.vectors is not None:
                         vectors = params.vectors
                         vectors_any = cast(Any, vectors)
-                        ***REMOVED*** Safely extract vector size if present
+                        # Safely extract vector size if present
                         if isinstance(vectors, dict) and "size" in vectors:
                             collection_info["config"]["vector_size"] = vectors["size"]
                         elif hasattr(vectors_any, "size"):
                             collection_info["config"]["vector_size"] = vectors_any.size
 
-                        ***REMOVED*** Safely extract distance if present
+                        # Safely extract distance if present
                         if isinstance(vectors, dict) and "distance" in vectors:
                             distance_any = cast(Any, vectors["distance"])
                             if hasattr(distance_any, "value"):
@@ -208,7 +208,7 @@ class QdrantClient:
         name = collection_name or self.collection_name
 
         try:
-            ***REMOVED*** Check if collection exists first to avoid noisy errors
+            # Check if collection exists first to avoid noisy errors
             if not self.collection_exists(name):
                 logger.debug(f"Collection '{name}' does not exist, cannot perform search")
                 return []
@@ -225,14 +225,14 @@ class QdrantClient:
             return results
 
         except Exception as e:
-            ***REMOVED*** Handle specific known errors more gracefully
+            # Handle specific known errors more gracefully
             error_msg = str(e).lower()
             if "collection" in error_msg and (
                 "doesn't exist" in error_msg or "not found" in error_msg
             ):
                 logger.debug(f"Collection '{name}' not found when searching")
             else:
-                ***REMOVED*** Unexpected errors get logged as warnings
+                # Unexpected errors get logged as warnings
                 logger.warning(f"Unexpected error searching in collection '{name}': {e}")
             return []
 
@@ -255,14 +255,14 @@ class QdrantClient:
         name = collection_name or self.collection_name
 
         try:
-            ***REMOVED*** Check if collection exists first to avoid noisy errors
+            # Check if collection exists first to avoid noisy errors
             if not self.collection_exists(name):
                 logger.debug(
                     f"Collection '{name}' does not exist, cannot retrieve point {point_id}"
                 )
                 return None
 
-            ***REMOVED*** Explicitly request vectors to be included
+            # Explicitly request vectors to be included
             result = self.client.retrieve(
                 collection_name=name,
                 ids=[point_id],
@@ -278,7 +278,7 @@ class QdrantClient:
             return None
 
         except Exception as e:
-            ***REMOVED*** Handle specific known errors more gracefully
+            # Handle specific known errors more gracefully
             error_msg = str(e).lower()
             if "collection" in error_msg and (
                 "doesn't exist" in error_msg or "not found" in error_msg
@@ -287,7 +287,7 @@ class QdrantClient:
             elif "not found" in error_msg and str(point_id) in error_msg:
                 logger.debug(f"Point {point_id} not found in collection '{name}'")
             else:
-                ***REMOVED*** Unexpected errors get logged as warnings with full details
+                # Unexpected errors get logged as warnings with full details
                 logger.warning(f"Unexpected error retrieving point {point_id} from '{name}': {e}")
             return None
 
@@ -308,8 +308,8 @@ class QdrantClient:
         name = collection_name or self.collection_name
 
         try:
-            ***REMOVED*** Convert to the appropriate type for Qdrant API
-            ***REMOVED*** The API expects List[Union[int, str]], but we'll use all strings for consistency
+            # Convert to the appropriate type for Qdrant API
+            # The API expects List[Union[int, str]], but we'll use all strings for consistency
             point_ids_for_api: list[int | str] = [str(point_id) for point_id in point_ids]
 
             self.client.delete(
@@ -338,24 +338,24 @@ def get_qdrant_client() -> "QdrantClient":
     if _qdrant_client is None:
         logger.info("Creating Qdrant client")
 
-        ***REMOVED*** Create base client
+        # Create base client
         base_client = QdrantClientBase(
             url=settings.qdrant_url,
             api_key=settings.qdrant_api_key,
             timeout=30,
         )
 
-        ***REMOVED*** Wrap in our client and assign to global variable
+        # Wrap in our client and assign to global variable
         wrapper_client = QdrantClient(base_client)
         _qdrant_client = wrapper_client
 
-        ***REMOVED*** Test connection
+        # Test connection
         if not wrapper_client.test_connection():
             logger.warning("Qdrant connection test failed")
 
         logger.info("Qdrant client created successfully")
 
-    ***REMOVED*** We've ensured _qdrant_client is not None at this point
+    # We've ensured _qdrant_client is not None at this point
     assert _qdrant_client is not None
     return _qdrant_client
 
@@ -364,7 +364,7 @@ def close_qdrant_client() -> None:
     """Close the global Qdrant client (useful for testing)."""
     global _qdrant_client
     if _qdrant_client is not None:
-        ***REMOVED*** Access the underlying client through our wrapper class
+        # Access the underlying client through our wrapper class
         if hasattr(_qdrant_client, "client"):
             _qdrant_client.client.close()
         _qdrant_client = None

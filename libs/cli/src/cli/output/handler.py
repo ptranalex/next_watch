@@ -41,7 +41,7 @@ def configure_basic_cli_logging(
     else:
         level = "INFO"
 
-    ***REMOVED*** Configure structlog with proper logging levels
+    # Configure structlog with proper logging levels
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
@@ -83,19 +83,19 @@ class CLIOutput:
         self.verbose = verbose
         self.quiet = quiet
 
-        ***REMOVED*** Note: Structlog should be configured at the application level, not here
+        # Note: Structlog should be configured at the application level, not here
 
-        ***REMOVED*** Rich console for user output (stdout)
+        # Rich console for user output (stdout)
         self.console = Console(
-            stderr=False,  ***REMOVED*** User output goes to stdout
-            highlight=False,  ***REMOVED*** Disable auto-highlighting for cleaner output
-            force_terminal=None,  ***REMOVED*** Auto-detect terminal capabilities
+            stderr=False,  # User output goes to stdout
+            highlight=False,  # Disable auto-highlighting for cleaner output
+            force_terminal=None,  # Auto-detect terminal capabilities
         )
 
-        ***REMOVED*** Error console for error messages (stderr)
+        # Error console for error messages (stderr)
         self.error_console = Console(file=sys.stderr, style="red", highlight=False)
 
-        ***REMOVED*** Operational logger (only used in verbose mode)
+        # Operational logger (only used in verbose mode)
         self.logger = structlog.get_logger("cli").bind(command=command_name, component="cli")
 
     def info(self, message: str, **rich_kwargs: Any) -> None:
@@ -178,11 +178,11 @@ class CLIOutput:
             Rich Progress instance
         """
         if self.quiet:
-            ***REMOVED*** Return a dummy progress that does nothing
+            # Return a dummy progress that does nothing
             return Progress(disable=True)
 
         if total is None:
-            ***REMOVED*** Indeterminate progress with spinner
+            # Indeterminate progress with spinner
             return Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
@@ -190,7 +190,7 @@ class CLIOutput:
                 transient=True,
             )
         else:
-            ***REMOVED*** Determinate progress with bar
+            # Determinate progress with bar
             return Progress(
                 TextColumn("[progress.description]{task.description}"),
                 BarColumn(),
@@ -210,7 +210,7 @@ class CLIOutput:
             True if user confirmed, False otherwise
         """
         if self.quiet:
-            ***REMOVED*** In quiet mode, use the default
+            # In quiet mode, use the default
             return default
 
         return Confirm.ask(question, console=self.console, default=default)

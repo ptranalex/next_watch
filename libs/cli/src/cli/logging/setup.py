@@ -42,7 +42,7 @@ def configure_cli_logging(
         >>> logger = get_logger("my-cli")
         >>> logger.info("Operation started", user_id=123)
     """
-    ***REMOVED*** Determine log level based on mode
+    # Determine log level based on mode
     if log_level:
         level_str = log_level.upper()
     elif quiet:
@@ -50,16 +50,16 @@ def configure_cli_logging(
     elif verbose:
         level_str = "DEBUG"
     else:
-        level_str = "ERROR"  ***REMOVED*** Silent mode - only errors
+        level_str = "ERROR"  # Silent mode - only errors
 
     level = getattr(logging, level_str, logging.INFO)
 
-    ***REMOVED*** Set up root logger
+    # Set up root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
     root_logger.handlers.clear()
 
-    ***REMOVED*** Track configuration
+    # Track configuration
     config_info: dict[str, Any] = {
         "log_level": level_str,
         "verbose": verbose,
@@ -70,10 +70,10 @@ def configure_cli_logging(
         "handlers": [],
     }
 
-    ***REMOVED*** Simple formatter for handlers - structlog will format the actual messages
+    # Simple formatter for handlers - structlog will format the actual messages
     plain_formatter = logging.Formatter("%(message)s")
 
-    ***REMOVED*** File handler (structured JSON) if log_dir provided
+    # File handler (structured JSON) if log_dir provided
     if log_dir:
         log_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -84,23 +84,23 @@ def configure_cli_logging(
         config_info["log_file"] = str(log_file)
         config_info["handlers"].append("file")
 
-    ***REMOVED*** Console handler (only in verbose mode for operational logging)
-    ***REMOVED*** User output goes through Rich console separately
+    # Console handler (only in verbose mode for operational logging)
+    # User output goes through Rich console separately
     if verbose and not quiet:
-        console_handler = logging.StreamHandler(sys.stderr)  ***REMOVED*** Operational logs to stderr
+        console_handler = logging.StreamHandler(sys.stderr)  # Operational logs to stderr
         console_handler.setLevel(level)
         console_handler.setFormatter(plain_formatter)
         root_logger.addHandler(console_handler)
         config_info["handlers"].append("console")
 
-    ***REMOVED*** Error handler (always enabled)
+    # Error handler (always enabled)
     error_handler = logging.StreamHandler(sys.stderr)
     error_handler.setLevel(logging.ERROR)
     error_handler.setFormatter(plain_formatter)
     root_logger.addHandler(error_handler)
     config_info["handlers"].append("stderr")
 
-    ***REMOVED*** Enhanced HTTP noise suppression - comprehensive control
+    # Enhanced HTTP noise suppression - comprehensive control
     http_loggers = [
         "httpx",
         "httpcore",
@@ -119,21 +119,21 @@ def configure_cli_logging(
         "requests.packages.urllib3",
     ]
 
-    ***REMOVED*** Set HTTP logger levels - more granular control
+    # Set HTTP logger levels - more granular control
     if http_verbose:
-        ***REMOVED*** Show HTTP logs when explicitly requested
+        # Show HTTP logs when explicitly requested
         http_level = logging.DEBUG if verbose else logging.INFO
     else:
-        ***REMOVED*** Suppress HTTP noise unless critical
+        # Suppress HTTP noise unless critical
         http_level = logging.WARNING
 
     for http_logger in http_loggers:
         logging.getLogger(http_logger).setLevel(http_level)
-        ***REMOVED*** Completely silence connection pools unless http_verbose
+        # Completely silence connection pools unless http_verbose
         if http_logger in ["urllib3.connectionpool", "httpcore.connection"] and not http_verbose:
             logging.getLogger(http_logger).propagate = False
 
-    ***REMOVED*** Configure structlog
+    # Configure structlog
     processors: list[Any] = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
@@ -141,13 +141,13 @@ def configure_cli_logging(
         structlog.processors.format_exc_info,
     ]
 
-    ***REMOVED*** Choose renderer based on mode
+    # Choose renderer based on mode
     if verbose:
         from .formatters import get_cli_renderer
 
         processors.append(get_cli_renderer(colors=True))
     else:
-        ***REMOVED*** Minimal renderer for errors
+        # Minimal renderer for errors
         from structlog.processors import KeyValueRenderer
 
         processors.append(
@@ -165,7 +165,7 @@ def configure_cli_logging(
         cache_logger_on_first_use=True,
     )
 
-    ***REMOVED*** Log configuration if verbose
+    # Log configuration if verbose
     if verbose:
         logger = get_logger("cli.logging")
         logger.debug("CLI logging configured", **config_info)

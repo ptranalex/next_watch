@@ -1,6 +1,6 @@
 ---
-***REMOVED*** JMX Exporter configuration for Kafka metrics
-***REMOVED*** Exports Kafka broker metrics to Prometheus format
+# JMX Exporter configuration for Kafka metrics
+# Exports Kafka broker metrics to Prometheus format
 
 lowercaseOutputName: true
 lowercaseOutputLabelNames: true
@@ -25,7 +25,7 @@ whitelistObjectNames:
   - java.lang:type=Threading
 
 rules:
-  ***REMOVED*** Broker Topic Metrics
+  # Broker Topic Metrics
   - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+)><>Count
     name: kafka_server_broker_topic_metrics_$1_total
     type: COUNTER
@@ -34,7 +34,7 @@ rules:
     name: kafka_server_broker_topic_metrics_$1_rate
     type: GAUGE
 
-  ***REMOVED*** Request Metrics
+  # Request Metrics
   - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>Count
     name: kafka_network_request_metrics_$1_total
     labels:
@@ -48,17 +48,17 @@ rules:
       percentile: $3
     type: GAUGE
 
-  ***REMOVED*** Replica Manager
+  # Replica Manager
   - pattern: kafka.server<type=ReplicaManager, name=(.+)><>Value
     name: kafka_server_replica_manager_$1
     type: GAUGE
 
-  ***REMOVED*** Controller Metrics
+  # Controller Metrics
   - pattern: kafka.controller<type=KafkaController, name=(.+)><>Value
     name: kafka_controller_$1
     type: GAUGE
 
-  ***REMOVED*** Log Metrics
+  # Log Metrics
   - pattern: kafka.log<type=Log, name=(.+), topic=(.+), partition=(.+)><>Value
     name: kafka_log_$1
     labels:
@@ -66,7 +66,7 @@ rules:
       partition: $3
     type: GAUGE
 
-  ***REMOVED*** JVM Metrics
+  # JVM Metrics
   - pattern: java.lang<type=Memory><HeapMemoryUsage>(.+)
     name: jvm_memory_heap_$1
     type: GAUGE

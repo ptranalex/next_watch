@@ -20,7 +20,7 @@ class _FakeModel:
         return self._dims
 
     def encode(self, text: str):
-        ***REMOVED*** Ensure the parameter is "used" (Ruff ARG002 in test stubs)
+        # Ensure the parameter is "used" (Ruff ARG002 in test stubs)
         _ = text
         return _FakeArray([1.0] * self._dims)
 
@@ -30,7 +30,7 @@ def _install_fake_sentence_transformers(monkeypatch, dims: int = 3):
 
     class SentenceTransformer:
         def __init__(self, model_name_or_path=None, cache_folder=None):
-            ***REMOVED*** Store args so they are "used" (Ruff ARG002 in test stubs)
+            # Store args so they are "used" (Ruff ARG002 in test stubs)
             self._model_name_or_path = model_name_or_path
             self._cache_folder = cache_folder
             self._model = _FakeModel(dims=dims)

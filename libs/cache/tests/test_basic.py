@@ -1,4 +1,4 @@
-***REMOVED*** type: ignore
+# type: ignore
 
 """Basic tests for cache functionality."""
 
@@ -28,7 +28,7 @@ class TestCacheSettings:
         assert settings.get_ttl_for_domain("movie") == 600
         assert settings.get_ttl_for_domain("user") == 3600
         assert settings.get_ttl_for_domain("popular") == 1800
-        assert settings.get_ttl_for_domain("unknown") == 300  ***REMOVED*** default
+        assert settings.get_ttl_for_domain("unknown") == 300  # default
 
 
 class TestRedisProvider:
@@ -56,10 +56,10 @@ class TestRedisProvider:
         """Test cache key building with prefix."""
         provider = RedisProvider(key_prefix="test")
 
-        ***REMOVED*** Test key building
+        # Test key building
         assert provider._build_key("user:123") == "test:user:123"
 
-        ***REMOVED*** Test without prefix
+        # Test without prefix
         provider_no_prefix = RedisProvider(key_prefix="")
         assert provider_no_prefix._build_key("user:123") == "user:123"
 
@@ -67,12 +67,12 @@ class TestRedisProvider:
         """Test Redis URL masking for security."""
         provider = RedisProvider()
 
-        ***REMOVED*** Test URL with password
+        # Test URL with password
         masked = provider._mask_url("redis://user:password@localhost:6379/0")
         assert "password" not in masked
         assert "***" in masked
 
-        ***REMOVED*** Test URL without password
+        # Test URL without password
         simple_url = "redis://localhost:6379/0"
         assert provider._mask_url(simple_url) == simple_url
 
@@ -110,8 +110,8 @@ class TestCacheManager:
         assert manager.get_ttl_for_domain("unknown") == 300
 
 
-***REMOVED*** Integration tests would require Redis to be running
-***REMOVED*** These are marked as integration tests and can be skipped in CI
+# Integration tests would require Redis to be running
+# These are marked as integration tests and can be skipped in CI
 @pytest.mark.integration
 class TestCacheIntegration:
     """Integration tests requiring Redis."""
@@ -119,37 +119,37 @@ class TestCacheIntegration:
     @pytest.mark.asyncio
     async def test_basic_cache_operations(self):
         """Test basic cache operations with Redis."""
-        ***REMOVED*** This test requires Redis to be running
-        ***REMOVED*** Skip if Redis is not available
+        # This test requires Redis to be running
+        # Skip if Redis is not available
         try:
             manager = CacheManager.from_settings()
 
-            ***REMOVED*** Test health check
+            # Test health check
             healthy = await manager.health_check()
             if not healthy:
                 pytest.skip("Redis not available")
 
-            ***REMOVED*** Test basic operations
+            # Test basic operations
             key = "test:basic"
             value = {"message": "hello", "number": 42}
 
-            ***REMOVED*** Set value
+            # Set value
             success = await manager.set_json(key, value, ttl=60)
             assert success is True
 
-            ***REMOVED*** Get value
+            # Get value
             retrieved = await manager.get_json(key)
             assert retrieved == value
 
-            ***REMOVED*** Check exists
+            # Check exists
             exists = await manager.exists(key)
             assert exists is True
 
-            ***REMOVED*** Delete value
+            # Delete value
             deleted = await manager.delete_key(key)
             assert deleted is True
 
-            ***REMOVED*** Verify deleted
+            # Verify deleted
             retrieved_after_delete = await manager.get_json(key)
             assert retrieved_after_delete is None
 
@@ -164,12 +164,12 @@ class TestCacheIntegration:
         try:
             manager = CacheManager.from_settings()
 
-            ***REMOVED*** Test health check
+            # Test health check
             healthy = await manager.health_check()
             if not healthy:
                 pytest.skip("Redis not available")
 
-            ***REMOVED*** Test domain TTL
+            # Test domain TTL
             key = "test:movie:123"
             value = {"title": "Test Movie", "year": 2024}
 
@@ -179,7 +179,7 @@ class TestCacheIntegration:
             retrieved = await manager.get_json(key)
             assert retrieved == value
 
-            ***REMOVED*** Cleanup
+            # Cleanup
             await manager.delete_key(key)
             await manager.close()
 

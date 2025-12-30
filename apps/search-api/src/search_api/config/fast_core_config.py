@@ -22,21 +22,21 @@ def create_fast_core_config(search_config: SearchAPIConfig) -> FastAPIConfig:
     """
     logger.info("Converting Search API config to fast-core config")
 
-    ***REMOVED*** Create fast-core config with Search-specific settings
+    # Create fast-core config with Search-specific settings
     fast_core_config = FastAPIConfig(
-        ***REMOVED*** Basic service configuration (inherited from ServiceConfig)
+        # Basic service configuration (inherited from ServiceConfig)
         service_name=search_config.service_name,
         environment=search_config.environment,
         debug=search_config.debug,
         host=search_config.host,
         port=search_config.port,
         log_level=search_config.log_level,
-        ***REMOVED*** CORS configuration
+        # CORS configuration
         cors_origins=search_config.cors_origins,
         cors_allow_credentials=True,
         cors_allow_methods=["*"],
         cors_allow_headers=["*"],
-        ***REMOVED*** Service URLs for external services (filter out None values)
+        # Service URLs for external services (filter out None values)
         service_urls={
             k: v
             for k, v in {
@@ -45,12 +45,12 @@ def create_fast_core_config(search_config: SearchAPIConfig) -> FastAPIConfig:
             }.items()
             if v is not None
         },
-        ***REMOVED*** Service timeouts
+        # Service timeouts
         service_timeouts={
             "backend": search_config.backend_api_timeout,
             "ml": search_config.ml_api_timeout,
         },
-        ***REMOVED*** Feature flags for search functionality
+        # Feature flags for search functionality
         feature_flags={
             "vector_search": True,
             "fuzzy_search": True,
@@ -58,14 +58,14 @@ def create_fast_core_config(search_config: SearchAPIConfig) -> FastAPIConfig:
             "search_suggestions": True,
             "performance_metrics": search_config.enable_performance_metrics,
         },
-        ***REMOVED*** FastAPI-specific configuration
+        # FastAPI-specific configuration
         docs_url="/docs" if search_config.debug else None,
         redoc_url="/redoc" if search_config.debug else None,
         openapi_url="/openapi.json" if search_config.debug else None,
     )
 
-    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
-    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    # Set monitoring configuration (MonitoringConfigMixin fields)
+    # Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
     fast_core_config.enable_tracing = search_config.enable_tracing
     fast_core_config.tracing_endpoint = search_config.tracing_endpoint
     fast_core_config.tracing_sample_rate = search_config.tracing_sample_rate

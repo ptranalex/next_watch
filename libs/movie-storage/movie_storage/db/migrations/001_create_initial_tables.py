@@ -32,7 +32,7 @@ def upgrade(engine, config: Config | None = None):
     """
     metadata = MetaData()
 
-    ***REMOVED*** Create genre table
+    # Create genre table
     Table(
         "genre",
         metadata,
@@ -41,7 +41,7 @@ def upgrade(engine, config: Config | None = None):
         Column("tmdb_id", Integer, unique=True, index=True),
     )
 
-    ***REMOVED*** Create movie table with base fields
+    # Create movie table with base fields
     Table(
         "movie",
         metadata,
@@ -65,7 +65,7 @@ def upgrade(engine, config: Config | None = None):
         Column("updated_at", DateTime),
     )
 
-    ***REMOVED*** Create link table for many-to-many relationship
+    # Create link table for many-to-many relationship
     Table(
         "moviegenrelink",
         metadata,
@@ -73,7 +73,7 @@ def upgrade(engine, config: Config | None = None):
         Column("genre_id", Integer, ForeignKey("genre.id"), primary_key=True),
     )
 
-    ***REMOVED*** Create migrations table if it doesn't exist yet
+    # Create migrations table if it doesn't exist yet
     Table(
         "migrations",
         metadata,
@@ -82,10 +82,10 @@ def upgrade(engine, config: Config | None = None):
         Column("applied_at", DateTime),
     )
 
-    ***REMOVED*** Create all tables
+    # Create all tables
     metadata.create_all(engine)
 
-    ***REMOVED*** Record the migration
+    # Record the migration
     with engine.begin() as conn:
         conn.execute(
             text(
@@ -109,12 +109,12 @@ def downgrade(engine, config: Config | None = None):
         config: Optional Config object
     """
     with engine.begin() as conn:
-        ***REMOVED*** Drop tables in reverse order
+        # Drop tables in reverse order
         conn.execute(text("DROP TABLE IF EXISTS moviegenrelink"))
         conn.execute(text("DROP TABLE IF EXISTS movie"))
         conn.execute(text("DROP TABLE IF EXISTS genre"))
 
-        ***REMOVED*** Remove the migration record
+        # Remove the migration record
         conn.execute(
             text("DELETE FROM migrations WHERE id = :id"),
             {"id": MIGRATION_ID},

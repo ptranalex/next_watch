@@ -15,12 +15,12 @@ from rich.table import Table
 
 from cli.output.handler import CLIOutput, get_cli_output
 
-***REMOVED*** Constants
+# Constants
 PRODUCTION_ENV = "production"
 DEFAULT_LOG_LEVEL = "INFO"
 
 
-***REMOVED*** Reusable parameter definitions
+# Reusable parameter definitions
 HOST_OPTION = typer.Option(
     None,
     "--host",
@@ -115,17 +115,17 @@ def create_serve_command(
         out = get_cli_output("serve", verbose=verbose, quiet=quiet)
 
         try:
-            ***REMOVED*** Get configuration and apply CLI overrides
+            # Get configuration and apply CLI overrides
             config = _get_effective_config(
                 config_getter, host, port, log_level, default_host, default_port
             )
 
-            ***REMOVED*** Extract final values
+            # Extract final values
             final_host = config.get("host", default_host)
             final_port = config.get("port", default_port)
             final_log_level = config.get("log_level", DEFAULT_LOG_LEVEL)
 
-            ***REMOVED*** Display startup information
+            # Display startup information
             if not quiet:
                 _display_startup_info(
                     out,
@@ -137,7 +137,7 @@ def create_serve_command(
                     print_config_func,
                 )
 
-            ***REMOVED*** Log operational info
+            # Log operational info
             out.log_operation(
                 f"Starting {service_name} server",
                 host=final_host,
@@ -147,7 +147,7 @@ def create_serve_command(
                 log_level=final_log_level,
             )
 
-            ***REMOVED*** Prepare uvicorn arguments
+            # Prepare uvicorn arguments
             uvicorn_kwargs = {
                 "host": final_host,
                 "port": final_port,
@@ -155,11 +155,11 @@ def create_serve_command(
                 "log_level": final_log_level.lower(),
             }
 
-            ***REMOVED*** Add workers only if not in reload mode
+            # Add workers only if not in reload mode
             if workers and isinstance(workers, int) and not reload:
                 uvicorn_kwargs["workers"] = workers
 
-            ***REMOVED*** Add access log based on environment
+            # Add access log based on environment
             if config_getter:
                 try:
                     cfg = config_getter()
@@ -170,16 +170,16 @@ def create_serve_command(
                 except Exception:
                     pass
 
-            ***REMOVED*** Merge extra kwargs
+            # Merge extra kwargs
             if extra_uvicorn_kwargs:
                 uvicorn_kwargs.update(extra_uvicorn_kwargs)
 
-            ***REMOVED*** Start server
+            # Start server
             if reload or not get_app_instance:
-                ***REMOVED*** Use import string for reload mode or when no app instance getter
+                # Use import string for reload mode or when no app instance getter
                 uvicorn.run(app_import_string, **uvicorn_kwargs)
             else:
-                ***REMOVED*** Use app instance for production mode (more efficient)
+                # Use app instance for production mode (more efficient)
                 app_instance = get_app_instance()
                 uvicorn.run(app_instance, **uvicorn_kwargs)
 
@@ -235,7 +235,7 @@ def create_serve_app(
         help=f"Server management commands for {service_name}",
     )
 
-    ***REMOVED*** Create the main serve command
+    # Create the main serve command
     serve_cmd = create_serve_command(
         service_name=service_name,
         app_import_string=app_import_string,
@@ -247,10 +247,10 @@ def create_serve_app(
         extra_uvicorn_kwargs=extra_uvicorn_kwargs,
     )
 
-    ***REMOVED*** Add start command
+    # Add start command
     app.command("start")(serve_cmd)
 
-    ***REMOVED*** Make serve callback invoke start by default
+    # Make serve callback invoke start by default
     @app.callback(invoke_without_command=True)
     def serve_callback(
         ctx: typer.Context,
@@ -275,7 +275,7 @@ def create_serve_app(
                 quiet=quiet,
             )
 
-    ***REMOVED*** Add management commands if requested
+    # Add management commands if requested
     if include_management_commands:
         _add_management_commands(app, service_name)
 
@@ -293,7 +293,7 @@ def _get_effective_config(
     """Get effective configuration with CLI overrides."""
     config = {}
 
-    ***REMOVED*** Get base config if available
+    # Get base config if available
     if config_getter:
         try:
             cfg = config_getter()
@@ -303,12 +303,12 @@ def _get_effective_config(
                 config["port"] = cfg.port
             if hasattr(cfg, "log_level"):
                 config["log_level"] = cfg.log_level
-            ***REMOVED*** Store the full config object for other uses
+            # Store the full config object for other uses
             config["_config_obj"] = cfg
         except Exception:
             pass
 
-    ***REMOVED*** Apply CLI overrides
+    # Apply CLI overrides
     if host and isinstance(host, str):
         config["host"] = host
     if port and isinstance(port, int):
@@ -316,7 +316,7 @@ def _get_effective_config(
     if log_level and isinstance(log_level, str):
         config["log_level"] = log_level.upper()
 
-    ***REMOVED*** Apply defaults
+    # Apply defaults
     config.setdefault("host", default_host)
     config.setdefault("port", default_port)
     config.setdefault("log_level", DEFAULT_LOG_LEVEL)
@@ -334,7 +334,7 @@ def _display_startup_info(
     print_config_func: Callable[[Any, str, Any], None] | None,
 ) -> None:
     """Display server startup information."""
-    ***REMOVED*** Main startup message
+    # Main startup message
     out.console.print(
         Panel.fit(
             f"Starting {service_name} server on {host}:{port}",
@@ -343,7 +343,7 @@ def _display_startup_info(
         )
     )
 
-    ***REMOVED*** Show environment info if available
+    # Show environment info if available
     config_obj = config.get("_config_obj")
     if config_obj:
         env_info = []
@@ -355,12 +355,12 @@ def _display_startup_info(
         if env_info:
             out.info(f"[dim]{' | '.join(env_info)}[/dim]")
 
-    ***REMOVED*** Verbose configuration display
+    # Verbose configuration display
     if verbose and config_obj and print_config_func:
         try:
             print_config_func(config_obj, f"{service_name} Server Configuration", out.console)
         except Exception:
-            ***REMOVED*** Fallback to simple table
+            # Fallback to simple table
             _display_simple_config_table(out, config)
     elif verbose:
         _display_simple_config_table(out, config)

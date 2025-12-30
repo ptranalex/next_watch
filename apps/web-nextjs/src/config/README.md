@@ -1,19 +1,19 @@
-***REMOVED*** Application Configuration
+# Application Configuration
 
 This directory contains configuration settings and feature flags for the NextWatch application.
 
-***REMOVED******REMOVED*** 📂 Directory Structure
+## 📂 Directory Structure
 
 ```
 config/
-├── index.ts           ***REMOVED*** Main configuration export
-├── api.ts             ***REMOVED*** API-related configuration
-├── features.ts        ***REMOVED*** Feature flags and toggles
-├── themes.ts          ***REMOVED*** Theme configuration
-└── constants.ts       ***REMOVED*** Application constants
+├── index.ts           # Main configuration export
+├── api.ts             # API-related configuration
+├── features.ts        # Feature flags and toggles
+├── themes.ts          # Theme configuration
+└── constants.ts       # Application constants
 ```
 
-***REMOVED******REMOVED*** 🔧 Configuration Pattern
+## 🔧 Configuration Pattern
 
 The application uses a centralized configuration pattern:
 
@@ -47,7 +47,7 @@ export const CONFIG = {
 export default CONFIG;
 ```
 
-***REMOVED******REMOVED*** 🚩 Feature Flags
+## 🚩 Feature Flags
 
 Feature flags enable or disable application features:
 
@@ -74,7 +74,7 @@ export function isFeatureEnabled(featureName: keyof typeof FEATURES): boolean {
 }
 ```
 
-***REMOVED******REMOVED*** 🌐 API Configuration
+## 🌐 API Configuration
 
 Configuration for API endpoints and behavior:
 
@@ -100,7 +100,7 @@ export const apiConfig = {
 };
 ```
 
-***REMOVED******REMOVED*** 🎨 Theme Configuration
+## 🎨 Theme Configuration
 
 Configuration for UI themes:
 
@@ -110,10 +110,10 @@ export const themeConfig = {
   // Color scheme
   colors: {
     primary: {
-      50: "***REMOVED***e3f2fd",
-      100: "***REMOVED***bbdefb",
-      500: "***REMOVED***2196f3",
-      800: "***REMOVED***0d47a1",
+      50: "#e3f2fd",
+      100: "#bbdefb",
+      500: "#2196f3",
+      800: "#0d47a1",
     },
     // ... other colors
   },
@@ -134,7 +134,7 @@ export const themeConfig = {
 };
 ```
 
-***REMOVED******REMOVED*** 🔤 Constants
+## 🔤 Constants
 
 Application-wide constants:
 
@@ -169,7 +169,7 @@ export const APP_CONSTANTS = {
 };
 ```
 
-***REMOVED******REMOVED*** 🔄 Usage
+## 🔄 Usage
 
 Import configuration values from the main config export:
 
@@ -197,12 +197,12 @@ if (FEATURES.SHOW_MOVIE_TRAILERS) {
 }
 ```
 
-***REMOVED******REMOVED*** 🔐 Environment Variables
+## 🔐 Environment Variables
 
 Configuration can use environment variables from `.env.local`:
 
 ```
-***REMOVED*** .env.local
+# .env.local
 NEXT_PUBLIC_API_URL=https://api.example.com
 NEXT_PUBLIC_ENABLE_ANALYTICS=true
 ```
@@ -215,7 +215,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true";
 ```
 
-***REMOVED******REMOVED*** 📚 Related Documentation
+## 📚 Related Documentation
 
 - [Next.js Environment Variables](https://nextjs.org/docs/basic-features/environment-variables)
 - [Feature Flag Best Practices](https://martinfowler.com/articles/feature-toggles.html)

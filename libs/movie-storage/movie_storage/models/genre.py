@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-***REMOVED*** Import the MovieGenreLink class directly instead of using TYPE_CHECKING
+# Import the MovieGenreLink class directly instead of using TYPE_CHECKING
 from movie_storage.models.movie import MovieGenreLink
 
 if TYPE_CHECKING:
@@ -18,5 +18,5 @@ class Genre(SQLModel, table=True):
     name: str
     tmdb_id: int | None = Field(default=None, index=True, unique=True)
 
-    ***REMOVED*** Relationships
+    # Relationships
     movies: list["Movie"] = Relationship(back_populates="genres", link_model=MovieGenreLink)

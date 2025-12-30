@@ -10,7 +10,7 @@ from movie_storage.cli import app as cli_app
 from movie_storage.config.app import Config
 from movie_storage.db.db import get_engine
 
-***REMOVED*** Create app for this command group
+# Create app for this command group
 app = typer.Typer(help="Database teardown commands (DEVELOPMENT ONLY)")
 console = Console()
 
@@ -44,22 +44,22 @@ def main(
             console.print("Use --drop-all or --clear")
         raise typer.Exit(code=1)
 
-    ***REMOVED*** Get configuration
+    # Get configuration
     config = Config.get_instance()
     if database_url:
         config.database_url = database_url
 
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         masked_url = config._mask_database_password(config.database_url)
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Get engine
+    # Get engine
     engine = get_engine(database_url, config)
 
-    ***REMOVED*** Drop all tables
+    # Drop all tables
     if drop_all:
-        ***REMOVED*** Final confirmation for dropping all tables
+        # Final confirmation for dropping all tables
         if not quiet and not Confirm.ask(
             "[bold red]Warning:[/] You are about to drop ALL tables from the database. This cannot be undone. Continue?"
         ):
@@ -77,7 +77,7 @@ def main(
 
         return 0
 
-    ***REMOVED*** Clear specific tables
+    # Clear specific tables
     if clear:
         valid_tables = {"movies", "genres", "migrations", "credits"}
         invalid_tables = set(clear) - valid_tables
@@ -131,5 +131,5 @@ def main(
     return 0
 
 
-***REMOVED*** Register with parent app
+# Register with parent app
 cli_app.add_typer(app, name="teardown")

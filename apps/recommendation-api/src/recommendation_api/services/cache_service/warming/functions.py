@@ -46,7 +46,7 @@ class RecommendationWarmingFunctions:
             RecommendationService instance
         """
         if self._recommendation_service is None:
-            ***REMOVED*** Use factory pattern to create service with proper dependencies
+            # Use factory pattern to create service with proper dependencies
             vector_service = get_vector_service()
             self._recommendation_service = RecommendationService(
                 movie_adapter=self.movie_adapter,
@@ -68,10 +68,10 @@ class RecommendationWarmingFunctions:
             Dictionary with warming result metadata
         """
         try:
-            ***REMOVED*** Import the actual cached function
+            # Import the actual cached function
             from recommendation_api.routes.v1.similar import _get_similar_movies_data
 
-            ***REMOVED*** Call the cached function directly - this populates the cache
+            # Call the cached function directly - this populates the cache
             similar_movies_data = await _get_similar_movies_data(
                 movie_id=movie_id,
                 limit=limit,
@@ -111,10 +111,10 @@ class RecommendationWarmingFunctions:
             Dictionary with warming result metadata
         """
         try:
-            ***REMOVED*** Import the actual cached function
+            # Import the actual cached function
             from recommendation_api.routes.v1.popular import _get_popular_recommendations_data
 
-            ***REMOVED*** Call the cached function directly - this populates the cache
+            # Call the cached function directly - this populates the cache
             popular_movies_data = await _get_popular_recommendations_data(
                 limit=limit,
                 min_rating=min_rating,
@@ -153,10 +153,10 @@ class RecommendationWarmingFunctions:
             Dictionary with warming result metadata
         """
         try:
-            ***REMOVED*** Import the actual cached function
+            # Import the actual cached function
             from recommendation_api.routes.v1.trending import _get_trending_recommendations_data
 
-            ***REMOVED*** Call the cached function directly - this populates the cache
+            # Call the cached function directly - this populates the cache
             trending_movies_data = await _get_trending_recommendations_data(
                 limit=limit,
                 days=days,

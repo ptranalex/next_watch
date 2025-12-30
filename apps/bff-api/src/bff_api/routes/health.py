@@ -17,7 +17,7 @@ from bff_api.services.smart_warming import get_bff_smart_warming
 
 logger = get_logger(__name__)
 
-***REMOVED*** Service version - should ideally come from package metadata or environment
+# Service version - should ideally come from package metadata or environment
 SERVICE_VERSION = getattr(settings, "version", "1.0.0")
 
 router = APIRouter()
@@ -44,10 +44,10 @@ async def service_clients_health() -> JSONResponse:
         Health status for all registered service clients
     """
     try:
-        ***REMOVED*** Get health status from Service Client Factory
+        # Get health status from Service Client Factory
         health_status = await get_all_services_health()
 
-        ***REMOVED*** Determine overall status
+        # Determine overall status
         all_healthy = all(status.get("status") == "healthy" for status in health_status.values())
         overall_status = "healthy" if all_healthy else "degraded"
         status_code = 200 if all_healthy else 503
@@ -124,20 +124,20 @@ async def health_check(request: Request) -> JSONResponse:
     Returns:
         Health status information with dependency details
     """
-    ***REMOVED*** Get health service from application state
+    # Get health service from application state
     health_service = getattr(request.app.state, "health_service", None)
 
     if health_service:
         try:
-            ***REMOVED*** Use comprehensive health service
+            # Use comprehensive health service
             health_results = await health_service.check_all()
 
-            ***REMOVED*** Determine overall health status
+            # Determine overall health status
             all_critical_healthy = health_results.get("backend_api", {}).is_healthy
             overall_status = "healthy" if all_critical_healthy else "unhealthy"
             status_code = 200 if all_critical_healthy else 503
 
-            ***REMOVED*** Build detailed response
+            # Build detailed response
             checks = {}
             for service_name, result in health_results.items():
                 checks[service_name] = {
@@ -200,7 +200,7 @@ async def health_check(request: Request) -> JSONResponse:
                 },
             )
     else:
-        ***REMOVED*** Fallback: basic health check without external service monitoring
+        # Fallback: basic health check without external service monitoring
         logger.debug(
             "Health check response",
             status="healthy",
@@ -236,12 +236,12 @@ async def readiness_check(request: Request) -> JSONResponse:
     Returns:
         Readiness status (200 if ready, 503 if not ready)
     """
-    ***REMOVED*** Get health service from application state
+    # Get health service from application state
     health_service = getattr(request.app.state, "health_service", None)
 
     if health_service:
         try:
-            ***REMOVED*** Check only critical services for readiness
+            # Check only critical services for readiness
             backend_result = await health_service.check_backend_api()
 
             is_ready = backend_result.is_healthy
@@ -286,7 +286,7 @@ async def readiness_check(request: Request) -> JSONResponse:
                 },
             )
     else:
-        ***REMOVED*** Fallback: assume ready if health service not available
+        # Fallback: assume ready if health service not available
         return JSONResponse(
             status_code=200,
             content={
@@ -324,7 +324,7 @@ async def liveness_check() -> dict[str, str]:
     }
 
 
-***REMOVED*** Legacy endpoint for backward compatibility
+# Legacy endpoint for backward compatibility
 @router.get("/basic", response_model=HealthResponse)
 async def basic_health_check() -> HealthResponse:
     """Basic health check endpoint (legacy).
@@ -430,14 +430,14 @@ async def smart_warming_health() -> JSONResponse:
         smart_warming = get_bff_smart_warming()
         stats = smart_warming.get_warming_stats()
 
-        ***REMOVED*** Determine health status based on metrics
+        # Determine health status based on metrics
         backend_connections = stats.get("backend_connections", {})
         circuit_breaker_open = backend_connections.get("circuit_breaker_open", False)
         success_rate = backend_connections.get("success_rate", 100)
         active_connections = backend_connections.get("active_connections", 0)
         max_connections = backend_connections.get("max_connections", 0)
 
-        ***REMOVED*** Health status determination
+        # Health status determination
         if circuit_breaker_open:
             status = "degraded"
             health_level = "warning"
@@ -507,7 +507,7 @@ def _get_warming_recommendations(stats: dict[str, Any]) -> list[dict[str, str]]:
 
     backend_stats = stats.get("backend_connections", {})
 
-    ***REMOVED*** Circuit breaker recommendations
+    # Circuit breaker recommendations
     if backend_stats.get("circuit_breaker_open", False):
         recommendations.append(
             {
@@ -517,7 +517,7 @@ def _get_warming_recommendations(stats: dict[str, Any]) -> list[dict[str, str]]:
             }
         )
 
-    ***REMOVED*** Success rate recommendations
+    # Success rate recommendations
     success_rate = backend_stats.get("success_rate", 100)
     if success_rate < 95:
         recommendations.append(
@@ -528,7 +528,7 @@ def _get_warming_recommendations(stats: dict[str, Any]) -> list[dict[str, str]]:
             }
         )
 
-    ***REMOVED*** Response time recommendations
+    # Response time recommendations
     avg_response_time = backend_stats.get("avg_response_time_ms", 0)
     if avg_response_time > 1000:
         recommendations.append(
@@ -539,7 +539,7 @@ def _get_warming_recommendations(stats: dict[str, Any]) -> list[dict[str, str]]:
             }
         )
 
-    ***REMOVED*** Throttling recommendations
+    # Throttling recommendations
     active_throttles = stats.get("warming_throttle_entries", 0)
     if active_throttles > 100:
         recommendations.append(

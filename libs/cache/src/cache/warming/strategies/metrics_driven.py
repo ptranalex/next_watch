@@ -46,7 +46,7 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
             logger.warning("No metrics collector available for metrics-driven warming")
             return []
 
-        ***REMOVED*** Get all function metrics
+        # Get all function metrics
         metrics_data = self.metrics_collector.get_metrics()
         if not metrics_data or "functions" not in metrics_data:
             logger.info("No metrics data available for warming")
@@ -57,7 +57,7 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
             logger.info("No function metrics available for warming")
             return []
 
-        ***REMOVED*** Identify warming targets
+        # Identify warming targets
         targets = []
         for func_name, metrics_dict in all_functions.items():
             if self.should_warm_target(metrics_dict):
@@ -66,13 +66,13 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
 
                 target = self.create_warming_target(
                     function_name=func_name,
-                    parameters={},  ***REMOVED*** Metrics strategy doesn't specify parameters
+                    parameters={},  # Metrics strategy doesn't specify parameters
                     priority=priority,
                     estimated_benefit=benefit,
                 )
                 targets.append(target)
 
-        ***REMOVED*** Sort by priority and apply limit
+        # Sort by priority and apply limit
         targets.sort(key=lambda t: t.priority, reverse=True)
         if limit:
             targets = targets[:limit]
@@ -89,14 +89,14 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
         Returns:
             Priority score
         """
-        miss_rate = target_data.get("miss_ratio", 0.0) / 100.0  ***REMOVED*** Convert percentage
+        miss_rate = target_data.get("miss_ratio", 0.0) / 100.0  # Convert percentage
         avg_miss_time = target_data.get("avg_uncached_time_ms", 0.0)
         total_calls = target_data.get("total_calls", 0)
 
-        ***REMOVED*** Priority based on miss rate, miss time, and usage
+        # Priority based on miss rate, miss time, and usage
         miss_rate_factor = miss_rate
-        time_factor = min(avg_miss_time / 1000.0, 5.0)  ***REMOVED*** Cap at 5 seconds
-        usage_factor = min(total_calls / 100.0, 10.0)  ***REMOVED*** Cap at 10x
+        time_factor = min(avg_miss_time / 1000.0, 5.0)  # Cap at 5 seconds
+        usage_factor = min(total_calls / 100.0, 10.0)  # Cap at 10x
 
         return miss_rate_factor * time_factor * usage_factor * self.config.metrics_driven_weight
 
@@ -113,7 +113,7 @@ class MetricsDrivenStrategy(BaseWarmingStrategy):
         miss_rate = target_data.get("miss_ratio", 0.0) / 100.0
         avg_miss_time = target_data.get("avg_uncached_time_ms", 0.0)
 
-        ***REMOVED*** Apply thresholds from configuration
+        # Apply thresholds from configuration
         if total_calls < self.config.min_total_calls:
             return False
 

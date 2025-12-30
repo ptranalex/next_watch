@@ -66,10 +66,10 @@ def populate_suggestions(
         backend-api redis populate-suggestions --no-actors --no-directors
         backend-api redis populate-suggestions --no-clear --verbose
     """
-    ***REMOVED*** Get Redis URL from environment or use default
+    # Get Redis URL from environment or use default
     actual_redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-    ***REMOVED*** Display configuration
+    # Display configuration
     if verbose:
         display_redis_config(
             actual_redis_url,
@@ -87,7 +87,7 @@ def populate_suggestions(
         )
 
     try:
-        ***REMOVED*** Run the population async task
+        # Run the population async task
         asyncio.run(
             _populate_suggestions_async(
                 redis_url=actual_redis_url,
@@ -142,7 +142,7 @@ async def _populate_suggestions_async(
     """
     start_time = datetime.now()
 
-    ***REMOVED*** Initialize Redis suggestion engine
+    # Initialize Redis suggestion engine
     console.print(f"Connecting to Redis at {redis_url}")
     suggestion_engine = SuggestionEngine(redis_url)
     redis_client: Any | None = None
@@ -150,7 +150,7 @@ async def _populate_suggestions_async(
     try:
         await suggestion_engine.initialize()
 
-        ***REMOVED*** Initialize Redis connection with basic configuration
+        # Initialize Redis connection with basic configuration
         import redis.asyncio
 
         redis_client = redis.asyncio.Redis.from_url(
@@ -160,7 +160,7 @@ async def _populate_suggestions_async(
         batch_size = 100
         movie_count = 0
 
-        ***REMOVED*** Clear existing data if requested
+        # Clear existing data if requested
         if clear:
             with Progress(
                 TextColumn("[progress.description]{task.description}"),
@@ -172,10 +172,10 @@ async def _populate_suggestions_async(
                 if verbose:
                     console.print("Deleting existing suggestion data...")
 
-                ***REMOVED*** Delete the sorted set
+                # Delete the sorted set
                 await redis_client.delete("suggestions")
 
-                ***REMOVED*** Delete all suggestion keys
+                # Delete all suggestion keys
                 cursor = 0
                 total_deleted = 0
 
@@ -187,7 +187,7 @@ async def _populate_suggestions_async(
                         total_deleted += len(keys)
                         await redis_client.delete(*keys)
 
-                    ***REMOVED*** Also delete entity keys
+                    # Also delete entity keys
                     cursor2, entity_keys = await redis_client.scan(
                         cursor=cursor, match="entity:*", count=1000
                     )
@@ -203,14 +203,14 @@ async def _populate_suggestions_async(
 
                 progress.update(task, completed=1)
 
-        ***REMOVED*** Process movies
+        # Process movies
         with Progress(
             TextColumn("[progress.description]{task.description}"),
             BarColumn(),
             TaskProgressColumn(),
             console=console,
         ) as progress:
-            ***REMOVED*** Fetch movie data from database
+            # Fetch movie data from database
             console.print(f"Fetching up to {limit} movies from database...")
             movies_task = progress.add_task("Fetching movies...", total=1)
             movies = await _fetch_movie_data(limit)
@@ -221,20 +221,20 @@ async def _populate_suggestions_async(
             else:
                 console.print(f"Found {len(movies)} movies to process")
 
-                ***REMOVED*** Process movies
+                # Process movies
                 movie_task = progress.add_task("Processing movies...", total=len(movies))
 
                 for i, movie in enumerate(movies):
                     title = movie["title"].lower()
                     movie_id = movie["id"]
 
-                    ***REMOVED*** Add to sorted set for prefix matching
+                    # Add to sorted set for prefix matching
                     pipeline.zadd("suggestions", {title: i})
 
-                    ***REMOVED*** Add key for direct lookup
+                    # Add key for direct lookup
                     pipeline.set(f"suggestions:{title}", movie_id)
 
-                    ***REMOVED*** Store detailed movie data in JSON format
+                    # Store detailed movie data in JSON format
                     movie_data = {
                         "id": movie["id"],
                         "title": movie["title"],
@@ -245,59 +245,59 @@ async def _populate_suggestions_async(
                         "vote_average": movie.get("vote_average"),
                     }
 
-                    ***REMOVED*** IMPORTANT: Store the original title format in additional_info
-                    ***REMOVED*** so we have proper capitalization in UI
+                    # IMPORTANT: Store the original title format in additional_info
+                    # so we have proper capitalization in UI
                     if movie_data["title"] != title:
                         movie_data["original_title_format"] = movie["title"]
 
                     pipeline.set(f"entity:movie:{title}", json.dumps(movie_data))
 
-                    ***REMOVED*** Also add searchable variations of the title
-                    ***REMOVED*** For titles with parentheses, add the version without parentheses
+                    # Also add searchable variations of the title
+                    # For titles with parentheses, add the version without parentheses
                     if "(" in title and ")" in title:
-                        ***REMOVED*** Get the main title before parentheses
+                        # Get the main title before parentheses
                         main_title = title.split("(")[0].strip()
                         if main_title:
                             pipeline.zadd("suggestions", {main_title: i})
                             pipeline.set(f"suggestions:{main_title}", movie_id)
                             pipeline.set(f"entity:movie:{main_title}", json.dumps(movie_data))
 
-                        ***REMOVED*** Also get what's inside the parentheses
+                        # Also get what's inside the parentheses
                         for paren_part in re.findall(r"\((.*?)\)", title):
-                            if paren_part and len(paren_part) > 3:  ***REMOVED*** Only if meaningful
+                            if paren_part and len(paren_part) > 3:  # Only if meaningful
                                 paren_title = paren_part.strip().lower()
                                 pipeline.zadd("suggestions", {paren_title: i})
                                 pipeline.set(f"suggestions:{paren_title}", movie_id)
 
-                    ***REMOVED*** Process words for improved partial matching
+                    # Process words for improved partial matching
                     words = re.split(r"[\s\(\)\[\]\{\}\:\;\,\.\-\_\+\=]+", title)
 
-                    ***REMOVED*** Always add whole word indexing for better prefix matching
+                    # Always add whole word indexing for better prefix matching
                     for word in [w for w in words if w and len(w) >= 3]:
-                        ***REMOVED*** Add the full word
+                        # Add the full word
                         pipeline.zadd("suggestions", {word: i})
                         pipeline.set(f"suggestions:{word}", movie_id)
 
-                        ***REMOVED*** For important words, also add specific prefixes
-                        ***REMOVED*** This helps with searches like "bird" matching "birdman"
+                        # For important words, also add specific prefixes
+                        # This helps with searches like "bird" matching "birdman"
                         if len(word) >= 5:
                             for prefix_len in range(3, min(len(word), 6)):
                                 prefix = word[:prefix_len]
-                                ***REMOVED*** Store prefix with score offset to prioritize full words
+                                # Store prefix with score offset to prioritize full words
                                 pipeline.zadd("suggestions", {prefix: i + 100000})
                                 if not await redis_client.exists(f"suggestions:{prefix}"):
                                     pipeline.set(f"suggestions:{prefix}", movie_id)
 
                     movie_count += 1
 
-                    ***REMOVED*** Execute pipeline in batches
+                    # Execute pipeline in batches
                     if (i + 1) % batch_size == 0 or i == len(movies) - 1:
                         await pipeline.execute()
                         pipeline = redis_client.pipeline()
 
                     progress.update(movie_task, completed=i + 1)
 
-            ***REMOVED*** Fetch and process actors if requested
+            # Fetch and process actors if requested
             actor_count = 0
             if include_actors:
                 actors_task = progress.add_task("Fetching actors...", total=1)
@@ -314,13 +314,13 @@ async def _populate_suggestions_async(
                         name = actor["name"].lower()
                         actor_id = actor["id"]
 
-                        ***REMOVED*** Add to sorted set
-                        pipeline.zadd("suggestions", {name: i + 10000})  ***REMOVED*** Offset for sorting
+                        # Add to sorted set
+                        pipeline.zadd("suggestions", {name: i + 10000})  # Offset for sorting
 
-                        ***REMOVED*** Add key for direct lookup
+                        # Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", actor_id)
 
-                        ***REMOVED*** Store detailed actor data
+                        # Store detailed actor data
                         actor_data = {
                             "id": actor["id"],
                             "name": actor["name"],
@@ -333,14 +333,14 @@ async def _populate_suggestions_async(
                         pipeline.set(f"entity:actor:{name}", json.dumps(actor_data))
                         actor_count += 1
 
-                        ***REMOVED*** Execute pipeline in batches
+                        # Execute pipeline in batches
                         if (i + 1) % batch_size == 0 or i == len(actors) - 1:
                             await pipeline.execute()
                             pipeline = redis_client.pipeline()
 
                         progress.update(actor_task, completed=i + 1)
 
-            ***REMOVED*** Fetch and process directors if requested
+            # Fetch and process directors if requested
             director_count = 0
             if include_directors:
                 directors_task = progress.add_task("Fetching directors...", total=1)
@@ -359,13 +359,13 @@ async def _populate_suggestions_async(
                         name = director["name"].lower()
                         director_id = director["id"]
 
-                        ***REMOVED*** Add to sorted set
-                        pipeline.zadd("suggestions", {name: i + 20000})  ***REMOVED*** Offset for sorting
+                        # Add to sorted set
+                        pipeline.zadd("suggestions", {name: i + 20000})  # Offset for sorting
 
-                        ***REMOVED*** Add key for direct lookup
+                        # Add key for direct lookup
                         pipeline.set(f"suggestions:{name}", director_id)
 
-                        ***REMOVED*** Store detailed director data
+                        # Store detailed director data
                         director_data = {
                             "id": director["id"],
                             "name": director["name"],
@@ -377,20 +377,20 @@ async def _populate_suggestions_async(
                         pipeline.set(f"entity:director:{name}", json.dumps(director_data))
                         director_count += 1
 
-                        ***REMOVED*** Execute pipeline in batches
+                        # Execute pipeline in batches
                         if (i + 1) % batch_size == 0 or i == len(directors) - 1:
                             await pipeline.execute()
                             pipeline = redis_client.pipeline()
 
                         progress.update(director_task, completed=i + 1)
 
-            ***REMOVED*** Verify results
+            # Verify results
             verify_task = progress.add_task("Verifying data...", total=1)
 
-            ***REMOVED*** Count entries in sorted set
+            # Count entries in sorted set
             zset_count = await redis_client.zcard("suggestions")
 
-            ***REMOVED*** Count entity keys
+            # Count entity keys
             cursor = 0
             entity_count = 0
             while True:
@@ -401,7 +401,7 @@ async def _populate_suggestions_async(
 
             progress.update(verify_task, completed=1)
 
-        ***REMOVED*** Show summary
+        # Show summary
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
 
@@ -417,11 +417,11 @@ async def _populate_suggestions_async(
         console.print(f"  • Duration: {duration:.2f} seconds")
 
     finally:
-        ***REMOVED*** Close Redis connection
+        # Close Redis connection
         if redis_client is not None:
             await redis_client.close()
 
-        ***REMOVED*** Clean up suggestion engine connection
+        # Clean up suggestion engine connection
         await suggestion_engine.shutdown()
 
 
@@ -438,7 +438,7 @@ async def _fetch_movie_data(limit: int) -> list[dict[str, Any]]:
     db = next(get_db())
 
     try:
-        ***REMOVED*** Updated query with correct column name poster_url
+        # Updated query with correct column name poster_url
         query = text(
             """
             SELECT
@@ -463,7 +463,7 @@ async def _fetch_movie_data(limit: int) -> list[dict[str, Any]]:
             movie = {
                 "id": row[0],
                 "title": row[1],
-                "poster_path": row[2],  ***REMOVED*** Using poster_url as poster_path
+                "poster_path": row[2],  # Using poster_url as poster_path
                 "release_date": row[3].isoformat() if row[3] else None,
                 "popularity": float(row[4]) if row[4] else None,
                 "vote_average": float(row[5]) if row[5] else None,
@@ -490,7 +490,7 @@ async def _fetch_actor_data(limit: int) -> list[dict[str, Any]]:
     db = next(get_db())
 
     try:
-        ***REMOVED*** Updated query to use the Credit table for actors
+        # Updated query to use the Credit table for actors
         query = text(
             """
             SELECT
@@ -541,7 +541,7 @@ async def _fetch_director_data(limit: int) -> list[dict[str, Any]]:
     db = next(get_db())
 
     try:
-        ***REMOVED*** Updated query to use the Credit table for directors
+        # Updated query to use the Credit table for directors
         query = text(
             """
             SELECT
@@ -579,7 +579,7 @@ async def _fetch_director_data(limit: int) -> list[dict[str, Any]]:
         db.close()
 
 
-***REMOVED*** Register with cache command group
-from backend_api.cli import cache_app  ***REMOVED*** noqa: E402
+# Register with cache command group
+from backend_api.cli import cache_app  # noqa: E402
 
 cache_app.add_typer(app, name="redis")

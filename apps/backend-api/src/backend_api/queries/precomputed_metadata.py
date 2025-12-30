@@ -37,7 +37,7 @@ def get_movies_precomputed_bulk(
 
     logger.debug(f"Fetching precomputed metadata for {len(movie_ids)} movies")
 
-    ***REMOVED*** Single query to get complete precomputed metadata
+    # Single query to get complete precomputed metadata
     query = """
     SELECT
         id,
@@ -83,23 +83,23 @@ def get_movies_precomputed_bulk(
     for row in result.all():
         movie_dict = dict(row._mapping)
 
-        ***REMOVED*** Handle JSON fields (SQLAlchemy auto-deserializes PostgreSQL JSON)
+        # Handle JSON fields (SQLAlchemy auto-deserializes PostgreSQL JSON)
         try:
-            ***REMOVED*** If genres is already a list/dict, keep it; if it's a string, parse it
+            # If genres is already a list/dict, keep it; if it's a string, parse it
             genres = movie_dict.get("genres")
             if isinstance(genres, str):
                 movie_dict["genres"] = json.loads(genres) if genres else []
             elif genres is None:
                 movie_dict["genres"] = []
-            ***REMOVED*** If it's already a list/dict, keep it as-is
+            # If it's already a list/dict, keep it as-is
 
-            ***REMOVED*** Same for cast
+            # Same for cast
             cast = movie_dict.get("cast")
             if isinstance(cast, str):
                 movie_dict["cast"] = json.loads(cast) if cast else []
             elif cast is None:
                 movie_dict["cast"] = []
-            ***REMOVED*** If it's already a list/dict, keep it as-is
+            # If it's already a list/dict, keep it as-is
 
         except (json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}")
@@ -145,7 +145,7 @@ def get_popular_movies_precomputed(
     Returns:
         Tuple of (movies list, total count)
     """
-    ***REMOVED*** Build WHERE clause
+    # Build WHERE clause
     where_conditions = []
     params: dict[str, Any] = {"limit": limit, "offset": skip}
 
@@ -155,7 +155,7 @@ def get_popular_movies_precomputed(
 
     where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
 
-    ***REMOVED*** Get movies
+    # Get movies
     movies_query = f"""
     SELECT
         id, title, overview, release_date, runtime, budget, revenue,
@@ -171,39 +171,39 @@ def get_popular_movies_precomputed(
     LIMIT :limit OFFSET :offset
     """
 
-    ***REMOVED*** Get total count
+    # Get total count
     count_query = f"""
     SELECT COUNT(*) as total
     FROM movie_metadata_complete
     {where_clause}
     """
 
-    ***REMOVED*** Execute queries
+    # Execute queries
     movies_result = db_session.execute(text(movies_query), params)
     count_result = db_session.execute(text(count_query), params)
 
-    ***REMOVED*** Process movies
+    # Process movies
     movies = []
     for row in movies_result.all():
         movie_dict = dict(row._mapping)
 
-        ***REMOVED*** Handle JSON fields (SQLAlchemy auto-deserializes PostgreSQL JSON)
+        # Handle JSON fields (SQLAlchemy auto-deserializes PostgreSQL JSON)
         try:
-            ***REMOVED*** If genres is already a list/dict, keep it; if it's a string, parse it
+            # If genres is already a list/dict, keep it; if it's a string, parse it
             genres = movie_dict.get("genres")
             if isinstance(genres, str):
                 movie_dict["genres"] = json.loads(genres) if genres else []
             elif genres is None:
                 movie_dict["genres"] = []
-            ***REMOVED*** If it's already a list/dict, keep it as-is
+            # If it's already a list/dict, keep it as-is
 
-            ***REMOVED*** Same for cast
+            # Same for cast
             cast = movie_dict.get("cast")
             if isinstance(cast, str):
                 movie_dict["cast"] = json.loads(cast) if cast else []
             elif cast is None:
                 movie_dict["cast"] = []
-            ***REMOVED*** If it's already a list/dict, keep it as-is
+            # If it's already a list/dict, keep it as-is
 
         except (json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse JSON metadata for movie {movie_dict.get('id')}: {e}")
@@ -212,7 +212,7 @@ def get_popular_movies_precomputed(
 
         movies.append(movie_dict)
 
-    ***REMOVED*** Get total count
+    # Get total count
     total_count = count_result.scalar() or 0
 
     logger.debug(f"Retrieved {len(movies)} popular movies (total: {total_count})")
@@ -236,7 +236,7 @@ def check_metadata_freshness(db_session: DBSession, movie_ids: list[int]) -> dic
     if not movie_ids:
         return {}
 
-    ***REMOVED*** Check if precomputed metadata exists and when it was last updated
+    # Check if precomputed metadata exists and when it was last updated
     query = """
     SELECT
         m.id,
@@ -256,9 +256,9 @@ def check_metadata_freshness(db_session: DBSession, movie_ids: list[int]) -> dic
         source_updated = row.source_updated
         precomputed_cached = row.precomputed_cached
 
-        ***REMOVED*** Consider fresh if:
-        ***REMOVED*** 1. Precomputed data exists
-        ***REMOVED*** 2. Precomputed data is newer than source data
+        # Consider fresh if:
+        # 1. Precomputed data exists
+        # 2. Precomputed data is newer than source data
         is_fresh = (
             precomputed_cached is not None
             and source_updated is not None
@@ -267,7 +267,7 @@ def check_metadata_freshness(db_session: DBSession, movie_ids: list[int]) -> dic
 
         freshness[movie_id] = is_fresh
 
-    ***REMOVED*** Mark any missing movies as not fresh
+    # Mark any missing movies as not fresh
     for movie_id in movie_ids:
         if movie_id not in freshness:
             freshness[movie_id] = False
@@ -291,13 +291,13 @@ def refresh_movie_metadata_selective(
     """
     try:
         if movie_ids:
-            ***REMOVED*** For selective refresh, we'd need to implement a different strategy
-            ***REMOVED*** since PostgreSQL materialized views don't support partial refresh
-            ***REMOVED*** This could be implemented with a staging table approach
+            # For selective refresh, we'd need to implement a different strategy
+            # since PostgreSQL materialized views don't support partial refresh
+            # This could be implemented with a staging table approach
             logger.info(f"Selective refresh requested for {len(movie_ids)} movies")
-            ***REMOVED*** For now, do a full refresh
+            # For now, do a full refresh
 
-        ***REMOVED*** Full refresh
+        # Full refresh
         refresh_query = "SELECT refresh_movie_metadata_complete()"
         db_session.execute(text(refresh_query))
         db_session.commit()

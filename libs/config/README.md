@@ -1,8 +1,8 @@
-***REMOVED*** NextWatch Configuration Library
+# NextWatch Configuration Library
 
 A simplified, straightforward configuration library for NextWatch microservices.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This library provides a standardized way to manage configuration across NextWatch services with a focus on simplicity and ease of use. It includes:
 
@@ -11,7 +11,7 @@ This library provides a standardized way to manage configuration across NextWatc
 - Configuration profiles for different deployment scenarios
 - Utilities for secure handling of sensitive configuration
 
-***REMOVED******REMOVED*** Key Features
+## Key Features
 
 - **Simple inheritance model**: Clear base classes with minimal inheritance depth
 - **Environment-based configuration**: Easy loading from environment variables
@@ -19,47 +19,47 @@ This library provides a standardized way to manage configuration across NextWatc
 - **Validation**: Built-in validation for configuration values
 - **Security**: Automatic masking of sensitive information and production safeguards
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Basic Service Configuration
+### Basic Service Configuration
 
 ```python
 from config.base.config import ServiceConfig
 
 class MyServiceConfig(ServiceConfig):
-    ***REMOVED*** Service-specific configuration
+    # Service-specific configuration
     api_key: str
     feature_flag_enabled: bool = False
 
     class Config:
-        env_prefix = "MY_SERVICE_"  ***REMOVED*** Environment variables will be prefixed with MY_SERVICE_
+        env_prefix = "MY_SERVICE_"  # Environment variables will be prefixed with MY_SERVICE_
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding Cache Support
+### Adding Cache Support
 
 ```python
 from config.base.config import ServiceConfig
 from config.services.cache import CacheConfigMixin
 
 class MyCachedServiceConfig(ServiceConfig, CacheConfigMixin):
-    ***REMOVED*** Service-specific configuration
+    # Service-specific configuration
     cache_enabled: bool = True
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using Configuration Profiles
+### Using Configuration Profiles
 
 ```python
 from config.base.config import ServiceConfig
 from config.profiles.service_profiles import apply_profiles, GatewayProfile, DevelopmentProfile
 
-***REMOVED*** Create config instance
+# Create config instance
 config = MyServiceConfig()
 
-***REMOVED*** Apply profiles
+# Apply profiles
 apply_profiles(config, GatewayProfile, DevelopmentProfile)
 ```
 
-***REMOVED******REMOVED*** Configuration Mixins
+## Configuration Mixins
 
 The library provides several mixins for common functionality:
 
@@ -68,7 +68,7 @@ The library provides several mixins for common functionality:
 - **AuthConfigMixin**: JWT authentication configuration
 - **MonitoringConfigMixin**: Monitoring and observability configuration
 
-***REMOVED******REMOVED*** Configuration Profiles
+## Configuration Profiles
 
 Predefined profiles for different service types and environments:
 
@@ -76,7 +76,7 @@ Predefined profiles for different service types and environments:
 - **ApiService/Gateway/Backend/Worker**: Service type-specific settings
 - **LowResource/HighPerformance**: Resource allocation profiles
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 1. **Keep it simple**: Avoid deep inheritance hierarchies
 2. **Validate early**: Use validators to catch configuration errors at startup
@@ -85,7 +85,7 @@ Predefined profiles for different service types and environments:
 5. **Log configuration**: Always log configuration summary at startup
 6. **Validate production**: Use `validate_production_settings()` before deploying
 
-***REMOVED******REMOVED*** Implementation Notes
+## Implementation Notes
 
 The library has been simplified from its previous version to:
 
@@ -95,14 +95,14 @@ The library has been simplified from its previous version to:
 - Reduce complexity in profiles and mixins
 - Improve error messages and validation
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 ```bash
-***REMOVED*** Install as a local dependency in your service
+# Install as a local dependency in your service
 pip install -e ../../libs/config
 ```
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
 ```python
 from config.base.config import ServiceConfig
@@ -112,25 +112,25 @@ from config.services.cache import CacheConfigMixin
 class MyServiceConfig(ServiceConfig, DatabaseConfigMixin, CacheConfigMixin):
     """Custom service configuration."""
 
-    ***REMOVED*** Service-specific settings
+    # Service-specific settings
     api_port: int = 8000
     feature_flag: bool = True
 
-***REMOVED*** Create and use configuration
+# Create and use configuration
 config = MyServiceConfig()
 print(f"Database URL: {config.get_masked_database_url()}")
 print(f"Cache URL: {config.get_masked_cache_url()}")
 ```
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Base Configuration Classes
+### Base Configuration Classes
 
 - **`BaseConfig`**: Abstract base with core configuration functionality
 - **`ServiceConfig`**: For HTTP services (FastAPI, Flask, etc.)
 - **`WorkerConfig`**: For background workers and batch jobs
 
-***REMOVED******REMOVED******REMOVED*** Service Mixins
+### Service Mixins
 
 - **`DatabaseConfigMixin`**: PostgreSQL configuration with connection pooling
 - **`CacheConfigMixin`**: Redis configuration with TTL management
@@ -138,15 +138,15 @@ print(f"Cache URL: {config.get_masked_cache_url()}")
 - **`MonitoringConfigMixin`**: Observability (logging, metrics, tracing)
 - **`VectorDBConfigMixin`**: Qdrant vector database configuration
 
-***REMOVED******REMOVED******REMOVED*** Environment Management
+### Environment Management
 
 - **Hierarchical Loading**: `.env` → `.env.local` → `.env.{environment}` → system environment
 - **Type-Safe Parsing**: Automatic type conversion with validation
 - **Project Root Detection**: Automatic discovery of project configuration files
 
-***REMOVED******REMOVED*** Usage Examples
+## Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Basic Service Configuration
+### Basic Service Configuration
 
 ```python
 from config.base.config import ServiceConfig
@@ -156,7 +156,7 @@ from config.services.auth import AuthConfigMixin
 class APIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin):
     """API service configuration."""
 
-    ***REMOVED*** Service-specific settings
+    # Service-specific settings
     api_port: int = 8001
     cors_origins: List[str] = ["*"]
 
@@ -169,57 +169,57 @@ class APIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin):
 
         return errors
 
-***REMOVED*** Usage
+# Usage
 config = APIConfig()
 
-***REMOVED*** Validate for production
+# Validate for production
 if config.environment == "production":
     errors = config.validate_production_config()
     if errors:
         raise ValueError(f"Production config errors: {errors}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 The library supports environment variables with service-specific prefixes:
 
 ```bash
-***REMOVED*** Core settings
+# Core settings
 ENVIRONMENT=production
 SERVICE_NAME=my-api
 SERVICE_VERSION=1.0.0
 
-***REMOVED*** Database settings
+# Database settings
 DATABASE_URL=postgresql://user:pass@host:5432/db
 DATABASE_POOL_SIZE=10
 DATABASE_MAX_OVERFLOW=20
 
-***REMOVED*** Cache settings
+# Cache settings
 CACHE_URL=redis://host:6379/0
 CACHE_DEFAULT_TTL=3600
 CACHE_MAX_CONNECTIONS=10
 
-***REMOVED*** Auth settings
+# Auth settings
 JWT_SECRET=your-secret-key
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-***REMOVED*** Monitoring settings
+# Monitoring settings
 LOG_LEVEL=INFO
 ENABLE_METRICS=true
 HEALTH_CHECK_INTERVAL=30
 ```
 
-***REMOVED******REMOVED*** Development Status
+## Development Status
 
-***REMOVED******REMOVED******REMOVED*** Phase 1: Core Infrastructure ✅ COMPLETE
+### Phase 1: Core Infrastructure ✅ COMPLETE
 
 - [x] Base configuration classes (`BaseConfig`, `ServiceConfig`, `WorkerConfig`)
 - [x] Environment variable loading with hierarchical `.env` support
 - [x] Security utilities (masking, validation)
 - [x] Package structure and build configuration
 
-***REMOVED******REMOVED******REMOVED*** Phase 2: Service Mixins ✅ COMPLETE
+### Phase 2: Service Mixins ✅ COMPLETE
 
 - [x] **DatabaseConfigMixin**: PostgreSQL with connection pooling
 - [x] **CacheConfigMixin**: Redis with TTL management
@@ -227,9 +227,9 @@ HEALTH_CHECK_INTERVAL=30
 - [x] **MonitoringConfigMixin**: Logging, metrics, tracing
 - [x] **VectorDBConfigMixin**: Qdrant vector database
 
-***REMOVED******REMOVED******REMOVED*** Phase 3: Service Migration 🚧 IN PROGRESS
+### Phase 3: Service Migration 🚧 IN PROGRESS
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Backend API Integration ✅ TEST DRIVE COMPLETE
+#### Backend API Integration ✅ TEST DRIVE COMPLETE
 
 **Status**: Ready for integration - test drive successful!
 
@@ -256,7 +256,7 @@ HEALTH_CHECK_INTERVAL=30
 - Example `BackendAPIConfig` class with all required mixins
 - Migration adapter pattern for gradual transition
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Other Services
+#### Other Services
 
 | Service                | Status     | Priority | Complexity |
 | ---------------------- | ---------- | -------- | ---------- |
@@ -266,23 +266,23 @@ HEALTH_CHECK_INTERVAL=30
 | **ml-api**             | 📋 Planned | Low      | Low        |
 | **data-importer**      | 📋 Planned | Low      | Medium     |
 
-***REMOVED******REMOVED*** Integration Guide
+## Integration Guide
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Add Dependency
+### Step 1: Add Dependency
 
 Add to your service's `pyproject.toml`:
 
 ```toml
 dependencies = [
-    ***REMOVED*** ... existing dependencies ...
+    # ... existing dependencies ...
     "config @ file:../../libs/config",
 ]
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Create Service Configuration
+### Step 2: Create Service Configuration
 
 ```python
-***REMOVED*** your_service/config/shared.py
+# your_service/config/shared.py
 from typing import List
 from config.base.config import ServiceConfig
 from config.services.database import DatabaseConfigMixin
@@ -291,22 +291,22 @@ from config.services.cache import CacheConfigMixin
 class YourServiceConfig(ServiceConfig, DatabaseConfigMixin, CacheConfigMixin):
     """Your service configuration using shared library."""
 
-    ***REMOVED*** Service-specific settings
+    # Service-specific settings
     api_port: int = 8000
 
     def validate_production_config(self) -> List[str]:
         """Custom production validation."""
         errors = super().validate_production_config()
-        ***REMOVED*** Add service-specific validations
+        # Add service-specific validations
         return errors
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Migration Adapter (Optional)
+### Step 3: Migration Adapter (Optional)
 
 For gradual migration from existing configuration:
 
 ```python
-***REMOVED*** your_service/config/migration.py
+# your_service/config/migration.py
 from typing import Any
 from your_service.config.legacy import LegacyConfig
 from your_service.config.shared import YourServiceConfig
@@ -323,27 +323,27 @@ class ConfigAdapter:
     def __getattr__(self, name: str) -> Any:
         return getattr(self._config, name)
 
-***REMOVED*** Global instance
-config = ConfigAdapter(use_shared=False)  ***REMOVED*** Start with legacy
+# Global instance
+config = ConfigAdapter(use_shared=False)  # Start with legacy
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Update Imports
+### Step 4: Update Imports
 
 Gradually update your service modules:
 
 ```python
-***REMOVED*** Before
+# Before
 from your_service.config.legacy import Config
 
-***REMOVED*** After
+# After
 from your_service.config.migration import config
-***REMOVED*** or directly:
+# or directly:
 from your_service.config.shared import YourServiceConfig
 ```
 
-***REMOVED******REMOVED*** Configuration Reference
+## Configuration Reference
 
-***REMOVED******REMOVED******REMOVED*** Core Settings
+### Core Settings
 
 | Setting           | Environment Variable | Default         | Description             |
 | ----------------- | -------------------- | --------------- | ----------------------- |
@@ -352,7 +352,7 @@ from your_service.config.shared import YourServiceConfig
 | `service_version` | `SERVICE_VERSION`    | `"0.1.0"`       | Service version         |
 | `debug`           | `DEBUG`              | `False`         | Debug mode flag         |
 
-***REMOVED******REMOVED******REMOVED*** Database Settings (DatabaseConfigMixin)
+### Database Settings (DatabaseConfigMixin)
 
 | Setting                 | Environment Variable    | Default              | Description              |
 | ----------------------- | ----------------------- | -------------------- | ------------------------ |
@@ -362,7 +362,7 @@ from your_service.config.shared import YourServiceConfig
 | `database_pool_timeout` | `DATABASE_POOL_TIMEOUT` | `30`                 | Pool timeout (seconds)   |
 | `database_echo`         | `DATABASE_ECHO`         | `False`              | Echo SQL queries         |
 
-***REMOVED******REMOVED******REMOVED*** Cache Settings (CacheConfigMixin)
+### Cache Settings (CacheConfigMixin)
 
 | Setting                 | Environment Variable    | Default                      | Description           |
 | ----------------------- | ----------------------- | ---------------------------- | --------------------- |
@@ -371,7 +371,7 @@ from your_service.config.shared import YourServiceConfig
 | `cache_default_ttl`     | `CACHE_DEFAULT_TTL`     | `3600`                       | Default TTL (seconds) |
 | `cache_key_prefix`      | `CACHE_KEY_PREFIX`      | `""`                         | Key prefix for cache  |
 
-***REMOVED******REMOVED******REMOVED*** Authentication Settings (AuthConfigMixin)
+### Authentication Settings (AuthConfigMixin)
 
 | Setting                       | Environment Variable          | Default       | Description        |
 | ----------------------------- | ----------------------------- | ------------- | ------------------ |
@@ -380,7 +380,7 @@ from your_service.config.shared import YourServiceConfig
 | `access_token_expire_minutes` | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30`          | Access token TTL   |
 | `refresh_token_expire_days`   | `REFRESH_TOKEN_EXPIRE_DAYS`   | `7`           | Refresh token TTL  |
 
-***REMOVED******REMOVED******REMOVED*** Monitoring Settings (MonitoringConfigMixin)
+### Monitoring Settings (MonitoringConfigMixin)
 
 | Setting                 | Environment Variable    | Default  | Description               |
 | ----------------------- | ----------------------- | -------- | ------------------------- |
@@ -389,7 +389,7 @@ from your_service.config.shared import YourServiceConfig
 | `health_check_interval` | `HEALTH_CHECK_INTERVAL` | `30`     | Health check interval     |
 | `structured_logging`    | `STRUCTURED_LOGGING`    | `True`   | Use structured logging    |
 
-***REMOVED******REMOVED******REMOVED*** Vector Database Settings (VectorDBConfigMixin)
+### Vector Database Settings (VectorDBConfigMixin)
 
 | Setting                | Environment Variable   | Default                   | Description       |
 | ---------------------- | ---------------------- | ------------------------- | ----------------- |
@@ -398,9 +398,9 @@ from your_service.config.shared import YourServiceConfig
 | `vector_db_size`       | `VECTOR_DB_SIZE`       | `384`                     | Vector dimensions |
 | `vector_db_distance`   | `VECTOR_DB_DISTANCE`   | `"cosine"`                | Distance metric   |
 
-***REMOVED******REMOVED*** Security Features
+## Security Features
 
-***REMOVED******REMOVED******REMOVED*** Production Validation
+### Production Validation
 
 All configuration classes include production validation:
 
@@ -412,53 +412,53 @@ if config.environment == "production":
         raise ValueError(f"Production config errors: {errors}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Secret Masking
+### Secret Masking
 
 Sensitive values are automatically masked in logs:
 
 ```python
 config = MyServiceConfig()
-print(config.get_masked_database_url())  ***REMOVED*** postgresql://***:***@host:5432/db
-print(config.get_masked_jwt_secret())    ***REMOVED*** ***
+print(config.get_masked_database_url())  # postgresql://***:***@host:5432/db
+print(config.get_masked_jwt_secret())    # ***
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment Validation
+### Environment Validation
 
 - JWT secrets must be sufficiently strong in production
 - Database URLs must use secure connections in production
 - Debug mode is automatically disabled in production
 - CORS origins are validated for production use
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
-***REMOVED******REMOVED******REMOVED*** Running Tests
+### Running Tests
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 pytest tests/
 
-***REMOVED*** Run specific test modules
+# Run specific test modules
 pytest tests/test_base_config.py
 pytest tests/test_service_mixins.py
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration Testing
+### Integration Testing
 
 Test your service configuration:
 
 ```bash
-***REMOVED*** From your service directory
+# From your service directory
 python ../../libs/config/examples/your_service_integration_test.py
 ```
 
-***REMOVED******REMOVED*** Contributing
+## Contributing
 
 1. **Adding New Mixins**: Create new mixin classes in `src/config/services/`
 2. **Environment Variables**: Update the reference tables above
 3. **Documentation**: Update this README and add examples
 4. **Testing**: Add comprehensive tests for new functionality
 
-***REMOVED******REMOVED*** Examples
+## Examples
 
 See the `examples/` directory for complete integration examples:
 
@@ -467,6 +467,6 @@ See the `examples/` directory for complete integration examples:
 - `backend_api_integration_test.py` - Live integration test
 - `recommendation_api_example.py` - ML service with vector database
 
-***REMOVED******REMOVED*** License
+## License
 
 MIT License - see LICENSE file for details.

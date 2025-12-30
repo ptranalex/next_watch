@@ -27,7 +27,7 @@ def upgrade(engine: Engine) -> None:
     logger.info("Creating partial covering index on credit for director lookups")
 
     with engine.begin() as conn:
-        ***REMOVED*** Create partial, covering index for director queries
+        # Create partial, covering index for director queries
         conn.execute(
             text(
                 """
@@ -38,7 +38,7 @@ def upgrade(engine: Engine) -> None:
             )
         )
 
-    ***REMOVED*** Record the migration
+    # Record the migration
     with engine.begin() as conn:
         try:
             conn.execute(
@@ -57,7 +57,7 @@ def downgrade(engine: Engine) -> None:
     with engine.begin() as conn:
         conn.execute(text("DROP INDEX IF EXISTS idx_credit_director_by_movie"))
 
-    ***REMOVED*** Note: migration record removal is handled automatically by the CLI after successful downgrade
+    # Note: migration record removal is handled automatically by the CLI after successful downgrade
 
 
 def get_revision_info() -> dict[str, Any]:

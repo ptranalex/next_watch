@@ -67,7 +67,7 @@ async def test_core_get_suggestions_exact_match_path(monkeypatch) -> None:
     from search_api.services.suggestion_engine.core import SuggestionEngine
 
     engine = SuggestionEngine(redis_url="redis://x")
-    engine._pool = object()  ***REMOVED*** prevent initialize
+    engine._pool = object()  # prevent initialize
 
     mock_redis = AsyncMock()
     mock_redis.exists.return_value = 1
@@ -75,7 +75,7 @@ async def test_core_get_suggestions_exact_match_path(monkeypatch) -> None:
     async def fake_prefix(redis_client, query_prefix, limit):
         return ["leonardo"]
 
-    engine._matching.get_prefix_matches = fake_prefix  ***REMOVED*** type: ignore
+    engine._matching.get_prefix_matches = fake_prefix  # type: ignore
 
     class CM:
         async def __aenter__(self):
@@ -89,7 +89,7 @@ async def test_core_get_suggestions_exact_match_path(monkeypatch) -> None:
     monkeypatch.setattr(redis.asyncio, "Redis", lambda connection_pool=None: CM())
 
     res = await engine.get_suggestions("Leo", limit=5)
-    assert res[0] == "leo"  ***REMOVED*** normalized exact
+    assert res[0] == "leo"  # normalized exact
 
 
 @pytest.mark.asyncio

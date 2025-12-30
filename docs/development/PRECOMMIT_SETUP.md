@@ -1,16 +1,16 @@
-***REMOVED*** Pre-commit Hooks Guide
+# Pre-commit Hooks Guide
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 Each app in the monorepo has isolated pre-commit hooks with custom rules. This ensures code quality while maintaining flexibility for each service.
 
-***REMOVED******REMOVED*** How It Works
+## How It Works
 
 1. **File-based triggering**: Hooks only run when files in their app are changed
 2. **Per-app rules**: Each app configures its own linting strictness
 3. **Fast execution**: Only relevant hooks run, not all hooks
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 Pre-commit should already be installed via Homebrew. If not:
 
@@ -25,73 +25,73 @@ cd /path/to/next_watch
 pre-commit install
 ```
 
-***REMOVED******REMOVED*** Examples
+## Examples
 
-***REMOVED******REMOVED******REMOVED*** Example 1: Edit Backend API
+### Example 1: Edit Backend API
 
 ```bash
-***REMOVED*** Edit a file
+# Edit a file
 vim apps/backend-api/src/backend_api/routes/v1/movies.py
 
 git add apps/backend-api/
 git commit -m "Update movies endpoint"
 
-***REMOVED*** Output:
-***REMOVED*** Backend API - Ruff Lint..................Passed
-***REMOVED*** Backend API - Ruff Format................Passed
-***REMOVED*** Backend API - Type Check.................Passed
+# Output:
+# Backend API - Ruff Lint..................Passed
+# Backend API - Ruff Format................Passed
+# Backend API - Type Check.................Passed
 ```
 
 Only 3 hooks run, not all 20+ hooks!
 
-***REMOVED******REMOVED******REMOVED*** Example 2: Edit Multiple Apps
+### Example 2: Edit Multiple Apps
 
 ```bash
-***REMOVED*** Edit files in two apps
+# Edit files in two apps
 git add apps/backend-api/ apps/auth-api/
 
 git commit -m "Update auth and backend"
 
-***REMOVED*** Output:
-***REMOVED*** Backend API - Ruff Lint..................Passed
-***REMOVED*** Backend API - Ruff Format................Passed
-***REMOVED*** Backend API - Type Check.................Passed
-***REMOVED*** Auth API - Ruff Lint.....................Passed
-***REMOVED*** Auth API - Ruff Format...................Passed
-***REMOVED*** Auth API - Type Check....................Passed
+# Output:
+# Backend API - Ruff Lint..................Passed
+# Backend API - Ruff Format................Passed
+# Backend API - Type Check.................Passed
+# Auth API - Ruff Lint.....................Passed
+# Auth API - Ruff Format...................Passed
+# Auth API - Type Check....................Passed
 ```
 
 Only hooks for changed apps run!
 
-***REMOVED******REMOVED******REMOVED*** Example 3: Edit Frontend
+### Example 3: Edit Frontend
 
 ```bash
-***REMOVED*** Edit Next.js file
+# Edit Next.js file
 git add apps/web-nextjs/src/app/page.tsx
 
 git commit -m "Update homepage"
 
-***REMOVED*** Output:
-***REMOVED*** Web Next.js - ESLint.....................Passed
-***REMOVED*** Web Next.js - Prettier...................Passed
+# Output:
+# Web Next.js - ESLint.....................Passed
+# Web Next.js - Prettier...................Passed
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 4: Edit Shared Library
+### Example 4: Edit Shared Library
 
 ```bash
-***REMOVED*** Edit a shared library
+# Edit a shared library
 git add libs/kafka/src/kafka/producer.py
 
 git commit -m "Update Kafka producer"
 
-***REMOVED*** Output:
-***REMOVED*** Shared Libs - Ruff Lint..................Passed
-***REMOVED*** Shared Libs - Ruff Format................Passed
+# Output:
+# Shared Libs - Ruff Lint..................Passed
+# Shared Libs - Ruff Format................Passed
 ```
 
-***REMOVED******REMOVED*** Customizing Rules Per App
+## Customizing Rules Per App
 
-***REMOVED******REMOVED******REMOVED*** Python Apps
+### Python Apps
 
 Edit `pyproject.toml` in each app:
 
@@ -99,34 +99,34 @@ Edit `pyproject.toml` in each app:
 
 ```toml
 [tool.ruff]
-line-length = 88  ***REMOVED*** Stricter line length
+line-length = 88  # Stricter line length
 
 [tool.ruff.lint]
 select = [
     "E", "W", "F", "I", "N", "UP", "B",
-    "S",   ***REMOVED*** flake8-bandit (security checks)
-    "C90", ***REMOVED*** mccabe complexity
+    "S",   # flake8-bandit (security checks)
+    "C90", # mccabe complexity
 ]
-ignore = []  ***REMOVED*** No exceptions!
+ignore = []  # No exceptions!
 
 [tool.mypy]
 python_version = "3.12"
-strict = true  ***REMOVED*** Much stricter type checking
+strict = true  # Much stricter type checking
 ```
 
 **Relaxed linting (e.g., for ml-api):**
 
 ```toml
 [tool.ruff]
-line-length = 120  ***REMOVED*** Longer lines allowed
+line-length = 120  # Longer lines allowed
 
 [tool.ruff.lint]
-select = ["E", "F"]  ***REMOVED*** Only errors and pyflakes
-ignore = ["E501"]    ***REMOVED*** Ignore line length
+select = ["E", "F"]  # Only errors and pyflakes
+ignore = ["E501"]    # Ignore line length
 
 [tool.mypy]
 python_version = "3.12"
-disallow_untyped_defs = false  ***REMOVED*** Allow untyped functions
+disallow_untyped_defs = false  # Allow untyped functions
 ```
 
 **Standard linting (default):**
@@ -138,21 +138,21 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = [
-    "E",   ***REMOVED*** pycodestyle errors
-    "W",   ***REMOVED*** pycodestyle warnings
-    "F",   ***REMOVED*** pyflakes
-    "I",   ***REMOVED*** isort
-    "N",   ***REMOVED*** pep8-naming
-    "UP",  ***REMOVED*** pyupgrade
-    "B",   ***REMOVED*** flake8-bugbear
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
 ]
 ignore = [
-    "E501",  ***REMOVED*** line too long (handled by formatter)
+    "E501",  # line too long (handled by formatter)
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  ***REMOVED*** Unused imports ok in __init__
-"tests/**/*.py" = ["S101"]  ***REMOVED*** Asserts ok in tests
+"__init__.py" = ["F401"]  # Unused imports ok in __init__
+"tests/**/*.py" = ["S101"]  # Asserts ok in tests
 
 [tool.mypy]
 python_version = "3.12"
@@ -161,7 +161,7 @@ warn_unused_configs = true
 disallow_untyped_defs = false
 ```
 
-***REMOVED******REMOVED******REMOVED*** web-nextjs (JavaScript/TypeScript)
+### web-nextjs (JavaScript/TypeScript)
 
 Edit `.eslintrc.json`:
 
@@ -189,7 +189,7 @@ Edit `.prettierrc`:
 }
 ```
 
-***REMOVED******REMOVED*** Bypassing Hooks
+## Bypassing Hooks
 
 **Emergency only:**
 
@@ -205,9 +205,9 @@ git commit --no-verify
 
 **Better approach:** Fix the issues or adjust rules in the app's config.
 
-***REMOVED******REMOVED*** Manual Hook Execution
+## Manual Hook Execution
 
-***REMOVED******REMOVED******REMOVED*** Run all hooks on all files
+### Run all hooks on all files
 
 ```bash
 pre-commit run --all-files
@@ -219,41 +219,41 @@ This is useful:
 - Before pushing to ensure everything passes
 - After pulling changes from others
 
-***REMOVED******REMOVED******REMOVED*** Run specific hook
+### Run specific hook
 
 ```bash
-***REMOVED*** Run only backend-api linting
+# Run only backend-api linting
 pre-commit run backend-api-ruff-check --all-files
 
-***REMOVED*** Run only formatting for auth-api
+# Run only formatting for auth-api
 pre-commit run auth-api-ruff-format --all-files
 
-***REMOVED*** Run web-nextjs ESLint
+# Run web-nextjs ESLint
 pre-commit run web-nextjs-eslint --all-files
 ```
 
-***REMOVED******REMOVED******REMOVED*** Run hooks on specific files
+### Run hooks on specific files
 
 ```bash
-***REMOVED*** Run hooks only on changed files
+# Run hooks only on changed files
 pre-commit run --files apps/backend-api/src/**/*.py
 
-***REMOVED*** Run hooks on staged files (default behavior)
+# Run hooks on staged files (default behavior)
 pre-commit run
 ```
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Hook fails for one app
+### Hook fails for one app
 
 ```bash
-***REMOVED*** Run the tool manually to see full error
+# Run the tool manually to see full error
 cd apps/backend-api
 ruff check .
 mypy src/
 ```
 
-***REMOVED******REMOVED******REMOVED*** Hook is slow
+### Hook is slow
 
 Some hooks may take time on first run due to:
 
@@ -262,7 +262,7 @@ Some hooks may take time on first run due to:
 
 Subsequent runs are much faster due to pre-commit's caching.
 
-***REMOVED******REMOVED******REMOVED*** Update hook definitions
+### Update hook definitions
 
 After editing `.pre-commit-config.yaml`:
 
@@ -270,18 +270,18 @@ After editing `.pre-commit-config.yaml`:
 pre-commit install --install-hooks
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cache issues
+### Cache issues
 
 ```bash
-***REMOVED*** Clear pre-commit cache
+# Clear pre-commit cache
 pre-commit clean
 
-***REMOVED*** Reinstall everything
+# Reinstall everything
 pre-commit uninstall
 pre-commit install
 ```
 
-***REMOVED******REMOVED******REMOVED*** Tool not found
+### Tool not found
 
 If a hook fails with "command not found":
 
@@ -298,13 +298,13 @@ cd apps/web-nextjs
 pnpm install
 ```
 
-***REMOVED******REMOVED******REMOVED*** "Already installed" warning
+### "Already installed" warning
 
 If you see warnings about tools already being installed, this is normal and can be ignored.
 
-***REMOVED******REMOVED*** Hook Configuration Reference
+## Hook Configuration Reference
 
-***REMOVED******REMOVED******REMOVED*** Available Hooks
+### Available Hooks
 
 **Backend API:**
 
@@ -353,7 +353,7 @@ If you see warnings about tools already being installed, this is normal and can 
 - `libs-ruff-check` - Lint all libs/
 - `libs-ruff-format` - Format all libs/
 
-***REMOVED******REMOVED******REMOVED*** Hook Execution Flow
+### Hook Execution Flow
 
 1. **Stage files:** `git add <files>`
 2. **Commit:** `git commit -m "message"`
@@ -369,21 +369,21 @@ If you see warnings about tools already being installed, this is normal and can 
    - Fix issues or stage auto-fixes
    - Try commit again
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Run hooks before committing
+### 1. Run hooks before committing
 
 ```bash
-***REMOVED*** Check your changes before committing
+# Check your changes before committing
 pre-commit run
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Keep hooks fast
+### 2. Keep hooks fast
 
 - Hooks should run in < 10 seconds
 - If too slow, reduce scope or split hooks
 
-***REMOVED******REMOVED******REMOVED*** 3. Auto-fix when possible
+### 3. Auto-fix when possible
 
 Most hooks auto-fix issues:
 
@@ -391,7 +391,7 @@ Most hooks auto-fix issues:
 - Prettier formats frontend
 - Just stage and commit again
 
-***REMOVED******REMOVED******REMOVED*** 4. Don't bypass hooks regularly
+### 4. Don't bypass hooks regularly
 
 `--no-verify` should be rare. If you find yourself using it often:
 
@@ -399,46 +399,46 @@ Most hooks auto-fix issues:
 - Consider adjusting config
 - Discuss with team
 
-***REMOVED******REMOVED******REMOVED*** 5. Update hooks regularly
+### 5. Update hooks regularly
 
 ```bash
-***REMOVED*** Update pre-commit tool versions
+# Update pre-commit tool versions
 pre-commit autoupdate
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6. Document custom rules
+### 6. Document custom rules
 
 If you change linting rules for your app, document why in the `pyproject.toml`:
 
 ```toml
 [tool.ruff.lint]
-select = ["ALL"]  ***REMOVED*** Enable all rules
+select = ["ALL"]  # Enable all rules
 ignore = [
-    "E501",  ***REMOVED*** Line too long - tables make this hard
-    "S108",  ***REMOVED*** Hardcoded temp dir - intentional for tests
+    "E501",  # Line too long - tables make this hard
+    "S108",  # Hardcoded temp dir - intentional for tests
 ]
 ```
 
-***REMOVED******REMOVED*** CI/CD Integration
+## CI/CD Integration
 
 Pre-commit hooks also run in CI/CD to catch issues that slip through:
 
 ```yaml
-***REMOVED*** .github/workflows/lint.yml
+# .github/workflows/lint.yml
 - name: Run pre-commit
   run: |
     pip install pre-commit
     pre-commit run --all-files
 ```
 
-***REMOVED******REMOVED*** Performance Tips
+## Performance Tips
 
 1. **Hooks only run on changed files** - Very fast!
 2. **Caching** - Pre-commit caches tool environments
 3. **Parallel execution** - Multiple hooks run in parallel where possible
 4. **Skip unnecessary hooks** - File patterns ensure only relevant hooks run
 
-***REMOVED******REMOVED*** Getting Help
+## Getting Help
 
 If hooks are causing issues:
 
@@ -448,29 +448,29 @@ If hooks are causing issues:
 4. **Ask the team** - Others may have seen the issue
 5. **Update tools** - `pip install --upgrade ruff mypy`
 
-***REMOVED******REMOVED*** Testing Your Setup
+## Testing Your Setup
 
 After setting up pre-commit, test that it works:
 
 ```bash
-***REMOVED*** 1. Test backend-api hooks
+# 1. Test backend-api hooks
 cd apps/backend-api
-echo "***REMOVED*** test" >> src/backend_api/__init__.py
+echo "# test" >> src/backend_api/__init__.py
 git add src/backend_api/__init__.py
-git commit -m "Test pre-commit"  ***REMOVED*** Should run backend-api hooks
-git reset HEAD~1  ***REMOVED*** Undo test commit
+git commit -m "Test pre-commit"  # Should run backend-api hooks
+git reset HEAD~1  # Undo test commit
 
-***REMOVED*** 2. Test web-nextjs hooks
+# 2. Test web-nextjs hooks
 cd apps/web-nextjs
 echo "// test" >> src/app/page.tsx
 git add src/app/page.tsx
-git commit -m "Test pre-commit"  ***REMOVED*** Should run web-nextjs hooks
-git reset HEAD~1  ***REMOVED*** Undo test commit
+git commit -m "Test pre-commit"  # Should run web-nextjs hooks
+git reset HEAD~1  # Undo test commit
 
-***REMOVED*** 3. Test that unrelated apps don't trigger hooks
-echo "***REMOVED*** test" >> README.md
+# 3. Test that unrelated apps don't trigger hooks
+echo "# test" >> README.md
 git add README.md
-git commit -m "Update README"  ***REMOVED*** No app-specific hooks should run
+git commit -m "Update README"  # No app-specific hooks should run
 ```
 
 All tests should complete successfully, with only relevant hooks running for each test.

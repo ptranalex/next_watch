@@ -9,7 +9,7 @@ allow-direct-references = true
 name = "bff_api"
 version = "0.1.0"
 description = "Backend for Frontend API - Aggregation layer for next_watch UI"
-readme = {text = "***REMOVED*** BFF API\n\nBackend for Frontend API for Next Watch platform", content-type = "text/markdown"}
+readme = {text = "# BFF API\n\nBackend for Frontend API for Next Watch platform", content-type = "text/markdown"}
 license = "MIT"
 license-files = ["LICENSE*"]
 authors = [{ name = "Alex Tran" }]
@@ -32,59 +32,59 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    ***REMOVED*** Core API framework
-    "fastapi>=0.104.0",         ***REMOVED*** API framework
-    "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
-    "pydantic>=2.4.2",          ***REMOVED*** Data validation
+    # Core API framework
+    "fastapi>=0.104.0",         # API framework
+    "uvicorn>=0.23.2",          # ASGI server
+    "pydantic>=2.4.2",          # Data validation
 
-    ***REMOVED*** HTTP client
-    "httpx>=0.23.0",            ***REMOVED*** Async HTTP client
+    # HTTP client
+    "httpx>=0.23.0",            # Async HTTP client
 
-    ***REMOVED*** CLI and utilities
-    "typer>=0.15.2",            ***REMOVED*** CLI framework
-    "rich>=13.7.0",             ***REMOVED*** Terminal formatting
-    "structlog>=23.2.0",        ***REMOVED*** Structured logging
-    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    # CLI and utilities
+    "typer>=0.15.2",            # CLI framework
+    "rich>=13.7.0",             # Terminal formatting
+    "structlog>=23.2.0",        # Structured logging
+    "python-dotenv>=1.0.0",     # Environment variable loading
 
-    ***REMOVED*** Cache
-    "redis>=6.0.0",             ***REMOVED*** Redis client
-    "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
+    # Cache
+    "redis>=6.0.0",             # Redis client
+    "types-redis>=4.6.0",       # Redis type stubs
 
-    ***REMOVED*** Auth and security
-    "pyjwt>=2.8.0",             ***REMOVED*** JWT handling
+    # Auth and security
+    "pyjwt>=2.8.0",             # JWT handling
 
-    ***REMOVED*** Date/time handling
-    "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
+    # Date/time handling
+    "python-dateutil>=2.9.0",   # Date utilities
 
-    ***REMOVED*** Resilience
-    "tenacity>=8.2.3",          ***REMOVED*** Retry logic
+    # Resilience
+    "tenacity>=8.2.3",          # Retry logic
 
-    ***REMOVED*** Form validation
-    "email-validator>=2.2.0",   ***REMOVED*** Email validation
-    "python-multipart>=0.0.20", ***REMOVED*** Multipart form parsing
+    # Form validation
+    "email-validator>=2.2.0",   # Email validation
+    "python-multipart>=0.0.20", # Multipart form parsing
 
-    ***REMOVED*** System monitoring
-    "psutil>=5.9.0",            ***REMOVED*** System and process monitoring
-    "types-psutil>=5.9.0",      ***REMOVED*** Type stubs for psutil
+    # System monitoring
+    "psutil>=5.9.0",            # System and process monitoring
+    "types-psutil>=5.9.0",      # Type stubs for psutil
 ]
 
 [project.optional-dependencies]
 dev = [
-    ***REMOVED*** Testing
+    # Testing
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
     "pytest-httpx>=0.21.3",
     "respx>=0.20.2",
 
-    ***REMOVED*** Code quality
+    # Code quality
     "ruff>=0.8.4",
     "pyright>=1.1.0",
 
-    ***REMOVED*** Local NextWatch libraries (for development)
-    ***REMOVED*** "config @ file:../../libs/config",
-    ***REMOVED*** "cache @ file:../../libs/cache",
-    ***REMOVED*** "cli @ file:../../libs/cli",
+    # Local NextWatch libraries (for development)
+    # "config @ file:../../libs/config",
+    # "cache @ file:../../libs/cache",
+    # "cli @ file:../../libs/cli",
 ]
 
 [project.scripts]
@@ -96,7 +96,7 @@ Repository = "https://github.com/nextwatch/bff-api"
 Issues = "https://github.com/nextwatch/bff-api/issues"
 Documentation = "https://docs.nextwatch.dev/bff-api"
 
-***REMOVED*** Hatch configuration
+# Hatch configuration
 [tool.hatch.version]
 source = "vcs"
 
@@ -112,7 +112,7 @@ packages = ["src/bff_api"]
 [tool.hatch.build.sources]
 "src" = ""
 
-***REMOVED*** Single consolidated environment
+# Single consolidated environment
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"
@@ -123,7 +123,7 @@ PYTHONPATH = "src"
 
 [tool.hatch.envs.default.scripts]
 
-***REMOVED*** Install local libraries, so it can be reloaded after changes
+# Install local libraries, so it can be reloaded after changes
 install-libs = [
   "pip install -e ../../libs/cache",
   "pip install -e ../../libs/cli",
@@ -131,46 +131,46 @@ install-libs = [
   "pip install -e ../../libs/fast-core",
 ]
 
-***REMOVED*** Server management
+# Server management
 serve = "python -m bff_api.main"
 dev = "PYTHONPATH=src uvicorn bff_api.main:create_app --factory --reload --port 8001"
 
-***REMOVED*** CLI access
+# CLI access
 cli = "python -m bff_api.cli"
 
-***REMOVED*** Database management
+# Database management
 migrate = "python -m bff_api.cli db migrate"
 db-init = "python -m bff_api.cli db init"
 db-init-tables = "python -m bff_api.cli db init --create-tables"
 db-downgrade = "python -m bff_api.cli db downgrade"
 db-teardown = "python -m bff_api.cli db teardown --confirm"
 
-***REMOVED*** Health checks
+# Health checks
 health-check = "python -m bff_api.cli health check"
 health-backend = "python -m bff_api.cli health backend"
 health-auth = "python -m bff_api.cli health auth"
 health-reco = "python -m bff_api.cli health reco"
 health-cache = "python -m bff_api.cli health cache"
 
-***REMOVED*** Cache management
+# Cache management
 cache-info = "python -m bff_api.cli cache info"
 cache-keys = "python -m bff_api.cli cache keys"
 cache-get = "python -m bff_api.cli cache get"
 cache-clear = "python -m bff_api.cli cache clear --confirm"
 
-***REMOVED*** System commands
+# System commands
 config = "python -m bff_api.cli config"
 version = "python -m bff_api.cli version"
 serve-cli = "python -m bff_api.cli serve"
 
-***REMOVED*** Development tools
+# Development tools
 format = "ruff format ."
 lint = "ruff check ."
 typecheck = "pyright -p pyrightconfig.json"
 test = "PYTHONPATH=src pytest {args:tests}"
 test-cov = "PYTHONPATH=src pytest --cov=src/bff_api/config --cov=src/bff_api/schemas --cov=src/bff_api/dependencies --cov=src/bff_api/utils --cov-config=pyproject.toml --cov-report=term-missing --cov-report=xml:coverage.xml tests/"
 
-***REMOVED*** Tool configurations
+# Tool configurations
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -185,11 +185,11 @@ src = ["src"]
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 ignore = [
-    "E501", ***REMOVED*** line too long, formatter handles this
+    "E501", # line too long, formatter handles this
 ]
 
 [tool.ruff.lint.isort]
-***REMOVED*** Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
+# Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
 known-first-party = ["bff_api"]
 known-third-party = ["cache", "cli", "config", "fast_core", "kafka", "movie_storage"]
 

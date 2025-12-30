@@ -1,20 +1,20 @@
-***REMOVED*** VSCode User Settings Cleanup Guide
+# VSCode User Settings Cleanup Guide
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 To complete the VSCode settings reorganization, you need to remove Python-specific settings from your **User Settings** (global settings). These settings should be managed at the workspace or folder level, not globally.
 
-***REMOVED******REMOVED*** User Settings Location
+## User Settings Location
 
 **File:** `/Users/alex/Library/Application Support/Cursor/User/settings.json`
 
 Or access via: `Cmd+Shift+P` → "Preferences: Open User Settings (JSON)"
 
-***REMOVED******REMOVED*** Settings to Remove
+## Settings to Remove
 
 Remove these lines from your User settings:
 
-***REMOVED******REMOVED******REMOVED*** 1. Python Interpreter Path
+### 1. Python Interpreter Path
 
 ```json
 "python.defaultInterpreterPath": "",
@@ -22,7 +22,7 @@ Remove these lines from your User settings:
 
 **Why remove:** Each project should define its own interpreter. Having this in User settings can cause conflicts.
 
-***REMOVED******REMOVED******REMOVED*** 2. Python Formatting Provider
+### 2. Python Formatting Provider
 
 ```json
 "python.formatting.provider": "black",
@@ -30,7 +30,7 @@ Remove these lines from your User settings:
 
 **Why remove:** We're now using Ruff for formatting (defined in workspace), not Black.
 
-***REMOVED******REMOVED******REMOVED*** 3. Python Language-Specific Settings
+### 3. Python Language-Specific Settings
 
 ```json
 "[python]": {
@@ -44,7 +44,7 @@ Remove these lines from your User settings:
 - Workspace now defines Ruff as the formatter
 - Format-on-save is disabled (pre-commit hooks handle formatting)
 
-***REMOVED******REMOVED******REMOVED*** 4. JavaScript Formatting (Optional - if it conflicts)
+### 4. JavaScript Formatting (Optional - if it conflicts)
 
 ```json
 "[javascript]": {
@@ -54,7 +54,7 @@ Remove these lines from your User settings:
 
 **Why remove:** Workspace now manages format-on-save settings for consistency.
 
-***REMOVED******REMOVED*** What to Keep
+## What to Keep
 
 Keep these in your User settings (personal preferences):
 
@@ -88,7 +88,7 @@ Keep these in your User settings (personal preferences):
 }
 ```
 
-***REMOVED******REMOVED*** After Cleanup
+## After Cleanup
 
 Once you've removed the Python-specific settings:
 
@@ -97,7 +97,7 @@ Once you've removed the Python-specific settings:
 3. **Verify settings**: Check that Python formatting now uses Ruff (not Black)
 4. **Test**: Make a small change to a Python file and commit it - pre-commit hooks should handle formatting
 
-***REMOVED******REMOVED*** Settings Hierarchy Reference
+## Settings Hierarchy Reference
 
 After cleanup, your settings will follow this hierarchy:
 
@@ -126,28 +126,28 @@ After cleanup, your settings will follow this hierarchy:
 └─────────────────────────────────────────────┘
 ```
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Format-on-save still happening?
+### Format-on-save still happening?
 
 - Check User settings - make sure `"editor.formatOnSave"` is not set to `true` globally
 - Reload window after making changes
 
-***REMOVED******REMOVED******REMOVED*** Black still being used instead of Ruff?
+### Black still being used instead of Ruff?
 
 - Verify Black extension settings are removed from User settings
 - Ensure Ruff extension is installed
 - Check workspace is open (not just a folder)
 
-***REMOVED******REMOVED******REMOVED*** Import resolution not working?
+### Import resolution not working?
 
 - Verify you're using the multi-root workspace (`next_watch.code-workspace`)
 - Check folder settings have correct `python.analysis.extraPaths`
 - Reload window
 
-***REMOVED******REMOVED*** Questions?
+## Questions?
 
 If you run into issues after cleanup, see:
 
-- [VSCode Setup section in README](../README.md***REMOVED***vscode-setup)
+- [VSCode Setup section in README](../README.md#vscode-setup)
 - [Pre-commit Setup](./PRECOMMIT_SETUP.md)

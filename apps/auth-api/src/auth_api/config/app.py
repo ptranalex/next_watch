@@ -19,7 +19,7 @@ from config.services.database import DatabaseConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
 from pydantic import Field, model_validator, validator
 
-***REMOVED*** Configure basic logging first for this module
+# Configure basic logging first for this module
 logger = get_logger(__name__)
 
 
@@ -36,15 +36,15 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
     All settings can be configured via environment variables with sensible defaults.
     """
 
-    ***REMOVED*** Service identification
+    # Service identification
     service_name: str = Field(default="auth-api", description="Service name")
     version: str = Field(default="0.1.0", description="Service version")
 
-    ***REMOVED*** HTTP service settings (override defaults from ServiceConfig)
+    # HTTP service settings (override defaults from ServiceConfig)
     host: str = Field(default="0.0.0.0", description="Service host address")
     port: int = Field(default=8003, description="Service port number")
 
-    ***REMOVED*** Auth-specific settings
+    # Auth-specific settings
     auth_performance_metrics: bool = Field(
         default=False, description="Enable auth-specific performance metrics collection"
     )
@@ -52,7 +52,7 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         default=None, description="Directory for log files (None disables file logging)"
     )
 
-    ***REMOVED*** JWT Web Key settings
+    # JWT Web Key settings
     jwt_jwk: dict[str, Any] | None = Field(
         default=None, description="JSON Web Key for advanced JWT validation"
     )
@@ -60,7 +60,7 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         default=86400, description="JWK rotation interval in seconds (24 hours)"
     )
 
-    ***REMOVED*** Enhanced security settings for auth service
+    # Enhanced security settings for auth service
     require_https_production: bool = Field(
         default=True, description="Require HTTPS in production environment"
     )
@@ -75,17 +75,17 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
     class Config:
         """Pydantic configuration for environment handling."""
 
-        env_file = [".env", ".env.local"]  ***REMOVED*** Load multiple env files
+        env_file = [".env", ".env.local"]  # Load multiple env files
         env_file_encoding = "utf-8"
         case_sensitive = False
         extra = "ignore"
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize authentication API configuration."""
-        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        # Initialize with Pydantic Settings (will auto-load .env files)
         super().__init__(**kwargs)
 
-        ***REMOVED*** Apply shared security and logging patterns
+        # Apply shared security and logging patterns
         self.apply_production_security_overrides()
         self._apply_auth_specific_overrides()
         self.log_configuration_summary()
@@ -96,20 +96,20 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         if not self.is_production:
             return
 
-        ***REMOVED*** Auth-specific security overrides
+        # Auth-specific security overrides
         if not self.require_https_production:
             logger.warning("HTTPS requirement enforced in production for auth service")
             object.__setattr__(self, "require_https_production", True)
 
-        ***REMOVED*** Disable file logging in production to avoid volume permission issues
+        # Disable file logging in production to avoid volume permission issues
         if self.logs_dir:
             logger.warning("File logging disabled in production to avoid volume permission issues")
             object.__setattr__(self, "logs_dir", None)
 
-        ***REMOVED*** Ensure secure JWT settings in production
+        # Ensure secure JWT settings in production
         if self.jwt_secret == "change_this_in_production_very_important":
             logger.error("Default JWT secret detected in production - this is a security risk!")
-            ***REMOVED*** Don't override in production - let it fail fast
+            # Don't override in production - let it fail fast
             raise ValueError(
                 "Default JWT secret is not allowed in production. "
                 "Set a secure JWT_SECRET environment variable."
@@ -187,13 +187,13 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
         """
         issues = []
 
-        ***REMOVED*** Get validation from parent classes
+        # Get validation from parent classes
         issues.extend(super().validate_production_settings())
         issues.extend(self.validate_database_production_settings())
         issues.extend(self.validate_auth_production_settings())
         issues.extend(self.validate_monitoring_production_settings(self.environment))
 
-        ***REMOVED*** Auth-specific production validation
+        # Auth-specific production validation
         if self.is_production:
             if not self.require_https_production:
                 issues.append("HTTPS should be required in production for auth service")
@@ -241,9 +241,9 @@ class AuthAPIConfig(ServiceConfig, DatabaseConfigMixin, AuthConfigMixin, Monitor
     Logs Directory: {self.logs_dir or "disabled"}"""
 
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** GLOBAL SETTINGS INSTANCE
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# GLOBAL SETTINGS INSTANCE
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Create global settings instance (simplified - no more wrapper!)
+# Create global settings instance (simplified - no more wrapper!)
 settings = AuthAPIConfig()

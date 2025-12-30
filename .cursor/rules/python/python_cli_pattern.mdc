@@ -3,12 +3,12 @@ description:
 globs:
 alwaysApply: true
 ---
-***REMOVED*** CLI Pattern Best Practices
+# CLI Pattern Best Practices
 
 When building CLI applications, follow these consistent patterns to ensure maintainable,
 user-friendly, and robust command-line interfaces:
 
-***REMOVED******REMOVED*** 🏗️ CLI Structure
+## 🏗️ CLI Structure
 - Use **Typer** for building modern CLI applications with Python
 - Organize CLI code into these distinct components:
   - 📁 `cli/` - Main CLI package
@@ -17,16 +17,16 @@ user-friendly, and robust command-line interfaces:
     - 📄 `utils.py` - Shared CLI utilities (validation, display, etc.)
 - Follow a hierarchical command structure for complex applications:
   ```python
-  ***REMOVED*** Main app with primary commands
+  # Main app with primary commands
   app = typer.Typer()
   app.command()(command_function)
 
-  ***REMOVED*** Add subcommands as needed
+  # Add subcommands as needed
   subapp = typer.Typer()
   app.add_typer(subapp, name="subcommand")
   ```
 
-***REMOVED******REMOVED*** 📝 Command Implementation
+## 📝 Command Implementation
 - Implement each command as a discrete function
 - Apply comprehensive type annotations for all parameters
 - Structure each command function with:
@@ -37,23 +37,23 @@ user-friendly, and robust command-line interfaces:
 - Implement common parameter patterns:
   ```python
   def command_name(
-      ***REMOVED*** Required arguments
+      # Required arguments
       file_path: Path = typer.Argument(..., help="Description", exists=True),
 
-      ***REMOVED*** Options with defaults
+      # Options with defaults
       output_dir: Path = typer.Option(DEFAULT_DIR, "--output", "-o", help="Description"),
 
-      ***REMOVED*** Boolean flags
+      # Boolean flags
       verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
 
-      ***REMOVED*** Options with environment variable support
+      # Options with environment variable support
       api_key: str = typer.Option(None, help="API key", envvar="API_KEY"),
   ):
       """Command docstring with full description."""
-      ***REMOVED*** Command implementation
+      # Command implementation
   ```
 
-***REMOVED******REMOVED*** 🖥️ User Experience
+## 🖥️ User Experience
 - Use **Rich** for attractive, informative console output
 - Implement consistent output patterns:
   - Progress indicators for long-running operations
@@ -64,14 +64,14 @@ user-friendly, and robust command-line interfaces:
 - Support both verbose and quiet operation modes
 - Provide configuration display at command start
 
-***REMOVED******REMOVED*** 🧰 Utilities
+## 🧰 Utilities
 - Create reusable utilities for:
   - Configuration display and management
   - Credential validation and handling
   - Input validation and normalization
   - Progress tracking and status updates
 
-***REMOVED******REMOVED*** 🛡️ Error Handling
+## 🛡️ Error Handling
 - Implement comprehensive try/except blocks
 - Log exceptions with appropriate detail level
 - Present user-friendly error messages to console
@@ -79,14 +79,14 @@ user-friendly, and robust command-line interfaces:
 - Exit with appropriate status codes
 - Handle interruptions gracefully
 
-***REMOVED******REMOVED*** 🔍 Logging
+## 🔍 Logging
 - Configure logging early in command execution
 - Allow log level configuration via command options
 - Direct logs to appropriate destinations based on verbosity
 - Implement structured logging with consistent fields
 - Log command invocation details for debugging
 
-***REMOVED******REMOVED*** ✨ Extra Touches
+## ✨ Extra Touches
 - Include interactive confirmation for destructive operations
 - Support both interactive and batch/script usage patterns
 - Implement sensible defaults for all parameters

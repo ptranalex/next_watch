@@ -28,7 +28,7 @@ class MonitoringConfigMixin:
     Note: Metrics are always enabled for production observability.
     """
 
-    ***REMOVED*** Metrics configuration - Note: Metrics are always enabled for production observability
+    # Metrics configuration - Note: Metrics are always enabled for production observability
     metrics_port: int | None = Field(
         default=None,
         description="Port for metrics endpoint (if different from main port)",
@@ -39,7 +39,7 @@ class MonitoringConfigMixin:
         description="Enable detailed performance metrics (may impact performance)",
     )
 
-    ***REMOVED*** Logging configuration
+    # Logging configuration
     log_format: str = Field(default="json", description="Log format: json, text, or structured")
     log_structured: bool = Field(default=True, description="Enable structured logging with fields")
     log_request_details: bool = Field(default=True, description="Log HTTP request details")
@@ -49,7 +49,7 @@ class MonitoringConfigMixin:
         default=True, description="Suppress noisy log entries (health checks, etc.)"
     )
 
-    ***REMOVED*** Tracing configuration
+    # Tracing configuration
     enable_tracing: bool = Field(default=False, description="Enable distributed tracing")
     tracing_endpoint: str | None = Field(
         default=None,
@@ -57,14 +57,14 @@ class MonitoringConfigMixin:
     )
     tracing_sample_rate: float = Field(default=0.1, description="Tracing sample rate (0.0 to 1.0)")
 
-    ***REMOVED*** Health check configuration
+    # Health check configuration
     health_check_interval: int = Field(default=30, description="Health check interval in seconds")
     health_check_timeout: int = Field(default=5, description="Health check timeout in seconds")
     enable_deep_health_checks: bool = Field(
         default=False, description="Enable deep health checks (database, cache, etc.)"
     )
 
-    ***REMOVED*** Error tracking
+    # Error tracking
     enable_error_tracking: bool = Field(
         default=True, description="Enable error tracking and alerting"
     )
@@ -121,7 +121,7 @@ class MonitoringConfigMixin:
         """Validate health check interval."""
         if v < 1:
             raise ValueError("Health check interval must be at least 1 second")
-        if v > 3600:  ***REMOVED*** 1 hour
+        if v > 3600:  # 1 hour
             raise ValueError("Health check interval should not exceed 1 hour")
         return v
 
@@ -156,7 +156,7 @@ class MonitoringConfigMixin:
             Dictionary with metrics configuration
         """
         config = {
-            "enabled": True,  ***REMOVED*** Always enabled for production observability
+            "enabled": True,  # Always enabled for production observability
             "path": self.metrics_path,
             "performance_metrics": self.enable_performance_metrics,
         }
@@ -218,7 +218,7 @@ class MonitoringConfigMixin:
         Returns:
             True if SQL queries should be logged
         """
-        ***REMOVED*** Only log SQL in development or if explicitly enabled
+        # Only log SQL in development or if explicitly enabled
         return (environment == "development") or self.log_sql_queries
 
     def get_metrics_labels(self, service_name: str) -> dict[str, str]:
@@ -232,7 +232,7 @@ class MonitoringConfigMixin:
         """
         return {
             "service": service_name,
-            "version": "1.0.0",  ***REMOVED*** Could be injected from service config
+            "version": "1.0.0",  # Could be injected from service config
         }
 
     def validate_monitoring_production_settings(self, environment: str) -> list[str]:
@@ -247,25 +247,25 @@ class MonitoringConfigMixin:
         issues = []
 
         if environment == "production":
-            ***REMOVED*** Metrics are always enabled - no validation needed
+            # Metrics are always enabled - no validation needed
 
-            ***REMOVED*** Performance metrics may impact performance
+            # Performance metrics may impact performance
             if self.enable_performance_metrics:
                 issues.append("Consider disabling detailed performance metrics in production")
 
-            ***REMOVED*** SQL query logging should be disabled
+            # SQL query logging should be disabled
             if self.log_sql_queries:
                 issues.append("SQL query logging should be disabled in production")
 
-            ***REMOVED*** Structured logging recommended for production
+            # Structured logging recommended for production
             if not self.log_structured:
                 issues.append("Structured logging recommended for production")
 
-            ***REMOVED*** Error tracking should be configured
+            # Error tracking should be configured
             if self.enable_error_tracking and not self.error_tracking_dsn:
                 issues.append("Error tracking DSN should be configured in production")
 
-            ***REMOVED*** Tracing sample rate should be reasonable for production
+            # Tracing sample rate should be reasonable for production
             if self.enable_tracing and self.tracing_sample_rate > 0.1:
                 issues.append("Tracing sample rate should be <= 0.1 in production")
 

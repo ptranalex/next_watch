@@ -45,7 +45,7 @@ def configure_logging(
         ...     log_level="DEBUG",
         ...     log_dir=Path("./logs"),
         ...     verbose=True,
-        ...     http_verbose=False,  ***REMOVED*** Suppress HTTP noise
+        ...     http_verbose=False,  # Suppress HTTP noise
         ...     component_levels={"health": "INFO", "db": "DEBUG"},
         ...     color_theme="solarized"
         ... )
@@ -54,15 +54,15 @@ def configure_logging(
     """
 
     log_level = log_level.upper()
-    ***REMOVED*** Convert string log level to logging constant (e.g., "INFO" -> logging.INFO)
+    # Convert string log level to logging constant (e.g., "INFO" -> logging.INFO)
     level = getattr(logging, log_level, logging.INFO)
 
-    ***REMOVED*** Set up root logger - this is the base logger for all Python logging
+    # Set up root logger - this is the base logger for all Python logging
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
-    root_logger.handlers.clear()  ***REMOVED*** Remove any existing handlers to avoid conflicts
+    root_logger.handlers.clear()  # Remove any existing handlers to avoid conflicts
 
-    ***REMOVED*** Track configuration details for debugging and monitoring
+    # Track configuration details for debugging and monitoring
     config_info: dict[str, Any] = {
         "log_level": log_level,
         "verbose": verbose,
@@ -73,10 +73,10 @@ def configure_logging(
         "handlers": [],
     }
 
-    ***REMOVED*** Simple formatter for handlers - structlog will format the actual messages
+    # Simple formatter for handlers - structlog will format the actual messages
     plain_formatter = logging.Formatter("%(message)s")
 
-    ***REMOVED*** File handler (structured JSON) with error handling
+    # File handler (structured JSON) with error handling
     if log_dir:
         try:
             log_dir.mkdir(parents=True, exist_ok=True)
@@ -87,35 +87,35 @@ def configure_logging(
             config_info["log_file"] = str(log_file)
             config_info["handlers"].append("file")
         except (PermissionError, OSError) as e:
-            ***REMOVED*** Fall back to console-only logging if file logging fails
+            # Fall back to console-only logging if file logging fails
             print(f"Warning: Could not create log file at {log_dir}: {e}")
             print("Falling back to console-only logging.")
             config_info["log_file"] = None
             config_info["file_handler_error"] = str(e)
 
-    ***REMOVED*** Console handler (human readable)
+    # Console handler (human readable)
     renderer: Any = None
     if not quiet:
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(level)
 
-        ***REMOVED*** Choose how to format console output
+        # Choose how to format console output
         if use_coloredlogs:
             from structlog.dev import ConsoleRenderer
 
-            ***REMOVED*** Custom color theme for enhanced readability
+            # Custom color theme for enhanced readability
             selected_theme = COLOR_THEMES.get(color_theme, COLOR_THEMES["modern"])
             renderer = ConsoleRenderer(
                 colors=True,
-                ***REMOVED*** Apply selected color theme
+                # Apply selected color theme
                 level_styles=selected_theme,
-                ***REMOVED*** Pad event field for better alignment - makes logs more readable
+                # Pad event field for better alignment - makes logs more readable
                 pad_event=35,
             )
         else:
             from structlog.processors import LogfmtRenderer
 
-            ***REMOVED*** Standard logfmt format for production - perfect for Grafana parsing
+            # Standard logfmt format for production - perfect for Grafana parsing
             renderer = LogfmtRenderer(
                 key_order=["timestamp", "level", "logger", "event"],
                 drop_missing=True,
@@ -126,14 +126,14 @@ def configure_logging(
         root_logger.addHandler(console_handler)
         config_info["handlers"].append("console")
 
-    ***REMOVED*** Error to stderr
+    # Error to stderr
     error_handler = logging.StreamHandler(sys.stderr)
     error_handler.setLevel(logging.ERROR)
     error_handler.setFormatter(plain_formatter)
     root_logger.addHandler(error_handler)
     config_info["handlers"].append("stderr")
 
-    ***REMOVED*** Enhanced HTTP noise suppression - more comprehensive list
+    # Enhanced HTTP noise suppression - more comprehensive list
     http_loggers = [
         "fastapi",
         "uvicorn",
@@ -152,15 +152,15 @@ def configure_logging(
         "httptools",
     ]
 
-    ***REMOVED*** Set HTTP logger levels based on http_verbose flag
+    # Set HTTP logger levels based on http_verbose flag
     http_level = logging.DEBUG if http_verbose else logging.WARNING
     for http_logger in http_loggers:
         logging.getLogger(http_logger).setLevel(http_level)
-        ***REMOVED*** Block noisy access logs completely unless explicitly requested
+        # Block noisy access logs completely unless explicitly requested
         if http_logger in ["uvicorn.access"] and not http_verbose:
             logging.getLogger(http_logger).propagate = False
 
-    ***REMOVED*** Apply component-specific log levels
+    # Apply component-specific log levels
     if component_levels:
         for component, component_level in component_levels.items():
             component_level_int = getattr(logging, component_level.upper(), logging.INFO)
@@ -168,9 +168,9 @@ def configure_logging(
             logging.getLogger(component_logger_name).setLevel(component_level_int)
             config_info["component_levels"][component] = component_level.upper()
 
-    ***REMOVED*** Additional fine-tuning for non-verbose mode
+    # Additional fine-tuning for non-verbose mode
     if not verbose:
-        ***REMOVED*** Suppress other noisy third-party loggers
+        # Suppress other noisy third-party loggers
         for noisy in [
             "redis",
             "urllib3",
@@ -183,7 +183,7 @@ def configure_logging(
         ]:
             logging.getLogger(noisy).setLevel(logging.WARNING)
 
-    ***REMOVED*** Choose structlog renderer - use console renderer for better formatting
+    # Choose structlog renderer - use console renderer for better formatting
     if renderer:
         structlog_renderer = renderer
     else:
@@ -191,12 +191,12 @@ def configure_logging(
 
         structlog_renderer = ConsoleRenderer(colors=use_coloredlogs)
 
-    ***REMOVED*** Structlog configuration
+    # Structlog configuration
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
             structlog.stdlib.add_log_level,
-            structlog.stdlib.add_logger_name,  ***REMOVED*** Add logger name to log records
+            structlog.stdlib.add_logger_name,  # Add logger name to log records
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.format_exc_info,
             structlog_renderer,

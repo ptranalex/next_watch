@@ -14,7 +14,7 @@ from typing import Any
 __all__ = ["create_app", "create_bff_app"]
 
 
-def __getattr__(name: str) -> Any:  ***REMOVED*** pragma: no cover
+def __getattr__(name: str) -> Any:  # pragma: no cover
     if name in {"create_app", "create_bff_app"}:
         from bff_api.core.app_fast_core import create_bff_app
 

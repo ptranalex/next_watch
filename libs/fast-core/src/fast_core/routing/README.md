@@ -1,8 +1,8 @@
-***REMOVED*** Routing Module
+# Routing Module
 
 The routing module provides advanced routing utilities for FastAPI applications, including API versioning, pagination, and base router classes. These components help build scalable and maintainable APIs across Next Watch services.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This module contains:
 
@@ -10,13 +10,13 @@ This module contains:
 - **Pagination**: Comprehensive pagination utilities and helpers
 - **Versioning**: Multi-strategy API versioning support
 
-***REMOVED******REMOVED*** Module Structure
+## Module Structure
 
-***REMOVED******REMOVED******REMOVED*** `base.py` - Base Router
+### `base.py` - Base Router
 
 Provides a foundation router class with common patterns and utilities.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Basic Usage
+#### Basic Usage
 
 ```python
 from fast_core.routing.base import BaseRouter
@@ -24,7 +24,7 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-***REMOVED*** Create a base router
+# Create a base router
 router = BaseRouter(prefix="/api/v1", tags=["users"])
 
 @router.get("/users")
@@ -34,25 +34,25 @@ async def list_users():
 app.include_router(router)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Features
+#### Features
 
 - Consistent router configuration
 - Common response patterns
 - Error handling integration
 - Standardized route registration
 
-***REMOVED******REMOVED******REMOVED*** `pagination.py` - Pagination Utilities
+### `pagination.py` - Pagination Utilities
 
 Comprehensive pagination system with parameters, metadata, and response formatting.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Key Components
+#### Key Components
 
 - `PaginationParams`: Query parameters for pagination
 - `PaginationMeta`: Metadata about pagination state
 - `PaginatedResult`: Complete paginated response
 - `Paginator`: Pagination logic handler
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Basic Usage
+#### Basic Usage
 
 ```python
 from fastapi import FastAPI, Depends
@@ -68,16 +68,16 @@ app = FastAPI()
 async def list_users(
     pagination: PaginationParams = Depends(get_pagination_params)
 ):
-    ***REMOVED*** Get total count
+    # Get total count
     total_users = await count_users()
 
-    ***REMOVED*** Get paginated data
+    # Get paginated data
     users = await get_users(
         offset=pagination.offset,
         limit=pagination.limit
     )
 
-    ***REMOVED*** Return paginated response
+    # Return paginated response
     return paginate_results(
         data=users,
         pagination=pagination,
@@ -85,23 +85,23 @@ async def list_users(
     )
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Pagination Parameters
+#### Pagination Parameters
 
 ```python
 class PaginationParams:
-    page: int = 1          ***REMOVED*** Page number (1-based)
-    per_page: int = 20     ***REMOVED*** Items per page
-    offset: int            ***REMOVED*** Calculated offset
-    limit: int             ***REMOVED*** Calculated limit
+    page: int = 1          # Page number (1-based)
+    per_page: int = 20     # Items per page
+    offset: int            # Calculated offset
+    limit: int             # Calculated limit
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Query Parameters
+#### Query Parameters
 
 - `?page=2&per_page=50` - Page 2 with 50 items per page
 - `?page=1` - First page with default per_page (20)
 - `?per_page=100` - First page with 100 items per page
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Response Format
+#### Response Format
 
 ```json
 {
@@ -122,39 +122,39 @@ class PaginationParams:
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Advanced Usage
+#### Advanced Usage
 
 ```python
 from fast_core.routing.pagination import Paginator
 
-***REMOVED*** Custom pagination logic
+# Custom pagination logic
 paginator = Paginator(
     page=2,
     per_page=50,
     total_count=1000
 )
 
-***REMOVED*** Get pagination metadata
+# Get pagination metadata
 meta = paginator.get_meta()
 print(f"Page {meta.page} of {meta.total_pages}")
 
-***REMOVED*** Check pagination state
+# Check pagination state
 if paginator.has_next():
     print(f"Next page: {paginator.next_page}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** `versioning.py` - API Versioning
+### `versioning.py` - API Versioning
 
 Multi-strategy API versioning with flexible configuration options.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Versioning Strategies
+#### Versioning Strategies
 
 1. **URL Path**: `/api/v1/users`, `/api/v2/users`
 2. **Header**: `X-API-Version: v1`
 3. **Query Parameter**: `?version=v1`
 4. **Accept Header**: `Accept: application/vnd.api+json;version=1`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Basic Usage
+#### Basic Usage
 
 ```python
 from fastapi import FastAPI, Depends
@@ -166,10 +166,10 @@ from fast_core.routing.versioning import (
 
 app = FastAPI()
 
-***REMOVED*** Create versioned router
+# Create versioned router
 router = VersionedRouter(
     prefix="/api",
-    strategy="url_path"  ***REMOVED*** or "header", "query", "accept"
+    strategy="url_path"  # or "header", "query", "accept"
 )
 
 @router.get("/users", version="v1")
@@ -183,63 +183,63 @@ async def list_users_v2():
 app.include_router(router)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** URL Path Versioning
+#### URL Path Versioning
 
 ```python
 from fast_core.routing.versioning import VersionedRouter
 
-***REMOVED*** URL path strategy
+# URL path strategy
 router = VersionedRouter(
     prefix="/api",
     strategy="url_path"
 )
 
-***REMOVED*** Routes become:
-***REMOVED*** GET /api/v1/users
-***REMOVED*** GET /api/v2/users
+# Routes become:
+# GET /api/v1/users
+# GET /api/v2/users
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Header Versioning
+#### Header Versioning
 
 ```python
-***REMOVED*** Header strategy
+# Header strategy
 router = VersionedRouter(
     prefix="/api",
     strategy="header",
     header_name="X-API-Version"
 )
 
-***REMOVED*** Client sends: X-API-Version: v1
-***REMOVED*** Routes remain: GET /api/users
+# Client sends: X-API-Version: v1
+# Routes remain: GET /api/users
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Query Parameter Versioning
+#### Query Parameter Versioning
 
 ```python
-***REMOVED*** Query parameter strategy
+# Query parameter strategy
 router = VersionedRouter(
     prefix="/api",
     strategy="query",
     query_param="version"
 )
 
-***REMOVED*** Client sends: GET /api/users?version=v1
+# Client sends: GET /api/users?version=v1
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Accept Header Versioning
+#### Accept Header Versioning
 
 ```python
-***REMOVED*** Accept header strategy
+# Accept header strategy
 router = VersionedRouter(
     prefix="/api",
     strategy="accept",
     media_type="application/vnd.api+json"
 )
 
-***REMOVED*** Client sends: Accept: application/vnd.api+json;version=1
+# Client sends: Accept: application/vnd.api+json;version=1
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Version Dependencies
+#### Version Dependencies
 
 ```python
 from fast_core.routing.versioning import version_dependency
@@ -251,24 +251,24 @@ async def list_users(version: APIVersion = Depends(version_dependency)):
     return {"users": []}
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Version-Specific Logic
+#### Version-Specific Logic
 
 ```python
 from fast_core.routing.versioning import APIVersion
 
 def handle_user_request(version: APIVersion, user_data: dict):
     if version >= APIVersion.parse("v2.0"):
-        ***REMOVED*** Enhanced v2 logic
+        # Enhanced v2 logic
         return enhance_user_data(user_data)
     elif version >= APIVersion.parse("v1.5"):
-        ***REMOVED*** v1.5 logic
+        # v1.5 logic
         return add_metadata(user_data)
     else:
-        ***REMOVED*** Basic v1 logic
+        # Basic v1 logic
         return user_data
 ```
 
-***REMOVED******REMOVED*** Complete Integration Example
+## Complete Integration Example
 
 ```python
 from fastapi import FastAPI, Depends
@@ -282,7 +282,7 @@ from fast_core.routing import (
 
 app = FastAPI()
 
-***REMOVED*** Create versioned router with pagination
+# Create versioned router with pagination
 router = VersionedRouter(
     prefix="/api",
     strategy="url_path",
@@ -293,14 +293,14 @@ router = VersionedRouter(
 async def list_users_v1(
     pagination: PaginationParams = Depends(get_pagination_params)
 ):
-    ***REMOVED*** Get data with pagination
+    # Get data with pagination
     users = await get_users_from_db(
         offset=pagination.offset,
         limit=pagination.limit
     )
     total_count = await count_users()
 
-    ***REMOVED*** Return paginated response
+    # Return paginated response
     return paginate_results(
         data=users,
         pagination=pagination,
@@ -311,7 +311,7 @@ async def list_users_v1(
 async def list_users_v2(
     pagination: PaginationParams = Depends(get_pagination_params)
 ):
-    ***REMOVED*** Enhanced v2 with additional fields
+    # Enhanced v2 with additional fields
     users = await get_enhanced_users_from_db(
         offset=pagination.offset,
         limit=pagination.limit
@@ -327,17 +327,17 @@ async def list_users_v2(
 app.include_router(router)
 ```
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 Routing components can be configured through environment variables:
 
 ```bash
-***REMOVED*** Pagination Configuration
+# Pagination Configuration
 PAGINATION_DEFAULT_PER_PAGE=20
 PAGINATION_MAX_PER_PAGE=100
 PAGINATION_ALLOW_ZERO_RESULTS=true
 
-***REMOVED*** Versioning Configuration
+# Versioning Configuration
 API_VERSION_STRATEGY=url_path
 API_VERSION_HEADER_NAME=X-API-Version
 API_VERSION_QUERY_PARAM=version
@@ -345,9 +345,9 @@ API_VERSION_MEDIA_TYPE=application/vnd.api+json
 API_DEFAULT_VERSION=v1
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Pagination
+### Pagination
 
 1. **Reasonable Defaults**: Use sensible default page sizes (20-50 items)
 2. **Maximum Limits**: Prevent large page sizes that could impact performance
@@ -355,7 +355,7 @@ API_DEFAULT_VERSION=v1
 4. **Total Count**: Include total count for UI pagination controls
 5. **Cursor Pagination**: Consider cursor-based pagination for large datasets
 
-***REMOVED******REMOVED******REMOVED*** Versioning
+### Versioning
 
 1. **Semantic Versioning**: Use semantic version numbers (v1.0, v1.1, v2.0)
 2. **Backward Compatibility**: Maintain compatibility within major versions
@@ -363,16 +363,16 @@ API_DEFAULT_VERSION=v1
 4. **Default Version**: Always specify a default version for unversioned requests
 5. **Documentation**: Document version differences clearly
 
-***REMOVED******REMOVED******REMOVED*** Routing
+### Routing
 
 1. **Consistent Prefixes**: Use consistent URL prefixes across services
 2. **Resource Naming**: Use plural nouns for resource endpoints
 3. **HTTP Methods**: Follow REST conventions for HTTP methods
 4. **Error Handling**: Integrate with the errors module for consistent responses
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
-***REMOVED******REMOVED******REMOVED*** Pagination Testing
+### Pagination Testing
 
 ```python
 from fastapi.testclient import TestClient
@@ -395,15 +395,15 @@ def test_pagination_custom(client: TestClient):
     assert data["pagination"]["per_page"] == 50
 ```
 
-***REMOVED******REMOVED******REMOVED*** Versioning Testing
+### Versioning Testing
 
 ```python
 def test_url_path_versioning(client: TestClient):
-    ***REMOVED*** Test v1
+    # Test v1
     response_v1 = client.get("/api/v1/users")
     assert response_v1.status_code == 200
 
-    ***REMOVED*** Test v2
+    # Test v2
     response_v2 = client.get("/api/v2/users")
     assert response_v2.status_code == 200
 
@@ -412,23 +412,23 @@ def test_header_versioning(client: TestClient):
     assert response.status_code == 200
 ```
 
-***REMOVED******REMOVED*** Performance Considerations
+## Performance Considerations
 
-***REMOVED******REMOVED******REMOVED*** Pagination
+### Pagination
 
 1. **Database Indexes**: Ensure proper indexing for pagination queries
 2. **Count Queries**: Consider caching total counts for large datasets
 3. **Offset Limitations**: Use cursor pagination for very large datasets
 4. **Memory Usage**: Be mindful of memory usage with large page sizes
 
-***REMOVED******REMOVED******REMOVED*** Versioning
+### Versioning
 
 1. **Route Resolution**: URL path versioning has minimal overhead
 2. **Header Parsing**: Header-based versioning adds slight parsing overhead
 3. **Code Duplication**: Minimize code duplication between versions
 4. **Caching**: Version-specific responses can be cached separately
 
-***REMOVED******REMOVED*** Integration with Next Watch Services
+## Integration with Next Watch Services
 
 The routing module integrates with:
 
@@ -437,18 +437,18 @@ The routing module integrates with:
 - **Monitoring**: Request metrics by version and pagination parameters
 - **Documentation**: OpenAPI documentation with version-specific schemas
 
-***REMOVED******REMOVED*** Migration Guide
+## Migration Guide
 
-***REMOVED******REMOVED******REMOVED*** Adding Pagination
+### Adding Pagination
 
 ```python
-***REMOVED*** Before
+# Before
 @app.get("/users")
 async def list_users():
     users = await get_all_users()
     return {"users": users}
 
-***REMOVED*** After
+# After
 @app.get("/users")
 async def list_users(
     pagination: PaginationParams = Depends(get_pagination_params)
@@ -466,17 +466,17 @@ async def list_users(
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding Versioning
+### Adding Versioning
 
 ```python
-***REMOVED*** Before
+# Before
 router = APIRouter(prefix="/api")
 
 @router.get("/users")
 async def list_users():
     return {"users": []}
 
-***REMOVED*** After
+# After
 router = VersionedRouter(prefix="/api", strategy="url_path")
 
 @router.get("/users", version="v1")

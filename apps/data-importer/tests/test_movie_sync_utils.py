@@ -14,7 +14,7 @@ import pytest
 
 
 def _install_movie_storage_stubs() -> None:
-    ***REMOVED*** Provide minimal functions that data_importer imports.
+    # Provide minimal functions that data_importer imports.
     def _noop(*args, **kwargs):
         return None
 
@@ -32,7 +32,7 @@ def _install_movie_storage_stubs() -> None:
 
     models = types.ModuleType("movie_storage.models")
 
-    class Movie:  ***REMOVED*** minimal placeholder
+    class Movie:  # minimal placeholder
         pass
 
     models.Movie = Movie
@@ -46,7 +46,7 @@ def _install_movie_storage_stubs() -> None:
 
 _install_movie_storage_stubs()
 
-from data_importer.sync.movie_sync import convert_string_to_date, fetch_genre_data  ***REMOVED*** noqa: E402
+from data_importer.sync.movie_sync import convert_string_to_date, fetch_genre_data  # noqa: E402
 
 
 def test_convert_string_to_date_valid() -> None:

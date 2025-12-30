@@ -12,12 +12,12 @@ def test_config_creation_defaults() -> None:
     assert config.service_name == "recommendation-api"
     assert config.port == 8002
 
-    ***REMOVED*** Embeddings defaults
+    # Embeddings defaults
     assert config.embedding_dimension == 384
     assert config.batch_size == 32
     assert isinstance(config.embedding_model, str)
 
-    ***REMOVED*** External service URLs
+    # External service URLs
     assert config.backend_api_url.startswith(("http://", "https://"))
     assert config.ml_api_url.startswith(("http://", "https://"))
     assert config.qdrant_url.startswith(("http://", "https://"))
@@ -35,8 +35,8 @@ def test_config_env_overrides() -> None:
     ):
         config = RecommendationAPIConfig()
 
-    ***REMOVED*** env override
+    # env override
     assert config.port == 9002
     assert config.environment == "production"
-    ***REMOVED*** production overrides should force debug off
+    # production overrides should force debug off
     assert config.debug is False

@@ -22,8 +22,8 @@ def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> int
         AuthenticationException: If token is invalid and raise_on_invalid=True
     """
     try:
-        ***REMOVED*** Use the JWT secret from our settings
-        ***REMOVED*** Fall back to auth service default if not configured
+        # Use the JWT secret from our settings
+        # Fall back to auth service default if not configured
         jwt_secret = settings.jwt_secret or "change_this_in_production_very_important"
 
         logger.debug(
@@ -43,7 +43,7 @@ def extract_user_id_from_token(token: str, raise_on_invalid: bool = True) -> int
             component="auth",
         )
 
-        ***REMOVED*** Extract user ID from 'sub' claim
+        # Extract user ID from 'sub' claim
         sub = payload.get("sub")
         if sub is None:
             error_msg = "Token payload missing 'sub' claim"

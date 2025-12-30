@@ -42,20 +42,20 @@ def show_config(
         console.print(f"Log level: {getattr(settings, 'log_level', 'INFO')}")
 
         if verbose:
-            ***REMOVED*** Create a table with all config values
+            # Create a table with all config values
             table = Table(title="Detailed Configuration")
             table.add_column("Setting", style="cyan")
             table.add_column("Value", style="green")
 
-            ***REMOVED*** Add rows for each config attribute, masking sensitive values
+            # Add rows for each config attribute, masking sensitive values
             for attr in dir(settings):
-                ***REMOVED*** Skip private attributes and methods
+                # Skip private attributes and methods
                 if attr.startswith("_") or callable(getattr(settings, attr)):
                     continue
 
                 value = getattr(settings, attr)
 
-                ***REMOVED*** Mask sensitive values
+                # Mask sensitive values
                 if any(
                     sensitive in attr.lower()
                     for sensitive in ["api_key", "password", "secret", "token"]
@@ -70,7 +70,7 @@ def show_config(
 
             console.print(table)
     else:
-        ***REMOVED*** Show all config, including sensitive values
+        # Show all config, including sensitive values
         console.print("[bold red]⚠️  WARNING: Displaying sensitive configuration values[/bold red]")
         print_config(settings, title="Full Configuration (Including Secrets)", console=console)
 
@@ -78,7 +78,7 @@ def show_config(
         logger.info("Configuration displayed")
 
 
-***REMOVED*** Default command - alias to show
+# Default command - alias to show
 @app.callback(invoke_without_command=True)
 def config(ctx: typer.Context) -> None:
     """Display current configuration."""
@@ -86,8 +86,8 @@ def config(ctx: typer.Context) -> None:
         show_config()
 
 
-***REMOVED*** Register config command directly with main app
-from backend_api.cli import app as main_app  ***REMOVED*** noqa: E402
+# Register config command directly with main app
+from backend_api.cli import app as main_app  # noqa: E402
 
-***REMOVED*** Register the show command directly as "config"
+# Register the show command directly as "config"
 main_app.command("config")(show_config)

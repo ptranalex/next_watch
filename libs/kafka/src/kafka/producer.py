@@ -16,7 +16,7 @@ from kafka.events.base import BaseEvent
 logger = structlog.get_logger(__name__)
 tracer = trace.get_tracer(__name__)
 
-***REMOVED*** Import Avro dependencies if available
+# Import Avro dependencies if available
 try:
     from kafka.schema_registry import SchemaRegistryClient
     from kafka.schemas.avro_schemas import AVRO_SCHEMAS
@@ -25,9 +25,9 @@ try:
     AVRO_AVAILABLE = True
 except ImportError:
     AVRO_AVAILABLE = False
-    SchemaRegistryClient = None  ***REMOVED*** type: ignore
-    AvroSerializer = None  ***REMOVED*** type: ignore
-    AVRO_SCHEMAS = None  ***REMOVED*** type: ignore
+    SchemaRegistryClient = None  # type: ignore
+    AvroSerializer = None  # type: ignore
+    AVRO_SCHEMAS = None  # type: ignore
 
 
 class KafkaEventProducer:
@@ -71,7 +71,7 @@ class KafkaEventProducer:
         self._started = False
         self._schema_registry = schema_registry
         self._avro_serializer: AvroSerializer | None = None
-        self._schema_ids: dict[str, int] = {}  ***REMOVED*** Cache: event_type -> schema_id
+        self._schema_ids: dict[str, int] = {}  # Cache: event_type -> schema_id
         self.logger = logger.bind(
             component="kafka_producer",
             service=service_name,
@@ -89,7 +89,7 @@ class KafkaEventProducer:
             return
 
         try:
-            ***REMOVED*** Initialize Avro serializer if needed
+            # Initialize Avro serializer if needed
             if self.config.serialization_format == "avro":
                 if not AVRO_AVAILABLE:
                     raise RuntimeError(
@@ -97,7 +97,7 @@ class KafkaEventProducer:
                         "Install with: pip install kafka[avro]"
                     )
 
-                ***REMOVED*** Create Schema Registry client if not provided
+                # Create Schema Registry client if not provided
                 if not self._schema_registry:
                     if self.config.enable_schema_registry:
                         self._schema_registry = SchemaRegistryClient(self.config)
@@ -110,16 +110,16 @@ class KafkaEventProducer:
                 self._avro_serializer = AvroSerializer(self._schema_registry)
                 self.logger.info("Avro serialization enabled")
 
-            ***REMOVED*** Create producer with appropriate serializer
+            # Create producer with appropriate serializer
             if self.config.serialization_format == "avro":
-                ***REMOVED*** For Avro, we handle serialization manually in send_event
+                # For Avro, we handle serialization manually in send_event
                 self._producer = AIOKafkaProducer(
                     **self.config.producer_config,
-                    value_serializer=None,  ***REMOVED*** We'll serialize manually
+                    value_serializer=None,  # We'll serialize manually
                     key_serializer=self._serialize_key,
                 )
             else:
-                ***REMOVED*** For JSON, use existing serializers
+                # For JSON, use existing serializers
                 self._producer = AIOKafkaProducer(
                     **self.config.producer_config,
                     value_serializer=self._serialize_value,
@@ -134,7 +134,7 @@ class KafkaEventProducer:
                 serialization_format=self.config.serialization_format,
             )
 
-            ***REMOVED*** Register schemas if auto-registration is enabled
+            # Register schemas if auto-registration is enabled
             if self.config.serialization_format == "avro" and self.config.auto_register_schemas:
                 await self._register_all_schemas()
 
@@ -182,12 +182,12 @@ class KafkaEventProducer:
                 self.logger.debug("Producer disabled, skipping event", topic=topic)
                 return
 
-        ***REMOVED*** Add service name to event if it's a BaseEvent
+        # Add service name to event if it's a BaseEvent
         if isinstance(event, BaseEvent):
             if not event.service_name:
                 event.service_name = self.service_name
 
-            ***REMOVED*** Add trace context if available
+            # Add trace context if available
             if self.config.enable_tracing:
                 current_span = trace.get_current_span()
                 if current_span.is_recording():
@@ -195,10 +195,10 @@ class KafkaEventProducer:
                     event.trace_id = format(span_context.trace_id, "032x")
                     event.span_id = format(span_context.span_id, "016x")
 
-        ***REMOVED*** Convert event to dict if it's a Pydantic model
+        # Convert event to dict if it's a Pydantic model
         event_data = event.model_dump() if isinstance(event, BaseEvent) else event
 
-        ***REMOVED*** Create trace span
+        # Create trace span
         with tracer.start_as_current_span(
             f"kafka.send.{topic}",
             attributes={
@@ -208,13 +208,13 @@ class KafkaEventProducer:
             },
         ) as span:
             try:
-                ***REMOVED*** Serialize value based on configured format
+                # Serialize value based on configured format
                 if self.config.serialization_format == "avro" and isinstance(event, BaseEvent):
                     serialized_value: bytes | dict[str, Any] = await self._serialize_with_avro(
                         event, topic
                     )
                 else:
-                    ***REMOVED*** Use JSON serialization (will be handled by producer's serializer)
+                    # Use JSON serialization (will be handled by producer's serializer)
                     serialized_value = event_data
 
                 await self._send_with_retry(
@@ -237,7 +237,7 @@ class KafkaEventProducer:
                 span.set_status(Status(StatusCode.ERROR, str(e)))
                 span.record_exception(e)
 
-                ***REMOVED*** Try to send to DLQ
+                # Try to send to DLQ
                 await self._send_to_dlq(topic, event_data, key, str(e))
 
                 self.logger.error(
@@ -284,7 +284,7 @@ class KafkaEventProducer:
                     partition=partition,
                     headers=headers,
                 )
-                ***REMOVED*** Wait for send to complete
+                # Wait for send to complete
                 await future
                 return
             except (KafkaTimeoutError, KafkaError) as e:
@@ -330,7 +330,7 @@ class KafkaEventProducer:
                 "timestamp": event_data.get("timestamp"),
             }
 
-            ***REMOVED*** Send to DLQ without retry to avoid infinite loop
+            # Send to DLQ without retry to avoid infinite loop
             await self._producer.send(
                 topic=self.config.dlq_topic,
                 value=dlq_event,
@@ -405,7 +405,7 @@ class KafkaEventProducer:
             event.event_type.value if hasattr(event.event_type, "value") else str(event.event_type)
         )
 
-        ***REMOVED*** Get schema ID from cache or register
+        # Get schema ID from cache or register
         if event_type not in self._schema_ids:
             if event_type not in AVRO_SCHEMAS:
                 raise ValueError(f"No Avro schema found for event type: {event_type}")
@@ -428,7 +428,7 @@ class KafkaEventProducer:
 
         schema_id = self._schema_ids[event_type]
 
-        ***REMOVED*** Serialize with Avro using the event and schema ID
+        # Serialize with Avro using the event and schema ID
         if not self._avro_serializer:
             raise RuntimeError("Avro serializer not initialized")
         return await self._avro_serializer.serialize(event, schema_id)
@@ -448,7 +448,7 @@ class KafkaEventProducer:
         registered_count = 0
         for event_type, schema in AVRO_SCHEMAS.items():
             try:
-                ***REMOVED*** Use a generic subject pattern for registration
+                # Use a generic subject pattern for registration
                 subject = f"{event_type}-value"
                 schema_id = await self._schema_registry.register_schema(subject, schema)
                 self._schema_ids[event_type] = schema_id

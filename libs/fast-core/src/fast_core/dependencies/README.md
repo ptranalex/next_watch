@@ -1,8 +1,8 @@
-***REMOVED*** Dependencies Module
+# Dependencies Module
 
 The dependencies module provides a comprehensive set of dependency injection utilities for FastAPI applications. These dependencies standardize common patterns like authentication, database access, caching, and request handling across Next Watch services.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This module contains dependency functions that can be injected into FastAPI route handlers to provide common functionality:
 
@@ -11,7 +11,7 @@ This module contains dependency functions that can be injected into FastAPI rout
 - **Database**: Session management, transactions, read-only access
 - **Cache**: Redis client, cache manager, cache service operations
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 ```python
 from fastapi import FastAPI, Depends
@@ -30,13 +30,13 @@ async def list_users(
     db: AsyncSession = Depends(get_db_session),
     user: User = Depends(get_current_user),
 ):
-    ***REMOVED*** Your route logic here
+    # Your route logic here
     pass
 ```
 
-***REMOVED******REMOVED*** Module Structure
+## Module Structure
 
-***REMOVED******REMOVED******REMOVED*** `common.py`
+### `common.py`
 
 Basic request handling dependencies:
 
@@ -45,7 +45,7 @@ Basic request handling dependencies:
 - `get_pagination_params()`: Standardized pagination parameters
 - `get_search_params()`: Search query parameters
 
-***REMOVED******REMOVED******REMOVED*** `auth.py`
+### `auth.py`
 
 Authentication and authorization dependencies:
 
@@ -67,7 +67,7 @@ async def admin_users(
     pass
 ```
 
-***REMOVED******REMOVED******REMOVED*** `database.py`
+### `database.py`
 
 Database session and transaction management:
 
@@ -84,20 +84,20 @@ from fast_core.dependencies.database import get_db_session, get_db_transaction
 @app.post("/users")
 async def create_user(
     user_data: UserCreate,
-    db: AsyncSession = Depends(get_db_transaction),  ***REMOVED*** Auto-commits
+    db: AsyncSession = Depends(get_db_transaction),  # Auto-commits
 ):
-    ***REMOVED*** Database changes are automatically committed
+    # Database changes are automatically committed
     pass
 
 @app.get("/users")
 async def list_users(
-    db: AsyncSession = Depends(get_readonly_db_session),  ***REMOVED*** Read-only
+    db: AsyncSession = Depends(get_readonly_db_session),  # Read-only
 ):
-    ***REMOVED*** Cannot modify database
+    # Cannot modify database
     pass
 ```
 
-***REMOVED******REMOVED******REMOVED*** `cache.py`
+### `cache.py`
 
 Caching utilities and Redis integration:
 
@@ -115,18 +115,18 @@ async def get_user(
     user_id: int,
     cache: CacheService = Depends(get_cache_service),
 ):
-    ***REMOVED*** Try cache first
+    # Try cache first
     cached_user = await cache.get(f"user:{user_id}")
     if cached_user:
         return cached_user
 
-    ***REMOVED*** Fetch from database and cache
+    # Fetch from database and cache
     user = await fetch_user_from_db(user_id)
     await cache.set(f"user:{user_id}", user, ttl=300)
     return user
 ```
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 Dependencies rely on proper configuration in your FastAPI application:
 
@@ -142,7 +142,7 @@ config = FastAPIConfig(
 app = create_app(config=config)
 ```
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 All dependencies include proper error handling:
 
@@ -151,7 +151,7 @@ All dependencies include proper error handling:
 - **Database errors**: Return 500 Internal Server Error with proper logging
 - **Cache errors**: Graceful fallback, don't fail requests
 
-***REMOVED******REMOVED*** Integration with Next Watch Services
+## Integration with Next Watch Services
 
 These dependencies are designed to work seamlessly with:
 
@@ -160,7 +160,7 @@ These dependencies are designed to work seamlessly with:
 - **CLI Library**: Command-line utilities and logging
 - **Movie Storage**: Database models and operations
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 1. **Use appropriate session types**:
 
@@ -184,7 +184,7 @@ These dependencies are designed to work seamlessly with:
    - Always include `get_request_id()` for debugging
    - Use request ID in logs and error messages
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 Dependencies can be easily overridden in tests:
 

@@ -40,13 +40,13 @@ def get_request_id() -> Any:
     """
 
     def _get_request_id(request: Request) -> str:
-        ***REMOVED*** Try to get request ID from headers
+        # Try to get request ID from headers
         request_id = request.headers.get("X-Request-ID")
         if not request_id:
-            ***REMOVED*** Generate a new request ID
+            # Generate a new request ID
             request_id = str(uuid.uuid4())
 
-        ***REMOVED*** Store in request state for later use
+        # Store in request state for later use
         request.state.request_id = request_id
         return request_id
 
@@ -72,7 +72,7 @@ class PaginationParams:
         self.page = max(1, page)
         self.limit = min(max(1, limit), max_page_size)
         self.offset = (self.page - 1) * self.limit
-        self.page_size = self.limit  ***REMOVED*** Alias for backward compatibility
+        self.page_size = self.limit  # Alias for backward compatibility
 
     @property
     def skip(self) -> int:

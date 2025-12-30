@@ -114,11 +114,11 @@ class TestBaseServiceClient:
 
         client = MockServiceClient(config)
 
-        ***REMOVED*** Create client
+        # Create client
         await client._get_client()
         assert client._client is not None
 
-        ***REMOVED*** Close client
+        # Close client
         await client.close()
         assert client._client is None
 
@@ -133,7 +133,7 @@ class TestGenericServiceClient:
 
         client = GenericServiceClient(config)
 
-        ***REMOVED*** Mock the HTTP client
+        # Mock the HTTP client
         mock_response = Mock()
         mock_response.status_code = 200
 
@@ -173,7 +173,7 @@ class TestGenericServiceClient:
 
         client = GenericServiceClient(config)
 
-        ***REMOVED*** Mock the HTTP client
+        # Mock the HTTP client
         mock_response = Mock()
         mock_response.status_code = 200
 
@@ -185,22 +185,22 @@ class TestGenericServiceClient:
             mock_http_client.delete.return_value = mock_response
             mock_get_client.return_value = mock_http_client
 
-            ***REMOVED*** Test GET
+            # Test GET
             response = await client.get("/test")
             assert response.status_code == 200
             mock_http_client.get.assert_called_with("/test")
 
-            ***REMOVED*** Test POST
+            # Test POST
             response = await client.post("/test", json={"data": "test"})
             assert response.status_code == 200
             mock_http_client.post.assert_called_with("/test", json={"data": "test"})
 
-            ***REMOVED*** Test PUT
+            # Test PUT
             response = await client.put("/test", json={"data": "test"})
             assert response.status_code == 200
             mock_http_client.put.assert_called_with("/test", json={"data": "test"})
 
-            ***REMOVED*** Test DELETE
+            # Test DELETE
             response = await client.delete("/test")
             assert response.status_code == 200
             mock_http_client.delete.assert_called_with("/test")
@@ -239,10 +239,10 @@ class TestServiceClientFactory:
         """Test custom client type registration."""
         factory = ServiceClientFactory()
 
-        ***REMOVED*** First register service
+        # First register service
         factory.register_service(name="test-service", base_url="https://api.example.com")
 
-        ***REMOVED*** Then register custom client type
+        # Then register custom client type
         factory.register_client_type(
             service_name="test-service",
             client_class=MockServiceClient,
@@ -300,7 +300,7 @@ class TestServiceClientFactory:
 
         dependency = factory.get_dependency("test-service")
 
-        ***REMOVED*** Should be a function for FastAPI Depends
+        # Should be a function for FastAPI Depends
         assert callable(dependency)
 
     def test_get_dependency_per_request(self):
@@ -315,7 +315,7 @@ class TestServiceClientFactory:
 
         dependency = factory.get_dependency("test-service")
 
-        ***REMOVED*** Should be a function for FastAPI Depends
+        # Should be a function for FastAPI Depends
         assert callable(dependency)
         assert dependency.__name__ == "get_test-service_client"
 
@@ -371,7 +371,7 @@ class TestGlobalFunctions:
 
     def test_register_service_global(self):
         """Test global service registration."""
-        ***REMOVED*** Clear any existing registrations
+        # Clear any existing registrations
         factory = get_service_factory()
         factory._configs.clear()
         factory._client_types.clear()
@@ -388,7 +388,7 @@ class TestGlobalFunctions:
 
     def test_register_client_type_global(self):
         """Test global client type registration."""
-        ***REMOVED*** Ensure service is registered first
+        # Ensure service is registered first
         register_service(name="custom-service", base_url="https://custom.example.com")
 
         register_client_type(
@@ -408,7 +408,7 @@ class TestGlobalFunctions:
 
     def test_service_client_decorator(self):
         """Test service client decorator."""
-        ***REMOVED*** Register service first
+        # Register service first
         register_service(name="decorated-service", base_url="https://decorated.example.com")
 
         @service_client("decorated-service", singleton=True)
@@ -422,7 +422,7 @@ class TestGlobalFunctions:
     @pytest.mark.asyncio
     async def test_health_check_all_services_global(self):
         """Test global health check function."""
-        ***REMOVED*** Ensure we have at least one service registered
+        # Ensure we have at least one service registered
         register_service(name="health-service", base_url="https://health.example.com")
 
         register_client_type(
@@ -443,24 +443,24 @@ class TestIntegrationWithFastAPI:
         """Test using service client as FastAPI dependency."""
         app = FastAPI()
 
-        ***REMOVED*** Register service
+        # Register service
         register_service(name="api-service", base_url="https://api.example.com")
 
-        ***REMOVED*** Create dependency
+        # Create dependency
         get_api_client = get_service_client("api-service")
 
         @app.get("/test")
         async def test_endpoint(client=Depends(get_api_client)):
             return {"client_type": type(client).__name__}
 
-        ***REMOVED*** Verify the dependency is properly configured
+        # Verify the dependency is properly configured
         assert callable(get_api_client)
 
     def test_custom_client_with_fastapi(self):
         """Test custom client with FastAPI dependency injection."""
         app = FastAPI()
 
-        ***REMOVED*** Register service with custom client
+        # Register service with custom client
         register_service(name="custom-api", base_url="https://custom-api.example.com")
 
         register_client_type(
@@ -468,14 +468,14 @@ class TestIntegrationWithFastAPI:
             client_class=MockServiceClient,
         )
 
-        ***REMOVED*** Create dependency
+        # Create dependency
         get_custom_client = get_service_client("custom-api")
 
         @app.get("/custom")
         async def custom_endpoint(client=Depends(get_custom_client)):
             return {"client_name": client.name}
 
-        ***REMOVED*** Verify the dependency works
+        # Verify the dependency works
         assert callable(get_custom_client)
 
 

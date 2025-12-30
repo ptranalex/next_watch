@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from cache.manager import CacheManager
 from config.logging import get_logger
 
-***REMOVED*** from fast_core.dependencies.client_factory import get_service_client  ***REMOVED*** No longer used
+# from fast_core.dependencies.client_factory import get_service_client  # No longer used
 
 if TYPE_CHECKING:
     from fast_core.monitoring import HealthCheckRegistry
@@ -49,19 +49,19 @@ class HealthService:
         Returns:
             Dictionary mapping service names to health check results
         """
-        ***REMOVED*** Run all health checks concurrently
+        # Run all health checks concurrently
         backend_task = asyncio.create_task(self.check_backend_api())
         redis_task = asyncio.create_task(self.check_redis())
 
-        ***REMOVED*** Wait for all checks to complete
+        # Wait for all checks to complete
         gather_results = await asyncio.gather(backend_task, redis_task, return_exceptions=True)
 
-        ***REMOVED*** Handle any exceptions and build results
+        # Handle any exceptions and build results
         results: dict[str, HealthCheckResult] = {}
 
         backend_result, redis_result = gather_results
 
-        ***REMOVED*** Process backend result
+        # Process backend result
         if isinstance(backend_result, Exception):
             results["backend_api"] = HealthCheckResult(
                 is_healthy=False, status="error", error=str(backend_result)
@@ -73,7 +73,7 @@ class HealthService:
                 is_healthy=False, status="error", error="Unexpected result type"
             )
 
-        ***REMOVED*** Process redis result
+        # Process redis result
         if isinstance(redis_result, Exception):
             results["redis"] = HealthCheckResult(
                 is_healthy=False, status="error", error=str(redis_result)
@@ -148,11 +148,11 @@ class HealthService:
 
         try:
             if self.cache_manager:
-                ***REMOVED*** Test Redis connection using cache manager
+                # Test Redis connection using cache manager
                 test_key = "health_check:search_api"
                 test_value = "ping"
 
-                ***REMOVED*** Try to set and get a test value
+                # Try to set and get a test value
                 await self.cache_manager.set_json(test_key, test_value, ttl=10)
                 retrieved_value = await self.cache_manager.get_json(test_key)
 
@@ -176,7 +176,7 @@ class HealthService:
                         error="Redis test value mismatch",
                     )
             else:
-                ***REMOVED*** No cache manager available - try basic connection check
+                # No cache manager available - try basic connection check
                 try:
                     import redis.asyncio as redis
 
@@ -220,11 +220,11 @@ class HealthService:
     def close(self) -> None:
         """Close all client connections."""
         if self.cache_manager:
-            ***REMOVED*** Cache manager handles its own cleanup
+            # Cache manager handles its own cleanup
             pass
 
 
-***REMOVED*** Global health service instance
+# Global health service instance
 _health_service: HealthService | None = None
 
 
@@ -254,9 +254,9 @@ def close_health_service() -> None:
         _health_service = None
 
 
-***REMOVED***
-***REMOVED*** NEW HEALTH CHECK REGISTRY INTEGRATION
-***REMOVED***
+#
+# NEW HEALTH CHECK REGISTRY INTEGRATION
+#
 
 
 def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
@@ -273,7 +273,7 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
         HealthCheckResult,
     )
 
-    ***REMOVED*** Backend API - CRITICAL (search needs movie data)
+    # Backend API - CRITICAL (search needs movie data)
     async def check_backend_api() -> HealthCheckResult:
         """Check Backend API connectivity."""
         start_time = time.time()
@@ -306,7 +306,7 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Redis Cache - IMPORTANT (improves search performance)
+    # Redis Cache - IMPORTANT (improves search performance)
     async def check_redis_cache() -> HealthCheckResult:
         """Check Redis cache connectivity."""
         start_time = time.time()
@@ -318,7 +318,7 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
             redis_client = redis.from_url(settings.redis_url, socket_timeout=3.0)
             await redis_client.ping()
 
-            ***REMOVED*** Test basic operation
+            # Test basic operation
             test_key = "health_check:search_api"
             await redis_client.set(test_key, "ping", ex=10)
             await redis_client.get(test_key)
@@ -342,12 +342,12 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Search Index Performance - INFORMATIONAL (monitoring only)
+    # Search Index Performance - INFORMATIONAL (monitoring only)
     async def check_search_performance() -> HealthCheckResult:
         """Check search performance metrics."""
         start_time = time.time()
         try:
-            ***REMOVED*** Simple performance test - this could be enhanced with actual search metrics
+            # Simple performance test - this could be enhanced with actual search metrics
             response_time = (time.time() - start_time) * 1000
 
             return HealthCheckResult(
@@ -365,9 +365,9 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
                 error=str(e),
             )
 
-    ***REMOVED*** Register health checks with industry-standard category-driven endpoint mapping
+    # Register health checks with industry-standard category-driven endpoint mapping
 
-    ***REMOVED*** CRITICAL services - automatically included in READINESS + DEEP
+    # CRITICAL services - automatically included in READINESS + DEEP
     registry.add_check(
         HealthCheckDefinition(
             name="redis_cache_critical",
@@ -377,7 +377,7 @@ def setup_search_health_checks(registry: "HealthCheckRegistry") -> None:
         )
     )
 
-    ***REMOVED*** IMPORTANT services - automatically included in DEEP only
+    # IMPORTANT services - automatically included in DEEP only
     registry.add_check(
         HealthCheckDefinition(
             name="backend_api",

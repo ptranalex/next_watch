@@ -1,37 +1,37 @@
-***REMOVED*** Development Environment Configuration (example)
-***REMOVED*** Copy to: infra/.env.development (do not commit) if you want a shared dev env file.
-***REMOVED***
-***REMOVED*** Note: many services also support per-service `.env.local` files (preferred).
+# Development Environment Configuration (example)
+# Copy to: infra/.env.development (do not commit) if you want a shared dev env file.
+#
+# Note: many services also support per-service `.env.local` files (preferred).
 
-***REMOVED*** Database URLs
+# Database URLs
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/next_watch
 AUTH_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/next_watch_auth
 
-***REMOVED*** Redis Configuration
+# Redis Configuration
 REDIS_URL=redis://localhost:6379/0
 
-***REMOVED*** JWT Configuration
+# JWT Configuration
 JWT_SECRET=dev-jwt-secret-key-not-for-production
 JWT_ALGORITHM=HS256
 
-***REMOVED*** API Keys (Development/Test Keys)
+# API Keys (Development/Test Keys)
 TMDB_ACCESS_TOKEN=your-dev-tmdb-token
 OMDB_API_KEY=your-dev-omdb-key
 
-***REMOVED*** Logging
+# Logging
 LOG_LEVEL=DEBUG
 DEBUG=true
 
-***REMOVED*** Tracing Configuration - Development
+# Tracing Configuration - Development
 ENABLE_TRACING=true
 TRACING_ENDPOINT=http://localhost:4317
 TRACING_SAMPLE_RATE=1.0
 SERVICE_VERSION=1.0.0-dev
 
-***REMOVED*** CORS - Permissive for development
+# CORS - Permissive for development
 CORS_ORIGINS=http://localhost:3000,http://localhost:8001,http://localhost:8002
 
-***REMOVED*** Feature flags - All enabled for development
+# Feature flags - All enabled for development
 ENABLE_PERFORMANCE_METRICS=true
 ENABLE_ADVANCED_SEARCH=true
 ENABLE_RECOMMENDATIONS=true

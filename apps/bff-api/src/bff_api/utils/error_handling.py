@@ -13,7 +13,7 @@ from fast_core.responses import ResponseBuilder
 
 logger = get_logger(__name__)
 
-***REMOVED*** BFF-specific service error handlers
+# BFF-specific service error handlers
 backend_error_handler = service_error_handler("backend-api", logger)
 auth_error_handler = service_error_handler("auth-api", logger)
 recommendation_error_handler = service_error_handler("recommendation-api", logger)
@@ -68,7 +68,7 @@ def create_bff_error_response(
     )
 
 
-***REMOVED*** Removed: build_backend_path - now handled by ServiceClient
+# Removed: build_backend_path - now handled by ServiceClient
 
 
 class BackendErrorContext(ServiceErrorContext):

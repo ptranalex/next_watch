@@ -1,8 +1,8 @@
-kkkkkkkk***REMOVED*** Fast Core Tracing Migration Guide
+kkkkkkkk# Fast Core Tracing Migration Guide
 
 This guide shows how to migrate from manual request ID propagation to the new automatic tracing system in Fast Core.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The new tracing system provides:
 
@@ -12,12 +12,12 @@ The new tracing system provides:
 - ✅ **Industry standard compliance** (W3C, B3, Jaeger)
 - ✅ **Backward compatibility** with existing code
 
-***REMOVED******REMOVED*** Before: Manual Implementation (Error-Prone)
+## Before: Manual Implementation (Error-Prone)
 
-***REMOVED******REMOVED******REMOVED*** Old BFF Service Code
+### Old BFF Service Code
 
 ```python
-***REMOVED*** ❌ Manual context handling (error-prone)
+# ❌ Manual context handling (error-prone)
 from bff_api.dependencies import get_backend_client, setup_request_context
 from bff_api.services.clients.base import set_request_id_context
 
@@ -26,26 +26,26 @@ async def get_movie_screen(
     movie_id: int,
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    _: None = Depends(setup_request_context),  ***REMOVED*** Manual setup
+    _: None = Depends(setup_request_context),  # Manual setup
 ):
-    ***REMOVED*** Manual user ID extraction
+    # Manual user ID extraction
     user_id = None
     if credentials and credentials.credentials:
         user_id = extract_user_id_from_token(credentials.credentials)
 
-    ***REMOVED*** Manual request ID handling
+    # Manual request ID handling
     screen_data = await _get_movie_screen_data(
         movie_id, user_id, backend, recommendation_client, credentials
     )
 
     return screen_data
 
-***REMOVED*** ❌ Manual header injection in service clients
+# ❌ Manual header injection in service clients
 class BaseBackendClient:
     def _get_auth_headers(self, user_id: int, request_id: Optional[str] = None):
         headers = {"X-User-ID": str(user_id), "X-Service": "bff-api"}
 
-        ***REMOVED*** Manual request ID extraction and injection
+        # Manual request ID extraction and injection
         final_request_id = request_id or get_request_id_context()
         if final_request_id:
             headers["X-Request-ID"] = final_request_id
@@ -53,16 +53,16 @@ class BaseBackendClient:
         return headers
 
     async def _make_request(self, method: str, path: str, **kwargs):
-        ***REMOVED*** Manual header injection
+        # Manual header injection
         headers = kwargs.get("headers", {})
         final_request_id = request_id or get_request_id_context()
         if final_request_id:
             headers["X-Request-ID"] = final_request_id
 
-        ***REMOVED*** Rest of implementation...
+        # Rest of implementation...
 ```
 
-***REMOVED******REMOVED******REMOVED*** Problems with Manual Approach
+### Problems with Manual Approach
 
 1. **Human Error-Prone**: Developers forget to call `setup_request_context`
 2. **Inconsistent Implementation**: Different services handle tracing differently
@@ -70,12 +70,12 @@ class BaseBackendClient:
 4. **Context Variable Management**: Complex manual context passing
 5. **No Standard Compliance**: Custom implementation doesn't follow W3C standards
 
-***REMOVED******REMOVED*** After: Automatic Implementation (Zero Errors)
+## After: Automatic Implementation (Zero Errors)
 
-***REMOVED******REMOVED******REMOVED*** New Fast Core Implementation
+### New Fast Core Implementation
 
 ```python
-***REMOVED*** ✅ Automatic tracing with Fast Core
+# ✅ Automatic tracing with Fast Core
 from fast_core import (
     create_app,
     get_current_request_context,
@@ -84,7 +84,7 @@ from fast_core import (
 )
 from fast_core.middleware import MiddlewareConfig
 
-***REMOVED*** 1. Configure middleware once
+# 1. Configure middleware once
 middleware = MiddlewareConfig()
 middleware.context(
     service_name="bff-api",
@@ -93,49 +93,49 @@ middleware.context(
     trace_propagation=True,
 )
 
-***REMOVED*** 2. Create app with automatic tracing
+# 2. Create app with automatic tracing
 app = create_app(
     settings=settings,
     middleware=middleware,
-    ***REMOVED*** ... other options
+    # ... other options
 )
 
-***REMOVED*** 3. Use tracing-aware service clients
+# 3. Use tracing-aware service clients
 class BackendClient(TracingAwareServiceClient):
     """Backend client with automatic tracing."""
 
     async def get_movie(self, movie_id: int) -> Dict[str, Any]:
-        ***REMOVED*** ✅ Automatic trace header injection
-        ***REMOVED*** ✅ Automatic span creation
-        ***REMOVED*** ✅ Automatic error handling with tracing
+        # ✅ Automatic trace header injection
+        # ✅ Automatic span creation
+        # ✅ Automatic error handling with tracing
         response = await self.get(f"/movies/{movie_id}")
         response.raise_for_status()
         return response.json()
 
-***REMOVED*** 4. Clean endpoint implementation
+# 4. Clean endpoint implementation
 @router.get("/movies/{movie_id}")
 async def get_movie_screen(
     movie_id: int,
-    request_id: str = Depends(get_current_request_id),  ***REMOVED*** ✅ Automatic
-    context = Depends(get_current_request_context),     ***REMOVED*** ✅ Full context
+    request_id: str = Depends(get_current_request_id),  # ✅ Automatic
+    context = Depends(get_current_request_context),     # ✅ Full context
     backend: BackendClient = Depends(get_backend_client),
 ):
-    ***REMOVED*** ✅ All tracing happens automatically
+    # ✅ All tracing happens automatically
     movie_data = await backend.get_movie(movie_id)
 
     return {
-        "request_id": request_id,  ***REMOVED*** ✅ Always available
+        "request_id": request_id,  # ✅ Always available
         "movie": movie_data,
-        "trace_id": context.trace_id,  ***REMOVED*** ✅ OpenTelemetry integration
+        "trace_id": context.trace_id,  # ✅ OpenTelemetry integration
     }
 ```
 
-***REMOVED******REMOVED*** Migration Steps
+## Migration Steps
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Update Fast Core Configuration
+### Step 1: Update Fast Core Configuration
 
 ```python
-***REMOVED*** In your app configuration
+# In your app configuration
 from fast_core.middleware import MiddlewareConfig
 
 middleware = MiddlewareConfig()
@@ -149,121 +149,121 @@ middleware.context(
 app = create_app(
     settings=settings,
     middleware=middleware,
-    ***REMOVED*** ... existing options
+    # ... existing options
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Migrate Service Clients
+### Step 2: Migrate Service Clients
 
 ```python
-***REMOVED*** Before: Manual implementation
+# Before: Manual implementation
 class BackendClient(BaseServiceClient):
     def _get_auth_headers(self, user_id: int, request_id: Optional[str] = None):
-        ***REMOVED*** Manual header building...
+        # Manual header building...
         pass
 
     async def _make_request(self, method: str, path: str, **kwargs):
-        ***REMOVED*** Manual header injection...
+        # Manual header injection...
         pass
 
-***REMOVED*** After: Automatic implementation
+# After: Automatic implementation
 from fast_core.clients import TracingAwareServiceClient
 
 class BackendClient(TracingAwareServiceClient):
     """All tracing happens automatically."""
 
     async def get_movie(self, movie_id: int) -> Dict[str, Any]:
-        ***REMOVED*** ✅ Automatic trace headers, spans, error handling
+        # ✅ Automatic trace headers, spans, error handling
         response = await self.get(f"/movies/{movie_id}")
         response.raise_for_status()
         return response.json()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Update Route Dependencies
+### Step 3: Update Route Dependencies
 
 ```python
-***REMOVED*** Before: Manual setup
+# Before: Manual setup
 @router.get("/movies/{movie_id}")
 async def get_movie(
     movie_id: int,
     backend: BackendClient = Depends(get_backend_client),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    _: None = Depends(setup_request_context),  ***REMOVED*** ❌ Manual
+    _: None = Depends(setup_request_context),  # ❌ Manual
 ):
-    ***REMOVED*** Manual user ID extraction
+    # Manual user ID extraction
     user_id = extract_user_id_from_token(credentials.credentials) if credentials else None
-    ***REMOVED*** ... rest of implementation
+    # ... rest of implementation
 
-***REMOVED*** After: Automatic dependencies
+# After: Automatic dependencies
 from fast_core import get_current_request_context, get_current_request_id
 
 @router.get("/movies/{movie_id}")
 async def get_movie(
     movie_id: int,
-    request_id: str = Depends(get_current_request_id),        ***REMOVED*** ✅ Automatic
-    context = Depends(get_current_request_context),           ***REMOVED*** ✅ Full context
+    request_id: str = Depends(get_current_request_id),        # ✅ Automatic
+    context = Depends(get_current_request_context),           # ✅ Full context
     backend: BackendClient = Depends(get_backend_client),
 ):
-    ***REMOVED*** ✅ Everything is automatically available
-    user_id = context.user_id  ***REMOVED*** Automatic extraction
-    ***REMOVED*** ... implementation
+    # ✅ Everything is automatically available
+    user_id = context.user_id  # Automatic extraction
+    # ... implementation
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Remove Manual Context Code
+### Step 4: Remove Manual Context Code
 
 ```python
-***REMOVED*** ❌ Remove these manual implementations:
+# ❌ Remove these manual implementations:
 
-***REMOVED*** Delete manual context variables
-***REMOVED*** _request_id_context: contextvars.ContextVar[Optional[str]] = ...
+# Delete manual context variables
+# _request_id_context: contextvars.ContextVar[Optional[str]] = ...
 
-***REMOVED*** Delete manual setup functions
-***REMOVED*** def set_request_id_context(request_id: Optional[str]) -> None: ...
-***REMOVED*** def get_request_id_context() -> Optional[str]: ...
+# Delete manual setup functions
+# def set_request_id_context(request_id: Optional[str]) -> None: ...
+# def get_request_id_context() -> Optional[str]: ...
 
-***REMOVED*** Delete manual middleware
-***REMOVED*** class RequestIDTracingMiddleware(BaseHTTPMiddleware): ...
+# Delete manual middleware
+# class RequestIDTracingMiddleware(BaseHTTPMiddleware): ...
 
-***REMOVED*** Delete manual header injection
-***REMOVED*** def _build_api_path(self, path: str) -> str: ...
-***REMOVED*** def _get_auth_headers(self, user_id: int, request_id: Optional[str] = None): ...
+# Delete manual header injection
+# def _build_api_path(self, path: str) -> str: ...
+# def _get_auth_headers(self, user_id: int, request_id: Optional[str] = None): ...
 ```
 
-***REMOVED******REMOVED*** Benefits After Migration
+## Benefits After Migration
 
-***REMOVED******REMOVED******REMOVED*** 🚀 **Zero Manual Implementation**
+### 🚀 **Zero Manual Implementation**
 
 - No more `setup_request_context` calls
 - No more manual header injection
 - No more context variable management
 
-***REMOVED******REMOVED******REMOVED*** 📊 **Industry Standard Compliance**
+### 📊 **Industry Standard Compliance**
 
 - W3C Trace Context (primary)
 - B3 headers (Zipkin compatibility)
 - Jaeger headers (Jaeger compatibility)
 - OpenTelemetry automatic instrumentation
 
-***REMOVED******REMOVED******REMOVED*** 🔍 **Better Observability**
+### 🔍 **Better Observability**
 
 - Automatic span creation for all HTTP calls
 - Proper parent-child span relationships
 - Request correlation across entire service mesh
 - Integration with Tempo, Jaeger, and other backends
 
-***REMOVED******REMOVED******REMOVED*** 🛡️ **Error Reduction**
+### 🛡️ **Error Reduction**
 
 - No human errors in trace propagation
 - Consistent implementation across all services
 - Automatic error handling with trace context
 
-***REMOVED******REMOVED******REMOVED*** ⚡ **Performance Optimized**
+### ⚡ **Performance Optimized**
 
 - Efficient context variable usage
 - Minimal overhead with proper middleware ordering
 - Built-in caching and connection pooling
 
-***REMOVED******REMOVED*** Backward Compatibility
+## Backward Compatibility
 
 The new system is **100% backward compatible**:
 
@@ -272,10 +272,10 @@ The new system is **100% backward compatible**:
 - ✅ No breaking changes to existing APIs
 - ✅ Existing dependencies still function
 
-***REMOVED******REMOVED*** Testing the Migration
+## Testing the Migration
 
 ```python
-***REMOVED*** Test automatic trace propagation
+# Test automatic trace propagation
 @app.get("/test-tracing")
 async def test_tracing(
     context = Depends(get_current_request_context),
@@ -283,11 +283,11 @@ async def test_tracing(
 ):
     """Test endpoint to verify automatic tracing."""
 
-    ***REMOVED*** Verify context is available
+    # Verify context is available
     assert context is not None
     assert context.request_id is not None
 
-    ***REMOVED*** Test automatic propagation
+    # Test automatic propagation
     response = await backend.get("/health")
 
     return {
@@ -299,10 +299,10 @@ async def test_tracing(
     }
 ```
 
-***REMOVED******REMOVED*** Monitoring and Debugging
+## Monitoring and Debugging
 
 ```python
-***REMOVED*** Access full trace information for debugging
+# Access full trace information for debugging
 @app.get("/debug/trace")
 async def debug_trace(context = Depends(get_current_request_context)):
     """Debug endpoint to inspect trace context."""
@@ -318,7 +318,7 @@ async def debug_trace(context = Depends(get_current_request_context)):
     }
 ```
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 1. **Start with one service** - Migrate BFF API first
 2. **Test thoroughly** - Use the debug endpoints to verify tracing

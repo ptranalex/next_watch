@@ -35,7 +35,7 @@ class DummyProvider(CacheProvider):
         return True
 
     async def delete_pattern(self, pattern: str) -> int:
-        ***REMOVED*** naive pattern delete used only for unit test
+        # naive pattern delete used only for unit test
         if pattern.endswith("*"):
             prefix = pattern[:-1]
             keys = [k for k in self._store if k.startswith(prefix)]
@@ -69,9 +69,9 @@ async def test_cache_manager_safe_helpers_and_singleton() -> None:
     assert await mgr.get_dict("k") == {"a": 1}
     assert await mgr.get_list("k") is None
 
-    ***REMOVED*** delete pattern supported
+    # delete pattern supported
     assert await mgr.delete_pattern("p:k*") >= 1
 
-    ***REMOVED*** singleton accessor
+    # singleton accessor
     s = get_cache_manager()
     assert s is not None

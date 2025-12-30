@@ -58,10 +58,10 @@ class Token(BaseModel):
 class TokenPayload(BaseModel):
     """Token payload schema."""
 
-    sub: str  ***REMOVED*** user id
-    exp: int  ***REMOVED*** expiration time
-    iat: int  ***REMOVED*** issued at time
-    type: str  ***REMOVED*** token type
+    sub: str  # user id
+    exp: int  # expiration time
+    iat: int  # issued at time
+    type: str  # token type
 
 
 class RefreshToken(BaseModel):

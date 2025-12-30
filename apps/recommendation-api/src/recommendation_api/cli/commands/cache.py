@@ -14,14 +14,14 @@ from typer import Typer
 from recommendation_api.config import settings
 from recommendation_api.services.cache_service import get_cache_service
 
-***REMOVED*** Create Typer app
+# Create Typer app
 app: Typer = typer.Typer(
     name="cache",
     help="Manage the recommendation cache",
     add_completion=False,
 )
 
-***REMOVED*** Create console for rich output
+# Create console for rich output
 console = Console()
 logger = logging.getLogger(__name__)
 
@@ -52,18 +52,18 @@ def precompute_similar_movies(
     This command processes movies in batches, finds similar movies for each one,
     and stores the results in Redis for fast retrieval.
     """
-    ***REMOVED*** Configure logging for this command
+    # Configure logging for this command
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
     elif quiet:
         log_level = "ERROR"
     else:
-        log_level = "WARNING"  ***REMOVED*** Default to WARNING to reduce noise
+        log_level = "WARNING"  # Default to WARNING to reduce noise
 
     configure_logging(log_level=log_level, verbose=verbose)
 
-    ***REMOVED*** Suppress noisy logs unless in verbose mode
+    # Suppress noisy logs unless in verbose mode
     noisy_loggers = [
         "httpx",
         "qdrant_client",
@@ -76,11 +76,11 @@ def precompute_similar_movies(
     ]
 
     if verbose:
-        ***REMOVED*** In verbose mode, show more details but still suppress the noisiest ones
+        # In verbose mode, show more details but still suppress the noisiest ones
         for logger_name in ["httpx", "qdrant_client", "sentence_transformers"]:
             logging.getLogger(logger_name).setLevel(logging.WARNING)
     else:
-        ***REMOVED*** In normal mode, suppress all noisy loggers
+        # In normal mode, suppress all noisy loggers
         for logger_name in noisy_loggers:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
 
@@ -88,7 +88,7 @@ def precompute_similar_movies(
         console.print("[bold red]Error:[/bold red] Redis URL not configured")
         raise typer.Exit(code=1)
 
-    ***REMOVED*** Use asyncio to run the async function
+    # Use asyncio to run the async function
     asyncio.run(
         _run_precompute(
             limit=limit,
@@ -116,7 +116,7 @@ async def _run_precompute(
     noisy_loggers: list[str],
 ) -> None:
     """Async implementation of precompute command."""
-    ***REMOVED*** Configure logging levels
+    # Configure logging levels
     temp_loggers = {}
     if not verbose:
         for logger_name in noisy_loggers:
@@ -124,7 +124,7 @@ async def _run_precompute(
             temp_loggers[logger_name] = logger.level
             logger.setLevel(logging.CRITICAL)
 
-    ***REMOVED*** Create a custom progress tracking class
+    # Create a custom progress tracking class
     class ProgressTracker:
         def __init__(self, console, quiet=False):
             self.console = console
@@ -135,7 +135,7 @@ async def _run_precompute(
             self.processed = 0
             self.skipped = 0
             self.failed = 0
-            ***REMOVED*** Track processing times separately
+            # Track processing times separately
             self.processing_start_time = None
             self.total_processing_time = 0
             self.processing_count = 0
@@ -166,17 +166,17 @@ async def _run_precompute(
 
             if not self.quiet:
                 current_time = time.time()
-                ***REMOVED*** Update every 2 seconds or every 5% of progress
-                ***REMOVED*** Also reduce frequency if lots of skipping is happening
+                # Update every 2 seconds or every 5% of progress
+                # Also reduce frequency if lots of skipping is happening
                 base_interval = 2.0
                 progress_interval = self.total_movies * 0.05 / 100
 
-                ***REMOVED*** If mostly skipping (>80% skips), increase interval to reduce noise
+                # If mostly skipping (>80% skips), increase interval to reduce noise
                 total_processed = processed + skipped + failed
-                if total_processed > 10:  ***REMOVED*** Only after processing some movies
+                if total_processed > 10:  # Only after processing some movies
                     skip_ratio = skipped / total_processed
-                    if skip_ratio > 0.8:  ***REMOVED*** If >80% are skips
-                        base_interval = 5.0  ***REMOVED*** Update every 5 seconds instead
+                    if skip_ratio > 0.8:  # If >80% are skips
+                        base_interval = 5.0  # Update every 5 seconds instead
 
                 update_interval = max(base_interval, progress_interval)
 
@@ -191,51 +191,51 @@ async def _run_precompute(
                         self.start_time = current_time
                     elapsed = current_time - self.start_time
 
-                    ***REMOVED*** Calculate overall throughput (including skips)
+                    # Calculate overall throughput (including skips)
                     overall_rate = total_processed / elapsed if elapsed > 0 else 0
 
-                    ***REMOVED*** Calculate actual processing rate (excluding skips)
+                    # Calculate actual processing rate (excluding skips)
                     processing_rate = 0
                     if self.processing_count > 0 and self.total_processing_time > 0:
                         processing_rate = self.processing_count / self.total_processing_time
 
-                    ***REMOVED*** Estimate remaining work
+                    # Estimate remaining work
                     remaining_total = self.total_movies - total_processed
 
-                    ***REMOVED*** Estimate how many of the remaining movies actually need processing
-                    ***REMOVED*** based on the current skip ratio
-                    if total_processed > 10:  ***REMOVED*** Only after processing some movies
+                    # Estimate how many of the remaining movies actually need processing
+                    # based on the current skip ratio
+                    if total_processed > 10:  # Only after processing some movies
                         current_skip_ratio = skipped / total_processed
-                        ***REMOVED*** Assume similar skip ratio for remaining movies
+                        # Assume similar skip ratio for remaining movies
                         estimated_remaining_skips = remaining_total * current_skip_ratio
                         estimated_remaining_to_process = remaining_total - estimated_remaining_skips
                     else:
-                        ***REMOVED*** Early in the process, be more conservative
+                        # Early in the process, be more conservative
                         estimated_remaining_to_process = (
                             remaining_total * 0.5
-                        )  ***REMOVED*** Assume 50% need processing
+                        )  # Assume 50% need processing
 
-                    ***REMOVED*** Calculate ETA based on processing rate for remaining work
+                    # Calculate ETA based on processing rate for remaining work
                     eta = 0
                     if processing_rate > 0 and estimated_remaining_to_process > 0:
-                        ***REMOVED*** Time for actual processing
+                        # Time for actual processing
                         processing_time = estimated_remaining_to_process / processing_rate
-                        ***REMOVED*** Time for skips (much faster, assume 50 movies/s for cache checks)
+                        # Time for skips (much faster, assume 50 movies/s for cache checks)
                         estimated_remaining_skips = remaining_total - estimated_remaining_to_process
-                        skip_time = estimated_remaining_skips / 50.0  ***REMOVED*** Fast cache check rate
+                        skip_time = estimated_remaining_skips / 50.0  # Fast cache check rate
                         eta = processing_time + skip_time
                     elif overall_rate > 0:
-                        ***REMOVED*** Fallback to overall rate if no processing data yet
+                        # Fallback to overall rate if no processing data yet
                         eta = remaining_total / overall_rate
 
-                    ***REMOVED*** Format the display message
+                    # Format the display message
                     rate_display = f"{overall_rate:.1f} movies/s"
                     if processing_rate > 0:
                         rate_display += f" (processing: {processing_rate:.1f}/s)"
 
                     eta_display = f"{int(eta // 60)}m{int(eta % 60):02d}s"
 
-                    ***REMOVED*** Add estimated remaining work info for better context
+                    # Add estimated remaining work info for better context
                     if processing_rate > 0 and total_processed > 10:
                         current_skip_ratio = skipped / total_processed
                         eta_display += f" (~{estimated_remaining_to_process:.0f} to process)"
@@ -250,15 +250,15 @@ async def _run_precompute(
 
     cache_service = None
     try:
-        ***REMOVED*** Initialize cache service
+        # Initialize cache service
         if not quiet:
             console.print("[cyan]Initializing cache service...[/cyan]")
         cache_service = cast(Any, get_cache_service())
 
-        ***REMOVED*** Create progress tracker
+        # Create progress tracker
         progress_tracker = ProgressTracker(console, quiet)
 
-        ***REMOVED*** Get the movie IDs to process
+        # Get the movie IDs to process
         if movie_ids:
             total_movies = len(movie_ids)
             if not quiet:
@@ -277,16 +277,16 @@ async def _run_precompute(
             total_movies = len(movie_ids_list)
             movie_ids = movie_ids_list
 
-        ***REMOVED*** Start progress tracking
+        # Start progress tracking
         progress_tracker.start(total_movies)
 
-        ***REMOVED*** Process movies with custom progress display
+        # Process movies with custom progress display
         start_time = time.time()
         processed = 0
         skipped = 0
         failed = 0
 
-        ***REMOVED*** Process movies in batches
+        # Process movies in batches
         movie_ids_list2: list[int] = cast(list[int], movie_ids)
         for i in range(0, total_movies, batch_size):
             batch = movie_ids_list2[i : i + batch_size]
@@ -298,23 +298,23 @@ async def _run_precompute(
                     f"[dim]Processing batch {batch_num}/{total_batches} ({len(batch)} movies)[/dim]"
                 )
 
-            ***REMOVED*** Batch check which movies are already cached (if not forcing)
+            # Batch check which movies are already cached (if not forcing)
             cached_status = {}
             if not force:
                 cached_status = cache_service.redis_repo.batch_check_cached_movies(batch)
 
-            ***REMOVED*** Process each movie in the batch
+            # Process each movie in the batch
             for movie_id in batch:
                 try:
-                    ***REMOVED*** Check if already cached (if not forcing)
+                    # Check if already cached (if not forcing)
                     if not force and cached_status.get(movie_id, False):
                         skipped += 1
                         continue
 
-                    ***REMOVED*** Start timing actual processing
+                    # Start timing actual processing
                     progress_tracker.start_processing()
 
-                    ***REMOVED*** Get similar movies (this will cache them automatically)
+                    # Get similar movies (this will cache them automatically)
                     (
                         similar_movies,
                         _,
@@ -324,7 +324,7 @@ async def _run_precompute(
                         min_score=min_score,
                     )
 
-                    ***REMOVED*** End timing actual processing
+                    # End timing actual processing
                     progress_tracker.end_processing()
 
                     if similar_movies:
@@ -333,18 +333,18 @@ async def _run_precompute(
                         skipped += 1
 
                 except Exception as e:
-                    ***REMOVED*** End timing if it was started
+                    # End timing if it was started
                     progress_tracker.end_processing()
                     failed += 1
                     if verbose:
                         console.print(f"[red]Failed to process movie {movie_id}: {e}[/red]")
 
-                ***REMOVED*** Update progress display
+                # Update progress display
                 progress_tracker.update(processed, skipped, failed)
 
         elapsed_time = time.time() - start_time
 
-        ***REMOVED*** Prepare final results
+        # Prepare final results
         results = {
             "processed": processed,
             "skipped": skipped,
@@ -359,11 +359,11 @@ async def _run_precompute(
             ),
         }
 
-        ***REMOVED*** Print results
+        # Print results
         if not quiet:
             console.print("\n[bold green]✓ Precomputation completed![/bold green]")
 
-            ***REMOVED*** Create a table for results
+            # Create a table for results
             table = Table(title="Precomputation Results")
             table.add_column("Metric", style="cyan")
             table.add_column("Value", style="green")
@@ -382,7 +382,7 @@ async def _run_precompute(
 
             console.print(table)
 
-            ***REMOVED*** Add completion message based on results
+            # Add completion message based on results
             if results["failed"] > 0:
                 console.print(f"\n[yellow]⚠ Completed with {results['failed']} failures[/yellow]")
                 if not verbose:
@@ -403,12 +403,12 @@ async def _run_precompute(
         raise typer.Exit(code=1) from e
 
     finally:
-        ***REMOVED*** Restore log levels
+        # Restore log levels
         if not verbose:
             for logger_name, level in temp_loggers.items():
                 logging.getLogger(logger_name).setLevel(level)
 
-        ***REMOVED*** Clean up cache service
+        # Clean up cache service
         if cache_service:
             await cache_service.close()
 
@@ -419,14 +419,14 @@ def get_cache_info(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
     """Get information about the recommendation cache."""
-    ***REMOVED*** Configure logging for this command
+    # Configure logging for this command
     log_level = "WARNING" if not verbose else "INFO"
     if quiet:
         log_level = "ERROR"
 
     configure_logging(log_level=log_level, verbose=verbose)
 
-    ***REMOVED*** Suppress noisy logs
+    # Suppress noisy logs
     if not verbose:
         noisy_loggers = [
             "httpx",
@@ -441,7 +441,7 @@ def get_cache_info(
         console.print("[bold red]Error:[/bold red] Redis URL not configured")
         raise typer.Exit(code=1)
 
-    ***REMOVED*** Use asyncio to run the async function
+    # Use asyncio to run the async function
     asyncio.run(_run_cache_info(verbose=verbose, quiet=quiet))
 
 
@@ -449,13 +449,13 @@ async def _run_cache_info(verbose: bool, quiet: bool) -> None:
     """Async implementation of cache info command."""
     cache_service = None
     try:
-        ***REMOVED*** Initialize cache service
+        # Initialize cache service
         if not quiet:
             console.print("[cyan]Getting cache information...[/cyan]")
 
         cache_service = cast(Any, get_cache_service())
 
-        ***REMOVED*** Get cache stats
+        # Get cache stats
         if not quiet:
             with console.status(
                 "[bold green]Retrieving cache statistics...[/bold green]", spinner="dots"
@@ -468,7 +468,7 @@ async def _run_cache_info(verbose: bool, quiet: bool) -> None:
             console.print(f"[bold red]Error:[/bold red] {stats['error']}")
             raise typer.Exit(code=1)
 
-        ***REMOVED*** Create a table for basic stats
+        # Create a table for basic stats
         table = Table(title="Cache Information")
         table.add_column("Metric", style="cyan")
         table.add_column("Value", style="green")
@@ -486,7 +486,7 @@ async def _run_cache_info(verbose: bool, quiet: bool) -> None:
 
         console.print(table)
 
-        ***REMOVED*** Show more detailed information if verbose
+        # Show more detailed information if verbose
         if verbose and redis_info.get("similar_movies_sample"):
             console.print("\n[bold]Sample of cached similar movies:[/bold]")
             for key in redis_info["similar_movies_sample"]:
@@ -501,7 +501,7 @@ async def _run_cache_info(verbose: bool, quiet: bool) -> None:
         raise typer.Exit(code=1) from e
 
     finally:
-        ***REMOVED*** Clean up cache service
+        # Clean up cache service
         if cache_service:
             await cache_service.close()
 
@@ -513,14 +513,14 @@ def clear_cache(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress most log output"),
 ) -> None:
     """Clear the Redis recommendation cache."""
-    ***REMOVED*** Configure logging for this command
+    # Configure logging for this command
     log_level = "WARNING" if not verbose else "INFO"
     if quiet:
         log_level = "ERROR"
 
     configure_logging(log_level=log_level, verbose=verbose)
 
-    ***REMOVED*** Suppress noisy logs
+    # Suppress noisy logs
     if not verbose:
         noisy_loggers = [
             "httpx",
@@ -535,14 +535,14 @@ def clear_cache(
         console.print("[bold red]Error:[/bold red] Redis URL not configured")
         raise typer.Exit(code=1)
 
-    ***REMOVED*** Confirm clearing unless force flag is set
+    # Confirm clearing unless force flag is set
     if not force and not quiet:
         confirm = typer.confirm("Are you sure you want to clear the recommendation cache?")
         if not confirm:
             console.print("Operation cancelled.")
             raise typer.Exit(code=0)
 
-    ***REMOVED*** Use asyncio to run the async function
+    # Use asyncio to run the async function
     asyncio.run(_run_clear_cache(verbose=verbose, quiet=quiet))
 
 
@@ -550,13 +550,13 @@ async def _run_clear_cache(verbose: bool, quiet: bool) -> None:
     """Async implementation of clear cache command."""
     cache_service = None
     try:
-        ***REMOVED*** Initialize cache service
+        # Initialize cache service
         if not quiet:
             console.print("[cyan]Initializing cache service...[/cyan]")
 
         cache_service = cast(Any, get_cache_service())
 
-        ***REMOVED*** Clear cache
+        # Clear cache
         if not quiet:
             with console.status("[bold yellow]Clearing cache...[/bold yellow]", spinner="dots"):
                 result = cache_service.clear_similar_movies_cache()
@@ -580,6 +580,6 @@ async def _run_clear_cache(verbose: bool, quiet: bool) -> None:
         raise typer.Exit(code=1) from e
 
     finally:
-        ***REMOVED*** Clean up cache service
+        # Clean up cache service
         if cache_service:
             await cache_service.close()

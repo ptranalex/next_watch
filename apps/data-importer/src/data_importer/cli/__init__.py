@@ -11,25 +11,25 @@ from data_importer.cli.commands.interactive import interactive
 from data_importer.cli.commands.shell import shell
 from data_importer.config import DEFAULT_LOGS_DIR, configure_logging, with_logging
 
-***REMOVED*** Install rich traceback handler
+# Install rich traceback handler
 install()
 
-***REMOVED*** Initialize Typer app
+# Initialize Typer app
 app = typer.Typer(
     name="data-importer",
     help="Import movie and TV show data from various sources.",
     add_completion=False,
 )
 
-***REMOVED*** Configure basic logging
+# Configure basic logging
 configure_logging(log_level="INFO", log_dir=DEFAULT_LOGS_DIR, verbose=False, quiet=False)
 
 logger = logging.getLogger("data_importer.cli")
 
-***REMOVED*** Add command groups
+# Add command groups
 app.add_typer(sync.app, name="sync")
 
-***REMOVED*** Add commands to the app
+# Add commands to the app
 app.command(name="shell", help="Launch an interactive shell")(shell)
 app.command(name="interactive", help="Launch an interactive interface")(interactive)
 

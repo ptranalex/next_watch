@@ -17,14 +17,14 @@ from backend_api.db.migrations import (
     run_migration,
 )
 
-***REMOVED*** Create app for database commands
+# Create app for database commands
 app = typer.Typer(help="Database management commands")
 console = Console()
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** Database Initialization
-***REMOVED*** ============================================================================
+# ============================================================================
+# Database Initialization
+# ============================================================================
 
 
 @app.command("init")
@@ -35,10 +35,10 @@ def init_database(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress non-essential output"),
 ) -> int:
     """Initialize the database and optionally create tables."""
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         if database_url:
-            ***REMOVED*** For custom URLs, just mask the password part
+            # For custom URLs, just mask the password part
             import re
 
             masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
@@ -46,11 +46,11 @@ def init_database(
             masked_url = settings.get_database_url_masked()
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Initialize database
+    # Initialize database
     with console.status("[bold green]Initializing database...[/]"):
         init_db(create_tables=create_tables)
 
-    ***REMOVED*** Show results
+    # Show results
     if not quiet:
         if create_tables:
             console.print("[bold green]✓[/] Database initialized and tables created successfully!")
@@ -61,9 +61,9 @@ def init_database(
     return 0
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** Database Migrations
-***REMOVED*** ============================================================================
+# ============================================================================
+# Database Migrations
+# ============================================================================
 
 
 @app.command("migrate")
@@ -76,13 +76,13 @@ def migrate_database(
     """Run database migrations to update schema."""
     import time
 
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
 
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         if database_url:
-            ***REMOVED*** For custom URLs, just mask the password part
+            # For custom URLs, just mask the password part
             import re
 
             masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
@@ -90,17 +90,17 @@ def migrate_database(
             masked_url = settings.get_database_url_masked()
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Start timing
+    # Start timing
     start_time = time.time()
     console.print(f"[bold yellow]⏱️ Migration started at {time.strftime('%H:%M:%S')}[/]")
     console.print(
         "[dim]💡 Note: Large migrations cannot be interrupted during database operations[/]"
     )
 
-    ***REMOVED*** Run migrations with real-time status updates using rich
+    # Run migrations with real-time status updates using rich
     import threading
 
-    ***REMOVED*** Shared variables for timing display
+    # Shared variables for timing display
     stop_timer = threading.Event()
     status_obj = None
 
@@ -115,10 +115,10 @@ def migrate_database(
             else:
                 time_display = f"{current_elapsed:.0f}s"
 
-            ***REMOVED*** Update the rich status message safely
+            # Update the rich status message safely
             _update_status_safely(status_obj, time_display)
 
-            ***REMOVED*** Use wait() instead of sleep() for better interrupt handling
+            # Use wait() instead of sleep() for better interrupt handling
             if stop_timer.wait(1):
                 break
 
@@ -132,32 +132,32 @@ def migrate_database(
             except Exception:
                 pass
 
-    ***REMOVED*** Start the timer thread
+    # Start the timer thread
     timer_thread = threading.Thread(target=update_status_message, daemon=True)
     timer_thread.start()
 
-    ***REMOVED*** Use rich status with dynamic updates
+    # Use rich status with dynamic updates
     with console.status("[bold green]Running database migrations... Elapsed: 0s[/]") as status:
-        status_obj = status  ***REMOVED*** Make status available to the timer thread
+        status_obj = status  # Make status available to the timer thread
         try:
             applied_migrations = run_migration(db_url=database_url)
         except KeyboardInterrupt:
             console.print("\n[bold yellow]⚠️ Migration interrupted by user[/]")
             raise
         finally:
-            ***REMOVED*** Stop the timer
+            # Stop the timer
             stop_timer.set()
             timer_thread.join(timeout=1)
             status_obj = None
 
-    ***REMOVED*** Calculate elapsed time
+    # Calculate elapsed time
     elapsed_time = time.time() - start_time
     minutes = int(elapsed_time // 60)
     seconds = elapsed_time % 60
 
-    ***REMOVED*** Show results with timing
+    # Show results with timing
     if not quiet:
-        ***REMOVED*** Show elapsed time
+        # Show elapsed time
         if minutes > 0:
             time_str = f"{minutes}m {seconds:.1f}s"
         else:
@@ -183,9 +183,9 @@ def migrate_database(
     return 0
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** Database Downgrades
-***REMOVED*** ============================================================================
+# ============================================================================
+# Database Downgrades
+# ============================================================================
 
 
 @app.command("downgrade")
@@ -200,14 +200,14 @@ def downgrade_database(
     confirm: bool = typer.Option(True, "--confirm/--no-confirm", help="Confirm before downgrading"),
 ) -> int:
     """Downgrade database migrations."""
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
     logger = get_logger(__name__)
 
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         if database_url:
-            ***REMOVED*** For custom URLs, just mask the password part
+            # For custom URLs, just mask the password part
             import re
 
             masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
@@ -216,7 +216,7 @@ def downgrade_database(
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
     try:
-        ***REMOVED*** Get engine and applied migrations
+        # Get engine and applied migrations
         engine = get_engine()
         applied_migrations = get_applied_migrations(engine)
 
@@ -224,15 +224,15 @@ def downgrade_database(
             console.print("[bold blue]ℹ[/] No migrations to downgrade!")
             return 0
 
-        ***REMOVED*** Sort migration IDs for processing
+        # Sort migration IDs for processing
         migration_ids = sorted(applied_migrations.keys())
 
-        ***REMOVED*** Determine migrations to downgrade
+        # Determine migrations to downgrade
         if all_migrations:
             migrations_to_downgrade = list(reversed(migration_ids))
             operation_desc = "all migrations"
         elif target:
-            ***REMOVED*** Find target migration in applied list
+            # Find target migration in applied list
             if target not in migration_ids:
                 console.print(
                     f"[bold red]❌ Target migration '{target}' not found in applied migrations!"
@@ -242,7 +242,7 @@ def downgrade_database(
             migrations_to_downgrade = list(reversed(migration_ids[target_index:]))
             operation_desc = f"migrations from {target} onwards"
         else:
-            ***REMOVED*** Downgrade specified number of steps
+            # Downgrade specified number of steps
             migrations_to_downgrade = list(reversed(migration_ids[-steps:]))
             operation_desc = f"{steps} migration(s)"
 
@@ -250,7 +250,7 @@ def downgrade_database(
             console.print("[bold blue]ℹ[/] No migrations to downgrade!")
             return 0
 
-        ***REMOVED*** Show what will be downgraded
+        # Show what will be downgraded
         if not quiet:
             table = Table(title="Migrations to Downgrade")
             table.add_column("Migration ID", style="cyan")
@@ -263,14 +263,14 @@ def downgrade_database(
 
             console.print(table)
 
-        ***REMOVED*** Confirm downgrade
+        # Confirm downgrade
         if confirm:
             console.print(f"[bold yellow]⚠️  About to downgrade {operation_desc}!")
             if not typer.confirm("Are you sure you want to proceed?"):
                 console.print("Downgrade cancelled.")
                 return 0
 
-        ***REMOVED*** Perform downgrades
+        # Perform downgrades
         downgraded_count = 0
         for migration_id in migrations_to_downgrade:
             if not quiet:
@@ -283,7 +283,7 @@ def downgrade_database(
                 console.print(f"[bold red]❌ Failed to downgrade migration: {migration_id}[/]")
                 break
 
-        ***REMOVED*** Show results
+        # Show results
         if not quiet:
             if downgraded_count > 0:
                 console.print(
@@ -301,9 +301,9 @@ def downgrade_database(
         return 1
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** Database Teardown (Development Only)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Database Teardown (Development Only)
+# ============================================================================
 
 
 @app.command("teardown")
@@ -316,11 +316,11 @@ def teardown_database(
     force: bool = typer.Option(False, "--force", help="Force teardown in production (dangerous!)"),
 ) -> int:
     """Teardown database (DEVELOPMENT ONLY - destroys all data!)."""
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level=log_level, verbose=verbose, quiet=quiet)
     logger = get_logger(__name__)
 
-    ***REMOVED*** Safety check for production
+    # Safety check for production
     if settings.environment == "production" and not force:
         console.print(
             "[bold red]❌ Teardown is not allowed in production environment![/]\n"
@@ -328,10 +328,10 @@ def teardown_database(
         )
         return 1
 
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         if database_url:
-            ***REMOVED*** For custom URLs, just mask the password part
+            # For custom URLs, just mask the password part
             import re
 
             masked_url = re.sub(r"://([^:]+):([^@]+)@", r"://\1:***@", database_url)
@@ -339,7 +339,7 @@ def teardown_database(
             masked_url = settings.get_database_url_masked()
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Warning message
+    # Warning message
     if not quiet:
         console.print(
             Panel(
@@ -354,14 +354,14 @@ def teardown_database(
             )
         )
 
-    ***REMOVED*** Confirm teardown
+    # Confirm teardown
     if confirm:
         console.print(f"[bold red]Environment: {settings.environment}[/]")
         if not typer.confirm("Are you absolutely sure you want to proceed with teardown?"):
             console.print("Teardown cancelled.")
             return 0
 
-        ***REMOVED*** Double confirmation for production
+        # Double confirmation for production
         if settings.environment == "production":
             console.print("[bold red]This is a PRODUCTION environment![/]")
             if not typer.confirm("Type 'yes' to confirm production teardown", default=False):
@@ -369,34 +369,34 @@ def teardown_database(
                 return 0
 
     try:
-        ***REMOVED*** Import here to avoid circular imports
+        # Import here to avoid circular imports
         from sqlalchemy import create_engine, text
 
-        ***REMOVED*** Create engine
+        # Create engine
         db_url = database_url or settings.database_url
         engine = create_engine(db_url)
 
         with console.status("[bold red]Tearing down database...[/]"):
             with engine.connect() as conn:
-                ***REMOVED*** Start transaction
+                # Start transaction
                 trans = conn.begin()
 
                 try:
-                    ***REMOVED*** Drop all tables (cascade to handle foreign keys)
+                    # Drop all tables (cascade to handle foreign keys)
                     conn.execute(text("DROP SCHEMA public CASCADE"))
                     conn.execute(text("CREATE SCHEMA public"))
                     conn.execute(text("GRANT ALL ON SCHEMA public TO postgres"))
                     conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
 
-                    ***REMOVED*** Commit transaction
+                    # Commit transaction
                     trans.commit()
 
                 except Exception as e:
-                    ***REMOVED*** Rollback on error
+                    # Rollback on error
                     trans.rollback()
                     raise e
 
-        ***REMOVED*** Show results
+        # Show results
         if not quiet:
             console.print("[bold green]✓[/] Database teardown completed successfully!")
             console.print(
@@ -418,10 +418,10 @@ def teardown_database(
         return 1
 
 
-***REMOVED*** Register database commands directly with db_app (not as a nested group)
-from backend_api.cli import db_app  ***REMOVED*** noqa: E402
+# Register database commands directly with db_app (not as a nested group)
+from backend_api.cli import db_app  # noqa: E402
 
-***REMOVED*** Register each command directly
+# Register each command directly
 db_app.command("init")(init_database)
 db_app.command("migrate")(migrate_database)
 db_app.command("downgrade")(downgrade_database)

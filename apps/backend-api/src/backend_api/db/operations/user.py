@@ -36,12 +36,12 @@ def create_user(
     Raises:
         ValueError: If a user with the email already exists
     """
-    ***REMOVED*** Check if user with email already exists
+    # Check if user with email already exists
     existing_user = get_user_by_email(session, email)
     if existing_user:
         raise ValueError(f"User with email {email} already exists")
 
-    ***REMOVED*** Create new user with hashed password
+    # Create new user with hashed password
     hashed_password = User.hash_password(password)
     user = User(
         email=email,
@@ -49,7 +49,7 @@ def create_user(
         username=username,
     )
 
-    ***REMOVED*** Add to database
+    # Add to database
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -140,11 +140,11 @@ def update_user(
     if not user:
         return None
 
-    ***REMOVED*** Handle password updates
+    # Handle password updates
     if "password" in data:
         data["hashed_password"] = User.hash_password(data.pop("password"))
 
-    ***REMOVED*** Update user attributes
+    # Update user attributes
     for key, value in data.items():
         setattr(user, key, value)
 

@@ -22,9 +22,9 @@ class CastMemberResponse(BaseModel):
     @classmethod
     def model_validate(cls, obj: Any, **kwargs: Any) -> "CastMemberResponse":
         if isinstance(obj, dict):
-            ***REMOVED*** Map tmdb_person_id to actor_id if dict contains tmdb_person_id
+            # Map tmdb_person_id to actor_id if dict contains tmdb_person_id
             if "tmdb_person_id" in obj and "actor_id" not in obj:
-                obj = obj.copy()  ***REMOVED*** Avoid modifying the original
+                obj = obj.copy()  # Avoid modifying the original
                 obj["actor_id"] = obj.pop("tmdb_person_id")
             return cls(**obj)
         return super().model_validate(obj, **kwargs)
@@ -44,9 +44,9 @@ class CrewMemberResponse(BaseModel):
     @classmethod
     def model_validate(cls, obj: Any, **kwargs: Any) -> "CrewMemberResponse":
         if isinstance(obj, dict):
-            ***REMOVED*** Map tmdb_person_id to actor_id if dict contains tmdb_person_id
+            # Map tmdb_person_id to actor_id if dict contains tmdb_person_id
             if "tmdb_person_id" in obj and "actor_id" not in obj:
-                obj = obj.copy()  ***REMOVED*** Avoid modifying the original
+                obj = obj.copy()  # Avoid modifying the original
                 obj["actor_id"] = obj.pop("tmdb_person_id")
             return cls(**obj)
         return super().model_validate(obj, **kwargs)

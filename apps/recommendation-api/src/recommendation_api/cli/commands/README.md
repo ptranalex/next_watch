@@ -1,8 +1,8 @@
-***REMOVED*** Recommendation API CLI Commands
+# Recommendation API CLI Commands
 
 This directory contains the various command modules for the Recommendation API CLI.
 
-***REMOVED******REMOVED*** Command Modules
+## Command Modules
 
 - `serve.py`: Commands for running the API server
 - `config.py`: Configuration management commands
@@ -12,14 +12,14 @@ This directory contains the various command modules for the Recommendation API C
 - `cache.py`: Cache management commands
 - `ml.py`: ML API integration commands
 
-***REMOVED******REMOVED*** ML Commands
+## ML Commands
 
 The `ml.py` module provides commands for interacting with the ML API service:
 
 - `test-connection`: Test connectivity to the ML API
 - `generate-embedding`: Generate a vector embedding for a movie
 
-***REMOVED******REMOVED******REMOVED*** Example Usage
+### Example Usage
 
 Test the connection to the ML API:
 
@@ -33,7 +33,7 @@ Generate an embedding for a test movie:
 python -m recommendation_api.cli.main ml generate-embedding "The Matrix" "A computer hacker learns about the true nature of reality" --genres "Action,Sci-Fi"
 ```
 
-***REMOVED******REMOVED*** Adding New Commands
+## Adding New Commands
 
 To add a new command module:
 

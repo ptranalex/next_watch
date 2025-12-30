@@ -1,18 +1,18 @@
-***REMOVED*** BFF API .gitignore
+# BFF API .gitignore
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** PYTHON
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# PYTHON
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-***REMOVED*** C extensions
+# C extensions
 *.so
 
-***REMOVED*** Distribution / packaging
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -32,15 +32,15 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-***REMOVED*** PyInstaller
+# PyInstaller
 *.manifest
 *.spec
 
-***REMOVED*** Installer logs
+# Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
 
-***REMOVED*** Unit test / coverage reports
+# Unit test / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -55,60 +55,60 @@ coverage.xml
 .pytest_cache/
 cover/
 
-***REMOVED*** Translations
+# Translations
 *.mo
 *.pot
 
-***REMOVED*** Django stuff:
+# Django stuff:
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-***REMOVED*** Flask stuff:
+# Flask stuff:
 instance/
 .webassets-cache
 
-***REMOVED*** Scrapy stuff:
+# Scrapy stuff:
 .scrapy
 
-***REMOVED*** Sphinx documentation
+# Sphinx documentation
 docs/_build/
 
-***REMOVED*** PyBuilder
+# PyBuilder
 .pybuilder/
 target/
 
-***REMOVED*** Jupyter Notebook
+# Jupyter Notebook
 .ipynb_checkpoints
 
-***REMOVED*** IPython
+# IPython
 profile_default/
 ipython_config.py
 
-***REMOVED*** pyenv
+# pyenv
 .python-version
 
-***REMOVED*** pipenv
+# pipenv
 Pipfile.lock
 
-***REMOVED*** poetry
+# poetry
 poetry.lock
 
-***REMOVED*** pdm
+# pdm
 .pdm.toml
 
-***REMOVED*** PEP 582
+# PEP 582
 __pypackages__/
 
-***REMOVED*** Celery stuff
+# Celery stuff
 celerybeat-schedule
 celerybeat.pid
 
-***REMOVED*** SageMath parsed files
+# SageMath parsed files
 *.sage.py
 
-***REMOVED*** Environments
+# Environments
 .venv
 env/
 venv/
@@ -116,129 +116,129 @@ ENV/
 env.bak/
 venv.bak/
 
-***REMOVED*** Spyder project settings
+# Spyder project settings
 .spyderproject
 .spyproject
 
-***REMOVED*** Rope project settings
+# Rope project settings
 .ropeproject
 
-***REMOVED*** mkdocs documentation
+# mkdocs documentation
 /site
 
-***REMOVED*** mypy
+# mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-***REMOVED*** Pyre type checker
+# Pyre type checker
 .pyre/
 
-***REMOVED*** pytype static type analyzer
+# pytype static type analyzer
 .pytype/
 
-***REMOVED*** Cython debug symbols
+# Cython debug symbols
 cython_debug/
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** NODE.JS (for any frontend build tools)
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# NODE.JS (for any frontend build tools)
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Dependencies
+# Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-***REMOVED*** Runtime data
+# Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
 
-***REMOVED*** Coverage directory used by tools like istanbul
+# Coverage directory used by tools like istanbul
 coverage/
 *.lcov
 
-***REMOVED*** nyc test coverage
+# nyc test coverage
 .nyc_output
 
-***REMOVED*** Grunt intermediate storage
+# Grunt intermediate storage
 .grunt
 
-***REMOVED*** Bower dependency directory
+# Bower dependency directory
 bower_components
 
-***REMOVED*** node-waf configuration
+# node-waf configuration
 .lock-wscript
 
-***REMOVED*** Compiled binary addons
+# Compiled binary addons
 build/Release
 
-***REMOVED*** Dependency directories
+# Dependency directories
 jspm_packages/
 
-***REMOVED*** TypeScript cache
+# TypeScript cache
 *.tsbuildinfo
 
-***REMOVED*** Optional npm cache directory
+# Optional npm cache directory
 .npm
 
-***REMOVED*** Optional eslint cache
+# Optional eslint cache
 .eslintcache
 
-***REMOVED*** Optional stylelint cache
+# Optional stylelint cache
 .stylelintcache
 
-***REMOVED*** Microbundle cache
+# Microbundle cache
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
 
-***REMOVED*** Optional REPL history
+# Optional REPL history
 .node_repl_history
 
-***REMOVED*** Output of 'npm pack'
+# Output of 'npm pack'
 *.tgz
 
-***REMOVED*** Yarn Integrity file
+# Yarn Integrity file
 .yarn-integrity
 
-***REMOVED*** parcel-bundler cache
+# parcel-bundler cache
 .cache
 .parcel-cache
 
-***REMOVED*** Next.js build output
+# Next.js build output
 .next
 out
 
-***REMOVED*** Nuxt.js build / generate output
+# Nuxt.js build / generate output
 .nuxt
 dist
 
-***REMOVED*** Gatsby files
+# Gatsby files
 .cache/
 public
 
-***REMOVED*** Vite build output
+# Vite build output
 dist/
 .vite/
 
-***REMOVED*** Rollup build output
+# Rollup build output
 dist/
 
-***REMOVED*** Storybook build outputs
+# Storybook build outputs
 .out
 .storybook-out
 storybook-static
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** ENVIRONMENT VARIABLES & SECRETS
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ENVIRONMENT VARIABLES & SECRETS
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Environment files with sensitive data
+# Environment files with sensitive data
 .env.local
 .env.*.local
 .env.development
@@ -248,64 +248,64 @@ storybook-static
 .env.secrets
 .env.credentials
 
-***REMOVED*** Allow .env.example to be committed (template file)
+# Allow .env.example to be committed (template file)
 !.env.example
 !env.example
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** LOGS & DATA
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# LOGS & DATA
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Log files
+# Log files
 *.log
 logs/
 log/
 
-***REMOVED*** Database files
+# Database files
 *.db
 *.sqlite
 *.sqlite3
 
-***REMOVED*** Data directories
+# Data directories
 data/
 temp/
 tmp/
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** IDE & EDITOR
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# IDE & EDITOR
+# ------------------------------------------------------------------------------
 
-***REMOVED*** VSCode
+# VSCode
 .vscode/
 *.code-workspace
 
-***REMOVED*** PyCharm
+# PyCharm
 .idea/
 
-***REMOVED*** Sublime Text
+# Sublime Text
 *.sublime-project
 *.sublime-workspace
 
-***REMOVED*** Vim
+# Vim
 *.swp
 *.swo
 *~
 
-***REMOVED*** Emacs
+# Emacs
 *~
-\***REMOVED****\***REMOVED***
+\#*\#
 /.emacs.desktop
 /.emacs.desktop.lock
 *.elc
 auto-save-list
 tramp
-.\***REMOVED****
+.\#*
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** OPERATING SYSTEM
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# OPERATING SYSTEM
+# ------------------------------------------------------------------------------
 
-***REMOVED*** macOS
+# macOS
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -319,7 +319,7 @@ Icon?
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
 
-***REMOVED*** Windows
+# Windows
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
@@ -335,48 +335,48 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 
-***REMOVED*** Linux
+# Linux
 *~
 .fuse_hidden*
 .directory
 .Trash-*
 .nfs*
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** FASTAPI & UVICORN SPECIFIC
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# FASTAPI & UVICORN SPECIFIC
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Uvicorn access logs
+# Uvicorn access logs
 access.log
 
-***REMOVED*** FastAPI static files (if served)
+# FastAPI static files (if served)
 static/
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** BFF-SPECIFIC
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# BFF-SPECIFIC
+# ------------------------------------------------------------------------------
 
-***REMOVED*** API response cache
+# API response cache
 .api_cache/
 cache/
 
-***REMOVED*** Frontend build artifacts (if BFF serves any)
+# Frontend build artifacts (if BFF serves any)
 public/build/
 assets/build/
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** MISC
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# MISC
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Backup files
+# Backup files
 *.bak
 *.backup
 *.old
 
-***REMOVED*** Archive files
+# Archive files
 *.zip
 *.tar.gz
 *.rar
 
-***REMOVED*** Runtime files
+# Runtime files
 *.pid

@@ -50,7 +50,7 @@ def create_health_commands(
     """
     health_app = Typer(help="Health check commands for services")
 
-    ***REMOVED*** Comprehensive health check command
+    # Comprehensive health check command
     @health_app.command(name="check")
     def health_check_all(
         verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
@@ -65,7 +65,7 @@ def create_health_commands(
 
         asyncio.run(_run_comprehensive_health_check(health_service_getter, out, service_names))
 
-    ***REMOVED*** Generate individual service commands
+    # Generate individual service commands
     for command_name, (method_name, display_name) in service_checks.items():
         _create_single_service_command(
             health_app, command_name, method_name, display_name, health_service_getter
@@ -115,13 +115,13 @@ async def _run_comprehensive_health_check(
     try:
         out.log_operation("Starting comprehensive health check")
 
-        ***REMOVED*** Health service handles all the complex orchestration
+        # Health service handles all the complex orchestration
         results = await health_service.check_all()
 
-        ***REMOVED*** Framework provides consistent display
+        # Framework provides consistent display
         display_health_results(results, out, service_names)
 
-        ***REMOVED*** Simple success/failure logic
+        # Simple success/failure logic
         all_healthy, unhealthy_services = get_health_summary(results)
 
         if all_healthy:
@@ -144,14 +144,14 @@ async def _run_comprehensive_health_check(
         raise typer.Exit(code=exit_code)
 
     except typer.Exit:
-        ***REMOVED*** Re-raise typer.Exit to let it propagate normally
+        # Re-raise typer.Exit to let it propagate normally
         raise
     except Exception as e:
         out.error(f"Health check failed: {e}")
         out.log_error("Health check failed", e)
         raise typer.Exit(code=1)
     finally:
-        ***REMOVED*** Ensure proper cleanup
+        # Ensure proper cleanup
         if hasattr(health_service, "close"):
             await health_service.close()
 
@@ -171,14 +171,14 @@ async def _check_single_service(
     try:
         out.log_operation(f"Checking {service_name}", service_method=method_name)
 
-        ***REMOVED*** Call the specific health service method
+        # Call the specific health service method
         check_method = getattr(health_service, method_name)
         result = await check_method()
 
-        ***REMOVED*** Use framework display utilities
+        # Use framework display utilities
         display_single_health_result(service_name, result, out)
 
-        ***REMOVED*** Log structured result
+        # Log structured result
         out.log_operation(
             f"{service_name} check completed",
             service_method=method_name,
@@ -190,7 +190,7 @@ async def _check_single_service(
         raise typer.Exit(code=exit_code)
 
     except typer.Exit:
-        ***REMOVED*** Re-raise typer.Exit to let it propagate normally
+        # Re-raise typer.Exit to let it propagate normally
         raise
     except AttributeError:
         out.error(f"Health service does not have method '{method_name}'")
@@ -205,6 +205,6 @@ async def _check_single_service(
         out.log_error(f"{service_name} check failed", e, service_method=method_name)
         raise typer.Exit(code=1)
     finally:
-        ***REMOVED*** Ensure proper cleanup
+        # Ensure proper cleanup
         if hasattr(health_service, "close"):
             await health_service.close()

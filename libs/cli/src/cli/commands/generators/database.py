@@ -79,13 +79,13 @@ def create_database_commands(
 
             db_connection = await get_db_connection()
 
-            ***REMOVED*** Test connection with retries
+            # Test connection with retries
             await run_with_retries(_test_db_connection, db_connection, retries=3, delay=1.0)
 
             out.success("Database connection successful")
 
             if verbose:
-                ***REMOVED*** Get additional database info
+                # Get additional database info
                 try:
                     table = Table(title="Database Status")
                     table.add_column("Property", style="cyan")
@@ -95,9 +95,9 @@ def create_database_commands(
                     table.add_row("Status", "Healthy")
                     table.add_row("Connection Type", type(db_connection).__name__)
 
-                    ***REMOVED*** Try to get database-specific info
+                    # Try to get database-specific info
                     if hasattr(db_connection, "info"):
-                        ***REMOVED*** PostgreSQL-style info
+                        # PostgreSQL-style info
                         try:
                             info = await db_connection.info()
                             if "version" in info:
@@ -129,15 +129,15 @@ def create_database_commands(
             table.add_row("Status", "Connected")
 
             if verbose:
-                ***REMOVED*** Add more detailed info based on database type
+                # Add more detailed info based on database type
                 table.add_row("Framework", "NextWatch CLI Framework")
-                ***REMOVED*** Count available commands
+                # Count available commands
                 command_count = len([cmd for cmd in dir(app) if cmd.startswith("command")])
                 table.add_row("Available Commands", str(command_count))
 
-                ***REMOVED*** Try to get connection details
+                # Try to get connection details
                 if hasattr(db_connection, "get_dsn_parameters"):
-                    ***REMOVED*** PostgreSQL asyncpg connection
+                    # PostgreSQL asyncpg connection
                     try:
                         params = db_connection.get_dsn_parameters()
                         table.add_row("Host", params.get("host", "Unknown"))
@@ -147,10 +147,10 @@ def create_database_commands(
                     except Exception:
                         pass
                 elif hasattr(db_connection, "connection"):
-                    ***REMOVED*** SQLAlchemy-style connection
+                    # SQLAlchemy-style connection
                     try:
                         url = str(db_connection.connection.engine.url)
-                        ***REMOVED*** Mask password in URL
+                        # Mask password in URL
                         if "@" in url:
                             masked_url = url.split("://")[0] + "://***:***@" + url.split("@")[1]
                             table.add_row("Connection URL", masked_url)
@@ -173,7 +173,7 @@ def create_database_commands(
 
             db_connection = await run_with_retries(get_db_connection, retries=retries, delay=delay)
 
-            ***REMOVED*** Additional connection test
+            # Additional connection test
             is_healthy = await run_with_retries(
                 _test_db_connection, db_connection, retries=retries, delay=delay
             )
@@ -202,36 +202,36 @@ def create_database_commands(
     async def _test_db_connection(db_connection: Any) -> bool:
         """Test database connection health."""
         try:
-            ***REMOVED*** Generic connection test - this would be customized based on database type
+            # Generic connection test - this would be customized based on database type
             if hasattr(db_connection, "execute"):
-                ***REMOVED*** SQLAlchemy-style or asyncpg connection
+                # SQLAlchemy-style or asyncpg connection
                 await db_connection.execute("SELECT 1")
                 return True
             elif hasattr(db_connection, "ping"):
-                ***REMOVED*** Some databases have ping methods
+                # Some databases have ping methods
                 ping_result = await db_connection.ping()
                 return bool(ping_result)
             elif hasattr(db_connection, "is_connected"):
-                ***REMOVED*** Check connection status
+                # Check connection status
                 connection_status = db_connection.is_connected()
                 return bool(connection_status)
             else:
-                ***REMOVED*** Basic existence check
+                # Basic existence check
                 return db_connection is not None
         except Exception:
             return False
 
-    ***REMOVED*** Add migration commands if provided
+    # Add migration commands if provided
     if migration_commands:
         for cmd_name, cmd_func in migration_commands.items():
-            ***REMOVED*** Wrap functions to provide consistent output handling
+            # Wrap functions to provide consistent output handling
             def wrap_migration_command(func: Callable[..., Any]) -> Callable[..., Any]:
                 def wrapper(*args: Any, **kwargs: Any) -> Any:
-                    ***REMOVED*** Add verbose option if not present
+                    # Add verbose option if not present
                     if "verbose" not in kwargs:
                         kwargs["verbose"] = False
 
-                    ***REMOVED*** Setup output handler
+                    # Setup output handler
                     out = get_cli_output(f"db-{cmd_name}", verbose=kwargs.get("verbose", False))
 
                     try:
@@ -243,7 +243,7 @@ def create_database_commands(
                         out.error(f"Database {cmd_name} failed: {e}")
                         raise typer.Exit(code=1)
 
-                ***REMOVED*** Preserve function metadata
+                # Preserve function metadata
                 wrapper.__name__ = func.__name__
                 wrapper.__doc__ = func.__doc__ or f"Run database {cmd_name} operation"
 

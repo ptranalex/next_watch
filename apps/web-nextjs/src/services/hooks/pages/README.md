@@ -1,8 +1,8 @@
-***REMOVED*** Pages Hooks Documentation
+# Pages Hooks Documentation
 
 This directory contains all the page-level hooks for the Next Watch application. These hooks manage data fetching, filtering, pagination, and caching for different movie listing pages.
 
-***REMOVED******REMOVED*** 🏗️ **Hook Architecture**
+## 🏗️ **Hook Architecture**
 
 All page hooks follow a consistent architecture pattern with:
 
@@ -13,11 +13,11 @@ All page hooks follow a consistent architecture pattern with:
 - **Error Handling**: Comprehensive logging and error recovery
 - **Type Safety**: Full TypeScript support with proper typing
 
-***REMOVED******REMOVED*** 📚 **Available Hooks**
+## 📚 **Available Hooks**
 
-***REMOVED******REMOVED******REMOVED*** 🏠 **Movie List Hooks**
+### 🏠 **Movie List Hooks**
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useHomePage(options)`
+#### `useHomePage(options)`
 
 Manages the home page movie feed with trending and popular movies.
 
@@ -37,7 +37,7 @@ const {
 
 **Cache Key Pattern:** `["movies", "lists", "home", {filters}]`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useGenrePage(genreId)`
+#### `useGenrePage(genreId)`
 
 Manages genre-specific movie listings with genre metadata.
 
@@ -53,7 +53,7 @@ const {
 
 **Cache Key Pattern:** `["movies", "lists", "genre", "ID", "filtered", {filters}]`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useActorPage(actorId)`
+#### `useActorPage(actorId)`
 
 Manages actor-specific movie listings with actor metadata.
 
@@ -69,7 +69,7 @@ const {
 
 **Cache Key Pattern:** `["movies", "lists", "actor", "ID", "filtered", {filters}]`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useTopMoviesByYear({ yearParam })`
+#### `useTopMoviesByYear({ yearParam })`
 
 Manages top-rated movies by year with special year handling.
 
@@ -92,9 +92,9 @@ const {
 - `"all-time"` → No year filter, shows all years
 - `"2024"` → Specific year, locks year filter
 
-***REMOVED******REMOVED******REMOVED*** 👤 **User-Specific Hooks**
+### 👤 **User-Specific Hooks**
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useLikedPage()`
+#### `useLikedPage()`
 
 Manages user's liked/favorite movies.
 
@@ -109,7 +109,7 @@ const {
 
 **Cache Key Pattern:** `["movies", "lists", "user", "liked", {filters}]`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useWatchedPage()`
+#### `useWatchedPage()`
 
 Manages user's watched movies history.
 
@@ -124,7 +124,7 @@ const {
 
 **Cache Key Pattern:** `["movies", "lists", "user", "watched", {filters}]`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useWatchlistPage()`
+#### `useWatchlistPage()`
 
 Manages user's watchlist/to-watch movies.
 
@@ -139,9 +139,9 @@ const {
 
 **Cache Key Pattern:** `["movies", "lists", "user", "watchlist", {filters}]`
 
-***REMOVED******REMOVED******REMOVED*** 🎬 **Detail Hook**
+### 🎬 **Detail Hook**
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** `useMovieDetailPage(id)`
+#### `useMovieDetailPage(id)`
 
 Manages individual movie detail page data with comprehensive cache integration.
 
@@ -198,9 +198,9 @@ const similarMovies = cache.getRelatedMovies();
 const castData = cache.getCast();
 ```
 
-***REMOVED******REMOVED*** 🚀 **Common API Patterns**
+## 🚀 **Common API Patterns**
 
-***REMOVED******REMOVED******REMOVED*** Standard Return Interface
+### Standard Return Interface
 
 All list hooks return a consistent interface:
 
@@ -243,7 +243,7 @@ interface PageHookReturn {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Filter Integration
+### Filter Integration
 
 All hooks automatically integrate with the global filter store:
 
@@ -259,7 +259,7 @@ import useMovieFilterStore from "@/store/movieFilterStore";
 // - sortDesc: boolean
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cache Utilities
+### Cache Utilities
 
 Every hook provides consistent cache utilities:
 
@@ -276,9 +276,9 @@ await cache.invalidateMovieLists();
 cache.prefetchMovieDetails(movieId);
 ```
 
-***REMOVED******REMOVED*** 📖 **Usage Examples**
+## 📖 **Usage Examples**
 
-***REMOVED******REMOVED******REMOVED*** Basic Page Component
+### Basic Page Component
 
 ```typescript
 function HomePage() {
@@ -313,7 +313,7 @@ function HomePage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Genre Page with Metadata
+### Genre Page with Metadata
 
 ```typescript
 function GenrePage({ genreId }: { genreId: number }) {
@@ -349,7 +349,7 @@ function GenrePage({ genreId }: { genreId: number }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** User Collection Page
+### User Collection Page
 
 ```typescript
 function LikedPage() {
@@ -377,7 +377,7 @@ function LikedPage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Advanced Cache Management
+### Advanced Cache Management
 
 ```typescript
 function AdvancedMovieList() {
@@ -409,7 +409,7 @@ function AdvancedMovieList() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Movie Detail Page with Cache Optimization
+### Movie Detail Page with Cache Optimization
 
 ```typescript
 function MovieDetailPage({ movieId }: { movieId: number }) {
@@ -484,9 +484,9 @@ function MovieDetailPage({ movieId }: { movieId: number }) {
 }
 ```
 
-***REMOVED******REMOVED*** ⚡ **Performance Features**
+## ⚡ **Performance Features**
 
-***REMOVED******REMOVED******REMOVED*** Automatic Prefetching
+### Automatic Prefetching
 
 All hooks automatically prefetch movie details for the first 3 movies on each page:
 
@@ -509,7 +509,7 @@ if (pageParam === 1 && response.results && response.results.length > 0) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Smart Filter Invalidation
+### Smart Filter Invalidation
 
 When filters change, ALL movie list queries are invalidated for consistency:
 
@@ -523,15 +523,15 @@ useEffect(() => {
 }, [filters, queryClient]);
 ```
 
-***REMOVED******REMOVED******REMOVED*** Memory Optimization
+### Memory Optimization
 
 - **Stale Time**: 5 minutes for cached data
 - **Garbage Collection**: Automatic cleanup of unused queries
 - **Background Refetch**: Disabled to prevent unnecessary requests
 
-***REMOVED******REMOVED*** 🔍 **Filter Integration**
+## 🔍 **Filter Integration**
 
-***REMOVED******REMOVED******REMOVED*** Available Filters
+### Available Filters
 
 All hooks support these filters from `useMovieFilterStore`:
 
@@ -546,7 +546,7 @@ interface MovieFilters {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Filter Lock System
+### Filter Lock System
 
 Some hooks (like `useTopMoviesByYear`) can lock certain filters:
 
@@ -558,9 +558,9 @@ lockFilters(["year", "sortOrder"]);
 unlockAllFilters();
 ```
 
-***REMOVED******REMOVED*** 🎯 **Best Practices**
+## 🎯 **Best Practices**
 
-***REMOVED******REMOVED******REMOVED*** 1. **Use Cache Utilities**
+### 1. **Use Cache Utilities**
 
 ```typescript
 // ✅ Good: Prefetch on hover
@@ -573,7 +573,7 @@ unlockAllFilters();
 <MovieCard movie={movie} />
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. **Handle Loading States**
+### 2. **Handle Loading States**
 
 ```typescript
 // ✅ Good: Comprehensive loading handling
@@ -584,7 +584,7 @@ if (isFetchingNextPage) return <LoadingMore />;
 if (isLoading || isFetchingNextPage) return <Loading />;
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. **Error Boundaries**
+### 3. **Error Boundaries**
 
 ```typescript
 // ✅ Good: Specific error handling
@@ -593,7 +593,7 @@ if (error) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. **Filter Consistency**
+### 4. **Filter Consistency**
 
 ```typescript
 // ✅ Good: Use global filter store
@@ -603,7 +603,7 @@ const { filters } = useMovieFilterStore();
 const [localFilters, setLocalFilters] = useState({});
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. **Cache Key Debugging**
+### 5. **Cache Key Debugging**
 
 ```typescript
 // ✅ Good: Debug cache keys in development
@@ -614,9 +614,9 @@ useEffect(() => {
 }, [cache]);
 ```
 
-***REMOVED******REMOVED*** 🔧 **Troubleshooting**
+## 🔧 **Troubleshooting**
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 **1. Filters Not Working**
 
@@ -638,7 +638,7 @@ useEffect(() => {
 - Ensure components properly unmount
 - Use React Query DevTools to monitor cache size
 
-***REMOVED******REMOVED******REMOVED*** Debug Tools
+### Debug Tools
 
 **React Query DevTools:**
 
@@ -662,7 +662,7 @@ console.log("Current cache key:", cache.getCacheKey());
 
 ---
 
-***REMOVED******REMOVED*** 📊 **Performance Metrics**
+## 📊 **Performance Metrics**
 
 Based on the comprehensive cache integration across **all 9 page hooks**:
 
@@ -675,7 +675,7 @@ Based on the comprehensive cache integration across **all 9 page hooks**:
 
 All page hooks now provide enterprise-grade performance with a simple, consistent API! 🚀
 
-***REMOVED******REMOVED******REMOVED*** Cache Integration Coverage
+### Cache Integration Coverage
 
 ✅ **List Hooks (8 hooks):**
 

@@ -1,8 +1,8 @@
-***REMOVED*** Movie Storage
+# Movie Storage
 
 A shared Python library for movie data models and database operations.
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - Movie data storage and retrieval
 - Genre management
@@ -14,17 +14,17 @@ A shared Python library for movie data models and database operations.
 - Migration support with Alembic
 - Comprehensive test suite
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 ```bash
-***REMOVED*** Install with Poetry
+# Install with Poetry
 cd libs/movie-storage
 poetry install
 ```
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 ```python
 from sqlmodel import Session, create_engine
@@ -34,18 +34,18 @@ from movie_storage.db.operations import (
 )
 from movie_storage.db.operations import create_genre
 
-***REMOVED*** Initialize database
+# Initialize database
 db_url = "sqlite:///movies.db"
 init_db(db_url, create_tables=True)
 
-***REMOVED*** Create a session
+# Create a session
 engine = create_engine(db_url)
 with Session(engine) as session:
-    ***REMOVED*** Create a genre
+    # Create a genre
     action = create_genre(session, "Action")
     comedy = create_genre(session, "Comedy")
 
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie_data = {
         "tmdb_id": 123,
         "title": "Example Movie",
@@ -53,15 +53,15 @@ with Session(engine) as session:
         "release_date": "2023-01-01"
     }
 
-    ***REMOVED*** Create movie with genres
+    # Create movie with genres
     movie = create_movie(session, movie_data, genre_ids=[action.id, comedy.id])
 
-    ***REMOVED*** Get all movies
+    # Get all movies
     movies = get_movies(session)
     print(f"Found {len(movies)} movies")
 
-    ***REMOVED*** User management
-    ***REMOVED*** Create a new user
+    # User management
+    # Create a new user
     user = create_user(
         session,
         email="user@example.com",
@@ -69,7 +69,7 @@ with Session(engine) as session:
         username="exampleuser"
     )
 
-    ***REMOVED*** Authenticate user
+    # Authenticate user
     authenticated_user = authenticate_user(
         session,
         email="user@example.com",
@@ -82,7 +82,7 @@ with Session(engine) as session:
         print("Authentication failed")
 ```
 
-***REMOVED******REMOVED******REMOVED*** User Management
+### User Management
 
 ```python
 from movie_storage.db.operations.user import (
@@ -90,7 +90,7 @@ from movie_storage.db.operations.user import (
     update_user, delete_user
 )
 
-***REMOVED*** Create a user
+# Create a user
 user = create_user(
     session,
     email="user@example.com",
@@ -99,10 +99,10 @@ user = create_user(
     full_name="Example User"
 )
 
-***REMOVED*** Find a user
+# Find a user
 found_user = get_user_by_email(session, "user@example.com")
 
-***REMOVED*** Update user information
+# Update user information
 updated_user = update_user(
     session,
     user_id=user.id,
@@ -110,7 +110,7 @@ updated_user = update_user(
     full_name="New Name"
 )
 
-***REMOVED*** Check credentials
+# Check credentials
 authenticated = authenticate_user(
     session,
     email="user@example.com",
@@ -118,7 +118,7 @@ authenticated = authenticate_user(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Movie Operations
+### Movie Operations
 
 ```python
 from movie_storage.db.operations.movie import (
@@ -127,7 +127,7 @@ from movie_storage.db.operations.movie import (
     add_movie_to_watchlist, like_movie
 )
 
-***REMOVED*** Create a movie
+# Create a movie
 movie = create_movie(session, {
     "tmdb_id": 123,
     "title": "Example Movie",
@@ -140,20 +140,20 @@ movie = create_movie(session, {
     "runtime": 120
 })
 
-***REMOVED*** Add user interaction
+# Add user interaction
 user_id = 1
 movie_id = movie.id
 
-***REMOVED*** Mark movie as watched by user
+# Mark movie as watched by user
 mark_movie_watched(session, user_id, movie_id)
 
-***REMOVED*** Add movie to user's watchlist
+# Add movie to user's watchlist
 add_movie_to_watchlist(session, user_id, movie_id)
 
-***REMOVED*** Like a movie
+# Like a movie
 like_movie(session, user_id, movie_id)
 
-***REMOVED*** Search movies
+# Search movies
 action_movies = search_movies(
     session,
     genre_names=["Action"],
@@ -163,67 +163,67 @@ action_movies = search_movies(
 )
 ```
 
-***REMOVED******REMOVED*** Database Migrations
+## Database Migrations
 
 The library includes Alembic migration support:
 
 ```bash
-***REMOVED*** Run from libs/movie-storage directory
+# Run from libs/movie-storage directory
 ./migrate.sh
 ```
 
 To reset the database:
 
 ```bash
-***REMOVED*** Run from libs/movie-storage directory
+# Run from libs/movie-storage directory
 ./reset-db.sh
 ```
 
-***REMOVED******REMOVED*** Development
+## Development
 
 Install development dependencies:
 
 ```bash
-***REMOVED*** Install with dev dependencies
+# Install with dev dependencies
 poetry install --with dev
 ```
 
-***REMOVED******REMOVED******REMOVED*** Running Tests
+### Running Tests
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 poetry run pytest
 
-***REMOVED*** Run with coverage report
+# Run with coverage report
 poetry run pytest --cov=movie_storage
 
-***REMOVED*** Run specific test file
+# Run specific test file
 poetry run pytest tests/operations/test_movie.py
 ```
 
-***REMOVED******REMOVED******REMOVED*** Project Structure
+### Project Structure
 
 ```
 movie_storage/
-├── movie_storage/           ***REMOVED*** Main package
-│   ├── db/                  ***REMOVED*** Database operations
-│   │   ├── models/          ***REMOVED*** SQLModel data models
-│   │   ├── operations/      ***REMOVED*** CRUD operations
-│   │   ├── engine.py        ***REMOVED*** Database connection setup
-│   │   └── migrations/      ***REMOVED*** Alembic migrations
-│   ├── auth/                ***REMOVED*** Authentication utilities
-│   │   ├── jwt.py           ***REMOVED*** JWT token handling
-│   │   └── password.py      ***REMOVED*** Password hashing
-│   └── utils/               ***REMOVED*** Utility functions
-├── tests/                   ***REMOVED*** Test suite
-│   ├── conftest.py          ***REMOVED*** Test fixtures
-│   ├── models/              ***REMOVED*** Model tests
-│   └── operations/          ***REMOVED*** Operation tests
-├── examples/                ***REMOVED*** Usage examples
-├── pyproject.toml           ***REMOVED*** Project metadata and dependencies
-└── README.md                ***REMOVED*** This file
+├── movie_storage/           # Main package
+│   ├── db/                  # Database operations
+│   │   ├── models/          # SQLModel data models
+│   │   ├── operations/      # CRUD operations
+│   │   ├── engine.py        # Database connection setup
+│   │   └── migrations/      # Alembic migrations
+│   ├── auth/                # Authentication utilities
+│   │   ├── jwt.py           # JWT token handling
+│   │   └── password.py      # Password hashing
+│   └── utils/               # Utility functions
+├── tests/                   # Test suite
+│   ├── conftest.py          # Test fixtures
+│   ├── models/              # Model tests
+│   └── operations/          # Operation tests
+├── examples/                # Usage examples
+├── pyproject.toml           # Project metadata and dependencies
+└── README.md                # This file
 ```
 
-***REMOVED******REMOVED*** License
+## License
 
 MIT

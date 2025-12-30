@@ -57,7 +57,7 @@ class ContentDiscoveryClient(BaseBackendClient):
             )
             return response
         except ResourceNotFoundException:
-            ***REMOVED*** Re-raise with more specific message
+            # Re-raise with more specific message
             raise ResourceNotFoundException(
                 detail=f"Genre with ID {genre_id} not found",
                 resource_type="Genre",
@@ -84,7 +84,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         )
         response = await self._make_request("GET", self._build_api_path("/genres"))
 
-        ***REMOVED*** Handle response with genres key
+        # Handle response with genres key
         if "genres" in response:
             genres = cast(list[dict[str, Any]], response["genres"])
         else:
@@ -119,7 +119,7 @@ class ContentDiscoveryClient(BaseBackendClient):
             "GET", self._build_api_path("/genres"), params={"trending": True}
         )
 
-        ***REMOVED*** Handle response with genres key
+        # Handle response with genres key
         if "genres" in response:
             genres = cast(list[dict[str, Any]], response["genres"])
         else:
@@ -172,7 +172,7 @@ class ContentDiscoveryClient(BaseBackendClient):
             )
             return response
         except ResourceNotFoundException:
-            ***REMOVED*** Re-raise with more specific message
+            # Re-raise with more specific message
             raise ResourceNotFoundException(
                 detail=f"Actor with ID {actor_id} not found",
                 resource_type="Actor",
@@ -193,7 +193,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         Returns:
             List of popular actors (empty if service unavailable)
         """
-        ***REMOVED*** Validate pagination parameters
+        # Validate pagination parameters
         if page <= 0:
             raise ValidationException("Page number must be a positive integer")
         if limit <= 0 or limit > 100:
@@ -214,7 +214,7 @@ class ContentDiscoveryClient(BaseBackendClient):
             params={"page": page, "limit": limit, "popular": True},
         )
 
-        ***REMOVED*** Handle response with actors key
+        # Handle response with actors key
         if "actors" in response:
             actors = cast(list[dict[str, Any]], response["actors"])
         else:
@@ -247,7 +247,7 @@ class ContentDiscoveryClient(BaseBackendClient):
         Raises:
             ValidationException: If search parameters are invalid
         """
-        ***REMOVED*** Validate search parameters
+        # Validate search parameters
         if not query or not query.strip():
             raise ValidationException("Search query cannot be empty")
         if page <= 0:

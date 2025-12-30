@@ -1,8 +1,8 @@
-***REMOVED*** Next Watch Production Deployment Guide
+# Next Watch Production Deployment Guide
 
 This guide covers deploying the complete Next Watch application stack using Docker Compose.
 
-***REMOVED******REMOVED*** 🏗️ Architecture Overview
+## 🏗️ Architecture Overview
 
 The production deployment includes these services:
 
@@ -20,9 +20,9 @@ The production deployment includes these services:
                     └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** 1. Prerequisites
+### 1. Prerequisites
 
 Ensure you have the following installed:
 
@@ -31,54 +31,54 @@ Ensure you have the following installed:
 - PostgreSQL (running on host)
 - Redis (running on host)
 
-***REMOVED******REMOVED******REMOVED*** 2. Environment Setup
+### 2. Environment Setup
 
 ```bash
-***REMOVED*** Copy the environment template
+# Copy the environment template
 cp infra/env/prod.example .env.prod
 
-***REMOVED*** Edit the environment file with your values
+# Edit the environment file with your values
 nano .env.prod
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Build and Deploy
+### 3. Build and Deploy
 
 ```bash
-***REMOVED*** Make the deployment script executable
+# Make the deployment script executable
 chmod +x scripts/deploy-prod.sh
 
-***REMOVED*** Run the complete deployment
+# Run the complete deployment
 ./scripts/deploy-prod.sh
 
-***REMOVED*** Or build and deploy with data import
+# Or build and deploy with data import
 ./scripts/deploy-prod.sh --import
 ```
 
-***REMOVED******REMOVED*** 📋 Individual Docker Build Commands
+## 📋 Individual Docker Build Commands
 
-***REMOVED******REMOVED******REMOVED*** Build All Services
+### Build All Services
 
 ```bash
-***REMOVED*** Backend API
+# Backend API
 docker build -f apps/backend-api/Dockerfile -t next-watch-backend:latest .
 
-***REMOVED*** Auth API
+# Auth API
 docker build -f apps/auth-api/Dockerfile -t next-watch-auth:latest .
 
-***REMOVED*** BFF API
+# BFF API
 docker build -f apps/bff-api/Dockerfile -t next-watch-bff:latest .
 
-***REMOVED*** Frontend
+# Frontend
 docker build -f apps/web-nextjs/Dockerfile -t next-watch-frontend:latest .
 
-***REMOVED*** Data Importer
+# Data Importer
 docker build -f apps/data-importer/Dockerfile -t next-watch-importer:latest .
 ```
 
-***REMOVED******REMOVED******REMOVED*** Build All in Parallel
+### Build All in Parallel
 
 ```bash
-***REMOVED*** Build all services simultaneously for faster builds
+# Build all services simultaneously for faster builds
 docker build -f apps/backend-api/Dockerfile -t next-watch-backend:latest . &
 docker build -f apps/auth-api/Dockerfile -t next-watch-auth:latest . &
 docker build -f apps/bff-api/Dockerfile -t next-watch-bff:latest . &
@@ -88,79 +88,79 @@ wait
 echo "✅ All builds completed"
 ```
 
-***REMOVED******REMOVED*** 🐳 Docker Compose Commands
+## 🐳 Docker Compose Commands
 
-***REMOVED******REMOVED******REMOVED*** Basic Operations
+### Basic Operations
 
 ```bash
-***REMOVED*** Start all services
+# Start all services
 docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 
-***REMOVED*** Stop all services
+# Stop all services
 docker compose -f infra/compose/prod.yml --env-file .env.prod down
 
-***REMOVED*** View service status
+# View service status
 docker compose -f infra/compose/prod.yml --env-file .env.prod ps
 
-***REMOVED*** View logs for all services
+# View logs for all services
 docker compose -f infra/compose/prod.yml --env-file .env.prod logs -f
 
-***REMOVED*** View logs for specific service
+# View logs for specific service
 docker compose -f infra/compose/prod.yml --env-file .env.prod logs -f backend-api
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service Management
+### Service Management
 
 ```bash
-***REMOVED*** Restart a specific service
+# Restart a specific service
 docker compose -f infra/compose/prod.yml --env-file .env.prod restart backend-api
 
-***REMOVED*** Scale a service (if needed)
+# Scale a service (if needed)
 docker compose -f infra/compose/prod.yml --env-file .env.prod up -d --scale bff-api=2
 
-***REMOVED*** Update a single service
+# Update a single service
 docker compose -f infra/compose/prod.yml --env-file .env.prod up -d --no-deps backend-api
 ```
 
-***REMOVED******REMOVED******REMOVED*** Data Import
+### Data Import
 
 ```bash
-***REMOVED*** Run data import (one-time)
+# Run data import (one-time)
 docker compose -f infra/compose/prod.yml --env-file .env.prod --profile import up data-importer
 
-***REMOVED*** Run data sync (scheduled)
+# Run data sync (scheduled)
 docker compose -f infra/compose/prod.yml --env-file .env.prod --profile sync up data-importer
 ```
 
-***REMOVED******REMOVED*** 🔧 Configuration
+## 🔧 Configuration
 
-***REMOVED******REMOVED******REMOVED*** Required Environment Variables
+### Required Environment Variables
 
 Create `.env.prod` with these essential variables:
 
 ```bash
-***REMOVED*** Docker Images
+# Docker Images
 DOCKER_BACKEND_IMAGE=next-watch-backend:latest
 DOCKER_AUTH_IMAGE=next-watch-auth:latest
 DOCKER_BFF_IMAGE=next-watch-bff:latest
 DOCKER_FRONTEND_IMAGE=next-watch-frontend:latest
 DOCKER_IMPORTER_IMAGE=next-watch-importer:latest
 
-***REMOVED*** Database
+# Database
 POSTGRES_USER=next_watch_user
 POSTGRES_PASSWORD=your-secure-password
 POSTGRES_DB=next_watch
 
-***REMOVED*** Security
+# Security
 JWT_SECRET=your-super-secure-jwt-secret-key
 INTERNAL_API_KEY=your-internal-api-key
 
-***REMOVED*** External APIs
+# External APIs
 TMDB_ACCESS_TOKEN=your-tmdb-token
 OMDB_API_KEY=your-omdb-key
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service Dependencies
+### Service Dependencies
 
 The services start in this order due to health check dependencies:
 
@@ -170,50 +170,50 @@ The services start in this order due to health check dependencies:
 4. **Frontend** (depends on BFF)
 5. **Data Importer** (depends on Backend, runs on-demand)
 
-***REMOVED******REMOVED*** 🏥 Health Checks
+## 🏥 Health Checks
 
 Each service includes health checks:
 
 ```bash
-***REMOVED*** Check individual service health
-curl http://localhost:8000/health  ***REMOVED*** Backend API
-curl http://localhost:8003/health  ***REMOVED*** Auth API
-curl http://localhost:8001/health  ***REMOVED*** BFF API
-curl http://localhost:3000/api/health  ***REMOVED*** Frontend
+# Check individual service health
+curl http://localhost:8000/health  # Backend API
+curl http://localhost:8003/health  # Auth API
+curl http://localhost:8001/health  # BFF API
+curl http://localhost:3000/api/health  # Frontend
 
-***REMOVED*** Check all services
+# Check all services
 for port in 8000 8003 8001 3000; do
   echo "Checking port $port..."
   curl -f http://localhost:$port/health || echo "❌ Port $port unhealthy"
 done
 ```
 
-***REMOVED******REMOVED*** 📊 Monitoring
+## 📊 Monitoring
 
-***REMOVED******REMOVED******REMOVED*** View Service Logs
+### View Service Logs
 
 ```bash
-***REMOVED*** All services
+# All services
 docker compose -f infra/compose/prod.yml logs -f
 
-***REMOVED*** Specific service
+# Specific service
 docker compose -f infra/compose/prod.yml logs -f backend-api
 
-***REMOVED*** Last 100 lines
+# Last 100 lines
 docker compose -f infra/compose/prod.yml logs --tail=100 bff-api
 ```
 
-***REMOVED******REMOVED******REMOVED*** Resource Usage
+### Resource Usage
 
 ```bash
-***REMOVED*** View resource usage
+# View resource usage
 docker stats
 
-***REMOVED*** View service resource limits
+# View service resource limits
 docker compose -f infra/compose/prod.yml config
 ```
 
-***REMOVED******REMOVED******REMOVED*** Log Files
+### Log Files
 
 Persistent logs are stored in named volumes:
 
@@ -222,9 +222,9 @@ Persistent logs are stored in named volumes:
 - `bff-logs:/app/logs`
 - `importer-logs:/app/logs`
 
-***REMOVED******REMOVED*** 🔒 Security Considerations
+## 🔒 Security Considerations
 
-***REMOVED******REMOVED******REMOVED*** Production Security Checklist
+### Production Security Checklist
 
 - [ ] Strong JWT secret (32+ characters)
 - [ ] Secure database password
@@ -234,7 +234,7 @@ Persistent logs are stored in named volumes:
 - [ ] Firewall rules in place
 - [ ] Regular security updates
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 Never commit these to version control:
 
@@ -244,41 +244,41 @@ Never commit these to version control:
 - `TMDB_ACCESS_TOKEN`
 - `OMDB_API_KEY`
 
-***REMOVED******REMOVED*** 🚨 Troubleshooting
+## 🚨 Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 **Service won't start:**
 
 ```bash
-***REMOVED*** Check logs
+# Check logs
 docker compose -f infra/compose/prod.yml logs service-name
 
-***REMOVED*** Check health
+# Check health
 docker compose -f infra/compose/prod.yml ps
 ```
 
 **Database connection issues:**
 
 ```bash
-***REMOVED*** Verify PostgreSQL is running on host
+# Verify PostgreSQL is running on host
 sudo systemctl status postgresql
 
-***REMOVED*** Check database connectivity
+# Check database connectivity
 docker run --rm postgres:13 psql -h host.docker.internal -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;"
 ```
 
 **Redis connection issues:**
 
 ```bash
-***REMOVED*** Verify Redis is running on host
+# Verify Redis is running on host
 sudo systemctl status redis
 
-***REMOVED*** Check Redis connectivity
+# Check Redis connectivity
 docker run --rm redis:7 redis-cli -h host.docker.internal ping
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service Restart Order
+### Service Restart Order
 
 If you need to restart services, follow this order:
 
@@ -288,16 +288,16 @@ If you need to restart services, follow this order:
 4. Frontend
 
 ```bash
-***REMOVED*** Restart in correct order
+# Restart in correct order
 docker compose -f infra/compose/prod.yml restart backend-api
 docker compose -f infra/compose/prod.yml restart auth-api
 docker compose -f infra/compose/prod.yml restart bff-api
 docker compose -f infra/compose/prod.yml restart frontend
 ```
 
-***REMOVED******REMOVED*** 📈 Performance Tuning
+## 📈 Performance Tuning
 
-***REMOVED******REMOVED******REMOVED*** Resource Limits
+### Resource Limits
 
 Current resource limits per service:
 
@@ -307,44 +307,44 @@ Current resource limits per service:
 - **Frontend**: 0.5 CPU, 512MB RAM
 - **Data Importer**: 0.5 CPU, 512MB RAM
 
-***REMOVED******REMOVED******REMOVED*** Scaling
+### Scaling
 
 To scale services horizontally:
 
 ```bash
-***REMOVED*** Scale BFF API to 2 instances
+# Scale BFF API to 2 instances
 docker compose -f infra/compose/prod.yml up -d --scale bff-api=2
 
-***REMOVED*** Scale with load balancer (requires additional configuration)
+# Scale with load balancer (requires additional configuration)
 docker compose -f infra/compose/prod.yml up -d --scale backend-api=3
 ```
 
-***REMOVED******REMOVED*** 🔄 Updates and Maintenance
+## 🔄 Updates and Maintenance
 
-***REMOVED******REMOVED******REMOVED*** Rolling Updates
+### Rolling Updates
 
 ```bash
-***REMOVED*** Build new image
+# Build new image
 docker build -f apps/backend-api/Dockerfile -t next-watch-backend:v2.0 .
 
-***REMOVED*** Update environment file
+# Update environment file
 sed -i 's/next-watch-backend:latest/next-watch-backend:v2.0/' .env.prod
 
-***REMOVED*** Deploy update
+# Deploy update
 docker compose -f infra/compose/prod.yml up -d --no-deps backend-api
 ```
 
-***REMOVED******REMOVED******REMOVED*** Backup
+### Backup
 
 ```bash
-***REMOVED*** Backup database
+# Backup database
 docker exec postgres pg_dump -U $POSTGRES_USER $POSTGRES_DB > backup.sql
 
-***REMOVED*** Backup Redis
+# Backup Redis
 docker exec redis redis-cli BGSAVE
 ```
 
-***REMOVED******REMOVED*** 📞 Support
+## 📞 Support
 
 For deployment issues:
 
@@ -353,7 +353,7 @@ For deployment issues:
 3. Ensure host services (PostgreSQL, Redis) are running
 4. Check network connectivity between containers
 
-***REMOVED******REMOVED*** 🎯 Production Checklist
+## 🎯 Production Checklist
 
 Before deploying to production:
 

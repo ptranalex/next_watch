@@ -79,20 +79,20 @@ class MemoryRateLimiter(RateLimiter):
         full_key = f"{key}:{identifier}"
         now = time.time()
 
-        ***REMOVED*** Initialize if not exists
+        # Initialize if not exists
         if full_key not in self.requests:
             self.requests[full_key] = []
 
-        ***REMOVED*** Clean old requests
+        # Clean old requests
         self.requests[full_key] = [
             req_time for req_time in self.requests[full_key] if now - req_time < self.window_size
         ]
 
-        ***REMOVED*** Check if rate limited
+        # Check if rate limited
         if len(self.requests[full_key]) >= self.requests_per_minute:
             return True
 
-        ***REMOVED*** Add current request
+        # Add current request
         self.requests[full_key].append(now)
         return False
 
@@ -104,7 +104,7 @@ class MemoryRateLimiter(RateLimiter):
         if full_key not in self.requests:
             return self.requests_per_minute
 
-        ***REMOVED*** Clean old requests
+        # Clean old requests
         self.requests[full_key] = [
             req_time for req_time in self.requests[full_key] if now - req_time < self.window_size
         ]
@@ -144,19 +144,19 @@ class RedisRateLimiter(RateLimiter):
         now = time.time()
 
         try:
-            ***REMOVED*** Use Redis pipeline for atomic operations
+            # Use Redis pipeline for atomic operations
             pipe = self.redis.pipeline()
 
-            ***REMOVED*** Remove old entries
+            # Remove old entries
             pipe.zremrangebyscore(full_key, 0, now - self.window_size)
 
-            ***REMOVED*** Count current entries
+            # Count current entries
             pipe.zcard(full_key)
 
-            ***REMOVED*** Add current request
+            # Add current request
             pipe.zadd(full_key, {str(now): now})
 
-            ***REMOVED*** Set expiration
+            # Set expiration
             pipe.expire(full_key, self.window_size)
 
             results = await pipe.execute()
@@ -166,7 +166,7 @@ class RedisRateLimiter(RateLimiter):
 
         except Exception as e:
             logger.error(f"Redis rate limit check failed: {e}")
-            ***REMOVED*** Fail open - allow request if Redis is down
+            # Fail open - allow request if Redis is down
             return False
 
     async def get_remaining_requests(self, key: str, identifier: str) -> int:
@@ -175,7 +175,7 @@ class RedisRateLimiter(RateLimiter):
         now = time.time()
 
         try:
-            ***REMOVED*** Remove old entries and count
+            # Remove old entries and count
             pipe = self.redis.pipeline()
             pipe.zremrangebyscore(full_key, 0, now - self.window_size)
             pipe.zcard(full_key)
@@ -207,18 +207,18 @@ def get_client_key(request: Request) -> str:
     Returns:
         Client identifier (IP address or forwarded IP)
     """
-    ***REMOVED*** Check for forwarded IP first
+    # Check for forwarded IP first
     forwarded_for = request.headers.get("X-Forwarded-For")
     if forwarded_for:
-        ***REMOVED*** Take the first IP in case of multiple
+        # Take the first IP in case of multiple
         return forwarded_for.split(",")[0].strip()
 
-    ***REMOVED*** Check for real IP
+    # Check for real IP
     real_ip = request.headers.get("X-Real-IP")
     if real_ip:
         return real_ip
 
-    ***REMOVED*** Fall back to client IP
+    # Fall back to client IP
     if request.client:
         return request.client.host
 
@@ -287,7 +287,7 @@ def rate_limit(
     def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            ***REMOVED*** Find request object in args/kwargs
+            # Find request object in args/kwargs
             request = None
             for arg in args:
                 if isinstance(arg, Request):

@@ -1,6 +1,6 @@
-***REMOVED*** Backend API Models
+# Backend API Models
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This directory contains SQLModel definitions for core domain entities used by the Backend API.
 
@@ -28,7 +28,7 @@ This directory contains SQLModel definitions for core domain entities used by th
   - Constraint: unique (`user_id`, `movie_id`) → `uq_user_movie_interaction`
   - Relationships: `user`, `movie`
 
-***REMOVED******REMOVED*** Entity Relationships (ER)
+## Entity Relationships (ER)
 
 ```mermaid
 erDiagram
@@ -94,27 +94,27 @@ erDiagram
   }
 ```
 
-***REMOVED******REMOVED*** Table Names
+## Table Names
 
 - Explicit: `movie_genre_link`, `user_movie_interactions`
 - Defaults (derived from class name): `movie`, `genre`, `credit`, `trailer`, `user`
 
-***REMOVED******REMOVED*** Notable Constraints & Types
+## Notable Constraints & Types
 
 - `Movie.tmdb_id` unique; `Genre.tmdb_id` unique when present
 - `User.email` unique
 - `UserMovieInteraction` unique pair (`user_id`, `movie_id`)
 - `Movie.budget`/`Movie.revenue` use BIGINT to handle large values
 
-***REMOVED******REMOVED*** Creating/Updating Tables
+## Creating/Updating Tables
 
 Use the service CLI and migrations (preferred):
 
 ```bash
-***REMOVED*** Apply migrations (recommended)
+# Apply migrations (recommended)
 backend-api db migrate
 
-***REMOVED*** Initialize DB and optionally create tables (dev quick start)
+# Initialize DB and optionally create tables (dev quick start)
 backend-api db init --create-tables
 ```
 
@@ -122,10 +122,10 @@ For schema checks and profiling utilities:
 
 ```bash
 python -m backend_api.scripts.setup_db check-schema
-python -m backend_api.scripts.setup_db profile-db --duration 30  ***REMOVED*** dev only
+python -m backend_api.scripts.setup_db profile-db --duration 30  # dev only
 ```
 
-***REMOVED******REMOVED*** Usage Example (SQLModel)
+## Usage Example (SQLModel)
 
 ```python
 from sqlmodel import Session, select
@@ -138,7 +138,7 @@ with Session(engine) as session:
     print([m.title for m in top])
 ```
 
-***REMOVED******REMOVED*** Notes
+## Notes
 
 - API routes return consistent pagination with fields: `total, page, per_page, total_pages, has_next, has_prev`.
 - Some endpoints use precomputed metadata (materialized views) for performance; see `db/migrations` for details.

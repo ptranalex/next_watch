@@ -32,16 +32,16 @@ class SuggestionRanker:
         """
 
         def sort_key(sugg: dict[str, Any]) -> tuple[int, float]:
-            ***REMOVED*** Exact matches should be prioritized
+            # Exact matches should be prioritized
             if sugg["text"] == query_prefix:
                 return (0, sugg.get("popularity", 0) or 0)
-            ***REMOVED*** Then prioritize by how closely the text starts with the query
+            # Then prioritize by how closely the text starts with the query
             elif sugg["text"].startswith(query_prefix):
                 return (1, sugg.get("popularity", 0) or 0)
-            ***REMOVED*** Then suggestions where the query is a word in the text
+            # Then suggestions where the query is a word in the text
             elif f" {query_prefix}" in f" {sugg['text']} ":
                 return (2, sugg.get("popularity", 0) or 0)
-            ***REMOVED*** Finally by default popularity/score
+            # Finally by default popularity/score
             else:
                 return (3, sugg.get("popularity", 0) or 0)
 

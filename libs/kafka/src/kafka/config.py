@@ -17,7 +17,7 @@ class KafkaConfig(BaseSettings):
         case_sensitive=False,
     )
 
-    ***REMOVED*** Broker Configuration
+    # Broker Configuration
     bootstrap_servers: str = Field(
         default="kafka:9092", description="Kafka bootstrap servers (comma-separated)"
     )
@@ -26,7 +26,7 @@ class KafkaConfig(BaseSettings):
         description="Security protocol (PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL)",
     )
 
-    ***REMOVED*** Producer Configuration
+    # Producer Configuration
     producer_acks: int = Field(
         default=1, description="Number of acknowledgments (0, 1, or -1 for all)"
     )
@@ -48,7 +48,7 @@ class KafkaConfig(BaseSettings):
     )
     producer_batch_size: int = Field(default=16384, description="Batch size in bytes")
 
-    ***REMOVED*** Consumer Configuration
+    # Consumer Configuration
     consumer_group_id_prefix: str = Field(
         default="next-watch", description="Prefix for consumer group IDs"
     )
@@ -74,7 +74,7 @@ class KafkaConfig(BaseSettings):
         default=3000, description="Heartbeat interval in milliseconds"
     )
 
-    ***REMOVED*** Schema Registry Configuration
+    # Schema Registry Configuration
     schema_registry_url: str | None = Field(
         default="http://schema-registry:8081",
         description="Schema Registry URL",
@@ -101,14 +101,14 @@ class KafkaConfig(BaseSettings):
         validation_alias="KAFKA_AUTO_REGISTER_SCHEMAS",
     )
 
-    ***REMOVED*** Serialization Configuration
+    # Serialization Configuration
     serialization_format: str = Field(
         default="json",
         description="Message serialization format: json or avro",
         validation_alias="KAFKA_SERIALIZATION_FORMAT",
     )
 
-    ***REMOVED*** Feature Flags
+    # Feature Flags
     enable_producer: bool = Field(
         default=True,
         description="Enable Kafka event production",
@@ -120,14 +120,14 @@ class KafkaConfig(BaseSettings):
         validation_alias="ENABLE_KAFKA_CONSUMER",
     )
 
-    ***REMOVED*** Tracing Configuration
+    # Tracing Configuration
     enable_tracing: bool = Field(default=True, description="Enable OpenTelemetry tracing")
 
-    ***REMOVED*** Dead Letter Queue Configuration
+    # Dead Letter Queue Configuration
     dlq_topic: str = Field(default="dlq.events", description="Dead letter queue topic name")
     dlq_max_retries: int = Field(default=3, description="Maximum retries before sending to DLQ")
 
-    ***REMOVED*** Topic Configuration
+    # Topic Configuration
     default_partitions: int = Field(
         default=8, description="Default number of partitions for new topics"
     )

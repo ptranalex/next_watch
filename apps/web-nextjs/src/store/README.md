@@ -1,19 +1,19 @@
-***REMOVED*** Global State Management
+# Global State Management
 
 This directory contains global state management logic using Zustand for the NextWatch application.
 
-***REMOVED******REMOVED*** 📂 Directory Structure
+## 📂 Directory Structure
 
 ```
 store/
-├── auth.ts            ***REMOVED*** Authentication state
-├── theme.ts           ***REMOVED*** Theme preferences state
-├── movieQuery.ts      ***REMOVED*** Movie filtering and query state
-├── notifications.ts   ***REMOVED*** Notification state
-└── index.ts           ***REMOVED*** Re-export of all stores
+├── auth.ts            # Authentication state
+├── theme.ts           # Theme preferences state
+├── movieQuery.ts      # Movie filtering and query state
+├── notifications.ts   # Notification state
+└── index.ts           # Re-export of all stores
 ```
 
-***REMOVED******REMOVED*** 🧩 Store Pattern
+## 🧩 Store Pattern
 
 The application uses Zustand for state management with a consistent pattern:
 
@@ -46,7 +46,7 @@ const useExampleStore = create<ExampleState>((set) => ({
 export default useExampleStore;
 ```
 
-***REMOVED******REMOVED*** 🔐 Authentication Store
+## 🔐 Authentication Store
 
 Manages user authentication state:
 
@@ -95,7 +95,7 @@ const useAuthStore = create<AuthState>((set) => ({
 export default useAuthStore;
 ```
 
-***REMOVED******REMOVED*** 🎨 Theme Store
+## 🎨 Theme Store
 
 Manages theme preferences:
 
@@ -135,7 +135,7 @@ const useThemeStore = create<ThemeState>()(
 export default useThemeStore;
 ```
 
-***REMOVED******REMOVED*** 🔍 Movie Query Store
+## 🔍 Movie Query Store
 
 Manages movie search and filter state:
 
@@ -193,7 +193,7 @@ const useMovieQueryStore = create<MovieQueryState>((set) => ({
 export default useMovieQueryStore;
 ```
 
-***REMOVED******REMOVED*** 🔔 Notification Store
+## 🔔 Notification Store
 
 Manages application notifications:
 
@@ -250,7 +250,7 @@ function generateId(): string {
 export default useNotificationStore;
 ```
 
-***REMOVED******REMOVED*** 🔄 Using Stores in Components
+## 🔄 Using Stores in Components
 
 Import and use stores in your components:
 
@@ -278,7 +278,7 @@ function ProfilePage() {
 }
 ```
 
-***REMOVED******REMOVED*** 🔗 Store Composition
+## 🔗 Store Composition
 
 For complex state, compose multiple stores:
 
@@ -314,7 +314,7 @@ function MovieSearch() {
 }
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing Stores
+## 🧪 Testing Stores
 
 Test store logic in isolation:
 
@@ -352,7 +352,7 @@ describe("Counter Store", () => {
 });
 ```
 
-***REMOVED******REMOVED*** 📚 Related Documentation
+## 📚 Related Documentation
 
 - [Zustand Documentation](https://github.com/pmndrs/zustand)
 - [React Query](https://tanstack.com/query) - For server state management

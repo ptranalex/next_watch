@@ -1,12 +1,12 @@
-***REMOVED*** BFF API Service
+# BFF API Service
 
 Backend for Frontend (BFF) service for the Next Watch movie platform. This service acts as an aggregation layer between the Next.js frontend and various backend services, providing optimized data structures, intelligent caching, and smart warming for the UI.
 
-***REMOVED******REMOVED*** 🎯 Purpose
+## 🎯 Purpose
 
 The BFF aggregates data from multiple backend services and provides optimized endpoints for specific UI screens, reducing the complexity and number of API calls required by the frontend. It includes intelligent cache warming, performance monitoring, and comprehensive CLI tools for operations.
 
-***REMOVED******REMOVED*** 🧱 Core Responsibilities
+## 🧱 Core Responsibilities
 
 - ✅ **Data Aggregation**: Combine data from backend-api, auth-api, recommendation-api, search-api, and other services
 - ✅ **Screen-Oriented Endpoints**: Provide UI-specific endpoints like `/bff/v1/home`, `/bff/v1/movies/{id}`, `/bff/v1/search`
@@ -16,48 +16,48 @@ The BFF aggregates data from multiple backend services and provides optimized en
 - ✅ **Performance Monitoring**: Comprehensive metrics and health checks
 - ✅ **Smart Warming**: Event-driven cache warming based on user behavior
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 ```bash
-***REMOVED*** Navigate to BFF directory
+# Navigate to BFF directory
 cd apps/bff-api
 
-***REMOVED*** Set up Python environment with Hatch
+# Set up Python environment with Hatch
 hatch env create
 
-***REMOVED*** Install local dependencies (movie-storage library)
+# Install local dependencies (movie-storage library)
 ./setup-local-deps.sh
 
-***REMOVED*** Copy environment configuration
+# Copy environment configuration
 cp env.example .env
 
-***REMOVED*** Start the service
+# Start the service
 hatch run serve
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using the CLI
+### Using the CLI
 
 The BFF API includes a comprehensive command-line interface for development and operations:
 
 ```bash
-***REMOVED*** Show all available commands (inside Hatch environment)
+# Show all available commands (inside Hatch environment)
 hatch run cli --help
 
-***REMOVED*** Start the development server
+# Start the development server
 hatch run dev
 
-***REMOVED*** Run tests
+# Run tests
 hatch run dev:test
 ```
 
-***REMOVED******REMOVED*** 🛠️ CLI Commands
+## 🛠️ CLI Commands
 
-***REMOVED******REMOVED******REMOVED*** Server Management
+### Server Management
 
 ```bash
-***REMOVED*** Start the BFF server
+# Start the BFF server
 hatch run serve [OPTIONS]
 
 Options:
@@ -69,28 +69,28 @@ Options:
   --quiet, -q          Suppress console output except errors
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration Management
+### Configuration Management
 
 ```bash
-***REMOVED*** Display current configuration
+# Display current configuration
 hatch run config [OPTIONS]
 
 Options:
   --show-secrets       Show sensitive configuration values (use with caution)
   --verbose, -v        Show detailed configuration information
 
-***REMOVED*** Examples
-hatch run config                    ***REMOVED*** Show masked configuration
-hatch run config --verbose         ***REMOVED*** Show detailed configuration
-hatch run config --show-secrets    ***REMOVED*** Show unmasked secrets (development only)
+# Examples
+hatch run config                    # Show masked configuration
+hatch run config --verbose         # Show detailed configuration
+hatch run config --show-secrets    # Show unmasked secrets (development only)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Checks
+### Health Checks
 
 Comprehensive health checking for the BFF service and all dependencies:
 
 ```bash
-***REMOVED*** Check all services
+# Check all services
 hatch run health check [OPTIONS]
 
 Options:
@@ -99,46 +99,46 @@ Options:
   --timeout INTEGER         Request timeout in seconds [default: 5]
   --verbose, -v             Show detailed output
 
-***REMOVED*** Check specific services
-hatch run health backend [OPTIONS]    ***REMOVED*** Check Backend API only
-hatch run health auth [OPTIONS]       ***REMOVED*** Check Auth API only
+# Check specific services
+hatch run health backend [OPTIONS]    # Check Backend API only
+hatch run health auth [OPTIONS]       # Check Auth API only
 
-***REMOVED*** Examples
-hatch run health check                 ***REMOVED*** Check all services
-hatch run health check --verbose      ***REMOVED*** Detailed health check with response times
-hatch run health backend --timeout 10 ***REMOVED*** Check backend with custom timeout
+# Examples
+hatch run health check                 # Check all services
+hatch run health check --verbose      # Detailed health check with response times
+hatch run health backend --timeout 10 # Check backend with custom timeout
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cache Management
+### Cache Management
 
 BFF-specific cache management with domain-aware operations:
 
 ```bash
-***REMOVED*** Display BFF cache statistics
+# Display BFF cache statistics
 hatch run cache stats [OPTIONS]
 
 Options:
   --verbose, -v         Show detailed cache statistics
 
-***REMOVED*** Check cache health
+# Check cache health
 hatch run cache health
 
-***REMOVED*** Get cached movie data
+# Get cached movie data
 hatch run cache get-movie MOVIE_ID
 
-***REMOVED*** Get cached trending movies
+# Get cached trending movies
 hatch run cache get-trending [OPTIONS]
 
 Options:
   --page, -p INTEGER    Page number to retrieve [default: 1]
 
-***REMOVED*** Invalidate user cache
+# Invalidate user cache
 hatch run cache invalidate-user USER_ID [OPTIONS]
 
 Options:
   --confirm             Skip confirmation prompt
 
-***REMOVED*** Clear domain-specific cache
+# Clear domain-specific cache
 hatch run cache clear-domain DOMAIN [OPTIONS]
 
 Arguments:
@@ -147,7 +147,7 @@ Arguments:
 Options:
   --confirm             Skip confirmation prompt
 
-***REMOVED*** Generic Redis cache operations
+# Generic Redis cache operations
 hatch run redis-cache info [OPTIONS]
 hatch run redis-cache keys [OPTIONS]
 
@@ -156,7 +156,7 @@ Options:
   --limit INTEGER       Maximum number of keys to display [default: 100]
   --verbose, -v         Show key details including TTL
 
-***REMOVED*** Clear cache keys
+# Clear cache keys
 hatch run cache clear [OPTIONS]
 
 Options:
@@ -164,18 +164,18 @@ Options:
   --confirm/--no-confirm  Confirm before clearing cache [default: True]
   --verbose, -v         Show detailed output
 
-***REMOVED*** Examples
-hatch run cache info --verbose        ***REMOVED*** Detailed Redis statistics
-hatch run cache keys --pattern "user:*" --limit 50  ***REMOVED*** List user-related keys
-hatch run cache clear --pattern "temp:*" --no-confirm  ***REMOVED*** Clear temp keys without confirmation
+# Examples
+hatch run cache info --verbose        # Detailed Redis statistics
+hatch run cache keys --pattern "user:*" --limit 50  # List user-related keys
+hatch run cache clear --pattern "temp:*" --no-confirm  # Clear temp keys without confirmation
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cache Warming
+### Cache Warming
 
 Intelligent cache warming based on user behavior and content popularity:
 
 ```bash
-***REMOVED*** Warm popular content
+# Warm popular content
 hatch run cache warm popular [OPTIONS]
 
 Options:
@@ -183,35 +183,35 @@ Options:
   --force               Force warming even if already cached
   --verbose, -v         Show detailed warming progress
 
-***REMOVED*** Warm specific movie
+# Warm specific movie
 hatch run cache warm movie MOVIE_ID [OPTIONS]
 
 Options:
   --force               Force warming even if already cached
   --include-similar     Also warm similar movies
 
-***REMOVED*** Warm user-specific content
+# Warm user-specific content
 hatch run cache warm user USER_ID [OPTIONS]
 
 Options:
   --max-items INTEGER   Maximum items to warm [default: 50]
   --force               Force warming even if already cached
 
-***REMOVED*** Examples
-hatch run cache warm popular --max-items 200 --verbose  ***REMOVED*** Warm popular content with details
-hatch run cache warm movie 123 --include-similar        ***REMOVED*** Warm movie and similar content
+# Examples
+hatch run cache warm popular --max-items 200 --verbose  # Warm popular content with details
+hatch run cache warm movie 123 --include-similar        # Warm movie and similar content
 ```
 
-***REMOVED******REMOVED******REMOVED*** Version Information
+### Version Information
 
 ```bash
-***REMOVED*** Show version and environment information
+# Show version and environment information
 hatch run version
 ```
 
-***REMOVED******REMOVED*** 🔧 CLI Features
+## 🔧 CLI Features
 
-***REMOVED******REMOVED******REMOVED*** Rich Output
+### Rich Output
 
 The CLI uses Rich for beautiful, informative output:
 
@@ -220,20 +220,20 @@ The CLI uses Rich for beautiful, informative output:
 - **Formatted tables** for configuration and status information
 - **Spinner animations** for async operations
 
-***REMOVED******REMOVED******REMOVED*** Environment Integration
+### Environment Integration
 
 Commands automatically use environment variables and can be overridden:
 
 ```bash
-***REMOVED*** Use environment variables
+# Use environment variables
 export BACKEND_API_URL=http://production-backend:8000
 hatch run health check
 
-***REMOVED*** Override with command-line options
+# Override with command-line options
 hatch run health check --backend-api-url http://staging-backend:8000
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error Handling
+### Error Handling
 
 Comprehensive error handling with:
 
@@ -242,70 +242,70 @@ Comprehensive error handling with:
 - **Logging integration** for debugging and monitoring
 - **Graceful handling** of network timeouts and connection errors
 
-***REMOVED******REMOVED******REMOVED*** Development Workflow
+### Development Workflow
 
 ```bash
-***REMOVED*** Development server with auto-reload and verbose logging
+# Development server with auto-reload and verbose logging
 hatch run dev --reload --verbose --log-level DEBUG
 
-***REMOVED*** Check all services are healthy before deployment
+# Check all services are healthy before deployment
 hatch run health check --verbose
 
-***REMOVED*** Monitor cache performance
+# Monitor cache performance
 hatch run cache info --verbose
 
-***REMOVED*** Clear development cache
+# Clear development cache
 hatch run cache clear --pattern "dev:*"
 ```
 
-***REMOVED******REMOVED*** 📡 API Endpoints
+## 📡 API Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Core Endpoints
-
-```http
-***REMOVED*** Movie Management
-GET /bff/v1/movies                    ***REMOVED*** Movie catalog with filtering and pagination
-GET /bff/v1/movies/{id}              ***REMOVED*** Movie details with cast/crew and recommendations
-GET /bff/v1/movies/{id}/similar      ***REMOVED*** Similar movies suggestions
-
-***REMOVED*** Search and Discovery
-GET /bff/v1/search                   ***REMOVED*** Unified search across all services
-GET /bff/v1/search/suggestions       ***REMOVED*** Search suggestions for typeahead
-GET /bff/v1/search/suggestions/text  ***REMOVED*** Text-based search suggestions
-
-***REMOVED*** User Interactions
-GET /bff/v1/watchlist                ***REMOVED*** User's watchlist (aggregated)
-GET /bff/v1/watched                  ***REMOVED*** User's watched movies
-GET /bff/v1/liked                    ***REMOVED*** User's liked movies
-POST /bff/v1/user-interactions       ***REMOVED*** Toggle user interactions (watchlist, like, etc.)
-
-***REMOVED*** Content Discovery
-GET /bff/v1/home                     ***REMOVED*** Home screen data aggregation
-GET /bff/v1/sidebar                  ***REMOVED*** Sidebar widget data
-GET /bff/v1/top                      ***REMOVED*** Top-rated content
-GET /bff/v1/genres                   ***REMOVED*** Genre listings and content
-
-***REMOVED*** Authentication
-POST /bff/v1/auth/login              ***REMOVED*** User authentication
-POST /bff/v1/auth/register           ***REMOVED*** User registration
-GET /bff/v1/auth/profile             ***REMOVED*** User profile management
-
-***REMOVED*** Actors and Cast
-GET /bff/v1/actors                   ***REMOVED*** Actor listings
-GET /bff/v1/actors/{id}              ***REMOVED*** Actor details with filmography
-```
-
-***REMOVED******REMOVED******REMOVED*** Health Endpoints
+### Core Endpoints
 
 ```http
-GET /health/          ***REMOVED*** Basic health check
-GET /health/ready     ***REMOVED*** Readiness check (K8s)
-GET /health/live      ***REMOVED*** Liveness check (K8s)
+# Movie Management
+GET /bff/v1/movies                    # Movie catalog with filtering and pagination
+GET /bff/v1/movies/{id}              # Movie details with cast/crew and recommendations
+GET /bff/v1/movies/{id}/similar      # Similar movies suggestions
+
+# Search and Discovery
+GET /bff/v1/search                   # Unified search across all services
+GET /bff/v1/search/suggestions       # Search suggestions for typeahead
+GET /bff/v1/search/suggestions/text  # Text-based search suggestions
+
+# User Interactions
+GET /bff/v1/watchlist                # User's watchlist (aggregated)
+GET /bff/v1/watched                  # User's watched movies
+GET /bff/v1/liked                    # User's liked movies
+POST /bff/v1/user-interactions       # Toggle user interactions (watchlist, like, etc.)
+
+# Content Discovery
+GET /bff/v1/home                     # Home screen data aggregation
+GET /bff/v1/sidebar                  # Sidebar widget data
+GET /bff/v1/top                      # Top-rated content
+GET /bff/v1/genres                   # Genre listings and content
+
+# Authentication
+POST /bff/v1/auth/login              # User authentication
+POST /bff/v1/auth/register           # User registration
+GET /bff/v1/auth/profile             # User profile management
+
+# Actors and Cast
+GET /bff/v1/actors                   # Actor listings
+GET /bff/v1/actors/{id}              # Actor details with filmography
 ```
 
-***REMOVED******REMOVED*** 🧩 Integration Points
+### Health Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Backend Services
+```http
+GET /health/          # Basic health check
+GET /health/ready     # Readiness check (K8s)
+GET /health/live      # Liveness check (K8s)
+```
+
+## 🧩 Integration Points
+
+### Backend Services
 
 - **backend-api**: Primary source for movie metadata, genres, cast, user data
 - **auth-api**: Authentication and user management
@@ -314,7 +314,7 @@ GET /health/live      ***REMOVED*** Liveness check (K8s)
 - **ml-api**: Machine learning features (optional)
 - **Redis**: Caching layer for performance optimization
 
-***REMOVED******REMOVED******REMOVED*** Fast-Core Integration
+### Fast-Core Integration
 
 The BFF API is built on **fast-core** for standardized FastAPI patterns:
 
@@ -324,7 +324,7 @@ The BFF API is built on **fast-core** for standardized FastAPI patterns:
 - **Configuration Management**: Environment-aware configuration with validation
 - **Error Handling**: Consistent error responses across all endpoints
 
-***REMOVED******REMOVED******REMOVED*** Cache Integration
+### Cache Integration
 
 The BFF API uses the **NextWatch Cache Library** for intelligent caching:
 
@@ -335,7 +335,7 @@ The BFF API uses the **NextWatch Cache Library** for intelligent caching:
 - **CLI management**: Rich CLI commands for cache inspection and management
 - **Graceful fallback**: Cache failures don't break the API, just reduce performance
 
-***REMOVED******REMOVED******REMOVED*** Smart Warming System
+### Smart Warming System
 
 The BFF includes an intelligent cache warming system:
 
@@ -345,7 +345,7 @@ The BFF includes an intelligent cache warming system:
 - **Throttled operations**: Prevents backend overload during warming operations
 - **Background processing**: Non-blocking warming operations
 
-***REMOVED******REMOVED*** 🏗️ Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -369,12 +369,12 @@ The BFF includes an intelligent cache warming system:
                        └─────────────────┘
 ```
 
-***REMOVED******REMOVED*** 🔧 Configuration
+## 🔧 Configuration
 
 Environment variables:
 
 ```bash
-***REMOVED*** Server Configuration
+# Server Configuration
 HOST=0.0.0.0
 PORT=8001
 ENVIRONMENT=development
@@ -382,7 +382,7 @@ DEBUG=false
 LOG_LEVEL=INFO
 LOGS_DIR=logs
 
-***REMOVED*** Backend Integration
+# Backend Integration
 BACKEND_API_URL=http://localhost:8000
 BACKEND_API_TIMEOUT=30
 AUTH_API_URL=http://localhost:8003
@@ -394,27 +394,27 @@ SEARCH_API_TIMEOUT=15
 ML_API_URL=http://localhost:8006
 ML_API_TIMEOUT=60
 
-***REMOVED*** Service-to-Service Authentication
+# Service-to-Service Authentication
 INTERNAL_API_KEY=bff-to-backend-secret-key-change-in-production
 ADMIN_API_KEY=admin-secret-key-change-in-production
 
-***REMOVED*** Caching
+# Caching
 REDIS_URL=redis://localhost:6379/0
 CACHE_TTL=300
 
-***REMOVED*** Cache Library Settings
+# Cache Library Settings
 CACHE_KEY_PREFIX=bff:
 CACHE_REDIS_POOL_SIZE=10
 CACHE_REDIS_TIMEOUT=5
 CACHE_ENABLE_METRICS=true
 
-***REMOVED*** Domain-specific Cache TTLs
-CACHE_MOVIE_TTL=600        ***REMOVED*** 10 minutes for movie data
-CACHE_USER_TTL=1800        ***REMOVED*** 30 minutes for user sessions
-CACHE_POPULAR_TTL=900      ***REMOVED*** 15 minutes for popular content
-CACHE_DEFAULT_TTL=300      ***REMOVED*** 5 minutes default
+# Domain-specific Cache TTLs
+CACHE_MOVIE_TTL=600        # 10 minutes for movie data
+CACHE_USER_TTL=1800        # 30 minutes for user sessions
+CACHE_POPULAR_TTL=900      # 15 minutes for popular content
+CACHE_DEFAULT_TTL=300      # 5 minutes default
 
-***REMOVED*** Smart Warming Configuration
+# Smart Warming Configuration
 WARMING_MAX_CONCURRENT=3
 WARMING_REQUESTS_PER_SECOND=2
 WARMING_MAX_CONNECTIONS=4
@@ -423,115 +423,115 @@ WARMING_REQUEST_TIMEOUT=3
 WARMING_BURST_SIZE=5
 WARMING_MAX_ITEMS_PER_STRATEGY=10000
 
-***REMOVED*** Security
+# Security
 JWT_SECRET=your-jwt-secret-here-change-in-production
 
-***REMOVED*** CORS Configuration
+# CORS Configuration
 CORS_ORIGINS=http://localhost:3000,http://localhost:8001
 
-***REMOVED*** Performance Monitoring
+# Performance Monitoring
 ENABLE_PERFORMANCE_METRICS=true
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 hatch run dev:test
 
-***REMOVED*** Run with coverage
+# Run with coverage
 hatch run dev:test-cov
 
-***REMOVED*** Run specific test file
+# Run specific test file
 hatch run dev:test-file tests/test_routes.py
 
-***REMOVED*** Run with verbose output
+# Run with verbose output
 hatch run dev:test -v
 ```
 
-***REMOVED******REMOVED*** 🔧 Development
+## 🔧 Development
 
-***REMOVED******REMOVED******REMOVED*** Code Style
+### Code Style
 
 The project follows Google Python Style Guide:
 
 ```bash
-***REMOVED*** Format code
+# Format code
 hatch run dev:format
 
-***REMOVED*** Sort imports
+# Sort imports
 hatch run dev:isort
 
-***REMOVED*** Lint code
+# Lint code
 hatch run dev:lint
 
-***REMOVED*** Type checking
+# Type checking
 hatch run dev:mypy
 ```
 
-***REMOVED******REMOVED******REMOVED*** Project Structure
+### Project Structure
 
 ```
 apps/bff-api/
 ├── src/bff_api/
-│   ├── config/              ***REMOVED*** Configuration management
-│   │   ├── app.py          ***REMOVED*** BFF-specific configuration
-│   │   └── fast_core_config.py  ***REMOVED*** Fast-core integration
-│   ├── core/               ***REMOVED*** Core application components
-│   │   ├── app_fast_core.py  ***REMOVED*** Fast-core application factory
-│   │   └── metrics.py      ***REMOVED*** Performance metrics
-│   ├── routes/             ***REMOVED*** FastAPI route handlers
-│   │   ├── api_v1.py       ***REMOVED*** v1 API router
-│   │   ├── health.py       ***REMOVED*** Health check endpoints
-│   │   ├── v1/             ***REMOVED*** v1 API endpoints
-│   │   │   ├── movies.py   ***REMOVED*** Movie-related endpoints
-│   │   │   ├── search.py   ***REMOVED*** Search endpoints
-│   │   │   ├── auth.py     ***REMOVED*** Authentication endpoints
-│   │   │   ├── home.py     ***REMOVED*** Home screen endpoints
-│   │   │   └── ...         ***REMOVED*** Other endpoint modules
-│   │   └── admin/          ***REMOVED*** Admin endpoints (secured)
-│   ├── services/           ***REMOVED*** External service clients
-│   │   ├── clients/        ***REMOVED*** Service clients
-│   │   │   ├── base.py     ***REMOVED*** Base client class
-│   │   │   ├── movies.py   ***REMOVED*** Movie service client
-│   │   │   ├── search.py   ***REMOVED*** Search service client
-│   │   │   └── ...         ***REMOVED*** Other service clients
-│   │   ├── smart_warming.py  ***REMOVED*** Intelligent cache warming
-│   │   └── health_service.py ***REMOVED*** Health check service
-│   ├── schemas/            ***REMOVED*** Pydantic schemas
-│   │   ├── screen_schemas.py    ***REMOVED*** Screen data schemas
-│   │   ├── auth_schemas.py      ***REMOVED*** Authentication schemas
-│   │   └── user_interaction_schemas.py  ***REMOVED*** User interaction schemas
-│   ├── dependencies/       ***REMOVED*** FastAPI dependencies
-│   ├── utils/              ***REMOVED*** Utility functions
-│   ├── cli/                ***REMOVED*** Command-line interface
-│   │   ├── commands/       ***REMOVED*** Modular CLI commands
-│   │   ├── utils.py        ***REMOVED*** CLI utilities
-│   │   └── main.py         ***REMOVED*** Main CLI app
-│   └── main.py             ***REMOVED*** FastAPI application
-├── tests/                  ***REMOVED*** Test suite
-├── pyproject.toml          ***REMOVED*** Dependencies and config
-└── README.md              ***REMOVED*** This file
+│   ├── config/              # Configuration management
+│   │   ├── app.py          # BFF-specific configuration
+│   │   └── fast_core_config.py  # Fast-core integration
+│   ├── core/               # Core application components
+│   │   ├── app_fast_core.py  # Fast-core application factory
+│   │   └── metrics.py      # Performance metrics
+│   ├── routes/             # FastAPI route handlers
+│   │   ├── api_v1.py       # v1 API router
+│   │   ├── health.py       # Health check endpoints
+│   │   ├── v1/             # v1 API endpoints
+│   │   │   ├── movies.py   # Movie-related endpoints
+│   │   │   ├── search.py   # Search endpoints
+│   │   │   ├── auth.py     # Authentication endpoints
+│   │   │   ├── home.py     # Home screen endpoints
+│   │   │   └── ...         # Other endpoint modules
+│   │   └── admin/          # Admin endpoints (secured)
+│   ├── services/           # External service clients
+│   │   ├── clients/        # Service clients
+│   │   │   ├── base.py     # Base client class
+│   │   │   ├── movies.py   # Movie service client
+│   │   │   ├── search.py   # Search service client
+│   │   │   └── ...         # Other service clients
+│   │   ├── smart_warming.py  # Intelligent cache warming
+│   │   └── health_service.py # Health check service
+│   ├── schemas/            # Pydantic schemas
+│   │   ├── screen_schemas.py    # Screen data schemas
+│   │   ├── auth_schemas.py      # Authentication schemas
+│   │   └── user_interaction_schemas.py  # User interaction schemas
+│   ├── dependencies/       # FastAPI dependencies
+│   ├── utils/              # Utility functions
+│   ├── cli/                # Command-line interface
+│   │   ├── commands/       # Modular CLI commands
+│   │   ├── utils.py        # CLI utilities
+│   │   └── main.py         # Main CLI app
+│   └── main.py             # FastAPI application
+├── tests/                  # Test suite
+├── pyproject.toml          # Dependencies and config
+└── README.md              # This file
 ```
 
-***REMOVED******REMOVED*** 🚀 Deployment
+## 🚀 Deployment
 
-***REMOVED******REMOVED******REMOVED*** Docker
+### Docker
 
 The service can be built and run using Docker with a pure pip-based approach:
 
 ```bash
-***REMOVED*** Build the optimized Docker image
+# Build the optimized Docker image
 docker build -f apps/bff-api/Dockerfile -t next-watch-bff .
 
-***REMOVED*** Run the container
+# Run the container
 docker run -p 8001:8001 \
   -e BACKEND_API_URL=http://localhost:8000 \
   -e REDIS_URL=redis://localhost:6379 \
   -e JWT_SECRET=your-secret-key \
   next-watch-bff
 
-***REMOVED*** Or run in background
+# Or run in background
 docker run -d -p 8001:8001 \
   -e BACKEND_API_URL=http://localhost:8000 \
   -e REDIS_URL=redis://localhost:6379 \
@@ -548,25 +548,25 @@ The Docker build uses:
 - **Non-root user** for security
 - **Health checks** for container orchestration
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Updating Dependencies
+#### Updating Dependencies
 
 When you add new dependencies to `pyproject.toml`, regenerate `requirements.txt`:
 
 ```bash
-***REMOVED*** Navigate to BFF directory
+# Navigate to BFF directory
 cd apps/bff-api
 
-***REMOVED*** Install poetry export plugin if not already installed
+# Install poetry export plugin if not already installed
 poetry self add poetry-plugin-export
 
-***REMOVED*** Export dependencies to requirements.txt
+# Export dependencies to requirements.txt
 poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-***REMOVED*** Rebuild Docker image
+# Rebuild Docker image
 docker build -f Dockerfile -t next-watch-bff .
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 Ensure these are set in production:
 
@@ -578,7 +578,7 @@ Ensure these are set in production:
 - `INTERNAL_API_KEY` (secure service-to-service key)
 - `ADMIN_API_KEY` (secure admin endpoint key)
 
-***REMOVED******REMOVED*** 📊 Monitoring
+## 📊 Monitoring
 
 The BFF service provides several monitoring endpoints:
 
@@ -590,7 +590,7 @@ The BFF service provides several monitoring endpoints:
 - Performance metrics collection
 - Cache warming statistics
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
 1. Follow TDD practices - write tests first
 2. Use type hints for all functions
@@ -601,7 +601,7 @@ The BFF service provides several monitoring endpoints:
 7. Follow fast-core patterns for new endpoints
 8. Implement proper error handling with fast-core exceptions
 
-***REMOVED******REMOVED*** 📝 License
+## 📝 License
 
 This project is part of the Next Watch movie platform.
 

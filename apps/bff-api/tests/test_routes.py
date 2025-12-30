@@ -47,7 +47,7 @@ class TestBFFRoutes:
 
         response = client.get(f"{API_V1}/home")
 
-        ***REMOVED*** Upstream failures become ExternalServiceException (typically 502)
+        # Upstream failures become ExternalServiceException (typically 502)
         assert response.status_code in {502, 500}
 
     def test_search_screen_success(self, client, mock_backend_client):

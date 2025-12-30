@@ -16,7 +16,7 @@ class BaseWarmingStrategy(ABC):
             config: Warming configuration
         """
         self.config = config
-        self.strategy_type = WarmingStrategy.MANUAL  ***REMOVED*** Override in subclasses
+        self.strategy_type = WarmingStrategy.MANUAL  # Override in subclasses
 
     @abstractmethod
     async def identify_targets(
@@ -54,7 +54,7 @@ class BaseWarmingStrategy(ABC):
         Returns:
             True if target should be warmed
         """
-        ***REMOVED*** Default implementation - can be overridden
+        # Default implementation - can be overridden
         return True
 
     def get_strategy_info(self) -> dict[str, Any]:

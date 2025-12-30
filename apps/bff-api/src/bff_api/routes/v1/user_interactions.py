@@ -21,9 +21,9 @@ logger = get_logger(__name__)
 router = APIRouter(tags=["user-interactions"])
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** WATCHLIST COLLECTION ENDPOINTS (/me/watchlist)
-***REMOVED*** ============================================================================
+# ============================================================================
+# WATCHLIST COLLECTION ENDPOINTS (/me/watchlist)
+# ============================================================================
 
 
 @router.get(
@@ -45,7 +45,7 @@ async def get_watchlist(
             - 401 if not authenticated
             - 502 if backend service unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("watchlist_view")
@@ -54,21 +54,21 @@ async def get_watchlist(
     logger.debug(f"Getting watchlist for user {user_id}")
 
     try:
-        ***REMOVED*** Backend now returns fast-core format with results, pagination, metadata
+        # Backend now returns fast-core format with results, pagination, metadata
         response = await backend.get_user_watchlist(user_id, jwt_token)
         watchlist_items = response.get("results", [])
 
-        ***REMOVED*** Convert to collection items
+        # Convert to collection items
         items = [
             MovieCollectionItem(
                 movie_id=item["movie_id"],
                 user_id=item["user_id"],
-                added_at=item["added_at"],  ***REMOVED*** Use added_at from new format
+                added_at=item["added_at"],  # Use added_at from new format
             )
             for item in watchlist_items
         ]
 
-        ***REMOVED*** Use total from pagination if available, otherwise fallback to items count
+        # Use total from pagination if available, otherwise fallback to items count
         total_count = response.get("pagination", {}).get("total", len(items))
         return MovieCollectionResponse(items=items, total_count=total_count)
 
@@ -114,7 +114,7 @@ async def add_to_watchlist(
             - 409 if movie already in watchlist
             - 502 if backend service unavailable
     """
-    ***REMOVED*** Record user action metrics
+    # Record user action metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_user_action("add_to_watchlist")
@@ -123,10 +123,10 @@ async def add_to_watchlist(
     logger.debug(f"Adding movie {movie_id} to watchlist for user {user_id}")
 
     try:
-        ***REMOVED*** Add to watchlist (backend handles idempotency)
+        # Add to watchlist (backend handles idempotency)
         await backend.set_user_movie_watchlist(user_id, movie_id, jwt_token)
 
-        ***REMOVED*** Return success regardless of whether it was already in watchlist
+        # Return success regardless of whether it was already in watchlist
         return CollectionOperationResponse(
             success=True,
             message="Movie added to watchlist successfully",
@@ -187,7 +187,7 @@ async def remove_from_watchlist(
     logger.debug(f"Removing movie {movie_id} from watchlist for user {user_id}")
 
     try:
-        ***REMOVED*** Remove from watchlist (backend handles idempotency)
+        # Remove from watchlist (backend handles idempotency)
         await backend.unset_user_movie_watchlist(user_id, movie_id, jwt_token)
 
         return CollectionOperationResponse(
@@ -215,9 +215,9 @@ async def remove_from_watchlist(
         raise
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** WATCHED MOVIES COLLECTION ENDPOINTS (/me/watched-movies)
-***REMOVED*** ============================================================================
+# ============================================================================
+# WATCHED MOVIES COLLECTION ENDPOINTS (/me/watched-movies)
+# ============================================================================
 
 
 @router.get(
@@ -243,21 +243,21 @@ async def get_watched_movies(
     logger.debug(f"Getting watched movies for user {user_id}")
 
     try:
-        ***REMOVED*** Backend now returns fast-core format with results, pagination, metadata
+        # Backend now returns fast-core format with results, pagination, metadata
         response = await backend.get_user_watched_movies(user_id, jwt_token)
         watched_items = response.get("results", [])
 
-        ***REMOVED*** Convert to collection items
+        # Convert to collection items
         items = [
             MovieCollectionItem(
                 movie_id=item["movie_id"],
                 user_id=item["user_id"],
-                added_at=item["added_at"],  ***REMOVED*** Use added_at from new format
+                added_at=item["added_at"],  # Use added_at from new format
             )
             for item in watched_items
         ]
 
-        ***REMOVED*** Use total from pagination if available, otherwise fallback to items count
+        # Use total from pagination if available, otherwise fallback to items count
         total_count = response.get("pagination", {}).get("total", len(items))
         return MovieCollectionResponse(items=items, total_count=total_count)
 
@@ -308,10 +308,10 @@ async def mark_movie_watched(
     logger.debug(f"Marking movie {movie_id} as watched for user {user_id}")
 
     try:
-        ***REMOVED*** Mark as watched (backend handles idempotency)
+        # Mark as watched (backend handles idempotency)
         await backend.set_user_movie_watched(user_id, movie_id, jwt_token)
 
-        ***REMOVED*** Return success regardless of whether it was already watched
+        # Return success regardless of whether it was already watched
         return CollectionOperationResponse(
             success=True,
             message="Movie marked as watched successfully",
@@ -372,7 +372,7 @@ async def unmark_movie_watched(
     logger.debug(f"Unmarking movie {movie_id} as watched for user {user_id}")
 
     try:
-        ***REMOVED*** Unmark as watched (backend handles idempotency)
+        # Unmark as watched (backend handles idempotency)
         await backend.unset_user_movie_watched(user_id, movie_id, jwt_token)
 
         return CollectionOperationResponse(
@@ -398,9 +398,9 @@ async def unmark_movie_watched(
         raise
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** LIKED MOVIES COLLECTION ENDPOINTS (/me/liked-movies)
-***REMOVED*** ============================================================================
+# ============================================================================
+# LIKED MOVIES COLLECTION ENDPOINTS (/me/liked-movies)
+# ============================================================================
 
 
 @router.get(
@@ -426,21 +426,21 @@ async def get_liked_movies(
     logger.debug(f"Getting liked movies for user {user_id}")
 
     try:
-        ***REMOVED*** Backend now returns fast-core format with results, pagination, metadata
+        # Backend now returns fast-core format with results, pagination, metadata
         response = await backend.get_user_liked_movies(user_id, jwt_token)
         liked_items = response.get("results", [])
 
-        ***REMOVED*** Convert to collection items
+        # Convert to collection items
         items = [
             MovieCollectionItem(
                 movie_id=item["movie_id"],
                 user_id=item["user_id"],
-                added_at=item["added_at"],  ***REMOVED*** Use added_at from new format
+                added_at=item["added_at"],  # Use added_at from new format
             )
             for item in liked_items
         ]
 
-        ***REMOVED*** Use total from pagination if available, otherwise fallback to items count
+        # Use total from pagination if available, otherwise fallback to items count
         total_count = response.get("pagination", {}).get("total", len(items))
         return MovieCollectionResponse(items=items, total_count=total_count)
 
@@ -491,10 +491,10 @@ async def like_movie(
     logger.debug(f"Liking movie {movie_id} for user {user_id}")
 
     try:
-        ***REMOVED*** Like the movie (backend handles idempotency)
+        # Like the movie (backend handles idempotency)
         await backend.set_user_movie_liked(user_id, movie_id, jwt_token)
 
-        ***REMOVED*** Return success regardless of whether it was already liked
+        # Return success regardless of whether it was already liked
         return CollectionOperationResponse(
             success=True,
             message="Movie liked successfully",
@@ -555,7 +555,7 @@ async def unlike_movie(
     logger.debug(f"Unliking movie {movie_id} for user {user_id}")
 
     try:
-        ***REMOVED*** Unlike the movie (backend handles idempotency)
+        # Unlike the movie (backend handles idempotency)
         await backend.unset_user_movie_liked(user_id, movie_id, jwt_token)
 
         return CollectionOperationResponse(
@@ -581,9 +581,9 @@ async def unlike_movie(
         raise
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** INDIVIDUAL MOVIE INTERACTION ENDPOINT (for compatibility)
-***REMOVED*** ============================================================================
+# ============================================================================
+# INDIVIDUAL MOVIE INTERACTION ENDPOINT (for compatibility)
+# ============================================================================
 
 
 @router.get(
@@ -619,7 +619,7 @@ async def get_movie_interaction(
         interaction = await backend.get_user_movie_interaction(user_id, movie_id, jwt_token)
 
         if not interaction:
-            ***REMOVED*** Return default interaction (all false)
+            # Return default interaction (all false)
             from datetime import datetime
 
             now = datetime.utcnow().isoformat() + "Z"

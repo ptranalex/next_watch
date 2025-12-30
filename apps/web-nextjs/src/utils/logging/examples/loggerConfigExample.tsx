@@ -173,8 +173,8 @@ export default function MovieDataFetcher() {
           style={{
             marginTop: "2rem",
             padding: "1rem",
-            border: "1px dashed ***REMOVED***666",
-            background: "***REMOVED***f5f5f5",
+            border: "1px dashed #666",
+            background: "#f5f5f5",
           }}
         >
           <h3>Debug Panel</h3>

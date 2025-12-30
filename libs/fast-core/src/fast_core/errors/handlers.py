@@ -19,7 +19,7 @@ from fast_core.errors.exceptions import (
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-***REMOVED*** Type alias for error mappers
+# Type alias for error mappers
 ErrorMapper = Callable[[Exception], Any]
 ErrorMapping = dict[type[Exception] | int | str, ErrorMapper]
 
@@ -35,17 +35,17 @@ def _is_expected_client_error(e: Exception) -> bool:
     """
     import httpx
 
-    ***REMOVED*** Check for HTTP status errors with 4xx status codes
+    # Check for HTTP status errors with 4xx status codes
     if isinstance(e, httpx.HTTPStatusError):
         status_code = e.response.status_code
-        ***REMOVED*** 4xx status codes are client errors - expected behavior
+        # 4xx status codes are client errors - expected behavior
         return 400 <= status_code < 500
 
-    ***REMOVED*** Check for custom client error types
+    # Check for custom client error types
     exception_name = type(e).__name__
     error_str = str(e)
 
-    ***REMOVED*** Check if it's a client error based on the exception name or error message
+    # Check if it's a client error based on the exception name or error message
     client_error_indicators = [
         "ClientError",
         "ValidationError",
@@ -97,10 +97,10 @@ def handle_service_error(
         Various exceptions based on error type and configuration when graceful_degradation=False
     """
     if graceful_degradation:
-        ***REMOVED*** For graceful degradation, use info level instead of error to reduce noise
-        ***REMOVED*** Try to detect if this is a structured logger (like structlog) by checking for bind method
+        # For graceful degradation, use info level instead of error to reduce noise
+        # Try to detect if this is a structured logger (like structlog) by checking for bind method
         if hasattr(logger, "bind"):
-            ***REMOVED*** Structured logging (like structlog)
+            # Structured logging (like structlog)
             logger.info(
                 f"Service error (graceful degradation): {str(e)}",
                 service=service_name,
@@ -110,7 +110,7 @@ def handle_service_error(
                 **context,
             )
         else:
-            ***REMOVED*** Standard logging with extra
+            # Standard logging with extra
             logger.info(
                 f"Service error for {operation}: {str(e)} (service={service_name}, exception_type={type(e).__name__}) - graceful degradation enabled",
                 extra={
@@ -122,13 +122,13 @@ def handle_service_error(
                 },
             )
     else:
-        ***REMOVED*** Determine if this is an expected client error (like 404) or a critical server error
+        # Determine if this is an expected client error (like 404) or a critical server error
         is_expected_client_error = _is_expected_client_error(e)
 
         if is_expected_client_error:
-            ***REMOVED*** For expected client errors (404, 400, etc.), use info level without stack trace
+            # For expected client errors (404, 400, etc.), use info level without stack trace
             if hasattr(logger, "bind"):
-                ***REMOVED*** Structured logging (like structlog)
+                # Structured logging (like structlog)
                 logger.info(
                     f"Client error: {str(e)}",
                     service=service_name,
@@ -138,7 +138,7 @@ def handle_service_error(
                     **context,
                 )
             else:
-                ***REMOVED*** Standard logging with extra
+                # Standard logging with extra
                 logger.info(
                     f"Client error for {operation}: {str(e)} (service={service_name}, exception_type={type(e).__name__})",
                     extra={
@@ -150,9 +150,9 @@ def handle_service_error(
                     },
                 )
         else:
-            ***REMOVED*** For critical errors, use error level with full traceback
+            # For critical errors, use error level with full traceback
             if hasattr(logger, "bind"):
-                ***REMOVED*** Structured logging (like structlog)
+                # Structured logging (like structlog)
                 logger.error(
                     f"Service error: {str(e)}",
                     service=service_name,
@@ -162,7 +162,7 @@ def handle_service_error(
                     **context,
                 )
             else:
-                ***REMOVED*** Standard logging with extra
+                # Standard logging with extra
                 logger.error(
                     f"Service error for {operation}: {str(e)} (service={service_name}, exception_type={type(e).__name__})",
                     exc_info=True,
@@ -174,13 +174,13 @@ def handle_service_error(
                     },
                 )
 
-    ***REMOVED*** Apply custom error mapping first (highest priority)
+    # Apply custom error mapping first (highest priority)
     if error_mapping:
         mapped_exception = _apply_error_mapping(e, error_mapping, service_name)
         if mapped_exception is not None:
             if graceful_degradation:
                 if hasattr(logger, "bind"):
-                    ***REMOVED*** Structured logging (like structlog)
+                    # Structured logging (like structlog)
                     logger.info(
                         "Graceful degradation: returning fallback value",
                         service=service_name,
@@ -189,19 +189,19 @@ def handle_service_error(
                         fallback_value_type=type(fallback_value).__name__,
                     )
                 else:
-                    ***REMOVED*** Standard logging
+                    # Standard logging
                     logger.info(
                         f"Graceful degradation for {operation} in {service_name}: returning fallback value"
                     )
                 return fallback_value
             raise mapped_exception
 
-    ***REMOVED*** Handle HTTP status errors with semantic preservation
+    # Handle HTTP status errors with semantic preservation
     if isinstance(e, httpx.HTTPStatusError):
         mapped_exception = _handle_http_status_error(e, service_name, preserve_semantics)
         if graceful_degradation:
             if hasattr(logger, "bind"):
-                ***REMOVED*** Structured logging (like structlog)
+                # Structured logging (like structlog)
                 logger.info(
                     "Graceful degradation: returning fallback value",
                     service=service_name,
@@ -211,20 +211,20 @@ def handle_service_error(
                     fallback_value_type=type(fallback_value).__name__,
                 )
             else:
-                ***REMOVED*** Standard logging
+                # Standard logging
                 logger.info(
                     f"Graceful degradation for {operation} in {service_name}: returning fallback value"
                 )
             return fallback_value
         raise mapped_exception
 
-    ***REMOVED*** Handle custom client errors (e.g., BackendClientPermanentError)
+    # Handle custom client errors (e.g., BackendClientPermanentError)
     if preserve_semantics:
         mapped_exception = _handle_custom_client_errors(e, service_name)
         if mapped_exception:
             if graceful_degradation:
                 if hasattr(logger, "bind"):
-                    ***REMOVED*** Structured logging (like structlog)
+                    # Structured logging (like structlog)
                     logger.info(
                         "Graceful degradation: returning fallback value",
                         service=service_name,
@@ -233,20 +233,20 @@ def handle_service_error(
                         fallback_value_type=type(fallback_value).__name__,
                     )
                 else:
-                    ***REMOVED*** Standard logging
+                    # Standard logging
                     logger.info(
                         f"Graceful degradation for {operation} in {service_name}: returning fallback value"
                     )
                 return fallback_value
             raise mapped_exception
 
-    ***REMOVED*** Handle known exception types with semantic preservation
+    # Handle known exception types with semantic preservation
     if preserve_semantics:
         mapped_exception = _handle_known_exceptions(e, service_name)
         if mapped_exception:
             if graceful_degradation:
                 if hasattr(logger, "bind"):
-                    ***REMOVED*** Structured logging (like structlog)
+                    # Structured logging (like structlog)
                     logger.info(
                         "Graceful degradation: returning fallback value",
                         service=service_name,
@@ -255,17 +255,17 @@ def handle_service_error(
                         fallback_value_type=type(fallback_value).__name__,
                     )
                 else:
-                    ***REMOVED*** Standard logging
+                    # Standard logging
                     logger.info(
                         f"Graceful degradation for {operation} in {service_name}: returning fallback value"
                     )
                 return fallback_value
             raise mapped_exception
 
-    ***REMOVED*** Default behavior
+    # Default behavior
     if graceful_degradation:
         if hasattr(logger, "bind"):
-            ***REMOVED*** Structured logging (like structlog)
+            # Structured logging (like structlog)
             logger.info(
                 "Graceful degradation: returning fallback value",
                 service=service_name,
@@ -274,13 +274,13 @@ def handle_service_error(
                 fallback_value_type=type(fallback_value).__name__,
             )
         else:
-            ***REMOVED*** Standard logging
+            # Standard logging
             logger.info(
                 f"Graceful degradation for {operation} in {service_name}: returning fallback value"
             )
         return fallback_value
 
-    ***REMOVED*** Default to service unavailable
+    # Default to service unavailable
     raise ExternalServiceException(
         detail=f"{service_name} service unavailable",
         service_name=service_name,
@@ -293,18 +293,18 @@ def _apply_error_mapping(
 ) -> Any | None:
     """Apply custom error mapping to an exception."""
 
-    ***REMOVED*** Check by exception type
+    # Check by exception type
     for error_type, mapper in error_mapping.items():
         if isinstance(error_type, type) and isinstance(e, error_type):
             return mapper(e)
 
-    ***REMOVED*** Check by status code (if exception has one)
+    # Check by status code (if exception has one)
     if hasattr(e, "status_code"):
         status_code = getattr(e, "status_code")
         if status_code in error_mapping:
             return error_mapping[status_code](e)
 
-    ***REMOVED*** Check by string pattern in exception message
+    # Check by string pattern in exception message
     error_str = str(e).lower()
     for pattern, mapper in error_mapping.items():
         if isinstance(pattern, str) and pattern.lower() in error_str:
@@ -347,7 +347,7 @@ def _handle_http_status_error(
                 service_name=service_name,
             )
 
-    ***REMOVED*** Fallback to HTTP exceptions for other codes or when semantics not preserved
+    # Fallback to HTTP exceptions for other codes or when semantics not preserved
     if status_code == 401:
         return HTTPException(status_code=401, detail="Authentication failed")
     elif status_code == 404:
@@ -357,7 +357,7 @@ def _handle_http_status_error(
     elif status_code == 429:
         return HTTPException(status_code=429, detail="Rate limit exceeded")
 
-    ***REMOVED*** Default to external service exception
+    # Default to external service exception
     return ExternalServiceException(
         detail=f"{service_name} returned status {status_code}",
         service_name=service_name,
@@ -370,7 +370,7 @@ def _handle_custom_client_errors(e: Exception, service_name: str) -> Exception |
     exception_name = type(e).__name__
     error_str = str(e)
 
-    ***REMOVED*** Handle BackendClientPermanentError and similar
+    # Handle BackendClientPermanentError and similar
     if "PermanentError" in exception_name or "ClientError" in exception_name:
         if "404" in error_str:
             return ResourceNotFoundException(
@@ -395,7 +395,7 @@ def _handle_custom_client_errors(e: Exception, service_name: str) -> Exception |
 def _handle_known_exceptions(e: Exception, service_name: str) -> Exception | None:
     """Handle known exception types by preserving or enhancing them."""
 
-    ***REMOVED*** Already semantic exceptions - enhance with service context
+    # Already semantic exceptions - enhance with service context
     if isinstance(e, ResourceNotFoundException):
         e.context = e.context or {}
         e.context["service_name"] = service_name
@@ -438,12 +438,12 @@ def service_error_handler(
         Decorator function
 
     Examples:
-        ***REMOVED*** Basic usage with semantic preservation
+        # Basic usage with semantic preservation
         @service_error_handler("backend-api", logger)
         async def get_user(user_id: int):
             return await backend.get(f"/users/{user_id}")
 
-        ***REMOVED*** Graceful degradation for non-critical features
+        # Graceful degradation for non-critical features
         @service_error_handler(
             "recommendation-api",
             logger,
@@ -454,7 +454,7 @@ def service_error_handler(
         async def get_recommendations(user_id: int):
             return await reco.get(f"/users/{user_id}/recommendations")
 
-        ***REMOVED*** Custom error mapping
+        # Custom error mapping
         @service_error_handler(
             "payment-api",
             logger,
@@ -475,12 +475,12 @@ def service_error_handler(
             except Exception as e:
                 operation = operation_name or func.__name__
 
-                ***REMOVED*** Get function signature for better context
+                # Get function signature for better context
                 sig = inspect.signature(func)
                 bound_args = sig.bind_partial(*args, **kwargs)
                 bound_args.apply_defaults()
 
-                ***REMOVED*** Enhanced context with function arguments
+                # Enhanced context with function arguments
                 enhanced_context = {
                     "function": func.__name__,
                     "args_count": len(args),
@@ -488,9 +488,9 @@ def service_error_handler(
                     "critical": critical,
                 }
 
-                ***REMOVED*** Add relevant argument values for debugging (be careful with sensitive data)
+                # Add relevant argument values for debugging (be careful with sensitive data)
                 for name, value in bound_args.arguments.items():
-                    if name in ["user_id", "movie_id", "id", "limit", "page"]:  ***REMOVED*** Safe parameters
+                    if name in ["user_id", "movie_id", "id", "limit", "page"]:  # Safe parameters
                         enhanced_context[f"arg_{name}"] = value
 
                 result = handle_service_error(
@@ -505,7 +505,7 @@ def service_error_handler(
                     **enhanced_context,
                 )
 
-                ***REMOVED*** If graceful degradation returned a value, return it
+                # If graceful degradation returned a value, return it
                 if graceful_degradation and result is not None:
                     return result
 
@@ -516,12 +516,12 @@ def service_error_handler(
             except Exception as e:
                 operation = operation_name or func.__name__
 
-                ***REMOVED*** Get function signature for better context
+                # Get function signature for better context
                 sig = inspect.signature(func)
                 bound_args = sig.bind_partial(*args, **kwargs)
                 bound_args.apply_defaults()
 
-                ***REMOVED*** Enhanced context with function arguments
+                # Enhanced context with function arguments
                 enhanced_context = {
                     "function": func.__name__,
                     "args_count": len(args),
@@ -529,9 +529,9 @@ def service_error_handler(
                     "critical": critical,
                 }
 
-                ***REMOVED*** Add relevant argument values for debugging (be careful with sensitive data)
+                # Add relevant argument values for debugging (be careful with sensitive data)
                 for name, value in bound_args.arguments.items():
-                    if name in ["user_id", "movie_id", "id", "limit", "page"]:  ***REMOVED*** Safe parameters
+                    if name in ["user_id", "movie_id", "id", "limit", "page"]:  # Safe parameters
                         enhanced_context[f"arg_{name}"] = value
 
                 result = handle_service_error(
@@ -546,20 +546,20 @@ def service_error_handler(
                     **enhanced_context,
                 )
 
-                ***REMOVED*** If graceful degradation returned a value, return it
+                # If graceful degradation returned a value, return it
                 if graceful_degradation and result is not None:
                     return result
 
-        ***REMOVED*** Return appropriate wrapper based on function type
+        # Return appropriate wrapper based on function type
         if inspect.iscoroutinefunction(func):
-            return async_wrapper  ***REMOVED*** type: ignore
+            return async_wrapper  # type: ignore
         else:
-            return sync_wrapper  ***REMOVED*** type: ignore
+            return sync_wrapper  # type: ignore
 
     return decorator
 
 
-***REMOVED*** Convenience decorators for common use cases
+# Convenience decorators for common use cases
 def critical_service_handler(service_name: str, logger: Any, **kwargs: Any) -> Callable[[F], F]:
     """Decorator for critical service operations that must succeed."""
     return service_error_handler(
@@ -588,7 +588,7 @@ def optional_service_handler(
 
 
 def create_error_response(
-    responses: Any,  ***REMOVED*** ResponseBuilder
+    responses: Any,  # ResponseBuilder
     page: int,
     limit: int,
     collection_type: str,
@@ -672,8 +672,8 @@ class ServiceErrorContext:
                 **self.context,
             )
 
-            ***REMOVED*** If graceful degradation returned a value, suppress the exception
+            # If graceful degradation returned a value, suppress the exception
             if self.graceful_degradation and result is not None:
-                return True  ***REMOVED*** Suppress the exception
+                return True  # Suppress the exception
 
-        return False  ***REMOVED*** Don't suppress the exception
+        return False  # Don't suppress the exception

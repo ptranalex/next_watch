@@ -42,7 +42,7 @@ def display_health_results(
         out.warning("No health check results to display")
         return
 
-    ***REMOVED*** Default service name mapping
+    # Default service name mapping
     default_names = {
         "backend_api": "Backend API",
         "recommendation_api": "Recommendation API",
@@ -53,7 +53,7 @@ def display_health_results(
 
     names = service_names or default_names
 
-    ***REMOVED*** Create Rich table with BFF-style formatting
+    # Create Rich table with BFF-style formatting
     table = Table(title="Service Health Status", show_header=True, header_style="bold blue")
     table.add_column("Service", style="cyan", no_wrap=True)
     table.add_column("Status", style="bold")
@@ -63,7 +63,7 @@ def display_health_results(
     for service_key, result in results.items():
         service_name = names.get(service_key, service_key)
 
-        ***REMOVED*** Status with color coding (matches BFF patterns)
+        # Status with color coding (matches BFF patterns)
         if result.is_healthy and result.status == "healthy":
             status = "[green]Healthy[/green]"
         elif result.is_healthy and result.status == "degraded":
@@ -73,10 +73,10 @@ def display_health_results(
         else:
             status = "[red]Unhealthy[/red]"
 
-        ***REMOVED*** Response time formatting
+        # Response time formatting
         response_time = f"{result.response_time_ms}ms" if result.response_time_ms else "N/A"
 
-        ***REMOVED*** Details (show error or service status)
+        # Details (show error or service status)
         if result.error:
             details = f"[red]{result.error}[/red]"
         elif result.details and result.details.get("service_status"):
@@ -86,7 +86,7 @@ def display_health_results(
 
         table.add_row(service_name, status, response_time, details)
 
-    ***REMOVED*** Display with proper spacing (BFF pattern)
+    # Display with proper spacing (BFF pattern)
     out.console.print()
     out.console.print(table)
     out.console.print()

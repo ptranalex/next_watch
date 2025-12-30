@@ -97,7 +97,7 @@ class CLITestCase:
         """Create a mock HTTP client."""
         mock_client = AsyncMock()
 
-        ***REMOVED*** Create a mock response
+        # Create a mock response
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json = Mock(return_value={"status": "healthy", "version": "1.0.0"})
@@ -113,7 +113,7 @@ class CLITestCase:
         """Create a mock health service."""
         service = Mock()
 
-        ***REMOVED*** Mock health check results
+        # Mock health check results
         healthy_result = Mock(is_healthy=True, response_time=0.1, status="healthy")
         unhealthy_result = Mock(
             is_healthy=False,
@@ -148,7 +148,7 @@ class AsyncTestCase(CLITestCase):
 
     async def async_teardown_method(self) -> None:
         """Async cleanup for test methods."""
-        ***REMOVED*** Clean up async resources in reverse order
+        # Clean up async resources in reverse order
         for resource in reversed(self.async_resources):
             if hasattr(resource, "aclose"):
                 await resource.aclose()
@@ -199,7 +199,7 @@ class CLITestResult:
         ), f"'{text}' unexpectedly found in {'stdout' if in_stdout else 'stderr'}: {target}"
 
 
-***REMOVED*** Test data factory functions
+# Test data factory functions
 def create_sample_health_results() -> dict[str, Any]:
     """Create sample health check results for testing."""
     return {
@@ -231,7 +231,7 @@ def create_test_service_registry() -> ServiceRegistry:
     """Create a service registry with test services."""
     registry = ServiceRegistry()
 
-    ***REMOVED*** Backend API service
+    # Backend API service
     backend_config = ServiceConfig(
         name="backend-api",
         url="http://localhost:8000",
@@ -244,7 +244,7 @@ def create_test_service_registry() -> ServiceRegistry:
     )
     registry.register_service(backend_config)
 
-    ***REMOVED*** Redis service
+    # Redis service
     redis_config = ServiceConfig(
         name="redis",
         url="redis://localhost:6379/0",
@@ -262,7 +262,7 @@ def create_mock_health_service() -> Mock:
     """Create a mock health service for testing."""
     service = Mock()
 
-    ***REMOVED*** Mock health check results
+    # Mock health check results
     healthy_result = Mock(is_healthy=True, response_time=0.1, status="healthy")
     unhealthy_result = Mock(
         is_healthy=False,
@@ -286,12 +286,12 @@ def create_mock_health_service() -> Mock:
     return service
 
 
-***REMOVED*** Mock client factories
+# Mock client factories
 def create_mock_redis_client() -> Mock:
     """Create a mock Redis client for testing."""
     mock_redis = Mock()
 
-    ***REMOVED*** Mock common Redis operations
+    # Mock common Redis operations
     mock_redis.ping.return_value = True
     mock_redis.info.return_value = {
         "redis_version": "7.0.0",
@@ -313,7 +313,7 @@ def create_mock_httpx_client() -> Mock:
     """Create a mock httpx client for testing."""
     mock_client = Mock()
 
-    ***REMOVED*** Create mock response
+    # Create mock response
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"status": "healthy", "version": "1.0.0"}

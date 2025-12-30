@@ -18,7 +18,7 @@ from backend_api.core.metrics import (
     track_search_operation,
 )
 
-***REMOVED*** Redis cache removed for bulk endpoints - too dynamic for effective caching
+# Redis cache removed for bulk endpoints - too dynamic for effective caching
 from backend_api.db.database import get_db
 from backend_api.errors import (
     ResourceNotFoundError,
@@ -31,18 +31,18 @@ from backend_api.schemas.cast_schema import (
     MovieCastResponse,
 )
 
-***REMOVED*** Import response schemas
+# Import response schemas
 from backend_api.schemas.movie_schema import MovieResponse, MoviesListResponse
 from backend_api.schemas.trailer_schema import TrailerResponse
 
-***REMOVED*** Import service and query
+# Import service and query
 from backend_api.services.movie_service import MovieService
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/movies", tags=["movies"])
 
-***REMOVED*** Initialize fast-core response builder
+# Initialize fast-core response builder
 response_builder = ResponseBuilder(
     {
         "pagination": {
@@ -66,9 +66,9 @@ def convert_paginated_response_to_movies_list(
 
     This helper maintains backward compatibility while using fast-core internally.
     """
-    ***REMOVED*** fast-core models these as TypedDict with optional keys; in practice, our
-    ***REMOVED*** ResponseBuilder always includes them. Use defensive .get() + sensible defaults
-    ***REMOVED*** to satisfy typecheckers and avoid runtime KeyErrors.
+    # fast-core models these as TypedDict with optional keys; in practice, our
+    # ResponseBuilder always includes them. Use defensive .get() + sensible defaults
+    # to satisfy typecheckers and avoid runtime KeyErrors.
     pagination = paginated_response.get("pagination") or {}
     results = cast(list[Any], paginated_response.get("results") or [])
 
@@ -92,7 +92,7 @@ def convert_paginated_response_to_movies_list(
     )
 
 
-***REMOVED*** Get dependencies
+# Get dependencies
 def get_movie_service() -> MovieService:
     """Get movie service."""
     return MovieService()
@@ -103,19 +103,19 @@ def get_movie_query() -> MovieQuery:
     return MovieQuery()
 
 
-***REMOVED*** Helper function (enhanced with request tracking)
+# Helper function (enhanced with request tracking)
 def format_movie_for_response(
     movie: Any, genres: list[dict[str, Any]], request_id: str | None = None
 ) -> MovieResponse:
     """
     Format a movie database row into a MovieResponse model with request tracking.
     """
-    ***REMOVED*** Convert genres to the expected format
+    # Convert genres to the expected format
     genre_list = [
         {"id": genre["id"], "name": genre["name"], "tmdb_id": genre["tmdb_id"]} for genre in genres
     ]
 
-    ***REMOVED*** Convert movie to dictionary based on its features
+    # Convert movie to dictionary based on its features
     is_dict_like = (
         hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__")
     )
@@ -123,17 +123,17 @@ def format_movie_for_response(
     if is_dict_like:
         movie_dict = cast(dict[str, Any], movie)
     else:
-        ***REMOVED*** Convert SQLAlchemy Row or other object to dictionary
+        # Convert SQLAlchemy Row or other object to dictionary
         try:
             movie_dict = dict(movie._mapping)
         except (AttributeError, TypeError):
-            ***REMOVED*** Fallback to __dict__ for other objects
+            # Fallback to __dict__ for other objects
             movie_dict = {k: v for k, v in movie.__dict__.items() if not k.startswith("_")}
 
-    ***REMOVED*** Add genres to the dictionary
+    # Add genres to the dictionary
     movie_dict["genres"] = genre_list
 
-    ***REMOVED*** Create and return the response object
+    # Create and return the response object
     return MovieResponse.model_validate(movie_dict)
 
 
@@ -161,10 +161,10 @@ def create_pagination_response(
     )
 
 
-***REMOVED*** Helper function to safely get movie ID
+# Helper function to safely get movie ID
 def get_movie_id(movie: Any) -> int:
     """Extract the movie ID safely from any movie object type."""
-    ***REMOVED*** Dictionary-like check
+    # Dictionary-like check
     if hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__"):
         try:
             movie_dict = cast(dict[str, Any], movie)
@@ -172,22 +172,22 @@ def get_movie_id(movie: Any) -> int:
         except (KeyError, TypeError, ValueError):
             pass
 
-    ***REMOVED*** Object with id attribute
+    # Object with id attribute
     try:
         return int(getattr(movie, "id", 0))
     except (TypeError, ValueError):
         return 0
 
 
-***REMOVED*** Bulk endpoint caching removed - too dynamic for effective cache hit rates
-***REMOVED*** The materialized view provides the performance optimization instead
+# Bulk endpoint caching removed - too dynamic for effective cache hit rates
+# The materialized view provides the performance optimization instead
 
 
 async def _get_bulk_movies_internal(
     ids: str, page: int, limit: int, db: Session, movie_query: MovieQuery
 ) -> MoviesListResponse:
     """Internal function for bulk movies logic (used by both cached and non-cached paths)."""
-    ***REMOVED*** Parse movie IDs from comma-separated string
+    # Parse movie IDs from comma-separated string
     try:
         movie_ids = [int(id_str.strip()) for id_str in ids.split(",") if id_str.strip()]
     except ValueError:
@@ -196,35 +196,35 @@ async def _get_bulk_movies_internal(
     if not movie_ids:
         return create_pagination_response([], 0, page, limit)
 
-    if len(movie_ids) > 1000:  ***REMOVED*** Reasonable limit to prevent abuse
+    if len(movie_ids) > 1000:  # Reasonable limit to prevent abuse
         raise ValidationError("Too many movie IDs provided. Maximum 1000 IDs per request.")
 
-    ***REMOVED*** Record bulk operation metrics
+    # Record bulk operation metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_movie_operation("bulk", "success")
         metrics.record_bulk_operation(
             "bulk_get", len(movie_ids), 0.0
-        )  ***REMOVED*** Duration will be tracked by decorator
+        )  # Duration will be tracked by decorator
 
-    ***REMOVED*** Calculate pagination for the movie IDs list
+    # Calculate pagination for the movie IDs list
     skip = (page - 1) * limit
     paginated_ids = movie_ids[skip : skip + limit]
 
-    ***REMOVED*** Get movies from database using precomputed metadata (Netflix pattern)
+    # Get movies from database using precomputed metadata (Netflix pattern)
     movies = movie_query.get_movies_by_ids(db, paginated_ids, use_precomputed=True)
 
     if not movies:
         return create_pagination_response([], 0, page, limit)
 
-    ***REMOVED*** Convert to response format (movies already have genres from precomputed data)
+    # Convert to response format (movies already have genres from precomputed data)
     movie_responses = []
     for movie in movies:
-        ***REMOVED*** Movies from precomputed data already have genres included
+        # Movies from precomputed data already have genres included
         movie_response = MovieResponse.model_validate(movie)
         movie_responses.append(movie_response)
 
-    ***REMOVED*** Calculate pagination metadata based on original movie_ids list
+    # Calculate pagination metadata based on original movie_ids list
     total_count = len(movie_ids)
     return create_pagination_response(movie_responses, total_count, page, limit)
 
@@ -260,7 +260,7 @@ async def get_movies_bulk(
         GET /movies/bulk?ids=1,2,3,4,5&page=1&limit=50
     """
     try:
-        ***REMOVED*** Use materialized view for high performance (Netflix-style precomputed metadata)
+        # Use materialized view for high performance (Netflix-style precomputed metadata)
         return await _get_bulk_movies_internal(ids, page, limit, db, movie_query)
 
     except (ResourceNotFoundError, ValidationError) as e:
@@ -297,7 +297,7 @@ async def list_movies(
     """
     Get a list of movies with pagination and optional filtering (Fast Core enhanced).
     """
-    ***REMOVED*** Record metrics
+    # Record metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_movie_operation("list", "started")
@@ -309,7 +309,7 @@ async def list_movies(
             extra={"request_id": request_id, "endpoint": "list_movies"},
         )
 
-        ***REMOVED*** Get movies from database with pagination and filters using fast-core pagination
+        # Get movies from database with pagination and filters using fast-core pagination
         movies, total_count = movie_query.get_movies_with_filters(
             db,
             skip=pagination.offset,
@@ -337,16 +337,16 @@ async def list_movies(
             )
             return convert_paginated_response_to_movies_list(paginated_response, request_id)
 
-        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
+        # Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
         movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
         genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
 
-        ***REMOVED*** Convert to response format with request tracking
+        # Convert to response format with request tracking
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Get movie ID safely
+            # Get movie ID safely
             movie_id = get_movie_id(movie)
-            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
+            genres = genres_by_movie.get(movie_id, [])  # Get genres from bulk result
             movie_response = format_movie_for_response(movie, genres, request_id)
             movie_responses.append(movie_response)
 
@@ -359,11 +359,11 @@ async def list_movies(
             },
         )
 
-        ***REMOVED*** Record successful movie list request
+        # Record successful movie list request
         if metrics:
             metrics.record_movie_operation("list", "success")
 
-        ***REMOVED*** Use fast-core response builder for consistent pagination
+        # Use fast-core response builder for consistent pagination
         paginated_response = response_builder.paginated(
             items=movie_responses,
             page=pagination.page,
@@ -381,7 +381,7 @@ async def list_movies(
         )
         return convert_paginated_response_to_movies_list(paginated_response, request_id)
     except (ResourceNotFoundError, ValidationError) as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_movie_operation("list", "validation_error")
         logger.error(
@@ -404,10 +404,10 @@ async def get_top_movies(
     Get top rated movies for a specific year (or the current year if not specified).
     """
     try:
-        ***REMOVED*** Calculate skip from page number
+        # Calculate skip from page number
         skip = (page - 1) * limit
 
-        ***REMOVED*** Get top movies for the year
+        # Get top movies for the year
         movies, total_count = movie_query.get_top_rated_movies(
             db, limit=limit, skip=skip, year=year, genre_id=genre_id
         )
@@ -415,16 +415,16 @@ async def get_top_movies(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
-        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
+        # Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
         movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
         genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
 
-        ***REMOVED*** Convert to response format
+        # Convert to response format
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Get movie ID safely
+            # Get movie ID safely
             movie_id = get_movie_id(movie)
-            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
+            genres = genres_by_movie.get(movie_id, [])  # Get genres from bulk result
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
@@ -468,7 +468,7 @@ async def search_movies(
     all the same filtering options as the main movie listing endpoint.
     """
     try:
-        ***REMOVED*** Count applied filters for metrics
+        # Count applied filters for metrics
         filters_count = sum(
             [
                 1
@@ -486,17 +486,17 @@ async def search_movies(
             ]
         )
 
-        ***REMOVED*** Record search operation metrics
+        # Record search operation metrics
         metrics = get_backend_metrics()
         if metrics:
             metrics.record_movie_operation("search", "success")
-            ***REMOVED*** Duration will be tracked by decorator, pass 0.0 for now
+            # Duration will be tracked by decorator, pass 0.0 for now
             metrics.record_movie_search("title", filters_count, 0.0)
 
-        ***REMOVED*** Calculate skip from page number
+        # Calculate skip from page number
         skip = (page - 1) * limit
 
-        ***REMOVED*** Search movies using the query service
+        # Search movies using the query service
         movies, total_count = movie_query.search_movies_by_title(
             db,
             title_search=q,
@@ -517,16 +517,16 @@ async def search_movies(
         if not movies:
             return create_pagination_response([], 0, page, limit)
 
-        ***REMOVED*** Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
+        # Get all movie IDs for bulk genre fetching (eliminates N+1 queries)
         movie_ids_for_genres = [get_movie_id(movie) for movie in movies]
         genres_by_movie = movie_query.get_movie_genres_bulk(db, movie_ids_for_genres)
 
-        ***REMOVED*** Convert to response format
+        # Convert to response format
         movie_responses = []
         for movie in movies:
-            ***REMOVED*** Get movie ID safely
+            # Get movie ID safely
             movie_id = get_movie_id(movie)
-            genres = genres_by_movie.get(movie_id, [])  ***REMOVED*** Get genres from bulk result
+            genres = genres_by_movie.get(movie_id, [])  # Get genres from bulk result
             movie_response = format_movie_for_response(movie, genres)
             movie_responses.append(movie_response)
 
@@ -545,7 +545,7 @@ async def get_movie_details(
     """
     Get detailed information for a specific movie by its database ID.
     """
-    ***REMOVED*** Record metrics
+    # Record metrics
     metrics = get_backend_metrics()
     if metrics:
         metrics.record_movie_operation("detail", "started")
@@ -554,13 +554,13 @@ async def get_movie_details(
         movie = movie_query.get_movie_details(db, movie_id)
         genres = movie_query.get_movie_genres(db, movie["id"])
 
-        ***REMOVED*** Record successful movie detail request
+        # Record successful movie detail request
         if metrics:
             metrics.record_movie_operation("detail", "success")
 
         return format_movie_for_response(movie, genres)
     except (ResourceNotFoundError, ValidationError) as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_movie_operation(
                 "detail",
@@ -581,7 +581,7 @@ async def get_movie_cast(
     try:
         cast_members = movie_service.get_movie_cast(db, movie_id)
 
-        ***REMOVED*** Convert to response objects
+        # Convert to response objects
         cast_responses = []
         for cast_member in cast_members:
             cast_responses.append(CastMemberResponse.model_validate(cast_member))

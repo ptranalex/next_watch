@@ -4,8 +4,8 @@
   "description": "Discover your next favorite movie",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "***REMOVED***171923",
-  "theme_color": "***REMOVED***171923",
+  "background_color": "#171923",
+  "theme_color": "#171923",
   "orientation": "portrait-primary",
   "icons": [
     {

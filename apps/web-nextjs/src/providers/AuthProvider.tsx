@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isTokenError) return false;
 
     logger.debug(
-      `Auth: Attempting recovery ***REMOVED***${
+      `Auth: Attempting recovery #${
         recoveryAttemptCount.current + 1
       } for error: ${error}`
     );

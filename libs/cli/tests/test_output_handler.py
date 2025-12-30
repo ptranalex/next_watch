@@ -13,17 +13,17 @@ class TestCLIOutput(CLITestCase):
 
     def test_cli_output_initialization(self) -> None:
         """Test CLIOutput initialization with different modes."""
-        ***REMOVED*** Standard mode
+        # Standard mode
         output = CLIOutput("test-cmd")
         assert output.command_name == "test-cmd"
         assert output.verbose is False
         assert output.quiet is False
 
-        ***REMOVED*** Verbose mode
+        # Verbose mode
         verbose_output = CLIOutput("test-cmd", verbose=True)
         assert verbose_output.verbose is True
 
-        ***REMOVED*** Quiet mode
+        # Quiet mode
         quiet_output = CLIOutput("test-cmd", quiet=True)
         assert quiet_output.quiet is True
 
@@ -77,7 +77,7 @@ class TestCLIOutput(CLITestCase):
         output.success("This should be suppressed")
         output.warning("This should be suppressed")
 
-        ***REMOVED*** Should not print in quiet mode
+        # Should not print in quiet mode
         mock_console.print.assert_not_called()
 
     @patch("cli.output.handler.CLIOutput.error_console")
@@ -100,7 +100,7 @@ class TestCLIOutput(CLITestCase):
 
         output.log_operation("Test operation", key="value", count=42)
 
-        ***REMOVED*** Should log the operation with structured data
+        # Should log the operation with structured data
         mock_logger.info.assert_called_once_with("Test operation", key="value", count=42)
 
     @patch("cli.output.handler.structlog")
@@ -114,7 +114,7 @@ class TestCLIOutput(CLITestCase):
 
         output.log_operation("Test operation", key="value")
 
-        ***REMOVED*** Should not log in non-verbose mode
+        # Should not log in non-verbose mode
         mock_logger.info.assert_not_called()
 
     @patch("cli.output.handler.structlog")
@@ -129,7 +129,7 @@ class TestCLIOutput(CLITestCase):
 
         output.log_error("Operation failed", exception, context="test")
 
-        ***REMOVED*** Should always log errors regardless of verbose mode
+        # Should always log errors regardless of verbose mode
         mock_logger.error.assert_called_once_with(
             "Operation failed",
             error=str(exception),
@@ -143,7 +143,7 @@ class TestCLIOutput(CLITestCase):
 
         progress = output.progress("Processing...")
 
-        ***REMOVED*** In quiet mode, should return disabled progress
+        # In quiet mode, should return disabled progress
         assert progress.disable is True
 
     def test_progress_normal_mode(self) -> None:
@@ -152,7 +152,7 @@ class TestCLIOutput(CLITestCase):
 
         progress = output.progress("Processing...")
 
-        ***REMOVED*** In normal mode, should return enabled progress
+        # In normal mode, should return enabled progress
         assert progress.disable is not True
 
 
@@ -163,19 +163,19 @@ class TestCLIOutputIntegration(CLITestCase):
         """Test CLIOutput with a real Rich console."""
         from rich.console import Console
 
-        ***REMOVED*** Create a console that writes to a StringIO for testing
+        # Create a console that writes to a StringIO for testing
         string_io = StringIO()
         console = Console(file=string_io, width=80)
 
         output = CLIOutput("test-cmd")
         output.console = console
 
-        ***REMOVED*** Test different output types
+        # Test different output types
         output.info("Information message")
         output.success("Success message")
         output.warning("Warning message")
 
-        ***REMOVED*** Get the output and verify content is present
+        # Get the output and verify content is present
         console_output = string_io.getvalue()
 
         assert "Information message" in console_output
@@ -201,12 +201,12 @@ class TestCLIOutputIntegration(CLITestCase):
         """Test that CLIOutput has the expected console properties."""
         output = CLIOutput("test-cmd")
 
-        ***REMOVED*** Should have console and error_console attributes
+        # Should have console and error_console attributes
         assert hasattr(output, "console")
         assert hasattr(output, "error_console")
         assert hasattr(output, "logger")
 
-        ***REMOVED*** Should have the expected methods
+        # Should have the expected methods
         assert hasattr(output, "info")
         assert hasattr(output, "success")
         assert hasattr(output, "warning")

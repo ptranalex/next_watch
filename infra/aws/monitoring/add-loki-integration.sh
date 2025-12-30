@@ -1,20 +1,20 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** Add Loki Log Aggregation to NextWatch Monitoring Stack
+# Add Loki Log Aggregation to NextWatch Monitoring Stack
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}📋 Adding Loki Log Aggregation to NextWatch Monitoring${NC}"
 echo "=================================================================="
 
-***REMOVED*** Load environment variables
+# Load environment variables
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Loaded environment variables${NC}"
@@ -23,7 +23,7 @@ else
     exit 1
 fi
 
-***REMOVED*** Check SSH key
+# Check SSH key
 SSH_USER="${SSH_USER:-ubuntu}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
 if [ -z "$SSH_KEY_PATH" ]; then
@@ -43,7 +43,7 @@ fi
 echo "Target instance: $INSTANCE_ID ($PUBLIC_IP)"
 echo "Using SSH key: $SSH_KEY_PATH"
 
-***REMOVED*** Test SSH connection
+# Test SSH connection
 echo -e "${YELLOW}🔑 Testing SSH connection...${NC}"
 if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" "echo 'SSH connection successful'" 2>/dev/null; then
     echo -e "${RED}❌ SSH connection failed${NC}"
@@ -52,7 +52,7 @@ fi
 
 echo -e "${GREEN}✅ SSH connection successful${NC}"
 
-***REMOVED*** Deploy Loki integration
+# Deploy Loki integration
 echo -e "${YELLOW}📋 Deploying Loki integration...${NC}"
 
 ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$PUBLIC_IP" << 'REMOTE_SCRIPT'
@@ -68,13 +68,13 @@ echo "🛑 Stopping monitoring services..."
 $DOCKER_COMPOSE_CMD -f docker-compose.aws.yml down
 
 echo "📝 Updating Docker Compose with Loki services..."
-***REMOVED*** Backup current configuration
+# Backup current configuration
 sudo cp docker-compose.aws.yml docker-compose.aws.yml.backup
 
-***REMOVED*** Add Loki and Promtail to existing configuration
+# Add Loki and Promtail to existing configuration
 sudo tee -a docker-compose.aws.yml << 'LOKI_CONFIG'
 
-  ***REMOVED*** Loki - Log aggregation
+  # Loki - Log aggregation
   loki:
     image: grafana/loki:2.9.0
     container_name: loki-prod
@@ -103,7 +103,7 @@ sudo tee -a docker-compose.aws.yml << 'LOKI_CONFIG'
       timeout: 10s
       retries: 3
 
-  ***REMOVED*** Promtail - Log shipping to Loki
+  # Promtail - Log shipping to Loki
   promtail:
     image: grafana/promtail:2.9.0
     container_name: promtail-prod
@@ -130,7 +130,7 @@ sudo tee -a docker-compose.aws.yml << 'LOKI_CONFIG'
         max-file: "3"
 LOKI_CONFIG
 
-***REMOVED*** Add Loki volume to volumes section
+# Add Loki volume to volumes section
 sudo sed -i '/^volumes:/a \  loki-data:\n    driver: local' docker-compose.aws.yml
 
 echo "🐳 Starting monitoring stack with Loki..."

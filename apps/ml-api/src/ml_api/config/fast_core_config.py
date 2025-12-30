@@ -23,41 +23,41 @@ def create_fast_core_config(ml_config: MLAPIConfig) -> FastAPIConfig:
     """
     logger.info("Converting ML config to fast-core config")
 
-    ***REMOVED*** Create fast-core config using enhanced configuration
+    # Create fast-core config using enhanced configuration
     fast_core_config = FastAPIConfig(
-        ***REMOVED*** Basic service configuration (inherited from ServiceConfig)
+        # Basic service configuration (inherited from ServiceConfig)
         service_name=ml_config.service_name,
         environment=ml_config.environment,
         debug=ml_config.debug,
         host=ml_config.host,
         port=ml_config.port,
         log_level=ml_config.log_level,
-        ***REMOVED*** CORS configuration
+        # CORS configuration
         cors_origins=ml_config.cors_origins,
         cors_allow_credentials=True,
         cors_allow_methods=["*"],
         cors_allow_headers=["*"],
-        ***REMOVED*** No external service URLs - ML API is independent
+        # No external service URLs - ML API is independent
         service_urls={},
-        ***REMOVED*** No external service timeouts needed
+        # No external service timeouts needed
         service_timeouts={
             "default": 30,
         },
-        ***REMOVED*** Feature flags
+        # Feature flags
         feature_flags={
             "embeddings": ml_config.enable_embeddings,
             "batch_processing": ml_config.enable_batch_processing,
             "model_caching": ml_config.enable_model_caching,
-            "metrics": True,  ***REMOVED*** Always enabled for production observability
+            "metrics": True,  # Always enabled for production observability
         },
-        ***REMOVED*** FastAPI-specific configuration
+        # FastAPI-specific configuration
         docs_url="/docs" if ml_config.debug else None,
         redoc_url="/redoc" if ml_config.debug else None,
         openapi_url="/openapi.json" if ml_config.debug else None,
     )
 
-    ***REMOVED*** Set monitoring configuration (MonitoringConfigMixin fields)
-    ***REMOVED*** Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
+    # Set monitoring configuration (MonitoringConfigMixin fields)
+    # Note: Pydantic doesn't support mixin fields in constructor, so we set them post-creation
     fast_core_config.enable_tracing = ml_config.enable_tracing
     fast_core_config.tracing_endpoint = ml_config.tracing_endpoint
     fast_core_config.tracing_sample_rate = ml_config.tracing_sample_rate

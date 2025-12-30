@@ -1,8 +1,8 @@
-***REMOVED*** Structlog Migration Guide
+# Structlog Migration Guide
 
 This document describes the migration from `config.logging` to `structlog` in the Fast Core library.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 Fast Core has been updated to use `structlog` for all logging operations, eliminating the dependency on `config.logging.get_logger`. This change provides:
 
@@ -12,13 +12,13 @@ Fast Core has been updated to use `structlog` for all logging operations, elimin
 - **JSON output**: Configurable output formats including JSON for better log aggregation
 - **Reduced dependencies**: No longer depends on the `config` package for logging
 
-***REMOVED******REMOVED*** Changes Made
+## Changes Made
 
-***REMOVED******REMOVED******REMOVED*** Dependencies
+### Dependencies
 
 Added `structlog>=23.1.0` to the project dependencies in `pyproject.toml`.
 
-***REMOVED******REMOVED******REMOVED*** Updated Files
+### Updated Files
 
 The following files were updated to use `structlog` instead of `config.logging`:
 
@@ -53,44 +53,44 @@ The following files were updated to use `structlog` instead of `config.logging`:
    - Replaced `from config.logging import get_logger` with `import structlog`
    - Updated logger initialization
 
-***REMOVED******REMOVED*** Migration for Applications Using Fast Core
+## Migration for Applications Using Fast Core
 
-***REMOVED******REMOVED******REMOVED*** Before (using config.logging)
+### Before (using config.logging)
 
 ```python
 from config.logging import get_logger
 
 logger = get_logger(__name__)
 
-***REMOVED*** Basic logging
+# Basic logging
 logger.info("User logged in")
 
-***REMOVED*** With context (manual string formatting)
+# With context (manual string formatting)
 logger.info(f"User {user_id} logged in from {ip_address}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** After (using structlog)
+### After (using structlog)
 
 ```python
 import structlog
 
 logger = structlog.get_logger(__name__)
 
-***REMOVED*** Basic logging
+# Basic logging
 logger.info("User logged in")
 
-***REMOVED*** With structured context
+# With structured context
 logger.info("User logged in", user_id=user_id, ip_address=ip_address)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+### Configuration
 
 Applications should configure structlog at startup. Here's a recommended configuration:
 
 ```python
 import structlog
 
-***REMOVED*** Configure structlog for your application
+# Configure structlog for your application
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
@@ -101,8 +101,8 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
-        ***REMOVED*** Use JSONRenderer for production, ConsoleRenderer for development
-        structlog.processors.JSONRenderer()  ***REMOVED*** or structlog.dev.ConsoleRenderer()
+        # Use JSONRenderer for production, ConsoleRenderer for development
+        structlog.processors.JSONRenderer()  # or structlog.dev.ConsoleRenderer()
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
@@ -111,7 +111,7 @@ structlog.configure(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Request-Scoped Logging
+### Request-Scoped Logging
 
 Fast Core provides a `get_request_logger` function that returns a logger bound with request context:
 
@@ -121,19 +121,19 @@ from fast_core.middleware.logging import get_request_logger
 
 @app.get("/api/users/{user_id}")
 async def get_user(user_id: int, request: Request):
-    ***REMOVED*** Get logger with request context (request_id, method, path, client)
+    # Get logger with request context (request_id, method, path, client)
     logger = get_request_logger(request)
 
     logger.info("Processing user request", user_id=user_id)
 
-    ***REMOVED*** ... process request ...
+    # ... process request ...
 
     logger.info("User request completed", user_id=user_id, status="success")
 ```
 
-***REMOVED******REMOVED*** Benefits
+## Benefits
 
-***REMOVED******REMOVED******REMOVED*** Structured Data
+### Structured Data
 
 Instead of string interpolation:
 
@@ -150,7 +150,7 @@ logger.info("User action performed",
            timestamp=timestamp)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Automatic Context
+### Automatic Context
 
 Request-scoped loggers automatically include:
 
@@ -159,7 +159,7 @@ Request-scoped loggers automatically include:
 - `path`: Request path
 - `client`: Client IP address
 
-***REMOVED******REMOVED******REMOVED*** JSON Output
+### JSON Output
 
 With JSON formatting, logs are easily parsed by log aggregation systems:
 
@@ -178,9 +178,9 @@ With JSON formatting, logs are easily parsed by log aggregation systems:
 }
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Log Output Quality
+### Log Output Quality
 
 The improved middleware now produces cleaner, more actionable logs:
 
@@ -208,7 +208,7 @@ process_time_ms=23.8 client_ip=192.168.1.100 user_agent='Mozilla/5.0...'
 headers={'host': 'localhost:8001', 'accept': 'application/json', 'origin': 'http://localhost:3000'}
 ```
 
-***REMOVED******REMOVED******REMOVED*** Key Improvements
+### Key Improvements
 
 1. **Request Correlation**: Every request has a unique `request_id` for tracing
 2. **Reduced Noise**: Filters out browser fingerprinting headers and redundant data
@@ -217,32 +217,32 @@ headers={'host': 'localhost:8001', 'accept': 'application/json', 'origin': 'http
 5. **Essential Headers Only**: Keeps business-relevant headers, removes noise
 6. **No Duplication**: User-agent logged once, not in headers and separately
 
-***REMOVED******REMOVED******REMOVED*** Recommended Configuration
+### Recommended Configuration
 
 ```python
-***REMOVED*** Production configuration
+# Production configuration
 middleware.logging(
     level="INFO",
-    include_request_body=False,  ***REMOVED*** Disable for performance/privacy
+    include_request_body=False,  # Disable for performance/privacy
     include_response_body=False,
     log_timing=True,
-    include_headers=True,  ***REMOVED*** Now filtered automatically
+    include_headers=True,  # Now filtered automatically
     exclude_paths=["/health", "/metrics", "/docs"],
     exclude_headers=["authorization", "cookie", "x-api-key"]
 )
 ```
 
-***REMOVED******REMOVED*** Example Application
+## Example Application
 
 See `examples/structlog_usage.py` for a complete example of using structlog with Fast Core.
 
-***REMOVED******REMOVED*** Breaking Changes
+## Breaking Changes
 
 1. **No automatic logger configuration**: Applications must configure structlog themselves
 2. **Different API**: Use keyword arguments for context instead of string formatting
 3. **Import changes**: Import `structlog` instead of `config.logging.get_logger`
 
-***REMOVED******REMOVED*** Recommendations
+## Recommendations
 
 1. **Configure structlog early**: Set up structlog configuration in your application's startup code
 2. **Use structured logging**: Pass context as keyword arguments rather than string formatting
@@ -250,7 +250,7 @@ See `examples/structlog_usage.py` for a complete example of using structlog with
 4. **Choose appropriate output format**: Use `JSONRenderer` for production, `ConsoleRenderer` for development
 5. **Include relevant context**: Add business-relevant fields to your log entries
 
-***REMOVED******REMOVED*** Backward Compatibility
+## Backward Compatibility
 
 This is a breaking change. Applications using Fast Core will need to:
 

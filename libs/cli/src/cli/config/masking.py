@@ -35,7 +35,7 @@ def mask_sensitive_value(
     if show_secrets:
         return str(value)
 
-    ***REMOVED*** Default list of sensitive field patterns
+    # Default list of sensitive field patterns
     default_secret_patterns = [
         "secret",
         "password",
@@ -50,20 +50,20 @@ def mask_sensitive_value(
         "ssl",
     ]
 
-    ***REMOVED*** Combine provided secret fields with defaults
+    # Combine provided secret fields with defaults
     all_secret_fields = (secret_fields or []) + default_secret_patterns
 
-    ***REMOVED*** Check if field name matches any sensitive patterns
+    # Check if field name matches any sensitive patterns
     field_lower = field_name.lower()
     is_sensitive = any(pattern in field_lower for pattern in all_secret_fields)
 
     if not is_sensitive:
-        ***REMOVED*** Check for URL with credentials
+        # Check for URL with credentials
         if isinstance(value, str) and _has_url_credentials(value):
             return mask_url_credentials(value)
         return str(value)
 
-    ***REMOVED*** Mask sensitive values
+    # Mask sensitive values
     if value is None:
         return "None"
     elif isinstance(value, bool):
@@ -76,7 +76,7 @@ def mask_sensitive_value(
         elif len(value) <= 4:
             return "***"
         else:
-            ***REMOVED*** Show first and last character with masking in between
+            # Show first and last character with masking in between
             return f"{value[0]}{'*' * (len(value) - 2)}{value[-1]}"
     else:
         return "***MASKED***"
@@ -103,11 +103,11 @@ def mask_url_credentials(url: str) -> str:
     try:
         parsed = urlparse(url)
 
-        ***REMOVED*** If no credentials, return as-is
+        # If no credentials, return as-is
         if not parsed.username and not parsed.password:
             return url
 
-        ***REMOVED*** Create new netloc with masked password
+        # Create new netloc with masked password
         if parsed.username and parsed.password:
             masked_netloc = f"{parsed.username}:***@{parsed.hostname}"
             if parsed.port:
@@ -117,12 +117,12 @@ def mask_url_credentials(url: str) -> str:
             if parsed.port:
                 masked_netloc += f":{parsed.port}"
         else:
-            ***REMOVED*** Just password (unusual but handle it)
+            # Just password (unusual but handle it)
             masked_netloc = f":***@{parsed.hostname}"
             if parsed.port:
                 masked_netloc += f":{parsed.port}"
 
-        ***REMOVED*** Reconstruct URL with masked credentials
+        # Reconstruct URL with masked credentials
         masked_url = urlunparse(
             (
                 parsed.scheme,
@@ -137,7 +137,7 @@ def mask_url_credentials(url: str) -> str:
         return masked_url
 
     except Exception:
-        ***REMOVED*** If URL parsing fails, apply basic masking
+        # If URL parsing fails, apply basic masking
         return _basic_url_mask(url)
 
 
@@ -150,11 +150,11 @@ def _has_url_credentials(value: str) -> bool:
     Returns:
         True if appears to be URL with credentials
     """
-    ***REMOVED*** Ensure we have a string
+    # Ensure we have a string
     if not isinstance(value, str):
-        return False  ***REMOVED*** type: ignore[unreachable]
+        return False  # type: ignore[unreachable]
 
-    ***REMOVED*** Look for common patterns: scheme://user:pass@host
+    # Look for common patterns: scheme://user:pass@host
     url_with_creds_pattern = r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^:/@]+:[^@/]+@"
     match = re.match(url_with_creds_pattern, value)
     return match is not None
@@ -169,18 +169,18 @@ def _basic_url_mask(url: str) -> str:
     Returns:
         URL with basic credential masking
     """
-    ***REMOVED*** Pattern to match user:password@ in URLs
+    # Pattern to match user:password@ in URLs
     pattern = r"://([^:/@]+):([^@/]+)@"
 
     def replace_creds(match: re.Match[str]) -> str:
         username = match.group(1)
-        ***REMOVED*** password = match.group(2)  ***REMOVED*** Not used, will be masked
+        # password = match.group(2)  # Not used, will be masked
         return f"://{username}:***@"
 
     return re.sub(pattern, replace_creds, url)
 
 
-***REMOVED*** Common secret field patterns for different services
+# Common secret field patterns for different services
 AUTH_SECRET_FIELDS = [
     "jwt_secret",
     "jwt_algorithm",
@@ -209,5 +209,5 @@ API_SECRET_FIELDS = [
     "service_key",
 ]
 
-***REMOVED*** Combined list of common secret fields
+# Combined list of common secret fields
 COMMON_SECRET_FIELDS = AUTH_SECRET_FIELDS + DATABASE_SECRET_FIELDS + API_SECRET_FIELDS

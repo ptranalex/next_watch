@@ -46,10 +46,10 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write ***REMOVED*** For cosign signing
+      id-token: write # For cosign signing
     env:
-      ***REMOVED*** Expose optional PAT to expressions (some linters disallow `secrets.*` in step `if:`)
-      ***REMOVED*** Secrets are still masked in logs.
+      # Expose optional PAT to expressions (some linters disallow `secrets.*` in step `if:`)
+      # Secrets are still masked in logs.
       GH_PAT: ${{ secrets.GH_PAT }}
     outputs:
       image: ${{ steps.meta.outputs.tags }}
@@ -59,7 +59,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 ***REMOVED*** Full history for better caching
+          fetch-depth: 0 # Full history for better caching
 
       - name: Compute image repository
         shell: bash
@@ -67,7 +67,7 @@ jobs:
           APP_NAME: ${{ inputs.app_name }}
         run: |
           set -euo pipefail
-          REPO_NAME="${GITHUB_REPOSITORY***REMOVED****/}"
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
           echo "IMAGE_REPO=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-${APP_NAME}" >> "$GITHUB_ENV"
 
       - name: Create cache directory
@@ -83,10 +83,10 @@ jobs:
             image=moby/buildkit:v0.12.5
           buildkitd-flags: --allow-insecure-entitlement=network.host
 
-      ***REMOVED*** NOTE:
-      ***REMOVED*** If GH_PAT exists but is expired/invalid, preferring it will hard-fail the build.
-      ***REMOVED*** We therefore prefer the workflow GITHUB_TOKEN first, and only fall back to GH_PAT
-      ***REMOVED*** when that login fails.
+      # NOTE:
+      # If GH_PAT exists but is expired/invalid, preferring it will hard-fail the build.
+      # We therefore prefer the workflow GITHUB_TOKEN first, and only fall back to GH_PAT
+      # when that login fails.
       - name: Login to GitHub Container Registry (GITHUB_TOKEN)
         id: login_github_token
         uses: docker/login-action@v3
@@ -96,10 +96,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      ***REMOVED*** If the package namespace isn't writable by GITHUB_TOKEN (common with existing GHCR
-      ***REMOVED*** packages created outside Actions / with custom permissions), a PAT is required.
-      ***REMOVED*** We therefore *also* attempt a PAT login when available; if it fails we keep the
-      ***REMOVED*** GITHUB_TOKEN credentials.
+      # If the package namespace isn't writable by GITHUB_TOKEN (common with existing GHCR
+      # packages created outside Actions / with custom permissions), a PAT is required.
+      # We therefore *also* attempt a PAT login when available; if it fails we keep the
+      # GITHUB_TOKEN credentials.
       - name: Login to GitHub Container Registry (GH_PAT, if provided)
         if: env.GH_PAT != ''
         uses: docker/login-action@v3
@@ -132,21 +132,21 @@ jobs:
         run: |
           echo "Processing build arguments..."
 
-          ***REMOVED*** Clean up input args
+          # Clean up input args
           CLEANED_ARGS=$(echo "${{ inputs.build_args }}" | tr -d '\r')
 
-          ***REMOVED*** Add automatic build args
+          # Add automatic build args
           BUILD_ARGS="$CLEANED_ARGS"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILDKIT_INLINE_CACHE=1"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_VERSION=${{ github.sha }}"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_BRANCH=${{ github.ref_name }}"
 
-          ***REMOVED*** Output for debugging
+          # Output for debugging
           echo "Final build args:"
           echo "$BUILD_ARGS"
 
-          ***REMOVED*** Set output using heredoc
+          # Set output using heredoc
           {
             echo "args<<EOF"
             echo "$BUILD_ARGS"
@@ -164,46 +164,46 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ steps.build-args.outputs.args }}
-          ***REMOVED*** Self-hosted runner optimized caching strategy
+          # Self-hosted runner optimized caching strategy
           cache-from: |
             type=local,src=/tmp/buildkit-cache/${{ inputs.app_name }}
             type=registry,ref=${{ env.IMAGE_REPO }}:cache
           cache-to: |
             type=local,dest=/tmp/buildkit-cache/${{ inputs.app_name }},mode=max
             type=registry,ref=${{ env.IMAGE_REPO }}:cache,mode=max
-          ***REMOVED*** Build optimizations
+          # Build optimizations
           provenance: mode=max
           sbom: true
 
-      ***REMOVED*** - name: Install Cosign
-      ***REMOVED***   if: inputs.push == true
-      ***REMOVED***   uses: sigstore/cosign-installer@v3
+      # - name: Install Cosign
+      #   if: inputs.push == true
+      #   uses: sigstore/cosign-installer@v3
 
-      ***REMOVED*** - name: Sign container image
-      ***REMOVED***   if: inputs.push == true
-      ***REMOVED***   env:
-      ***REMOVED***     DIGEST: ${{ steps.build.outputs.digest }}
-      ***REMOVED***     TAGS: ${{ steps.meta.outputs.tags }}
-      ***REMOVED***   run: |
-      ***REMOVED***     echo "Signing image..."
-      ***REMOVED***     echo "$TAGS" | xargs -I {} cosign sign --yes {}@$DIGEST
+      # - name: Sign container image
+      #   if: inputs.push == true
+      #   env:
+      #     DIGEST: ${{ steps.build.outputs.digest }}
+      #     TAGS: ${{ steps.meta.outputs.tags }}
+      #   run: |
+      #     echo "Signing image..."
+      #     echo "$TAGS" | xargs -I {} cosign sign --yes {}@$DIGEST
 
-      ***REMOVED*** - name: Verify and sign SBOM
-      ***REMOVED***   if: inputs.push == true
-      ***REMOVED***   env:
-      ***REMOVED***     DIGEST: ${{ steps.build.outputs.digest }}
-      ***REMOVED***     TAGS: ${{ steps.meta.outputs.tags }}
-      ***REMOVED***   run: |
-      ***REMOVED***     echo "SBOM already generated by Docker buildx (sbom: true)"
-      ***REMOVED***     echo "The SBOM is automatically attached to the image during build"
-      ***REMOVED***     echo "Image signed and SBOM embedded successfully"
+      # - name: Verify and sign SBOM
+      #   if: inputs.push == true
+      #   env:
+      #     DIGEST: ${{ steps.build.outputs.digest }}
+      #     TAGS: ${{ steps.meta.outputs.tags }}
+      #   run: |
+      #     echo "SBOM already generated by Docker buildx (sbom: true)"
+      #     echo "The SBOM is automatically attached to the image during build"
+      #     echo "Image signed and SBOM embedded successfully"
 
-      ***REMOVED***     ***REMOVED*** Optional: You can view the SBOM with:
-      ***REMOVED***     ***REMOVED*** docker buildx imagetools inspect --format '{{json .SBOM}}' <image>@<digest>
+      #     # Optional: You can view the SBOM with:
+      #     # docker buildx imagetools inspect --format '{{json .SBOM}}' <image>@<digest>
 
       - name: Output build summary
         run: |
-          echo "***REMOVED******REMOVED*** 🚀 Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**App**: ${{ inputs.app_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Image**: ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
@@ -211,7 +211,7 @@ jobs:
           echo "**Platforms**: ${{ inputs.platforms }}" >> $GITHUB_STEP_SUMMARY
           echo "**Pushed**: ${{ inputs.push }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "***REMOVED******REMOVED******REMOVED*** 📋 Build Metadata" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Build Metadata" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
           echo '${{ steps.meta.outputs.json }}' >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

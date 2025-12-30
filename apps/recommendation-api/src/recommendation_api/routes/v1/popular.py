@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-***REMOVED*** Custom key builder for popular movies
+# Custom key builder for popular movies
 def _build_popular_movies_key(
     limit: int = 20,
     min_rating: float = 7.0,
@@ -44,7 +44,7 @@ def _build_popular_movies_key(
 
 
 @redis_cache(
-    ttl=2700,  ***REMOVED*** 45 minutes TTL
+    ttl=2700,  # 45 minutes TTL
     key_builder=_build_popular_movies_key,
     enable_metrics=True,
 )
@@ -65,11 +65,11 @@ async def _get_popular_recommendations_data(
         min_vote_count=min_vote_count,
     )
 
-    ***REMOVED*** Convert MovieRecommendation objects to dictionaries for caching
-    ***REMOVED*** Use mode="json" to ensure proper serialization of date objects
+    # Convert MovieRecommendation objects to dictionaries for caching
+    # Use mode="json" to ensure proper serialization of date objects
     recommendations_dicts = [rec.model_dump(mode="json") for rec in recommendations]
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     return {
         "recommendations": recommendations_dicts,
         "total": len(recommendations),
@@ -121,7 +121,7 @@ async def get_popular_recommendations_endpoint(
     Raises:
         ValidationException: If parameters are invalid
     """
-    ***REMOVED*** Validate parameters
+    # Validate parameters
     if limit <= 0 or limit > 100:
         raise ValidationException("Limit must be between 1 and 100")
     if min_rating < 0 or min_rating > 10:
@@ -129,10 +129,10 @@ async def get_popular_recommendations_endpoint(
     if min_vote_count < 0:
         raise ValidationException("Minimum vote count must be non-negative")
 
-    ***REMOVED*** Record recommendation request metrics
+    # Record recommendation request metrics
     metrics = get_recommendation_metrics()
     if metrics:
-        ***REMOVED*** Record filter usage for popular movies
+        # Record filter usage for popular movies
         metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
         metrics.record_recommendation_filter_usage(
             "min_vote_count", _categorize_vote_count(min_vote_count)
@@ -149,7 +149,7 @@ async def get_popular_recommendations_endpoint(
         endpoint="get_popular_recommendations",
     )
 
-    ***REMOVED*** Use the cached function to get data as dictionary
+    # Use the cached function to get data as dictionary
     data = await _get_popular_recommendations_data(
         limit=limit,
         min_rating=min_rating,
@@ -157,7 +157,7 @@ async def get_popular_recommendations_endpoint(
         recommendation_service=recommendation_service,
     )
 
-    ***REMOVED*** Record successful popular recommendations request
+    # Record successful popular recommendations request
     if metrics:
         metrics.record_recommendation_request("popular", "success", 0.0, data.get("total", 0))
         metrics.record_backend_api_request("get_popular_movies", "success", 0.0)
@@ -170,7 +170,7 @@ async def get_popular_recommendations_endpoint(
         endpoint="get_popular_recommendations",
     )
 
-    ***REMOVED*** Convert dictionary back to Pydantic model for response
+    # Convert dictionary back to Pydantic model for response
     return RecommendationsResponse(**data)
 
 

@@ -1,4 +1,4 @@
-***REMOVED*** type: ignore
+# type: ignore
 
 """Tests for cache metrics functionality."""
 
@@ -13,10 +13,10 @@ from cache.metrics.storage import reset_global_storage
 @pytest.fixture(autouse=True)
 def reset_metrics():
     """Reset metrics before each test."""
-    ***REMOVED*** Reset global storage and collector
+    # Reset global storage and collector
     reset_global_storage()
 
-    ***REMOVED*** Also reset the global collector instance
+    # Also reset the global collector instance
     import cache.metrics.collector as collector_module
 
     collector_module._global_collector = None
@@ -24,7 +24,7 @@ def reset_metrics():
     set_metrics_enabled(True)
     yield
 
-    ***REMOVED*** Clean up after test
+    # Clean up after test
     reset_global_storage()
     collector_module._global_collector = None
 
@@ -32,7 +32,7 @@ def reset_metrics():
 @pytest.mark.asyncio
 async def test_metrics_collection_cache_hit():
     """Test that cache hits are properly recorded."""
-    ***REMOVED*** Mock cache manager to simulate cache hit
+    # Mock cache manager to simulate cache hit
     with patch("cache.manager.CacheManager.from_settings") as mock_manager_factory:
         mock_manager = AsyncMock()
         mock_manager.get_json.return_value = {"result": "cached_data"}
@@ -42,13 +42,13 @@ async def test_metrics_collection_cache_hit():
         async def test_function(param: str) -> dict:
             return {"result": "fresh_data"}
 
-        ***REMOVED*** Call function - should hit cache
+        # Call function - should hit cache
         result = await test_function("test_param")
 
-        ***REMOVED*** Verify result
+        # Verify result
         assert result == {"result": "cached_data"}
 
-        ***REMOVED*** Check metrics
+        # Check metrics
         collector = get_global_collector()
         metrics = collector.get_metrics()
 
@@ -62,23 +62,23 @@ async def test_metrics_collection_cache_hit():
 @pytest.mark.asyncio
 async def test_metrics_collection_cache_miss():
     """Test that cache misses are properly recorded."""
-    ***REMOVED*** Mock cache manager to simulate cache miss
+    # Mock cache manager to simulate cache miss
     with patch("cache.manager.CacheManager.from_settings") as mock_manager_factory:
         mock_manager = AsyncMock()
-        mock_manager.get_json.return_value = None  ***REMOVED*** Cache miss
+        mock_manager.get_json.return_value = None  # Cache miss
         mock_manager_factory.return_value = mock_manager
 
         @redis_cache(ttl=300, key_prefix="test")
         async def test_function(param: str) -> dict:
             return {"result": "fresh_data"}
 
-        ***REMOVED*** Call function - should miss cache
+        # Call function - should miss cache
         result = await test_function("test_param")
 
-        ***REMOVED*** Verify result
+        # Verify result
         assert result == {"result": "fresh_data"}
 
-        ***REMOVED*** Check metrics
+        # Check metrics
         collector = get_global_collector()
         metrics = collector.get_metrics()
 
@@ -94,7 +94,7 @@ async def test_metrics_multiple_functions():
     """Test metrics collection across multiple functions."""
     with patch("cache.manager.CacheManager.from_settings") as mock_manager_factory:
         mock_manager = AsyncMock()
-        ***REMOVED*** First call misses, second call hits
+        # First call misses, second call hits
         mock_manager.get_json.side_effect = [None, {"result": "cached_data"}]
         mock_manager_factory.return_value = mock_manager
 
@@ -106,11 +106,11 @@ async def test_metrics_multiple_functions():
         async def function_two(param: str) -> dict:
             return {"result": "fresh_data_2"}
 
-        ***REMOVED*** Call functions
-        await function_one("param1")  ***REMOVED*** Cache miss
-        await function_two("param2")  ***REMOVED*** Cache hit
+        # Call functions
+        await function_one("param1")  # Cache miss
+        await function_two("param2")  # Cache hit
 
-        ***REMOVED*** Check overall metrics
+        # Check overall metrics
         collector = get_global_collector()
         metrics = collector.get_metrics()
 
@@ -120,11 +120,11 @@ async def test_metrics_multiple_functions():
         assert metrics["overall"]["total_misses"] == 1
         assert metrics["overall"]["hit_ratio"] == 50.0
 
-        ***REMOVED*** Check function-specific metrics
+        # Check function-specific metrics
         functions = metrics["functions"]
         assert len(functions) == 2
 
-        ***REMOVED*** Find function metrics (names include module path)
+        # Find function metrics (names include module path)
         func1_metrics = None
         func2_metrics = None
         for func_name, func_data in functions.items():
@@ -156,14 +156,14 @@ async def test_metrics_disabled():
         async def test_function(param: str) -> dict:
             return {"result": "fresh_data"}
 
-        ***REMOVED*** Call function
+        # Call function
         await test_function("test_param")
 
-        ***REMOVED*** Check that no metrics were collected
+        # Check that no metrics were collected
         collector = get_global_collector()
         metrics = collector.get_metrics()
 
-        ***REMOVED*** Should have no metrics since collection was disabled
+        # Should have no metrics since collection was disabled
         assert metrics is None or metrics["overall"]["total_calls"] == 0
 
 
@@ -179,14 +179,14 @@ def test_metrics_storage_thread_safety():
     def record_hits():
         for i in range(100):
             storage.record_hit("test_function", 10.0)
-            time.sleep(0.001)  ***REMOVED*** Small delay to increase chance of race conditions
+            time.sleep(0.001)  # Small delay to increase chance of race conditions
 
     def record_misses():
         for i in range(100):
             storage.record_miss("test_function", 50.0)
             time.sleep(0.001)
 
-    ***REMOVED*** Run concurrent operations
+    # Run concurrent operations
     thread1 = threading.Thread(target=record_hits)
     thread2 = threading.Thread(target=record_misses)
 
@@ -196,7 +196,7 @@ def test_metrics_storage_thread_safety():
     thread1.join()
     thread2.join()
 
-    ***REMOVED*** Verify final counts
+    # Verify final counts
     metrics = storage.get_metrics()
     assert metrics.total_calls == 200
     assert metrics.total_hits == 100
@@ -209,12 +209,12 @@ def test_performance_improvement_calculation():
 
     metrics = FunctionMetrics("test_function")
 
-    ***REMOVED*** Record some hits and misses with different times
+    # Record some hits and misses with different times
     metrics.hits = 10
-    metrics.total_cache_time_ms = 50.0  ***REMOVED*** 5ms average
+    metrics.total_cache_time_ms = 50.0  # 5ms average
     metrics.misses = 5
-    metrics.total_uncached_time_ms = 250.0  ***REMOVED*** 50ms average
+    metrics.total_uncached_time_ms = 250.0  # 50ms average
 
     assert metrics.avg_cache_time_ms == 5.0
     assert metrics.avg_uncached_time_ms == 50.0
-    assert metrics.performance_improvement == 10.0  ***REMOVED*** 50ms / 5ms = 10x improvement
+    assert metrics.performance_improvement == 10.0  # 50ms / 5ms = 10x improvement

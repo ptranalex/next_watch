@@ -26,7 +26,7 @@ def get_cache_manager() -> Any:
     def _get_cache_manager(request: Request) -> Any:
         cache_manager = getattr(request.app.state, "cache_manager", None)
         if cache_manager is None:
-            ***REMOVED*** Try to get from settings
+            # Try to get from settings
             settings = getattr(request.app.state, "settings", None)
             if settings and hasattr(settings, "cache_manager"):
                 cache_manager = settings.cache_manager
@@ -61,7 +61,7 @@ def get_cache_provider(provider_name: str = "default") -> Any:
             elif hasattr(cache_manager, "providers"):
                 provider = cache_manager.providers.get(provider_name)
             else:
-                ***REMOVED*** Assume cache_manager is the provider itself
+                # Assume cache_manager is the provider itself
                 provider = cache_manager
 
             if provider is None:
@@ -86,11 +86,11 @@ def get_redis_client() -> Any:
     """
 
     def _get_redis_client(request: Request) -> Any:
-        ***REMOVED*** Try to get Redis client from app state
+        # Try to get Redis client from app state
         redis_client = getattr(request.app.state, "redis_client", None)
 
         if redis_client is None:
-            ***REMOVED*** Try to get from cache manager
+            # Try to get from cache manager
             try:
                 cache_manager = getattr(request.app.state, "cache_manager", None)
                 if cache_manager and hasattr(cache_manager, "redis_client"):
@@ -123,7 +123,7 @@ def get_cache_decorator() -> Any:
         elif hasattr(cache_manager, "cache"):
             return cast(Callable[..., Any], cache_manager.cache)
         else:
-            ***REMOVED*** Return a no-op decorator if caching not available
+            # Return a no-op decorator if caching not available
             def no_op_cache(ttl: int = 300, **kwargs: Any) -> Callable[..., Any]:
                 def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
                     return func

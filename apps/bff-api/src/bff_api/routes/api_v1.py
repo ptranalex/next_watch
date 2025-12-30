@@ -4,10 +4,10 @@ BFF API v1 router - aggregates and organizes all v1 API endpoints.
 
 from fastapi import APIRouter
 
-***REMOVED*** Import admin routes (secured, internal-only)
+# Import admin routes (secured, internal-only)
 from bff_api.routes.admin import admin_router
 
-***REMOVED*** Import v1 route modules from v1 package
+# Import v1 route modules from v1 package
 from bff_api.routes.v1 import (
     actors,
     auth,
@@ -23,10 +23,10 @@ from bff_api.routes.v1 import (
     watchlist,
 )
 
-***REMOVED*** Create the v1 API router
+# Create the v1 API router
 api_v1_router = APIRouter(prefix="/bff/v1")
 
-***REMOVED*** Include sub-routers
+# Include sub-routers
 api_v1_router.include_router(home.router, tags=["home"])
 api_v1_router.include_router(movies.router, tags=["movies"])
 api_v1_router.include_router(genres.router, tags=["genres"])
@@ -40,7 +40,7 @@ api_v1_router.include_router(watched.router, tags=["watched"])
 api_v1_router.include_router(watchlist.router, tags=["watchlist"])
 api_v1_router.include_router(liked.router, tags=["liked"])
 
-***REMOVED*** Include admin routes (secured, internal-only)
-***REMOVED*** WARNING: These endpoints should NOT be exposed to public traffic
-***REMOVED*** Configure network policies/authentication to restrict access
+# Include admin routes (secured, internal-only)
+# WARNING: These endpoints should NOT be exposed to public traffic
+# Configure network policies/authentication to restrict access
 api_v1_router.include_router(admin_router, tags=["admin"])

@@ -41,7 +41,7 @@ async def _get_movies(
     Raises:
         Exception: If request fails
     """
-    ***REMOVED*** Use BackendClient.get_movies method instead of direct HTTP calls
+    # Use BackendClient.get_movies method instead of direct HTTP calls
     return await backend.get_movies(
         page=page,
         limit=limit,
@@ -64,7 +64,7 @@ async def _get_genres(backend: BackendClient) -> list[dict[str, Any]]:
     Raises:
         Exception: If request fails
     """
-    ***REMOVED*** Use BackendClient.get_genres method instead of direct HTTP calls
+    # Use BackendClient.get_genres method instead of direct HTTP calls
     return await backend.get_genres()
 
 
@@ -89,13 +89,13 @@ async def get_home_screen(
     Raises:
         ExternalServiceException: If backend service is unavailable
     """
-    ***REMOVED*** Record movie request metrics
+    # Record movie request metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_movie_request("home", "started")
 
     try:
-        ***REMOVED*** Fetch data concurrently (in real implementation, use asyncio.gather)
+        # Fetch data concurrently (in real implementation, use asyncio.gather)
         featured_movies_response = await _get_movies(
             backend, page=1, limit=10, featured=True, user_id=user_id
         )
@@ -107,7 +107,7 @@ async def get_home_screen(
         )
         genres = await _get_genres(backend)
 
-        ***REMOVED*** Handle user recommendations
+        # Handle user recommendations
         user_recommendations = []
         if user_id:
             try:
@@ -123,7 +123,7 @@ async def get_home_screen(
                     endpoint="home_screen",
                 )
 
-        ***REMOVED*** Record successful movie request metrics
+        # Record successful movie request metrics
         if metrics:
             metrics.record_movie_request("home", "success")
 
@@ -136,7 +136,7 @@ async def get_home_screen(
         )
 
     except Exception as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_movie_request("home", "error")
 

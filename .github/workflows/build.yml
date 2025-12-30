@@ -94,7 +94,7 @@ jobs:
               - 'libs/movie-storage/**'
               - 'infra/**'
 
-  ***REMOVED*** 🚀 GitHub-Hosted Builds (Default - Fast, Cost-Effective)
+  # 🚀 GitHub-Hosted Builds (Default - Fast, Cost-Effective)
   build_backend:
     needs: check_changes
     if: ${{ needs.check_changes.outputs.backend_changed == 'true' || needs.check_changes.outputs.shared_changed == 'true' || github.event.inputs.build_all == 'true' }}
@@ -168,11 +168,11 @@ jobs:
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
 
-  ***REMOVED*** 🏗️ Self-Hosted Build (ML-Specific, Resource-Intensive)
+  # 🏗️ Self-Hosted Build (ML-Specific, Resource-Intensive)
   build_ml:
     needs: check_changes
     if: ${{ needs.check_changes.outputs.ml_changed == 'true' || github.event.inputs.build_all == 'true' }}
-    uses: ./.github/workflows/build-app-self-hosted.yml  ***REMOVED*** ML needs self-hosted for model downloads
+    uses: ./.github/workflows/build-app-self-hosted.yml  # ML needs self-hosted for model downloads
     with:
       app_name: ml-api
       dockerfile_path: ./apps/ml-api/Dockerfile

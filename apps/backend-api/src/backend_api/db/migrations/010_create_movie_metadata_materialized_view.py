@@ -20,7 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-***REMOVED*** Migration identification
+# Migration identification
 MIGRATION_ID = "010_create_movie_metadata_materialized_view"
 MIGRATION_DESCRIPTION = "Create materialized view for movie metadata optimization (Netflix pattern)"
 
@@ -41,14 +41,14 @@ def upgrade(engine: Engine) -> None:
 
     with engine.begin() as conn:
         try:
-            ***REMOVED*** Set longer timeout for initial population (can be very large datasets)
-            conn.execute(text("SET statement_timeout = '1800s'"))  ***REMOVED*** 30 minute timeout
+            # Set longer timeout for initial population (can be very large datasets)
+            conn.execute(text("SET statement_timeout = '1800s'"))  # 30 minute timeout
             logger.info("Set statement timeout to 30 minutes for initial population")
-            ***REMOVED*** Step 1: Drop existing view if it exists
+            # Step 1: Drop existing view if it exists
             logger.info("Dropping existing materialized view if present")
             conn.execute(text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete"))
 
-            ***REMOVED*** Step 2: Create the materialized view with complete movie metadata
+            # Step 2: Create the materialized view with complete movie metadata
             logger.info("Creating materialized view with precomputed metadata")
             conn.execute(
                 text(
@@ -188,10 +188,10 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Step 3: Create performance indexes
+            # Step 3: Create performance indexes
             logger.info("Creating performance indexes on materialized view")
 
-            ***REMOVED*** Primary index for bulk operations
+            # Primary index for bulk operations
             conn.execute(
                 text(
                     """
@@ -201,7 +201,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Index for common filtering
+            # Index for common filtering
             conn.execute(
                 text(
                     """
@@ -211,7 +211,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Index for date-based queries
+            # Index for date-based queries
             conn.execute(
                 text(
                     """
@@ -221,7 +221,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Index for rating-based queries
+            # Index for rating-based queries
             conn.execute(
                 text(
                     """
@@ -231,7 +231,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Index for cache invalidation
+            # Index for cache invalidation
             conn.execute(
                 text(
                     """
@@ -241,7 +241,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Composite index for bulk operations
+            # Composite index for bulk operations
             conn.execute(
                 text(
                     """
@@ -251,11 +251,11 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Skip GIN index for JSON - use regular index instead for compatibility
-            ***REMOVED*** GIN indexes on JSON can be complex, standard index works fine for our use case
+            # Skip GIN index for JSON - use regular index instead for compatibility
+            # GIN indexes on JSON can be complex, standard index works fine for our use case
             logger.info("Skipping GIN index on genres JSON column for compatibility")
 
-            ***REMOVED*** Step 4: Create refresh function
+            # Step 4: Create refresh function
             logger.info("Creating materialized view refresh function")
             conn.execute(
                 text(
@@ -288,7 +288,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Step 5: Create trigger function for automatic refresh
+            # Step 5: Create trigger function for automatic refresh
             logger.info("Creating automatic refresh trigger function")
             conn.execute(
                 text(
@@ -307,10 +307,10 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Step 6: Create triggers for automatic refresh
+            # Step 6: Create triggers for automatic refresh
             logger.info("Creating automatic refresh triggers")
 
-            ***REMOVED*** Movie table trigger
+            # Movie table trigger
             conn.execute(
                 text(
                     """
@@ -323,7 +323,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Genre link trigger
+            # Genre link trigger
             conn.execute(
                 text(
                     """
@@ -336,7 +336,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Credit table trigger
+            # Credit table trigger
             conn.execute(
                 text(
                     """
@@ -349,7 +349,7 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Step 7: Add comments for documentation
+            # Step 7: Add comments for documentation
             conn.execute(
                 text(
                     """
@@ -361,16 +361,16 @@ def upgrade(engine: Engine) -> None:
                 )
             )
 
-            ***REMOVED*** Step 8: Grant permissions to current user (simple and direct approach)
+            # Step 8: Grant permissions to current user (simple and direct approach)
             try:
-                ***REMOVED*** Get current user running the migration
+                # Get current user running the migration
                 result = conn.execute(text("SELECT current_user"))
                 row = result.fetchone()
                 if not row:
                     raise ValueError("Could not determine current user")
                 current_user = row[0]
 
-                ***REMOVED*** Grant permissions directly to current user
+                # Grant permissions directly to current user
                 conn.execute(text(f"GRANT SELECT ON movie_metadata_complete TO {current_user}"))
                 conn.execute(
                     text(
@@ -384,7 +384,7 @@ def upgrade(engine: Engine) -> None:
                 logger.warning(f"Could not grant permissions to current user: {e}")
                 logger.info("Note: Creator typically has permissions automatically")
 
-            ***REMOVED*** Step 9: Initial population (with fallback for large datasets)
+            # Step 9: Initial population (with fallback for large datasets)
             logger.info("Attempting initial population of materialized view")
             try:
                 conn.execute(text("SELECT refresh_movie_metadata_complete()"))
@@ -396,12 +396,12 @@ def upgrade(engine: Engine) -> None:
                 logger.info("💡 The materialized view structure is created successfully")
                 logger.info("💡 Run this command after migration to populate:")
                 logger.info("   SELECT refresh_movie_metadata_complete();")
-                ***REMOVED*** Don't fail the migration - the structure is ready
+                # Don't fail the migration - the structure is ready
 
             logger.info("✅ Movie metadata materialized view created successfully")
             logger.info("🚀 Netflix-style optimization ready for production use")
 
-            ***REMOVED*** Step 10: Record the migration as applied
+            # Step 10: Record the migration as applied
             logger.info("Recording migration in the database")
             try:
                 conn.execute(
@@ -428,7 +428,7 @@ def downgrade(engine: Engine) -> None:
 
     with engine.begin() as conn:
         try:
-            ***REMOVED*** Drop triggers first
+            # Drop triggers first
             logger.info("Dropping automatic refresh triggers")
             conn.execute(text("DROP TRIGGER IF EXISTS movie_metadata_refresh_trigger ON movie"))
             conn.execute(
@@ -436,12 +436,12 @@ def downgrade(engine: Engine) -> None:
             )
             conn.execute(text("DROP TRIGGER IF EXISTS credit_metadata_refresh_trigger ON credit"))
 
-            ***REMOVED*** Drop functions
+            # Drop functions
             logger.info("Dropping refresh functions")
             conn.execute(text("DROP FUNCTION IF EXISTS trigger_refresh_movie_metadata()"))
             conn.execute(text("DROP FUNCTION IF EXISTS refresh_movie_metadata_complete()"))
 
-            ***REMOVED*** Drop materialized view (indexes will be dropped automatically)
+            # Drop materialized view (indexes will be dropped automatically)
             logger.info("Dropping materialized view")
             conn.execute(text("DROP MATERIALIZED VIEW IF EXISTS movie_metadata_complete"))
 
@@ -481,5 +481,5 @@ def get_affected_tables() -> list[str]:
         "movie_genre_link",
         "credit",
         "trailer",
-        "movie_metadata_complete",  ***REMOVED*** materialized view
+        "movie_metadata_complete",  # materialized view
     ]

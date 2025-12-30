@@ -13,31 +13,31 @@ class Credit(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
 
-    ***REMOVED*** Foreign key to Movie
+    # Foreign key to Movie
     movie_id: int | None = Field(default=None, foreign_key="movie.id")
 
-    ***REMOVED*** Person information
+    # Person information
     tmdb_person_id: int = Field(index=True)
     name: str
     original_name: str | None = None
     character: str | None = None
 
-    ***REMOVED*** Department and role information
+    # Department and role information
     department: str | None = None
     job: str | None = None
 
-    ***REMOVED*** Cast specific information
+    # Cast specific information
     cast_id: int | None = None
     order: int | None = None
 
-    ***REMOVED*** Person details
+    # Person details
     gender: int | None = None
     profile_path: str | None = None
     popularity: float | None = None
 
-    ***REMOVED*** Metadata
+    # Metadata
     credit_id: str | None = None
     adult: bool | None = False
 
-    ***REMOVED*** Relationship back to Movie
+    # Relationship back to Movie
     movie: Optional["Movie"] = Relationship(back_populates="credits")

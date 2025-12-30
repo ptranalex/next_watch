@@ -33,7 +33,7 @@ def format_config_table(
     table.add_column("Value", style="green")
     table.add_column("Source", style="yellow", no_wrap=True)
 
-    ***REMOVED*** Configuration settings to display
+    # Configuration settings to display
     settings = [
         ("Host", config.host, "ENV/DEFAULT"),
         ("Port", str(config.port), "ENV/DEFAULT"),
@@ -77,7 +77,7 @@ def format_config_table(
         ("Health Check Interval", f"{config.health_check_interval}s", "ENV/DEFAULT"),
     ]
 
-    ***REMOVED*** Add sensitive settings with masking
+    # Add sensitive settings with masking
     if config.qdrant_api_key:
         settings.append(
             ("Qdrant API Key", _mask_sensitive_value(config.qdrant_api_key), "ENV/DEFAULT")
@@ -107,7 +107,7 @@ def print_config(
         console = Console()
 
     if show_secrets:
-        ***REMOVED*** Create a modified table for showing secrets
+        # Create a modified table for showing secrets
         table = Table(
             title=f"{title} (Secrets Visible)",
             show_header=True,
@@ -117,7 +117,7 @@ def print_config(
         table.add_column("Value", style="green")
         table.add_column("Source", style="yellow", no_wrap=True)
 
-        ***REMOVED*** Add settings with unmasked secrets
+        # Add settings with unmasked secrets
         settings = [
             ("Qdrant API Key", config.qdrant_api_key or "[red]Not Set[/red]", "ENV/DEFAULT"),
         ]
@@ -242,7 +242,7 @@ def display_service_status(
         url = info.get("url", "N/A")
         response_time = info.get("response_time", "N/A")
 
-        ***REMOVED*** Color code status
+        # Color code status
         if status == "Healthy":
             status_display = "[green]✅ Healthy[/green]"
         elif status == "Unhealthy":

@@ -26,32 +26,32 @@ class BackgroundWarmingService:
         self._running_tasks: set[asyncio.Task[Any]] = set()
         self._should_stop = False
 
-        ***REMOVED*** Warming schedule configuration - DISABLED for cron-based warming
+        # Warming schedule configuration - DISABLED for cron-based warming
         self._schedule_config = {
             "morning_warmup": {
-                "time": time(7, 0),  ***REMOVED*** 7 AM
+                "time": time(7, 0),  # 7 AM
                 "strategy": "popular_content",
-                "limit": 1000,  ***REMOVED*** Increased from 100 to 1000 - warm top 1000 movies
-                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
+                "limit": 1000,  # Increased from 100 to 1000 - warm top 1000 movies
+                "enabled": False,  # DISABLED - Using cron jobs instead
             },
             "evening_warmup": {
-                "time": time(17, 0),  ***REMOVED*** 5 PM
+                "time": time(17, 0),  # 5 PM
                 "strategy": "metrics_driven",
-                "limit": 500,  ***REMOVED*** Increased from 50 to 500 - warm based on metrics
-                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
+                "limit": 500,  # Increased from 50 to 500 - warm based on metrics
+                "enabled": False,  # DISABLED - Using cron jobs instead
             },
             "night_optimization": {
-                "time": time(1, 0),  ***REMOVED*** 1 AM
+                "time": time(1, 0),  # 1 AM
                 "strategy": "scheduled",
-                "limit": 300,  ***REMOVED*** Increased from 30 to 300 - comprehensive overnight warming
-                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
+                "limit": 300,  # Increased from 30 to 300 - comprehensive overnight warming
+                "enabled": False,  # DISABLED - Using cron jobs instead
             },
-            ***REMOVED*** Continuous metrics-driven warming every 10 minutes
+            # Continuous metrics-driven warming every 10 minutes
             "continuous_metrics": {
                 "interval_minutes": 10,
                 "strategy": "metrics_driven",
-                "limit": 50,  ***REMOVED*** Increased from 10 to 50 - more frequent warming
-                "enabled": False,  ***REMOVED*** DISABLED - Using cron jobs instead
+                "limit": 50,  # Increased from 10 to 50 - more frequent warming
+                "enabled": False,  # DISABLED - Using cron jobs instead
             },
         }
 
@@ -65,19 +65,19 @@ class BackgroundWarmingService:
 
         self._should_stop = False
 
-        ***REMOVED*** Start scheduled warming tasks
+        # Start scheduled warming tasks
         for schedule_name, config in self._schedule_config.items():
             if not config.get("enabled", True):
                 continue
 
             if schedule_name == "continuous_metrics":
-                ***REMOVED*** Start continuous task
+                # Start continuous task
                 task = asyncio.create_task(
                     self._run_continuous_warming(config),
                     name=f"warming_{schedule_name}",
                 )
             else:
-                ***REMOVED*** Start scheduled task
+                # Start scheduled task
                 task = asyncio.create_task(
                     self._run_scheduled_warming(schedule_name, config),
                     name=f"warming_{schedule_name}",
@@ -109,12 +109,12 @@ class BackgroundWarmingService:
 
         self._should_stop = True
 
-        ***REMOVED*** Cancel all running tasks
+        # Cancel all running tasks
         for task in self._running_tasks:
             if not task.done():
                 task.cancel()
 
-        ***REMOVED*** Wait for all tasks to complete
+        # Wait for all tasks to complete
         if self._running_tasks:
             await asyncio.gather(*self._running_tasks, return_exceptions=True)
 
@@ -146,7 +146,7 @@ class BackgroundWarmingService:
                 now = datetime.now()
                 current_time = now.time()
 
-                ***REMOVED*** Check if we should run now (within 1 minute of target time)
+                # Check if we should run now (within 1 minute of target time)
                 if self._is_time_to_run(current_time, target_time):
                     logger.info(
                         "Executing scheduled warming",
@@ -160,7 +160,7 @@ class BackgroundWarmingService:
                     try:
                         from cache.warming import WarmingStrategy
 
-                        ***REMOVED*** Map string to enum
+                        # Map string to enum
                         strategy_map = {
                             "metrics_driven": WarmingStrategy.METRICS_DRIVEN,
                             "popular_content": WarmingStrategy.POPULAR_CONTENT,
@@ -200,10 +200,10 @@ class BackgroundWarmingService:
                             component="background_warming",
                         )
 
-                    ***REMOVED*** Wait until next day to avoid running multiple times
-                    await asyncio.sleep(60 * 60)  ***REMOVED*** Sleep 1 hour
+                    # Wait until next day to avoid running multiple times
+                    await asyncio.sleep(60 * 60)  # Sleep 1 hour
                 else:
-                    ***REMOVED*** Check again in 1 minute
+                    # Check again in 1 minute
                     await asyncio.sleep(60)
 
         except asyncio.CancelledError:
@@ -241,7 +241,7 @@ class BackgroundWarmingService:
                 try:
                     from cache.warming import WarmingStrategy
 
-                    ***REMOVED*** Map string to enum
+                    # Map string to enum
                     strategy_map = {
                         "metrics_driven": WarmingStrategy.METRICS_DRIVEN,
                         "popular_content": WarmingStrategy.POPULAR_CONTENT,
@@ -287,7 +287,7 @@ class BackgroundWarmingService:
                         component="background_warming",
                     )
 
-                ***REMOVED*** Wait for next interval
+                # Wait for next interval
                 await asyncio.sleep(interval_minutes * 60)
 
         except asyncio.CancelledError:
@@ -309,7 +309,7 @@ class BackgroundWarmingService:
         current_minutes = current_time.hour * 60 + current_time.minute
         target_minutes = target_time.hour * 60 + target_time.minute
 
-        ***REMOVED*** Allow 1 minute window
+        # Allow 1 minute window
         return abs(current_minutes - target_minutes) <= 1
 
     async def health_check(self) -> dict[str, Any]:
@@ -348,7 +348,7 @@ class BackgroundWarmingService:
         }
 
 
-***REMOVED*** Global instance
+# Global instance
 _background_warming_service: BackgroundWarmingService | None = None
 
 

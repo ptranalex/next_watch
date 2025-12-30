@@ -11,11 +11,11 @@ from config.logging import get_logger
 
 logger = get_logger(__name__)
 
-***REMOVED*** Standard exclude paths that all services typically want to exclude
+# Standard exclude paths that all services typically want to exclude
 DEFAULT_METRICS_EXCLUDE_PATHS = ["/metrics", "/health", "/docs", "/openapi.json"]
 DEFAULT_LOGGING_EXCLUDE_PATHS = ["/health", "/metrics"]
 
-***REMOVED*** Common additional excludes that services often add
+# Common additional excludes that services often add
 COMMON_ADDITIONAL_EXCLUDES = ["/favicon.ico", "/robots.txt"]
 
 
@@ -38,9 +38,9 @@ class SecurityConfig:
 
     enabled: bool = True
     hsts: bool = True
-    hsts_max_age: int = 31536000  ***REMOVED*** 1 year
+    hsts_max_age: int = 31536000  # 1 year
     hsts_include_subdomains: bool = True
-    frame_options: str = "DENY"  ***REMOVED*** DENY, SAMEORIGIN, or ALLOW-FROM
+    frame_options: str = "DENY"  # DENY, SAMEORIGIN, or ALLOW-FROM
     content_type_options: bool = True
     xss_protection: bool = True
     csp: str | None = None
@@ -56,7 +56,7 @@ class LoggingConfig:
     level: str = "INFO"
     include_request_body: bool = False
     include_response_body: bool = False
-    max_body_size: int = 1024  ***REMOVED*** bytes
+    max_body_size: int = 1024  # bytes
     exclude_paths: list[str] = field(default_factory=lambda: ["/health", "/metrics"])
     include_headers: bool = True
     exclude_headers: list[str] = field(default_factory=lambda: ["authorization", "cookie"])
@@ -69,12 +69,12 @@ class RateLimitConfig:
     """Configuration for rate limiting middleware."""
 
     enabled: bool = True
-    default_limit: str = "100/minute"  ***REMOVED*** Format: "requests/period"
-    storage_url: str | None = None  ***REMOVED*** Redis URL for distributed rate limiting
-    key_func: str | None = "ip"  ***REMOVED*** "ip", "user", or custom function name
-    endpoints: dict[str, str] = field(default_factory=dict)  ***REMOVED*** endpoint -> limit mapping
+    default_limit: str = "100/minute"  # Format: "requests/period"
+    storage_url: str | None = None  # Redis URL for distributed rate limiting
+    key_func: str | None = "ip"  # "ip", "user", or custom function name
+    endpoints: dict[str, str] = field(default_factory=dict)  # endpoint -> limit mapping
     exempt_ips: list[str] = field(default_factory=list)
-    headers: bool = True  ***REMOVED*** Include rate limit headers in response
+    headers: bool = True  # Include rate limit headers in response
 
 
 @dataclass
@@ -82,14 +82,14 @@ class RequestConfig:
     """Configuration for general request/response middleware."""
 
     enabled: bool = True
-    max_request_size: int = 10 * 1024 * 1024  ***REMOVED*** 10MB
-    timeout: int = 30  ***REMOVED*** seconds
+    max_request_size: int = 10 * 1024 * 1024  # 10MB
+    timeout: int = 30  # seconds
     include_request_id: bool = True
     request_id_header: str = "X-Request-ID"
     include_process_time: bool = True
     process_time_header: str = "X-Process-Time"
     gzip_compression: bool = True
-    gzip_minimum_size: int = 1000  ***REMOVED*** bytes
+    gzip_minimum_size: int = 1000  # bytes
 
 
 @dataclass
@@ -112,12 +112,12 @@ class MetricsConfig:
 
     enabled: bool = True
     endpoint_path: str = "/metrics"
-    include_endpoint: bool = True  ***REMOVED*** Whether to add the /metrics endpoint
+    include_endpoint: bool = True  # Whether to add the /metrics endpoint
     exclude_paths: list[str] = field(
         default_factory=lambda: ["/metrics", "/health", "/docs", "/openapi.json"]
     )
     exclude_methods: list[str] = field(default_factory=lambda: ["OPTIONS"])
-    custom_buckets: list[float] | None = None  ***REMOVED*** Custom histogram buckets
+    custom_buckets: list[float] | None = None  # Custom histogram buckets
     track_request_size: bool = True
     track_response_size: bool = True
 
@@ -265,11 +265,11 @@ class MiddlewareConfig:
         Returns:
             Self for method chaining
         """
-        ***REMOVED*** Handle exclude paths: either full override or extend defaults
+        # Handle exclude paths: either full override or extend defaults
         if exclude_paths is not None:
             final_exclude_paths = exclude_paths
         else:
-            ***REMOVED*** Use defaults and optionally extend with additional paths
+            # Use defaults and optionally extend with additional paths
             final_exclude_paths = DEFAULT_LOGGING_EXCLUDE_PATHS.copy()
             if exclude_additional:
                 final_exclude_paths.extend(exclude_additional)
@@ -392,11 +392,11 @@ class MiddlewareConfig:
         Returns:
             Self for method chaining
         """
-        ***REMOVED*** Handle exclude paths: either full override or extend defaults
+        # Handle exclude paths: either full override or extend defaults
         if exclude_paths is not None:
             final_exclude_paths = exclude_paths
         else:
-            ***REMOVED*** Use defaults and optionally extend with additional paths
+            # Use defaults and optionally extend with additional paths
             final_exclude_paths = DEFAULT_METRICS_EXCLUDE_PATHS.copy()
             if exclude_additional:
                 final_exclude_paths.extend(exclude_additional)
@@ -451,7 +451,7 @@ class MiddlewareConfig:
         )
         return self
 
-    ***REMOVED*** Property accessors for the setup module
+    # Property accessors for the setup module
     @property
     def cors_config(self) -> CORSConfig | None:
         """Get CORS configuration."""
@@ -502,22 +502,22 @@ class MiddlewareConfig:
         )
 
 
-***REMOVED*** Simple test to verify the system works
+# Simple test to verify the system works
 if __name__ == "__main__":
     print("🧪 Testing Fast Core Middleware Configuration System...")
 
-    ***REMOVED*** Test basic configuration
+    # Test basic configuration
     config = MiddlewareConfig()
     assert not config.has_any_middleware(), "Empty config should have no middleware"
 
-    ***REMOVED*** Test method chaining
+    # Test method chaining
     config.cors(origins=["https://example.com"], credentials=True).security_headers(
         hsts=True, csp="default-src 'self'"
     ).rate_limiting(default_limit="100/minute", endpoints={"/api/auth/login": "5/minute"}).logging(
         level="DEBUG", include_request_body=True
     ).request_processing(include_request_id=True, gzip_compression=True)
 
-    ***REMOVED*** Verify configuration
+    # Verify configuration
     assert config.has_any_middleware(), "Should have middleware configured"
     assert config.cors_config is not None, "CORS should be configured"
     assert config.cors_config.enabled, "CORS should be enabled"

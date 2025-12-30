@@ -4,13 +4,13 @@ globs:
 alwaysApply: false
 ---
 
-***REMOVED*** Next Watch - Architecture & Directory Structure
+# Next Watch - Architecture & Directory Structure
 
-***REMOVED******REMOVED*** 🏗️ Architecture Principles
+## 🏗️ Architecture Principles
 
 This project follows a **sophisticated layered architecture** with domain-driven design and atomic component organization.
 
-***REMOVED******REMOVED******REMOVED*** Core Technology Stack
+### Core Technology Stack
 
 - **Next.js 15** with App Router (latest patterns)
 - **TypeScript** with strict configuration
@@ -19,48 +19,48 @@ This project follows a **sophisticated layered architecture** with domain-driven
 - **Zustand** for client state management
 - **pnpm** as package manager with **Turbo** for development
 
-***REMOVED******REMOVED*** 📁 Directory Structure Rules
+## 📁 Directory Structure Rules
 
-***REMOVED******REMOVED******REMOVED*** Mandatory Organization Pattern
+### Mandatory Organization Pattern
 
 ```
 src/
-├── app/                    ***REMOVED*** Next.js App Router pages
-├── components/             ***REMOVED*** Component library
-│   ├── ui/                ***REMOVED*** Atomic Design components
-│   │   ├── atoms/         ***REMOVED*** Basic building blocks
-│   │   ├── molecules/     ***REMOVED*** Combined functionality
-│   │   ├── organisms/     ***REMOVED*** Complex sections
-│   │   └── templates/     ***REMOVED*** Page layouts
-│   ├── features/          ***REMOVED*** Domain-specific components
-│   │   ├── movies/        ***REMOVED*** Movie domain
-│   │   ├── auth/          ***REMOVED*** Authentication
-│   │   ├── profile/       ***REMOVED*** User profile
-│   │   └── actors/        ***REMOVED*** Actor domain
-│   └── mobile/            ***REMOVED*** Mobile-specific (legacy - being phased out)
-├── hooks/                 ***REMOVED*** Organized by responsibility
-│   ├── core/              ***REMOVED*** Auth, settings, route protection
-│   ├── domain/            ***REMOVED*** Business logic hooks
-│   ├── ui/                ***REMOVED*** Presentation utilities
-│   ├── performance/       ***REMOVED*** Optimization hooks
-│   ├── navigation/        ***REMOVED*** Routing utilities
-│   └── filter/            ***REMOVED*** Data filtering and sorting
-├── services/              ***REMOVED*** API layer
-├── utils/                 ***REMOVED*** Utility functions
-├── domain/                ***REMOVED*** Business entities
-├── store/                 ***REMOVED*** State management
-├── providers/             ***REMOVED*** Context providers
-└── config/                ***REMOVED*** Configuration
+├── app/                    # Next.js App Router pages
+├── components/             # Component library
+│   ├── ui/                # Atomic Design components
+│   │   ├── atoms/         # Basic building blocks
+│   │   ├── molecules/     # Combined functionality
+│   │   ├── organisms/     # Complex sections
+│   │   └── templates/     # Page layouts
+│   ├── features/          # Domain-specific components
+│   │   ├── movies/        # Movie domain
+│   │   ├── auth/          # Authentication
+│   │   ├── profile/       # User profile
+│   │   └── actors/        # Actor domain
+│   └── mobile/            # Mobile-specific (legacy - being phased out)
+├── hooks/                 # Organized by responsibility
+│   ├── core/              # Auth, settings, route protection
+│   ├── domain/            # Business logic hooks
+│   ├── ui/                # Presentation utilities
+│   ├── performance/       # Optimization hooks
+│   ├── navigation/        # Routing utilities
+│   └── filter/            # Data filtering and sorting
+├── services/              # API layer
+├── utils/                 # Utility functions
+├── domain/                # Business entities
+├── store/                 # State management
+├── providers/             # Context providers
+└── config/                # Configuration
 ```
 
-***REMOVED******REMOVED******REMOVED*** File Organization Rules
+### File Organization Rules
 
 1. **Feature-based organization** for domain logic
 2. **Atomic-based organization** for UI components
 3. **Barrel exports** (`index.ts`) for clean imports
 4. **Co-located types** in `types.ts` files at appropriate levels
 
-***REMOVED******REMOVED******REMOVED*** Domain Boundaries
+### Domain Boundaries
 
 - **Domain isolation**: Each feature domain (movies, auth, profile) is self-contained
 - **Shared concerns**: Common UI components live in `ui/` directory

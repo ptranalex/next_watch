@@ -17,10 +17,10 @@ from sqlmodel import Session
 
 def test_create_credit(db_session: Session):
     """Test creating a credit record."""
-    ***REMOVED*** Create a movie first
+    # Create a movie first
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Create a credit
+    # Create a credit
     credit_data = {
         "movie_id": movie.id,
         "tmdb_person_id": 456,
@@ -32,7 +32,7 @@ def test_create_credit(db_session: Session):
 
     credit = create_credit(db_session, credit_data)
 
-    ***REMOVED*** Verify credit was created
+    # Verify credit was created
     assert credit.id is not None
     assert credit.movie_id == movie.id
     assert credit.tmdb_person_id == 456
@@ -44,10 +44,10 @@ def test_create_credit(db_session: Session):
 
 def test_get_credit_by_id(db_session: Session):
     """Test retrieving a credit by ID."""
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Create a credit
+    # Create a credit
     credit_data = {
         "movie_id": movie.id,
         "tmdb_person_id": 456,
@@ -55,13 +55,13 @@ def test_get_credit_by_id(db_session: Session):
     }
     credit = create_credit(db_session, credit_data)
 
-    ***REMOVED*** Make sure we have a valid ID
+    # Make sure we have a valid ID
     assert credit.id is not None
 
-    ***REMOVED*** Retrieve credit by ID
+    # Retrieve credit by ID
     retrieved_credit = get_credit_by_id(db_session, credit.id)
 
-    ***REMOVED*** Verify retrieval
+    # Verify retrieval
     assert retrieved_credit is not None
     assert retrieved_credit.id == credit.id
     assert retrieved_credit.name == "John Doe"
@@ -69,10 +69,10 @@ def test_get_credit_by_id(db_session: Session):
 
 def test_get_credits_by_movie_id(db_session: Session):
     """Test retrieving all credits for a movie."""
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Create multiple credits for the movie
+    # Create multiple credits for the movie
     credit_data_1 = {
         "movie_id": movie.id,
         "tmdb_person_id": 456,
@@ -89,21 +89,21 @@ def test_get_credits_by_movie_id(db_session: Session):
     create_credit(db_session, credit_data_1)
     create_credit(db_session, credit_data_2)
 
-    ***REMOVED*** Retrieve credits by movie ID
+    # Retrieve credits by movie ID
     credits = get_credits_by_movie_id(db_session, movie.id)
 
-    ***REMOVED*** Verify retrieval
+    # Verify retrieval
     assert len(credits) == 2
     assert {c.name for c in credits} == {"John Doe", "Jane Smith"}
 
 
 def test_get_credits_by_person_id(db_session: Session):
     """Test retrieving all credits for a person."""
-    ***REMOVED*** Create two movies
+    # Create two movies
     movie1 = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie 1"})
     movie2 = create_movie(db_session, {"tmdb_id": 456, "title": "Test Movie 2"})
 
-    ***REMOVED*** Create credits for the same person in different movies
+    # Create credits for the same person in different movies
     person_id = 789
 
     credit_data_1 = {
@@ -122,20 +122,20 @@ def test_get_credits_by_person_id(db_session: Session):
     create_credit(db_session, credit_data_1)
     create_credit(db_session, credit_data_2)
 
-    ***REMOVED*** Retrieve credits by person ID
+    # Retrieve credits by person ID
     credits = get_credits_by_person_id(db_session, person_id)
 
-    ***REMOVED*** Verify retrieval
+    # Verify retrieval
     assert len(credits) == 2
     assert {c.character for c in credits} == {"Character 1", "Character 2"}
 
 
 def test_get_credits_with_filtering(db_session: Session):
     """Test retrieving credits with filtering."""
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Create credits with different departments
+    # Create credits with different departments
     create_credit(
         db_session,
         {
@@ -164,11 +164,11 @@ def test_get_credits_with_filtering(db_session: Session):
         },
     )
 
-    ***REMOVED*** Retrieve credits filtered by department
+    # Retrieve credits filtered by department
     acting_credits = get_credits(db_session, department="Acting")
     directing_credits = get_credits(db_session, department="Directing")
 
-    ***REMOVED*** Verify filtering
+    # Verify filtering
     assert len(acting_credits) == 1
     assert acting_credits[0].name == "Jane Actor"
 
@@ -178,10 +178,10 @@ def test_get_credits_with_filtering(db_session: Session):
 
 def test_update_credit(db_session: Session):
     """Test updating a credit record."""
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Create a credit
+    # Create a credit
     credit_data = {
         "movie_id": movie.id,
         "tmdb_person_id": 456,
@@ -190,29 +190,29 @@ def test_update_credit(db_session: Session):
     }
     credit = create_credit(db_session, credit_data)
 
-    ***REMOVED*** Ensure credit has an ID
+    # Ensure credit has an ID
     assert credit.id is not None
 
-    ***REMOVED*** Update the credit
+    # Update the credit
     update_data = {
         "character": "Updated Character",
         "order": 5,
     }
     updated_credit = update_credit(db_session, credit.id, update_data)
 
-    ***REMOVED*** Verify update
+    # Verify update
     assert updated_credit is not None
     assert updated_credit.character == "Updated Character"
     assert updated_credit.order == 5
-    assert updated_credit.name == "John Doe"  ***REMOVED*** Unchanged field
+    assert updated_credit.name == "John Doe"  # Unchanged field
 
 
 def test_delete_credit(db_session: Session):
     """Test deleting a credit record."""
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Create a credit
+    # Create a credit
     credit_data = {
         "movie_id": movie.id,
         "tmdb_person_id": 456,
@@ -220,24 +220,24 @@ def test_delete_credit(db_session: Session):
     }
     credit = create_credit(db_session, credit_data)
 
-    ***REMOVED*** Ensure credit has an ID
+    # Ensure credit has an ID
     assert credit.id is not None
     credit_id = credit.id
 
-    ***REMOVED*** Delete the credit
+    # Delete the credit
     result = delete_credit(db_session, credit_id)
 
-    ***REMOVED*** Verify deletion
+    # Verify deletion
     assert result is True
     assert get_credit_by_id(db_session, credit_id) is None
 
 
 def test_delete_credits_for_movie(db_session: Session):
     """Test deleting all credits for a movie."""
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Create multiple credits
+    # Create multiple credits
     for i in range(3):
         credit_data = {
             "movie_id": movie.id,
@@ -246,20 +246,20 @@ def test_delete_credits_for_movie(db_session: Session):
         }
         create_credit(db_session, credit_data)
 
-    ***REMOVED*** Delete all credits for the movie
+    # Delete all credits for the movie
     count = delete_credits_for_movie(db_session, movie.id)
 
-    ***REMOVED*** Verify deletion
+    # Verify deletion
     assert count == 3
     assert len(get_credits_by_movie_id(db_session, movie.id)) == 0
 
 
 def test_create_credits_from_tmdb_data(db_session: Session):
     """Test creating credits from TMDB API data."""
-    ***REMOVED*** Create a movie
+    # Create a movie
     movie = create_movie(db_session, {"tmdb_id": 123, "title": "Test Movie"})
 
-    ***REMOVED*** Sample TMDB credits data
+    # Sample TMDB credits data
     tmdb_credits = {
         "cast": [
             {
@@ -291,22 +291,22 @@ def test_create_credits_from_tmdb_data(db_session: Session):
         ],
     }
 
-    ***REMOVED*** Create credits from TMDB data
+    # Create credits from TMDB data
     created_credits = create_credits_from_tmdb_data(db_session, movie.id, tmdb_credits)
 
-    ***REMOVED*** Verify creation
+    # Verify creation
     assert len(created_credits) == 3
 
-    ***REMOVED*** Verify data is retrieved correctly
+    # Verify data is retrieved correctly
     db_credits = get_credits_by_movie_id(db_session, movie.id)
     assert len(db_credits) == 3
 
-    ***REMOVED*** Verify cast members
+    # Verify cast members
     cast_credits = [c for c in db_credits if c.character is not None]
     assert len(cast_credits) == 2
     assert {c.name for c in cast_credits} == {"Actor One", "Actor Two"}
 
-    ***REMOVED*** Verify crew members
+    # Verify crew members
     crew_credits = [c for c in db_credits if c.job is not None]
     assert len(crew_credits) == 1
     assert crew_credits[0].name == "Director"

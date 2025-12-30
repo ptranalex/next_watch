@@ -35,5 +35,5 @@ def get_genre_by_name(db_session: DBSession, genre_name: str) -> dict[str, Any] 
     if not genre:
         return None
 
-    ***REMOVED*** Convert to dictionary
+    # Convert to dictionary
     return dict(genre._mapping)

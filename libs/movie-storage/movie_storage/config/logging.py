@@ -11,7 +11,7 @@ from typing import Any
 
 from movie_storage.config.app import Config
 
-***REMOVED*** Logger for this module
+# Logger for this module
 logger = logging.getLogger(__name__)
 
 
@@ -34,11 +34,11 @@ def configure_logging(
     Returns:
         Dictionary with logging information
     """
-    ***REMOVED*** Get config instance if not provided
+    # Get config instance if not provided
     if config is None:
         config = Config.get_instance()
 
-    ***REMOVED*** Determine log level
+    # Determine log level
     if log_level:
         level_value = getattr(logging, log_level.upper(), logging.INFO)
     else:
@@ -51,68 +51,68 @@ def configure_logging(
     else:
         console_level = level_value
 
-    ***REMOVED*** Get SQL log level
+    # Get SQL log level
     sql_level = getattr(logging, config.sql_log_level.upper(), logging.WARNING)
 
-    ***REMOVED*** Configure root logger for movie_storage
+    # Configure root logger for movie_storage
     root_logger = logging.getLogger("movie_storage")
-    root_logger.setLevel(logging.DEBUG)  ***REMOVED*** Set to lowest level, handlers filter from there
+    root_logger.setLevel(logging.DEBUG)  # Set to lowest level, handlers filter from there
     root_logger.propagate = False
 
-    ***REMOVED*** Remove any existing handlers
+    # Remove any existing handlers
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    ***REMOVED*** Create formatters
+    # Create formatters
     file_formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
     )
     console_formatter = logging.Formatter("%(levelname)s - %(message)s")
 
-    ***REMOVED*** Create console handler for standard output
+    # Create console handler for standard output
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(console_level)
     console_handler.setFormatter(console_formatter)
     root_logger.addHandler(console_handler)
 
-    ***REMOVED*** Always add error handler to stderr
+    # Always add error handler to stderr
     error_handler = logging.StreamHandler(sys.stderr)
     error_handler.setLevel(logging.ERROR)
     error_handler.setFormatter(console_formatter)
     root_logger.addHandler(error_handler)
 
-    ***REMOVED*** Create file handler if log_dir is provided
+    # Create file handler if log_dir is provided
     log_file_path = None
     if log_dir:
         try:
-            ***REMOVED*** Create log directory if it doesn't exist
+            # Create log directory if it doesn't exist
             os.makedirs(log_dir, exist_ok=True)
 
-            ***REMOVED*** Create log file path with timestamp
+            # Create log file path with timestamp
             log_file_path = (
                 log_dir / f"movie_storage_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
             )
 
-            ***REMOVED*** Create file handler
+            # Create file handler
             file_handler = logging.FileHandler(log_file_path)
-            file_handler.setLevel(logging.DEBUG)  ***REMOVED*** Log everything to file
+            file_handler.setLevel(logging.DEBUG)  # Log everything to file
             file_handler.setFormatter(file_formatter)
 
-            ***REMOVED*** Add handler to root logger
+            # Add handler to root logger
             root_logger.addHandler(file_handler)
 
             logger.info(f"Logging to file: {log_file_path}")
         except Exception as e:
             logger.error(f"Failed to set up file logging: {str(e)}")
 
-    ***REMOVED*** Configure SQLAlchemy logging
+    # Configure SQLAlchemy logging
     logging.getLogger("sqlalchemy").setLevel(sql_level)
     logging.getLogger("sqlalchemy.engine").setLevel(sql_level)
 
-    ***REMOVED*** Default SQLModel logging to WARNING to avoid excessive output
+    # Default SQLModel logging to WARNING to avoid excessive output
     logging.getLogger("sqlmodel").setLevel(logging.WARNING)
 
-    ***REMOVED*** Log initial configuration
+    # Log initial configuration
     logger.debug(
         f"Logging configured: level={logging.getLevelName(level_value)}, verbose={verbose}, quiet={quiet}"
     )
@@ -168,7 +168,7 @@ def with_logging(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            ***REMOVED*** Configure logging before executing the function
+            # Configure logging before executing the function
             configure_logging(
                 log_level=log_level,
                 log_dir=log_dir,
@@ -177,7 +177,7 @@ def with_logging(
                 config=config,
             )
 
-            ***REMOVED*** Call the original function
+            # Call the original function
             return func(*args, **kwargs)
 
         return wrapper

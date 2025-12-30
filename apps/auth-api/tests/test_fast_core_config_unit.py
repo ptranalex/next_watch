@@ -16,7 +16,7 @@ def test_create_fast_core_config_smoke() -> None:
     assert fc.service_name == cfg.service_name
     assert fc.port == cfg.port
 
-    ***REMOVED*** Auth service has no external URLs
+    # Auth service has no external URLs
     assert get_service_url(fc, "backend") is None
     assert get_service_timeout(fc, "backend") == 30
 

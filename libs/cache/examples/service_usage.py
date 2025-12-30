@@ -9,7 +9,7 @@ from cache.config import CacheSettings
 
 async def main():
     """Example of using enhanced cache methods in a service."""
-    ***REMOVED*** Initialize cache with service-specific settings
+    # Initialize cache with service-specific settings
     settings = CacheSettings(
         redis_url="redis://localhost:6379/0",
         key_prefix="myservice:",
@@ -17,10 +17,10 @@ async def main():
     )
     cache = CacheManager.from_settings(settings)
 
-    ***REMOVED*** Example service function using enhanced methods directly
+    # Example service function using enhanced methods directly
     async def get_user_profile(user_id: int) -> dict[str, Any] | None:
         """Get user profile from cache or backend."""
-        ***REMOVED*** Use get_dict for type-safe dictionary retrieval
+        # Use get_dict for type-safe dictionary retrieval
         cache_key = f"user:{user_id}"
         user_data = await cache.get_dict(cache_key)
 
@@ -28,7 +28,7 @@ async def main():
             print(f"Cache hit for user {user_id}")
             return user_data
 
-        ***REMOVED*** Simulate backend call
+        # Simulate backend call
         print(f"Cache miss for user {user_id}, fetching from backend")
         user_data = {
             "id": user_id,
@@ -37,7 +37,7 @@ async def main():
             "preferences": {"theme": "dark", "notifications": True},
         }
 
-        ***REMOVED*** Use set_json_safe for error handling
+        # Use set_json_safe for error handling
         success = await cache.set_json_safe(cache_key, user_data, ttl=600)
         if success:
             print(f"Cached user {user_id} data")
@@ -46,7 +46,7 @@ async def main():
 
         return user_data
 
-    ***REMOVED*** Example service function using list type
+    # Example service function using list type
     async def get_popular_movies() -> list:
         """Get popular movies from cache or backend."""
         cache_key = "movies:popular"
@@ -56,7 +56,7 @@ async def main():
             print("Cache hit for popular movies")
             return movies
 
-        ***REMOVED*** Simulate backend call
+        # Simulate backend call
         print("Cache miss for popular movies, fetching from backend")
         movies = [
             {"id": 1, "title": "Movie 1", "rating": 4.5},
@@ -64,26 +64,26 @@ async def main():
             {"id": 3, "title": "Movie 3", "rating": 4.2},
         ]
 
-        ***REMOVED*** Use set_json_safe for error handling
+        # Use set_json_safe for error handling
         await cache.set_json_safe(cache_key, movies, ttl=300)
         return movies
 
-    ***REMOVED*** Simulate service operations
+    # Simulate service operations
     user = await get_user_profile(123)
     print(f"Got user: {user}")
 
-    ***REMOVED*** Second call should hit cache
+    # Second call should hit cache
     user_again = await get_user_profile(123)
     print(f"Got user again: {user_again}")
 
     movies = await get_popular_movies()
     print(f"Got {len(movies)} popular movies")
 
-    ***REMOVED*** Test error handling by deleting a non-existent key
+    # Test error handling by deleting a non-existent key
     success = await cache.delete_key_safe("nonexistent:key")
     print(f"Delete operation succeeded: {success}")
 
-    ***REMOVED*** Close cache connections
+    # Close cache connections
     await cache.close()
 
 

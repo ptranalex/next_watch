@@ -1,12 +1,12 @@
-***REMOVED*** Auth API Decoupling from Movie-Storage
+# Auth API Decoupling from Movie-Storage
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The auth-api service has been successfully decoupled from the movie-storage library, following the same pattern used in backend-api. This change improves service autonomy and reduces dependencies.
 
-***REMOVED******REMOVED*** Changes Made
+## Changes Made
 
-***REMOVED******REMOVED******REMOVED*** 1. Local Models
+### 1. Local Models
 
 Created local models in `src/auth_api/models/`:
 
@@ -15,7 +15,7 @@ Created local models in `src/auth_api/models/`:
   - Includes password hashing and verification methods
   - SQLModel-based with proper field definitions
 
-***REMOVED******REMOVED******REMOVED*** 2. Local Database Operations
+### 2. Local Database Operations
 
 Created local database operations in `src/auth_api/db/operations/`:
 
@@ -30,7 +30,7 @@ Created local database operations in `src/auth_api/db/operations/`:
   - `delete_user()` - User deletion
   - `get_users()` - Paginated user listing
 
-***REMOVED******REMOVED******REMOVED*** 3. Database Layer Updates
+### 3. Database Layer Updates
 
 Updated `src/auth_api/db/`:
 
@@ -43,7 +43,7 @@ Updated `src/auth_api/db/`:
 
 - **`__init__.py`**: Updated exports to include all database functions
 
-***REMOVED******REMOVED******REMOVED*** 4. Service Layer Updates
+### 4. Service Layer Updates
 
 Updated `src/auth_api/services/auth_service.py`:
 
@@ -51,41 +51,41 @@ Updated `src/auth_api/services/auth_service.py`:
 - Changed imports from `movie_storage.db.operations.user` to `auth_api.db.operations.user`
 - No functional changes to the service logic
 
-***REMOVED******REMOVED******REMOVED*** 5. Route Layer Updates
+### 5. Route Layer Updates
 
 Updated `src/auth_api/routes/auth.py`:
 
 - Changed imports from `movie_storage.models.user` to `auth_api.models.user`
 - No functional changes to the route handlers
 
-***REMOVED******REMOVED******REMOVED*** 6. Debug Logging Fix
+### 6. Debug Logging Fix
 
 Updated `src/auth_api/main.py`:
 
 - Added multipart form parser log suppression to fix verbose debug logs
 - Configured logger levels for various multipart parsing libraries
 
-***REMOVED******REMOVED*** Benefits
+## Benefits
 
-***REMOVED******REMOVED******REMOVED*** Service Autonomy
+### Service Autonomy
 
 - Auth-api no longer depends on movie-storage library
 - Can be developed, tested, and deployed independently
 - Reduced coupling between services
 
-***REMOVED******REMOVED******REMOVED*** Database Management
+### Database Management
 
 - Local database operations provide full control
 - No shared database utilities that could create conflicts
 - Clear separation of concerns
 
-***REMOVED******REMOVED******REMOVED*** Development Experience
+### Development Experience
 
 - Faster development cycles without cross-library dependencies
 - Clearer dependency graph
 - Easier debugging and testing
 
-***REMOVED******REMOVED*** Database Schema Considerations
+## Database Schema Considerations
 
 The auth-api service still uses the same database schema and tables as the centralized movie-storage library. This ensures:
 
@@ -93,21 +93,21 @@ The auth-api service still uses the same database schema and tables as the centr
 - **Shared Authentication**: All services can authenticate against the same user base
 - **Gradual Migration**: Other services can continue using movie-storage while auth-api operates independently
 
-***REMOVED******REMOVED*** Migration Notes
+## Migration Notes
 
-***REMOVED******REMOVED******REMOVED*** For Developers
+### For Developers
 
 - Import statements in auth-api code have changed
 - Local models and operations are now used instead of movie-storage
 - All authentication functionality remains the same
 
-***REMOVED******REMOVED******REMOVED*** For Deployment
+### For Deployment
 
 - No changes to database schema required
 - No changes to API endpoints or responses
 - Auth-api can be deployed independently of movie-storage updates
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 The decoupling maintains full API compatibility:
 
@@ -116,7 +116,7 @@ The decoupling maintains full API compatibility:
 - User registration and login flows identical
 - BFF service integration remains the same
 
-***REMOVED******REMOVED*** Future Considerations
+## Future Considerations
 
 This decoupling pattern can be extended to other services that currently depend on movie-storage, providing:
 

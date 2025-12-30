@@ -9,7 +9,7 @@ allow-direct-references = true
 name = "auth_api"
 version = "0.1.0"
 description = "Dedicated authentication service for next_watch movie platform"
-readme = {text = "***REMOVED*** Auth API\n\nDedicated authentication service for next_watch movie platform", content-type = "text/markdown"}
+readme = {text = "# Auth API\n\nDedicated authentication service for next_watch movie platform", content-type = "text/markdown"}
 license = "MIT"
 license-files = ["LICENSE*"]
 authors = [
@@ -37,55 +37,55 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    ***REMOVED*** Core API framework
-    "fastapi>=0.104.0",         ***REMOVED*** API framework
-    "uvicorn>=0.23.2",          ***REMOVED*** ASGI server
-    "pydantic>=2.4.2",          ***REMOVED*** Data validation
-    "pydantic-settings>=2.0.0", ***REMOVED*** Settings management
+    # Core API framework
+    "fastapi>=0.104.0",         # API framework
+    "uvicorn>=0.23.2",          # ASGI server
+    "pydantic>=2.4.2",          # Data validation
+    "pydantic-settings>=2.0.0", # Settings management
 
-    ***REMOVED*** Database
-    "sqlalchemy>=2.0.23",       ***REMOVED*** SQL ORM
-    "sqlmodel>=0.0.8",          ***REMOVED*** SQL Model extension
-    "psycopg2-binary>=2.9.10",  ***REMOVED*** PostgreSQL driver
-    "alembic>=1.13.1",          ***REMOVED*** Database migrations
+    # Database
+    "sqlalchemy>=2.0.23",       # SQL ORM
+    "sqlmodel>=0.0.8",          # SQL Model extension
+    "psycopg2-binary>=2.9.10",  # PostgreSQL driver
+    "alembic>=1.13.1",          # Database migrations
 
-    ***REMOVED*** Authentication
-    "pyjwt>=2.8.0",             ***REMOVED*** JWT token handling
-    "passlib[bcrypt]>=1.7.4",   ***REMOVED*** Password hashing
-    "bcrypt==3.2.2",            ***REMOVED*** Specific bcrypt version
-    "python-multipart>=0.0.20", ***REMOVED*** Form data parsing
-    "email-validator>=2.2.0",   ***REMOVED*** Email validation
+    # Authentication
+    "pyjwt>=2.8.0",             # JWT token handling
+    "passlib[bcrypt]>=1.7.4",   # Password hashing
+    "bcrypt==3.2.2",            # Specific bcrypt version
+    "python-multipart>=0.0.20", # Form data parsing
+    "email-validator>=2.2.0",   # Email validation
 
-    ***REMOVED*** HTTP client
-    "httpx>=0.24.0",            ***REMOVED*** Async HTTP client
+    # HTTP client
+    "httpx>=0.24.0",            # Async HTTP client
 
-    ***REMOVED*** CLI and utilities
-    "typer>=0.15.2",            ***REMOVED*** CLI framework
-    "rich>=13.7.0",             ***REMOVED*** Terminal formatting
-    "python-dotenv>=1.0.0",     ***REMOVED*** Environment variable loading
+    # CLI and utilities
+    "typer>=0.15.2",            # CLI framework
+    "rich>=13.7.0",             # Terminal formatting
+    "python-dotenv>=1.0.0",     # Environment variable loading
 
-    ***REMOVED*** Date/time handling
-    "python-dateutil>=2.9.0",   ***REMOVED*** Date utilities
+    # Date/time handling
+    "python-dateutil>=2.9.0",   # Date utilities
 
-    ***REMOVED*** Cache (for session management)
-    "redis>=6.0.0",             ***REMOVED*** Redis client
-    "types-redis>=4.6.0",       ***REMOVED*** Redis type stubs
+    # Cache (for session management)
+    "redis>=6.0.0",             # Redis client
+    "types-redis>=4.6.0",       # Redis type stubs
 ]
 
 [project.optional-dependencies]
 dev = [
-    ***REMOVED*** Testing
+    # Testing
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
 
-    ***REMOVED*** Code quality
+    # Code quality
     "ruff>=0.8.4",
     "pyright>=1.1.0",
 
-    ***REMOVED*** Local NextWatch libraries (for development)
-    ***REMOVED*** "cache @ file:../../libs/cache",
-    ***REMOVED*** "cli @ file:../../libs/cli",
+    # Local NextWatch libraries (for development)
+    # "cache @ file:../../libs/cache",
+    # "cli @ file:../../libs/cli",
 ]
 
 [project.scripts]
@@ -97,7 +97,7 @@ Repository = "https://github.com/nextwatch/auth-api"
 Issues = "https://github.com/nextwatch/auth-api/issues"
 Documentation = "https://docs.nextwatch.dev/auth-api"
 
-***REMOVED*** Hatch configuration
+# Hatch configuration
 [tool.hatch.version]
 source = "vcs"
 
@@ -113,7 +113,7 @@ packages = ["src/auth_api"]
 [tool.hatch.build.sources]
 "src" = ""
 
-***REMOVED*** Single consolidated environment
+# Single consolidated environment
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"
@@ -124,7 +124,7 @@ PYTHONPATH = "src"
 
 [tool.hatch.envs.default.scripts]
 
-***REMOVED*** Install local libraries, so it can be reloaded after changes
+# Install local libraries, so it can be reloaded after changes
 install-libs = [
   "pip install -e ../../libs/cache",
   "pip install -e ../../libs/cli",
@@ -133,32 +133,32 @@ install-libs = [
   "pip install -e ../../libs/fast-core"
 ]
 
-***REMOVED*** Server management
+# Server management
 serve = "python -m auth_api.main"
 dev = "PYTHONPATH=src uvicorn auth_api.main:create_app --factory --reload --port 8003"
 
-***REMOVED*** CLI access
+# CLI access
 cli = "python -m auth_api.cli"
 
-***REMOVED*** Database management
+# Database management
 migrate = "python -m auth_api.cli db migrate"
 db-init = "python -m auth_api.cli db init"
 db-init-tables = "python -m auth_api.cli db init --create-tables"
 db-downgrade = "python -m auth_api.cli db downgrade"
 db-teardown = "python -m auth_api.cli db teardown --confirm"
 
-***REMOVED*** Health checks
+# Health checks
 health-check = "python -m auth_api.cli health check"
 health-db = "python -m auth_api.cli health db"
 health-cache = "python -m auth_api.cli health cache"
 
-***REMOVED*** Cache management (for sessions)
+# Cache management (for sessions)
 cache-info = "python -m auth_api.cli cache info"
 cache-keys = "python -m auth_api.cli cache keys"
 cache-get = "python -m auth_api.cli cache get"
 cache-clear = "python -m auth_api.cli cache clear --confirm"
 
-***REMOVED*** Auth-specific operations
+# Auth-specific operations
 user-create = "python -m auth_api.cli user create"
 user-list = "python -m auth_api.cli user list"
 user-disable = "python -m auth_api.cli user disable"
@@ -166,12 +166,12 @@ token-verify = "python -m auth_api.cli token verify"
 token-revoke = "python -m auth_api.cli token revoke"
 session-clean = "python -m auth_api.cli session clean"
 
-***REMOVED*** System commands
+# System commands
 config = "python -m auth_api.cli config"
 version = "python -m auth_api.cli version"
 serve-cli = "python -m auth_api.cli serve"
 
-***REMOVED*** Development tools
+# Development tools
 format = "ruff format ."
 lint = "ruff check ."
 typecheck = "pyright -p pyrightconfig.json"
@@ -179,7 +179,7 @@ typecheck-pyright = "pyright -p pyrightconfig.json"
 test = "PYTHONPATH=src pytest {args:tests}"
 test-cov = "PYTHONPATH=src pytest --cov=src/auth_api/config --cov=src/auth_api/models --cov=src/auth_api/schemas --cov=src/auth_api/dependencies --cov-config=pyproject.toml --cov-report=term-missing --cov-report=xml:coverage.xml tests/"
 
-***REMOVED*** Tool configurations
+# Tool configurations
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -193,25 +193,25 @@ src = ["src"]
 
 [tool.ruff.lint]
 select = [
-    "E",   ***REMOVED*** pycodestyle errors
-    "W",   ***REMOVED*** pycodestyle warnings
-    "F",   ***REMOVED*** pyflakes
-    "UP",  ***REMOVED*** pyupgrade
-    "B",   ***REMOVED*** flake8-bugbear
-    "SIM", ***REMOVED*** flake8-simplify
-    "I",   ***REMOVED*** isort
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
 ]
 ignore = [
-    "E501", ***REMOVED*** line too long, handled by black
-    "B008", ***REMOVED*** do not perform function calls in argument defaults
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
 ]
 
 [tool.ruff.lint.isort]
-***REMOVED*** Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
+# Pre-commit runs Ruff from the monorepo root; make import grouping deterministic.
 known-first-party = ["auth_api"]
 known-third-party = ["cache", "cli", "config", "fast_core", "kafka", "movie_storage"]
 
-***REMOVED*** Test
+# Test
 
 [tool.coverage.run]
 branch = true

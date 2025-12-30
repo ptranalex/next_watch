@@ -27,15 +27,15 @@ def async_run(coro: Any, close_loop: bool = True) -> Any:
         async_run(tmdb_client.get_popular_movies(1))
     """
     try:
-        ***REMOVED*** Always create a new event loop for each call
+        # Always create a new event loop for each call
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
         try:
-            ***REMOVED*** Run the coroutine and return the result
+            # Run the coroutine and return the result
             return loop.run_until_complete(coro)
         finally:
-            ***REMOVED*** Close the loop if requested
+            # Close the loop if requested
             if close_loop:
                 loop.close()
     except Exception as e:
@@ -61,9 +61,9 @@ def print_config(config: Optional[Any] = None) -> None:
     Args:
         config: Config object (uses the one from global namespace if None)
     """
-    ***REMOVED*** Get config from globals if not provided
+    # Get config from globals if not provided
     if config is None:
-        ***REMOVED*** Get from globals (assumes running in shell with config in namespace)
+        # Get from globals (assumes running in shell with config in namespace)
         frame = inspect.currentframe()
         try:
             if frame and frame.f_back and "config" in frame.f_back.f_globals:
@@ -75,7 +75,7 @@ def print_config(config: Optional[Any] = None) -> None:
             if frame:
                 del frame
 
-    ***REMOVED*** Use the generic utility function
+    # Use the generic utility function
     print_config_util(config, title="Data Importer Configuration", console=console)
 
 
@@ -122,7 +122,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         """
         from movie_storage.utils import setup_movie_storage
 
-        ***REMOVED*** Imports for database support
+        # Imports for database support
         from sqlmodel import Session, create_engine
 
         from data_importer.config.app import Config
@@ -131,10 +131,10 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         from data_importer.sync import sync_movies_by_year_range
         from data_importer.sync.movie_sync import format_sync_results
 
-        ***REMOVED*** Get config from global namespace or create a new one
+        # Get config from global namespace or create a new one
         config = Config.get_instance()
 
-        ***REMOVED*** Get clients from global namespace
+        # Get clients from global namespace
         frame = inspect.currentframe()
         if not frame or not frame.f_back:
             console.print("[red]Unable to access shell context[/red]")
@@ -146,7 +146,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
             global_omdb_client = globals_dict.get("omdb_client")
             global_async_run = globals_dict.get("async_run")
 
-            ***REMOVED*** Verify all required objects are available and not None
+            # Verify all required objects are available and not None
             if not global_tmdb_client:
                 console.print("[red]Error: TMDB client not found in shell context[/red]")
                 return
@@ -159,7 +159,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 console.print("[red]Error: async_run function not found in shell context[/red]")
                 return
 
-            ***REMOVED*** Verify the clients have the required attributes
+            # Verify the clients have the required attributes
             if (
                 not hasattr(global_tmdb_client, "access_token")
                 or not global_tmdb_client.access_token
@@ -171,7 +171,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 console.print("[red]Error: OMDB client does not have a valid API key[/red]")
                 return
 
-            ***REMOVED*** Use config values if not specified
+            # Use config values if not specified
             actual_start_year = (
                 start_year if start_year is not None else config.movie_sync_start_year
             )
@@ -195,7 +195,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 min_vote_count if min_vote_count is not None else config.movie_sync_min_vote_count
             )
 
-            ***REMOVED*** Show configuration being used
+            # Show configuration being used
             console.print("\n[bold cyan]Movie Sync Configuration:[/bold cyan]")
             console.print(f"Year range: {actual_start_year} to {actual_end_year}")
             console.print(f"Limit per year: {actual_limit}")
@@ -214,26 +214,26 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
             if actual_include_videos:
                 console.print("[cyan]Including video/trailer information[/cyan]")
 
-            ***REMOVED*** Define the entire operation as a single async function
+            # Define the entire operation as a single async function
             async def run_sync_operation() -> Any:
-                ***REMOVED*** Create fresh client instances with the same API keys
+                # Create fresh client instances with the same API keys
                 tmdb_client = TMDBClient(access_token=global_tmdb_client.access_token)
                 omdb_client = OMDBClient(api_key=global_omdb_client.api_key)
                 db_session = None
 
                 try:
-                    ***REMOVED*** Set up database connection if saving to db
+                    # Set up database connection if saving to db
                     if actual_save_to_db:
-                        ***REMOVED*** Setup movie storage (uses .env.local if available)
+                        # Setup movie storage (uses .env.local if available)
                         setup_info = setup_movie_storage(create_tables=True)
                         db_url = setup_info["database_url"]
                         console.print(f"[bold]Using database:[/bold] {db_url}")
 
-                        ***REMOVED*** Create a database session
+                        # Create a database session
                         engine = create_engine(db_url)
                         db_session = Session(engine)
 
-                    ***REMOVED*** Run the sync operation with all the configured parameters
+                    # Run the sync operation with all the configured parameters
                     results = await sync_movies_by_year_range(
                         tmdb_client,
                         omdb_client,
@@ -246,32 +246,32 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                         include_videos=actual_include_videos,
                         sort_by=actual_sort_by,
                         min_vote_count=actual_min_vote_count,
-                        verbose=True,  ***REMOVED*** Shell functions are always verbose
+                        verbose=True,  # Shell functions are always verbose
                     )
 
                     return results
                 finally:
-                    ***REMOVED*** Clean up resources
+                    # Clean up resources
                     if db_session:
                         db_session.close()
                     await tmdb_client.close()
                     await omdb_client.close()
 
-            ***REMOVED*** Run everything in a single event loop
+            # Run everything in a single event loop
             results = global_async_run(run_sync_operation())
 
-            ***REMOVED*** Format and display results
+            # Format and display results
             if results:
                 formatted_results = format_sync_results(results)
                 console.print(f"\n{formatted_results}")
 
-                ***REMOVED*** Return the movie info to the shell for further examination
+                # Return the movie info to the shell for further examination
                 movie_dicts = results.get("movie_dicts", [])
                 movie_models = results.get("movies", [])
                 genres = results.get("genres", [])
                 credits_saved = results.get("credits_saved", 0)
 
-                ***REMOVED*** Display additional info about credits if included
+                # Display additional info about credits if included
                 if actual_include_credits and credits_saved > 0:
                     console.print(f"[green]Imported {credits_saved} cast and crew credits[/green]")
 
@@ -279,7 +279,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                     f"\n[green]Synced {len(movie_dicts)} movies with {len(genres)} genres. Access them through the 'synced_movies', 'movie_models', and 'genre_list' variables.[/green]"
                 )
 
-                ***REMOVED*** Add results to the global namespace
+                # Add results to the global namespace
                 globals_dict["synced_movies"] = movie_dicts
                 globals_dict["movie_models"] = movie_models
                 globals_dict["genre_list"] = genres
@@ -308,7 +308,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         """
         from movie_storage.utils import setup_movie_storage
 
-        ***REMOVED*** Imports for database support
+        # Imports for database support
         from sqlmodel import Session, create_engine
 
         from data_importer.config.app import Config
@@ -316,10 +316,10 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         from data_importer.services.omdb import OMDBClient
         from data_importer.services.tmdb import TMDBClient
 
-        ***REMOVED*** Get config from global namespace or create a new one
+        # Get config from global namespace or create a new one
         config = Config.get_instance()
 
-        ***REMOVED*** Get clients from global namespace
+        # Get clients from global namespace
         frame = inspect.currentframe()
         if not frame or not frame.f_back:
             console.print("[red]Unable to access shell context[/red]")
@@ -331,7 +331,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
             global_omdb_client = globals_dict.get("omdb_client")
             global_async_run = globals_dict.get("async_run")
 
-            ***REMOVED*** Verify all required objects are available and not None
+            # Verify all required objects are available and not None
             if not global_tmdb_client:
                 console.print("[red]Error: TMDB client not found in shell context[/red]")
                 return
@@ -344,7 +344,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 console.print("[red]Error: async_run function not found in shell context[/red]")
                 return
 
-            ***REMOVED*** Verify the clients have the required attributes
+            # Verify the clients have the required attributes
             if (
                 not hasattr(global_tmdb_client, "access_token")
                 or not global_tmdb_client.access_token
@@ -356,7 +356,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 console.print("[red]Error: OMDB client does not have a valid API key[/red]")
                 return
 
-            ***REMOVED*** Use config values if not specified
+            # Use config values if not specified
             actual_save_to_db = (
                 save_to_db if save_to_db is not None else config.movie_sync_save_to_db
             )
@@ -369,7 +369,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                 include_videos if include_videos is not None else config.movie_sync_include_videos
             )
 
-            ***REMOVED*** Show configuration being used
+            # Show configuration being used
             console.print("\n[bold cyan]Movie Sync Configuration:[/bold cyan]")
             console.print(f"TMDB ID: {tmdb_id}")
             console.print(f"Include credits: {actual_include_credits}")
@@ -383,30 +383,30 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
             if actual_include_videos:
                 console.print("[cyan]Including video/trailer information[/cyan]")
 
-            ***REMOVED*** Define the entire operation as a single async function
+            # Define the entire operation as a single async function
             async def run_sync_operation() -> Any:
-                ***REMOVED*** Create fresh client instances with the same API keys
+                # Create fresh client instances with the same API keys
                 tmdb_client = TMDBClient(access_token=global_tmdb_client.access_token)
                 omdb_client = OMDBClient(api_key=global_omdb_client.api_key)
                 db_session = None
 
                 try:
-                    ***REMOVED*** Set up database connection if saving to db
+                    # Set up database connection if saving to db
                     if actual_save_to_db:
-                        ***REMOVED*** Setup movie storage (uses .env.local if available)
+                        # Setup movie storage (uses .env.local if available)
                         setup_info = setup_movie_storage(create_tables=True)
                         db_url = setup_info["database_url"]
                         console.print(f"[bold]Using database:[/bold] {db_url}")
 
-                        ***REMOVED*** Create a database session
+                        # Create a database session
                         engine = create_engine(db_url)
                         db_session = Session(engine)
 
-                    ***REMOVED*** Create movie data adapter
+                    # Create movie data adapter
                     data_adapter = MovieDataAdapter(tmdb_client, omdb_client)
 
-                    ***REMOVED*** Import movie using combined adapter with OMDB enrichment
-                    language = "en-US"  ***REMOVED*** Default language
+                    # Import movie using combined adapter with OMDB enrichment
+                    language = "en-US"  # Default language
                     if not db_session and actual_save_to_db:
                         console.print(
                             "[red]Error: Database session is required but not available[/red]"
@@ -425,13 +425,13 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                         console.print(f"[red]Failed to sync movie with ID {tmdb_id}[/red]")
                         return None
 
-                    ***REMOVED*** Get the database movie ID and other stats
+                    # Get the database movie ID and other stats
                     db_movie_id = result.get("movie_id")
                     credit_count = result.get("credit_count", 0)
                     trailer_count = result.get("trailer_count", 0)
                     operation = result.get("operation", "unknown")
 
-                    ***REMOVED*** Get the full movie for display
+                    # Get the full movie for display
                     if db_movie_id is not None and db_session:
                         from movie_storage.db.operations import movie as movie_ops
 
@@ -450,7 +450,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                             if trailer_count > 0:
                                 console.print(f"Trailers: {trailer_count}")
 
-                            ***REMOVED*** Add the movie to the global namespace for further examination
+                            # Add the movie to the global namespace for further examination
                             globals_dict["last_synced_movie"] = db_movie
                             console.print(
                                 "\n[green]Movie object available as 'last_synced_movie'[/green]"
@@ -459,13 +459,13 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
                     return result
 
                 finally:
-                    ***REMOVED*** Clean up resources
+                    # Clean up resources
                     if db_session:
                         db_session.close()
                     await tmdb_client.close()
                     await omdb_client.close()
 
-            ***REMOVED*** Run everything in a single event loop
+            # Run everything in a single event loop
             result = global_async_run(run_sync_operation())
 
             if not result:
@@ -474,7 +474,7 @@ def create_loading_functions(namespace: Dict[str, Any]) -> None:
         finally:
             del frame
 
-    ***REMOVED*** Add functions to the namespace
+    # Add functions to the namespace
     namespace["list_services"] = list_services
     namespace["sync_movies"] = sync_movies
     namespace["sync_movie_by_id"] = sync_movie_by_id

@@ -13,7 +13,7 @@ from bff_api.core.metrics import get_bff_metrics
 
 logger = get_logger(__name__)
 
-***REMOVED*** Global cache manager instance
+# Global cache manager instance
 _cache_manager: CacheManager | None = None
 
 
@@ -27,12 +27,12 @@ def get_cache() -> CacheManager:
 
     if _cache_manager is None:
         try:
-            ***REMOVED*** Create cache settings from app settings
+            # Create cache settings from app settings
             cache_settings = get_cache_settings()
 
             _cache_manager = CacheManager.from_settings(cache_settings)
 
-            ***REMOVED*** Enable metrics if configured
+            # Enable metrics if configured
             if hasattr(settings, "cache_enable_metrics") and settings.cache_enable_metrics:
                 set_metrics_enabled(True)
                 logger.info("Cache metrics enabled")
@@ -41,7 +41,7 @@ def get_cache() -> CacheManager:
 
         except Exception as e:
             logger.error(f"Failed to initialize cache manager: {e}")
-            ***REMOVED*** Create with default settings as fallback
+            # Create with default settings as fallback
             _cache_manager = CacheManager.from_settings()
 
     return _cache_manager

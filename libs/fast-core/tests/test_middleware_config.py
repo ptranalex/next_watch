@@ -134,10 +134,10 @@ class TestMiddlewareConfig:
             .request_processing(include_request_id=True)
         )
 
-        ***REMOVED*** Method chaining should return the same instance
+        # Method chaining should return the same instance
         assert result is config
 
-        ***REMOVED*** All middleware should be configured
+        # All middleware should be configured
         assert config.has_any_middleware()
         assert config.cors_config is not None
         assert config.security_config is not None
@@ -151,13 +151,13 @@ class TestMiddlewareConfig:
         config.cors(enabled=False)
         config.security_headers(enabled=False)
 
-        ***REMOVED*** Should have config objects but they should be disabled
+        # Should have config objects but they should be disabled
         assert config.cors_config is not None
         assert config.cors_config.enabled is False
         assert config.security_config is not None
         assert config.security_config.enabled is False
 
-        ***REMOVED*** has_any_middleware should still return True because configs exist
+        # has_any_middleware should still return True because configs exist
         assert config.has_any_middleware()
 
 

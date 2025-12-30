@@ -19,8 +19,8 @@ def setup_metrics(app: FastAPI, settings: Any) -> None:
         app: FastAPI application
         settings: Application settings
     """
-    ***REMOVED*** Placeholder implementation
-    ***REMOVED*** In a real implementation, this would set up Prometheus metrics,
-    ***REMOVED*** request counters, response time histograms, etc.
+    # Placeholder implementation
+    # In a real implementation, this would set up Prometheus metrics,
+    # request counters, response time histograms, etc.
     logger.info("Metrics middleware setup (placeholder)")
     pass

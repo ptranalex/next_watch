@@ -1,6 +1,6 @@
-***REMOVED*** Grafana Cloud Migration - Technical Design & Implementation Plan
+# Grafana Cloud Migration - Technical Design & Implementation Plan
 
-***REMOVED******REMOVED*** Executive Summary
+## Executive Summary
 
 **Objective**: Migrate self-hosted monitoring stack (Prometheus, Grafana, Alertmanager, Loki, Tempo) to Grafana Cloud to reduce infrastructure costs, improve reliability, and minimize operational overhead.
 
@@ -12,9 +12,9 @@
 - Improved performance: Global CDN and optimized storage backends
 - Advanced features: Access to Grafana Cloud-exclusive capabilities (AI/ML insights, SLO management)
 
-***REMOVED******REMOVED*** Current State Analysis
+## Current State Analysis
 
-***REMOVED******REMOVED******REMOVED*** Self-Hosted Stack Overview
+### Self-Hosted Stack Overview
 
 Our current monitoring stack consists of:
 
@@ -51,11 +51,11 @@ Our current monitoring stack consists of:
 - Grafana: 1GB memory, 0.5 CPU
 - Total infrastructure cost: ~$600-800/month
 
-***REMOVED******REMOVED*** Technical Design
+## Technical Design
 
-***REMOVED******REMOVED******REMOVED*** Migration Architecture
+### Migration Architecture
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Target Grafana Cloud Stack Configuration
+#### Target Grafana Cloud Stack Configuration
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -88,22 +88,22 @@ Our current monitoring stack consists of:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Data Flow Architecture
+#### Data Flow Architecture
 
 1. **Metrics**: Services → Grafana Alloy → Grafana Cloud Metrics (Mimir)
 2. **Logs**: Services → Grafana Alloy → Grafana Cloud Logs (Loki)
 3. **Traces**: Services → Grafana Alloy → Grafana Cloud Traces (Tempo)
 4. **Alerts**: Grafana Cloud Alerting → Grafana IRM → External channels
 
-***REMOVED******REMOVED******REMOVED*** Component Migration Strategy
+### Component Migration Strategy
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Grafana Alloy Deployment
+#### 1. Grafana Alloy Deployment
 
 **Replace**: Prometheus, Promtail, and OTEL Collector
 **Benefits**: Single agent, reduced complexity, better performance
 
 ```yaml
-***REMOVED*** Alloy configuration structure
+# Alloy configuration structure
 grafana_alloy:
   metrics_collection:
     - prometheus.scrape "services" { ... }
@@ -118,13 +118,13 @@ grafana_alloy:
     - otelcol.exporter.otlp "grafana_cloud" { ... }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Service Discovery & Monitoring
+#### 2. Service Discovery & Monitoring
 
 **Maintain**: Current service discovery patterns
 **Enhance**: Better labeling and metadata
 
 ```yaml
-***REMOVED*** Service discovery configuration
+# Service discovery configuration
 service_discovery:
   static_configs:
     - targets:
@@ -140,7 +140,7 @@ service_discovery:
         region: "ap-southeast-1"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Health Monitoring Migration
+#### 3. Health Monitoring Migration
 
 **Preserve**: Current 3-tier health status system
 **Enhance**: Advanced SLO capabilities
@@ -152,7 +152,7 @@ Current health monitoring approach:
 - HTTP 503 + "unhealthy": Critical issues
 - No response: Service down
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Dashboard Migration Strategy
+#### 4. Dashboard Migration Strategy
 
 **Approach**: Automated migration with manual validation
 **Tools**: Grafana Cloud Migration Assistant + manual refinement
@@ -163,7 +163,7 @@ Migration priority:
 2. **Business dashboards**: User analytics, system metrics
 3. **Infrastructure dashboards**: System resources, networking
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. Alerting Migration
+#### 5. Alerting Migration
 
 **Strategy**: Rule-by-rule migration with improved grouping
 **Enhancement**: Leverage Grafana IRM for incident management
@@ -175,12 +175,12 @@ Key alert categories:
 - Business metrics (info)
 - Infrastructure health (warning)
 
-***REMOVED******REMOVED******REMOVED*** Security & Access Control
+### Security & Access Control
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Authentication & Authorization
+#### Authentication & Authorization
 
 ```yaml
-***REMOVED*** RBAC structure for Grafana Cloud
+# RBAC structure for Grafana Cloud
 roles:
   platform_admin:
     - Full dashboard access
@@ -197,16 +197,16 @@ roles:
     - No configuration access
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Data Security
+#### Data Security
 
 - **Encryption**: TLS 1.3 for all data in transit
 - **Authentication**: API keys with restricted scope
 - **Network**: Private data source connect (PDC) for sensitive data
 - **Compliance**: SOC2, GDPR compliant infrastructure
 
-***REMOVED******REMOVED******REMOVED*** Performance & Scalability
+### Performance & Scalability
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Expected Performance Improvements (Free Tier)
+#### Expected Performance Improvements (Free Tier)
 
 - **Query latency**: 50% reduction due to optimized storage (within limits)
 - **Dashboard load time**: 60% improvement with CDN
@@ -214,7 +214,7 @@ roles:
 - **Data retention**: **Reduced to 14 days vs current 30 days** ⚠️
 - **Operational overhead**: 90% reduction in maintenance tasks
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Free Tier Constraints & Benefits
+#### Free Tier Constraints & Benefits
 
 - **Metrics ingestion**: **Limited to 10k series** vs current unlimited collection ⚠️
 - **Logs volume**: **50GB/month limit** vs current unlimited ⚠️
@@ -224,9 +224,9 @@ roles:
 - **Backup & DR**: Automated (same as paid)
 - **Cost**: **$0 vs $565/month** ✅
 
-***REMOVED******REMOVED*** Implementation Plan
+## Implementation Plan
 
-***REMOVED******REMOVED******REMOVED*** Phase 1: Foundation Setup (Week 1)
+### Phase 1: Foundation Setup (Week 1)
 
 **Goal**: Establish Grafana Cloud environment and basic connectivity
 
@@ -261,7 +261,7 @@ roles:
 - ✅ Basic metrics flowing to cloud
 - ✅ Cost monitoring dashboard
 
-***REMOVED******REMOVED******REMOVED*** Phase 2: Metrics Migration (Week 2)
+### Phase 2: Metrics Migration (Week 2)
 
 **Goal**: Migrate all metrics collection to Grafana Cloud
 
@@ -294,7 +294,7 @@ roles:
 - ✅ Metric accuracy validation complete
 - ✅ Cost optimization applied
 
-***REMOVED******REMOVED******REMOVED*** Phase 3: Dashboard Migration (Week 3)
+### Phase 3: Dashboard Migration (Week 3)
 
 **Goal**: Migrate and enhance all dashboards
 
@@ -327,7 +327,7 @@ roles:
 - ✅ Proper access control implemented
 - ✅ Dashboard documentation updated
 
-***REMOVED******REMOVED******REMOVED*** Phase 4: Alerting & IRM Integration (Week 4)
+### Phase 4: Alerting & IRM Integration (Week 4)
 
 **Goal**: Migrate alerting rules and enhance incident management
 
@@ -360,7 +360,7 @@ roles:
 - ✅ IRM integration functional
 - ✅ Alert testing and validation complete
 
-***REMOVED******REMOVED******REMOVED*** Phase 5: Logs & Traces Migration (Week 5)
+### Phase 5: Logs & Traces Migration (Week 5)
 
 **Goal**: Migrate log aggregation and distributed tracing
 
@@ -393,7 +393,7 @@ roles:
 - ✅ Correlation between metrics, logs, and traces
 - ✅ Unified observability experience
 
-***REMOVED******REMOVED******REMOVED*** Phase 6: Validation & Cutover (Week 6)
+### Phase 6: Validation & Cutover (Week 6)
 
 **Goal**: Final validation and complete migration
 
@@ -426,9 +426,9 @@ roles:
 - ✅ Team trained on new platform
 - ✅ Complete documentation available
 
-***REMOVED******REMOVED*** Risk Management & Mitigation
+## Risk Management & Mitigation
 
-***REMOVED******REMOVED******REMOVED*** Technical Risks
+### Technical Risks
 
 | Risk                           | Impact     | Probability | Mitigation                               |
 | ------------------------------ | ---------- | ----------- | ---------------------------------------- |
@@ -440,7 +440,7 @@ roles:
 | **Limited retention impact**   | **Medium** | **High**    | **External backup, historical analysis** |
 | **User access constraints**    | **Low**    | **High**    | **Shared accounts, dashboard sharing**   |
 
-***REMOVED******REMOVED******REMOVED*** Operational Risks
+### Operational Risks
 
 | Risk               | Impact | Probability | Mitigation                            |
 | ------------------ | ------ | ----------- | ------------------------------------- |
@@ -449,16 +449,16 @@ roles:
 | Service disruption | High   | Low         | Phased migration, rollback procedures |
 | Compliance issues  | Medium | Low         | Security review, audit preparation    |
 
-***REMOVED******REMOVED******REMOVED*** Rollback Strategy
+### Rollback Strategy
 
 1. **Phase-level rollback**: Return to previous phase configuration
 2. **Component rollback**: Selective rollback of individual components
 3. **Emergency rollback**: Complete return to self-hosted stack
 4. **Data preservation**: Maintain dual-write during critical phases
 
-***REMOVED******REMOVED*** Cost Analysis
+## Cost Analysis
 
-***REMOVED******REMOVED******REMOVED*** Current Costs (Monthly)
+### Current Costs (Monthly)
 
 ```
 Infrastructure costs:
@@ -471,7 +471,7 @@ Infrastructure costs:
 Total: ~$565/month
 ```
 
-***REMOVED******REMOVED******REMOVED*** Grafana Cloud Costs (Free Tier)
+### Grafana Cloud Costs (Free Tier)
 
 ```
 Free Tier Limits:
@@ -485,7 +485,7 @@ Free Tier Limits:
 Total: $0/month
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cost Savings & Trade-offs
+### Cost Savings & Trade-offs
 
 - **Monthly savings**: $565 (100% infrastructure cost reduction)
 - **Annual savings**: $6,780
@@ -493,9 +493,9 @@ Total: $0/month
 - **Trade-offs**: Limited retention (14 days vs 30 days), metric series cap, user limits
 - **Risk mitigation**: Implement aggressive metric filtering and sampling
 
-***REMOVED******REMOVED******REMOVED*** Free Tier Optimization Strategies
+### Free Tier Optimization Strategies
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Critical: Staying Within Free Tier Limits
+#### Critical: Staying Within Free Tier Limits
 
 **Metric Series Management (10k limit)**:
 
@@ -517,10 +517,10 @@ Total: $0/month
 2. **Rotation strategy**: Admin, on-call engineer, + 1 developer rotation
 3. **View-only access**: Use dashboard sharing for broader team access
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Enhanced Monitoring Strategy for Free Tier
+#### Enhanced Monitoring Strategy for Free Tier
 
 ```yaml
-***REMOVED*** Optimized Alloy configuration for free tier
+# Optimized Alloy configuration for free tier
 prometheus.scrape "critical_services" {
   targets = [
     {"__address__" = "backend-api:8000"},
@@ -528,7 +528,7 @@ prometheus.scrape "critical_services" {
     {"__address__" = "auth-api:8000"},
   ]
 
-  ***REMOVED*** Aggressive metric filtering
+  # Aggressive metric filtering
   metric_relabel_configs = [
     {
       source_labels = ["__name__"]
@@ -544,7 +544,7 @@ prometheus.scrape "critical_services" {
 }
 
 loki.source.docker "containers" {
-  ***REMOVED*** Only collect ERROR and WARN logs
+  # Only collect ERROR and WARN logs
   relabel_rules = [
     {
       source_labels = ["__meta_docker_container_label_log_level"]
@@ -555,33 +555,33 @@ loki.source.docker "containers" {
 }
 ```
 
-***REMOVED******REMOVED*** Free Tier Migration Strategy
+## Free Tier Migration Strategy
 
-***REMOVED******REMOVED******REMOVED*** Prioritization Framework
+### Prioritization Framework
 
 Given the free tier constraints, we must prioritize monitoring based on business impact:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Tier 1: Critical (Must Monitor)**
+#### **Tier 1: Critical (Must Monitor)**
 
 - **Services**: backend-api, bff-api, auth-api
 - **Metrics**: HTTP requests, response times, error rates, health status
 - **Logs**: ERROR and FATAL level only
 - **Alerts**: Service down, high error rates, critical performance degradation
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Tier 2: Important (Monitor with Sampling)**
+#### **Tier 2: Important (Monitor with Sampling)**
 
 - **Services**: search-api, ml-api, recommendation-api
 - **Metrics**: Basic health and availability only
 - **Logs**: ERROR level with 50% sampling
 - **Alerts**: Service down only
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Tier 3: Infrastructure (Minimal Monitoring)**
+#### **Tier 3: Infrastructure (Minimal Monitoring)**
 
 - **Metrics**: Node health, disk space critical alerts only
 - **Logs**: System critical errors only (OOM, disk full)
 - **Alerts**: Infrastructure failure only
 
-***REMOVED******REMOVED******REMOVED*** Metric Budget Allocation (10k series limit)
+### Metric Budget Allocation (10k series limit)
 
 ```
 Critical APIs (backend/bff/auth): 6,000 series (60%)
@@ -602,14 +602,14 @@ Infrastructure: 1,500 series (15%)
 Buffer/Growth: 500 series (5%)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Phased Approach for Free Tier
+### Phased Approach for Free Tier
 
 **Phase 1**: Start with Tier 1 services only
 **Phase 2**: Add Tier 2 services with careful monitoring of usage
 **Phase 3**: Add minimal infrastructure monitoring
 **Phase 4**: Optimize and fine-tune based on actual usage patterns
 
-***REMOVED******REMOVED******REMOVED*** Backup Strategy for Limited Retention
+### Backup Strategy for Limited Retention
 
 Since free tier only provides 14-day retention:
 
@@ -618,58 +618,58 @@ Since free tier only provides 14-day retention:
 3. **Compliance**: Store security-relevant logs externally
 4. **Performance baselines**: Export monthly performance summaries
 
-***REMOVED******REMOVED*** Industry Best Practices Applied
+## Industry Best Practices Applied
 
-***REMOVED******REMOVED******REMOVED*** 1. Observability as Code
+### 1. Observability as Code
 
 - **Infrastructure as Code**: Terraform for Grafana Cloud configuration
 - **Dashboard as Code**: Version-controlled dashboard definitions
 - **Alert as Code**: GitOps workflow for alert rule management
 
-***REMOVED******REMOVED******REMOVED*** 2. SRE Principles
+### 2. SRE Principles
 
 - **Error budgets**: Implement SLO-based monitoring
 - **Incident response**: Integrate with Grafana IRM
 - **Postmortem culture**: Enhanced incident analysis capabilities
 
-***REMOVED******REMOVED******REMOVED*** 3. Security Best Practices
+### 3. Security Best Practices
 
 - **Zero-trust networking**: Private data source connect (PDC)
 - **Least privilege access**: Granular RBAC implementation
 - **Encryption everywhere**: TLS 1.3, at-rest encryption
 - **Secret management**: Secure API key rotation
 
-***REMOVED******REMOVED******REMOVED*** 4. Cost Optimization
+### 4. Cost Optimization
 
 - **Resource tagging**: Comprehensive labeling strategy
 - **Usage monitoring**: Real-time cost tracking
 - **Capacity planning**: Adaptive scaling based on usage
 - **Waste elimination**: Automated cleanup of unused resources
 
-***REMOVED******REMOVED******REMOVED*** 5. Migration Patterns
+### 5. Migration Patterns
 
 - **Strangler Fig**: Gradual component replacement
 - **Blue-Green**: Parallel environment validation
 - **Feature Flags**: Gradual feature enablement
 - **Rollback readiness**: Comprehensive fallback procedures
 
-***REMOVED******REMOVED*** Success Metrics
+## Success Metrics
 
-***REMOVED******REMOVED******REMOVED*** Technical KPIs
+### Technical KPIs
 
 - **Uptime improvement**: 99.9% vs current 99.5%
 - **Query performance**: 50% faster dashboard loads
 - **Alert latency**: <1 minute notification delivery
 - **Cost reduction**: 40%+ infrastructure cost savings
 
-***REMOVED******REMOVED******REMOVED*** Operational KPIs
+### Operational KPIs
 
 - **Mean Time to Detection (MTTD)**: <2 minutes
 - **Mean Time to Resolution (MTTR)**: 25% improvement
 - **Operational overhead**: 80% reduction in maintenance tasks
 - **Team productivity**: 30% reduction in monitoring-related tasks
 
-***REMOVED******REMOVED******REMOVED*** Business KPIs
+### Business KPIs
 
 - **Service reliability**: Improved SLA adherence
 - **Customer satisfaction**: Faster issue resolution
@@ -678,7 +678,7 @@ Since free tier only provides 14-day retention:
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 1. **Immediate**: Review and approve this technical design
 2. **Week 1**: Begin Phase 1 implementation

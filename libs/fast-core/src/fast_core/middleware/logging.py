@@ -62,10 +62,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         Returns:
             Response from the application
         """
-        ***REMOVED*** Get request ID from context or fallback to header/generation
+        # Get request ID from context or fallback to header/generation
         request_id = self._get_request_id(request)
 
-        ***REMOVED*** Skip logging for excluded paths
+        # Skip logging for excluded paths
         if any(request.url.path.startswith(path) for path in self.exclude_paths):
             response = await call_next(request)
             response.headers["X-Request-ID"] = request_id
@@ -73,19 +73,19 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         start_time = time.time()
 
-        ***REMOVED*** Log request
+        # Log request
         if self.log_requests:
             await self._log_request(request, request_id)
 
-        ***REMOVED*** Process request
+        # Process request
         response = await call_next(request)
 
-        ***REMOVED*** Calculate processing time
+        # Calculate processing time
         process_time = time.time() - start_time
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Process-Time"] = str(round(process_time * 1000, 2))
 
-        ***REMOVED*** Log response
+        # Log response
         if self.log_responses:
             await self._log_response(request, response, request_id, process_time)
 
@@ -100,7 +100,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         Returns:
             Request ID string
         """
-        ***REMOVED*** 1. Try to get from request context (set by RequestContextMiddleware)
+        # 1. Try to get from request context (set by RequestContextMiddleware)
         try:
             from fast_core.middleware.context import get_request_context
 
@@ -108,22 +108,22 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             if context and context.request_id:
                 return context.request_id
         except ImportError:
-            ***REMOVED*** Context middleware not available
+            # Context middleware not available
             pass
         except Exception:
-            ***REMOVED*** Context not available (middleware not configured or not yet run)
+            # Context not available (middleware not configured or not yet run)
             pass
 
-        ***REMOVED*** 2. Try to get from request state (FastAPI compatibility)
+        # 2. Try to get from request state (FastAPI compatibility)
         if hasattr(request.state, "request_id"):
             return str(request.state.request_id)
 
-        ***REMOVED*** 3. Try to get from headers
+        # 3. Try to get from headers
         header_request_id = request.headers.get("X-Request-ID")
         if header_request_id:
             return header_request_id
 
-        ***REMOVED*** 4. Generate new UUID as last resort
+        # 4. Generate new UUID as last resort
         return str(uuid.uuid4())
 
     async def _log_request(self, request: Request, request_id: str) -> None:
@@ -155,7 +155,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             except Exception as e:
                 log_data["body_error"] = str(e)
 
-        ***REMOVED*** Log with configured level
+        # Log with configured level
         if self.level == "DEBUG":
             logger.debug("Incoming request", **log_data)
         elif self.level == "WARNING":
@@ -187,7 +187,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         if self.include_headers:
             log_data["response_headers"] = dict(response.headers)
 
-        ***REMOVED*** Log level based on status code
+        # Log level based on status code
         if response.status_code >= 500:
             logger.error("Response sent", **log_data)
         elif response.status_code >= 400:
@@ -203,7 +203,7 @@ def setup_logging(app: FastAPI, settings: Any) -> None:
         app: FastAPI application
         settings: Application settings
     """
-    ***REMOVED*** Get logging configuration from settings
+    # Get logging configuration from settings
     log_requests = getattr(settings, "log_requests", True)
     log_responses = getattr(settings, "log_responses", True)
     include_headers = getattr(settings, "log_include_headers", False)
@@ -211,8 +211,8 @@ def setup_logging(app: FastAPI, settings: Any) -> None:
     max_body_size = getattr(settings, "log_max_body_size", 1024)
     exclude_paths = getattr(settings, "log_exclude_paths", None)
 
-    ***REMOVED*** Add logging middleware
-    ***REMOVED*** Type ignore due to FastAPI middleware registration type annotation issue
+    # Add logging middleware
+    # Type ignore due to FastAPI middleware registration type annotation issue
     app.add_middleware(
         LoggingMiddleware,
         log_requests=log_requests,
@@ -235,10 +235,10 @@ def get_request_logger(request: Request) -> Any:
     Returns:
         Structlog logger bound with request context
     """
-    ***REMOVED*** Get request ID using the same logic as LoggingMiddleware
+    # Get request ID using the same logic as LoggingMiddleware
     request_id = _get_request_id_for_logger(request)
 
-    ***REMOVED*** Try to get additional context if available
+    # Try to get additional context if available
     user_id = None
     service_name = None
     try:
@@ -251,7 +251,7 @@ def get_request_logger(request: Request) -> Any:
     except (ImportError, Exception):
         pass
 
-    ***REMOVED*** Create logger with context
+    # Create logger with context
     log_context = {
         "request_id": request_id,
         "method": request.method,
@@ -259,7 +259,7 @@ def get_request_logger(request: Request) -> Any:
         "client": getattr(request.client, "host", "unknown") if request.client else "unknown",
     }
 
-    ***REMOVED*** Add optional context
+    # Add optional context
     if user_id:
         log_context["user_id"] = user_id
     if service_name:
@@ -277,7 +277,7 @@ def _get_request_id_for_logger(request: Request) -> str:
     Returns:
         Request ID string
     """
-    ***REMOVED*** 1. Try to get from request context
+    # 1. Try to get from request context
     try:
         from fast_core.middleware.context import get_request_context
 
@@ -287,14 +287,14 @@ def _get_request_id_for_logger(request: Request) -> str:
     except (ImportError, Exception):
         pass
 
-    ***REMOVED*** 2. Try request state
+    # 2. Try request state
     if hasattr(request.state, "request_id"):
         return str(request.state.request_id)
 
-    ***REMOVED*** 3. Try headers
+    # 3. Try headers
     header_request_id = request.headers.get("X-Request-ID")
     if header_request_id:
         return header_request_id
 
-    ***REMOVED*** 4. Fallback
+    # 4. Fallback
     return "unknown"

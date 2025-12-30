@@ -1,8 +1,8 @@
-***REMOVED*** Response Utilities
+# Response Utilities
 
 The Fast Core Response Utilities provide a powerful `ResponseBuilder` for creating consistent, well-structured API responses across all your services.
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - **Generic Response Patterns**: Paginated, detail, search, collection, action, and error responses
 - **Configurable Behavior**: Customize response structure per service needs
@@ -10,26 +10,26 @@ The Fast Core Response Utilities provide a powerful `ResponseBuilder` for creati
 - **Type Safety**: Full TypeScript-style type definitions with TypedDict
 - **Framework Agnostic**: Works with any Python web framework
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
 ```python
 from fast_core.responses import ResponseBuilder
 
-***REMOVED*** Initialize with optional configuration
+# Initialize with optional configuration
 responses = ResponseBuilder(config={
     "pagination": {"default_limit": 20, "max_limit": 100},
     "detail": {"include_metadata": True}
 })
 ```
 
-***REMOVED******REMOVED*** Response Patterns
+## Response Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1. Paginated Response
+### 1. Paginated Response
 
 Perfect for list endpoints with pagination:
 
 ```python
-***REMOVED*** Usage
+# Usage
 response = responses.paginated(
     items=movies,
     page=1,
@@ -42,7 +42,7 @@ response = responses.paginated(
     }
 )
 
-***REMOVED*** Output structure
+# Output structure
 {
     "results": [...],
     "pagination": {
@@ -61,12 +61,12 @@ response = responses.paginated(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Detail Response
+### 2. Detail Response
 
 Perfect for single item endpoints with related data:
 
 ```python
-***REMOVED*** Usage
+# Usage
 response = responses.detail(
     item=movie,
     related={
@@ -84,7 +84,7 @@ response = responses.detail(
     }
 )
 
-***REMOVED*** Output structure
+# Output structure
 {
     "data": {...},
     "related": {
@@ -103,12 +103,12 @@ response = responses.detail(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Search Response
+### 3. Search Response
 
 Perfect for search endpoints with facets and suggestions:
 
 ```python
-***REMOVED*** Usage
+# Usage
 response = responses.search(
     query="action movies",
     results=search_results,
@@ -120,7 +120,7 @@ response = responses.search(
     metadata={"search_time_ms": 25, "total_indexed": 10000}
 )
 
-***REMOVED*** Output structure
+# Output structure
 {
     "query": "action movies",
     "results": [...],
@@ -133,12 +133,12 @@ response = responses.search(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Collection Response
+### 4. Collection Response
 
 Perfect for grouped data endpoints:
 
 ```python
-***REMOVED*** Usage
+# Usage
 response = responses.collection(
     groups={
         "popular": popular_movies,
@@ -152,7 +152,7 @@ response = responses.collection(
     }
 )
 
-***REMOVED*** Output structure
+# Output structure
 {
     "collections": {
         "popular": [...],
@@ -167,12 +167,12 @@ response = responses.collection(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. Action Response
+### 5. Action Response
 
 Perfect for POST/PUT/DELETE operations:
 
 ```python
-***REMOVED*** Success
+# Success
 response = responses.action(
     success=True,
     action="movie_added_to_watchlist",
@@ -180,7 +180,7 @@ response = responses.action(
     message="Movie successfully added to your watchlist"
 )
 
-***REMOVED*** Failure
+# Failure
 response = responses.action(
     success=False,
     action="movie_removal_failed",
@@ -188,7 +188,7 @@ response = responses.action(
     metadata={"error_code": "MOVIE_NOT_IN_WATCHLIST"}
 )
 
-***REMOVED*** Output structure
+# Output structure
 {
     "success": true,
     "action": "movie_added_to_watchlist",
@@ -197,12 +197,12 @@ response = responses.action(
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6. Error Response
+### 6. Error Response
 
 Perfect for structured error handling:
 
 ```python
-***REMOVED*** Usage
+# Usage
 response = responses.error(
     code="MOVIE_NOT_FOUND",
     message="The requested movie could not be found",
@@ -225,7 +225,7 @@ response = responses.error(
     }
 )
 
-***REMOVED*** Output structure
+# Output structure
 {
     "error": {
         "code": "MOVIE_NOT_FOUND",
@@ -251,7 +251,7 @@ response = responses.error(
 }
 ```
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 Customize the ResponseBuilder behavior with configuration:
 
@@ -279,7 +279,7 @@ config = {
 
 builder = ResponseBuilder(config=config)
 
-***REMOVED*** Override configuration per call
+# Override configuration per call
 response = builder.paginated(
     items=movies,
     page=1,
@@ -289,9 +289,9 @@ response = builder.paginated(
 )
 ```
 
-***REMOVED******REMOVED*** FastAPI Integration
+## FastAPI Integration
 
-***REMOVED******REMOVED******REMOVED*** Basic Integration
+### Basic Integration
 
 ```python
 from fastapi import APIRouter, Depends
@@ -302,10 +302,10 @@ responses = ResponseBuilder()
 
 @router.get("/movies")
 async def get_movies(page: int = 1, limit: int = 20):
-    ***REMOVED*** Fetch data
+    # Fetch data
     movies_data = await fetch_movies(page=page, limit=limit)
 
-    ***REMOVED*** Return structured response
+    # Return structured response
     return responses.paginated(
         items=movies_data["results"],
         page=page,
@@ -319,12 +319,12 @@ async def get_movies(page: int = 1, limit: int = 20):
 
 @router.get("/movies/{movie_id}")
 async def get_movie(movie_id: int):
-    ***REMOVED*** Fetch movie and related data
+    # Fetch movie and related data
     movie = await fetch_movie(movie_id)
     cast = await fetch_movie_cast(movie_id)
     similar = await fetch_similar_movies(movie_id)
 
-    ***REMOVED*** Return structured response
+    # Return structured response
     return responses.detail(
         item=movie,
         related={"cast": cast, "similar_movies": similar},
@@ -332,7 +332,7 @@ async def get_movie(movie_id: int):
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Advanced Integration with Dependencies
+### Advanced Integration with Dependencies
 
 ```python
 from fastapi import Depends
@@ -352,7 +352,7 @@ async def get_movies(
     genre: Optional[str] = None,
     responses: ResponseBuilder = Depends(get_response_builder)
 ):
-    ***REMOVED*** Fetch data with filters
+    # Fetch data with filters
     movies_data = await fetch_movies(page=page, limit=limit, genre=genre)
 
     return responses.paginated(
@@ -367,7 +367,7 @@ async def get_movies(
     )
 ```
 
-***REMOVED******REMOVED*** Type Safety
+## Type Safety
 
 All response types are fully typed with TypedDict:
 
@@ -382,16 +382,16 @@ from fast_core.responses import (
 )
 
 def process_paginated_response(response: PaginatedResponse) -> None:
-    ***REMOVED*** Full type safety and IDE support
-    results = response["results"]  ***REMOVED*** List[Any]
-    pagination = response["pagination"]  ***REMOVED*** PaginationInfo
-    page = pagination["page"]  ***REMOVED*** int
-    total = pagination["total"]  ***REMOVED*** int
+    # Full type safety and IDE support
+    results = response["results"]  # List[Any]
+    pagination = response["pagination"]  # PaginationInfo
+    page = pagination["page"]  # int
+    total = pagination["total"]  # int
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Consistent Metadata
+### 1. Consistent Metadata
 
 Include consistent metadata across all responses:
 
@@ -403,7 +403,7 @@ def get_base_metadata() -> Dict[str, Any]:
         "timestamp": datetime.utcnow().isoformat()
     }
 
-***REMOVED*** Use in responses
+# Use in responses
 response = responses.paginated(
     items=movies,
     page=1,
@@ -417,7 +417,7 @@ response = responses.paginated(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Error Context
+### 2. Error Context
 
 Provide helpful error context:
 
@@ -438,7 +438,7 @@ def handle_movie_not_found(movie_id: int):
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Performance Metadata
+### 3. Performance Metadata
 
 Include performance information:
 
@@ -471,13 +471,13 @@ async def get_movies_with_timing():
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Service Integration
+### 4. Service Integration
 
 Document service dependencies in metadata:
 
 ```python
 async def get_movie_with_recommendations(movie_id: int):
-    ***REMOVED*** Aggregate from multiple services
+    # Aggregate from multiple services
     movie = await movie_service.get_movie(movie_id)
     recommendations = await recommendation_service.get_similar(movie_id)
     user_data = await user_service.get_interactions(movie_id)
@@ -501,9 +501,9 @@ async def get_movie_with_recommendations(movie_id: int):
     )
 ```
 
-***REMOVED******REMOVED*** Migration from Existing APIs
+## Migration from Existing APIs
 
-***REMOVED******REMOVED******REMOVED*** From Manual Dictionary Responses
+### From Manual Dictionary Responses
 
 **Before:**
 
@@ -531,7 +531,7 @@ def get_movies():
     )
 ```
 
-***REMOVED******REMOVED******REMOVED*** From Pydantic Models
+### From Pydantic Models
 
 You can continue using Pydantic models for validation while using ResponseBuilder for structure:
 
@@ -545,14 +545,14 @@ class MovieResponse(BaseModel):
 
 def get_movie(movie_id: int) -> Dict[str, Any]:
     movie_data = fetch_movie(movie_id)
-    movie = MovieResponse(**movie_data)  ***REMOVED*** Validate with Pydantic
+    movie = MovieResponse(**movie_data)  # Validate with Pydantic
 
     return responses.detail(
-        item=movie.dict(),  ***REMOVED*** Convert to dict for ResponseBuilder
+        item=movie.dict(),  # Convert to dict for ResponseBuilder
         metadata={"validated": True}
     )
 ```
 
-***REMOVED******REMOVED*** Examples
+## Examples
 
 See `examples/response_builder_example.py` for comprehensive usage examples demonstrating all response patterns with realistic data.

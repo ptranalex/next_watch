@@ -13,7 +13,7 @@ from auth_api.config.app import settings
 
 logger = get_logger(__name__)
 
-***REMOVED*** Global engine instance
+# Global engine instance
 _engine: Engine | None = None
 
 
@@ -28,18 +28,18 @@ def get_engine(enable_monitoring: bool = True) -> Engine:
     """
     global _engine
 
-    ***REMOVED*** Create engine if it doesn't exist
+    # Create engine if it doesn't exist
     if _engine is None:
         logger.info(f"Creating database engine with URL: {settings.get_database_url_masked()}")
 
-        ***REMOVED*** Use database_echo from settings
+        # Use database_echo from settings
         if settings.database_echo:
             logger.info("SQL echo is enabled - SQL statements will be logged")
 
         database_url = settings.database_url
 
-        ***REMOVED*** SQLite needs special handling for thread safety (TestClient uses threads).
-        ***REMOVED*** In-memory SQLite also requires StaticPool to keep the DB alive across connections.
+        # SQLite needs special handling for thread safety (TestClient uses threads).
+        # In-memory SQLite also requires StaticPool to keep the DB alive across connections.
         if database_url.startswith("sqlite"):
             connect_args = {"check_same_thread": False}
             if database_url.endswith(":memory:") or "mode=memory" in database_url:
@@ -87,12 +87,12 @@ def init_db(create_tables: bool = False) -> None:
     Args:
         create_tables: Whether to create tables based on SQLModel classes
     """
-    ***REMOVED*** Get engine
+    # Get engine
     engine = get_engine()
 
     if create_tables:
         logger.info("Creating database tables")
-        ***REMOVED*** Import models to ensure they're registered with SQLModel
+        # Import models to ensure they're registered with SQLModel
         SQLModel.metadata.create_all(engine)
 
 
@@ -102,14 +102,14 @@ def init_database() -> None:
     This only establishes the connection - database tables should be created
     via migrations using the shared movie-storage library or centralized management.
     """
-    ***REMOVED*** Initialize database connection only - NO table creation
-    ***REMOVED*** Tables should be created via the shared movie-storage library or centralized migrations
+    # Initialize database connection only - NO table creation
+    # Tables should be created via the shared movie-storage library or centralized migrations
     init_db(create_tables=False)
 
 
 def get_db() -> Iterator[Session]:
     """Get a database session for use in API endpoints."""
-    ***REMOVED*** Use the centralized session generator
+    # Use the centralized session generator
     session_generator = get_session()
     try:
         db = next(session_generator)
@@ -130,7 +130,7 @@ def check_database_schema() -> dict[str, Any]:
         inspector = inspect(engine)
         table_names = inspector.get_table_names()
 
-        ***REMOVED*** Check for critical tables for auth service
+        # Check for critical tables for auth service
         required_tables = ["user"]
         missing_tables = [table for table in required_tables if table not in table_names]
 

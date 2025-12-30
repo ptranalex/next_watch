@@ -17,7 +17,7 @@ def test_production_overrides_enforce_https_and_disable_logs_dir(tmp_path: Path)
         logs_dir=str(tmp_path),
     )
 
-    ***REMOVED*** Overrides should enforce HTTPS and disable file logging
+    # Overrides should enforce HTTPS and disable file logging
     assert cfg.require_https_production is True
     assert cfg.logs_dir is None
 
@@ -44,7 +44,7 @@ def test_jwk_parsing() -> None:
 
 
 def test_production_cors_wildcard_warning_path() -> None:
-    ***REMOVED*** Just exercise the validator path; no assertion on logs.
+    # Just exercise the validator path; no assertion on logs.
     cfg = AuthAPIConfig(
         environment="production",
         jwt_secret="this-is-a-secure-jwt-secret-value",

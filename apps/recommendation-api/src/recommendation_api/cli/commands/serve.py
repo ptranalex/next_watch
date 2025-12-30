@@ -27,7 +27,7 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> None:
         verbose: Enable verbose logging
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging based on verbosity
+    # Configure logging based on verbosity
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
@@ -101,14 +101,14 @@ def start(
         verbose: Enable verbose console output
         quiet: Suppress console output except errors
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
-        ***REMOVED*** Get configuration
+        # Get configuration
         config = RecommendationAPIConfig()
 
-        ***REMOVED*** Override config with command line arguments
+        # Override config with command line arguments
         if host:
             config.host = host
         if port:
@@ -117,11 +117,11 @@ def start(
             config.log_level = log_level
         if reload:
             config.reload = reload
-        ***REMOVED*** Note: verbose is handled by logging, not stored in config
+        # Note: verbose is handled by logging, not stored in config
         if workers:
             config.workers = workers
 
-        ***REMOVED*** Display server configuration
+        # Display server configuration
         console.print(
             Panel.fit(
                 f"Starting Recommendation API server on {config.host}:{config.port}",
@@ -131,7 +131,7 @@ def start(
         )
 
         if verbose:
-            ***REMOVED*** Create server config table
+            # Create server config table
             table = Table(title="Server Configuration")
             table.add_column("Setting", style="cyan")
             table.add_column("Value", style="green")
@@ -146,8 +146,8 @@ def start(
 
         logger.info(f"Starting server on {config.host}:{config.port}")
 
-        ***REMOVED*** Start server with specific parameters
-        ***REMOVED*** Define workers only if specified and not in reload mode
+        # Start server with specific parameters
+        # Define workers only if specified and not in reload mode
         workers_param = config.workers if config.workers and not config.reload else None
 
         uvicorn.run(
@@ -182,12 +182,12 @@ def stop(
         verbose: Show detailed stop information
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:
         console.print("[yellow]Stopping Recommendation API server...[/yellow]")
-        ***REMOVED*** TODO: Implement graceful shutdown logic
+        # TODO: Implement graceful shutdown logic
         console.print("[yellow]Note: This feature is not yet implemented[/yellow]")
         console.print(
             "[yellow]To stop the server, press Ctrl+C in the terminal where it's running[/yellow]"
@@ -258,7 +258,7 @@ def restart(
         verbose: Enable verbose console output
         quiet: Suppress console output except errors
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
     try:

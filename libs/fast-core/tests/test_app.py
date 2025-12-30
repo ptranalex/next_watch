@@ -73,9 +73,9 @@ def test_app_with_client():
     app = create_app(settings)
 
     with TestClient(app) as client:
-        ***REMOVED*** Test that the app responds
+        # Test that the app responds
         response = client.get("/docs")
-        ***REMOVED*** Should get redirect to /docs/ or the docs page
+        # Should get redirect to /docs/ or the docs page
         assert response.status_code in [200, 307]
 
 
@@ -123,7 +123,7 @@ def test_uvicorn_config():
         debug=False,
     )
 
-    ***REMOVED*** Add host and port for testing
+    # Add host and port for testing
     config.host = "127.0.0.1"
     config.port = 8080
     config.log_level = "debug"
@@ -150,7 +150,7 @@ def test_custom_title_and_description():
 
     assert app.title == "Custom Title"
     assert app.version == "2.0.0"
-    ***REMOVED*** Description is not directly accessible from FastAPI app, but we can test it was set
+    # Description is not directly accessible from FastAPI app, but we can test it was set
 
 
 if __name__ == "__main__":

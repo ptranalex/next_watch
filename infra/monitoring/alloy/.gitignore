@@ -1,18 +1,18 @@
-***REMOVED*** Security: Never commit actual credentials
+# Security: Never commit actual credentials
 .env
 
-***REMOVED*** Alloy data directory
+# Alloy data directory
 data/
 
-***REMOVED*** Backup files
+# Backup files
 *.bak
 *.backup
 
-***REMOVED*** OS files
+# OS files
 .DS_Store
 Thumbs.db
 
-***REMOVED*** Editor files
+# Editor files
 *.swp
 *.swo
 *~

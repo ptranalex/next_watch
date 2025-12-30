@@ -1,8 +1,8 @@
-***REMOVED******REMOVED******REMOVED*** Search API CLI
+### Search API CLI
 
 Typer-based command-line interface for managing Search API operational tasks, primarily Redis-backed search suggestions.
 
-***REMOVED******REMOVED******REMOVED*** Quick start
+### Quick start
 
 - Activate environment (required):
 
@@ -31,7 +31,7 @@ Notes:
 - The CLI reads configuration from `search_api.config` and falls back to sensible defaults (e.g., Redis at `redis://localhost:6379/0`).
 - You can override Redis with `--redis-url` on supported commands.
 
-***REMOVED******REMOVED******REMOVED*** Commands
+### Commands
 
 - version
 
@@ -91,19 +91,19 @@ Notes:
       python -m search_api.cli redis info -r redis://localhost:6379/0
       ```
 
-***REMOVED******REMOVED******REMOVED*** Development tips
+### Development tips
 
 - Helpful Hatch scripts (from `pyproject.toml`):
 
   ```bash
-  hatch run cli             ***REMOVED*** python -m search_api.cli
-  hatch run version         ***REMOVED*** python -m search_api.cli version
-  hatch run index-suggestions  ***REMOVED*** python -m search_api.cli search index-suggestions (if available)
+  hatch run cli             # python -m search_api.cli
+  hatch run version         # python -m search_api.cli version
+  hatch run index-suggestions  # python -m search_api.cli search index-suggestions (if available)
   ```
 
 - Rich formatting and progress bars are used for visibility; add `-v/--verbose` for more detail.
 
-***REMOVED******REMOVED******REMOVED*** Troubleshooting
+### Troubleshooting
 
 - If Redis is unreachable, verify `--redis-url` or the configured Redis URL in environment/config.
 - Backend API must be reachable for populate operations. Ensure its base URL is correctly configured in Search API settings.

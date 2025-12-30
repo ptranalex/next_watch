@@ -1,8 +1,8 @@
-***REMOVED*** Event Schemas
+# Event Schemas
 
 This directory contains all Kafka event schemas in Avro format (`.avsc`).
 
-***REMOVED******REMOVED*** Schema Naming Convention
+## Schema Naming Convention
 
 Format: `<event-type>.v<version>.avsc`
 
@@ -10,24 +10,24 @@ Examples:
 - `user.registered.v1.avsc`
 - `movie.viewed.v1.avsc`
 
-***REMOVED******REMOVED*** Schema Evolution
+## Schema Evolution
 
 - **Breaking changes**: Increment version (v1 → v2)
 - **Non-breaking changes**: Update existing version
 - **Always check compatibility** before deploying
 
-***REMOVED******REMOVED*** Registering Schemas
+## Registering Schemas
 
 ```bash
-***REMOVED*** From any service with kafka library installed
+# From any service with kafka library installed
 cd /path/to/service
 hatch shell
 python -m kafka.cli.register_schemas register --schema-dir ../../schemas
 ```
 
-***REMOVED******REMOVED*** Consuming from Other Languages
+## Consuming from Other Languages
 
-***REMOVED******REMOVED******REMOVED*** Go
+### Go
 
 ```go
 import (
@@ -51,7 +51,7 @@ consumer.Subscribe([]string{"user.activity"}, nil)
 // Messages are decoded automatically!
 ```
 
-***REMOVED******REMOVED******REMOVED*** Node.js
+### Node.js
 
 ```javascript
 const { SchemaRegistry } = require('@kafkajs/confluent-schema-registry')
@@ -72,7 +72,7 @@ await consumer.run({
 })
 ```
 
-***REMOVED******REMOVED*** Schema Structure
+## Schema Structure
 
 All events inherit base fields:
 - `event_id`: Unique event identifier
@@ -83,24 +83,24 @@ All events inherit base fields:
 - `span_id`: Distributed tracing span ID
 - `metadata`: Additional event metadata (map)
 
-***REMOVED******REMOVED*** Available Events
+## Available Events
 
-***REMOVED******REMOVED******REMOVED*** User Events
+### User Events
 - `user.registered` - New user registration
 - `user.login` - User login event
 - `user.logout` - User logout event
 
-***REMOVED******REMOVED******REMOVED*** Activity Events
+### Activity Events
 - `movie.viewed` - User views a movie
 - `movie.rated` - User rates a movie
 - `watchlist.changed` - User modifies watchlist
 
-***REMOVED******REMOVED******REMOVED*** Content Events
+### Content Events
 - `movie.created` - New movie added to catalog
 - `movie.updated` - Movie metadata updated
 - `movie.deleted` - Movie removed from catalog
 
-***REMOVED******REMOVED******REMOVED*** System Events
+### System Events
 - `cache.invalidation` - Cache invalidation request
 - `recommendation.request` - Async recommendation generation
 - `ml.training` - ML model retraining trigger

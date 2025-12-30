@@ -116,49 +116,49 @@ class WarmingStats:
 class WarmingConfig:
     """Configuration for warming operations."""
 
-    ***REMOVED*** Execution limits
+    # Execution limits
     max_concurrent_operations: int = 5
     max_warming_duration_minutes: int = 30
     max_items_per_strategy: int = 100
     operation_timeout_seconds: int = 60
 
-    ***REMOVED*** Resource limits
+    # Resource limits
     max_memory_usage_mb: int = 500
     max_cpu_usage_percent: float = 50.0
 
-    ***REMOVED*** Strategy configuration
+    # Strategy configuration
     enable_metrics_driven: bool = True
     enable_popular_content: bool = True
     enable_user_specific: bool = False
     enable_scheduled: bool = True
 
-    ***REMOVED*** Strategy weights (for priority calculation)
+    # Strategy weights (for priority calculation)
     metrics_driven_weight: float = 1.0
     popular_content_weight: float = 0.8
     user_specific_weight: float = 0.6
     scheduled_weight: float = 0.7
 
-    ***REMOVED*** Thresholds for metrics-driven warming
+    # Thresholds for metrics-driven warming
     min_miss_rate_threshold: float = 0.3
     min_avg_miss_time_ms: float = 100.0
     min_total_calls: int = 10
 
-    ***REMOVED*** Popular content configuration
+    # Popular content configuration
     popular_content_refresh_hours: int = 6
     max_popular_items_per_type: int = 20
 
-    ***REMOVED*** User-specific configuration
+    # User-specific configuration
     max_users_per_batch: int = 50
     user_preference_weight: float = 1.2
     recommendation_confidence_threshold: float = 0.6
 
-    ***REMOVED*** Scheduled warming configuration
+    # Scheduled warming configuration
     enable_peak_hour_warming: bool = True
     enable_off_peak_preparation: bool = True
     peak_hour_multiplier: float = 1.5
     seasonal_content_weight: float = 0.9
 
-    ***REMOVED*** Scheduling
+    # Scheduling
     enable_automatic_warming: bool = True
     warming_schedules: dict[str, str] = field(
         default_factory=lambda: {
@@ -176,6 +176,6 @@ class WarmingConfig:
             raise ValueError("max_warming_duration_minutes must be positive")
 
 
-***REMOVED*** Type aliases for warming functions
+# Type aliases for warming functions
 WarmingFunction = Callable[..., Awaitable[Any]]
 WarmingCallback = Callable[[WarmingResult], Awaitable[None]]

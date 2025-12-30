@@ -1,22 +1,22 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** NextWatch Monitoring Log Sync Verification Script
-***REMOVED*** Quick check to verify logs are flowing from NextWatch services to Loki
+# NextWatch Monitoring Log Sync Verification Script
+# Quick check to verify logs are flowing from NextWatch services to Loki
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🔍 NextWatch Log Sync Verification${NC}"
 echo "======================================"
 echo ""
 
-***REMOVED*** Check if we have AWS environment variables
+# Check if we have AWS environment variables
 if [ -f /tmp/nextwatch-aws-env.sh ]; then
     source /tmp/nextwatch-aws-env.sh
     echo -e "${GREEN}✅ Found AWS environment variables${NC}"
@@ -29,7 +29,7 @@ fi
 echo ""
 echo -e "${BLUE}🔍 Running verification checks...${NC}"
 
-***REMOVED*** SSH key (do not hardcode local user paths in a public repo)
+# SSH key (do not hardcode local user paths in a public repo)
 SSH_USER="${SSH_USER:-ubuntu}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
 if [ -z "$SSH_KEY_PATH" ]; then
@@ -46,9 +46,9 @@ if [ -z "$SSH_KEY_PATH" ]; then
     read -p "SSH key path: " SSH_KEY_PATH
 fi
 
-***REMOVED*** Create the remote verification script
+# Create the remote verification script
 cat << 'REMOTE_VERIFY' > /tmp/aws-log-verify.sh
-***REMOVED***!/bin/bash
+#!/bin/bash
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -153,7 +153,7 @@ fi
 
 REMOTE_VERIFY
 
-***REMOVED*** Copy script to remote server and execute
+# Copy script to remote server and execute
 echo -e "${BLUE}📤 Uploading verification script...${NC}"
 scp -i "$SSH_KEY_PATH" /tmp/aws-log-verify.sh "$SSH_USER@$PUBLIC_IP:/tmp/"
 
@@ -163,5 +163,5 @@ ssh -i "$SSH_KEY_PATH" "$SSH_USER@$PUBLIC_IP" 'chmod +x /tmp/aws-log-verify.sh &
 echo ""
 echo -e "${GREEN}🎉 Verification Complete!${NC}"
 
-***REMOVED*** Clean up
+# Clean up
 rm -f /tmp/aws-log-verify.sh

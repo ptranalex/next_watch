@@ -14,18 +14,18 @@ class Trailer(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
 
-    ***REMOVED*** Foreign key to Movie
+    # Foreign key to Movie
     movie_id: int = Field(foreign_key="movie.id")
 
-    ***REMOVED*** Trailer information
+    # Trailer information
     youtube_key: str = Field(index=True)
     name: str
     is_official: bool = Field(default=True)
     url_link: str | None = None
 
-    ***REMOVED*** Timestamp fields
+    # Timestamp fields
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    ***REMOVED*** Relationship back to Movie
+    # Relationship back to Movie
     movie: Optional["Movie"] = Relationship(back_populates="trailers")

@@ -1,41 +1,41 @@
-***REMOVED*** BFF Cache Warming Module
+# BFF Cache Warming Module
 
 This module provides a production-ready cache warming implementation for the BFF API that integrates with the NextWatch Cache Library. It demonstrates best practices for implementing domain-specific cache warming while leveraging a reusable warming framework.
 
-***REMOVED******REMOVED*** 🏗️ Architecture Overview
+## 🏗️ Architecture Overview
 
 The warming module follows a **modular architecture** that cleanly separates framework responsibilities from domain-specific business logic:
 
 ```
 warming/
-├── service.py      ***REMOVED*** 🎯 Main orchestration service
-├── functions.py    ***REMOVED*** 🔥 Cache population functions
-├── providers.py    ***REMOVED*** 📊 Data sourcing for strategies
-├── factories.py    ***REMOVED*** 🏭 Target generation logic
-├── config.py       ***REMOVED*** ⚙️  Configuration management
-└── __init__.py     ***REMOVED*** 📦 Public API surface
+├── service.py      # 🎯 Main orchestration service
+├── functions.py    # 🔥 Cache population functions
+├── providers.py    # 📊 Data sourcing for strategies
+├── factories.py    # 🏭 Target generation logic
+├── config.py       # ⚙️  Configuration management
+└── __init__.py     # 📦 Public API surface
 ```
 
-***REMOVED******REMOVED*** 🎯 Core Components
+## 🎯 Core Components
 
-***REMOVED******REMOVED******REMOVED*** 1. **BFFWarmingService** (`service.py`)
+### 1. **BFFWarmingService** (`service.py`)
 
 The main orchestration service that coordinates all warming components:
 
 ```python
 from bff_api.services.cache_service.warming import get_bff_warming_service
 
-***REMOVED*** Get the configured warming service
+# Get the configured warming service
 warming_service = get_bff_warming_service()
 
-***REMOVED*** Test a specific warming function
+# Test a specific warming function
 result = await warming_service.test_warming_function(
     "movie_screen",
     movie_id=1,
     user_id=None
 )
 
-***REMOVED*** Access the warming engine for advanced operations
+# Access the warming engine for advanced operations
 engine = warming_service.get_warming_engine()
 ```
 
@@ -47,20 +47,20 @@ engine = warming_service.get_warming_engine()
 - Integrates with cache library's strategy system
 - Provides health checks and testing capabilities
 
-***REMOVED******REMOVED******REMOVED*** 2. **BFFWarmingFunctions** (`functions.py`)
+### 2. **BFFWarmingFunctions** (`functions.py`)
 
 Implements warming functions that call **actual cached BFF endpoints**:
 
 ```python
 async def warm_movie_screen(self, movie_id: int, user_id: Optional[int] = None, **kwargs):
-    ***REMOVED*** Import the actual cached function
+    # Import the actual cached function
     from bff_api.routes.v1.movies import _get_movie_screen_data
     from bff_api.services.backend_client import BackendClient
 
-    ***REMOVED*** Create dependencies
+    # Create dependencies
     backend_client = BackendClient(config=self.settings)
 
-    ***REMOVED*** Call the cached function - this populates the cache
+    # Call the cached function - this populates the cache
     warmed_data = await _get_movie_screen_data(
         movie_id=movie_id,
         user_id=user_id,
@@ -87,18 +87,18 @@ async def warm_movie_screen(self, movie_id: int, user_id: Optional[int] = None, 
 - ✅ Reuses existing business logic and validation
 - ✅ Ensures warming matches production behavior exactly
 
-***REMOVED******REMOVED******REMOVED*** 3. **BFFDataProviders** (`providers.py`)
+### 3. **BFFDataProviders** (`providers.py`)
 
 Provides domain-specific data for warming strategies:
 
 ```python
-***REMOVED*** Popular content data (movies, actors, genres)
+# Popular content data (movies, actors, genres)
 popularity_data = await data_providers.get_popularity_data()
 
-***REMOVED*** User-specific data (preferences, history)
+# User-specific data (preferences, history)
 user_data = await data_providers.get_user_data(user_id=123)
 
-***REMOVED*** Personalized recommendations
+# Personalized recommendations
 recommendations = await data_providers.get_user_recommendations(user_id=123)
 ```
 
@@ -109,12 +109,12 @@ recommendations = await data_providers.get_user_recommendations(user_id=123)
 - **User Behavior**: Provides user preferences and viewing history
 - **Recommendations**: Supplies personalized content suggestions
 
-***REMOVED******REMOVED******REMOVED*** 4. **BFFTargetFactories** (`factories.py`)
+### 4. **BFFTargetFactories** (`factories.py`)
 
 Generates warming targets from business data:
 
 ```python
-***REMOVED*** Create warming targets for a popular movie
+# Create warming targets for a popular movie
 movie_targets = target_factories.create_movie_targets({
     "id": 550,
     "popularity_score": 8.5,
@@ -122,10 +122,10 @@ movie_targets = target_factories.create_movie_targets({
     "title": "Fight Club"
 })
 
-***REMOVED*** Results in multiple warming targets:
-***REMOVED*** - Anonymous user view: movie_screen(movie_id=550, user_id=None)
-***REMOVED*** - Authenticated views: movie_screen(movie_id=550, user_id=1)
-***REMOVED*** - Different priorities based on popularity
+# Results in multiple warming targets:
+# - Anonymous user view: movie_screen(movie_id=550, user_id=None)
+# - Authenticated views: movie_screen(movie_id=550, user_id=1)
+# - Different priorities based on popularity
 ```
 
 **Target Types**:
@@ -134,45 +134,45 @@ movie_targets = target_factories.create_movie_targets({
 - **Actors**: Profile pages with filmography
 - **Genres**: Listing pages with different sort options
 
-***REMOVED******REMOVED*** 🚀 Usage Patterns
+## 🚀 Usage Patterns
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 ```python
 from bff_api.services.cache_service.warming import get_bff_warming_service
 
-***REMOVED*** Get warming service (auto-configured)
+# Get warming service (auto-configured)
 service = get_bff_warming_service()
 
-***REMOVED*** Test individual warming functions
+# Test individual warming functions
 result = await service.test_warming_function("movie_screen", movie_id=1)
 print(f"Cached: {result['cache_populated']}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** CLI Integration
+### CLI Integration
 
 The warming system integrates with the BFF CLI:
 
 ```bash
-***REMOVED*** Use cache library's warming CLI (auto-configured with BFF data)
+# Use cache library's warming CLI (auto-configured with BFF data)
 bff-api warming start --strategy metrics_driven --limit 50
 bff-api warming status
 bff-api warming stop
 
-***REMOVED*** Test warming functions directly
+# Test warming functions directly
 bff-api warming-test movie_screen --movie-id 1 --user-id 123
 bff-api warming-test movies_list --page 1 --genre-id 28
 ```
 
-***REMOVED******REMOVED******REMOVED*** Programmatic Strategy Execution
+### Programmatic Strategy Execution
 
 ```python
 from cache.warming import WarmingStrategy
 
-***REMOVED*** Get the warming engine
+# Get the warming engine
 engine = service.get_warming_engine()
 
-***REMOVED*** Execute different warming strategies
+# Execute different warming strategies
 stats = await engine.warm_by_strategy(
     strategy=WarmingStrategy.POPULAR_CONTENT,
     limit=100,
@@ -182,34 +182,34 @@ stats = await engine.warm_by_strategy(
 print(f"Warmed {stats.successful_targets} targets")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Background Warming
+### Background Warming
 
 ```python
 from bff_api.services.cache_service import start_background_warming
 
-***REMOVED*** Start scheduled background warming
+# Start scheduled background warming
 await start_background_warming()
 
-***REMOVED*** Runs on schedule:
-***REMOVED*** - Morning warmup (7 AM): Popular content
-***REMOVED*** - Evening warmup (5 PM): Metrics-driven
-***REMOVED*** - Night optimization (1 AM): Scheduled
-***REMOVED*** - Continuous metrics (every 10 min): Metrics-driven
+# Runs on schedule:
+# - Morning warmup (7 AM): Popular content
+# - Evening warmup (5 PM): Metrics-driven
+# - Night optimization (1 AM): Scheduled
+# - Continuous metrics (every 10 min): Metrics-driven
 ```
 
-***REMOVED******REMOVED*** 🎛️ Configuration
+## 🎛️ Configuration
 
 Warming behavior can be configured via environment variables:
 
 ```bash
-***REMOVED*** Warming thresholds
+# Warming thresholds
 WARMING_MAX_CONCURRENT=5
 WARMING_MAX_ITEMS_PER_STRATEGY=100
 WARMING_MIN_MISS_RATE=0.3
 WARMING_MIN_AVG_MISS_TIME=100.0
 WARMING_MIN_TOTAL_CALLS=10
 
-***REMOVED*** Strategy weights
+# Strategy weights
 WARMING_METRICS_DRIVEN_WEIGHT=1.0
 WARMING_POPULAR_CONTENT_WEIGHT=0.8
 WARMING_USER_SPECIFIC_WEIGHT=0.6
@@ -226,9 +226,9 @@ print(f"Max concurrent: {config.max_concurrent_operations}")
 print(f"Strategies enabled: {config.enable_popular_content}")
 ```
 
-***REMOVED******REMOVED*** 🧩 Integration with Cache Library
+## 🧩 Integration with Cache Library
 
-***REMOVED******REMOVED******REMOVED*** Framework Responsibilities (Cache Library)
+### Framework Responsibilities (Cache Library)
 
 The cache library provides the **barebone framework**:
 
@@ -239,7 +239,7 @@ The cache library provides the **barebone framework**:
 - ✅ **CLI integration** - Command-line tools
 - ✅ **Scheduling** - Time-based and event-driven triggers
 
-***REMOVED******REMOVED******REMOVED*** BFF Implementation Responsibilities
+### BFF Implementation Responsibilities
 
 The BFF warming module provides **domain-specific logic**:
 
@@ -249,35 +249,35 @@ The BFF warming module provides **domain-specific logic**:
 - ✅ **Target generation** - Creating warming targets from business data
 - ✅ **Priority calculation** - Business logic for importance scoring
 
-***REMOVED******REMOVED******REMOVED*** Integration Points
+### Integration Points
 
 ```python
-***REMOVED*** Register warming functions
+# Register warming functions
 engine.register_warming_function("movie_screen", warm_movie_screen)
 
-***REMOVED*** Set data providers
+# Set data providers
 engine.set_popularity_provider(get_popularity_data)
 engine.set_user_data_provider(get_user_data)
 
-***REMOVED*** Register target factories
+# Register target factories
 popular_strategy.register_target_factory("movies", create_movie_targets)
 ```
 
-***REMOVED******REMOVED*** 📊 Monitoring & Observability
+## 📊 Monitoring & Observability
 
-***REMOVED******REMOVED******REMOVED*** Health Checks
+### Health Checks
 
 ```python
-***REMOVED*** Check warming service health
+# Check warming service health
 healthy = await service.health_check()
 
-***REMOVED*** Components checked:
-***REMOVED*** - Cache manager connectivity
-***REMOVED*** - Strategy availability
-***REMOVED*** - Configuration validity
+# Components checked:
+# - Cache manager connectivity
+# - Strategy availability
+# - Configuration validity
 ```
 
-***REMOVED******REMOVED******REMOVED*** Logging
+### Logging
 
 All warming operations include structured logging:
 
@@ -293,7 +293,7 @@ logger.info(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Metrics
+### Metrics
 
 Warming statistics are collected automatically:
 
@@ -306,9 +306,9 @@ print(f"Failed: {stats.failed_targets}")
 print(f"Duration: {stats.duration_ms}ms")
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
-***REMOVED******REMOVED******REMOVED*** Unit Testing Warming Functions
+### Unit Testing Warming Functions
 
 ```python
 import pytest
@@ -325,7 +325,7 @@ async def test_movie_screen_warming():
     assert "timestamp" in result
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration Testing
+### Integration Testing
 
 ```python
 @pytest.mark.asyncio
@@ -334,28 +334,28 @@ async def test_warming_service_integration():
 
     service = get_bff_warming_service()
 
-    ***REMOVED*** Test service health
+    # Test service health
     assert await service.health_check() is True
 
-    ***REMOVED*** Test function registration
+    # Test function registration
     engine = service.get_warming_engine()
     assert "movie_screen" in engine._warming_functions
 
-    ***REMOVED*** Test warming execution
+    # Test warming execution
     result = await service.test_warming_function("movie_screen", movie_id=1)
     assert result["success"] is True
 ```
 
-***REMOVED******REMOVED*** 🔧 Extending the System
+## 🔧 Extending the System
 
-***REMOVED******REMOVED******REMOVED*** Adding New Warming Functions
+### Adding New Warming Functions
 
 1. **Create the cached endpoint function**:
 
 ```python
 @redis_cache(ttl=600, key_builder=my_key_builder)
 async def _get_my_screen_data(param1: int, backend: BackendClient):
-    ***REMOVED*** Fetch and aggregate data
+    # Fetch and aggregate data
     return {"data": "cached_result"}
 ```
 
@@ -381,13 +381,13 @@ async def warm_my_screen(self, param1: int, **kwargs):
 self.engine.register_warming_function("my_screen", self.warming_functions.warm_my_screen)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding New Content Types
+### Adding New Content Types
 
 1. **Extend data providers**:
 
 ```python
 async def _get_popular_my_content(self, backend_client):
-    ***REMOVED*** Fetch content data
+    # Fetch content data
     return [{"id": 1, "popularity_score": 8.0, "view_count": 1000}]
 ```
 
@@ -410,7 +410,7 @@ def create_my_content_targets(self, item: Dict[str, Any]) -> List[WarmingTarget]
 popular_strategy.register_target_factory("my_content", self.target_factories.create_my_content_targets)
 ```
 
-***REMOVED******REMOVED*** 🏆 Best Practices Demonstrated
+## 🏆 Best Practices Demonstrated
 
 1. **Real Cache Population**: Calls actual cached functions, not simulations
 2. **Separation of Concerns**: Clean boundaries between framework and domain logic

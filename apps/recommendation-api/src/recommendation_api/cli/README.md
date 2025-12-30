@@ -1,12 +1,12 @@
-***REMOVED*** Recommendation API CLI
+# Recommendation API CLI
 
 Command-line interface for managing the Recommendation API service.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The CLI provides a set of commands for managing the Recommendation API service, including server management, configuration, health checks, embeddings management, and debugging tools. It uses Typer for command-line argument parsing and Rich for enhanced console output.
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 The CLI is installed as part of the Recommendation API package:
 
@@ -14,7 +14,7 @@ The CLI is installed as part of the Recommendation API package:
 pip install recommendation-api
 ```
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 The CLI is accessible through the `rec-api` command:
 
@@ -22,18 +22,18 @@ The CLI is accessible through the `rec-api` command:
 rec-api [COMMAND] [OPTIONS]
 ```
 
-***REMOVED******REMOVED******REMOVED*** Available Commands
+### Available Commands
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Server Management
+#### Server Management
 
 ```bash
-***REMOVED*** Start the server
+# Start the server
 rec-api serve start [--host HOST] [--port PORT] [--workers N] [--reload] [--log-level LEVEL] [--verbose] [--quiet]
 
-***REMOVED*** Stop the server
+# Stop the server
 rec-api serve stop [--verbose] [--quiet]
 
-***REMOVED*** Restart the server
+# Restart the server
 rec-api serve restart [--host HOST] [--port PORT] [--workers N] [--reload] [--log-level LEVEL] [--verbose] [--quiet]
 ```
 
@@ -47,16 +47,16 @@ Options for `serve` commands:
 - `--verbose`: Enable verbose logging and detailed output
 - `--quiet`: Suppress most console output
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Configuration Management
+#### Configuration Management
 
 ```bash
-***REMOVED*** Show current configuration
+# Show current configuration
 rec-api config show [--show-secrets] [--verbose] [--quiet]
 
-***REMOVED*** Validate configuration
+# Validate configuration
 rec-api config validate [--verbose] [--quiet]
 
-***REMOVED*** Show environment-specific settings
+# Show environment-specific settings
 rec-api config env [--verbose] [--quiet]
 ```
 
@@ -66,13 +66,13 @@ Options for `config` commands:
 - `--verbose`: Show detailed configuration information
 - `--quiet`: Suppress most console output
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Health Checks
+#### Health Checks
 
 ```bash
-***REMOVED*** Check health of all services
+# Check health of all services
 rec-api health check [--verbose] [--quiet]
 
-***REMOVED*** Ping specific service
+# Ping specific service
 rec-api health ping SERVICE [--verbose] [--quiet]
 ```
 
@@ -87,22 +87,22 @@ Options for `health` commands:
 - `--verbose`: Show detailed health information and troubleshooting tips
 - `--quiet`: Suppress most console output
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Embeddings Management
+#### Embeddings Management
 
 ```bash
-***REMOVED*** Generate embeddings for movies
+# Generate embeddings for movies
 rec-api embeddings generate [--batch-size SIZE] [--force] [--limit LIMIT] [--movie-id ID] [--verbose] [--quiet]
 
-***REMOVED*** Show embedding generation status
+# Show embedding generation status
 rec-api embeddings status [--verbose] [--quiet]
 
-***REMOVED*** Clean up orphaned embeddings
+# Clean up orphaned embeddings
 rec-api embeddings cleanup [--dry-run/--execute] [--verbose] [--quiet]
 
-***REMOVED*** Show embedding configuration
+# Show embedding configuration
 rec-api embeddings info [--verbose] [--quiet]
 
-***REMOVED*** Repair embeddings with missing vectors
+# Repair embeddings with missing vectors
 rec-api embeddings repair_embeddings [--batch-size SIZE] [--movie-id ID] [--dry-run] [--verbose] [--quiet]
 ```
 
@@ -123,22 +123,22 @@ Options for `embeddings repair_embeddings`:
 - `--verbose`: Show detailed progress
 - `--quiet`: Suppress most console output
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Debug Tools
+#### Debug Tools
 
 ```bash
-***REMOVED*** Check if a movie has an embedding
+# Check if a movie has an embedding
 rec-api debug check_embedding MOVIE_ID [--verbose] [--quiet]
 
-***REMOVED*** Find similar movies to a specific movie
+# Find similar movies to a specific movie
 rec-api debug similar_movies MOVIE_ID [--limit N] [--min-score SCORE] [--direct] [--ids-only] [--verbose] [--quiet]
 
-***REMOVED*** Compare two movies by calculating similarity
+# Compare two movies by calculating similarity
 rec-api debug compare_movies MOVIE_ID1 MOVIE_ID2 [--verbose] [--quiet]
 
-***REMOVED*** Show vector database status
+# Show vector database status
 rec-api debug vector_status [--verbose] [--quiet]
 
-***REMOVED*** Recreate embedding for a specific movie
+# Recreate embedding for a specific movie
 rec-api debug recreate_embedding MOVIE_ID [--force] [--verbose] [--quiet]
 ```
 
@@ -148,31 +148,31 @@ Options for `debug` commands:
 - `--quiet`: Suppress most console output
 - Command-specific options (see `--help` for each command)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Version Information
+#### Version Information
 
 ```bash
-***REMOVED*** Show version information
+# Show version information
 rec-api version
 ```
 
-***REMOVED******REMOVED*** Module Structure
+## Module Structure
 
 ```
 cli/
-├── __init__.py          ***REMOVED*** Package initialization
-├── main.py             ***REMOVED*** Main CLI application
-├── utils.py            ***REMOVED*** Utility functions
-└── commands/           ***REMOVED*** Command modules
-    ├── __init__.py     ***REMOVED*** Commands package
-    ├── serve.py        ***REMOVED*** Server management commands
-    ├── config.py       ***REMOVED*** Configuration commands
-    ├── health.py       ***REMOVED*** Health check commands
-    ├── embeddings.py   ***REMOVED*** Embedding management commands
-    ├── debug.py        ***REMOVED*** Debug and diagnostic tools
-    └── version.py      ***REMOVED*** Version information
+├── __init__.py          # Package initialization
+├── main.py             # Main CLI application
+├── utils.py            # Utility functions
+└── commands/           # Command modules
+    ├── __init__.py     # Commands package
+    ├── serve.py        # Server management commands
+    ├── config.py       # Configuration commands
+    ├── health.py       # Health check commands
+    ├── embeddings.py   # Embedding management commands
+    ├── debug.py        # Debug and diagnostic tools
+    └── version.py      # Version information
 ```
 
-***REMOVED******REMOVED*** Common Command Features
+## Common Command Features
 
 All commands support the following common options:
 
@@ -187,9 +187,9 @@ Most commands provide:
 - Formatted tables for structured data
 - Progress indicators for long-running operations
 
-***REMOVED******REMOVED*** Development
+## Development
 
-***REMOVED******REMOVED******REMOVED*** Adding New Commands
+### Adding New Commands
 
 1. Create a new command module in `commands/`
 2. Define a Typer app instance
@@ -199,7 +199,7 @@ Most commands provide:
 Example:
 
 ```python
-***REMOVED*** commands/new_command.py
+# commands/new_command.py
 import typer
 from rich.console import Console
 import logging
@@ -229,18 +229,18 @@ def do_something(
         verbose: Show detailed output
         quiet: Suppress most log output
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     setup_logging(verbose=verbose, quiet=quiet)
 
-    ***REMOVED*** Command implementation
+    # Command implementation
     console.print("[green]Operation successful[/green]")
 
-***REMOVED*** main.py
+# main.py
 from recommendation_api.cli.commands import new_command
 app.add_typer(new_command.app, name="new-command")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Utility Functions
+### Utility Functions
 
 Common utility functions are available in `utils.py`:
 
@@ -252,7 +252,7 @@ Common utility functions are available in `utils.py`:
 - `print_error()`: Display error messages
 - `print_success()`: Display success messages
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
 The CLI uses consistent error handling:
 
@@ -261,7 +261,7 @@ The CLI uses consistent error handling:
 3. Proper logging of errors for debugging
 4. Exit codes for script integration
 
-***REMOVED******REMOVED*** Contributing
+## Contributing
 
 1. Follow the Google Python Style Guide
 2. Add type hints to all functions

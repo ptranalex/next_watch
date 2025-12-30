@@ -1,23 +1,23 @@
-***REMOVED*** Domain Entities
+# Domain Entities
 
 This directory contains the core domain entities used throughout the application. These entities serve as the data model for the UI layer, providing type safety and consistent interfaces.
 
-***REMOVED******REMOVED*** 🏗️ Architecture
+## 🏗️ Architecture
 
 The domain entities follow a clean architecture pattern:
 
 ```
 domain/
 └── entities/
-    ├── movies/              ***REMOVED*** Movie-related entities
-    │   ├── Movie.entity.ts  ***REMOVED*** Main Movie entity
-    │   └── index.ts         ***REMOVED*** Re-exports
-    ├── actors/              ***REMOVED*** Actor-related entities
-    ├── genres/              ***REMOVED*** Genre-related entities
-    └── index.ts             ***REMOVED*** Main re-export for all entities
+    ├── movies/              # Movie-related entities
+    │   ├── Movie.entity.ts  # Main Movie entity
+    │   └── index.ts         # Re-exports
+    ├── actors/              # Actor-related entities
+    ├── genres/              # Genre-related entities
+    └── index.ts             # Main re-export for all entities
 ```
 
-***REMOVED******REMOVED*** 🧩 Entity Pattern
+## 🧩 Entity Pattern
 
 Each entity follows a consistent pattern:
 
@@ -28,7 +28,7 @@ Each entity follows a consistent pattern:
 3. **Documentation**: JSDoc comments explaining all properties and methods
 4. **Type Guards**: Functions to check if an object matches entity structure
 
-***REMOVED******REMOVED******REMOVED*** Example Entity Pattern
+### Example Entity Pattern
 
 ```typescript
 // 1. Entity Interface
@@ -61,7 +61,7 @@ export function isMovie(value: unknown): value is Movie {
 }
 ```
 
-***REMOVED******REMOVED*** 📊 API Naming Conventions
+## 📊 API Naming Conventions
 
 We follow the backend API naming conventions for entity properties, particularly for movie user interactions:
 
@@ -73,11 +73,11 @@ We follow the backend API naming conventions for entity properties, particularly
 
 This ensures consistency between API responses and our UI model, eliminating the need for property mapping layers.
 
-***REMOVED******REMOVED*** 📚 Usage Guidelines
+## 📚 Usage Guidelines
 
 When working with the domain entities:
 
-***REMOVED******REMOVED******REMOVED*** Importing Entities
+### Importing Entities
 
 Always import from the main domain entities module:
 
@@ -85,7 +85,7 @@ Always import from the main domain entities module:
 import { Movie, Actor, Genre } from "@/domain/entities";
 ```
 
-***REMOVED******REMOVED******REMOVED*** Transforming API Responses
+### Transforming API Responses
 
 Transform API responses to domain entities for use in the UI:
 
@@ -97,7 +97,7 @@ const apiResponse = await fetchMovie(id);
 const movie = toMovieEntity(apiResponse);
 ```
 
-***REMOVED******REMOVED******REMOVED*** Preparing Data for API Requests
+### Preparing Data for API Requests
 
 Transform domain entities back to service format for API calls:
 
@@ -109,7 +109,7 @@ const serviceData = toServiceMovie(movieEntity);
 await updateMovie(id, serviceData);
 ```
 
-***REMOVED******REMOVED******REMOVED*** Entity Relationships
+### Entity Relationships
 
 Entities may reference other entities through relationships:
 
@@ -124,7 +124,7 @@ const genres = movie.genres;
 const movies = actor.known_for;
 ```
 
-***REMOVED******REMOVED*** 🔍 Best Practices
+## 🔍 Best Practices
 
 1. **Keep Entities Pure**: Domain entities should be focused on business concepts
 2. **Consistent Property Naming**: Follow API naming conventions
@@ -133,7 +133,7 @@ const movies = actor.known_for;
 5. **Minimize UI State**: Only include UI state properties when necessary
 6. **Complete Conversions**: Ensure conversion functions handle all properties
 
-***REMOVED******REMOVED*** ✅ Migration Status
+## ✅ Migration Status
 
 The migration to standardized API naming conventions is complete:
 
@@ -144,7 +144,7 @@ The migration to standardized API naming conventions is complete:
 - ✅ Conversion utilities correctly handle property transformations
 - ✅ Legacy compatibility layer has been removed
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 Entity types and conversion functions should be tested thoroughly:
 
@@ -170,7 +170,7 @@ describe("toMovieEntity", () => {
 });
 ```
 
-***REMOVED******REMOVED*** 📖 Related Documentation
+## 📖 Related Documentation
 
 - See [Migration Plan](./MIGRATION_PLAN.md) for details on how entities evolved
 - See [Removal Plan](./REMOVAL_PLAN.md) for legacy code cleanup strategy

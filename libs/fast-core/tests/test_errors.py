@@ -297,8 +297,8 @@ class TestErrorHandlers:
         assert isinstance(response, JSONResponse)
         assert response.status_code == 400
 
-        ***REMOVED*** Note: Cannot directly access response.content in tests,
-        ***REMOVED*** but we can verify the response was created correctly
+        # Note: Cannot directly access response.content in tests,
+        # but we can verify the response was created correctly
 
     @pytest.mark.asyncio
     async def test_validation_exception_handler(self, mock_request):
@@ -456,7 +456,7 @@ class TestErrorResponses:
         assert "429" in STANDARD_RESPONSES
         assert "500" in STANDARD_RESPONSES
 
-        ***REMOVED*** Check structure of a standard response
+        # Check structure of a standard response
         response_400 = STANDARD_RESPONSES["400"]
         assert "description" in response_400
         assert "model" in response_400

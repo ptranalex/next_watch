@@ -1,28 +1,28 @@
-***REMOVED*** ML API Docker Build Guide
+# ML API Docker Build Guide
 
 This document explains how to properly build and run the ML API Docker container.
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
 - Docker installed on your system
 - Access to the Next Watch monorepo
 
-***REMOVED******REMOVED*** Building the Docker Image
+## Building the Docker Image
 
 The ML API Dockerfile is designed to be built from the monorepo root to access all dependencies.
 
-***REMOVED******REMOVED******REMOVED*** Building from Monorepo Root
+### Building from Monorepo Root
 
 Always build the Docker image from the monorepo root directory:
 
 ```bash
-***REMOVED*** From the monorepo root (/Users/alex/Sandbox/next_watch)
+# From the monorepo root (/Users/alex/Sandbox/next_watch)
 docker build -t ml-api:latest -f apps/ml-api/Dockerfile .
 ```
 
 This ensures that all dependencies are correctly included in the build.
 
-***REMOVED******REMOVED*** Running the Container
+## Running the Container
 
 Once built, you can run the ML API container with:
 
@@ -30,7 +30,7 @@ Once built, you can run the ML API container with:
 docker run -d --name ml-api -p 8004:8004 ml-api:latest
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Check
+### Health Check
 
 The container includes a health check endpoint that can be accessed at:
 
@@ -40,7 +40,7 @@ curl http://localhost:8004/health
 
 Note that the ML API may take some time to initialize as it loads the machine learning model. The health check has a 5-second start period to account for this.
 
-***REMOVED******REMOVED*** Image Size and Optimization
+## Image Size and Optimization
 
 The ML API image size varies depending on the build environment:
 
@@ -49,7 +49,7 @@ The ML API image size varies depending on the build environment:
 
 The size difference is primarily due to how PyTorch and its dependencies are handled in different environments. The GitHub Actions build may include CUDA support and additional ML libraries that increase the image size.
 
-***REMOVED******REMOVED******REMOVED*** Optimizing Image Size
+### Optimizing Image Size
 
 To ensure a smaller image size, the Dockerfile uses:
 
@@ -63,6 +63,6 @@ If you need to further reduce the image size, consider:
 - Adding more aggressive cleanup steps in the Dockerfile
 - Setting environment variables to prevent downloading pre-trained models during build
 
-***REMOVED******REMOVED*** Security
+## Security
 
 The container runs as a non-root user (`mlapi`) for improved security.

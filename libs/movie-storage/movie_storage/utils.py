@@ -36,17 +36,17 @@ def setup_movie_storage(
     Returns:
         Dictionary with setup information
     """
-    ***REMOVED*** Create config instance
+    # Create config instance
     config = Config()
 
-    ***REMOVED*** Override database URL if provided
+    # Override database URL if provided
     if database_url:
         config.database_url = database_url
 
-    ***REMOVED*** Initialize database
+    # Initialize database
     init_db(create_tables=create_tables, config=config)
 
-    ***REMOVED*** Run database migrations if requested
+    # Run database migrations if requested
     if run_migrations:
         logger.info("Running database migrations")
         run_migration(config=config)
@@ -56,7 +56,7 @@ def setup_movie_storage(
         f"Movie storage set up with database URL: {config._mask_database_password(config.database_url)}"
     )
 
-    ***REMOVED*** Return setup information
+    # Return setup information
     return {
         "config": config,
         "database_url": config.database_url,

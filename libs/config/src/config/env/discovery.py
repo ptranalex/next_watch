@@ -29,15 +29,15 @@ def find_project_root(start_path: Path | None = None) -> Path:
 
     current = start_path.resolve()
 
-    ***REMOVED*** Look for common project root markers
+    # Look for common project root markers
     markers = [
         ".env",
         "pyproject.toml",
         "setup.py",
         ".git",
         "README.md",
-        "package.json",  ***REMOVED*** For monorepos with JS components
-        "Cargo.toml",  ***REMOVED*** For Rust components
+        "package.json",  # For monorepos with JS components
+        "Cargo.toml",  # For Rust components
     ]
 
     while current != current.parent:
@@ -45,8 +45,8 @@ def find_project_root(start_path: Path | None = None) -> Path:
             return current
         current = current.parent
 
-    ***REMOVED*** If we reach the root without finding markers, try a common fallback
-    ***REMOVED*** for NextWatch monorepo structure
+    # If we reach the root without finding markers, try a common fallback
+    # for NextWatch monorepo structure
     fallback_patterns = [
         "nextwatch",
         "next_watch",
@@ -57,7 +57,7 @@ def find_project_root(start_path: Path | None = None) -> Path:
     current = start_path.resolve()
     while current != current.parent:
         if any(pattern in current.name.lower() for pattern in fallback_patterns):
-            ***REMOVED*** Look for typical monorepo structure
+            # Look for typical monorepo structure
             if any((current / subdir).exists() for subdir in ["libs", "apps", "packages"]):
                 return current
         current = current.parent

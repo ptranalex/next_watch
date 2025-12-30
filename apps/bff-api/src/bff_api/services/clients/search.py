@@ -33,7 +33,7 @@ class SearchAPIClient(BaseBackendClient):
     def __init__(self, config: ServiceClientConfig, bff_config: Any | None = None) -> None:
         """Initialize Search API client."""
         super().__init__(config, bff_config)
-        ***REMOVED*** Override service name for proper error attribution
+        # Override service name for proper error attribution
         self.service_name = "search-api"
 
     @service_error_handler("search-api", logger)
@@ -55,7 +55,7 @@ class SearchAPIClient(BaseBackendClient):
         This method is needed because @service_error_handler uses hardcoded service names.
         All other logic is identical to BaseBackendClient._make_request.
         """
-        ***REMOVED*** Delegate to parent implementation, which handles all the HTTP logic
+        # Delegate to parent implementation, which handles all the HTTP logic
         return await super()._make_request(method, path, params, data, headers)
 
     @service_error_handler("search-api", logger, "get_suggestions")
@@ -77,7 +77,7 @@ class SearchAPIClient(BaseBackendClient):
             ValidationException: If parameters are invalid
             ExternalServiceException: If Search API is unavailable
         """
-        ***REMOVED*** Validate parameters
+        # Validate parameters
         if not query or not query.strip():
             raise ValidationException("Search query cannot be empty")
         if limit <= 0 or limit > 50:
@@ -129,7 +129,7 @@ class SearchAPIClient(BaseBackendClient):
             ValidationException: If parameters are invalid
             ExternalServiceException: If Search API is unavailable
         """
-        ***REMOVED*** Validate parameters
+        # Validate parameters
         if not query or not query.strip():
             raise ValidationException("Search query cannot be empty")
         if limit <= 0 or limit > 50:
@@ -185,7 +185,7 @@ class SearchAPIClient(BaseBackendClient):
             ValidationException: If parameters are invalid
             ExternalServiceException: If Search API is unavailable
         """
-        ***REMOVED*** Validate parameters
+        # Validate parameters
         if not query or not query.strip():
             raise ValidationException("Search query cannot be empty")
         if page <= 0:
@@ -255,7 +255,7 @@ class SearchAPIClient(BaseBackendClient):
                 component="search_client",
             )
 
-            ***REMOVED*** Return response with URL included for consistency with fast-core health checks
+            # Return response with URL included for consistency with fast-core health checks
             return {
                 "service": self.name,
                 "status": "healthy",

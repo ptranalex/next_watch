@@ -14,7 +14,7 @@ async def cleanup_service_clients() -> None:
     when we implement the actual service clients.
     """
     logger.info("Cleaning up search API service clients")
-    ***REMOVED*** TODO: Implement actual cleanup when service clients are added
+    # TODO: Implement actual cleanup when service clients are added
 
 
 async def get_all_services_health() -> dict[str, Any]:
@@ -25,7 +25,7 @@ async def get_all_services_health() -> dict[str, Any]:
     """
     logger.debug("Checking health of all services")
 
-    ***REMOVED*** TODO: Implement actual health checks when service clients are added
+    # TODO: Implement actual health checks when service clients are added
     return {
         "backend": {"status": "healthy", "url": "http://localhost:8000"},
         "redis": {"status": "healthy", "url": "redis://localhost:6379"},

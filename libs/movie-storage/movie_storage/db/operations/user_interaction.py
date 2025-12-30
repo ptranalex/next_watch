@@ -31,7 +31,7 @@ def create_user_movie_interaction(
     Returns:
         The created user movie interaction
     """
-    ***REMOVED*** Check if user and movie exist
+    # Check if user and movie exist
     user = db.get(User, user_id)
     if not user:
         raise ValueError(f"User with ID {user_id} not found")
@@ -40,7 +40,7 @@ def create_user_movie_interaction(
     if not movie:
         raise ValueError(f"Movie with ID {movie_id} not found")
 
-    ***REMOVED*** Check if interaction already exists
+    # Check if interaction already exists
     stmt = select(UserMovieInteraction).where(
         and_(
             UserMovieInteraction.user_id == user_id,
@@ -50,7 +50,7 @@ def create_user_movie_interaction(
     existing = db.exec(stmt).first()
 
     if existing:
-        ***REMOVED*** Update existing interaction
+        # Update existing interaction
         existing.watched = watched
         existing.liked = liked
         existing.in_watchlist = in_watchlist
@@ -60,7 +60,7 @@ def create_user_movie_interaction(
         db.refresh(existing)
         return existing
 
-    ***REMOVED*** Create new interaction
+    # Create new interaction
     interaction = UserMovieInteraction(
         user_id=user_id,
         movie_id=movie_id,
@@ -195,7 +195,7 @@ def update_user_movie_interaction(
     """
     interaction = get_user_movie_interaction(db, user_id, movie_id)
     if not interaction:
-        ***REMOVED*** Create interaction if it doesn't exist
+        # Create interaction if it doesn't exist
         data = {
             "watched": watched if watched is not None else False,
             "liked": liked if liked is not None else False,
@@ -203,7 +203,7 @@ def update_user_movie_interaction(
         }
         return create_user_movie_interaction(db, user_id, movie_id, **data)
 
-    ***REMOVED*** Update only the provided fields
+    # Update only the provided fields
     if watched is not None:
         interaction.watched = watched
     if liked is not None:
@@ -262,21 +262,21 @@ def toggle_user_movie_interaction_flag(
 
     interaction = get_user_movie_interaction(db, user_id, movie_id)
 
-    ***REMOVED*** If interaction doesn't exist, create it with the flag set to True
+    # If interaction doesn't exist, create it with the flag set to True
     if not interaction:
         kwargs = {flag: True}
         return create_user_movie_interaction(db, user_id, movie_id, **kwargs)
 
-    ***REMOVED*** Toggle the flag
+    # Toggle the flag
     setattr(interaction, flag, not getattr(interaction, flag))
     interaction.updated_at = datetime.utcnow()
 
-    ***REMOVED*** If all flags are False, delete the interaction
+    # If all flags are False, delete the interaction
     if not (interaction.watched or interaction.liked or interaction.in_watchlist):
         db.delete(interaction)
         db.commit()
 
-        ***REMOVED*** Return a dummy representation with all flags false, but with a valid structure
+        # Return a dummy representation with all flags false, but with a valid structure
         return UserMovieInteraction(
             user_id=user_id,
             movie_id=movie_id,

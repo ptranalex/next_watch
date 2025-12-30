@@ -14,7 +14,7 @@ from fast_core.monitoring.metrics import (
     track_operation,
 )
 
-***REMOVED*** Type variable for function decorators
+# Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
 
 logger = get_logger(__name__)
@@ -37,19 +37,19 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
     if not endpoint:
         return endpoint
 
-    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    # Remove query parameters (they cause cardinality explosion)
     endpoint = endpoint.split("?")[0]
 
-    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    # Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
     normalized_parts: list[str] = []
 
     for part in parts:
         if part.isdigit():
-            ***REMOVED*** Replace numeric IDs with generic placeholder
+            # Replace numeric IDs with generic placeholder
             normalized_parts.append("{id}")
         else:
-            ***REMOVED*** Keep non-numeric parts as-is
+            # Keep non-numeric parts as-is
             normalized_parts.append(part)
 
     return "/".join(normalized_parts)
@@ -77,7 +77,7 @@ class BackendMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Database operation metrics
+        # Database operation metrics
         self.database_operations = self.registry.create_counter(
             "backend_database_operations_total",
             "Total database operations",
@@ -97,7 +97,7 @@ class BackendMetrics:
             ["service"],
         )
 
-        ***REMOVED*** Movie operation metrics
+        # Movie operation metrics
         self.movie_operations = self.registry.create_counter(
             "backend_movie_operations_total",
             "Total movie-related operations",
@@ -118,7 +118,7 @@ class BackendMetrics:
             buckets=(0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0),
         )
 
-        ***REMOVED*** Actor and cast operation metrics
+        # Actor and cast operation metrics
         self.actor_operations = self.registry.create_counter(
             "backend_actor_operations_total",
             "Total actor-related operations",
@@ -132,7 +132,7 @@ class BackendMetrics:
             buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0),
         )
 
-        ***REMOVED*** User collection operations
+        # User collection operations
         self.user_collection_operations = self.registry.create_counter(
             "backend_user_collection_operations_total",
             "Total user collection operations",
@@ -146,7 +146,7 @@ class BackendMetrics:
             buckets=(1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500),
         )
 
-        ***REMOVED*** Data integrity metrics
+        # Data integrity metrics
         self.data_validation_errors = self.registry.create_counter(
             "backend_data_validation_errors_total",
             "Total data validation errors",
@@ -159,7 +159,7 @@ class BackendMetrics:
             ["check_type", "status", "service"],
         )
 
-        ***REMOVED*** Genre and metadata operations
+        # Genre and metadata operations
         self.genre_operations = self.registry.create_counter(
             "backend_genre_operations_total",
             "Total genre-related operations",
@@ -172,7 +172,7 @@ class BackendMetrics:
             ["metadata_type", "operation", "status", "service"],
         )
 
-        ***REMOVED*** Performance optimization metrics
+        # Performance optimization metrics
         self.query_optimization = self.registry.create_histogram(
             "backend_query_optimization_impact_seconds",
             "Time saved through query optimization",
@@ -244,7 +244,7 @@ class BackendMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize filter count for better grouping
+        # Categorize filter count for better grouping
         if filters_count == 0:
             filters_category = "none"
         elif filters_count <= 2:
@@ -272,7 +272,7 @@ class BackendMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize batch size for better metrics grouping
+        # Categorize batch size for better metrics grouping
         if batch_size <= 10:
             size_range = "1-10"
         elif batch_size <= 50:
@@ -319,7 +319,7 @@ class BackendMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize cast size
+        # Categorize cast size
         if cast_size <= 5:
             size_range = "1-5"
         elif cast_size <= 15:
@@ -362,7 +362,7 @@ class BackendMetrics:
         }
         self.user_collection_operations.labels(**operation_labels).inc()
 
-        ***REMOVED*** Record collection size if provided
+        # Record collection size if provided
         if collection_size is not None:
             size_labels = {
                 "collection_type": collection_type,
@@ -453,7 +453,7 @@ class BackendMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Categorize page size
+        # Categorize page size
         if page_size <= 20:
             page_size_range = "1-20"
         elif page_size <= 50:
@@ -463,7 +463,7 @@ class BackendMetrics:
         else:
             page_size_range = "100+"
 
-        ***REMOVED*** Categorize total count
+        # Categorize total count
         if total_count <= 100:
             total_count_range = "1-100"
         elif total_count <= 1000:
@@ -493,7 +493,7 @@ class BackendMetrics:
         self.database_connection_pool.labels(**labels).set(active_connections)
 
 
-***REMOVED*** Global Backend metrics instance
+# Global Backend metrics instance
 _backend_metrics: BackendMetrics | None = None
 
 
@@ -510,13 +510,13 @@ def initialize_backend_metrics() -> BackendMetrics | None:
     """
     global _backend_metrics
     _backend_metrics = BackendMetrics()
-    ***REMOVED*** Return None if the metrics instance couldn't initialize properly
+    # Return None if the metrics instance couldn't initialize properly
     if _backend_metrics and not _backend_metrics.registry:
         _backend_metrics = None
     return _backend_metrics
 
 
-***REMOVED*** Decorator for tracking Backend operations
+# Decorator for tracking Backend operations
 def track_backend_operation(
     operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:
@@ -540,7 +540,7 @@ def track_backend_operation(
     return track_operation(registry, f"backend_{operation_name}", labels)
 
 
-***REMOVED*** Example usage decorators for common Backend operations
+# Example usage decorators for common Backend operations
 def track_movie_operation[T: Callable[..., Any]](func: T) -> T:
     """Track movie-related operations."""
     return track_backend_operation("movie_operation")(func)

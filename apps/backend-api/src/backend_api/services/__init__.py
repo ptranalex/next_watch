@@ -10,9 +10,9 @@ from .health_service import HealthService, close_health_service, get_health_serv
 from .movie_service import MovieService
 from .user_interaction import UserInteractionService
 
-***REMOVED*** Optional services
+# Optional services
 try:
-    from .suggestion_engine import SuggestionEngine  ***REMOVED*** noqa: F401
+    from .suggestion_engine import SuggestionEngine  # noqa: F401
 
     _suggestion_engine_available = True
 except ImportError:

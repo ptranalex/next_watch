@@ -16,7 +16,7 @@ from bff_api.services.clients.search import SearchAPIClient
 logger = get_logger(__name__)
 router = APIRouter(tags=["search"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "search": {
@@ -40,7 +40,7 @@ def _build_api_path(path: str) -> str:
     Returns:
         Full API path with version prefix
     """
-    ***REMOVED*** Remove leading slash if present to avoid double slashes
+    # Remove leading slash if present to avoid double slashes
     clean_path = path.lstrip("/")
     return f"/api/v1/{clean_path}"
 
@@ -67,7 +67,7 @@ async def _handle_backend_error(e: Exception, operation: str, **context: Any) ->
     )
 
 
-@rate_limit(requests=50, window=60)  ***REMOVED*** 50 searches per minute
+@rate_limit(requests=50, window=60)  # 50 searches per minute
 @router.get("/search")
 async def search_screen(
     q: str = Query(..., description="Search query"),
@@ -94,7 +94,7 @@ async def search_screen(
     Raises:
         HTTPException: If backend service is unavailable (502)
     """
-    ***REMOVED*** Record search request metrics
+    # Record search request metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_search_request("movie", "started")
@@ -107,11 +107,11 @@ async def search_screen(
             user_id=user_id,
         )
 
-        ***REMOVED*** Record successful search metrics
+        # Record successful search metrics
         if metrics:
             metrics.record_search_request("movie", "success")
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=results.get("results", []),
             page=page,
@@ -136,15 +136,15 @@ async def search_screen(
         return cast(dict[str, Any], response)
 
     except Exception as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_search_request("movie", "error")
         await _handle_backend_error(e, "search", query=q)
-        ***REMOVED*** This line is unreachable but satisfies type checker
+        # This line is unreachable but satisfies type checker
         return {}
 
 
-@rate_limit(requests=100, window=60)  ***REMOVED*** 100 suggestions per minute (higher for typeahead)
+@rate_limit(requests=100, window=60)  # 100 suggestions per minute (higher for typeahead)
 @router.get("/search/suggestions")
 async def get_search_suggestions(
     query: str = Query(..., description="Search query"),
@@ -181,7 +181,7 @@ async def get_search_suggestions(
             query=query,
         )
 
-        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        # Use ResponseBuilder search pattern for consistent response structure
         response = responses.search(
             query=query,
             results=result.get("results", []),
@@ -203,7 +203,7 @@ async def get_search_suggestions(
 
     except Exception as e:
         await _handle_backend_error(e, "search_suggestions", query=query)
-        ***REMOVED*** This line is unreachable but satisfies type checker
+        # This line is unreachable but satisfies type checker
         return {}
 
 
@@ -246,7 +246,7 @@ async def get_text_suggestions(
             query=query,
         )
 
-        ***REMOVED*** Use ResponseBuilder search pattern for consistent response structure
+        # Use ResponseBuilder search pattern for consistent response structure
         response = responses.search(
             query=query,
             results=result.get("results", []),
@@ -268,7 +268,7 @@ async def get_text_suggestions(
 
     except Exception as e:
         await _handle_backend_error(e, "text_suggestions", query=query)
-        ***REMOVED*** This line is unreachable but satisfies type checker
+        # This line is unreachable but satisfies type checker
         return {}
 
 
@@ -316,7 +316,7 @@ async def search_all_entities(
             types=types,
         )
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=result.get("results", []),
             page=page,
@@ -343,5 +343,5 @@ async def search_all_entities(
 
     except Exception as e:
         await _handle_backend_error(e, "search_all", query=query)
-        ***REMOVED*** This line is unreachable but satisfies type checker
+        # This line is unreachable but satisfies type checker
         return {}

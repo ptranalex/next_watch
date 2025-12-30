@@ -15,10 +15,10 @@ from recommendation_api.config import settings
 
 logger = get_logger(__name__)
 
-***REMOVED*** Default expiration time for cache entries (1 day in seconds)
+# Default expiration time for cache entries (1 day in seconds)
 DEFAULT_CACHE_TTL = 86400
 
-***REMOVED*** Key prefixes for different types of data
+# Key prefixes for different types of data
 SIMILAR_MOVIES_KEY_PREFIX = "similar_movies"
 
 
@@ -52,7 +52,7 @@ class RedisRepository:
             try:
                 self._client = redis.Redis.from_url(
                     self.redis_url,
-                    decode_responses=True,  ***REMOVED*** Auto-decode bytes to strings
+                    decode_responses=True,  # Auto-decode bytes to strings
                     socket_connect_timeout=5,
                     socket_timeout=5,
                     retry_on_timeout=True,
@@ -114,11 +114,11 @@ class RedisRepository:
 
         key = self._similar_movies_key(movie_id)
 
-        ***REMOVED*** Convert to a serializable format (list of lists)
+        # Convert to a serializable format (list of lists)
         data = [[m_id, float(score)] for m_id, score in similar_movies]
 
         try:
-            ***REMOVED*** Store as JSON string
+            # Store as JSON string
             json_data = json.dumps(data)
             result = self.client.set(key, json_data, ex=ttl or self.default_ttl)
             logger.debug(f"Stored {len(similar_movies)} similar movies for movie {movie_id}")
@@ -146,25 +146,25 @@ class RedisRepository:
         key = self._similar_movies_key(movie_id)
 
         try:
-            ***REMOVED*** Get the cached data
+            # Get the cached data
             json_data = self.client.get(key)
             if not json_data:
                 logger.debug(f"No cached similar movies found for movie {movie_id}")
                 return None
 
-            ***REMOVED*** Parse the JSON data - cast to str to satisfy type checker
+            # Parse the JSON data - cast to str to satisfy type checker
             data = json.loads(cast(str, json_data))
 
-            ***REMOVED*** Convert to tuples and apply filters
+            # Convert to tuples and apply filters
             similar_movies = [(int(m_id), float(score)) for m_id, score in data]
 
-            ***REMOVED*** Apply min_score filter if specified
+            # Apply min_score filter if specified
             if min_score is not None:
                 similar_movies = [
                     (m_id, score) for m_id, score in similar_movies if score >= min_score
                 ]
 
-            ***REMOVED*** Apply limit if specified
+            # Apply limit if specified
             if limit is not None and limit > 0:
                 similar_movies = similar_movies[:limit]
 
@@ -203,15 +203,15 @@ class RedisRepository:
             Dictionary with cache statistics
         """
         try:
-            ***REMOVED*** Get all similar movies keys
+            # Get all similar movies keys
             pattern = f"{SIMILAR_MOVIES_KEY_PREFIX}:*"
             keys_result = self.client.keys(pattern)
-            ***REMOVED*** Convert to list to satisfy type checker
+            # Convert to list to satisfy type checker
             similar_keys = list(cast(list[str], keys_result))
 
-            ***REMOVED*** Get server info
+            # Get server info
             info_result = self.client.info()
-            ***REMOVED*** Convert to dict to satisfy type checker
+            # Convert to dict to satisfy type checker
             info = cast(dict[str, Any], info_result)
 
             return {
@@ -234,14 +234,14 @@ class RedisRepository:
         try:
             pattern = f"{SIMILAR_MOVIES_KEY_PREFIX}:*"
             keys_result = self.client.keys(pattern)
-            ***REMOVED*** Convert to list to satisfy type checker
+            # Convert to list to satisfy type checker
             keys = list(cast(list[str], keys_result))
 
             if not keys:
                 logger.debug("No similar movies keys to delete")
                 return 0
 
-            ***REMOVED*** Delete keys in batches to avoid blocking Redis
+            # Delete keys in batches to avoid blocking Redis
             batch_size = 100
             deleted = 0
 
@@ -273,7 +273,7 @@ class RedisRepository:
             logger.warning("Empty data provided for batch storage")
             return 0
 
-        ***REMOVED*** Use pipeline for better performance
+        # Use pipeline for better performance
         pipe = self.client.pipeline()
         count = 0
 
@@ -283,14 +283,14 @@ class RedisRepository:
                     continue
 
                 key = self._similar_movies_key(movie_id)
-                ***REMOVED*** Convert to a serializable format
+                # Convert to a serializable format
                 data = [[m_id, float(score)] for m_id, score in similar_movies]
                 json_data = json.dumps(data)
 
                 pipe.set(key, json_data, ex=ttl or self.default_ttl)
                 count += 1
 
-            ***REMOVED*** Execute all commands in the pipeline
+            # Execute all commands in the pipeline
             pipe.execute()
             logger.info(f"Stored similar movies for {count} movies in batch")
             return count
@@ -312,18 +312,18 @@ class RedisRepository:
             return {}
 
         try:
-            ***REMOVED*** Use pipeline for batch checking
+            # Use pipeline for batch checking
             pipe = self.client.pipeline()
 
-            ***REMOVED*** Add EXISTS commands for all keys
+            # Add EXISTS commands for all keys
             for movie_id in movie_ids:
                 key = self._similar_movies_key(movie_id)
                 pipe.exists(key)
 
-            ***REMOVED*** Execute all checks at once
+            # Execute all checks at once
             results = pipe.execute()
 
-            ***REMOVED*** Create result mapping
+            # Create result mapping
             cached_status = {}
             for movie_id, exists in zip(movie_ids, results, strict=False):
                 cached_status[movie_id] = bool(exists)
@@ -335,7 +335,7 @@ class RedisRepository:
 
         except RedisError as e:
             logger.error(f"Failed to batch check cached movies: {e}")
-            ***REMOVED*** Return all False on error
+            # Return all False on error
             return {movie_id: False for movie_id in movie_ids}
 
     def store_similar_movie_recommendations(
@@ -361,7 +361,7 @@ class RedisRepository:
         key = self._similar_movies_key(movie_id)
 
         try:
-            ***REMOVED*** Store as JSON string
+            # Store as JSON string
             json_data = json.dumps(recommendations)
             result = self.client.set(key, json_data, ex=ttl or self.default_ttl)
             logger.debug(
@@ -391,29 +391,29 @@ class RedisRepository:
         key = self._similar_movies_key(movie_id)
 
         try:
-            ***REMOVED*** Get the cached data
+            # Get the cached data
             json_data = self.client.get(key)
             if not json_data:
                 logger.debug(f"No cached similar movie recommendations found for movie {movie_id}")
                 return None
 
-            ***REMOVED*** Parse the JSON data
+            # Parse the JSON data
             recommendations: list[dict[str, Any]] = json.loads(cast(str, json_data))
 
-            ***REMOVED*** Handle backward compatibility - check if it's the old format (list of lists)
+            # Handle backward compatibility - check if it's the old format (list of lists)
             if recommendations and isinstance(recommendations[0], list):
                 logger.debug(
                     f"Found old format cache for movie {movie_id}, returning None to trigger recomputation"
                 )
                 return None
 
-            ***REMOVED*** Apply min_score filter if specified
+            # Apply min_score filter if specified
             if min_score is not None:
                 recommendations = [
                     rec for rec in recommendations if rec.get("similarity_score", 0) >= min_score
                 ]
 
-            ***REMOVED*** Apply limit if specified
+            # Apply limit if specified
             if limit is not None and limit > 0:
                 recommendations = recommendations[:limit]
 
@@ -427,7 +427,7 @@ class RedisRepository:
             return None
 
 
-***REMOVED*** Create a singleton instance for global use
+# Create a singleton instance for global use
 _redis_repository: RedisRepository | None = None
 
 
@@ -443,7 +443,7 @@ def get_redis_repository() -> RedisRepository:
     return _redis_repository
 
 
-***REMOVED*** For backwards compatibility, also provide standalone functions
+# For backwards compatibility, also provide standalone functions
 def store_similar_movies(
     movie_id: int,
     similar_movies: list[tuple[int, float]],

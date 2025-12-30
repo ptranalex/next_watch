@@ -1,21 +1,21 @@
-***REMOVED*** Tracing Best Practices Guide
+# Tracing Best Practices Guide
 
 This document outlines when and how to enable distributed tracing across different environments.
 
-***REMOVED******REMOVED*** 🎯 Core Principle
+## 🎯 Core Principle
 
 **Enable tracing strategically based on environment and needs, not universally.**
 
-***REMOVED******REMOVED*** 📊 Environment-Specific Configuration
+## 📊 Environment-Specific Configuration
 
-***REMOVED******REMOVED******REMOVED*** 🛠️ Development Environment
+### 🛠️ Development Environment
 
 **Purpose**: Full visibility for debugging and feature development
 
 ```bash
-***REMOVED*** Example (dev): infra/env/development.example or per-service .env/.env.local
+# Example (dev): infra/env/development.example or per-service .env/.env.local
 ENABLE_TRACING=true
-TRACING_SAMPLE_RATE=1.0          ***REMOVED*** 100% sampling
+TRACING_SAMPLE_RATE=1.0          # 100% sampling
 TRACING_ENDPOINT=http://localhost:4317
 ```
 
@@ -26,14 +26,14 @@ TRACING_ENDPOINT=http://localhost:4317
 - Performance impact acceptable with low traffic
 - Complete trace coverage for testing
 
-***REMOVED******REMOVED******REMOVED*** 🧪 Staging/Testing Environment
+### 🧪 Staging/Testing Environment
 
 **Purpose**: Validate tracing works before production + performance testing
 
 ```bash
-***REMOVED*** .env.staging
+# .env.staging
 ENABLE_TRACING=true
-TRACING_SAMPLE_RATE=0.3          ***REMOVED*** 30% sampling
+TRACING_SAMPLE_RATE=0.3          # 30% sampling
 TRACING_ENDPOINT=http://tempo-staging:4317
 ```
 
@@ -44,14 +44,14 @@ TRACING_ENDPOINT=http://tempo-staging:4317
 - Performance testing with tracing overhead
 - Catch tracing-related issues before production
 
-***REMOVED******REMOVED******REMOVED*** 🚀 Production Environment
+### 🚀 Production Environment
 
 **Purpose**: Essential observability with minimal performance impact
 
 ```bash
-***REMOVED*** Production env (Docker Compose): .env.prod
+# Production env (Docker Compose): .env.prod
 ENABLE_TRACING=true
-TRACING_SAMPLE_RATE=0.05         ***REMOVED*** 5% sampling
+TRACING_SAMPLE_RATE=0.05         # 5% sampling
 TRACING_ENDPOINT=http://tempo-prod:4317
 ```
 
@@ -62,23 +62,23 @@ TRACING_ENDPOINT=http://tempo-prod:4317
 - Still get valuable debugging information
 - Can increase temporarily for incident investigation
 
-***REMOVED******REMOVED*** 🔧 Configuration Strategies
+## 🔧 Configuration Strategies
 
-***REMOVED******REMOVED******REMOVED*** Strategy 1: Environment Variables (Recommended)
+### Strategy 1: Environment Variables (Recommended)
 
 ```bash
-***REMOVED*** Service automatically picks up configuration
+# Service automatically picks up configuration
 export ENABLE_TRACING=true
 export TRACING_SAMPLE_RATE=0.1
 
-***REMOVED*** Start service - tracing configured automatically
+# Start service - tracing configured automatically
 python -m uvicorn app:create_app --factory
 ```
 
-***REMOVED******REMOVED******REMOVED*** Strategy 2: Service-Specific Configuration
+### Strategy 2: Service-Specific Configuration
 
 ```yaml
-***REMOVED*** Docker Compose (example)
+# Docker Compose (example)
 services:
   backend-api:
     environment:
@@ -88,33 +88,33 @@ services:
   user-facing-bff:
     environment:
       ENABLE_TRACING: "true"
-      TRACING_SAMPLE_RATE: "0.2" ***REMOVED*** Higher sampling for user-facing service
+      TRACING_SAMPLE_RATE: "0.2" # Higher sampling for user-facing service
 
   internal-ml-api:
     environment:
       ENABLE_TRACING: "true"
-      TRACING_SAMPLE_RATE: "0.02" ***REMOVED*** Lower sampling for high-volume service
+      TRACING_SAMPLE_RATE: "0.02" # Lower sampling for high-volume service
 ```
 
-***REMOVED******REMOVED******REMOVED*** Strategy 3: Dynamic Configuration
+### Strategy 3: Dynamic Configuration
 
 ```python
-***REMOVED*** For advanced use cases - adaptive sampling
+# For advanced use cases - adaptive sampling
 class AdaptiveSampling:
     def get_sample_rate(self, endpoint: str, load: float) -> float:
         if endpoint.startswith("/health"):
-            return 0.01  ***REMOVED*** Low sampling for health checks
+            return 0.01  # Low sampling for health checks
         elif endpoint.startswith("/api/critical"):
-            return 0.5   ***REMOVED*** High sampling for critical endpoints
+            return 0.5   # High sampling for critical endpoints
         elif load > 0.8:
-            return 0.02  ***REMOVED*** Reduce sampling under high load
+            return 0.02  # Reduce sampling under high load
         else:
-            return 0.1   ***REMOVED*** Default sampling
+            return 0.1   # Default sampling
 ```
 
-***REMOVED******REMOVED*** 🎯 When to Enable/Disable Tracing
+## 🎯 When to Enable/Disable Tracing
 
-***REMOVED******REMOVED******REMOVED*** ✅ Always Enable Tracing When:
+### ✅ Always Enable Tracing When:
 
 1. **New Service Development**: Full visibility into request flow
 2. **Debugging Production Issues**: Increase sampling temporarily
@@ -122,29 +122,29 @@ class AdaptiveSampling:
 4. **Service Integration**: Validate cross-service communication
 5. **Compliance Requirements**: Some regulations require audit trails
 
-***REMOVED******REMOVED******REMOVED*** ⚠️ Consider Disabling When:
+### ⚠️ Consider Disabling When:
 
 1. **Emergency Performance Issues**: Temporary disable to reduce overhead
 2. **High-Volume Batch Jobs**: May not need request-level tracing
 3. **Cost Constraints**: Very high traffic with limited observability budget
 4. **Privacy-Sensitive Services**: Some traces may contain PII
 
-***REMOVED******REMOVED******REMOVED*** 🔄 Temporarily Increase Sampling When:
+### 🔄 Temporarily Increase Sampling When:
 
 ```bash
-***REMOVED*** Incident investigation
-export TRACING_SAMPLE_RATE=1.0  ***REMOVED*** Temporary 100%
+# Incident investigation
+export TRACING_SAMPLE_RATE=1.0  # Temporary 100%
 
-***REMOVED*** Performance debugging
-export TRACING_SAMPLE_RATE=0.5  ***REMOVED*** Temporary 50%
+# Performance debugging
+export TRACING_SAMPLE_RATE=0.5  # Temporary 50%
 
-***REMOVED*** Feature rollout validation
-export TRACING_SAMPLE_RATE=0.3  ***REMOVED*** Temporary 30%
+# Feature rollout validation
+export TRACING_SAMPLE_RATE=0.3  # Temporary 30%
 ```
 
-***REMOVED******REMOVED*** 📈 Sampling Rate Guidelines
+## 📈 Sampling Rate Guidelines
 
-***REMOVED******REMOVED******REMOVED*** Traffic Volume Based
+### Traffic Volume Based
 
 ```yaml
 Request Volume Guide:
@@ -155,7 +155,7 @@ Request Volume Guide:
   > 1M requests/day:     1-2% sampling
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service Type Based
+### Service Type Based
 
 ```yaml
 Service Type Recommendations:
@@ -166,22 +166,22 @@ Service Type Recommendations:
   ML inference: 2-5% (performance sensitive)
 ```
 
-***REMOVED******REMOVED*** 🔍 Advanced Configuration
+## 🔍 Advanced Configuration
 
-***REMOVED******REMOVED******REMOVED*** Head-Based Sampling (Current Implementation)
+### Head-Based Sampling (Current Implementation)
 
 ```python
-***REMOVED*** What we implemented - decides at request start
-TRACING_SAMPLE_RATE=0.1  ***REMOVED*** 10% of all requests traced end-to-end
+# What we implemented - decides at request start
+TRACING_SAMPLE_RATE=0.1  # 10% of all requests traced end-to-end
 ```
 
 **Pros**: Simple, predictable resource usage
 **Cons**: May miss important traces (errors, slow requests)
 
-***REMOVED******REMOVED******REMOVED*** Tail-Based Sampling (Future Enhancement)
+### Tail-Based Sampling (Future Enhancement)
 
 ```python
-***REMOVED*** Advanced - decides after request completes
+# Advanced - decides after request completes
 sample_if:
   - error_occurred: true
   - duration > 1000ms
@@ -192,33 +192,33 @@ sample_if:
 **Pros**: Intelligent sampling, catch all errors
 **Cons**: More complex, requires buffering
 
-***REMOVED******REMOVED*** 🚨 Emergency Controls
+## 🚨 Emergency Controls
 
-***REMOVED******REMOVED******REMOVED*** Quick Disable (Emergency)
+### Quick Disable (Emergency)
 
 ```bash
-***REMOVED*** Fastest way to disable tracing
+# Fastest way to disable tracing
 export ENABLE_TRACING=false
 
-***REMOVED*** Or reduce to minimum
-export TRACING_SAMPLE_RATE=0.001  ***REMOVED*** 0.1%
+# Or reduce to minimum
+export TRACING_SAMPLE_RATE=0.001  # 0.1%
 ```
 
-***REMOVED******REMOVED******REMOVED*** Service Restart Required
+### Service Restart Required
 
 After changing tracing configuration, services need restart:
 
 ```bash
-***REMOVED*** Graceful restart with new config
+# Graceful restart with new config
 docker compose -f infra/compose/prod.yml --env-file .env.prod restart backend-api
 
-***REMOVED*** Or for development
-pkill -f uvicorn  ***REMOVED*** Kill and restart manually
+# Or for development
+pkill -f uvicorn  # Kill and restart manually
 ```
 
-***REMOVED******REMOVED*** 📊 Monitoring Tracing Health
+## 📊 Monitoring Tracing Health
 
-***REMOVED******REMOVED******REMOVED*** Key Metrics to Monitor
+### Key Metrics to Monitor
 
 ```yaml
 Tracing Health Metrics:
@@ -229,7 +229,7 @@ Tracing Health Metrics:
   - tempo_ingester_traces_received_total
 ```
 
-***REMOVED******REMOVED******REMOVED*** Alerts to Set Up
+### Alerts to Set Up
 
 ```yaml
 Critical Alerts:
@@ -243,36 +243,36 @@ Warning Alerts:
   - Missing traces from key services
 ```
 
-***REMOVED******REMOVED*** 🎯 Team Guidelines
+## 🎯 Team Guidelines
 
-***REMOVED******REMOVED******REMOVED*** Developer Workflow
+### Developer Workflow
 
 ```bash
-***REMOVED*** Starting development work
-./scripts/start-monitoring-with-tempo.sh  ***REMOVED*** Start observability stack
-./scripts/start-backend-with-tracing.sh   ***REMOVED*** Start service with tracing
+# Starting development work
+./scripts/start-monitoring-with-tempo.sh  # Start observability stack
+./scripts/start-backend-with-tracing.sh   # Start service with tracing
 
-***REMOVED*** During debugging
-export TRACING_SAMPLE_RATE=1.0  ***REMOVED*** Increase sampling temporarily
+# During debugging
+export TRACING_SAMPLE_RATE=1.0  # Increase sampling temporarily
 
-***REMOVED*** Before committing
-./scripts/test-tracing-integration.sh  ***REMOVED*** Validate tracing works
+# Before committing
+./scripts/test-tracing-integration.sh  # Validate tracing works
 ```
 
-***REMOVED******REMOVED******REMOVED*** Operations Workflow
+### Operations Workflow
 
 ```bash
-***REMOVED*** Production deployment
+# Production deployment
 docker compose -f infra/compose/prod.yml --env-file .env.prod up -d
 
-***REMOVED*** Incident investigation
+# Incident investigation
 kubectl set env deployment/backend-api TRACING_SAMPLE_RATE=0.5
 
-***REMOVED*** Performance optimization
+# Performance optimization
 kubectl set env deployment/ml-api TRACING_SAMPLE_RATE=0.01
 ```
 
-***REMOVED******REMOVED*** 🏆 Success Metrics
+## 🏆 Success Metrics
 
 Your tracing strategy is successful when:
 
@@ -282,7 +282,7 @@ Your tracing strategy is successful when:
 - ✅ **Usefulness**: Traces help resolve 80%+ of debugging scenarios
 - ✅ **Adoption**: Development team actively uses traces for debugging
 
-***REMOVED******REMOVED*** 🔄 Optimization Cycle
+## 🔄 Optimization Cycle
 
 1. **Start Conservative**: 5% sampling in production
 2. **Monitor Usage**: How often do you need traces you don't have?

@@ -17,7 +17,7 @@ class FastAPIConfigMixin(BaseModel):
     This mixin adds FastAPI-specific configuration options to a ServiceConfig.
     """
 
-    ***REMOVED*** API documentation
+    # API documentation
     docs_url: str | None = Field(
         default="/docs", description="URL for Swagger UI documentation (None to disable)"
     )
@@ -28,7 +28,7 @@ class FastAPIConfigMixin(BaseModel):
         default="/openapi.json", description="URL for OpenAPI schema (None to disable)"
     )
 
-    ***REMOVED*** CORS configuration (additional to base ServiceConfig)
+    # CORS configuration (additional to base ServiceConfig)
     cors_allow_credentials: bool = Field(
         default=True, description="Allow credentials for CORS requests"
     )
@@ -39,7 +39,7 @@ class FastAPIConfigMixin(BaseModel):
         default=["*"], description="List of allowed HTTP headers for CORS"
     )
 
-    ***REMOVED*** Service client configuration
+    # Service client configuration
     service_urls: dict[str, str] = Field(
         default_factory=dict, description="URLs for external services"
     )
@@ -47,10 +47,10 @@ class FastAPIConfigMixin(BaseModel):
         default_factory=dict, description="Timeout configurations for external services"
     )
 
-    ***REMOVED*** Feature flags
+    # Feature flags
     feature_flags: dict[str, bool] = Field(default_factory=dict, description="Feature toggle flags")
 
-    ***REMOVED*** Performance
+    # Performance
     workers: int = Field(default=1, description="Number of worker processes")
     keepalive: int = Field(default=65, description="Keep-alive timeout")
 
@@ -158,6 +158,6 @@ class FastAPIConfig(BasicFastAPIConfig, MonitoringConfigMixin):
     pass
 
 
-***REMOVED*** Backward compatibility - keep the old class name as an alias
-***REMOVED*** Services that inherit from MonitoringConfigMixin should use FastAPIConfig
-***REMOVED*** Services that don't need monitoring should use BasicFastAPIConfig
+# Backward compatibility - keep the old class name as an alias
+# Services that inherit from MonitoringConfigMixin should use FastAPIConfig
+# Services that don't need monitoring should use BasicFastAPIConfig

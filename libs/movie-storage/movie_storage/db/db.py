@@ -10,7 +10,7 @@ from movie_storage.config.app import Config
 
 logger = logging.getLogger(__name__)
 
-***REMOVED*** Global variables
+# Global variables
 engine = None
 
 
@@ -26,17 +26,17 @@ def get_engine(db_url: str | None = None, config: Config | None = None) -> Engin
     """
     global engine
 
-    ***REMOVED*** Get config if not provided
+    # Get config if not provided
     if config is None:
         config = Config.get_instance()
 
-    ***REMOVED*** Use provided URL or config
+    # Use provided URL or config
     url = db_url or config.database_url
 
     if not url:
         raise ValueError("Database URL must be provided")
 
-    ***REMOVED*** Create new engine if needed or if a specific URL is requested
+    # Create new engine if needed or if a specific URL is requested
     should_create_new = engine is None
     if db_url is not None and db_url != config.database_url:
         should_create_new = True
@@ -44,8 +44,8 @@ def get_engine(db_url: str | None = None, config: Config | None = None) -> Engin
     if should_create_new:
         logger.info(f"Creating new database engine with URL: {config._mask_database_password(url)}")
 
-        ***REMOVED*** Use database_echo from config, but default to False for safety
-        ***REMOVED*** Set DATABASE_ECHO=true in .env/.env.local to enable SQL logging
+        # Use database_echo from config, but default to False for safety
+        # Set DATABASE_ECHO=true in .env/.env.local to enable SQL logging
         echo_sql = False
         if config.database_echo:
             logger.info("SQL echo is enabled - SQL statements will be logged")
@@ -59,7 +59,7 @@ def get_engine(db_url: str | None = None, config: Config | None = None) -> Engin
             pool_timeout=config.database_pool_timeout,
         )
 
-    ***REMOVED*** At this point, engine should never be None
+    # At this point, engine should never be None
     if engine is None:
         raise RuntimeError("Failed to create database engine")
 
@@ -95,18 +95,18 @@ def init_db(
         create_tables: Whether to create tables based on SQLModel classes
         config: Config instance (optional)
     """
-    ***REMOVED*** Get config if not provided
+    # Get config if not provided
     if config is None:
         config = Config.get_instance()
 
-    ***REMOVED*** Update config with provided URL if any
+    # Update config with provided URL if any
     if db_url:
         config.database_url = db_url
 
-    ***REMOVED*** Get engine with updated config
+    # Get engine with updated config
     engine = get_engine(config=config)
 
     if create_tables:
         logger.info("Creating database tables")
-        ***REMOVED*** Import models to ensure they're registered with SQLModel
+        # Import models to ensure they're registered with SQLModel
         SQLModel.metadata.create_all(engine)

@@ -1,6 +1,6 @@
-***REMOVED*** Standardized Error Handling
+# Standardized Error Handling
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This application uses a consistent error handling approach across all services, queries, and API endpoints, providing:
 
@@ -9,7 +9,7 @@ This application uses a consistent error handling approach across all services, 
 3. **Centralized Translation**: Error types are automatically mapped to HTTP status codes
 4. **Middleware Support**: Error handling middleware for global error processing
 
-***REMOVED******REMOVED*** Standard Error Types
+## Standard Error Types
 
 All application errors extend from the base `ServiceError` class:
 
@@ -21,10 +21,10 @@ All application errors extend from the base `ServiceError` class:
 | `PermissionError`       | User lacks required permissions        | 403 Forbidden             |
 | `ServiceError`          | Base class for all other errors        | 500 Internal Server Error |
 
-***REMOVED******REMOVED******REMOVED*** Example Usage
+### Example Usage
 
 ```python
-***REMOVED*** In service or query class
+# In service or query class
 def get_movie(self, movie_id: int) -> Movie:
     if movie_id <= 0:
         raise ValidationError(
@@ -43,7 +43,7 @@ def get_movie(self, movie_id: int) -> Movie:
     return movie
 ```
 
-***REMOVED******REMOVED*** API Response Format
+## API Response Format
 
 All API error responses follow this structure:
 
@@ -59,7 +59,7 @@ All API error responses follow this structure:
 }
 ```
 
-***REMOVED******REMOVED*** Error Handling Middleware
+## Error Handling Middleware
 
 The application includes a global error handling middleware that:
 
@@ -68,9 +68,9 @@ The application includes a global error handling middleware that:
 3. Converts errors to standard HTTP responses
 4. Handles unexpected errors with a generic response
 
-***REMOVED******REMOVED*** Implementation Details
+## Implementation Details
 
-***REMOVED******REMOVED******REMOVED*** In Routes
+### In Routes
 
 Routes should use the `service_error_to_http_exception` function:
 
@@ -83,7 +83,7 @@ async def get_movie(movie_id: int):
         raise service_error_to_http_exception(e)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using Middleware
+### Using Middleware
 
 With the middleware approach, you can simplify route handlers:
 
@@ -91,10 +91,10 @@ With the middleware approach, you can simplify route handlers:
 @router.get("/{movie_id}")
 async def get_movie(movie_id: int):
     return movie_service.get_movie(movie_id)
-    ***REMOVED*** Middleware will catch and process any ServiceErrors
+    # Middleware will catch and process any ServiceErrors
 ```
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 1. **Be Specific**: Use the most specific error type for the situation
 2. **Clear Messages**: Error messages should be clear and actionable

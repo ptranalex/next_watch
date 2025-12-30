@@ -9,7 +9,7 @@ allow-direct-references = true
 name = "config"
 version = "0.1.0"
 description = "Unified configuration management library for NextWatch monorepo"
-readme = {text = "***REMOVED*** NextWatch Configuration Library\n\nUnified configuration management for NextWatch services", content-type = "text/markdown"}
+readme = {text = "# NextWatch Configuration Library\n\nUnified configuration management for NextWatch services", content-type = "text/markdown"}
 license = "MIT"
 license-files = ["LICENSE*"]
 authors = [{ name = "Alex Tran" }]
@@ -33,33 +33,33 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    ***REMOVED*** Core configuration dependencies
-    "pydantic>=2.4.2",           ***REMOVED*** Data validation and settings
-    "pydantic-settings>=2.1.0",  ***REMOVED*** Settings management
-    "python-dotenv>=1.0.0",      ***REMOVED*** Environment variable loading
+    # Core configuration dependencies
+    "pydantic>=2.4.2",           # Data validation and settings
+    "pydantic-settings>=2.1.0",  # Settings management
+    "python-dotenv>=1.0.0",      # Environment variable loading
 
-    ***REMOVED*** Structured logging
-    "structlog>=24.1.0",         ***REMOVED*** Structured logging
+    # Structured logging
+    "structlog>=24.1.0",         # Structured logging
 
-    ***REMOVED*** CLI framework
-    "typer>=0.15.2",             ***REMOVED*** CLI framework
-    "rich>=13.7.0",              ***REMOVED*** Terminal formatting
+    # CLI framework
+    "typer>=0.15.2",             # CLI framework
+    "rich>=13.7.0",              # Terminal formatting
 ]
 
 [project.optional-dependencies]
 dev = [
-    ***REMOVED*** Testing
+    # Testing
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
 
-    ***REMOVED*** Code quality
+    # Code quality
     "black>=23.10.1",
     "isort>=5.12.0",
     "flake8>=6.1.0",
     "mypy>=1.7.0",
 
-    ***REMOVED*** Pre-commit hooks
+    # Pre-commit hooks
     "pre-commit>=3.6.0",
 ]
 docs = [
@@ -77,7 +77,7 @@ Repository = "https://github.com/nextwatch/nextwatch/tree/main/libs/config"
 Issues = "https://github.com/nextwatch/nextwatch/issues"
 Documentation = "https://docs.nextwatch.dev/config"
 
-***REMOVED*** Hatch configuration
+# Hatch configuration
 [tool.hatch.version]
 source = "vcs"
 
@@ -93,7 +93,7 @@ packages = ["src/config"]
 [tool.hatch.build.sources]
 "src" = ""
 
-***REMOVED*** Single consolidated environment for everything
+# Single consolidated environment for everything
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"
@@ -104,15 +104,15 @@ PYTHONPATH = "src"
 
 [tool.hatch.envs.default.scripts]
 
-***REMOVED*** CLI access
+# CLI access
 cli = "python -m config.cli"
 
-***REMOVED*** Configuration utilities
+# Configuration utilities
 validate = "python -m config.cli validate"
 display = "python -m config.cli display"
 export = "python -m config.cli export"
 
-***REMOVED*** Development tools
+# Development tools
 lint = [
     "black .",
     "isort .",
@@ -126,17 +126,17 @@ format = [
     "isort ."
 ]
 
-***REMOVED*** Testing different service configurations
+# Testing different service configurations
 test-backend-api = "python -m config.testing.test_backend_api"
 test-bff-api = "python -m config.testing.test_bff_api"
 test-auth-api = "python -m config.testing.test_auth_api"
 
-***REMOVED*** Example configurations
+# Example configurations
 example-backend = "python examples/backend_api_config.py"
 example-bff = "python examples/bff_api_config.py"
 example-worker = "python examples/worker_config.py"
 
-***REMOVED*** Tool configurations
+# Tool configurations
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -159,7 +159,7 @@ markers = [
 
 [tool.mypy]
 python_version = "3.12"
-***REMOVED*** Strict settings
+# Strict settings
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
@@ -171,19 +171,19 @@ disallow_untyped_calls = true
 disallow_any_generics = true
 disallow_subclassing_any = true
 
-***REMOVED*** Warning settings
+# Warning settings
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_return_any = true
 warn_unreachable = true
 
-***REMOVED*** Error reporting
+# Error reporting
 pretty = true
 show_column_numbers = true
 show_error_context = true
 
-***REMOVED*** Importing
+# Importing
 ignore_missing_imports = false
 follow_imports = "normal"
 

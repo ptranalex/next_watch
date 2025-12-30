@@ -5,7 +5,7 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
-***REMOVED*** Disable OpenTelemetry in tests to avoid noisy exporter retries to localhost:4317.
+# Disable OpenTelemetry in tests to avoid noisy exporter retries to localhost:4317.
 os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 os.environ.setdefault("OTEL_TRACES_EXPORTER", "none")
 os.environ.setdefault("OTEL_METRICS_EXPORTER", "none")
@@ -26,7 +26,7 @@ def test_register_login_verify_refresh_and_me(client: TestClient) -> None:
     email = "user@example.com"
     password = "strong-pass-123"
 
-    ***REMOVED*** Register
+    # Register
     resp = client.post(
         "/auth/v1/users",
         json={
@@ -42,7 +42,7 @@ def test_register_login_verify_refresh_and_me(client: TestClient) -> None:
     assert user["email"] == email
     assert user["username"] == "tester"
 
-    ***REMOVED*** Login (OAuth2 form)
+    # Login (OAuth2 form)
     resp = client.post(
         "/auth/v1/tokens",
         data={"username": email, "password": password},
@@ -53,7 +53,7 @@ def test_register_login_verify_refresh_and_me(client: TestClient) -> None:
     assert tokens["access_token"]
     assert tokens["refresh_token"]
 
-    ***REMOVED*** Verify token
+    # Verify token
     resp = client.post(
         "/auth/v1/tokens/verify",
         json={"token": tokens["access_token"]},
@@ -65,7 +65,7 @@ def test_register_login_verify_refresh_and_me(client: TestClient) -> None:
     assert verification["email"] == email
     assert verification["username"] == "tester"
 
-    ***REMOVED*** Current user profile
+    # Current user profile
     resp = client.get(
         "/auth/v1/users/me",
         headers={"Authorization": f"Bearer {tokens['access_token']}"},
@@ -76,7 +76,7 @@ def test_register_login_verify_refresh_and_me(client: TestClient) -> None:
     assert me["email"] == email
     assert me["username"] == "tester"
 
-    ***REMOVED*** Refresh token
+    # Refresh token
     resp = client.put(
         "/auth/v1/tokens",
         json={"refresh_token": tokens["refresh_token"]},

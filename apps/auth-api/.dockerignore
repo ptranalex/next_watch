@@ -1,7 +1,7 @@
-***REMOVED*** Auth API .dockerignore
-***REMOVED*** Minimize build context for faster builds
+# Auth API .dockerignore
+# Minimize build context for faster builds
 
-***REMOVED*** Other application directories (not needed for this service)
+# Other application directories (not needed for this service)
 apps/backend-api/
 apps/bff-api/
 apps/data-importer/
@@ -11,14 +11,14 @@ apps/recommendation-api/
 apps/search-api/
 apps/web-nextjs/
 
-***REMOVED*** Development artifacts
+# Development artifacts
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-***REMOVED*** Python artifacts
+# Python artifacts
 __pycache__/
 *.py[cod]
 *$py.class
@@ -42,7 +42,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-***REMOVED*** Virtual environments
+# Virtual environments
 .env
 .env.local
 .venv/
@@ -52,7 +52,7 @@ ENV/
 env.bak/
 venv.bak/
 
-***REMOVED*** Testing
+# Testing
 .tox/
 .nox/
 .coverage
@@ -66,36 +66,36 @@ coverage.xml
 .pytest_cache/
 cover/
 
-***REMOVED*** Jupyter Notebook
+# Jupyter Notebook
 .ipynb_checkpoints
 
-***REMOVED*** IPython
+# IPython
 profile_default/
 ipython_config.py
 
-***REMOVED*** pyenv
+# pyenv
 .python-version
 
-***REMOVED*** pipenv
+# pipenv
 Pipfile.lock
 
-***REMOVED*** poetry
+# poetry
 poetry.lock
 
-***REMOVED*** pdm
+# pdm
 .pdm.toml
 
-***REMOVED*** PEP 582
+# PEP 582
 __pypackages__/
 
-***REMOVED*** Celery stuff
+# Celery stuff
 celerybeat-schedule
 celerybeat.pid
 
-***REMOVED*** SageMath parsed files
+# SageMath parsed files
 *.sage.py
 
-***REMOVED*** Environments
+# Environments
 .env
 .env.local
 .venv
@@ -105,21 +105,21 @@ ENV/
 env.bak/
 venv.bak/
 
-***REMOVED*** mypy
+# mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-***REMOVED*** Pyre type checker
+# Pyre type checker
 .pyre/
 
-***REMOVED*** pytype static type analyzer
+# pytype static type analyzer
 .pytype/
 
-***REMOVED*** Cython debug symbols
+# Cython debug symbols
 cython_debug/
 
-***REMOVED*** Documentation
+# Documentation
 *.md
 docs/
 *.rst
@@ -129,11 +129,11 @@ AUTHORS
 CHANGELOG
 HISTORY
 
-***REMOVED*** Logs
+# Logs
 logs/
 *.log
 
-***REMOVED*** OS generated files
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -142,17 +142,17 @@ logs/
 ehthumbs.db
 Thumbs.db
 
-***REMOVED*** Git
+# Git
 .git/
 .gitignore
 .gitattributes
 
-***REMOVED*** Docker
+# Docker
 Dockerfile*
 .dockerignore
 docker-compose*.yml
 
-***REMOVED*** Infrastructure and scripts (not needed in container)
+# Infrastructure and scripts (not needed in container)
 infra/
 scripts/
 .github/
@@ -160,37 +160,37 @@ scripts/
 .travis.yml
 .gitlab-ci.yml
 
-***REMOVED*** Editor configs
+# Editor configs
 .editorconfig
 .eslintrc*
 .prettierrc*
 .stylelintrc*
 
-***REMOVED*** Package manager files
+# Package manager files
 package*.json
 yarn.lock
 pnpm-lock.yaml
 
-***REMOVED*** Cache directories
+# Cache directories
 .cache/
 .npm/
 .yarn/
 node_modules/
 
-***REMOVED*** Temporary files
+# Temporary files
 tmp/
 temp/
 *.tmp
 *.temp
 
-***REMOVED*** Model cache (large files)
+# Model cache (large files)
 model_cache/
 
-***REMOVED*** Build outputs
+# Build outputs
 results/
 artifacts/
 
-***REMOVED*** Exclude libs that aren't needed for Auth API
+# Exclude libs that aren't needed for Auth API
 libs/cache/
 libs/cli/
 libs/movie-storage/

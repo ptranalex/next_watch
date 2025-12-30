@@ -21,11 +21,11 @@ export enum LogLevel {
 
 // Colors for different log levels
 const LOG_COLORS: Record<LogLevel, string> = {
-  [LogLevel.DEBUG]: '***REMOVED***9e9e9e', // Gray
-  [LogLevel.INFO]: '***REMOVED***2196f3', // Blue
-  [LogLevel.WARN]: '***REMOVED***ff9800', // Orange
-  [LogLevel.ERROR]: '***REMOVED***f44336', // Red
-  [LogLevel.NONE]: '***REMOVED***000000', // Black, though should never be used
+  [LogLevel.DEBUG]: '#9e9e9e', // Gray
+  [LogLevel.INFO]: '#2196f3', // Blue
+  [LogLevel.WARN]: '#ff9800', // Orange
+  [LogLevel.ERROR]: '#f44336', // Red
+  [LogLevel.NONE]: '#000000', // Black, though should never be used
 }
 
 // Log level names for display

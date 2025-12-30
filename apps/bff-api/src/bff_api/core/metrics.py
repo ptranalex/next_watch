@@ -14,7 +14,7 @@ from fast_core.monitoring.metrics import (
     track_operation,
 )
 
-***REMOVED*** Type variable for function decorators
+# Type variable for function decorators
 F = TypeVar("F", bound=Callable[..., Any])
 
 logger = get_logger(__name__)
@@ -37,19 +37,19 @@ def normalize_endpoint_for_metrics(endpoint: str) -> str:
     if not endpoint:
         return endpoint
 
-    ***REMOVED*** Remove query parameters (they cause cardinality explosion)
+    # Remove query parameters (they cause cardinality explosion)
     endpoint = endpoint.split("?")[0]
 
-    ***REMOVED*** Split into parts and replace numeric IDs with generic placeholder
+    # Split into parts and replace numeric IDs with generic placeholder
     parts = endpoint.split("/")
     normalized_parts = []
 
     for part in parts:
         if part.isdigit():
-            ***REMOVED*** Replace numeric IDs with generic placeholder
+            # Replace numeric IDs with generic placeholder
             normalized_parts.append("{id}")
         else:
-            ***REMOVED*** Keep non-numeric parts as-is
+            # Keep non-numeric parts as-is
             normalized_parts.append(part)
 
     return "/".join(normalized_parts)
@@ -77,7 +77,7 @@ class BFFMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Service aggregation metrics
+        # Service aggregation metrics
         self.service_calls = self.registry.create_counter(
             "bff_service_calls_total",
             "Total calls to backend services",
@@ -91,7 +91,7 @@ class BFFMetrics:
             buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
         )
 
-        ***REMOVED*** Cache metrics
+        # Cache metrics
         self.cache_operations = self.registry.create_counter(
             "bff_cache_operations_total",
             "Total cache operations",
@@ -102,7 +102,7 @@ class BFFMetrics:
             "bff_cache_hit_rate", "Cache hit rate percentage", ["cache_name", "service"]
         )
 
-        ***REMOVED*** Business logic metrics
+        # Business logic metrics
         self.movie_requests = self.registry.create_counter(
             "bff_movie_requests_total",
             "Total movie-related requests",
@@ -122,12 +122,12 @@ class BFFMetrics:
             buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0),
         )
 
-        ***REMOVED*** User engagement metrics
+        # User engagement metrics
         self.user_actions = self.registry.create_counter(
             "bff_user_actions_total", "Total user actions", ["action_type", "service"]
         )
 
-        ***REMOVED*** Error tracking metrics
+        # Error tracking metrics
         self.service_errors = self.registry.create_counter(
             "bff_service_errors_total",
             "Total service errors encountered",
@@ -148,7 +148,7 @@ class BFFMetrics:
         if not self.registry:
             return
 
-        ***REMOVED*** Normalize endpoint to prevent cardinality explosion
+        # Normalize endpoint to prevent cardinality explosion
         normalized_endpoint = normalize_endpoint_for_metrics(endpoint)
 
         service_labels = {
@@ -283,7 +283,7 @@ class BFFMetrics:
         self.service_errors.labels(**labels).inc()
 
 
-***REMOVED*** Global BFF metrics instance
+# Global BFF metrics instance
 _bff_metrics: BFFMetrics | None = None
 
 
@@ -304,16 +304,16 @@ def initialize_bff_metrics() -> BFFMetrics | None:
     """
     global _bff_metrics
 
-    ***REMOVED*** If BFF metrics already exists, return it
+    # If BFF metrics already exists, return it
     if _bff_metrics is not None:
         logger.debug("BFF metrics already initialized")
         return _bff_metrics
 
-    ***REMOVED*** Create new BFF metrics instance
+    # Create new BFF metrics instance
     try:
         _bff_metrics = BFFMetrics()
 
-        ***REMOVED*** Return None if the metrics instance couldn't initialize properly
+        # Return None if the metrics instance couldn't initialize properly
         if _bff_metrics and not _bff_metrics.registry:
             _bff_metrics = None
             logger.warning("Failed to initialize BFF metrics - no metrics registry available")
@@ -327,7 +327,7 @@ def initialize_bff_metrics() -> BFFMetrics | None:
         return None
 
 
-***REMOVED*** Decorator for tracking BFF operations
+# Decorator for tracking BFF operations
 def track_bff_operation(
     operation_name: str, labels: dict[str, str] | None = None
 ) -> Callable[[F], F]:
@@ -351,7 +351,7 @@ def track_bff_operation(
     return track_operation(registry, f"bff_{operation_name}", labels)
 
 
-***REMOVED*** Example usage decorators for common BFF operations
+# Example usage decorators for common BFF operations
 def track_movie_operation[FuncT: Callable[..., Any]](func: FuncT) -> FuncT:
     """Track movie-related operations."""
     return track_bff_operation("movie_operation")(func)

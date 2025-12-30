@@ -33,7 +33,7 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    ***REMOVED*** Relationships
+    # Relationships
     movie_interactions: list["UserMovieInteraction"] = Relationship(back_populates="user")
 
     @staticmethod

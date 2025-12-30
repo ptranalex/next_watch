@@ -53,7 +53,7 @@ async def verify_admin_access(
     Raises:
         HTTPException: If access is denied
     """
-    ***REMOVED*** In development, allow access without key for testing
+    # In development, allow access without key for testing
     if settings.environment == "development":
         logger.warning(
             "Admin endpoint accessed without authentication in development mode",
@@ -62,7 +62,7 @@ async def verify_admin_access(
         )
         return True
 
-    ***REMOVED*** In production, require admin key
+    # In production, require admin key
     expected_admin_key = getattr(settings, "admin_api_key", None)
 
     if not expected_admin_key:
@@ -95,31 +95,31 @@ async def get_cache_statistics(_: bool = Depends(verify_admin_access)) -> JSONRe
         Detailed cache statistics including hit rates, response times, and warming info
     """
     try:
-        ***REMOVED*** Get metrics collector
+        # Get metrics collector
         collector = get_global_collector()
 
-        ***REMOVED*** Get cache manager
+        # Get cache manager
         cache_manager = get_cache()
 
-        ***REMOVED*** Get warming service
+        # Get warming service
         warming_service = get_bff_warming_service()
         smart_warming = get_bff_smart_warming()
 
-        ***REMOVED*** Check cache health
+        # Check cache health
         cache_healthy = await check_cache_health()
 
-        ***REMOVED*** Get overall metrics
+        # Get overall metrics
         overall_metrics = collector.get_metrics() or {}
         summary = collector.get_summary() or {}
 
-        ***REMOVED*** Get function-specific metrics for key BFF functions
+        # Get function-specific metrics for key BFF functions
         function_metrics = {}
         key_functions = [
             "bff_api.routes.v1.movies._get_static_movie_data",
             "bff_api.routes.v1.movies._get_user_movie_interactions",
             "bff_api.routes.v1.movies._get_movies_list_data",
-            "_get_static_movie_data",  ***REMOVED*** Alternative naming
-            "_get_movies_list_data",  ***REMOVED*** Alternative naming
+            "_get_static_movie_data",  # Alternative naming
+            "_get_movies_list_data",  # Alternative naming
         ]
 
         for func_name in key_functions:
@@ -127,7 +127,7 @@ async def get_cache_statistics(_: bool = Depends(verify_admin_access)) -> JSONRe
             if func_metrics:
                 function_metrics[func_name] = func_metrics
 
-        ***REMOVED*** Get warming engine stats
+        # Get warming engine stats
         warming_engine = warming_service.get_warming_engine()
         warming_stats = {
             "engine_initialized": warming_engine is not None,
@@ -141,7 +141,7 @@ async def get_cache_statistics(_: bool = Depends(verify_admin_access)) -> JSONRe
             ),
         }
 
-        ***REMOVED*** Background warming service status - REMOVED (using cron jobs instead)
+        # Background warming service status - REMOVED (using cron jobs instead)
         background_stats = {
             "service_running": False,
             "active_tasks": 0,
@@ -252,8 +252,8 @@ async def get_function_cache_metrics(
         )
 
 
-***REMOVED*** REMOVED: Manual warming test endpoint
-***REMOVED*** See CACHE_WARMING_REFACTOR.md - testing now done via background job CLI
+# REMOVED: Manual warming test endpoint
+# See CACHE_WARMING_REFACTOR.md - testing now done via background job CLI
 
 
 @router.get("/warming/stats")
@@ -270,10 +270,10 @@ async def get_warming_statistics(
     try:
         warming_service = get_bff_warming_service()
 
-        ***REMOVED*** Get warming engine
+        # Get warming engine
         warming_engine = warming_service.get_warming_engine()
 
-        ***REMOVED*** Collect warming statistics
+        # Collect warming statistics
         stats = {
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
             "warming_engine": {
@@ -329,17 +329,17 @@ async def get_warming_statistics(
         )
 
 
-***REMOVED*** REMOVED: Manual warming endpoints moved to background jobs
-***REMOVED*** See CACHE_WARMING_REFACTOR.md Phase 3 for new background job system
-***REMOVED***
-***REMOVED*** These endpoints have been removed for security and architectural reasons:
-***REMOVED*** - POST /admin/cache/warming/strategy/{strategy_name}
-***REMOVED*** - POST /admin/cache/warming/test/{function_name}
-***REMOVED***
-***REMOVED*** Bulk warming now handled by:
-***REMOVED*** - Background job system (scripts/cache_warming_service.py)
-***REMOVED*** - Kubernetes CronJobs for scheduled warming
-***REMOVED*** - Smart reactive warming in cache library
+# REMOVED: Manual warming endpoints moved to background jobs
+# See CACHE_WARMING_REFACTOR.md Phase 3 for new background job system
+#
+# These endpoints have been removed for security and architectural reasons:
+# - POST /admin/cache/warming/strategy/{strategy_name}
+# - POST /admin/cache/warming/test/{function_name}
+#
+# Bulk warming now handled by:
+# - Background job system (scripts/cache_warming_service.py)
+# - Kubernetes CronJobs for scheduled warming
+# - Smart reactive warming in cache library
 
 
 @router.get("/smart-warming/stats")
@@ -356,10 +356,10 @@ async def get_smart_warming_statistics(
     try:
         smart_warming = get_bff_smart_warming()
 
-        ***REMOVED*** Get comprehensive smart warming stats
+        # Get comprehensive smart warming stats
         stats = smart_warming.get_warming_stats()
 
-        ***REMOVED*** Calculate derived metrics
+        # Calculate derived metrics
         total_operations = stats.get("operations_attempted", 0)
         successful_operations = stats.get("operations_successful", 0)
         rate_limited_operations = stats.get("operations_rate_limited", 0)
@@ -417,5 +417,5 @@ async def get_smart_warming_statistics(
         raise HTTPException(status_code=500, detail="Failed to get smart warming statistics")
 
 
-***REMOVED*** REMOVED: Strategy listing endpoint no longer needed
-***REMOVED*** Bulk warming strategies now documented in CACHE_WARMING_REFACTOR.md
+# REMOVED: Strategy listing endpoint no longer needed
+# Bulk warming strategies now documented in CACHE_WARMING_REFACTOR.md

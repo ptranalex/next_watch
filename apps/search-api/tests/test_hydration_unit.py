@@ -42,7 +42,7 @@ async def test_hydrate_suggestions_pipeline_success_meta_and_id_paths() -> None:
 
     hydrator = EntityHydrator()
 
-    ***REMOVED*** suggestions: "leo" uses meta type:id, "ali" uses id-only bytes
+    # suggestions: "leo" uses meta type:id, "ali" uses id-only bytes
     suggestions = ["leo", "ali"]
 
     meta_results = ["actor:123", None]
@@ -70,7 +70,7 @@ async def test_hydrate_suggestions_pipeline_failure_falls_back_to_sequential_get
     suggestions = ["leo"]
 
     get_map = {
-        "suggestions_meta:leo": "movie:not-an-int",  ***REMOVED*** forces parse failure
+        "suggestions_meta:leo": "movie:not-an-int",  # forces parse failure
         "suggestions:leo": b"999",
         "entity:id:999": json.dumps({"id": 999, "title": "Leo", "type": "movie"}),
     }
@@ -90,7 +90,7 @@ async def test_hydrate_suggestions_unresolved_name_fallback_minimal() -> None:
 
     suggestions = ["unknown-title"]
 
-    ***REMOVED*** pipeline returns meta None, id None, and no id_entities; name lookups all None
+    # pipeline returns meta None, id None, and no id_entities; name lookups all None
     redis = FakeRedis(get_map={}, pipeline_results=[None, None], raise_pipeline=False)
 
     out = await hydrator.hydrate_suggestions(redis, suggestions, limit=10)

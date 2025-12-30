@@ -11,7 +11,7 @@ from config.services.cache import CacheConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
 from pydantic import Field, validator
 
-***REMOVED*** Configure basic logging first for this module
+# Configure basic logging first for this module
 logger = get_logger(__name__)
 
 
@@ -21,37 +21,37 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
     Provides configuration for the Search API service with cache and monitoring support.
     """
 
-    ***REMOVED*** Service identification
+    # Service identification
     service_name: str = Field(default="search-api", description="Service name")
     port: int = Field(default=8004, description="Service port")
 
-    ***REMOVED*** Logging configuration
+    # Logging configuration
     logs_dir: str | None = Field(
         default=None, description="Directory for log files (None disables file logging)"
     )
 
-    ***REMOVED*** Backend service URLs
+    # Backend service URLs
     backend_api_url: str = Field(default="http://localhost:8000", description="Backend API URL")
     ml_api_url: str | None = Field(default=None, description="ML API URL (optional)")
 
-    ***REMOVED*** Service timeouts
+    # Service timeouts
     backend_api_timeout: int = Field(default=30, description="Backend API timeout in seconds")
     ml_api_timeout: int = Field(default=60, description="ML API timeout in seconds")
 
-    ***REMOVED*** Service-to-service authentication
+    # Service-to-service authentication
     internal_api_key: str = Field(
         default="search-to-backend-secret-key",
         description="API key for service-to-service authentication",
     )
 
-    ***REMOVED*** Search-specific settings
+    # Search-specific settings
     max_suggestions: int = Field(default=50, description="Maximum number of suggestions to return")
     search_cache_ttl: int = Field(default=300, description="Search results cache TTL in seconds")
     suggestion_cache_ttl: int = Field(default=3600, description="Suggestion cache TTL in seconds")
     min_query_length: int = Field(default=1, description="Minimum query length for suggestions")
     max_query_length: int = Field(default=100, description="Maximum query length for search")
 
-    ***REMOVED*** Redis-specific search settings
+    # Redis-specific search settings
     redis_suggestion_key_prefix: str = Field(
         default="suggestions:", description="Redis key prefix for suggestions"
     )
@@ -62,7 +62,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         default="search_results:", description="Redis key prefix for search results"
     )
 
-    ***REMOVED*** Substring scan tuning
+    # Substring scan tuning
     suggestion_substring_min_len: int = Field(
         default=3, description="Minimum length to trigger substring scan"
     )
@@ -73,18 +73,18 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         default=10, description="Max SCAN pages per entity type during substring scan"
     )
 
-    ***REMOVED*** Feature flags
+    # Feature flags
     enable_semantic_search: bool = Field(default=False, description="Enable semantic search")
     enable_search_analytics: bool = Field(default=True, description="Enable search analytics")
     enable_fuzzy_matching: bool = Field(default=True, description="Enable fuzzy matching")
     enable_typo_tolerance: bool = Field(default=True, description="Enable typo tolerance")
 
-    ***REMOVED*** Performance settings
+    # Performance settings
     max_concurrent_searches: int = Field(default=100, description="Maximum concurrent searches")
     search_timeout_seconds: int = Field(default=30, description="Search timeout in seconds")
     suggestion_batch_size: int = Field(default=1000, description="Suggestion indexing batch size")
 
-    ***REMOVED*** Monitoring settings
+    # Monitoring settings
 
     enable_performance_metrics: bool = Field(
         default=True, description="Enable performance metrics collection"
@@ -94,7 +94,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
     class Config:
         """Pydantic configuration for environment handling."""
 
-        env_prefix = ""  ***REMOVED*** No prefix for environment variables
+        env_prefix = ""  # No prefix for environment variables
         env_file = [".env", ".env.local"]
         env_file_encoding = "utf-8"
         case_sensitive = False
@@ -102,10 +102,10 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Search API configuration."""
-        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        # Initialize with Pydantic Settings (will auto-load .env files)
         super().__init__(**kwargs)
 
-        ***REMOVED*** Apply shared security and logging patterns
+        # Apply shared security and logging patterns
         self.apply_production_security_overrides()
         self._apply_search_specific_overrides()
         self.log_configuration_summary()
@@ -116,14 +116,14 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         if not self.is_production:
             return
 
-        ***REMOVED*** Disable file logging in production to avoid volume permission issues
+        # Disable file logging in production to avoid volume permission issues
         if self.logs_dir:
             logger.warning("File logging disabled in production to avoid volume permission issues")
             object.__setattr__(self, "logs_dir", None)
 
     def _log_search_specific_summary(self) -> None:
         """Log search-specific configuration details."""
-        ***REMOVED*** Log service URLs in compact format
+        # Log service URLs in compact format
         urls = {
             "backend": self.backend_api_url,
         }
@@ -132,7 +132,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
 
         logger.info(f"Service URLs: {urls}")
 
-        ***REMOVED*** Log feature flags in compact format
+        # Log feature flags in compact format
         logger.info(
             f"Features: semantic={self.enable_semantic_search}, "
             + f"analytics={self.enable_search_analytics}, "
@@ -140,14 +140,14 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
             + f"typo_tolerance={self.enable_typo_tolerance}"
         )
 
-        ***REMOVED*** Log search settings
+        # Log search settings
         logger.info(
             f"Search limits: max_suggestions={self.max_suggestions}, "
             + f"search_cache_ttl={self.search_cache_ttl}s, "
             + f"suggestion_cache_ttl={self.suggestion_cache_ttl}s"
         )
 
-        ***REMOVED*** Log Redis URL
+        # Log Redis URL
         logger.info(f"Redis URL: {self.get_redis_url_masked()}")
 
     @validator("backend_api_url", "ml_api_url")
@@ -184,7 +184,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         """Validate cache TTL is positive."""
         if v < 1:
             raise ValueError("Cache TTL must be at least 1 second")
-        if v > 86400:  ***REMOVED*** 24 hours
+        if v > 86400:  # 24 hours
             raise ValueError("Cache TTL should not exceed 24 hours")
         return v
 
@@ -199,13 +199,13 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
         """Validate configuration for production deployment."""
         issues = []
 
-        ***REMOVED*** Get validation from parent classes (includes basic debug mode checks)
+        # Get validation from parent classes (includes basic debug mode checks)
         issues.extend(super().validate_production_settings())
         issues.extend(self.validate_cache_production_settings())
 
-        ***REMOVED*** Search-specific production validations
+        # Search-specific production validations
         if self.is_production:
-            ***REMOVED*** Check for secure service URLs
+            # Check for secure service URLs
             for url_name, url in [
                 ("backend_api_url", self.backend_api_url),
                 ("ml_api_url", self.ml_api_url),
@@ -213,7 +213,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
                 if url and url.startswith("http://"):
                     issues.append(f"{url_name} should use HTTPS in production")
 
-            ***REMOVED*** Check for localhost in URLs
+            # Check for localhost in URLs
             for url_name, url in [
                 ("backend_api_url", self.backend_api_url),
                 ("ml_api_url", self.ml_api_url),
@@ -258,7 +258,7 @@ class SearchAPIConfig(ServiceConfig, CacheConfigMixin, MonitoringConfigMixin):
 """
 
 
-***REMOVED*** Create singleton instance
+# Create singleton instance
 settings = SearchAPIConfig()
 
 

@@ -29,7 +29,7 @@ def _register_all_services(config: BFFAPIConfig) -> None:
     Args:
         config: BFF API configuration
     """
-    ***REMOVED*** Backend API - register service and custom client type
+    # Backend API - register service and custom client type
     register_service(
         name="backend",
         base_url=config.backend_api_url,
@@ -38,11 +38,11 @@ def _register_all_services(config: BFFAPIConfig) -> None:
             "User-Agent": "NextWatch-BFF/0.1.0",
             "Authorization": f"Bearer {config.internal_api_key}",
         },
-        singleton=True,  ***REMOVED*** Use singleton for performance
+        singleton=True,  # Use singleton for performance
     )
     register_client_type("backend", BackendClient, singleton=True)
 
-    ***REMOVED*** Auth API - register service and custom client type
+    # Auth API - register service and custom client type
     register_service(
         name="auth",
         base_url=config.auth_api_url,
@@ -55,7 +55,7 @@ def _register_all_services(config: BFFAPIConfig) -> None:
     )
     register_client_type("auth", AuthClient, singleton=True)
 
-    ***REMOVED*** Recommendation API - register service and custom client type
+    # Recommendation API - register service and custom client type
     register_service(
         name="recommendation",
         base_url=config.reco_api_url,
@@ -68,7 +68,7 @@ def _register_all_services(config: BFFAPIConfig) -> None:
     )
     register_client_type("recommendation", RecommendationClient, singleton=True)
 
-    ***REMOVED*** Search API - register service and custom client type
+    # Search API - register service and custom client type
     register_service(
         name="search",
         base_url=config.search_api_url,
@@ -81,7 +81,7 @@ def _register_all_services(config: BFFAPIConfig) -> None:
     )
     register_client_type("search", SearchAPIClient, singleton=True)
 
-    ***REMOVED*** ML API - optional service, only register if enabled
+    # ML API - optional service, only register if enabled
     if config.enable_ml_features and config.ml_api_url:
         register_service(
             name="ml",
@@ -95,11 +95,11 @@ def _register_all_services(config: BFFAPIConfig) -> None:
         )
 
 
-***REMOVED*** Register services on module import
+# Register services on module import
 _register_all_services(settings)
 
 
-***REMOVED*** Service client dependency functions
+# Service client dependency functions
 get_backend_client = get_service_client("backend")
 
 get_auth_client = get_service_client("auth")

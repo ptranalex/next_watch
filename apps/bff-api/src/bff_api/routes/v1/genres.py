@@ -20,7 +20,7 @@ from bff_api.utils.auth import extract_user_id_from_token
 logger = get_logger(__name__)
 router = APIRouter(tags=["genres"])
 
-***REMOVED*** Security scheme for optional authentication
+# Security scheme for optional authentication
 security = HTTPBearer(auto_error=False)
 
 
@@ -58,7 +58,7 @@ def _build_genre_screen_cache_key(
     return build_filtered_key("screen:genre", str(genre_id), filters, user_id=user_id, prefix="")
 
 
-@redis_cache(ttl=900, key_builder=_build_genre_screen_cache_key)  ***REMOVED*** 15 minutes for genre movie lists
+@redis_cache(ttl=900, key_builder=_build_genre_screen_cache_key)  # 15 minutes for genre movie lists
 async def _get_genre_screen_data(
     genre_id: int,
     page: int,
@@ -87,7 +87,7 @@ async def _get_genre_screen_data(
         component="genre_screen_data",
     )
 
-    ***REMOVED*** Get genre details from backend
+    # Get genre details from backend
     try:
         genre_response = await backend.get_genre(genre_id)
         logger.debug(
@@ -109,7 +109,7 @@ async def _get_genre_screen_data(
         )
         raise HTTPException(status_code=502, detail="Backend service unavailable")
 
-    ***REMOVED*** Get movies for this genre with filters
+    # Get movies for this genre with filters
     kwargs: dict[str, Any] = {"genre_id": genre_id}
     if actor_id is not None:
         kwargs["actor_id"] = actor_id
@@ -137,7 +137,7 @@ async def _get_genre_screen_data(
         **kwargs,
     )
 
-    ***REMOVED*** Extract pagination data from backend's standardized format
+    # Extract pagination data from backend's standardized format
     movies = movies_response.get("results", [])
     total_count = movies_response.get("total", 0)
     current_page = movies_response.get("page", page)
@@ -146,7 +146,7 @@ async def _get_genre_screen_data(
     has_next = movies_response.get("has_next", False)
     has_prev = movies_response.get("has_prev", False)
 
-    ***REMOVED*** For anonymous users, set all interaction fields to false
+    # For anonymous users, set all interaction fields to false
     logger.debug(
         "Setting default interaction values for genre movies",
         genre_id=genre_id,
@@ -166,7 +166,7 @@ async def _get_genre_screen_data(
             "is_watched": False,
         }
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     genre_screen_data = {
         "genre": genre_response,
         "total": total_count,
@@ -242,12 +242,12 @@ async def get_genre_screen(
     Raises:
         HTTPException: 404 if genre not found, 502 if backend unavailable
     """
-    ***REMOVED*** Record movie request metrics
+    # Record movie request metrics
     metrics = get_bff_metrics()
     if metrics:
         metrics.record_movie_request("genre", "started")
 
-    ***REMOVED*** Extract user ID from JWT token if provided (overrides query parameter)
+    # Extract user ID from JWT token if provided (overrides query parameter)
     extracted_user_id = None
     logger.debug(
         "Processing genre screen request",
@@ -274,11 +274,11 @@ async def get_genre_screen(
             endpoint="genre_screen",
         )
 
-    ***REMOVED*** Use extracted user ID from token, fallback to query parameter
+    # Use extracted user ID from token, fallback to query parameter
     final_user_id = extracted_user_id or user_id
 
     try:
-        ***REMOVED*** Use the cached function - decorator handles all cache logic
+        # Use the cached function - decorator handles all cache logic
         genre_screen_dict = await _get_genre_screen_data(
             genre_id=genre_id,
             page=pagination.page,
@@ -297,7 +297,7 @@ async def get_genre_screen(
             credentials=credentials,
         )
 
-        ***REMOVED*** Handle user interactions for authenticated users (not cached due to user-specific nature)
+        # Handle user interactions for authenticated users (not cached due to user-specific nature)
         if final_user_id and credentials:
             movies = genre_screen_dict["results"]
             logger.debug(
@@ -316,7 +316,7 @@ async def get_genre_screen(
                             final_user_id, movie_id, jwt_token=credentials.credentials
                         )
                         if interaction_data:
-                            ***REMOVED*** Map user interaction data directly to movie fields
+                            # Map user interaction data directly to movie fields
                             movie["liked"] = interaction_data.get("liked", False)
                             movie["watched"] = interaction_data.get("watched", False)
                             movie["in_watchlist"] = interaction_data.get("in_watchlist", False)
@@ -328,7 +328,7 @@ async def get_genre_screen(
                                 "is_watched": interaction_data.get("watched", False),
                             }
                         else:
-                            ***REMOVED*** Set default values if no interaction data exists
+                            # Set default values if no interaction data exists
                             movie["liked"] = False
                             movie["watched"] = False
                             movie["in_watchlist"] = False
@@ -349,7 +349,7 @@ async def get_genre_screen(
                             service="bff",
                             component="user_interactions",
                         )
-                        ***REMOVED*** Set default values if fetching interaction data fails
+                        # Set default values if fetching interaction data fails
                         movie["liked"] = False
                         movie["watched"] = False
                         movie["in_watchlist"] = False
@@ -361,15 +361,15 @@ async def get_genre_screen(
                             "is_watched": False,
                         }
 
-        ***REMOVED*** Record successful movie request metrics
+        # Record successful movie request metrics
         if metrics:
             metrics.record_movie_request("genre", "success")
 
-        ***REMOVED*** Convert dictionary back to Pydantic model
+        # Convert dictionary back to Pydantic model
         return GenreScreenData(**genre_screen_dict)
 
     except ExternalServiceException as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_movie_request("genre", "service_error")
 

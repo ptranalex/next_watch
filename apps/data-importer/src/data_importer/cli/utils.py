@@ -26,15 +26,15 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
     table.add_column("Setting", style="cyan")
     table.add_column("Value", style="green")
 
-    ***REMOVED*** Add rows for each config attribute
+    # Add rows for each config attribute
     for attr in dir(config):
-        ***REMOVED*** Skip private attributes and methods
+        # Skip private attributes and methods
         if attr.startswith("_") or callable(getattr(config, attr)):
             continue
 
         value = getattr(config, attr)
 
-        ***REMOVED*** Handle sensitive values
+        # Handle sensitive values
         if any(
             sensitive in attr.lower() for sensitive in ["api_key", "token", "password", "secret"]
         ):

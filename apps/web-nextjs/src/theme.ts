@@ -94,26 +94,26 @@ const colors = {
   // Brand colors
   brand: {
     primary: {
-      100: "***REMOVED***FFFFFF",
-      200: "***REMOVED***E2EEFC",
-      300: "***REMOVED***C6DCF9",
-      400: "***REMOVED***A9CBF6",
-      500: "***REMOVED***8CB9F3",
-      600: "***REMOVED***70A8F1",
-      700: "***REMOVED***5396EE",
-      800: "***REMOVED***3784EB",
-      900: "***REMOVED***1A73E8", // your brand blue
+      100: "#FFFFFF",
+      200: "#E2EEFC",
+      300: "#C6DCF9",
+      400: "#A9CBF6",
+      500: "#8CB9F3",
+      600: "#70A8F1",
+      700: "#5396EE",
+      800: "#3784EB",
+      900: "#1A73E8", // your brand blue
     },
     secondary: {
-      100: "***REMOVED***FFFFFF",
-      200: "***REMOVED***B3FEF8",
-      300: "***REMOVED***99F4ED",
-      400: "***REMOVED***80EAE2",
-      500: "***REMOVED***66E0D6",
-      600: "***REMOVED***4CD6CB",
-      700: "***REMOVED***33CCC0",
-      800: "***REMOVED***1AC2B4",
-      900: "***REMOVED***00B8A9", // secondary accent teal
+      100: "#FFFFFF",
+      200: "#B3FEF8",
+      300: "#99F4ED",
+      400: "#80EAE2",
+      500: "#66E0D6",
+      600: "#4CD6CB",
+      700: "#33CCC0",
+      800: "#1AC2B4",
+      900: "#00B8A9", // secondary accent teal
     },
   },
 

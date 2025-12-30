@@ -1,40 +1,40 @@
-***REMOVED*** Next.js App Router
+# Next.js App Router
 
 This directory contains the application routes and page components using Next.js App Router.
 
-***REMOVED******REMOVED*** 📂 Directory Structure
+## 📂 Directory Structure
 
 ```
 app/
-├── (auth)/              ***REMOVED*** Authentication-related routes (route group)
-│   ├── login/           ***REMOVED*** Login page
-│   │   └── page.tsx     ***REMOVED*** Login page component
-│   ├── signup/          ***REMOVED*** Signup page
-│   │   └── page.tsx     ***REMOVED*** Signup page component
-│   └── layout.tsx       ***REMOVED*** Layout for auth pages
-├── movies/              ***REMOVED*** Movie-related routes
-│   ├── [id]/            ***REMOVED*** Dynamic route for movie details
-│   │   └── page.tsx     ***REMOVED*** Movie detail page
-│   └── page.tsx         ***REMOVED*** Movies list page
-├── actors/              ***REMOVED*** Actor-related routes
-│   ├── [id]/            ***REMOVED*** Dynamic route for actor details
-│   │   └── page.tsx     ***REMOVED*** Actor detail page
-│   └── page.tsx         ***REMOVED*** Actors list page
-├── profile/             ***REMOVED*** User profile routes
-│   └── page.tsx         ***REMOVED*** Profile page
-├── search/              ***REMOVED*** Search results page
-│   └── page.tsx         ***REMOVED*** Search page
-├── api/                 ***REMOVED*** API routes
-│   └── ...              ***REMOVED*** API handlers
-├── layout.tsx           ***REMOVED*** Root layout
-├── page.tsx             ***REMOVED*** Home page
-├── globals.css          ***REMOVED*** Global styles
-└── not-found.tsx        ***REMOVED*** 404 page
+├── (auth)/              # Authentication-related routes (route group)
+│   ├── login/           # Login page
+│   │   └── page.tsx     # Login page component
+│   ├── signup/          # Signup page
+│   │   └── page.tsx     # Signup page component
+│   └── layout.tsx       # Layout for auth pages
+├── movies/              # Movie-related routes
+│   ├── [id]/            # Dynamic route for movie details
+│   │   └── page.tsx     # Movie detail page
+│   └── page.tsx         # Movies list page
+├── actors/              # Actor-related routes
+│   ├── [id]/            # Dynamic route for actor details
+│   │   └── page.tsx     # Actor detail page
+│   └── page.tsx         # Actors list page
+├── profile/             # User profile routes
+│   └── page.tsx         # Profile page
+├── search/              # Search results page
+│   └── page.tsx         # Search page
+├── api/                 # API routes
+│   └── ...              # API handlers
+├── layout.tsx           # Root layout
+├── page.tsx             # Home page
+├── globals.css          # Global styles
+└── not-found.tsx        # 404 page
 ```
 
-***REMOVED******REMOVED*** 🧩 App Router Conventions
+## 🧩 App Router Conventions
 
-***REMOVED******REMOVED******REMOVED*** Page Components
+### Page Components
 
 Each route requires a `page.tsx` file that exports a React component:
 
@@ -45,7 +45,7 @@ export default function MoviesPage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Layout Components
+### Layout Components
 
 Layouts wrap pages and persist across routes:
 
@@ -68,7 +68,7 @@ export default function RootLayout({
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Dynamic Routes
+### Dynamic Routes
 
 Dynamic segments are defined with square brackets:
 
@@ -79,7 +79,7 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Route Groups
+### Route Groups
 
 Groups in parentheses don't affect URL structure:
 
@@ -87,7 +87,7 @@ Groups in parentheses don't affect URL structure:
 (auth)/login/page.tsx → /login
 ```
 
-***REMOVED******REMOVED******REMOVED*** Loading & Error States
+### Loading & Error States
 
 Specialized files for loading and error states:
 
@@ -103,9 +103,9 @@ export default function Error({ error }: { error: Error }) {
 }
 ```
 
-***REMOVED******REMOVED*** 🚀 Server vs. Client Components
+## 🚀 Server vs. Client Components
 
-***REMOVED******REMOVED******REMOVED*** Server Components (Default)
+### Server Components (Default)
 
 ```tsx
 // This is a Server Component by default
@@ -117,7 +117,7 @@ export default function MoviePage() {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Client Components
+### Client Components
 
 ```tsx
 "use client"; // This directive marks a Client Component
@@ -132,9 +132,9 @@ export default function InteractiveComponent() {
 }
 ```
 
-***REMOVED******REMOVED*** 📊 Data Fetching
+## 📊 Data Fetching
 
-***REMOVED******REMOVED******REMOVED*** Server Components
+### Server Components
 
 ```tsx
 // In a Server Component
@@ -150,7 +150,7 @@ export default async function MovieDetail({
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Client Components
+### Client Components
 
 ```tsx
 "use client";
@@ -167,7 +167,7 @@ export function MovieInteractions({ movieId }: { movieId: string }) {
 }
 ```
 
-***REMOVED******REMOVED*** 🔍 Route Handlers
+## 🔍 Route Handlers
 
 API routes using Route Handlers:
 
@@ -186,7 +186,7 @@ export async function GET(request: Request) {
 }
 ```
 
-***REMOVED******REMOVED*** 📚 Related Documentation
+## 📚 Related Documentation
 
 - [Next.js App Router Documentation](https://nextjs.org/docs/app)
 - [Components Directory](../components/README.md) - UI components used in pages

@@ -10,13 +10,13 @@ from .app import (
     settings,
 )
 
-***REMOVED*** Backward compatibility: Import old Config class name
+# Backward compatibility: Import old Config class name
 Config = BFFAPIConfig
 
 __all__ = [
-    ***REMOVED*** Configuration classes and functions
+    # Configuration classes and functions
     "BFFAPIConfig",
-    "Config",  ***REMOVED*** Backward compatibility alias
+    "Config",  # Backward compatibility alias
     "settings",
     "get_cache_settings",
 ]

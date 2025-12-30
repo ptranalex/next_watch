@@ -18,7 +18,7 @@ from search_api.dependencies.clients import cleanup_service_clients, get_all_ser
 from search_api.routes.api_v1 import api_v1_router
 from search_api.services.health_service import close_health_service, get_health_service
 
-***REMOVED*** Add Search meta configuration constants after imports
+# Add Search meta configuration constants after imports
 SEARCH_FEATURES = [
     "Advanced movie search with filters",
     "Real-time search suggestions and autocomplete",
@@ -50,16 +50,16 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Handles startup and shutdown events for the Search API application.
     Now uses Service Client Factory for better lifecycle management.
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Starting Search API application with Service Client Factory")
     settings = app.state.settings
     search_config = app.state.search_config
 
-    ***REMOVED*** Log configuration summary
+    # Log configuration summary
     logger.info(f"Search API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Setup new multi-endpoint health checks
+    # Setup new multi-endpoint health checks
     try:
         from fast_core.monitoring import setup_kubernetes_health_checks
 
@@ -71,18 +71,18 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
-    ***REMOVED*** Initialize Search-specific metrics (always enabled for observability)
+    # Initialize Search-specific metrics (always enabled for observability)
     try:
-        ***REMOVED*** First initialize the global metrics registry
+        # First initialize the global metrics registry
         from fast_core.monitoring.metrics import initialize_metrics
 
         from search_api.core.metrics import initialize_search_metrics
 
-        ***REMOVED*** Initialize global metrics registry with service name
+        # Initialize global metrics registry with service name
         app.state.metrics_registry = initialize_metrics("search-api")
         logger.info("Global metrics registry initialized for service: search-api")
 
-        ***REMOVED*** Now initialize Search-specific metrics
+        # Now initialize Search-specific metrics
         metrics_instance = initialize_search_metrics()
         if metrics_instance:
             logger.info("Search metrics initialized successfully")
@@ -97,17 +97,17 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize Search metrics: {e}", exc_info=True)
         if search_config.is_production:
-            ***REMOVED*** In production, we want to know about metrics failures
+            # In production, we want to know about metrics failures
             raise
 
-    ***REMOVED*** Initialize search-specific services first
+    # Initialize search-specific services first
     suggestion_engine = None
     try:
-        ***REMOVED*** Initialize Redis connection for suggestions
+        # Initialize Redis connection for suggestions
         logger.info("Initializing Redis connection for search suggestions")
         from search_api.services.suggestion_engine import SuggestionEngine
 
-        ***REMOVED*** Create global suggestion engine instance
+        # Create global suggestion engine instance
         suggestion_engine = SuggestionEngine(
             redis_url=search_config.redis_url,
             max_connections=search_config.redis_max_connections,
@@ -121,11 +121,11 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         )
         await suggestion_engine.initialize()
 
-        ***REMOVED*** Store in app state for access by routes
+        # Store in app state for access by routes
         app.state.suggestion_engine = suggestion_engine
         logger.info("Suggestion engine initialized successfully")
 
-        ***REMOVED*** Initialize health service
+        # Initialize health service
         try:
             cache_manager = getattr(app.state, "cache_manager", None)
             health_service = get_health_service(cache_manager=cache_manager)
@@ -135,18 +135,18 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.error(f"Failed to initialize health service: {e}")
             app.state.health_service = None
 
-        ***REMOVED*** Initialize search analytics if enabled
+        # Initialize search analytics if enabled
         if search_config.enable_search_analytics:
             logger.info("Search analytics enabled")
-            ***REMOVED*** TODO: Initialize analytics service here when implemented
-            ***REMOVED*** analytics_service = AnalyticsService(config=search_config)
-            ***REMOVED*** await analytics_service.initialize()
-            ***REMOVED*** app.state.analytics_service = analytics_service
-            ***REMOVED*** logger.info("Analytics service initialized successfully")
+            # TODO: Initialize analytics service here when implemented
+            # analytics_service = AnalyticsService(config=search_config)
+            # await analytics_service.initialize()
+            # app.state.analytics_service = analytics_service
+            # logger.info("Analytics service initialized successfully")
 
     except Exception as e:
         logger.error(f"Error initializing search services: {e}")
-        ***REMOVED*** Clean up partially initialized services
+        # Clean up partially initialized services
         if suggestion_engine:
             try:
                 await suggestion_engine.shutdown()
@@ -154,11 +154,11 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 logger.error(f"Error cleaning up suggestion engine: {cleanup_error}")
         raise
 
-    ***REMOVED*** Test service connections on startup
+    # Test service connections on startup
     if settings.debug:
         logger.debug("Testing service connections with Service Client Factory...")
         try:
-            ***REMOVED*** Get health status for all registered services
+            # Get health status for all registered services
             health_status = await get_all_services_health()
             for service_name, status in health_status.items():
                 if status.get("status") == "healthy":
@@ -172,38 +172,38 @@ async def search_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info("Shutting down Search API application")
 
-    ***REMOVED*** Clean up search-specific services
+    # Clean up search-specific services
     try:
-        ***REMOVED*** Close suggestion engine connections
+        # Close suggestion engine connections
         if hasattr(app.state, "suggestion_engine") and app.state.suggestion_engine:
             logger.info("Shutting down suggestion engine")
             await app.state.suggestion_engine.shutdown()
             app.state.suggestion_engine = None
             logger.info("Suggestion engine shut down successfully")
 
-        ***REMOVED*** Close analytics connections
+        # Close analytics connections
         if hasattr(app.state, "analytics_service") and app.state.analytics_service:
             logger.info("Shutting down analytics service")
-            ***REMOVED*** TODO: Implement analytics service shutdown when available
-            ***REMOVED*** await app.state.analytics_service.shutdown()
-            ***REMOVED*** app.state.analytics_service = None
+            # TODO: Implement analytics service shutdown when available
+            # await app.state.analytics_service.shutdown()
+            # app.state.analytics_service = None
             logger.info("Analytics service shut down successfully")
 
         logger.info("Search services cleaned up successfully")
     except Exception as e:
         logger.error(f"Error during search services cleanup: {e}")
 
-    ***REMOVED*** Clean up health service
+    # Clean up health service
     try:
         close_health_service()
         logger.info("Health service cleaned up successfully")
     except Exception as e:
         logger.error(f"Error during health service cleanup: {e}")
 
-    ***REMOVED*** Clean up all service clients managed by Service Client Factory
+    # Clean up all service clients managed by Service Client Factory
     try:
         await cleanup_service_clients()
         logger.info("All service clients cleaned up successfully")
@@ -222,23 +222,23 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
     """
     middleware = MiddlewareConfig()
 
-    ***REMOVED*** Configure CORS for Search API
+    # Configure CORS for Search API
     middleware.cors(
         origins=config.cors_origins,
         credentials=True,
-        methods=["GET", "POST", "OPTIONS"],  ***REMOVED*** Search is primarily GET-based
+        methods=["GET", "POST", "OPTIONS"],  # Search is primarily GET-based
         headers=["Content-Type", "Authorization", "X-Requested-With", "X-Request-ID"],
         expose_headers=["X-Request-ID", "X-Process-Time", "X-Cache-Status"],
-        max_age=3600,  ***REMOVED*** Cache preflight requests for 1 hour
+        max_age=3600,  # Cache preflight requests for 1 hour
     )
 
-    ***REMOVED*** Configure security headers for production
+    # Configure security headers for production
     if config.is_production:
         middleware.security_headers(
             hsts=True,
-            hsts_max_age=63072000,  ***REMOVED*** 2 years
+            hsts_max_age=63072000,  # 2 years
             hsts_include_subdomains=True,
-            frame_options="DENY",  ***REMOVED*** Prevent iframe embedding
+            frame_options="DENY",  # Prevent iframe embedding
             content_type_options=True,
             xss_protection=True,
             csp="default-src 'self'; connect-src 'self' https://*.example.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'",
@@ -246,23 +246,23 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
             trusted_hosts=config.allowed_hosts,
         )
     else:
-        ***REMOVED*** Development security headers (more permissive)
+        # Development security headers (more permissive)
         middleware.security_headers(
-            hsts=False,  ***REMOVED*** No HSTS in development
+            hsts=False,  # No HSTS in development
             frame_options="SAMEORIGIN",
             content_type_options=True,
             xss_protection=True,
             referrer_policy="strict-origin-when-cross-origin",
         )
 
-    ***REMOVED*** Configure rate limiting for Search API protection
+    # Configure rate limiting for Search API protection
     rate_limit_config = {
-        ***REMOVED*** Search endpoints (higher limits for good UX)
+        # Search endpoints (higher limits for good UX)
         "/api/v1/search": "100/minute",
-        "/api/v1/search/suggestions": "200/minute",  ***REMOVED*** Higher for typeahead
+        "/api/v1/search/suggestions": "200/minute",  # Higher for typeahead
         "/api/v1/search/suggestions/text": "200/minute",
         "/api/v1/search/all": "50/minute",
-        ***REMOVED*** Health and meta endpoints (less restrictive)
+        # Health and meta endpoints (less restrictive)
         "/health": "1000/minute",
         "/meta": "1000/minute",
     }
@@ -272,46 +272,46 @@ def create_search_middleware_config(config: SearchAPIConfig) -> MiddlewareConfig
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
         + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
-        headers=True,  ***REMOVED*** Include rate limit headers for debugging
-        key_func="ip",  ***REMOVED*** Rate limit by IP address
+        headers=True,  # Include rate limit headers for debugging
+        key_func="ip",  # Rate limit by IP address
     )
 
-    ***REMOVED*** Configure logging for Search API
+    # Configure logging for Search API
     log_level = "INFO" if config.is_production else "DEBUG"
     middleware.logging(
         level=log_level,
-        include_request_body=not config.is_production,  ***REMOVED*** Only log bodies in development
-        include_response_body=False,  ***REMOVED*** Never log response bodies (too verbose)
-        max_body_size=1024,  ***REMOVED*** Smaller for search queries
-        exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],  ***REMOVED*** Add to defaults
+        include_request_body=not config.is_production,  # Only log bodies in development
+        include_response_body=False,  # Never log response bodies (too verbose)
+        max_body_size=1024,  # Smaller for search queries
+        exclude_additional=["/docs", "/openapi.json", "/favicon.ico"],  # Add to defaults
         include_headers=True,
         exclude_headers=["authorization", "cookie", "x-api-key", "internal-api-key"],
         log_timing=True,
-        log_user_agent=not config.is_production,  ***REMOVED*** Only in development
+        log_user_agent=not config.is_production,  # Only in development
     )
 
-    ***REMOVED*** Configure request processing for Search API
+    # Configure request processing for Search API
     middleware.request_processing(
-        max_request_size=1 * 1024 * 1024,  ***REMOVED*** 1MB for search requests
-        timeout=config.search_timeout_seconds,  ***REMOVED*** Use search-specific timeout
+        max_request_size=1 * 1024 * 1024,  # 1MB for search requests
+        timeout=config.search_timeout_seconds,  # Use search-specific timeout
         include_request_id=True,
         request_id_header="X-Request-ID",
         include_process_time=True,
         process_time_header="X-Process-Time",
         gzip_compression=True,
-        gzip_minimum_size=500,  ***REMOVED*** Smaller threshold for search responses
+        gzip_minimum_size=500,  # Smaller threshold for search responses
     )
 
-    ***REMOVED*** Configure metrics middleware for Search API monitoring
+    # Configure metrics middleware for Search API monitoring
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
-        exclude_additional=["/favicon.ico"],  ***REMOVED*** Only favicon.ico (docs/openapi already in defaults)
+        exclude_additional=["/favicon.ico"],  # Only favicon.ico (docs/openapi already in defaults)
         exclude_methods=["OPTIONS"],
         custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Re-enabled since registry is now manually initialized
+        enabled=True,  # Re-enabled since registry is now manually initialized
     )
     logger.info("Metrics middleware configured for Search API monitoring")
 
@@ -328,25 +328,25 @@ def create_search_app(config: SearchAPIConfig | None = None) -> FastAPI:
     Returns:
         Configured FastAPI application
     """
-    ***REMOVED*** Create or use provided configuration
+    # Create or use provided configuration
     if config is None:
         config = SearchAPIConfig()
 
     logger.info("Creating Search API application with fast-core and enhanced middleware")
 
-    ***REMOVED*** Convert Search config to fast-core config
+    # Convert Search config to fast-core config
     fast_core_config = create_fast_core_config(config)
 
-    ***REMOVED*** Create Search-specific middleware configuration
+    # Create Search-specific middleware configuration
     middleware_config = create_search_middleware_config(config)
 
-    ***REMOVED*** Define routers for the application
+    # Define routers for the application
     routers = [
-        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
+        # health_router,  # Removed: Using new multi-endpoint health system
         api_v1_router,
     ]
 
-    ***REMOVED*** Create FastAPI application using fast-core
+    # Create FastAPI application using fast-core
     app = create_app(
         settings=fast_core_config,
         title="Next Watch Search API",
@@ -354,9 +354,9 @@ def create_search_app(config: SearchAPIConfig | None = None) -> FastAPI:
         version="0.1.0",
         options=AppOptions(
             exception_handlers=True,
-            health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
-            docs=not config.is_production,  ***REMOVED*** Disable docs in production
-            meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+            health_checks=False,  # CRITICAL: Disable to prevent conflicts
+            docs=not config.is_production,  # Disable docs in production
+            meta_endpoints=True,  # ✅ Enable auto-setup with static config
             meta_features=SEARCH_FEATURES,
             meta_endpoints_map=SEARCH_ENDPOINTS,
         ),
@@ -365,10 +365,10 @@ def create_search_app(config: SearchAPIConfig | None = None) -> FastAPI:
         lifespan=search_lifespan,
     )
 
-    ***REMOVED*** Store the original SearchAPIConfig in app state for access to search-specific settings
+    # Store the original SearchAPIConfig in app state for access to search-specific settings
     app.state.search_config = config
 
-    ***REMOVED*** Meta endpoints are now automatically configured with Search-specific data
+    # Meta endpoints are now automatically configured with Search-specific data
     logger.info("Search API meta endpoints configured automatically with static config")
     logger.info("Search API application created successfully with fast-core")
     return app

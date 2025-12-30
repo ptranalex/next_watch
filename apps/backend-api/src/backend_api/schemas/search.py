@@ -12,9 +12,9 @@ class SearchResult(BaseModel):
 
     id: int
     name: str
-    type: str  ***REMOVED*** "movie", "actor", "genre", etc.
+    type: str  # "movie", "actor", "genre", etc.
     image_path: str | None = None
-    year: int | None = None  ***REMOVED*** For movies
+    year: int | None = None  # For movies
     popularity: float | None = None
     additional_info: dict[str, Any] | None = None
 

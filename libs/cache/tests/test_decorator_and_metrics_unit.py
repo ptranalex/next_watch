@@ -11,7 +11,7 @@ import pytest
 async def test_redis_cache_decorator_cache_hit_and_miss(monkeypatch) -> None:
     from cache.decorators.redis_cache import redis_cache
 
-    ***REMOVED*** fake cache manager
+    # fake cache manager
     mgr = AsyncMock()
     mgr.get_json = AsyncMock(side_effect=[{"x": 1}, None])
     mgr.set_json = AsyncMock(return_value=True)
@@ -39,11 +39,11 @@ async def test_redis_cache_decorator_cache_hit_and_miss(monkeypatch) -> None:
     async def f(a: int, b: int = 2):
         return {"a": a, "b": b}
 
-    ***REMOVED*** hit
+    # hit
     r1 = await f(1)
     assert r1 == {"x": 1}
 
-    ***REMOVED*** miss
+    # miss
     r2 = await f(3, b=4)
     assert r2 == {"a": 3, "b": 4}
     assert mgr.set_json.await_count >= 1
@@ -70,7 +70,7 @@ async def test_redis_cache_custom_key_builder(monkeypatch) -> None:
         return {"ok": True}
 
     await g(1)
-    ***REMOVED*** ensure key_builder path used
+    # ensure key_builder path used
     args, kwargs = mgr.get_json.await_args
     assert args[0].startswith("movie:1:user:anon")
 
@@ -91,11 +91,11 @@ def test_metrics_storage_and_collector_smoke() -> None:
     summary = storage.get_summary()
     assert summary["total_calls"] == 2
 
-    ***REMOVED*** collector disabled
+    # collector disabled
     c = MetricsCollector(enabled=False)
     assert c.get_metrics() is None
 
-    ***REMOVED*** timing context records into collector
+    # timing context records into collector
     set_metrics_enabled(True)
     c2 = MetricsCollector(enabled=True)
     with TimingContext(c2, "x", is_cache_hit=True):

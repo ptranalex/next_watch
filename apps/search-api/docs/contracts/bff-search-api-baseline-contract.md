@@ -1,4 +1,4 @@
-***REMOVED*** BFF ↔ Search API Baseline Contract (current /api/v1)
+# BFF ↔ Search API Baseline Contract (current /api/v1)
 
 This document captures the **current request/response shapes** the BFF relies on when calling the (Python) Search API.
 
@@ -16,14 +16,14 @@ Notes:
 
 ---
 
-***REMOVED******REMOVED*** `GET /api/v1/search/suggestions` (basic suggestions)
+## `GET /api/v1/search/suggestions` (basic suggestions)
 
-***REMOVED******REMOVED******REMOVED*** Request (query params)
+### Request (query params)
 
 - `query` (string, required): user input string
 - `limit` (int, optional, default `10`, min `1`, max `50`)
 
-***REMOVED******REMOVED******REMOVED*** Response `200 OK`
+### Response `200 OK`
 
 Envelope (ResponseBuilder **search** pattern):
 
@@ -65,7 +65,7 @@ BFF dependency:
 
 - BFF reads `results` and `metadata.total`.
 
-***REMOVED******REMOVED******REMOVED*** Errors
+### Errors
 
 - `422` validation error (FastAPI)
 - `400` `{ "detail": "<message>" }` (SearchServiceException)
@@ -73,14 +73,14 @@ BFF dependency:
 
 ---
 
-***REMOVED******REMOVED*** `GET /api/v1/search/suggestions/text` (rich text suggestions)
+## `GET /api/v1/search/suggestions/text` (rich text suggestions)
 
-***REMOVED******REMOVED******REMOVED*** Request (query params)
+### Request (query params)
 
 - `query` (string, required, min length `1`)
 - `limit` (int, optional, default `10`, min `1`, max `50`)
 
-***REMOVED******REMOVED******REMOVED*** Response `200 OK`
+### Response `200 OK`
 
 Envelope (ResponseBuilder **search** pattern):
 
@@ -134,7 +134,7 @@ BFF dependency:
 
 - BFF reads `results` and `metadata.total`.
 
-***REMOVED******REMOVED******REMOVED*** Errors
+### Errors
 
 - `422` validation error (FastAPI)
 - `400` `{ "detail": "<message>" }` (SearchServiceException)
@@ -142,16 +142,16 @@ BFF dependency:
 
 ---
 
-***REMOVED******REMOVED*** `GET /api/v1/search/all` (multi-entity search; paginated)
+## `GET /api/v1/search/all` (multi-entity search; paginated)
 
-***REMOVED******REMOVED******REMOVED*** Request (query params)
+### Request (query params)
 
 - `query` (string, required)
 - `page` (int, optional, default `1`, min `1`)
 - `limit` (int, optional, default `20`, min `1`, max `100`)
 - `types` (string[], optional): repeated query param (e.g. `types=movie&types=actor`)
 
-***REMOVED******REMOVED******REMOVED*** Response `200 OK`
+### Response `200 OK`
 
 Envelope (ResponseBuilder **paginated** pattern):
 
@@ -211,7 +211,7 @@ BFF dependency:
 
 - BFF reads `results` and `pagination.total` (and relies on the presence of the standard pagination fields).
 
-***REMOVED******REMOVED******REMOVED*** Errors
+### Errors
 
 - `422` validation error (FastAPI)
 - `400` `{ "detail": "<message>" }` (SearchServiceException)
@@ -219,13 +219,13 @@ BFF dependency:
 
 ---
 
-***REMOVED******REMOVED*** `GET /health` (service health)
+## `GET /health` (service health)
 
-***REMOVED******REMOVED******REMOVED*** Request
+### Request
 
 No params.
 
-***REMOVED******REMOVED******REMOVED*** Response `200 OK` (healthy)
+### Response `200 OK` (healthy)
 
 Typical response includes:
 
@@ -267,7 +267,7 @@ Example (healthy, with dependency checks):
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Response `503 Service Unavailable`
+### Response `503 Service Unavailable`
 
 If critical dependencies are unhealthy, `status_code` becomes `503` and `status` becomes `"unhealthy"` or `"error"`.
 

@@ -9,7 +9,7 @@ from movie_storage.config.app import Config
 from movie_storage.config.logging import configure_logging
 from movie_storage.db.migrations import run_migration
 
-***REMOVED*** Create app for this command group
+# Create app for this command group
 app = typer.Typer(help="Database migration commands")
 console = Console()
 
@@ -22,24 +22,24 @@ def main(
     database_url: str | None = typer.Option(None, help="Database URL (overrides config)"),
 ) -> int:
     """Run database migrations to update schema."""
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(log_level=log_level, verbose=verbose, quiet=quiet)
 
-    ***REMOVED*** Get configuration
+    # Get configuration
     config = Config.get_instance()
     if database_url:
         config.database_url = database_url
 
-    ***REMOVED*** Show config if verbose
+    # Show config if verbose
     if verbose and not quiet:
         masked_url = config._mask_database_password(config.database_url)
         console.print(f"[bold blue]Database URL:[/] {masked_url}")
 
-    ***REMOVED*** Run migrations
+    # Run migrations
     with console.status("[bold green]Running database migrations...[/]"):
         applied_migrations = run_migration(db_url=database_url, config=config)
 
-    ***REMOVED*** Show results
+    # Show results
     if not quiet:
         if applied_migrations:
             table = Table(title="Applied Migrations")
@@ -58,5 +58,5 @@ def main(
     return 0
 
 
-***REMOVED*** Register with parent app
+# Register with parent app
 cli_app.add_typer(app, name="migrate")

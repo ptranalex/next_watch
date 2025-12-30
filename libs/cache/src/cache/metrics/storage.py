@@ -28,7 +28,7 @@ class MetricsStorage:
     def get_metrics(self) -> CacheMetrics:
         """Get current metrics snapshot."""
         with self._lock:
-            ***REMOVED*** Return a copy to avoid external modification
+            # Return a copy to avoid external modification
             return CacheMetrics(
                 total_hits=self._metrics.total_hits,
                 total_misses=self._metrics.total_misses,
@@ -86,7 +86,7 @@ class MetricsStorage:
             return json.dumps(self._metrics.to_dict(), indent=2)
 
 
-***REMOVED*** Global metrics storage instance
+# Global metrics storage instance
 _global_storage: MetricsStorage | None = None
 _storage_lock = threading.Lock()
 

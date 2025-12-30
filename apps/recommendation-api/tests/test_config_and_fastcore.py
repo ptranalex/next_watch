@@ -22,7 +22,7 @@ def test_reco_config_validators_and_weights_sum() -> None:
     with pytest.raises(ValueError):
         RecommendationAPIConfig(similarity_threshold=2.0)
 
-    ***REMOVED*** weights must sum to 1.0
+    # weights must sum to 1.0
     with pytest.raises(ValueError):
         RecommendationAPIConfig(user_vector_weight=0.7, content_vector_weight=0.7)
 

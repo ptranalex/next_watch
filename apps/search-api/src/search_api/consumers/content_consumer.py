@@ -69,11 +69,11 @@ class ContentConsumer(KafkaEventConsumer):
             title=event.title,
         )
 
-        ***REMOVED*** TODO: Implement logic to:
-        ***REMOVED*** 1. Add movie to Redis search index
-        ***REMOVED*** 2. Update autocomplete suggestions with new title
-        ***REMOVED*** 3. Index genres, actors, etc. for search
-        ***REMOVED*** 4. Initialize search popularity metrics
+        # TODO: Implement logic to:
+        # 1. Add movie to Redis search index
+        # 2. Update autocomplete suggestions with new title
+        # 3. Index genres, actors, etc. for search
+        # 4. Initialize search popularity metrics
 
     async def _handle_movie_updated(self, event_data: dict[str, Any]) -> None:
         """Handle movie updated event."""
@@ -85,10 +85,10 @@ class ContentConsumer(KafkaEventConsumer):
             changed_fields=event.changed_fields,
         )
 
-        ***REMOVED*** TODO: Implement logic to:
-        ***REMOVED*** 1. Update search index with changed fields
-        ***REMOVED*** 2. Refresh autocomplete if title changed
-        ***REMOVED*** 3. Update search rankings if popularity changed
+        # TODO: Implement logic to:
+        # 1. Update search index with changed fields
+        # 2. Refresh autocomplete if title changed
+        # 3. Update search rankings if popularity changed
 
 
 async def start_content_consumer() -> None:

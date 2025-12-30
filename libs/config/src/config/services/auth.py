@@ -24,7 +24,7 @@ class AuthConfigMixin:
     - {SERVICE}_JWT_REFRESH_TOKEN_EXPIRE_DAYS: Refresh token expiration time
     """
 
-    ***REMOVED*** JWT settings
+    # JWT settings
     jwt_secret: str = Field(
         default="change_me_in_production",
         description="Secret key for JWT token signing",
@@ -62,7 +62,7 @@ class AuthConfigMixin:
         """Validate access token expiration time is positive."""
         if v < 1:
             raise ValueError("Access token expiration must be at least 1 minute")
-        if v > 60 * 24:  ***REMOVED*** 24 hours
+        if v > 60 * 24:  # 24 hours
             raise ValueError("Access token expiration should not exceed 24 hours")
         return v
 
@@ -71,7 +71,7 @@ class AuthConfigMixin:
         """Validate refresh token expiration time is positive."""
         if v < 1:
             raise ValueError("Refresh token expiration must be at least 1 day")
-        if v > 90:  ***REMOVED*** 90 days
+        if v > 90:  # 90 days
             raise ValueError("Refresh token expiration should not exceed 90 days")
         return v
 
@@ -105,7 +105,7 @@ class AuthConfigMixin:
         if not self.jwt_secret:
             return "***"
 
-        ***REMOVED*** Show only first 4 characters if secret is long enough
+        # Show only first 4 characters if secret is long enough
         if len(self.jwt_secret) > 8:
             return f"{self.jwt_secret[:4]}***"
         return "***"
@@ -118,7 +118,7 @@ class AuthConfigMixin:
         """
         issues = []
 
-        ***REMOVED*** Check JWT secret security
+        # Check JWT secret security
         if (
             self.jwt_secret == "change_me_in_production"
             and hasattr(self, "is_production")
@@ -126,7 +126,7 @@ class AuthConfigMixin:
         ):
             issues.append("JWT secret must be changed for production")
 
-        ***REMOVED*** Check token expiration times for production
+        # Check token expiration times for production
         if hasattr(self, "is_production") and getattr(self, "is_production"):
             if self.jwt_access_token_expire_minutes > 60:
                 issues.append("Access token expiration should not exceed 60 minutes in production")
@@ -145,12 +145,12 @@ class AuthConfigMixin:
 
             logger = get_logger(__name__)
 
-            ***REMOVED*** Log JWT settings in compact format
+            # Log JWT settings in compact format
             logger.debug(
                 f"JWT: algorithm={self.jwt_algorithm}, "
                 + f"access_token_expire={self.jwt_access_token_expire_minutes}min, "
                 + f"refresh_token_expire={self.jwt_refresh_token_expire_days}days"
             )
 
-            ***REMOVED*** Log JWT secret (masked)
+            # Log JWT secret (masked)
             logger.debug(f"JWT secret: {self.get_jwt_secret_masked()}")

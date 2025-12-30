@@ -14,8 +14,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-***REMOVED*** Movie database connections are now handled via MovieDataAdapter and Backend API
-***REMOVED*** See services/movie_adapter.py for the new API-based approach
+# Movie database connections are now handled via MovieDataAdapter and Backend API
+# See services/movie_adapter.py for the new API-based approach
 
 
 @contextmanager
@@ -28,4 +28,4 @@ def get_db_context() -> Iterator[Any]:
     raise NotImplementedError(
         "Database operations are not available; use MovieDataAdapter / Backend API."
     )
-    yield  ***REMOVED*** pragma: no cover
+    yield  # pragma: no cover

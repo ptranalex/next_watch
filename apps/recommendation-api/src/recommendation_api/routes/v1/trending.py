@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-***REMOVED*** Custom key builder for trending movies
+# Custom key builder for trending movies
 def _build_trending_movies_key(
     limit: int = 20,
     days: int = 7,
@@ -44,7 +44,7 @@ def _build_trending_movies_key(
 
 
 @redis_cache(
-    ttl=1800,  ***REMOVED*** 30 minutes TTL
+    ttl=1800,  # 30 minutes TTL
     key_builder=_build_trending_movies_key,
     enable_metrics=True,
 )
@@ -59,24 +59,24 @@ async def _get_trending_recommendations_data(
     This function returns a dictionary that can be JSON serialized for caching.
     Following the BFF pattern: cached functions return dicts, endpoints return Pydantic models.
     """
-    ***REMOVED*** Temporarily use popular_recommendations_direct as trending implementation
-    ***REMOVED*** since get_trending_recommendations_direct doesn't exist yet
-    min_vote_count = 1000  ***REMOVED*** Default value from other methods
+    # Temporarily use popular_recommendations_direct as trending implementation
+    # since get_trending_recommendations_direct doesn't exist yet
+    min_vote_count = 1000  # Default value from other methods
     recommendations, filters = await recommendation_service.get_popular_recommendations_direct(
         limit=limit,
-        min_rating=min_rating or 7.0,  ***REMOVED*** Default to 7.0 if None
+        min_rating=min_rating or 7.0,  # Default to 7.0 if None
         min_vote_count=min_vote_count,
     )
 
-    ***REMOVED*** Update filters to include days parameter
+    # Update filters to include days parameter
     filters["days"] = days
-    filters["type"] = "trending"  ***REMOVED*** Add type to filters
+    filters["type"] = "trending"  # Add type to filters
 
-    ***REMOVED*** Convert MovieRecommendation objects to dictionaries for caching
-    ***REMOVED*** Use mode="json" to ensure proper serialization of date objects
+    # Convert MovieRecommendation objects to dictionaries for caching
+    # Use mode="json" to ensure proper serialization of date objects
     recommendations_dicts = [rec.model_dump(mode="json") for rec in recommendations]
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     return {
         "recommendations": recommendations_dicts,
         "total": len(recommendations),
@@ -128,7 +128,7 @@ async def get_trending_recommendations_endpoint(
     Raises:
         ValidationException: If parameters are invalid
     """
-    ***REMOVED*** Validate parameters
+    # Validate parameters
     if limit <= 0 or limit > 100:
         raise ValidationException("Limit must be between 1 and 100")
     if days <= 0 or days > 30:
@@ -136,10 +136,10 @@ async def get_trending_recommendations_endpoint(
     if min_rating is not None and (min_rating < 0 or min_rating > 10):
         raise ValidationException("Minimum rating must be between 0 and 10")
 
-    ***REMOVED*** Record recommendation request metrics
+    # Record recommendation request metrics
     metrics = get_recommendation_metrics()
     if metrics:
-        ***REMOVED*** Record filter usage for trending movies
+        # Record filter usage for trending movies
         metrics.record_recommendation_filter_usage("days", _categorize_days(days))
         if min_rating is not None:
             metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
@@ -155,7 +155,7 @@ async def get_trending_recommendations_endpoint(
         endpoint="get_trending_recommendations",
     )
 
-    ***REMOVED*** Use the cached function to get data as dictionary
+    # Use the cached function to get data as dictionary
     data = await _get_trending_recommendations_data(
         limit=limit,
         days=days,
@@ -163,7 +163,7 @@ async def get_trending_recommendations_endpoint(
         recommendation_service=recommendation_service,
     )
 
-    ***REMOVED*** Record successful trending recommendations request
+    # Record successful trending recommendations request
     if metrics:
         metrics.record_recommendation_request("trending", "success", 0.0, data.get("total", 0))
         metrics.record_backend_api_request("get_trending_movies", "success", 0.0)
@@ -176,7 +176,7 @@ async def get_trending_recommendations_endpoint(
         endpoint="get_trending_recommendations",
     )
 
-    ***REMOVED*** Convert dictionary back to Pydantic model for response
+    # Convert dictionary back to Pydantic model for response
     return RecommendationsResponse(**data)
 
 

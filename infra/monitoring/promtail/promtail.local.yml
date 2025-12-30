@@ -9,7 +9,7 @@ clients:
   - url: http://loki-local:3100/loki/api/v1/push
 
 scrape_configs:
-  ***REMOVED*** Docker container logs
+  # Docker container logs
   - job_name: docker
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
@@ -41,7 +41,7 @@ scrape_configs:
       - output:
           source: message
 
-  ***REMOVED*** NextWatch service logs from volumes
+  # NextWatch service logs from volumes
   - job_name: nextwatch-backend
     static_configs:
       - targets:
@@ -174,7 +174,7 @@ scrape_configs:
           source: timestamp
           format: RFC3339Nano
 
-  ***REMOVED*** System logs
+  # System logs
   - job_name: system
     static_configs:
       - targets:

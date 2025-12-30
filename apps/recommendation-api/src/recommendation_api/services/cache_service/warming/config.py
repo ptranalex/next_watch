@@ -22,15 +22,15 @@ def get_recommendation_warming_config() -> WarmingConfig:
         min_miss_rate_threshold=getattr(settings, "warming_min_miss_rate", 0.3),
         min_avg_miss_time_ms=getattr(settings, "warming_min_avg_miss_time", 100.0),
         min_total_calls=getattr(settings, "warming_min_total_calls", 10),
-        ***REMOVED*** Strategy configuration - Enable popular_content for recommendations
+        # Strategy configuration - Enable popular_content for recommendations
         enable_metrics_driven=True,
         enable_popular_content=True,
-        enable_user_specific=False,  ***REMOVED*** Disable for recommendation API
+        enable_user_specific=False,  # Disable for recommendation API
         enable_scheduled=True,
-        ***REMOVED*** Strategy weights
+        # Strategy weights
         metrics_driven_weight=1.0,
-        popular_content_weight=1.0,  ***REMOVED*** Higher weight for popular content
-        user_specific_weight=0.0,  ***REMOVED*** Disabled
+        popular_content_weight=1.0,  # Higher weight for popular content
+        user_specific_weight=0.0,  # Disabled
         scheduled_weight=0.8,
     )
 

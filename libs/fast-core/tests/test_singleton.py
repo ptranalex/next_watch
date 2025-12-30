@@ -111,7 +111,7 @@ class TestSingletonManager:
         instance1 = self.manager.get_or_create("test")
         instance2 = self.manager.get_or_create("test")
 
-        assert instance1 is instance2  ***REMOVED*** Same instance
+        assert instance1 is instance2  # Same instance
 
     def test_get_or_create_unregistered_singleton(self):
         """Test getting unregistered singleton raises error."""
@@ -189,7 +189,7 @@ class TestSingletonManager:
 
         self.manager.get_or_create("test")
 
-        ***REMOVED*** Should not raise error
+        # Should not raise error
         await self.manager.cleanup("test")
 
         assert "test" not in self.manager._instances
@@ -219,7 +219,7 @@ class TestSingletonManager:
         self.manager.register(config1)
         self.manager.register(config2)
 
-        ***REMOVED*** Create one instance
+        # Create one instance
         self.manager.get_or_create("test1")
 
         status = self.manager.list_singletons()
@@ -233,7 +233,7 @@ class TestSingletonFunctions:
 
     def setup_method(self):
         """Set up test fixtures."""
-        ***REMOVED*** Clear global singleton manager
+        # Clear global singleton manager
         from fast_core.dependencies.singleton import _singleton_manager
 
         _singleton_manager._instances.clear()
@@ -242,7 +242,7 @@ class TestSingletonFunctions:
 
     def teardown_method(self):
         """Clean up after tests."""
-        ***REMOVED*** Clear global singleton manager
+        # Clear global singleton manager
         from fast_core.dependencies.singleton import _singleton_manager
 
         _singleton_manager._instances.clear()
@@ -264,16 +264,16 @@ class TestSingletonFunctions:
         def create_test_client():
             return MockClient("decorator-test")
 
-        ***REMOVED*** Should return dependency function
+        # Should return dependency function
         dependency_func = create_test_client
         assert callable(dependency_func)
 
-        ***REMOVED*** Should create singleton instance
+        # Should create singleton instance
         instance1 = dependency_func()
         instance2 = dependency_func()
 
         assert isinstance(instance1, MockClient)
-        assert instance1 is instance2  ***REMOVED*** Same instance
+        assert instance1 is instance2  # Same instance
 
     def test_get_singleton_function(self):
         """Test get_singleton function."""
@@ -298,7 +298,7 @@ class TestSingletonFunctions:
         instance2 = dependency_func()
 
         assert isinstance(instance1, MockClient)
-        assert instance1 is instance2  ***REMOVED*** Same instance
+        assert instance1 is instance2  # Same instance
 
     @pytest.mark.asyncio
     async def test_cleanup_singletons(self):
@@ -344,7 +344,7 @@ class TestSingletonIntegration:
 
     def setup_method(self):
         """Set up test fixtures."""
-        ***REMOVED*** Clear global singleton manager
+        # Clear global singleton manager
         from fast_core.dependencies.singleton import _singleton_manager
 
         _singleton_manager._instances.clear()
@@ -353,7 +353,7 @@ class TestSingletonIntegration:
 
     def teardown_method(self):
         """Clean up after tests."""
-        ***REMOVED*** Clear global singleton manager
+        # Clear global singleton manager
         from fast_core.dependencies.singleton import _singleton_manager
 
         _singleton_manager._instances.clear()
@@ -376,11 +376,11 @@ class TestSingletonIntegration:
         instance2a = create_client2()
         instance2b = create_client2()
 
-        ***REMOVED*** Same singleton instances
+        # Same singleton instances
         assert instance1a is instance1b
         assert instance2a is instance2b
 
-        ***REMOVED*** Different singleton instances
+        # Different singleton instances
         assert instance1a is not instance2a
 
     def test_singleton_with_fastapi_depends(self):
@@ -391,11 +391,11 @@ class TestSingletonIntegration:
         def create_fastapi_client():
             return MockClient("fastapi-client")
 
-        ***REMOVED*** Simulate FastAPI dependency injection
+        # Simulate FastAPI dependency injection
         def route_handler(client: MockClient = Depends(create_fastapi_client)):
             return {"client_name": client.name}
 
-        ***REMOVED*** Resolve dependency manually (simulating FastAPI)
+        # Resolve dependency manually (simulating FastAPI)
         client = create_fastapi_client()
         result = route_handler(client)
 
@@ -410,15 +410,15 @@ class TestSingletonIntegration:
         def create_lifespan_client():
             return MockClient("lifespan-client")
 
-        ***REMOVED*** Create instance
+        # Create instance
         instance = create_lifespan_client()
         assert not instance.closed
 
-        ***REMOVED*** Simulate app lifespan
+        # Simulate app lifespan
         mock_app = Mock()
         async with singleton_lifespan(mock_app):
-            ***REMOVED*** During app lifetime
+            # During app lifetime
             assert not instance.closed
 
-        ***REMOVED*** After app shutdown
+        # After app shutdown
         assert instance.closed

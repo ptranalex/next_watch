@@ -20,13 +20,13 @@ def setup_cors(app: FastAPI, settings: Any) -> None:
         app: FastAPI application
         settings: Application settings with CORS configuration
     """
-    ***REMOVED*** Get CORS configuration from settings
+    # Get CORS configuration from settings
     cors_config = {}
 
     if hasattr(settings, "get_cors_config"):
         cors_config = settings.get_cors_config()
     else:
-        ***REMOVED*** Fallback to individual attributes
+        # Fallback to individual attributes
         cors_config = {
             "allow_origins": getattr(settings, "cors_origins", ["*"]),
             "allow_credentials": getattr(settings, "cors_allow_credentials", True),
@@ -34,7 +34,7 @@ def setup_cors(app: FastAPI, settings: Any) -> None:
             "allow_headers": getattr(settings, "cors_allow_headers", ["*"]),
         }
 
-    ***REMOVED*** Add CORS middleware
+    # Add CORS middleware
     app.add_middleware(CORSMiddleware, **cors_config)
 
     logger.info(

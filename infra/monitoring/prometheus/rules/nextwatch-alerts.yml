@@ -1,5 +1,5 @@
 groups:
-  ***REMOVED*** Service Availability Alerts
+  # Service Availability Alerts
   - name: nextwatch.service.availability
     rules:
       - alert: ServiceDown
@@ -36,7 +36,7 @@ groups:
           summary: "High latency on {{ $labels.service }}"
           description: "95th percentile latency on {{ $labels.service }} is above 2 seconds."
 
-  ***REMOVED*** HTTP Request Alerts
+  # HTTP Request Alerts
   - name: nextwatch.http.requests
     rules:
       - alert: HighRequestVolume
@@ -69,7 +69,7 @@ groups:
           summary: "Too many requests in progress on {{ $labels.service }}"
           description: "Service {{ $labels.service }} has more than 50 requests in progress."
 
-  ***REMOVED*** BFF-Specific Alerts
+  # BFF-Specific Alerts
   - name: nextwatch.bff.alerts
     rules:
       - alert: BFFServiceCallFailures
@@ -107,7 +107,7 @@ groups:
           summary: "High cache miss rate on BFF"
           description: "Cache {{ $labels.cache_name }} has a miss rate above 80%."
 
-  ***REMOVED*** Business Logic Alerts
+  # Business Logic Alerts
   - name: nextwatch.business.alerts
     rules:
       - alert: LowMovieRequestVolume
@@ -133,7 +133,7 @@ groups:
           summary: "High search error rate"
           description: "Search error rate is above 10% for search type {{ $labels.search_type }}."
 
-  ***REMOVED*** Infrastructure Alerts
+  # Infrastructure Alerts
   - name: nextwatch.infrastructure.alerts
     rules:
       - alert: HighMemoryUsage
@@ -169,7 +169,7 @@ groups:
           summary: "Disk space low"
           description: "Disk usage is above 85% on {{ $labels.instance }} ({{ $labels.mountpoint }})."
 
-  ***REMOVED*** Container Alerts
+  # Container Alerts
   - name: nextwatch.container.alerts
     rules:
       - alert: ContainerKilled
@@ -202,7 +202,7 @@ groups:
           summary: "Container memory usage"
           description: "Container {{ $labels.name }} memory usage is above 80%."
 
-  ***REMOVED*** Redis Alerts (if using Redis exporter)
+  # Redis Alerts (if using Redis exporter)
   - name: nextwatch.redis.alerts
     rules:
       - alert: RedisDown
@@ -235,7 +235,7 @@ groups:
           summary: "Redis high connection count"
           description: "Redis has more than 100 connected clients on {{ $labels.instance }}."
 
-  ***REMOVED*** Service Health Monitoring Alerts
+  # Service Health Monitoring Alerts
   - name: nextwatch.health.alerts
     rules:
       - alert: ServiceHealthEndpointDown

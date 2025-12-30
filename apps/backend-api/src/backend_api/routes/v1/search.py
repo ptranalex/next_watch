@@ -14,13 +14,13 @@ from backend_api.db.database import get_db
 from backend_api.queries.movie_query import MovieQuery
 from backend_api.schemas.search import SearchResponse
 
-***REMOVED*** Note: Backend API focuses on core data - no suggestion engine
+# Note: Backend API focuses on core data - no suggestion engine
 
 
 class Suggestion(BaseModel):
     id: int
     name: str
-    type: str  ***REMOVED*** "movie", "actor", "genre"
+    type: str  # "movie", "actor", "genre"
     image_path: str | None = None
 
 
@@ -28,13 +28,13 @@ class TextSuggestion(BaseModel):
     """Enhanced text-based suggestion response model"""
 
     text: str
-    type: str  ***REMOVED*** "movie", "actor", "director"
+    type: str  # "movie", "actor", "director"
     id: int | None = None
     image_path: str | None = None
-    year: int | None = None  ***REMOVED*** Useful for movies
+    year: int | None = None  # Useful for movies
     popularity: float | None = None
-    is_partial: bool = False  ***REMOVED*** Whether this is a partial/incomplete match
-    search_type: str = "unknown"  ***REMOVED*** How this suggestion was matched (exact, prefix, word, contains)
+    is_partial: bool = False  # Whether this is a partial/incomplete match
+    search_type: str = "unknown"  # How this suggestion was matched (exact, prefix, word, contains)
     additional_info: dict[str, Any] | None = None
 
 
@@ -52,10 +52,10 @@ class TextSuggestionsResponse(BaseModel):
 
 logger = get_logger(__name__)
 
-***REMOVED*** Backend API provides basic search functionality via database queries
+# Backend API provides basic search functionality via database queries
 
 
-***REMOVED*** Backend API focuses on core data - suggestion engine moved to recommendation service
+# Backend API focuses on core data - suggestion engine moved to recommendation service
 
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -72,22 +72,22 @@ async def get_search_suggestions(
 
     This returns a small set of search suggestions to power typeahead features.
     """
-    ***REMOVED*** Record metrics
+    # Record metrics
     metrics = get_backend_metrics()
     if metrics:
-        metrics.record_movie_search("suggestions", 0, 0.0)  ***REMOVED*** No filters, placeholder duration
+        metrics.record_movie_search("suggestions", 0, 0.0)  # No filters, placeholder duration
 
     try:
         logger.debug(f"Getting search suggestions for '{query}'")
 
-        ***REMOVED*** This is a placeholder implementation
-        ***REMOVED*** In a real implementation, you would query multiple entity types
-        ***REMOVED*** and combine results
+        # This is a placeholder implementation
+        # In a real implementation, you would query multiple entity types
+        # and combine results
 
-        ***REMOVED*** Return an empty response for now
+        # Return an empty response for now
         return SuggestionsResponse(suggestions=[], total=0)
     except Exception as e:
-        ***REMOVED*** Record error metrics
+        # Record error metrics
         if metrics:
             metrics.record_movie_search("suggestions_error", 0, 0.0)
         logger.error(f"Error fetching search suggestions: {str(e)}", exc_info=True)
@@ -109,14 +109,14 @@ async def get_text_suggestions(
     try:
         logger.debug(f"Getting basic text suggestions for '{query}' from database")
 
-        ***REMOVED*** Use MovieQuery to search for movies that match the query
+        # Use MovieQuery to search for movies that match the query
         movie_query = MovieQuery()
         movies, _ = movie_query.search_movies_by_title(db, title_search=query, skip=0, limit=limit)
 
-        ***REMOVED*** Format as suggestions
+        # Format as suggestions
         formatted_suggestions = []
         for movie in movies:
-            ***REMOVED*** Extract movie title and basic info
+            # Extract movie title and basic info
             if isinstance(movie, dict):
                 title = str(movie.get("title") or "Unknown")
                 movie_id = movie.get("id")
@@ -166,11 +166,11 @@ async def search_all(
     try:
         logger.debug(f"Searching for '{query}' with types={types}")
 
-        ***REMOVED*** This is a placeholder implementation
-        ***REMOVED*** In a real implementation, you would query multiple entity types
-        ***REMOVED*** and combine results based on the requested types
+        # This is a placeholder implementation
+        # In a real implementation, you would query multiple entity types
+        # and combine results based on the requested types
 
-        ***REMOVED*** Return an empty response for now
+        # Return an empty response for now
         return SearchResponse(
             suggestions=[],
             total=0,

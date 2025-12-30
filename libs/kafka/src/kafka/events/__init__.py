@@ -17,24 +17,24 @@ from kafka.events.system_events import (
 from kafka.events.user_events import UserLoginEvent, UserLogoutEvent, UserRegisteredEvent
 
 __all__ = [
-    ***REMOVED*** Base
+    # Base
     "BaseEvent",
     "EventType",
-    ***REMOVED*** User events
+    # User events
     "UserRegisteredEvent",
     "UserLoginEvent",
     "UserLogoutEvent",
-    ***REMOVED*** Activity events
+    # Activity events
     "MovieViewedEvent",
     "MovieRatedEvent",
     "WatchlistChangedEvent",
     "WatchlistAction",
-    ***REMOVED*** Content events
+    # Content events
     "MovieCreatedEvent",
     "MovieUpdatedEvent",
-    ***REMOVED*** Cache events
+    # Cache events
     "CacheInvalidationEvent",
-    ***REMOVED*** System events
+    # System events
     "RecommendationRequestEvent",
     "MLTrainingEvent",
     "SystemHealthEvent",

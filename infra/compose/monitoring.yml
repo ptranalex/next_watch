@@ -1,5 +1,5 @@
 services:
-  ***REMOVED*** Prometheus - Metrics collection and alerting
+  # Prometheus - Metrics collection and alerting
   prometheus:
     image: prom/prometheus:v2.48.0
     container_name: prometheus-prod
@@ -52,7 +52,7 @@ services:
       timeout: 10s
       retries: 3
 
-  ***REMOVED*** Grafana - Visualization and dashboards
+  # Grafana - Visualization and dashboards
   grafana:
     image: grafana/grafana:10.2.0
     container_name: grafana-prod
@@ -103,7 +103,7 @@ services:
       timeout: 10s
       retries: 3
 
-  ***REMOVED*** AlertManager - Alert routing and notification
+  # AlertManager - Alert routing and notification
   alertmanager:
     image: prom/alertmanager:v0.26.0
     container_name: alertmanager-prod
@@ -151,7 +151,7 @@ services:
       timeout: 10s
       retries: 3
 
-  ***REMOVED*** Node Exporter - Host metrics
+  # Node Exporter - Host metrics
   node-exporter:
     image: prom/node-exporter:v1.7.0
     container_name: node-exporter-prod
@@ -188,7 +188,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
-  ***REMOVED*** cAdvisor - Container metrics
+  # cAdvisor - Container metrics
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.47.2
     container_name: cadvisor-prod
@@ -225,7 +225,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
-  ***REMOVED*** Loki - Log aggregation
+  # Loki - Log aggregation
   loki:
     image: grafana/loki:2.9.0
     container_name: loki-prod
@@ -268,7 +268,7 @@ services:
       timeout: 10s
       retries: 3
 
-  ***REMOVED*** Promtail - Log shipping to Loki
+  # Promtail - Log shipping to Loki
   promtail:
     image: grafana/promtail:2.9.0
     container_name: promtail-prod
@@ -279,7 +279,7 @@ services:
       - /var/log:/var/log:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      ***REMOVED*** Mount the correct NextWatch service log volumes
+      # Mount the correct NextWatch service log volumes
       - next_watch_backend-logs:/app/logs/backend:ro
       - next_watch_bff-logs:/app/logs/bff:ro
       - next_watch_auth-logs:/app/logs/auth:ro
@@ -306,7 +306,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
-  ***REMOVED*** Blackbox Exporter - Health endpoint monitoring
+  # Blackbox Exporter - Health endpoint monitoring
   blackbox-exporter:
     image: prom/blackbox-exporter:v0.25.0
     container_name: blackbox-exporter-prod
@@ -351,21 +351,21 @@ services:
       timeout: 10s
       retries: 3
 
-  ***REMOVED*** Grafana Tempo - Distributed Tracing
+  # Grafana Tempo - Distributed Tracing
   tempo:
     image: grafana/tempo:2.6.0
     container_name: tempo-prod
     restart: always
-    user: root  ***REMOVED*** Run as root to fix permission issues with volume directories
+    user: root  # Run as root to fix permission issues with volume directories
     command:
       - "-config.file=/etc/tempo.yaml"
       - "-log.level=info"
     ports:
-      - "3200:3200" ***REMOVED*** HTTP API
-      - "4317:4317" ***REMOVED*** OTLP gRPC receiver
-      - "4318:4318" ***REMOVED*** OTLP HTTP receiver
-      - "9411:9411" ***REMOVED*** Zipkin receiver
-      - "14268:14268" ***REMOVED*** Jaeger HTTP receiver
+      - "3200:3200" # HTTP API
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+      - "9411:9411" # Zipkin receiver
+      - "14268:14268" # Jaeger HTTP receiver
     environment:
       - TZ=UTC
     volumes:
@@ -412,7 +412,7 @@ volumes:
     driver: local
   tempo-data:
     driver: local
-  ***REMOVED*** Use existing NextWatch log volumes (external)
+  # Use existing NextWatch log volumes (external)
   next_watch_backend-logs:
     external: true
   next_watch_bff-logs:

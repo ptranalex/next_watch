@@ -1,8 +1,8 @@
-***REMOVED*** BFF API Command Line Interface
+# BFF API Command Line Interface
 
 This module provides a comprehensive command-line interface (CLI) for the BFF API service, built using Typer and integrated with the **NextWatch CLI Framework** for consistent UX and enterprise-grade patterns.
 
-***REMOVED******REMOVED*** 🎯 CLI Framework Integration
+## 🎯 CLI Framework Integration
 
 The BFF API CLI now leverages the **NextWatch CLI Framework** to provide:
 
@@ -11,27 +11,27 @@ The BFF API CLI now leverages the **NextWatch CLI Framework** to provide:
 - **Auto-generated commands** for common operations (health, cache, config)
 - **Enterprise-grade features** like secret masking, retry logic, and async operations
 
-***REMOVED******REMOVED*** Structure
+## Structure
 
 The CLI is organized as follows:
 
 ```
 bff_api/cli/
 │
-├── main.py           ***REMOVED*** Main CLI application with framework integration
-├── __main__.py       ***REMOVED*** Entry point for direct module execution
-├── __init__.py       ***REMOVED*** Package initialization
-├── utils.py          ***REMOVED*** Utility functions for CLI commands
-└── commands/         ***REMOVED*** Remaining command modules
-    ├── serve.py      ***REMOVED*** Server commands (enhanced with framework output)
-    └── __init__.py   ***REMOVED*** Command module initialization
+├── main.py           # Main CLI application with framework integration
+├── __main__.py       # Entry point for direct module execution
+├── __init__.py       # Package initialization
+├── utils.py          # Utility functions for CLI commands
+└── commands/         # Remaining command modules
+    ├── serve.py      # Server commands (enhanced with framework output)
+    └── __init__.py   # Command module initialization
 ```
 
 **Note**: Health and cache commands are now **auto-generated** by the CLI framework, providing consistent functionality across all NextWatch services.
 
-***REMOVED******REMOVED*** Command Groups
+## Command Groups
 
-***REMOVED******REMOVED******REMOVED*** Auto-Generated Commands (via CLI Framework)
+### Auto-Generated Commands (via CLI Framework)
 
 - **health**: Health check commands using existing `health_service.py`
   - `health check`: Check health of all services (Backend API, Auth API, Recommendation API)
@@ -49,18 +49,18 @@ bff_api/cli/
   - `config --verbose`: Show detailed configuration
   - `config --show-secrets`: Show sensitive configuration values (use with caution)
 
-***REMOVED******REMOVED******REMOVED*** Custom Commands
+### Custom Commands
 
 - **serve**: Server management commands (enhanced with framework output)
   - `serve` or `serve start`: Start the BFF API server
 - **version**: Show BFF API version information
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 The CLI is installed as part of the BFF API package:
 
 ```bash
-***REMOVED*** Install in development mode
+# Install in development mode
 cd /path/to/bff-api
 pip install -e .
 ```
@@ -68,16 +68,16 @@ pip install -e .
 After installation, the CLI is available via:
 
 ```bash
-***REMOVED*** As a console script
+# As a console script
 bff-api [COMMAND] [OPTIONS]
 
-***REMOVED*** As a Python module
+# As a Python module
 python -m bff_api.cli [COMMAND] [OPTIONS]
 ```
 
-***REMOVED******REMOVED*** Usage Examples
+## Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Server Management
+### Server Management
 
 Start the server with default settings:
 
@@ -97,7 +97,7 @@ Start in development mode with auto-reload:
 bff-api serve --reload
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Checks (Framework-Generated)
+### Health Checks (Framework-Generated)
 
 Check health of all services:
 
@@ -114,12 +114,12 @@ bff-api health check --verbose
 Check specific services:
 
 ```bash
-bff-api health backend    ***REMOVED*** Backend API only
-bff-api health auth       ***REMOVED*** Auth API only
-bff-api health reco       ***REMOVED*** Recommendation API only
+bff-api health backend    # Backend API only
+bff-api health auth       # Auth API only
+bff-api health reco       # Recommendation API only
 ```
 
-***REMOVED******REMOVED******REMOVED*** Cache Management (Framework-Generated)
+### Cache Management (Framework-Generated)
 
 Display cache information:
 
@@ -142,7 +142,7 @@ bff-api cache delete session:abc123
 bff-api cache clear --pattern "temp:*" --confirm
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration (Framework-Generated)
+### Configuration (Framework-Generated)
 
 Display current configuration:
 
@@ -162,7 +162,7 @@ Show sensitive values (development only):
 bff-api config --show-secrets
 ```
 
-***REMOVED******REMOVED*** Environment Variables
+## Environment Variables
 
 The CLI respects the following environment variables:
 
@@ -178,36 +178,36 @@ The CLI respects the following environment variables:
 | `RECO_API_URL`    | URL for recommendation API  | http://localhost:8002    |
 | `REDIS_URL`       | URL for Redis connection    | redis://localhost:6379/0 |
 
-***REMOVED******REMOVED*** 🚀 CLI Framework Benefits
+## 🚀 CLI Framework Benefits
 
-***REMOVED******REMOVED******REMOVED*** 1. **Unified Output Management**
+### 1. **Unified Output Management**
 
 - Clean separation between user output (Rich console) and operational logging (structured logs)
 - Consistent styling and color schemes across all commands
 - Verbose mode with detailed operational information
 
-***REMOVED******REMOVED******REMOVED*** 2. **Enterprise-Grade Features**
+### 2. **Enterprise-Grade Features**
 
 - **Secret Masking**: Automatic masking of sensitive configuration values
 - **Structured Logging**: JSON-formatted logs for monitoring and debugging
 - **Retry Logic**: Built-in retry mechanisms for unreliable operations
 - **Async Support**: Full async/await support for concurrent operations
 
-***REMOVED******REMOVED******REMOVED*** 3. **Production-Ready Patterns**
+### 3. **Production-Ready Patterns**
 
 - **Health Service Integration**: Uses existing `health_service.py` for complex health checks
 - **Connection Management**: Proper Redis client lifecycle management
 - **Error Handling**: Comprehensive error handling with appropriate exit codes
 - **Progress Indicators**: Rich progress bars for long-running operations
 
-***REMOVED******REMOVED******REMOVED*** 4. **Developer Experience**
+### 4. **Developer Experience**
 
 - **Type Safety**: Full type annotations throughout
 - **Auto-Completion**: Shell completion support
 - **Consistent Help**: Standardized help text and command structure
 - **Easy Extension**: Simple patterns for adding new commands
 
-***REMOVED******REMOVED*** Design Principles
+## Design Principles
 
 1. **Framework Integration**: Leverage CLI framework for consistent UX and enterprise patterns
 2. **Service Separation**: Complex logic stays in service layers (e.g., `health_service.py`)
@@ -216,16 +216,16 @@ The CLI respects the following environment variables:
 5. **Type Safety**: Full type annotations for reliability and maintainability
 6. **Async First**: Built for concurrent operations and scalable patterns
 
-***REMOVED******REMOVED*** Extending the CLI
+## Extending the CLI
 
-***REMOVED******REMOVED******REMOVED*** Using Framework Generators
+### Using Framework Generators
 
 For common patterns, use the CLI framework generators:
 
 ```python
 from cli_framework import create_health_commands, create_cache_commands
 
-***REMOVED*** Auto-generate health commands
+# Auto-generate health commands
 health_app = create_health_commands(
     health_service_getter=get_health_service,
     service_checks={
@@ -235,7 +235,7 @@ health_app = create_health_commands(
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Commands
+### Custom Commands
 
 For custom functionality, follow the framework patterns:
 
@@ -250,6 +250,6 @@ def my_command(verbose: bool = False, quiet: bool = False):
     out.log_operation("Operational log", key="value")
 ```
 
-***REMOVED******REMOVED*** Shell Completion
+## Shell Completion
 
 The BFF API CLI supports shell completion for Bash, Zsh, and Fish shells through the CLI framework integration.

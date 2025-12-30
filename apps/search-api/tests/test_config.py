@@ -1,4 +1,4 @@
-***REMOVED*** type: ignore
+# type: ignore
 
 """Test configuration for Search API."""
 
@@ -18,7 +18,7 @@ def test_search_config_creation():
 
 def test_search_config_validation():
     """Test configuration validation."""
-    ***REMOVED*** Test valid config
+    # Test valid config
     config = SearchAPIConfig(
         max_suggestions=25, search_cache_ttl=600, backend_api_url="https://api.example.com"
     )

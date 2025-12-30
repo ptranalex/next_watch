@@ -115,7 +115,7 @@ class MoviesClient(BaseBackendClient):
         if not movie_ids:
             return []
 
-        ***REMOVED*** Convert movie IDs to comma-separated string
+        # Convert movie IDs to comma-separated string
         ids_str = ",".join(str(movie_id) for movie_id in movie_ids)
 
         params = {
@@ -125,12 +125,12 @@ class MoviesClient(BaseBackendClient):
         }
 
         try:
-            ***REMOVED*** Use the bulk endpoint to get all movies in one request
+            # Use the bulk endpoint to get all movies in one request
             response = await self._make_request(
                 "GET", self._build_api_path("/movies/bulk"), params=params
             )
 
-            ***REMOVED*** Extract results from the paginated response
+            # Extract results from the paginated response
             movies = response.get("results", [])
             logger.debug(
                 f"Bulk request returned {len(movies)} movies out of {len(movie_ids)} requested"
@@ -141,14 +141,14 @@ class MoviesClient(BaseBackendClient):
         except BackendClientError as e:
             logger.warning(f"Bulk movie request failed: {e}. Falling back to individual requests.")
 
-            ***REMOVED*** Fall back to individual requests if bulk fails
+            # Fall back to individual requests if bulk fails
             movies = []
             for movie_id in movie_ids:
                 try:
                     movie = await self.get_movie(movie_id)
                     movies.append(movie)
                 except BackendClientError as fallback_e:
-                    ***REMOVED*** Log but continue with other movies - use debug for 404s since they're expected
+                    # Log but continue with other movies - use debug for 404s since they're expected
                     if "404" in str(fallback_e):
                         logger.debug(f"Movie {movie_id} not found in backend API, skipping")
                     else:
@@ -189,11 +189,11 @@ class MoviesClient(BaseBackendClient):
         Returns:
             List of popular movies
         """
-        ***REMOVED*** Ensure limit doesn't exceed backend API maximum
+        # Ensure limit doesn't exceed backend API maximum
         safe_limit = min(limit, 50)
 
         try:
-            ***REMOVED*** Use the top movies endpoint with filtering
+            # Use the top movies endpoint with filtering
             response = await self._make_request(
                 "GET",
                 self._build_api_path("/movies/top"),
@@ -203,17 +203,17 @@ class MoviesClient(BaseBackendClient):
                 },
             )
 
-            ***REMOVED*** Extract movies from the response
+            # Extract movies from the response
             movies = response.get("results", [])
 
-            ***REMOVED*** Filter by rating (min_vote_count is not supported by the API)
+            # Filter by rating (min_vote_count is not supported by the API)
             filtered_movies = [
                 movie for movie in movies if movie.get("imdb_rating", 0) >= min_rating
             ]
 
             logger.info(f"Retrieved {len(filtered_movies)} popular movies after filtering")
 
-            ***REMOVED*** Return the filtered movies (up to the limit)
+            # Return the filtered movies (up to the limit)
             return filtered_movies[:safe_limit]
 
         except BackendClientError as e:
@@ -238,10 +238,10 @@ class MoviesClient(BaseBackendClient):
         Returns:
             List of personalized movie recommendations
         """
-        ***REMOVED*** For now, use the recommendations endpoint with user_id
-        ***REMOVED*** In a real implementation, this would call a user-specific recommendations endpoint
+        # For now, use the recommendations endpoint with user_id
+        # In a real implementation, this would call a user-specific recommendations endpoint
         try:
-            ***REMOVED*** First try a user-specific endpoint if it exists
+            # First try a user-specific endpoint if it exists
             response = await self._make_request(
                 "GET",
                 self._build_api_path(f"/users/{user_id}/recommendations"),
@@ -253,7 +253,7 @@ class MoviesClient(BaseBackendClient):
             )
             return response.get("results", [])
         except BackendClientError:
-            ***REMOVED*** Fall back to popular movies if user-specific endpoint fails
+            # Fall back to popular movies if user-specific endpoint fails
             logger.info(
                 f"No personalized recommendations for user {user_id}, falling back to popular movies"
             )
@@ -277,11 +277,11 @@ class MoviesClient(BaseBackendClient):
         Returns:
             List of trending movies
         """
-        ***REMOVED*** Ensure limit doesn't exceed backend API maximum for /movies/top endpoint
+        # Ensure limit doesn't exceed backend API maximum for /movies/top endpoint
         safe_limit = min(limit, 50)
 
         try:
-            ***REMOVED*** Use the top movies endpoint since there's no dedicated trending endpoint
+            # Use the top movies endpoint since there's no dedicated trending endpoint
             response = await self._make_request(
                 "GET",
                 self._build_api_path("/movies/top"),
@@ -311,11 +311,11 @@ class MoviesClient(BaseBackendClient):
         Returns:
             List of recently updated movies
         """
-        ***REMOVED*** Ensure limit doesn't exceed backend API maximum for /movies endpoint
+        # Ensure limit doesn't exceed backend API maximum for /movies endpoint
         safe_limit = min(limit, 100)
 
         try:
-            ***REMOVED*** Use regular movies endpoint with sorting since there's no dedicated recent endpoint
+            # Use regular movies endpoint with sorting since there's no dedicated recent endpoint
             response = await self._make_request(
                 "GET",
                 self._build_api_path("/movies"),

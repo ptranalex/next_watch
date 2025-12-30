@@ -41,7 +41,7 @@ class BackendAPIClient:
             "User-Agent": "Search-API/1.0.0",
         }
 
-        ***REMOVED*** Add internal API key if configured
+        # Add internal API key if configured
         if config.internal_api_key:
             self.headers["Internal-API-Key"] = config.internal_api_key
 
@@ -148,7 +148,7 @@ class BackendAPIClient:
             "sort_desc": sort_desc,
         }
 
-        ***REMOVED*** Add optional filters
+        # Add optional filters
         if genre_id is not None:
             params["genre_id"] = genre_id
         if actor_id is not None:

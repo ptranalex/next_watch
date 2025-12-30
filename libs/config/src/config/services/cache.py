@@ -25,7 +25,7 @@ class CacheConfigMixin:
     - {SERVICE}_CACHE_KEY_PREFIX: Prefix for cache keys
     """
 
-    ***REMOVED*** Redis connection settings
+    # Redis connection settings
     redis_url: str = Field(
         default="redis://localhost:6379/0",
         description="Redis connection URL",
@@ -39,7 +39,7 @@ class CacheConfigMixin:
     )
     redis_retry_on_timeout: bool = Field(default=True, description="Retry operations on timeout")
 
-    ***REMOVED*** Cache-specific settings
+    # Cache-specific settings
     cache_ttl_default: int = Field(
         default=300, description="Default cache TTL in seconds (5 minutes)"
     )
@@ -67,7 +67,7 @@ class CacheConfigMixin:
             if not parsed.hostname:
                 raise ValueError("Redis URL must include hostname")
 
-            ***REMOVED*** Validate database number if present
+            # Validate database number if present
             if parsed.path and parsed.path != "/":
                 try:
                     db_num = int(parsed.path.lstrip("/"))
@@ -104,7 +104,7 @@ class CacheConfigMixin:
         """Validate cache TTL is positive."""
         if v < 1:
             raise ValueError("Cache TTL must be at least 1 second")
-        if v > 86400:  ***REMOVED*** 24 hours
+        if v > 86400:  # 24 hours
             raise ValueError("Cache TTL should not exceed 24 hours")
         return v
 
@@ -202,10 +202,10 @@ class CacheConfigMixin:
 
             logger = get_logger(__name__)
 
-            ***REMOVED*** Log Redis URL (masked) only in debug mode
+            # Log Redis URL (masked) only in debug mode
             logger.debug(f"Redis: {self.get_redis_url_masked()}")
 
-            ***REMOVED*** Log cache TTL settings in compact format
+            # Log cache TTL settings in compact format
             logger.debug(
                 f"Cache TTLs: default={self.cache_ttl_default}s, "
                 + f"short={self.cache_ttl_short}s, "

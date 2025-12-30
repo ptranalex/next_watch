@@ -36,16 +36,16 @@ from .context import (
 from .setup import setup_middleware
 
 __all__ = [
-    ***REMOVED*** Main configuration class
+    # Main configuration class
     "MiddlewareConfig",
-    ***REMOVED*** Individual config classes
+    # Individual config classes
     "CORSConfig",
     "SecurityConfig",
     "LoggingConfig",
     "RateLimitConfig",
     "RequestConfig",
     "ContextConfig",
-    ***REMOVED*** Context middleware components
+    # Context middleware components
     "RequestContext",
     "RequestContextMiddleware",
     "get_request_id",
@@ -53,9 +53,9 @@ __all__ = [
     "get_request_context",
     "inject_trace_context",
     "create_child_span_context",
-    ***REMOVED*** Constants for common configurations
+    # Constants for common configurations
     "DEFAULT_METRICS_EXCLUDE_PATHS",
     "DEFAULT_LOGGING_EXCLUDE_PATHS",
-    ***REMOVED*** Setup function
+    # Setup function
     "setup_middleware",
 ]

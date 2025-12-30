@@ -14,7 +14,7 @@ from recommendation_api.repositories.vector import (
 )
 from recommendation_api.services.ml_api_client import get_ml_api_client
 
-***REMOVED*** Movie features now come from API - see movie_adapter.py
+# Movie features now come from API - see movie_adapter.py
 
 logger = get_logger(__name__)
 
@@ -49,9 +49,9 @@ class VectorService:
         """
         return self.repository.get_movie_embedding(movie_id)
 
-    ***REMOVED*** NOTE: This method is deprecated in favor of API-based approach
-    ***REMOVED*** Movie features now come from the backend API via MovieDataAdapter
-    ***REMOVED*** Vector embeddings should be generated and stored by the ML service directly
+    # NOTE: This method is deprecated in favor of API-based approach
+    # Movie features now come from the backend API via MovieDataAdapter
+    # Vector embeddings should be generated and stored by the ML service directly
     async def generate_and_store_movie_embedding(
         self, movie_features: dict[str, Any]
     ) -> list[float] | None:
@@ -74,7 +74,7 @@ class VectorService:
             logger.warning("No movie_id in features")
             return None
 
-        ***REMOVED*** Generate embedding using ML API
+        # Generate embedding using ML API
         try:
             ml_client = get_ml_api_client()
             embedding = await ml_client.generate_movie_embedding(movie_features)
@@ -82,7 +82,7 @@ class VectorService:
             logger.error(f"Failed to generate embedding for movie {movie_id}: {e}")
             return None
 
-        ***REMOVED*** Prepare metadata
+        # Prepare metadata
         metadata = {
             "title": movie_features.get("title", ""),
             "release_year": movie_features.get("release_year"),
@@ -91,7 +91,7 @@ class VectorService:
             "movie_id": movie_id,
         }
 
-        ***REMOVED*** Store embedding
+        # Store embedding
         success = self.repository.store_movie_embedding(
             movie_id=movie_id,
             embedding=embedding,
@@ -134,7 +134,7 @@ class VectorService:
         self,
         movie_id: int,
         limit: int = 10,
-        min_score: float = 0.01,  ***REMOVED*** Use a much lower default threshold
+        min_score: float = 0.01,  # Use a much lower default threshold
     ) -> list[tuple[int, float]]:
         """Find movies similar to a specific movie by ID.
 
@@ -148,7 +148,7 @@ class VectorService:
         """
         logger.debug(f"Finding similar movies for movie ID {movie_id} with min_score={min_score}")
 
-        ***REMOVED*** Delegate to repository layer, which now handles fallbacks internally
+        # Delegate to repository layer, which now handles fallbacks internally
         similar_movies = self.repository.search_by_movie_id(
             movie_id=movie_id,
             limit=limit,
@@ -166,13 +166,13 @@ class VectorService:
         """
         stats = self.repository.get_embeddings_stats()
 
-        ***REMOVED*** Add service-level info
+        # Add service-level info
         stats["service_status"] = "healthy" if stats.get("total_embeddings", 0) > 0 else "warning"
 
         return stats
 
-    ***REMOVED*** NOTE: This method is deprecated - use ML service for batch processing
-    ***REMOVED*** Movie data should now come from the backend API
+    # NOTE: This method is deprecated - use ML service for batch processing
+    # Movie data should now come from the backend API
     def batch_process_movies_deprecated(
         self,
         movie_features_list: list[dict[str, Any]],
@@ -231,7 +231,7 @@ class VectorService:
         self,
         movie_id: int,
         limit: int = 10,
-        min_score: float = 0.01,  ***REMOVED*** Use a much lower default threshold
+        min_score: float = 0.01,  # Use a much lower default threshold
     ) -> list[tuple[int, float, dict[str, Any]]]:
         """Find movies similar to a specific movie by ID with metadata.
 
@@ -247,7 +247,7 @@ class VectorService:
             f"Finding similar movies with metadata for movie ID {movie_id} with min_score={min_score}"
         )
 
-        ***REMOVED*** Delegate to repository layer, which handles fallbacks internally
+        # Delegate to repository layer, which handles fallbacks internally
         similar_movies = self.repository.search_by_movie_id_with_metadata(
             movie_id=movie_id,
             limit=limit,
@@ -261,12 +261,12 @@ class VectorService:
 
     async def close(self) -> None:
         """Close the vector service and release resources."""
-        ***REMOVED*** Currently, no async resources to close in the service itself
-        ***REMOVED*** But we'll keep this method async for future compatibility
+        # Currently, no async resources to close in the service itself
+        # But we'll keep this method async for future compatibility
         pass
 
 
-***REMOVED*** Global vector service instance
+# Global vector service instance
 _vector_service: VectorService | None = None
 
 
@@ -292,5 +292,5 @@ async def close_vector_service() -> None:
         await _vector_service.close()
         _vector_service = None
 
-    ***REMOVED*** Close the underlying vector repository
+    # Close the underlying vector repository
     await close_vector_repository()

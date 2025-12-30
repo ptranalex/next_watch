@@ -99,9 +99,9 @@ class UserMovieInteractionsWithMovieListResponse(BaseModel):
     results: list[UserMovieInteractionWithMovie]
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** NEW COLLECTION-ORIENTED SCHEMAS
-***REMOVED*** ============================================================================
+# ============================================================================
+# NEW COLLECTION-ORIENTED SCHEMAS
+# ============================================================================
 
 
 class AddToCollectionRequest(BaseModel):

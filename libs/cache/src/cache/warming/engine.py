@@ -48,13 +48,13 @@ class WarmingEngine:
         self.metrics_collector = metrics_collector
         self.config = config or WarmingConfig()
 
-        ***REMOVED*** Registry for warming functions
+        # Registry for warming functions
         self._warming_functions: dict[str, Callable[..., Awaitable[Any]]] = {}
 
-        ***REMOVED*** Statistics tracking
+        # Statistics tracking
         self._warming_history: list[WarmingResult] = []
 
-        ***REMOVED*** Initialize warming strategies
+        # Initialize warming strategies
         self._strategies: dict[WarmingStrategy, BaseWarmingStrategy] = {}
         self._initialize_strategies()
 
@@ -80,14 +80,14 @@ class WarmingEngine:
         if self.config.enable_popular_content:
             self._strategies[WarmingStrategy.POPULAR_CONTENT] = PopularContentStrategy(
                 config=self.config,
-                popularity_provider=None,  ***REMOVED*** Can be set later via set_popularity_provider
+                popularity_provider=None,  # Can be set later via set_popularity_provider
             )
 
         if self.config.enable_user_specific:
             self._strategies[WarmingStrategy.USER_SPECIFIC] = UserSpecificStrategy(
                 config=self.config,
-                user_data_provider=None,  ***REMOVED*** Can be set later
-                recommendation_provider=None,  ***REMOVED*** Can be set later
+                user_data_provider=None,  # Can be set later
+                recommendation_provider=None,  # Can be set later
             )
 
         if self.config.enable_scheduled:
@@ -161,18 +161,18 @@ class WarmingEngine:
             },
         )
 
-        ***REMOVED*** Create semaphore for concurrency control
+        # Create semaphore for concurrency control
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        ***REMOVED*** Execute warming tasks
+        # Execute warming tasks
         tasks = [self._warm_single_target(target, semaphore, dry_run) for target in targets]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        ***REMOVED*** Process results and calculate statistics
+        # Process results and calculate statistics
         stats = self._calculate_warming_stats(results)
 
-        ***REMOVED*** Store results in history
+        # Store results in history
         for result in results:
             if isinstance(result, WarmingResult):
                 self._warming_history.append(result)
@@ -215,14 +215,14 @@ class WarmingEngine:
         strategy_instance = self._strategies[strategy]
 
         try:
-            ***REMOVED*** Get targets from strategy
+            # Get targets from strategy
             targets = await strategy_instance.identify_targets(limit=limit, context=context)
 
             if not targets:
                 logger.info(f"No targets identified by {strategy} strategy")
                 return WarmingStats()
 
-            ***REMOVED*** Warm the identified targets
+            # Warm the identified targets
             return await self.warm_targets(targets, dry_run=dry_run)
 
         except Exception as e:
@@ -262,7 +262,7 @@ class WarmingEngine:
                 logger.error(f"Error in {strategy} strategy: {e}")
                 results[strategy] = WarmingStats()
 
-        ***REMOVED*** Log summary
+        # Log summary
         total_targets = sum(stats.total_targets for stats in results.values())
         total_successful = sum(stats.successful_targets for stats in results.values())
 
@@ -309,7 +309,7 @@ class WarmingEngine:
             logger.warning("No metrics collector available for metrics-driven warming")
             return WarmingStats()
 
-        ***REMOVED*** Get all function metrics
+        # Get all function metrics
         metrics_data = self.metrics_collector.get_metrics()
         if not metrics_data or "functions" not in metrics_data:
             logger.info("No metrics data available for warming")
@@ -320,16 +320,16 @@ class WarmingEngine:
             logger.info("No function metrics available for warming")
             return WarmingStats()
 
-        ***REMOVED*** Identify warming targets
+        # Identify warming targets
         targets = []
         for func_name, metrics_dict in all_functions.items():
-            ***REMOVED*** Convert dict to object-like access for compatibility
+            # Convert dict to object-like access for compatibility
             class MetricsObj:
                 def __init__(self, data: dict[str, Any]):
                     self.total_calls: int = data.get("total_calls", 0)
                     self.miss_ratio: float = (
                         data.get("miss_ratio", 0.0) / 100.0
-                    )  ***REMOVED*** Convert percentage to ratio
+                    )  # Convert percentage to ratio
                     self.avg_uncached_time_ms: float = data.get("avg_uncached_time_ms", 0.0)
                     self.avg_cache_time_ms: float = data.get("avg_cache_time_ms", 0.0)
                     self.misses: int = data.get("misses", 0)
@@ -360,7 +360,7 @@ class WarmingEngine:
                 )
                 targets.append(target)
 
-        ***REMOVED*** Sort by priority and apply limit
+        # Sort by priority and apply limit
         targets.sort(key=lambda t: t.priority, reverse=True)
         if limit:
             targets = targets[:limit]
@@ -390,12 +390,12 @@ class WarmingEngine:
 
             try:
                 if dry_run:
-                    ***REMOVED*** Simulate warming
-                    await asyncio.sleep(0.1)  ***REMOVED*** Simulate work
+                    # Simulate warming
+                    await asyncio.sleep(0.1)  # Simulate work
                     result.status = WarmingStatus.COMPLETED
                     result.cache_key = f"simulated:{target.function_name}"
                 else:
-                    ***REMOVED*** Actual warming
+                    # Actual warming
                     await self._execute_warming(target, result)
 
                 result.end_time = datetime.now()
@@ -421,17 +421,17 @@ class WarmingEngine:
         """
         func_name = target.function_name
 
-        ***REMOVED*** Check if we have a registered warming function
+        # Check if we have a registered warming function
         if func_name in self._warming_functions:
             warming_func = self._warming_functions[func_name]
             try:
-                ***REMOVED*** Call the warming function with parameters
+                # Call the warming function with parameters
                 await warming_func(**target.parameters)
                 result.cache_key = f"warmed:{func_name}"
             except Exception as e:
                 raise Exception(f"Warming function failed: {e}")
         else:
-            ***REMOVED*** For now, just log that we would warm this function
+            # For now, just log that we would warm this function
             logger.info(f"Would warm function {func_name} with params {target.parameters}")
             result.cache_key = f"placeholder:{func_name}"
 
@@ -445,7 +445,7 @@ class WarmingEngine:
         Returns:
             True if function should be warmed
         """
-        ***REMOVED*** Apply thresholds from configuration
+        # Apply thresholds from configuration
         if metrics.total_calls < self.config.min_total_calls:
             return False
 
@@ -466,7 +466,7 @@ class WarmingEngine:
         Returns:
             Priority score
         """
-        ***REMOVED*** Priority based on miss rate, miss time, and usage
+        # Priority based on miss rate, miss time, and usage
         miss_rate_factor = float(metrics.miss_rate)
         time_factor = min(float(metrics.avg_cache_miss_time) / 1000.0, 5.0)
         usage_factor = min(float(metrics.total_calls) / 100.0, 10.0)
@@ -508,11 +508,11 @@ class WarmingEngine:
                 if result.execution_time_ms:
                     stats.total_execution_time_ms += result.execution_time_ms
             else:
-                ***REMOVED*** Exception occurred
+                # Exception occurred
                 stats.total_targets += 1
                 stats.failed_targets += 1
 
-        ***REMOVED*** Calculate average execution time
+        # Calculate average execution time
         if stats.successful_targets > 0:
             stats.average_execution_time_ms = (
                 stats.total_execution_time_ms / stats.successful_targets

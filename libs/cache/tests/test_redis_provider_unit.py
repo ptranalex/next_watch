@@ -46,7 +46,7 @@ class _FakeRedis:
         return 1 if key in self._data else 0
 
     async def scan_iter(self, match=None, count=100):
-        ***REMOVED*** yield keys matching prefix-style patterns (very simple)
+        # yield keys matching prefix-style patterns (very simple)
         if match is None:
             return
         prefix = match.rstrip("*")
@@ -75,7 +75,7 @@ async def test_redis_provider_core_ops(monkeypatch) -> None:
     assert await p.delete("a") is True
     assert await p.exists("a") is False
 
-    ***REMOVED*** pattern delete
+    # pattern delete
     await p.set_raw("k:1", "x")
     await p.set_raw("k:2", "y")
     deleted = await p.delete_pattern("k:*")

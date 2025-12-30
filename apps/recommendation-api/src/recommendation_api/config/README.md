@@ -1,8 +1,8 @@
-***REMOVED*** Configuration Module
+# Configuration Module
 
 This module manages all configuration settings for the Recommendation API service.
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The configuration system provides:
 
@@ -11,9 +11,9 @@ The configuration system provides:
 - Logging configuration
 - Centralized settings management
 
-***REMOVED******REMOVED*** Components
+## Components
 
-***REMOVED******REMOVED******REMOVED*** `app.py`
+### `app.py`
 
 The main configuration module that defines:
 
@@ -28,7 +28,7 @@ The settings are loaded with this hierarchy:
 2. `.env` file in project root
 3. Default values (lowest priority)
 
-***REMOVED******REMOVED******REMOVED*** `logging.py`
+### `logging.py`
 
 Configures the application's logging system:
 
@@ -37,20 +37,20 @@ Configures the application's logging system:
 - Provides a `configure_logging()` function for CLI commands
 - Handles log file outputs and rotation
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Accessing Configuration
+### Accessing Configuration
 
 ```python
 from recommendation_api.config import settings
 
-***REMOVED*** Use settings directly
+# Use settings directly
 database_url = settings.database_url
 host = settings.host
 port = settings.port
 ```
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 Key configuration settings can be overridden with environment variables:
 
@@ -63,19 +63,19 @@ Key configuration settings can be overridden with environment variables:
 | Qdrant URL      | `QDRANT_URL`         | `http://localhost:6333`                                            |
 | Embedding Model | `EMBEDDING_MODEL`    | `all-MiniLM-L6-v2`                                                 |
 
-***REMOVED******REMOVED******REMOVED*** Configuring Logging
+### Configuring Logging
 
 ```python
 from recommendation_api.config.logging import configure_logging
 
-***REMOVED*** Basic configuration
+# Basic configuration
 configure_logging()
 
-***REMOVED*** Custom configuration
+# Custom configuration
 configure_logging(log_level="DEBUG", verbose=True)
 ```
 
-***REMOVED******REMOVED*** Environment Support
+## Environment Support
 
 The configuration system supports multiple environments:
 
@@ -85,7 +85,7 @@ The configuration system supports multiple environments:
 
 Set the environment with the `ENVIRONMENT` environment variable.
 
-***REMOVED******REMOVED*** Extending Configuration
+## Extending Configuration
 
 To add new configuration options:
 

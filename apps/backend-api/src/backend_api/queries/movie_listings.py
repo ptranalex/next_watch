@@ -50,13 +50,13 @@ def get_movies_with_filters(
     Returns:
         Tuple of (list of movie rows, total count)
     """
-    ***REMOVED*** Base query
+    # Base query
     query = """
     SELECT DISTINCT m.*
     FROM movie m
     """
 
-    ***REMOVED*** If filtering by genre, join with genre table
+    # If filtering by genre, join with genre table
     where_clauses = []
     params: dict[str, Any] = {}
 
@@ -68,23 +68,23 @@ def get_movies_with_filters(
         where_clauses.append("mgl.genre_id = :genre_id")
         params["genre_id"] = genre_id
 
-    ***REMOVED*** If filtering by actor or credit, join with credit table
+    # If filtering by actor or credit, join with credit table
     if actor_id is not None or actor_tmdb_id is not None:
         query += """
         JOIN credit c ON m.id = c.movie_id
         """
 
-        ***REMOVED*** Filter by specific credit ID
+        # Filter by specific credit ID
         if actor_id is not None:
             where_clauses.append("c.id = :actor_id AND c.department = 'Acting'")
             params["actor_id"] = actor_id
 
-        ***REMOVED*** Or filter by actor's TMDB ID
+        # Or filter by actor's TMDB ID
         if actor_tmdb_id is not None:
             where_clauses.append("c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'")
             params["actor_tmdb_id"] = actor_tmdb_id
 
-    ***REMOVED*** Add rating filters
+    # Add rating filters
     if imdb_rating is not None:
         where_clauses.append("m.imdb_rating >= :imdb_rating")
         params["imdb_rating"] = imdb_rating
@@ -97,12 +97,12 @@ def get_movies_with_filters(
         where_clauses.append("m.metacritic_rating >= :metacritic_rating")
         params["metacritic_rating"] = metacritic_rating
 
-    ***REMOVED*** Add year filter
+    # Add year filter
     if year is not None:
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) = :year")
         params["year"] = year
 
-    ***REMOVED*** Add year range filters
+    # Add year range filters
     if start_year is not None:
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) >= :start_year")
         params["start_year"] = start_year
@@ -111,11 +111,11 @@ def get_movies_with_filters(
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) <= :end_year")
         params["end_year"] = end_year
 
-    ***REMOVED*** Add WHERE clause if we have any conditions
+    # Add WHERE clause if we have any conditions
     if where_clauses:
         query += " WHERE " + " AND ".join(where_clauses)
 
-    ***REMOVED*** Add sorting
+    # Add sorting
     valid_sort_fields = [
         "title",
         "release_date",
@@ -132,39 +132,39 @@ def get_movies_with_filters(
     else:
         query += " ASC"
 
-    ***REMOVED*** Add NULLS LAST for rating fields to ensure movies with ratings appear first
+    # Add NULLS LAST for rating fields to ensure movies with ratings appear first
     if sort_field in ["imdb_rating", "vote_average", "vote_count"]:
         query += " NULLS LAST"
 
-    ***REMOVED*** Add pagination
+    # Add pagination
     query += " LIMIT :limit OFFSET :skip"
     params["limit"] = limit
     params["skip"] = skip
 
-    ***REMOVED*** Count query
+    # Count query
     count_query = """
     SELECT COUNT(DISTINCT m.id)
     FROM movie m
     """
 
-    ***REMOVED*** If filtering by genre, join with genre table
+    # If filtering by genre, join with genre table
     if genre_id is not None:
         count_query += """
         JOIN movie_genre_link mgl ON m.id = mgl.movie_id
         JOIN genre g ON mgl.genre_id = g.id
         """
 
-    ***REMOVED*** If filtering by actor or credit, join with credit table
+    # If filtering by actor or credit, join with credit table
     if actor_id is not None or actor_tmdb_id is not None:
         count_query += """
         JOIN credit c ON m.id = c.movie_id
         """
 
-    ***REMOVED*** Add WHERE clause if we have any conditions
+    # Add WHERE clause if we have any conditions
     if where_clauses:
         count_query += " WHERE " + " AND ".join(where_clauses)
 
-    ***REMOVED*** Execute queries
+    # Execute queries
     result = db_session.execute(text(query), params)
     count_result = db_session.execute(text(count_query), params)
 
@@ -214,22 +214,22 @@ def search_movies_by_title(
     Returns:
         Tuple of (list of movie rows, total count)
     """
-    ***REMOVED*** Base query
+    # Base query
     query = """
     SELECT DISTINCT m.*
     FROM movie m
     """
 
-    ***REMOVED*** Start building WHERE clauses and parameters
+    # Start building WHERE clauses and parameters
     where_clauses = []
     params: dict[str, Any] = {}
 
-    ***REMOVED*** Add title search condition
+    # Add title search condition
     search_pattern = f"%{title_search}%"
     where_clauses.append("LOWER(m.title) LIKE LOWER(:title_search)")
     params["title_search"] = search_pattern
 
-    ***REMOVED*** If filtering by genre, join with genre table
+    # If filtering by genre, join with genre table
     if genre_id is not None:
         query += """
         JOIN movie_genre_link mgl ON m.id = mgl.movie_id
@@ -238,23 +238,23 @@ def search_movies_by_title(
         where_clauses.append("mgl.genre_id = :genre_id")
         params["genre_id"] = genre_id
 
-    ***REMOVED*** If filtering by actor or credit, join with credit table
+    # If filtering by actor or credit, join with credit table
     if actor_id is not None or actor_tmdb_id is not None:
         query += """
         JOIN credit c ON m.id = c.movie_id
         """
 
-        ***REMOVED*** Filter by specific credit ID
+        # Filter by specific credit ID
         if actor_id is not None:
             where_clauses.append("c.id = :actor_id AND c.department = 'Acting'")
             params["actor_id"] = actor_id
 
-        ***REMOVED*** Or filter by actor's TMDB ID
+        # Or filter by actor's TMDB ID
         if actor_tmdb_id is not None:
             where_clauses.append("c.tmdb_person_id = :actor_tmdb_id AND c.department = 'Acting'")
             params["actor_tmdb_id"] = actor_tmdb_id
 
-    ***REMOVED*** Add rating filters
+    # Add rating filters
     if imdb_rating is not None:
         where_clauses.append("m.imdb_rating >= :imdb_rating")
         params["imdb_rating"] = imdb_rating
@@ -267,12 +267,12 @@ def search_movies_by_title(
         where_clauses.append("m.metacritic_rating >= :metacritic_rating")
         params["metacritic_rating"] = metacritic_rating
 
-    ***REMOVED*** Add year filter
+    # Add year filter
     if year is not None:
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) = :year")
         params["year"] = year
 
-    ***REMOVED*** Add year range filters
+    # Add year range filters
     if start_year is not None:
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) >= :start_year")
         params["start_year"] = start_year
@@ -281,11 +281,11 @@ def search_movies_by_title(
         where_clauses.append("EXTRACT(YEAR FROM m.release_date) <= :end_year")
         params["end_year"] = end_year
 
-    ***REMOVED*** Add WHERE clause with all conditions
+    # Add WHERE clause with all conditions
     if where_clauses:
         query += " WHERE " + " AND ".join(where_clauses)
 
-    ***REMOVED*** Add sorting
+    # Add sorting
     valid_sort_fields = [
         "title",
         "release_date",
@@ -302,16 +302,16 @@ def search_movies_by_title(
     else:
         query += " ASC"
 
-    ***REMOVED*** Add NULLS LAST for rating fields to ensure movies with ratings appear first
+    # Add NULLS LAST for rating fields to ensure movies with ratings appear first
     if sort_field in ["imdb_rating", "vote_average", "vote_count"]:
         query += " NULLS LAST"
 
-    ***REMOVED*** Add pagination
+    # Add pagination
     query += " LIMIT :limit OFFSET :skip"
     params["limit"] = limit
     params["skip"] = skip
 
-    ***REMOVED*** Count query - needs to match the filters of the main query
+    # Count query - needs to match the filters of the main query
     count_query = """
     SELECT COUNT(DISTINCT m.id)
     FROM movie m
@@ -331,7 +331,7 @@ def search_movies_by_title(
     if where_clauses:
         count_query += " WHERE " + " AND ".join(where_clauses)
 
-    ***REMOVED*** Execute queries
+    # Execute queries
     result = db_session.execute(text(query), params)
     count_result = db_session.execute(text(count_query), params)
 

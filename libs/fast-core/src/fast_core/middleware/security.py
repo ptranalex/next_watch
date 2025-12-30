@@ -21,7 +21,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: Any,
-        hsts_max_age: int = 31536000,  ***REMOVED*** 1 year
+        hsts_max_age: int = 31536000,  # 1 year
         content_type_nosniff: bool = True,
         x_frame_options: str = "DENY",
         x_content_type_options: str = "nosniff",
@@ -59,23 +59,23 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         """
         response = await call_next(request)
 
-        ***REMOVED*** Add HSTS header for HTTPS
+        # Add HSTS header for HTTPS
         if request.url.scheme == "https":
             response.headers["Strict-Transport-Security"] = (
                 f"max-age={self.hsts_max_age}; includeSubDomains"
             )
 
-        ***REMOVED*** Add content type options
+        # Add content type options
         if self.content_type_nosniff:
             response.headers["X-Content-Type-Options"] = self.x_content_type_options
 
-        ***REMOVED*** Add frame options
+        # Add frame options
         response.headers["X-Frame-Options"] = self.x_frame_options
 
-        ***REMOVED*** Add referrer policy
+        # Add referrer policy
         response.headers["Referrer-Policy"] = self.referrer_policy
 
-        ***REMOVED*** Add custom headers
+        # Add custom headers
         for header, value in self.custom_headers.items():
             response.headers[header] = value
 
@@ -113,15 +113,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         Returns:
             HTTP response or rate limit error
         """
-        ***REMOVED*** Skip rate limiting for excluded paths
+        # Skip rate limiting for excluded paths
         if request.url.path in self.exclude_paths:
             return cast(Response, await call_next(request))
 
-        ***REMOVED*** Get client IP
+        # Get client IP
         client_ip = getattr(request.client, "host", "unknown") if request.client else "unknown"
 
-        ***REMOVED*** For now, just proceed (real implementation would track request counts)
-        ***REMOVED*** This is a placeholder for a more sophisticated rate limiting implementation
+        # For now, just proceed (real implementation would track request counts)
+        # This is a placeholder for a more sophisticated rate limiting implementation
         logger.debug(f"Rate limit check for {client_ip} on {request.url.path}")
 
         return cast(Response, await call_next(request))
@@ -134,13 +134,13 @@ def setup_security(app: FastAPI, settings: Any) -> None:
         app: FastAPI application
         settings: Application settings
     """
-    ***REMOVED*** Add trusted host middleware
+    # Add trusted host middleware
     allowed_hosts = getattr(settings, "allowed_hosts", ["*"])
     if allowed_hosts and "*" not in allowed_hosts:
         app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
         logger.info(f"Trusted host middleware configured with hosts: {allowed_hosts}")
 
-    ***REMOVED*** Add security headers middleware
+    # Add security headers middleware
     security_headers_config = {
         "hsts_max_age": getattr(settings, "hsts_max_age", 31536000),
         "x_frame_options": getattr(settings, "x_frame_options", "DENY"),
@@ -152,7 +152,7 @@ def setup_security(app: FastAPI, settings: Any) -> None:
     app.add_middleware(SecurityHeadersMiddleware, **security_headers_config)
     logger.info("Security headers middleware configured")
 
-    ***REMOVED*** Add rate limiting if configured
+    # Add rate limiting if configured
     if getattr(settings, "enable_rate_limiting", False):
         rate_limit_config = {
             "requests_per_minute": getattr(settings, "rate_limit_requests_per_minute", 60),

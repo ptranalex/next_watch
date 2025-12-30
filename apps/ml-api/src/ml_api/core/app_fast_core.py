@@ -16,7 +16,7 @@ from ml_api.config.app import MLAPIConfig
 from ml_api.config.fast_core_config import create_fast_core_config
 from ml_api.routes.embeddings import router as embeddings_router
 
-***REMOVED*** Add ML meta configuration constants after imports
+# Add ML meta configuration constants after imports
 ML_FEATURES = [
     "Movie embedding generation and similarity",
     "Vector similarity search and matching",
@@ -86,33 +86,33 @@ async def ml_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     Handles startup and shutdown events for the ML API application.
     """
-    ***REMOVED*** Startup
+    # Startup
     logger.info("Starting ML API application")
     settings = app.state.settings
     ml_config = app.state.ml_config
 
-    ***REMOVED*** Log configuration summary
+    # Log configuration summary
     logger.info(f"ML API starting on {settings.host}:{settings.port}")
     logger.info(f"Environment: {settings.environment}")
 
-    ***REMOVED*** Setup new multi-endpoint health checks
+    # Setup new multi-endpoint health checks
     try:
         _setup_health_check_system(app, settings)
         logger.info("Multi-endpoint health check system initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize health check system: {e}", exc_info=True)
 
-    ***REMOVED*** Initialize ML model if enabled
+    # Initialize ML model if enabled
     try:
         _load_embedding_model(app, ml_config)
     except Exception as e:
         logger.error(f"Failed to load embedding model: {e}")
         if ml_config.is_production:
-            ***REMOVED*** In production, we want to know about model loading failures
+            # In production, we want to know about model loading failures
             raise
         logger.warning("Continuing with mock embeddings in development")
 
-    ***REMOVED*** Initialize ML-specific metrics (always enabled for observability)
+    # Initialize ML-specific metrics (always enabled for observability)
     try:
         _setup_metrics(app)
     except ImportError as e:
@@ -121,19 +121,19 @@ async def ml_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize ML metrics: {e}", exc_info=True)
         if ml_config.is_production:
-            ***REMOVED*** In production, we want to know about metrics failures
+            # In production, we want to know about metrics failures
             raise
 
     yield
 
-    ***REMOVED*** Shutdown
+    # Shutdown
     logger.info("Shutting down ML API application")
 
-    ***REMOVED*** Clean up ML resources
+    # Clean up ML resources
     try:
         if hasattr(app.state, "embedding_service"):
             logger.info("Cleaning up embedding service resources")
-            ***REMOVED*** Add any cleanup logic here if needed
+            # Add any cleanup logic here if needed
     except Exception as e:
         logger.error(f"Error during ML resource cleanup: {e}")
 
@@ -149,44 +149,44 @@ def create_ml_middleware_config(config: MLAPIConfig) -> MiddlewareConfig:
     """
     middleware = MiddlewareConfig()
 
-    ***REMOVED*** Configure CORS for ML API (internal service)
+    # Configure CORS for ML API (internal service)
     middleware.cors(
         origins=config.cors_origins,
-        credentials=False,  ***REMOVED*** ML API typically doesn't need credentials
+        credentials=False,  # ML API typically doesn't need credentials
         methods=["GET", "POST", "OPTIONS"],
         headers=["Content-Type", "X-Requested-With", "X-Request-ID"],
         expose_headers=["X-Request-ID", "X-Process-Time"],
-        max_age=3600,  ***REMOVED*** Cache preflight requests for 1 hour
+        max_age=3600,  # Cache preflight requests for 1 hour
     )
 
-    ***REMOVED*** Configure security headers for production
+    # Configure security headers for production
     if config.is_production:
         middleware.security_headers(
             hsts=True,
-            hsts_max_age=63072000,  ***REMOVED*** 2 years
+            hsts_max_age=63072000,  # 2 years
             hsts_include_subdomains=True,
-            frame_options="DENY",  ***REMOVED*** Prevent iframe embedding
+            frame_options="DENY",  # Prevent iframe embedding
             content_type_options=True,
             xss_protection=True,
             referrer_policy="strict-origin-when-cross-origin",
             trusted_hosts=config.allowed_hosts,
         )
     else:
-        ***REMOVED*** Development security headers (more permissive)
+        # Development security headers (more permissive)
         middleware.security_headers(
-            hsts=False,  ***REMOVED*** No HSTS in development
+            hsts=False,  # No HSTS in development
             frame_options="SAMEORIGIN",
             content_type_options=True,
             xss_protection=True,
             referrer_policy="strict-origin-when-cross-origin",
         )
 
-    ***REMOVED*** Configure rate limiting for ML API protection
+    # Configure rate limiting for ML API protection
     rate_limit_config = {
-        ***REMOVED*** Embedding endpoints (more restrictive due to compute cost)
+        # Embedding endpoints (more restrictive due to compute cost)
         "/embeddings": "100/minute",
         "/embeddings/batch": "20/minute",
-        ***REMOVED*** Health endpoints (less restrictive)
+        # Health endpoints (less restrictive)
         "/health": "1000/minute",
         "/health/model": "500/minute",
         "/ping": "1000/minute",
@@ -197,28 +197,28 @@ def create_ml_middleware_config(config: MLAPIConfig) -> MiddlewareConfig:
         endpoints=rate_limit_config,
         exempt_ips=["127.0.0.1", "::1"]
         + (["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] if not config.is_production else []),
-        headers=True,  ***REMOVED*** Include rate limit headers for debugging
-        key_func="ip",  ***REMOVED*** Rate limit by IP address
+        headers=True,  # Include rate limit headers for debugging
+        key_func="ip",  # Rate limit by IP address
     )
 
-    ***REMOVED*** Configure logging for ML API
+    # Configure logging for ML API
     log_level = "INFO" if config.is_production else "DEBUG"
     middleware.logging(
         level=log_level,
-        include_request_body=not config.is_production,  ***REMOVED*** Only log bodies in development
-        include_response_body=False,  ***REMOVED*** Never log response bodies (too verbose)
+        include_request_body=not config.is_production,  # Only log bodies in development
+        include_response_body=False,  # Never log response bodies (too verbose)
         max_body_size=2048,
         exclude_paths=["/health", "/ping", "/docs", "/openapi.json", "/favicon.ico"],
         include_headers=True,
         exclude_headers=["authorization", "x-api-key", "internal-api-key"],
         log_timing=True,
-        log_user_agent=not config.is_production,  ***REMOVED*** Only in development
+        log_user_agent=not config.is_production,  # Only in development
     )
 
-    ***REMOVED*** Configure request processing for ML API
+    # Configure request processing for ML API
     middleware.request_processing(
-        max_request_size=5 * 1024 * 1024,  ***REMOVED*** 5MB for batch embedding requests
-        timeout=120,  ***REMOVED*** ML operations can take longer
+        max_request_size=5 * 1024 * 1024,  # 5MB for batch embedding requests
+        timeout=120,  # ML operations can take longer
         include_request_id=True,
         request_id_header="X-Request-ID",
         include_process_time=True,
@@ -227,7 +227,7 @@ def create_ml_middleware_config(config: MLAPIConfig) -> MiddlewareConfig:
         gzip_minimum_size=1000,
     )
 
-    ***REMOVED*** Configure Prometheus metrics for ML monitoring
+    # Configure Prometheus metrics for ML monitoring
     middleware.metrics(
         endpoint_path="/metrics",
         include_endpoint=True,
@@ -236,20 +236,20 @@ def create_ml_middleware_config(config: MLAPIConfig) -> MiddlewareConfig:
         custom_buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0],
         track_request_size=True,
         track_response_size=True,
-        enabled=True,  ***REMOVED*** Always enable metrics for production observability
+        enabled=True,  # Always enable metrics for production observability
     )
 
-    ***REMOVED*** CRITICAL: Always enable context middleware for request ID correlation
-    ***REMOVED*** This ensures logs and traces have consistent request IDs for debugging
+    # CRITICAL: Always enable context middleware for request ID correlation
+    # This ensures logs and traces have consistent request IDs for debugging
     middleware.context(
         service_name=config.service_name,
         auto_generate_request_id=True,
-        extract_user_id=False,  ***REMOVED*** ML API doesn't typically handle user auth
-        trace_propagation=config.enable_tracing,  ***REMOVED*** Enable trace propagation if tracing is on
+        extract_user_id=False,  # ML API doesn't typically handle user auth
+        trace_propagation=config.enable_tracing,  # Enable trace propagation if tracing is on
         include_w3c_trace_context=True,
         include_b3_headers=True,
         include_jaeger_headers=True,
-        enabled=True,  ***REMOVED*** Always enabled for request correlation
+        enabled=True,  # Always enabled for request correlation
     )
 
     return middleware
@@ -264,35 +264,35 @@ def create_ml_app(config: Optional[MLAPIConfig] = None) -> FastAPI:
     Returns:
         Configured FastAPI application
     """
-    ***REMOVED*** Use provided config or create default
+    # Use provided config or create default
     if config is None:
         from ml_api.config.app import get_ml_settings
 
         config = get_ml_settings()
 
-    ***REMOVED*** Convert to fast-core config
+    # Convert to fast-core config
     fast_core_config = create_fast_core_config(config)
 
-    ***REMOVED*** Create middleware configuration
+    # Create middleware configuration
     middleware_config = create_ml_middleware_config(config)
 
-    ***REMOVED*** Define routers for the application
+    # Define routers for the application
     routers = [
-        ***REMOVED*** health_router,  ***REMOVED*** Removed: Using new multi-endpoint health system
+        # health_router,  # Removed: Using new multi-endpoint health system
         embeddings_router,
     ]
 
-    ***REMOVED*** Create app options with enhanced meta endpoint configuration
+    # Create app options with enhanced meta endpoint configuration
     app_options = AppOptions(
         exception_handlers=True,
-        health_checks=False,  ***REMOVED*** CRITICAL: Disable to prevent conflicts
+        health_checks=False,  # CRITICAL: Disable to prevent conflicts
         docs=True,
-        meta_endpoints=True,  ***REMOVED*** ✅ Enable auto-setup with static config
+        meta_endpoints=True,  # ✅ Enable auto-setup with static config
         meta_features=ML_FEATURES,
         meta_endpoints_map=ML_ENDPOINTS,
     )
 
-    ***REMOVED*** Create the FastAPI app using fast-core
+    # Create the FastAPI app using fast-core
     app = create_app(
         settings=fast_core_config,
         title="ML API",
@@ -304,11 +304,11 @@ def create_ml_app(config: Optional[MLAPIConfig] = None) -> FastAPI:
         lifespan=ml_lifespan,
     )
 
-    ***REMOVED*** Store configurations in app state for access in lifespan and routes
+    # Store configurations in app state for access in lifespan and routes
     app.state.settings = fast_core_config
     app.state.ml_config = config
 
-    ***REMOVED*** Meta endpoints are now automatically configured with ML-specific data
+    # Meta endpoints are now automatically configured with ML-specific data
     logger.info("ML API meta endpoints configured automatically with static config")
     logger.info("ML API application created successfully with fast-core")
     return app

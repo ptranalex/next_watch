@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    ***REMOVED*** Only for type checkers; avoid runtime import cycles.
+    # Only for type checkers; avoid runtime import cycles.
     from bff_api.services.auth_client import AuthClient
     from bff_api.services.cache_service.warming.service import BFFWarmingService
     from bff_api.services.clients.facade import BackendClient
@@ -29,7 +29,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str) -> Any:  ***REMOVED*** pragma: no cover
+def __getattr__(name: str) -> Any:  # pragma: no cover
     if name == "BackendClient":
         from bff_api.services.clients.facade import BackendClient
 

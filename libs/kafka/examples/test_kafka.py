@@ -13,15 +13,15 @@ from kafka.cli_tools import KafkaClITools
 async def quick_test():
     tools = KafkaClITools()
 
-    ***REMOVED*** List topics
+    # List topics
     topics = await tools.list_topics()
     print(f"✅ Connected to Kafka! Topics: {topics}")
 
-    ***REMOVED*** Send test event
+    # Send test event
     await tools.send_test_event(topic="user.events", event_data={"test": "Hello from Kafka!"})
     print("✅ Test event sent!")
 
-    ***REMOVED*** Read it back
+    # Read it back
     events = await tools.consume_events("user.events", count=1, from_beginning=True)
     print(f"✅ Received: {events[0]['value']}")
 

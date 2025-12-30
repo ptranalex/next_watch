@@ -1,39 +1,39 @@
-***REMOVED*** NextWatch Monitoring Scripts Guide
+# NextWatch Monitoring Scripts Guide
 
 This guide explains when and how to use the different monitoring scripts in the NextWatch project.
 
-***REMOVED******REMOVED*** 📋 Script Overview
+## 📋 Script Overview
 
 | Script                                                | Purpose               | Environment                 | Tempo Included |
 | ----------------------------------------------------- | --------------------- | --------------------------- | -------------- |
 | `scripts/start-monitoring-with-tempo.sh`              | Local development     | Docker on developer machine | ✅ Yes         |
 | `infra/aws/deployment/deploy-monitoring-one-click.sh` | Production deployment | AWS EC2 instances           | ✅ Yes         |
 
-***REMOVED******REMOVED*** 🏠 Local Development: `start-monitoring-with-tempo.sh`
+## 🏠 Local Development: `start-monitoring-with-tempo.sh`
 
 **When to use**: When developing locally and want to test monitoring/tracing
 
-***REMOVED******REMOVED******REMOVED*** Features:
+### Features:
 
 - Sets up complete monitoring stack on your local machine
 - Includes Grafana Tempo for distributed tracing
 - Uses localhost endpoints and development-friendly settings
 - Interactive and verbose output for debugging
 
-***REMOVED******REMOVED******REMOVED*** Usage:
+### Usage:
 
 ```bash
-***REMOVED*** From project root
+# From project root
 ./scripts/start-monitoring-with-tempo.sh
 
-***REMOVED*** Then start your services with tracing enabled (example)
+# Then start your services with tracing enabled (example)
 export ENABLE_TRACING=true
 export TRACING_ENDPOINT=http://localhost:4317
 export TRACING_SAMPLE_RATE=1.0
 cd apps/backend-api && hatch run python -m backend_api
 ```
 
-***REMOVED******REMOVED******REMOVED*** Access:
+### Access:
 
 - **Grafana**: http://localhost:3001 (admin/admin)
 - **Tempo**: http://localhost:3200
@@ -42,11 +42,11 @@ cd apps/backend-api && hatch run python -m backend_api
 
 ---
 
-***REMOVED******REMOVED*** 🚀 Production Deployment: `deploy-monitoring-one-click.sh`
+## 🚀 Production Deployment: `deploy-monitoring-one-click.sh`
 
 **When to use**: When deploying to AWS production infrastructure
 
-***REMOVED******REMOVED******REMOVED*** Features:
+### Features:
 
 - Deploys to existing AWS EC2 instances
 - Configures security groups and networking
@@ -55,21 +55,21 @@ cd apps/backend-api && hatch run python -m backend_api
 - Production-optimized configurations
 - Automated health checks and verification
 
-***REMOVED******REMOVED******REMOVED*** Usage:
+### Usage:
 
 ```bash
-***REMOVED*** From project root
+# From project root
 ./infra/aws/deployment/deploy-monitoring-one-click.sh
 ```
 
-***REMOVED******REMOVED******REMOVED*** What it does:
+### What it does:
 
 1. ✅ **Environment Check**: Verifies AWS credentials and instance
 2. 🔓 **Security Groups**: Opens monitoring ports (3001, 9090, 9093, 3100, 3200)
 3. 🐳 **Deploy Stack**: Deploys complete monitoring with **Tempo included**
 4. 🔍 **Configure Tracing**: Sets up OpenTelemetry for all services
 
-***REMOVED******REMOVED******REMOVED*** Access:
+### Access:
 
 - **Grafana**: `https://your-domain.com/grafana/`
 - **Tempo**: http://YOUR_IP:3200
@@ -78,9 +78,9 @@ cd apps/backend-api && hatch run python -m backend_api
 
 ---
 
-***REMOVED******REMOVED*** 🤔 Why Two Scripts?
+## 🤔 Why Two Scripts?
 
-***REMOVED******REMOVED******REMOVED*** Historical Context
+### Historical Context
 
 Originally, we had separate scripts because:
 
@@ -88,7 +88,7 @@ Originally, we had separate scripts because:
 - AWS deployment requires additional setup (security groups, networking)
 - Different storage backends (local files vs. production volumes)
 
-***REMOVED******REMOVED******REMOVED*** Current State (Post-Tempo Integration)
+### Current State (Post-Tempo Integration)
 
 **Both scripts now include Tempo**, but serve different purposes:
 
@@ -103,9 +103,9 @@ Originally, we had separate scripts because:
 
 ---
 
-***REMOVED******REMOVED*** 🎯 Recommendation: Use the Right Tool
+## 🎯 Recommendation: Use the Right Tool
 
-***REMOVED******REMOVED******REMOVED*** For Local Development:
+### For Local Development:
 
 ```bash
 ./scripts/start-monitoring-with-tempo.sh
@@ -115,7 +115,7 @@ Originally, we had separate scripts because:
 - ✅ Development-friendly settings
 - ✅ Easy to iterate and debug
 
-***REMOVED******REMOVED******REMOVED*** For Production:
+### For Production:
 
 ```bash
 ./infra/aws/deployment/deploy-monitoring-one-click.sh
@@ -128,7 +128,7 @@ Originally, we had separate scripts because:
 
 ---
 
-***REMOVED******REMOVED*** 🔄 Future Improvements
+## 🔄 Future Improvements
 
 To reduce script duplication, we could:
 
@@ -144,7 +144,7 @@ However, the current approach provides:
 
 ---
 
-***REMOVED******REMOVED*** 📚 Related Documentation
+## 📚 Related Documentation
 
 - [Tempo Integration Guide](./TEMPO_INTEGRATION.md)
 - [Production Monitoring Deployment](./PRODUCTION_MONITORING_DEPLOYMENT.md)

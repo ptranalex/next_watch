@@ -19,7 +19,7 @@ from typer import Typer
 from recommendation_api.config import configure_logging, settings
 from recommendation_api.services.ml_api_client import get_ml_api_client
 
-***REMOVED*** Create CLI app
+# Create CLI app
 app: Typer = typer.Typer(name="ml", help="ML API commands and utilities")
 console = Console()
 
@@ -40,7 +40,7 @@ def test_connection(
         verbose: Show additional debug information
         quiet: Suppress console output except errors
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
@@ -50,7 +50,7 @@ def test_connection(
     configure_logging(log_level=log_level, verbose=verbose)
     logger = logging.getLogger(__name__)
 
-    ***REMOVED*** Initialize client
+    # Initialize client
     client = get_ml_api_client()
     if url:
         client.base_url = url
@@ -61,7 +61,7 @@ def test_connection(
     if not quiet:
         console.print(f"[cyan]Testing connection to ML API at {client.base_url}...[/cyan]")
 
-    ***REMOVED*** Run the async test
+    # Run the async test
     try:
         asyncio.run(_test_connection(client, verbose=verbose, quiet=quiet))
     except Exception as e:
@@ -83,17 +83,17 @@ def test_connection(
 async def _test_connection(client: Any, verbose: bool = False, quiet: bool = False) -> None:
     """Async implementation of test_connection."""
     try:
-        ***REMOVED*** Skip status display in quiet mode
+        # Skip status display in quiet mode
         if quiet:
             model_info = await client.get_model_info()
         else:
             with console.status("[bold green]Testing connection to ML API..."):
                 model_info = await client.get_model_info()
 
-                ***REMOVED*** Display success
+                # Display success
                 console.print("[bold green]✓ Connection successful![/]")
 
-                ***REMOVED*** Display model info
+                # Display model info
                 table = Table(title="ML API Model Information")
                 table.add_column("Property", style="cyan")
                 table.add_column("Value", style="green")
@@ -143,7 +143,7 @@ def generate_embedding(
         verbose: Show detailed information
         quiet: Suppress console output except errors
     """
-    ***REMOVED*** Configure logging
+    # Configure logging
     log_level = "INFO"
     if verbose:
         log_level = "DEBUG"
@@ -153,7 +153,7 @@ def generate_embedding(
     configure_logging(log_level=log_level, verbose=verbose)
     logger = logging.getLogger(__name__)
 
-    ***REMOVED*** Initialize client
+    # Initialize client
     client = get_ml_api_client()
     if url:
         client.base_url = url
@@ -161,10 +161,10 @@ def generate_embedding(
     else:
         logger.info(f"Using configured ML API URL: {client.base_url}")
 
-    ***REMOVED*** Process genres
+    # Process genres
     genre_list = [g.strip() for g in genres.split(",")] if genres else []
 
-    ***REMOVED*** Create movie features
+    # Create movie features
     movie_features = {
         "movie_id": movie_id,
         "title": title,
@@ -178,7 +178,7 @@ def generate_embedding(
         if verbose:
             console.print(f"Movie details: {json.dumps(movie_features, indent=2)}")
 
-    ***REMOVED*** Run the async test
+    # Run the async test
     try:
         asyncio.run(_generate_embedding(client, movie_features, verbose=verbose, quiet=quiet))
     except Exception as e:
@@ -209,14 +209,14 @@ async def _generate_embedding(
             with console.status("[bold green]Generating embedding..."):
                 embedding = await client.generate_movie_embedding(movie_features)
 
-                ***REMOVED*** Display success
+                # Display success
                 console.print("[bold green]✓ Embedding generated successfully![/]")
 
-                ***REMOVED*** Display embedding info
+                # Display embedding info
                 dimension = len(embedding)
                 console.print(f"[cyan]Embedding dimension:[/] [green]{dimension}[/]")
 
-                ***REMOVED*** Display a preview of the embedding vector
+                # Display a preview of the embedding vector
                 if verbose:
                     preview = (
                         embedding[:5] + ["..."] + embedding[-5:] if dimension > 10 else embedding
@@ -244,7 +244,7 @@ def ml_callback(ctx: typer.Context) -> None:
     These commands allow you to interact with the ML API service,
     test connectivity, and generate embeddings for movies.
     """
-    ***REMOVED*** When no subcommand is provided, show help
+    # When no subcommand is provided, show help
     if ctx.invoked_subcommand is None:
         console.print(
             "[yellow]No ML command specified. Use --help to see available commands.[/yellow]"

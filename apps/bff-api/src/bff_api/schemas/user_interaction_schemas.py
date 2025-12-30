@@ -43,9 +43,9 @@ class ToggleInteractionResponse(BaseModel):
     interaction: UserMovieInteractionResponse
 
 
-***REMOVED*** ============================================================================
-***REMOVED*** New Collection-Oriented Schemas
-***REMOVED*** ============================================================================
+# ============================================================================
+# New Collection-Oriented Schemas
+# ============================================================================
 
 
 class AddToCollectionRequest(BaseModel):
@@ -60,7 +60,7 @@ class MovieCollectionItem(BaseModel):
     movie_id: int
     user_id: int
     added_at: str
-    ***REMOVED*** Note: We could expand this later to include movie details if needed
+    # Note: We could expand this later to include movie details if needed
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -80,4 +80,4 @@ class CollectionOperationResponse(BaseModel):
     success: bool
     message: str
     movie_id: int
-    collection_type: str  ***REMOVED*** "watchlist", "liked_movies", "watched_movies"
+    collection_type: str  # "watchlist", "liked_movies", "watched_movies"

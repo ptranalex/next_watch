@@ -10,7 +10,7 @@ from typing import Any, TypedDict, cast
 from config.logging import get_logger
 from sqlmodel import Session
 
-***REMOVED*** Use absolute import to avoid mypy errors
+# Use absolute import to avoid mypy errors
 from backend_api.db.operations import (
     get_credits_by_movie_id,
     get_movie_by_id,
@@ -25,7 +25,7 @@ class CastMember(TypedDict):
 
     id: int
     name: str
-    character: str | None  ***REMOVED*** Character can be None
+    character: str | None  # Character can be None
     profile_path: str | None
     order: int | None
     popularity: float | None
@@ -54,14 +54,14 @@ class MovieService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If movie_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if movie_id <= 0:
             raise ValidationError(
                 message="Invalid movie ID",
                 field_errors={"movie_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get movie
+        # Get movie
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -70,18 +70,18 @@ class MovieService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Convert to dictionary based on the object's features
+        # Convert to dictionary based on the object's features
         if hasattr(movie, "keys") and hasattr(movie, "values") and hasattr(movie, "__getitem__"):
-            ***REMOVED*** Dictionary-like object
+            # Dictionary-like object
             return cast(dict[str, Any], movie)
 
-        ***REMOVED*** For SQLModel objects, use their built-in conversion method
+        # For SQLModel objects, use their built-in conversion method
         try:
-            ***REMOVED*** Use SQLModel's non-deprecated conversion method
+            # Use SQLModel's non-deprecated conversion method
             if hasattr(movie, "model_dump"):
                 return movie.model_dump()
 
-            ***REMOVED*** For other objects, convert to a basic dict
+            # For other objects, convert to a basic dict
             return {"id": movie_id, "title": getattr(movie, "title", "Unknown")}
         except Exception:
             logger.warning(f"Failed to convert movie {movie_id} to dictionary")
@@ -106,14 +106,14 @@ class MovieService:
             ResourceNotFoundError: If movie doesn't exist
             ValidationError: If movie_id is invalid
         """
-        ***REMOVED*** Validate inputs
+        # Validate inputs
         if movie_id <= 0:
             raise ValidationError(
                 message="Invalid movie ID",
                 field_errors={"movie_id": ["Must be positive"]},
             )
 
-        ***REMOVED*** Get movie
+        # Get movie
         movie = get_movie_by_id(db, movie_id)
         if not movie:
             raise ResourceNotFoundError(
@@ -122,13 +122,13 @@ class MovieService:
                 resource_id=movie_id,
             )
 
-        ***REMOVED*** Get all credits for the movie
+        # Get all credits for the movie
         credits = get_credits_by_movie_id(db, movie_id)
 
-        ***REMOVED*** Filter for cast members only
+        # Filter for cast members only
         cast_members: list[CastMember] = []
         for credit in credits:
-            ***REMOVED*** Filter for cast members (actors)
+            # Filter for cast members (actors)
             if credit.department == "Acting":
                 cast_member: CastMember = {
                     "id": credit.tmdb_person_id,
@@ -140,33 +140,33 @@ class MovieService:
                 }
                 cast_members.append(cast_member)
 
-        ***REMOVED*** Sort cast by order, properly handling 0 values
+        # Sort cast by order, properly handling 0 values
         cast_members.sort(key=lambda x: float("inf") if x["order"] is None else x["order"])
 
-        ***REMOVED*** Apply popularity filtering while ensuring at least 3 cast members are returned
+        # Apply popularity filtering while ensuring at least 3 cast members are returned
         if popularity_threshold > 0:
-            ***REMOVED*** First, sort by popularity (descending) to get the most popular cast members
+            # First, sort by popularity (descending) to get the most popular cast members
             by_popularity = sorted(
                 cast_members, key=lambda x: float(x["popularity"] or 0), reverse=True
             )
 
-            ***REMOVED*** Filter by popularity threshold
+            # Filter by popularity threshold
             filtered_cast = [
                 m for m in by_popularity if float(m["popularity"] or 0) >= popularity_threshold
             ]
 
-            ***REMOVED*** Ensure we have at least 3 cast members (or all if there are fewer than 3)
+            # Ensure we have at least 3 cast members (or all if there are fewer than 3)
             min_members = min(3, len(by_popularity))
 
-            ***REMOVED*** If we don't have enough members after filtering, add more from the popularity-sorted list
+            # If we don't have enough members after filtering, add more from the popularity-sorted list
             if len(filtered_cast) < min_members:
-                ***REMOVED*** Get the most popular cast members we don't already have
+                # Get the most popular cast members we don't already have
                 additional_members = [m for m in by_popularity if m not in filtered_cast]
 
-                ***REMOVED*** Add enough to meet the minimum
+                # Add enough to meet the minimum
                 filtered_cast.extend(additional_members[: min_members - len(filtered_cast)])
 
-            ***REMOVED*** Sort the filtered cast by order again
+            # Sort the filtered cast by order again
             filtered_cast.sort(key=lambda x: float("inf") if x["order"] is None else x["order"])
 
             return filtered_cast

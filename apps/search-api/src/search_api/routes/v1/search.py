@@ -20,7 +20,7 @@ from search_api.services.search_service import SearchService, SearchServiceExcep
 logger = get_logger(__name__)
 router = APIRouter(prefix="/search", tags=["search"])
 
-***REMOVED*** Initialize response builder for consistent API responses
+# Initialize response builder for consistent API responses
 responses = ResponseBuilder(
     config={
         "pagination": {
@@ -39,17 +39,17 @@ def get_search_service(request: Request) -> SearchService:
     """Get SearchService instance from app state."""
     search_config = request.app.state.search_config
 
-    ***REMOVED*** Create SearchService with shared suggestion engine from app state
+    # Create SearchService with shared suggestion engine from app state
     search_service = SearchService(search_config)
 
-    ***REMOVED*** Use the global suggestion engine instance if available
+    # Use the global suggestion engine instance if available
     if hasattr(request.app.state, "suggestion_engine") and request.app.state.suggestion_engine:
         search_service.suggestion_engine = request.app.state.suggestion_engine
 
     return search_service
 
 
-@rate_limit(requests=100, window=60)  ***REMOVED*** 100 searches per minute
+@rate_limit(requests=100, window=60)  # 100 searches per minute
 @router.get("")
 @track_movie_search
 async def search_movies(
@@ -89,7 +89,7 @@ async def search_movies(
     try:
         logger.debug("Movie search request", query=q, page=page, limit=limit)
 
-        ***REMOVED*** Record search analytics
+        # Record search analytics
         if metrics:
             metrics.record_query_pattern("movie_search", len(q))
             metrics.record_pagination_usage(page, limit)
@@ -104,7 +104,7 @@ async def search_movies(
                 if filter_value is not None:
                     metrics.record_filter_usage(filter_type, filter_value)
 
-        ***REMOVED*** Use the search service to perform the movie search
+        # Use the search service to perform the movie search
         result = await search_service.search_movies(
             query=q,
             page=page,
@@ -123,21 +123,21 @@ async def search_movies(
 
         logger.debug("Movie search completed successfully", total=result.get("total", 0), page=page)
 
-        ***REMOVED*** Record successful search metrics
+        # Record successful search metrics
         if metrics:
             total_results = result.get("total", 0)
             metrics.record_search_request(
                 "movie", "success", 0.0, total_results
-            )  ***REMOVED*** Duration tracked by decorator
-            metrics.record_entity_search("movie", "moderate", 0.0)  ***REMOVED*** Duration tracked by decorator
+            )  # Duration tracked by decorator
+            metrics.record_entity_search("movie", "moderate", 0.0)  # Duration tracked by decorator
 
-            ***REMOVED*** Record result quality metrics
+            # Record result quality metrics
             if total_results > 0:
-                ***REMOVED*** Estimate search quality based on result count and query length
-                quality_score = min(1.0, total_results / (len(q) * 10))  ***REMOVED*** Simple heuristic
+                # Estimate search quality based on result count and query length
+                quality_score = min(1.0, total_results / (len(q) * 10))  # Simple heuristic
                 metrics.record_search_quality("relevance_score", quality_score)
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
             items=result.get("results", []),
             page=page,
@@ -173,7 +173,7 @@ async def search_movies(
         return cast(dict[str, Any], response)
 
     except SearchServiceException as e:
-        ***REMOVED*** Record search service errors
+        # Record search service errors
         if metrics:
             metrics.record_search_error("service_error", "movie")
             metrics.record_search_request("movie", "error", 0.0, 0)
@@ -181,7 +181,7 @@ async def search_movies(
         logger.error(f"Search service error: {str(e)}", query=q)
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        ***REMOVED*** Record unexpected errors
+        # Record unexpected errors
         if metrics:
             metrics.record_search_error("internal_error", "movie")
             metrics.record_search_request("movie", "error", 0.0, 0)
@@ -190,7 +190,7 @@ async def search_movies(
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
-@rate_limit(requests=50, window=60)  ***REMOVED*** 50 searches per minute for all entities
+@rate_limit(requests=50, window=60)  # 50 searches per minute for all entities
 @router.get("/all")
 @track_entity_search
 async def search_all_entities(
@@ -207,7 +207,7 @@ async def search_all_entities(
     Returns paginated search results that can be filtered by entity type.
     This provides a unified search interface across all searchable entities.
     """
-    ***REMOVED*** Record search analytics
+    # Record search analytics
     metrics = get_search_metrics()
     if metrics:
         metrics.record_query_pattern("all_entities_search", len(query))
@@ -219,7 +219,7 @@ async def search_all_entities(
     try:
         logger.debug("All entities search request", query=query, types=types)
 
-        ***REMOVED*** Use the search service to perform multi-entity search
+        # Use the search service to perform multi-entity search
         result = await search_service.search_all_entities(
             query=query,
             page=page,
@@ -234,14 +234,14 @@ async def search_all_entities(
             types=types,
         )
 
-        ***REMOVED*** Record successful search metrics
+        # Record successful search metrics
         if metrics:
             metrics.record_search_request("all_entities", "success", 0.0, result.total)
             metrics.record_entity_search("all_entities", "moderate", 0.0)
 
-        ***REMOVED*** Use ResponseBuilder paginated pattern for consistent response structure
+        # Use ResponseBuilder paginated pattern for consistent response structure
         response = responses.paginated(
-            items=result.suggestions,  ***REMOVED*** Note: search_all_entities returns SearchResponse with suggestions field
+            items=result.suggestions,  # Note: search_all_entities returns SearchResponse with suggestions field
             page=page,
             limit=limit,
             total=result.total,
@@ -267,7 +267,7 @@ async def search_all_entities(
         return cast(dict[str, Any], response)
 
     except SearchServiceException as e:
-        ***REMOVED*** Record search service errors
+        # Record search service errors
         if metrics:
             metrics.record_search_error("service_error", "all_entities")
             metrics.record_search_request("all_entities", "error", 0.0, 0)
@@ -275,7 +275,7 @@ async def search_all_entities(
         logger.error(f"Search service error: {str(e)}", query=query)
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        ***REMOVED*** Record unexpected errors
+        # Record unexpected errors
         if metrics:
             metrics.record_search_error("internal_error", "all_entities")
             metrics.record_search_request("all_entities", "error", 0.0, 0)

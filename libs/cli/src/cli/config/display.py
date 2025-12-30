@@ -49,9 +49,9 @@ def print_config(
 
     Example:
         >>> print_config(my_config, title="Auth API Configuration")
-        >>> print_config(my_config, show_secrets=True)  ***REMOVED*** Development only
+        >>> print_config(my_config, show_secrets=True)  # Development only
     """
-    ***REMOVED*** Use provided console, CLIOutput console, or create new one
+    # Use provided console, CLIOutput console, or create new one
     if out:
         display_console = out.console
     elif console:
@@ -59,34 +59,34 @@ def print_config(
     else:
         display_console = Console()
 
-    ***REMOVED*** Get configuration as dictionary
+    # Get configuration as dictionary
     if hasattr(config, "__dict__"):
         config_dict = config.__dict__
     elif isinstance(config, dict):
         config_dict = config
     else:
-        ***REMOVED*** Try to extract attributes using dir()
+        # Try to extract attributes using dir()
         config_dict = {
             attr: getattr(config, attr)
             for attr in dir(config)
             if not attr.startswith("_") and not callable(getattr(config, attr, None))
         }
 
-    ***REMOVED*** Combine default secret fields with provided ones
+    # Combine default secret fields with provided ones
     all_secret_fields = COMMON_SECRET_FIELDS + (secret_fields or [])
 
-    ***REMOVED*** Create Rich table
+    # Create Rich table
     table = Table(title=title, show_header=True, header_style="bold blue")
     table.add_column("Setting", style="cyan", no_wrap=True)
     table.add_column("Value", style="white")
 
-    ***REMOVED*** Add configuration rows
+    # Add configuration rows
     for key, value in sorted(config_dict.items()):
-        ***REMOVED*** Skip private attributes and methods
+        # Skip private attributes and methods
         if key.startswith("_"):
             continue
 
-        ***REMOVED*** Mask sensitive values
+        # Mask sensitive values
         masked_value = mask_sensitive_value(
             value,
             field_name=key,
@@ -94,7 +94,7 @@ def print_config(
             show_secrets=show_secrets,
         )
 
-        ***REMOVED*** Add styling for different value types
+        # Add styling for different value types
         if isinstance(value, bool):
             styled_value = (
                 f"[green]{masked_value}[/green]" if value else f"[red]{masked_value}[/red]"
@@ -108,12 +108,12 @@ def print_config(
 
         table.add_row(key, styled_value)
 
-    ***REMOVED*** Display the table
+    # Display the table
     display_console.print()
     display_console.print(table)
     display_console.print()
 
-    ***REMOVED*** Show warning if secrets are visible
+    # Show warning if secrets are visible
     if show_secrets:
         display_console.print(
             "[yellow]⚠️ Warning: Sensitive values are visible. "
@@ -163,14 +163,14 @@ def create_config_command(
         out = get_cli_output(command_name, verbose=verbose, quiet=quiet)
 
         try:
-            ***REMOVED*** Get current configuration
+            # Get current configuration
             config = config_getter()
 
             if verbose:
                 out.info("[blue]📋 Loading configuration...[/blue]")
                 out.info("")
 
-            ***REMOVED*** Display configuration table
+            # Display configuration table
             print_config(
                 config=config,
                 title=f"{command_name.title()} Configuration",
@@ -179,7 +179,7 @@ def create_config_command(
                 out=out,
             )
 
-            ***REMOVED*** Log operation for monitoring
+            # Log operation for monitoring
             out.log_operation(
                 "Configuration displayed",
                 show_secrets=show_secrets,
@@ -220,10 +220,10 @@ def create_config_app(
     """
     config_app = Typer(name=app_name, help=f"Configuration management for {app_name}")
 
-    ***REMOVED*** Add main config display command
+    # Add main config display command
     config_app.command("show")(create_config_command(config_getter, secret_fields, "show"))
 
-    ***REMOVED*** Add alternative command names for convenience
+    # Add alternative command names for convenience
     config_app.command("display")(create_config_command(config_getter, secret_fields, "display"))
 
     return config_app
@@ -249,13 +249,13 @@ def get_config_summary(config: Any) -> dict[str, Any]:
             if not attr.startswith("_") and not callable(getattr(config, attr, None))
         }
 
-    ***REMOVED*** Create summary without sensitive data
+    # Create summary without sensitive data
     summary = {}
     for key, value in config_dict.items():
         if key.startswith("_"):
             continue
 
-        ***REMOVED*** Mask sensitive values in summary
+        # Mask sensitive values in summary
         masked_value = mask_sensitive_value(value, field_name=key, show_secrets=False)
         summary[key] = masked_value
 

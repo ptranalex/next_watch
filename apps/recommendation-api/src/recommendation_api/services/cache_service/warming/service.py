@@ -39,12 +39,12 @@ class RecommendationWarmingService:
         self.cache_manager = get_cache()
         self.metrics_collector = get_global_collector()
 
-        ***REMOVED*** Initialize component classes
+        # Initialize component classes
         self.data_providers = RecommendationDataProviders()
         self.warming_functions = RecommendationWarmingFunctions()
         self.target_factories = RecommendationTargetFactories()
 
-        ***REMOVED*** Create warming engine
+        # Create warming engine
         self.engine = WarmingEngine(
             cache_manager=self.cache_manager,
             metrics_collector=self.metrics_collector,
@@ -59,7 +59,7 @@ class RecommendationWarmingService:
         self._setup_data_providers()
         self._setup_target_factories()
 
-        ***REMOVED*** Register engine globally for CLI usage
+        # Register engine globally for CLI usage
         set_global_warming_engine(self.engine)
 
         logger.info(
@@ -88,10 +88,10 @@ class RecommendationWarmingService:
 
     def _setup_data_providers(self) -> None:
         """Set up data providers for warming strategies."""
-        ***REMOVED*** Set up popular content provider
+        # Set up popular content provider
         self.engine.set_popularity_provider(self.data_providers.get_popularity_data)
 
-        ***REMOVED*** No user-specific providers for recommendation API
+        # No user-specific providers for recommendation API
         logger.info(
             "Configured recommendation data providers for warming strategies",
             service="recommendation-api",
@@ -100,10 +100,10 @@ class RecommendationWarmingService:
 
     def _setup_target_factories(self) -> None:
         """Set up target factories for warming strategies."""
-        ***REMOVED*** The WarmingEngine doesn't have set_popular_content_factory method
-        ***REMOVED*** Instead, we'll register our factory functions when needed in the warming functions
+        # The WarmingEngine doesn't have set_popular_content_factory method
+        # Instead, we'll register our factory functions when needed in the warming functions
 
-        ***REMOVED*** No need to set factories directly on the engine
+        # No need to set factories directly on the engine
         logger.info(
             "Configured recommendation target factories for warming strategies",
             service="recommendation-api",
@@ -132,7 +132,7 @@ class RecommendationWarmingService:
 
             stats = await self.engine.warm_by_strategy(strategy, limit=limit)
 
-            ***REMOVED*** Convert stats to dictionary with safe attribute access
+            # Convert stats to dictionary with safe attribute access
             targets_warmed = getattr(stats, "targets_warmed", 0)
             success_count = getattr(stats, "success_count", 0)
             error_count = getattr(stats, "error_count", 0)
@@ -250,7 +250,7 @@ class RecommendationWarmingService:
         return self.engine
 
 
-***REMOVED*** Global recommendation warming service instance
+# Global recommendation warming service instance
 _recommendation_warming_service: RecommendationWarmingService | None = None
 
 
@@ -273,7 +273,7 @@ def configure_recommendation_warming() -> None:
     the cache warming system with recommendation-specific data providers and functions.
     """
     try:
-        ***REMOVED*** Initialize recommendation warming service which configures the cache library
+        # Initialize recommendation warming service which configures the cache library
         get_recommendation_warming_service()
         logger.info(
             "✅ Recommendation warming configuration applied",
@@ -289,4 +289,4 @@ def configure_recommendation_warming() -> None:
             error=str(e),
             exc_info=True,
         )
-        ***REMOVED*** Don't raise - warming should be optional
+        # Don't raise - warming should be optional

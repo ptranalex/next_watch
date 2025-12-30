@@ -10,27 +10,27 @@ import uvicorn
 from rich.console import Console
 from rich.traceback import install
 
-***REMOVED*** Import command modules
+# Import command modules
 from auth_api.cli.commands import health, users
 from auth_api.cli.utils import print_config
 
-***REMOVED*** Import configuration and utilities
+# Import configuration and utilities
 from auth_api.config.app import settings
 
-***REMOVED*** Install rich traceback handler
+# Install rich traceback handler
 install()
 
 console = Console()
 logger = logging.getLogger(__name__)
 
-***REMOVED*** Create main Typer app
+# Create main Typer app
 app = typer.Typer(
     name="auth-api",
     help="Authentication service for Next Watch movie platform",
     add_completion=False,
 )
 
-***REMOVED*** Add command groups
+# Add command groups
 app.add_typer(health.app, name="health")
 app.add_typer(users.app, name="users")
 
@@ -86,18 +86,18 @@ def serve(
         quiet: Suppress console output except errors
     """
     try:
-        ***REMOVED*** Use the existing settings instance and apply CLI overrides if needed
+        # Use the existing settings instance and apply CLI overrides if needed
         config = settings
 
-        ***REMOVED*** Override individual values for CLI usage
+        # Override individual values for CLI usage
         actual_host = host or "0.0.0.0"
         actual_port = port or config.port
         actual_log_level = log_level or config.log_level
 
-        ***REMOVED*** Get environment from environment variable
+        # Get environment from environment variable
         environment = os.getenv("ENVIRONMENT", "development")
 
-        ***REMOVED*** Display configuration unless quiet mode
+        # Display configuration unless quiet mode
         if not quiet:
             if verbose:
                 print_config(config, "Auth Server Configuration", console)
@@ -107,7 +107,7 @@ def serve(
                 )
                 console.print(f"[dim]Environment: {environment} | Debug: {config.debug}[/dim]")
 
-        ***REMOVED*** Configure logging level
+        # Configure logging level
         if verbose:
             logging.basicConfig(level=logging.DEBUG)
         elif quiet:
@@ -120,8 +120,8 @@ def serve(
         if verbose:
             logger.debug(f"Configuration: host={actual_host}, port={actual_port}, reload={reload}")
 
-        ***REMOVED*** Start server
-        ***REMOVED*** Use factory pattern to create app - works for both dev and production
+        # Start server
+        # Use factory pattern to create app - works for both dev and production
         from auth_api.main import create_app
 
         app_instance = create_app()
@@ -186,7 +186,7 @@ def config(
 def show_version() -> None:
     """Show Auth API version information."""
     try:
-        ***REMOVED*** Try to get version from package metadata
+        # Try to get version from package metadata
         try:
             version = metadata.version("auth-api")
         except (metadata.PackageNotFoundError, AttributeError):
@@ -238,17 +238,17 @@ def init_database(
         if verbose:
             console.print("[blue]🔧 Initializing authentication database...[/blue]")
 
-        ***REMOVED*** Import and run database initialization
+        # Import and run database initialization
         from sqlalchemy import create_engine
 
-        ***REMOVED*** Try to import SQLModel Base from movie_storage, but provide fallback
+        # Try to import SQLModel Base from movie_storage, but provide fallback
         try:
             from sqlmodel import SQLModel
         except ImportError:
             console.print(
                 "[yellow]⚠️  movie_storage.models not available, creating basic user table...[/yellow]"
             )
-            ***REMOVED*** Create a basic user table if movie_storage is not available
+            # Create a basic user table if movie_storage is not available
             from sqlalchemy import (
                 Boolean,
                 Column,
@@ -305,7 +305,7 @@ def main() -> None:
     try:
         app()
     except Exception as e:
-        ***REMOVED*** Use basic logging since configure_logging might not be set up yet
+        # Use basic logging since configure_logging might not be set up yet
         logger = logging.getLogger("auth_api.cli")
         logger.error(f"Error running command: {str(e)}")
         console.print(f"[bold red]CLI Error: {e}[/bold red]")

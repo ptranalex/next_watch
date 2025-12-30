@@ -1,18 +1,18 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
-***REMOVED*** NextWatch Monitoring Stack - Local Development Deployment
+# NextWatch Monitoring Stack - Local Development Deployment
 
 set -e
 
-***REMOVED*** Colors for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
-NC='\033[0m' ***REMOVED*** No Color
+NC='\033[0m' # No Color
 
-***REMOVED*** Script directory
+# Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INFRA_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_ROOT="$(dirname "$INFRA_DIR")"
@@ -32,7 +32,7 @@ echo "  📊 Node Exporter (System Metrics)"
 echo "  🐳 cAdvisor (Container Metrics)"
 echo ""
 
-***REMOVED*** Confirmation
+# Confirmation
 read -p "Continue with local monitoring deployment? [y/N]: " confirm
 if [[ ! $confirm =~ ^[Yy]$ ]]; then
     echo "Deployment cancelled."
@@ -44,14 +44,14 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 1/6: Environment Check${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Check if Docker is running
+# Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
     echo -e "${RED}❌ Docker is not running. Please start Docker and try again.${NC}"
     exit 1
 fi
 echo -e "${GREEN}✅ Docker is running${NC}"
 
-***REMOVED*** Check if Docker Compose is available (prefer `docker compose`, fallback to `docker-compose`)
+# Check if Docker Compose is available (prefer `docker compose`, fallback to `docker-compose`)
 if docker compose version >/dev/null 2>&1; then
     DOCKER_COMPOSE_CMD="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
@@ -62,7 +62,7 @@ else
 fi
 echo -e "${GREEN}✅ Docker Compose is available${NC}"
 
-***REMOVED*** Check if NextWatch network exists
+# Check if NextWatch network exists
 if ! docker network ls | grep -q "next_watch_default"; then
     echo -e "${YELLOW}⚠️  NextWatch network not found. Creating it...${NC}"
     docker network create next_watch_default
@@ -76,19 +76,19 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 2/6: Configuration Setup${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Create necessary configuration files for local development
+# Create necessary configuration files for local development
 cd "$INFRA_DIR"
 
-***REMOVED*** Use a temp compose file so we don't modify the repo (or symlink targets) in-place
+# Use a temp compose file so we don't modify the repo (or symlink targets) in-place
 COMPOSE_SRC="$INFRA_DIR/compose/monitoring.local.yml"
 COMPOSE_TMP="$(mktemp -t nextwatch-monitoring-local.XXXXXX)"
 trap 'rm -f "$COMPOSE_TMP" "$COMPOSE_TMP.bak"' EXIT
 
 cp "$COMPOSE_SRC" "$COMPOSE_TMP"
 
-***REMOVED*** Create local environment file if it doesn't exist
+# Create local environment file if it doesn't exist
 if [ ! -f ".env.monitoring.local" ]; then
-    echo "***REMOVED*** Local Monitoring Environment" > .env.monitoring.local
+    echo "# Local Monitoring Environment" > .env.monitoring.local
     echo "GRAFANA_ADMIN_PASSWORD=admin123" >> .env.monitoring.local
     echo "GRAFANA_SECRET_KEY=local-secret-key" >> .env.monitoring.local
     echo -e "${GREEN}✅ Created local monitoring environment file${NC}"
@@ -96,10 +96,10 @@ else
     echo -e "${GREEN}✅ Local monitoring environment file exists${NC}"
 fi
 
-***REMOVED*** Check for required configuration files and create them if missing
+# Check for required configuration files and create them if missing
 echo "🔧 Checking configuration files..."
 
-***REMOVED*** Create local AlertManager config if it doesn't exist
+# Create local AlertManager config if it doesn't exist
 if [ ! -f "monitoring/alertmanager/alertmanager.local.yml" ]; then
     echo "Creating local AlertManager configuration..."
     cat > monitoring/alertmanager/alertmanager.local.yml << 'EOF'
@@ -130,7 +130,7 @@ EOF
     echo -e "${GREEN}✅ Created local AlertManager configuration${NC}"
 fi
 
-***REMOVED*** Create local Loki config if it doesn't exist
+# Create local Loki config if it doesn't exist
 if [ ! -f "monitoring/loki/loki.local.yml" ]; then
     echo "Creating local Loki configuration..."
     cat > monitoring/loki/loki.local.yml << 'EOF'
@@ -226,7 +226,7 @@ EOF
     echo -e "${GREEN}✅ Created local Loki configuration${NC}"
 fi
 
-***REMOVED*** Create local Promtail config if it doesn't exist
+# Create local Promtail config if it doesn't exist
 if [ ! -f "monitoring/promtail/promtail.local.yml" ]; then
     echo "Creating local Promtail configuration..."
     cat > monitoring/promtail/promtail.local.yml << 'EOF'
@@ -241,7 +241,7 @@ clients:
   - url: http://loki-local:3100/loki/api/v1/push
 
 scrape_configs:
-  ***REMOVED*** Docker container logs
+  # Docker container logs
   - job_name: docker
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
@@ -273,7 +273,7 @@ scrape_configs:
       - output:
           source: message
 
-  ***REMOVED*** NextWatch service logs from volumes
+  # NextWatch service logs from volumes
   - job_name: nextwatch-backend
     static_configs:
       - targets:
@@ -406,7 +406,7 @@ scrape_configs:
           source: timestamp
           format: RFC3339Nano
 
-  ***REMOVED*** System logs
+  # System logs
   - job_name: system
     static_configs:
       - targets:
@@ -418,7 +418,7 @@ EOF
     echo -e "${GREEN}✅ Created local Promtail configuration${NC}"
 fi
 
-***REMOVED*** Create local Tempo config if it doesn't exist
+# Create local Tempo config if it doesn't exist
 if [ ! -f "monitoring/tempo/tempo.local.yml" ]; then
     echo "Creating local Tempo configuration..."
     cat > monitoring/tempo/tempo.local.yml << 'EOF'
@@ -493,13 +493,13 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 3/6: Updating Prometheus Config${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Create a local version of Prometheus config with localhost targets
+# Create a local version of Prometheus config with localhost targets
 if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     echo "Creating local Prometheus configuration..."
-    ***REMOVED*** Copy the main prometheus.yml and modify for local development
+    # Copy the main prometheus.yml and modify for local development
     cp monitoring/prometheus/prometheus.yml monitoring/prometheus/prometheus.local.yml
 
-    ***REMOVED*** Replace service hostnames with localhost for local development
+    # Replace service hostnames with localhost for local development
     sed -i.bak 's/backend-api:8000/localhost:8000/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/bff-api:8000/localhost:8001/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/auth-api:8000/localhost:8002/g' monitoring/prometheus/prometheus.local.yml
@@ -507,7 +507,7 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's/ml-api:8000/localhost:8004/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/recommendation-api:8000/localhost:8005/g' monitoring/prometheus/prometheus.local.yml
 
-    ***REMOVED*** Update health check URLs for local development
+    # Update health check URLs for local development
     sed -i.bak 's|http://backend-api:8000/health|http://localhost:8000/health|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://bff-api:8000/health|http://localhost:8001/health|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://auth-api:8000/health|http://localhost:8002/health|g' monitoring/prometheus/prometheus.local.yml
@@ -515,7 +515,7 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's|http://ml-api:8000/health|http://localhost:8004/health|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://recommendation-api:8000/health|http://localhost:8005/health|g' monitoring/prometheus/prometheus.local.yml
 
-    ***REMOVED*** Update readiness check URLs
+    # Update readiness check URLs
     sed -i.bak 's|http://backend-api:8000/health/ready|http://localhost:8000/health/ready|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://bff-api:8000/health/ready|http://localhost:8001/health/ready|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://auth-api:8000/health/ready|http://localhost:8002/health/ready|g' monitoring/prometheus/prometheus.local.yml
@@ -523,7 +523,7 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's|http://ml-api:8000/health/ready|http://localhost:8004/health/ready|g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's|http://recommendation-api:8000/health/ready|http://localhost:8005/health/ready|g' monitoring/prometheus/prometheus.local.yml
 
-    ***REMOVED*** Update TCP connectivity checks
+    # Update TCP connectivity checks
     sed -i.bak 's/backend-api:8000/localhost:8000/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/bff-api:8000/localhost:8001/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/auth-api:8000/localhost:8002/g' monitoring/prometheus/prometheus.local.yml
@@ -531,16 +531,16 @@ if [ ! -f "monitoring/prometheus/prometheus.local.yml" ]; then
     sed -i.bak 's/ml-api:8000/localhost:8004/g' monitoring/prometheus/prometheus.local.yml
     sed -i.bak 's/recommendation-api:8000/localhost:8005/g' monitoring/prometheus/prometheus.local.yml
 
-    ***REMOVED*** Update environment label to local
+    # Update environment label to local
     sed -i.bak 's/production/local/g' monitoring/prometheus/prometheus.local.yml
 
-    ***REMOVED*** Clean up backup files
+    # Clean up backup files
     rm -f monitoring/prometheus/prometheus.local.yml.bak
 
     echo -e "${GREEN}✅ Created local Prometheus configuration${NC}"
 fi
 
-***REMOVED*** Update the docker-compose to use local prometheus config
+# Update the docker-compose to use local prometheus config
 sed -i.bak 's|./monitoring/prometheus/:/etc/prometheus/|./monitoring/prometheus/prometheus.local.yml:/etc/prometheus/prometheus.yml:ro|g' "$COMPOSE_TMP"
 rm -f "$COMPOSE_TMP.bak"
 
@@ -549,7 +549,7 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 4/6: Stopping Existing Services${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Stop any existing monitoring services
+# Stop any existing monitoring services
 echo "🛑 Stopping existing monitoring services..."
 $DOCKER_COMPOSE_CMD -f "$COMPOSE_TMP" down --remove-orphans 2>/dev/null || true
 echo -e "${GREEN}✅ Stopped existing services${NC}"
@@ -559,15 +559,15 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 5/6: Deploying Monitoring Stack${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Deploy the monitoring stack
+# Deploy the monitoring stack
 echo "🚀 Starting monitoring stack..."
 $DOCKER_COMPOSE_CMD -f "$COMPOSE_TMP" up -d
 
-***REMOVED*** Wait for services to be ready
+# Wait for services to be ready
 echo "⏳ Waiting for services to start..."
 sleep 30
 
-***REMOVED*** Check service health
+# Check service health
 echo "🏥 Checking service health..."
 services_ready=0
 max_attempts=12
@@ -577,7 +577,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
     attempt=$((attempt + 1))
     echo "  Attempt $attempt/$max_attempts..."
 
-    ***REMOVED*** Check Prometheus
+    # Check Prometheus
     if curl -s http://localhost:9090/-/healthy > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Prometheus is healthy${NC}"
         prometheus_ready=1
@@ -586,7 +586,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         prometheus_ready=0
     fi
 
-    ***REMOVED*** Check Grafana
+    # Check Grafana
     if curl -s http://localhost:3001/api/health > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Grafana is healthy${NC}"
         grafana_ready=1
@@ -595,7 +595,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         grafana_ready=0
     fi
 
-    ***REMOVED*** Check Loki
+    # Check Loki
     if curl -s http://localhost:3100/ready > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Loki is healthy${NC}"
         loki_ready=1
@@ -604,7 +604,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         loki_ready=0
     fi
 
-    ***REMOVED*** Check Tempo
+    # Check Tempo
     if curl -s http://localhost:3200/ready > /dev/null 2>&1; then
         echo -e "    ${GREEN}✅ Tempo is healthy${NC}"
         tempo_ready=1
@@ -613,7 +613,7 @@ while [ $services_ready -eq 0 ] && [ $attempt -lt $max_attempts ]; do
         tempo_ready=0
     fi
 
-    ***REMOVED*** Check if all services are ready
+    # Check if all services are ready
     if [ $prometheus_ready -eq 1 ] && [ $grafana_ready -eq 1 ] && [ $loki_ready -eq 1 ] && [ $tempo_ready -eq 1 ]; then
         services_ready=1
     else
@@ -632,7 +632,7 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}Step 6/6: Final Configuration${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
-***REMOVED*** Set proper permissions for Docker socket (for Promtail)
+# Set proper permissions for Docker socket (for Promtail)
 echo "🔧 Setting Docker socket permissions..."
 sudo chmod 666 /var/run/docker.sock 2>/dev/null || echo "Note: Could not set Docker socket permissions. Promtail may have limited access."
 

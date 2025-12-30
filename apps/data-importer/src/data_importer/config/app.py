@@ -8,45 +8,45 @@ from datetime import datetime
 from pathlib import Path
 from typing import TypedDict
 
-***REMOVED*** Load environment variables from .env files
+# Load environment variables from .env files
 from .env import get_env_bool, get_env_int, get_env_var
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** DEFAULT PATHS AND DIRECTORIES
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# DEFAULT PATHS AND DIRECTORIES
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Directory paths
+# Directory paths
 DEFAULT_LOGS_DIR = Path(get_env_var("LOGS_DIR", "logs"))
 DEFAULT_DATA_DIR = Path(get_env_var("DATA_DIR", "data"))
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** API SETTINGS AND CREDENTIALS
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# API SETTINGS AND CREDENTIALS
+# ------------------------------------------------------------------------------
 
-***REMOVED*** API Keys and Tokens
-***REMOVED*** These are loaded from environment variables or .env files
-***REMOVED*** Set these in your .env file or environment
+# API Keys and Tokens
+# These are loaded from environment variables or .env files
+# Set these in your .env file or environment
 DEFAULT_TMDB_ACCESS_TOKEN = get_env_var("TMDB_ACCESS_TOKEN", "")
 DEFAULT_IMDB_API_KEY = get_env_var("IMDB_API_KEY", "")
 DEFAULT_OMDB_API_KEY = get_env_var("OMDB_API_KEY", "")
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** LOGGING AND OUTPUT SETTINGS
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# LOGGING AND OUTPUT SETTINGS
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Logging Configuration
+# Logging Configuration
 DEFAULT_LOG_LEVEL = get_env_var("LOG_LEVEL", "INFO")
-DEFAULT_VERBOSE = get_env_bool("VERBOSE", False)  ***REMOVED*** Detailed output
-DEFAULT_QUIET = get_env_bool("QUIET", False)  ***REMOVED*** Minimal output
+DEFAULT_VERBOSE = get_env_bool("VERBOSE", False)  # Detailed output
+DEFAULT_QUIET = get_env_bool("QUIET", False)  # Minimal output
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** MOVIE SYNC SETTINGS
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# MOVIE SYNC SETTINGS
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Get current year for default end_year
+# Get current year for default end_year
 CURRENT_YEAR = datetime.now().year
 
-***REMOVED*** Movie sync configuration
+# Movie sync configuration
 DEFAULT_MOVIE_SYNC_START_YEAR = get_env_int("MOVIE_SYNC_START_YEAR", 1990)
 DEFAULT_MOVIE_SYNC_END_YEAR = get_env_int("MOVIE_SYNC_END_YEAR", CURRENT_YEAR)
 DEFAULT_MOVIE_SYNC_LIMIT_PER_YEAR = get_env_int("MOVIE_SYNC_LIMIT_PER_YEAR", 100)
@@ -56,16 +56,16 @@ DEFAULT_MOVIE_SYNC_INCLUDE_CREDITS = get_env_bool("MOVIE_SYNC_INCLUDE_CREDITS", 
 DEFAULT_MOVIE_SYNC_INCLUDE_VIDEOS = get_env_bool("MOVIE_SYNC_INCLUDE_VIDEOS", True)
 DEFAULT_MOVIE_SYNC_SAVE_TO_DB = get_env_bool("MOVIE_SYNC_SAVE_TO_DB", True)
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** API URLs
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# API URLs
+# ------------------------------------------------------------------------------
 
 TMDB_URL = "https://api.themoviedb.org/3"
 OMDB_URL = "http://www.omdbapi.com"
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** CONFIGURATION CLASS
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# CONFIGURATION CLASS
+# ------------------------------------------------------------------------------
 
 
 class ConfigDict(TypedDict):
@@ -102,7 +102,7 @@ class Config:
     verbose: bool
     quiet: bool
 
-    ***REMOVED*** Movie sync configuration
+    # Movie sync configuration
     movie_sync_start_year: int
     movie_sync_end_year: int
     movie_sync_limit_per_year: int
@@ -112,7 +112,7 @@ class Config:
     movie_sync_include_videos: bool
     movie_sync_save_to_db: bool
 
-    ***REMOVED*** Singleton instance
+    # Singleton instance
     _instance = None
 
     @classmethod
@@ -175,7 +175,7 @@ class Config:
         self.verbose = verbose
         self.quiet = quiet
 
-        ***REMOVED*** Movie sync settings
+        # Movie sync settings
         self.movie_sync_start_year = movie_sync_start_year
         self.movie_sync_end_year = movie_sync_end_year
         self.movie_sync_limit_per_year = movie_sync_limit_per_year
@@ -187,7 +187,7 @@ class Config:
 
     def __str__(self) -> str:
         """Return a string representation of the Config instance."""
-        ***REMOVED*** Mask sensitive values like API keys in the string representation
+        # Mask sensitive values like API keys in the string representation
         masked_tmdb = (
             f"{'*' * (len(self.tmdb_access_token) - 4)}{self.tmdb_access_token[-4:]}"
             if self.tmdb_access_token

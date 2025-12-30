@@ -115,7 +115,7 @@ def create_error_response(
     if context:
         response["context"] = context
 
-    ***REMOVED*** Add any additional fields
+    # Add any additional fields
     response.update(kwargs)
 
     return response
@@ -203,7 +203,7 @@ def create_paginated_response(
     }
 
 
-***REMOVED*** Standard response models for OpenAPI documentation
+# Standard response models for OpenAPI documentation
 STANDARD_RESPONSES = {
     400: {
         "model": ErrorDetail,

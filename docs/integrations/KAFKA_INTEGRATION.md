@@ -1,6 +1,6 @@
-***REMOVED*** Kafka Integration for Next Watch
+# Kafka Integration for Next Watch
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This document describes the Apache Kafka integration for the Next Watch microservices platform. Kafka provides event streaming capabilities that enable:
 
@@ -10,9 +10,9 @@ This document describes the Apache Kafka integration for the Next Watch microser
 - ML model retraining triggers
 - Audit logging and analytics
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Event Flow
+### Event Flow
 
 ```
 Producer Services          Kafka Topics              Consumer Services
@@ -32,16 +32,16 @@ Producer Services          Kafka Topics              Consumer Services
 └─────────────────┘       └──────────────┘          └──────────────────┘
 ```
 
-***REMOVED******REMOVED*** Infrastructure Components
+## Infrastructure Components
 
-***REMOVED******REMOVED******REMOVED*** 1. Kafka Cluster
+### 1. Kafka Cluster
 
 - **Broker**: Single broker for development/staging, clustered for production
 - **Zookeeper**: Cluster coordination
 - **Schema Registry**: Event schema management and validation
 - **Kafka UI**: Web-based management interface
 
-***REMOVED******REMOVED******REMOVED*** 2. Topics
+### 2. Topics
 
 | Topic                     | Partitions | Retention | Purpose                                             |
 | ------------------------- | ---------- | --------- | --------------------------------------------------- |
@@ -54,7 +54,7 @@ Producer Services          Kafka Topics              Consumer Services
 | `system.events`           | 2          | 7 days    | System health and status                            |
 | `dlq.events`              | 4          | 30 days   | Dead letter queue for failed events                 |
 
-***REMOVED******REMOVED*** Shared Library (libs/kafka)
+## Shared Library (libs/kafka)
 
 The `kafka` library provides:
 
@@ -63,21 +63,21 @@ The `kafka` library provides:
 - **Event Schemas**: Pydantic models for all event types
 - **Configuration**: Environment-based Kafka settings
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 ```bash
 pip install -e libs/kafka
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+### Configuration
 
 Environment variables:
 
 ```bash
-***REMOVED*** Required
+# Required
 KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
-***REMOVED*** Optional
+# Optional
 KAFKA_SECURITY_PROTOCOL=PLAINTEXT
 KAFKA_PRODUCER_ACKS=1
 KAFKA_PRODUCER_COMPRESSION_TYPE=snappy
@@ -86,20 +86,20 @@ ENABLE_KAFKA_PRODUCER=true
 ENABLE_KAFKA_CONSUMER=true
 ```
 
-***REMOVED******REMOVED*** Producer Integration
+## Producer Integration
 
-***REMOVED******REMOVED******REMOVED*** Example: Backend API
+### Example: Backend API
 
 ```python
 from kafka import KafkaEventProducer, KafkaConfig
 from kafka.events import MovieViewedEvent
 
-***REMOVED*** Initialize producer (typically in app startup)
+# Initialize producer (typically in app startup)
 config = KafkaConfig()
 producer = KafkaEventProducer(config, service_name="backend-api")
 await producer.start()
 
-***REMOVED*** Emit event after database operation
+# Emit event after database operation
 event = MovieViewedEvent(
     user_id=user_id,
     movie_id=movie_id,
@@ -108,11 +108,11 @@ event = MovieViewedEvent(
 await producer.send_event(
     topic="user.activity",
     event=event,
-    key=str(user_id)  ***REMOVED*** Partition by user
+    key=str(user_id)  # Partition by user
 )
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration Points
+### Integration Points
 
 **Backend API**:
 
@@ -132,9 +132,9 @@ await producer.send_event(
 - Metadata updates
 - Batch event emission
 
-***REMOVED******REMOVED*** Consumer Integration
+## Consumer Integration
 
-***REMOVED******REMOVED******REMOVED*** Example: Recommendation API
+### Example: Recommendation API
 
 ```python
 from kafka import KafkaEventConsumer, KafkaConfig
@@ -148,7 +148,7 @@ class ActivityConsumer(KafkaEventConsumer):
             event = MovieViewedEvent(**message.value)
             await self._update_user_preferences(event)
 
-***REMOVED*** Start consumer
+# Start consumer
 config = KafkaConfig()
 consumer = ActivityConsumer(
     config=config,
@@ -159,7 +159,7 @@ await consumer.start()
 await consumer.consume()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Consumer Services
+### Consumer Services
 
 **Recommendation API**:
 
@@ -184,21 +184,21 @@ await consumer.consume()
 - Topic: `ml.training`
 - Actions: Aggregate data, trigger model retraining
 
-***REMOVED******REMOVED*** Event Schemas
+## Event Schemas
 
 All events inherit from `BaseEvent`:
 
 ```python
 class BaseEvent(BaseModel):
-    event_id: str          ***REMOVED*** UUID
-    event_type: EventType  ***REMOVED*** Enum of event types
-    timestamp: datetime    ***REMOVED*** UTC timestamp
-    service_name: str      ***REMOVED*** Producing service
-    trace_id: str          ***REMOVED*** Distributed tracing
-    metadata: Dict         ***REMOVED*** Additional data
+    event_id: str          # UUID
+    event_type: EventType  # Enum of event types
+    timestamp: datetime    # UTC timestamp
+    service_name: str      # Producing service
+    trace_id: str          # Distributed tracing
+    metadata: Dict         # Additional data
 ```
 
-***REMOVED******REMOVED******REMOVED*** User Events
+### User Events
 
 ```python
 UserRegisteredEvent(user_id, email, username)
@@ -206,24 +206,24 @@ UserLoginEvent(user_id, ip_address, user_agent)
 UserLogoutEvent(user_id)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Activity Events
+### Activity Events
 
 ```python
 MovieViewedEvent(user_id, movie_id, duration_seconds)
 MovieRatedEvent(user_id, movie_id, rating, previous_rating)
-WatchlistChangedEvent(user_id, movie_id, action)  ***REMOVED*** action: ADD/REMOVE
+WatchlistChangedEvent(user_id, movie_id, action)  # action: ADD/REMOVE
 ```
 
-***REMOVED******REMOVED******REMOVED*** Content Events
+### Content Events
 
 ```python
 MovieCreatedEvent(movie_id, tmdb_id, title, genres, overview)
 MovieUpdatedEvent(movie_id, changed_fields, previous_values, new_values)
 ```
 
-***REMOVED******REMOVED*** Monitoring
+## Monitoring
 
-***REMOVED******REMOVED******REMOVED*** Metrics
+### Metrics
 
 Prometheus metrics exposed at `/metrics`:
 
@@ -232,13 +232,13 @@ Prometheus metrics exposed at `/metrics`:
 - `kafka_consumer_lag`: Consumer lag by topic
 - `kafka_consumer_messages_processed_total`: Processed messages
 
-***REMOVED******REMOVED******REMOVED*** Grafana Dashboards
+### Grafana Dashboards
 
 1. **Kafka Overview**: Cluster health, throughput, latency
 2. **Consumer Lag**: Per-topic consumer lag monitoring
 3. **Event Flow**: End-to-end event processing metrics
 
-***REMOVED******REMOVED******REMOVED*** Alerts
+### Alerts
 
 Configured in `infra/monitoring/prometheus/kafka-alerts.yml`:
 
@@ -249,46 +249,46 @@ Configured in `infra/monitoring/prometheus/kafka-alerts.yml`:
 - Offline partitions
 - High memory usage
 
-***REMOVED******REMOVED*** CLI Tools
+## CLI Tools
 
-***REMOVED******REMOVED******REMOVED*** Kafka Management
+### Kafka Management
 
 ```bash
-***REMOVED*** List topics
+# List topics
 python -m kafka.cli_tools list-topics
 
-***REMOVED*** Create topic
+# Create topic
 python -m kafka.cli_tools create-topic --name test.events --partitions 8
 
-***REMOVED*** Describe topic
+# Describe topic
 python -m kafka.cli_tools describe-topic --name user.activity
 
-***REMOVED*** Check consumer lag
+# Check consumer lag
 python -m kafka.cli_tools consumer-lag --group recommendation-service
 
-***REMOVED*** Send test event
+# Send test event
 python -m kafka.cli_tools send-event --topic user.activity --data '{"user_id": 123}'
 
-***REMOVED*** Consume events
+# Consume events
 python -m kafka.cli_tools consume --topic user.activity --count 10
 ```
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Local Development
+### Local Development
 
 ```bash
-***REMOVED*** Start Kafka services
+# Start Kafka services
 docker compose -f infra/compose/prod.yml up -d zookeeper kafka schema-registry kafka-ui
 
-***REMOVED*** Initialize topics
+# Initialize topics
 bash infra/kafka/init-topics.sh
 
-***REMOVED*** Access Kafka UI
+# Access Kafka UI
 open http://localhost:8080
 ```
 
-***REMOVED******REMOVED******REMOVED*** Production
+### Production
 
 Kafka services are defined in `infra/compose/prod.yml` and started with other services:
 
@@ -296,23 +296,23 @@ Kafka services are defined in `infra/compose/prod.yml` and started with other se
 docker compose -f infra/compose/prod.yml up -d
 ```
 
-***REMOVED******REMOVED*** Feature Flags
+## Feature Flags
 
 Control Kafka integration with environment variables:
 
 ```bash
-***REMOVED*** Disable producer (read-only mode)
+# Disable producer (read-only mode)
 ENABLE_KAFKA_PRODUCER=false
 
-***REMOVED*** Disable consumer (no event processing)
+# Disable consumer (no event processing)
 ENABLE_KAFKA_CONSUMER=false
 ```
 
 This allows gradual rollout and safe rollback.
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
-***REMOVED******REMOVED******REMOVED*** Dead Letter Queue
+### Dead Letter Queue
 
 Failed events are automatically sent to `dlq.events` topic after 3 retry attempts. Monitor DLQ for:
 
@@ -320,13 +320,13 @@ Failed events are automatically sent to `dlq.events` topic after 3 retry attempt
 - Processing exceptions
 - Timeout errors
 
-***REMOVED******REMOVED******REMOVED*** Retry Logic
+### Retry Logic
 
 - Producer: Exponential backoff with 3 retries
 - Consumer: Configurable retry with DLQ fallback
 - Timeout: 30s default for operations
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 1. **Partitioning**: Use consistent keys (user_id, movie_id) for ordering
 2. **Idempotency**: Design consumers to handle duplicate messages
@@ -335,33 +335,33 @@ Failed events are automatically sent to `dlq.events` topic after 3 retry attempt
 5. **Error Handling**: Never fail requests due to Kafka errors
 6. **Testing**: Use test topics for development
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Consumer Lag Growing
+### Consumer Lag Growing
 
 ```bash
-***REMOVED*** Check consumer status
+# Check consumer status
 python -m kafka.cli_tools consumer-lag --group <group-id>
 
-***REMOVED*** Scale consumers (add more instances)
-***REMOVED*** or increase batch size in consumer config
+# Scale consumers (add more instances)
+# or increase batch size in consumer config
 ```
 
-***REMOVED******REMOVED******REMOVED*** Events Not Processing
+### Events Not Processing
 
 1. Check consumer is running: `docker ps | grep <service>`
 2. Check consumer logs: `docker logs <service>`
 3. Verify topic exists: `python -m kafka.cli_tools list-topics`
 4. Check DLQ for failed events
 
-***REMOVED******REMOVED******REMOVED*** Kafka Broker Issues
+### Kafka Broker Issues
 
 1. Check broker health: `docker logs kafka`
 2. Verify Zookeeper: `docker logs zookeeper`
 3. Check disk space: `df -h`
 4. Review Grafana alerts
 
-***REMOVED******REMOVED*** Migration Strategy
+## Migration Strategy
 
 1. **Phase 1**: Deploy Kafka infrastructure
 2. **Phase 2**: Enable producers (events flowing)
@@ -369,37 +369,37 @@ python -m kafka.cli_tools consumer-lag --group <group-id>
 4. **Phase 4**: Monitor and optimize
 5. **Phase 5**: Full production rollout
 
-***REMOVED******REMOVED*** Performance Tuning
+## Performance Tuning
 
-***REMOVED******REMOVED******REMOVED*** Producer
+### Producer
 
 ```python
-***REMOVED*** Increase batch size for throughput
+# Increase batch size for throughput
 KAFKA_PRODUCER_BATCH_SIZE=32768
 KAFKA_PRODUCER_LINGER_MS=50
 
-***REMOVED*** Adjust compression
-KAFKA_PRODUCER_COMPRESSION_TYPE=snappy  ***REMOVED*** or lz4, zstd
+# Adjust compression
+KAFKA_PRODUCER_COMPRESSION_TYPE=snappy  # or lz4, zstd
 ```
 
-***REMOVED******REMOVED******REMOVED*** Consumer
+### Consumer
 
 ```python
-***REMOVED*** Increase poll size
+# Increase poll size
 KAFKA_CONSUMER_MAX_POLL_RECORDS=1000
 
-***REMOVED*** Tune session timeout
+# Tune session timeout
 KAFKA_CONSUMER_SESSION_TIMEOUT_MS=30000
 ```
 
-***REMOVED******REMOVED*** Security (Future Enhancement)
+## Security (Future Enhancement)
 
 - SSL/TLS encryption
 - SASL authentication
 - ACL-based authorization
 - Schema Registry authentication
 
-***REMOVED******REMOVED*** References
+## References
 
 - Kafka Library: `libs/kafka/README.md`
 - Event Schemas: `libs/kafka/src/kafka/events/`

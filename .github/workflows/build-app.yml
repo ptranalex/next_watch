@@ -42,14 +42,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest ***REMOVED*** ✅ GitHub-hosted runner
+    runs-on: ubuntu-latest # ✅ GitHub-hosted runner
     permissions:
       contents: read
       packages: write
-      id-token: write ***REMOVED*** For cosign signing
+      id-token: write # For cosign signing
     env:
-      ***REMOVED*** Expose optional PAT to expressions (some linters disallow `secrets.*` in step `if:`)
-      ***REMOVED*** Secrets are still masked in logs.
+      # Expose optional PAT to expressions (some linters disallow `secrets.*` in step `if:`)
+      # Secrets are still masked in logs.
       GH_PAT: ${{ secrets.GH_PAT }}
     outputs:
       image: ${{ steps.meta.outputs.tags }}
@@ -59,7 +59,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 ***REMOVED*** Full history for better caching
+          fetch-depth: 0 # Full history for better caching
 
       - name: Compute image repository
         shell: bash
@@ -67,18 +67,18 @@ jobs:
           APP_NAME: ${{ inputs.app_name }}
         run: |
           set -euo pipefail
-          REPO_NAME="${GITHUB_REPOSITORY***REMOVED****/}"
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
           echo "IMAGE_REPO=ghcr.io/${GITHUB_REPOSITORY_OWNER}/${REPO_NAME}-${APP_NAME}" >> "$GITHUB_ENV"
 
-      ***REMOVED*** ✅ No cache directory creation needed for GitHub Actions cache
+      # ✅ No cache directory creation needed for GitHub Actions cache
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        ***REMOVED*** ✅ Use default settings for GitHub-hosted runners
+        # ✅ Use default settings for GitHub-hosted runners
 
-      ***REMOVED*** NOTE:
-      ***REMOVED*** If GH_PAT exists but is expired/invalid, preferring it will hard-fail the build.
-      ***REMOVED*** We therefore prefer the workflow GITHUB_TOKEN first, and only fall back to GH_PAT
-      ***REMOVED*** when that login fails.
+      # NOTE:
+      # If GH_PAT exists but is expired/invalid, preferring it will hard-fail the build.
+      # We therefore prefer the workflow GITHUB_TOKEN first, and only fall back to GH_PAT
+      # when that login fails.
       - name: Login to GitHub Container Registry (GITHUB_TOKEN)
         id: login_github_token
         uses: docker/login-action@v3
@@ -88,10 +88,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      ***REMOVED*** If the package namespace isn't writable by GITHUB_TOKEN (common with existing GHCR
-      ***REMOVED*** packages created outside Actions / with custom permissions), a PAT is required.
-      ***REMOVED*** We therefore *also* attempt a PAT login when available; if it fails we keep the
-      ***REMOVED*** GITHUB_TOKEN credentials.
+      # If the package namespace isn't writable by GITHUB_TOKEN (common with existing GHCR
+      # packages created outside Actions / with custom permissions), a PAT is required.
+      # We therefore *also* attempt a PAT login when available; if it fails we keep the
+      # GITHUB_TOKEN credentials.
       - name: Login to GitHub Container Registry (GH_PAT, if provided)
         if: env.GH_PAT != ''
         uses: docker/login-action@v3
@@ -124,21 +124,21 @@ jobs:
         run: |
           echo "Processing build arguments..."
 
-          ***REMOVED*** Clean up input args
+          # Clean up input args
           CLEANED_ARGS=$(echo "${{ inputs.build_args }}" | tr -d '\r')
 
-          ***REMOVED*** Add automatic build args
+          # Add automatic build args
           BUILD_ARGS="$CLEANED_ARGS"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILDKIT_INLINE_CACHE=1"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_VERSION=${{ github.sha }}"
           BUILD_ARGS="$BUILD_ARGS"$'\n'"BUILD_BRANCH=${{ github.ref_name }}"
 
-          ***REMOVED*** Output for debugging
+          # Output for debugging
           echo "Final build args:"
           echo "$BUILD_ARGS"
 
-          ***REMOVED*** Set output using heredoc
+          # Set output using heredoc
           {
             echo "args<<EOF"
             echo "$BUILD_ARGS"
@@ -156,12 +156,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ steps.build-args.outputs.args }}
-          ***REMOVED*** ✅ GitHub Actions optimized caching strategy
+          # ✅ GitHub Actions optimized caching strategy
           cache-from: |
             type=gha
           cache-to: |
             type=gha,mode=max
-          ***REMOVED*** Build optimizations
+          # Build optimizations
           provenance: mode=max
           sbom: true
 
@@ -180,7 +180,7 @@ jobs:
 
       - name: Output build summary
         run: |
-          echo "***REMOVED******REMOVED*** 🚀 Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**App**: ${{ inputs.app_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Image**: ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
@@ -188,7 +188,7 @@ jobs:
           echo "**Platforms**: ${{ inputs.platforms }}" >> $GITHUB_STEP_SUMMARY
           echo "**Pushed**: ${{ inputs.push }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "***REMOVED******REMOVED******REMOVED*** 📋 Build Metadata" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Build Metadata" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
           echo '${{ steps.meta.outputs.json }}' >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

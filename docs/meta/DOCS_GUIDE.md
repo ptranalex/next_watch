@@ -1,14 +1,14 @@
-***REMOVED*** Documentation Guide (Conventions + Drift Prevention)
+# Documentation Guide (Conventions + Drift Prevention)
 
 This repo has a lot of moving pieces. These conventions keep docs consistent and reduce “doc drift”.
 
-***REMOVED******REMOVED*** Canonical entrypoints
+## Canonical entrypoints
 
 - **Start here (new devs)**: `docs/getting-started/ONBOARDING.md`
 - **Service map**: `docs/getting-started/SERVICE_MAP.md`
 - **Infra canonical pointers**: `infra/README.md`
 
-***REMOVED******REMOVED*** Docker Compose conventions
+## Docker Compose conventions
 
 - Prefer **Compose v2**:
   - Use `docker compose ...`
@@ -19,7 +19,7 @@ This repo has a lot of moving pieces. These conventions keep docs consistent and
   - `infra/compose/monitoring.local.yml`
   - `infra/compose/kafka.local.yml`
 
-***REMOVED******REMOVED*** Environment file conventions
+## Environment file conventions
 
 - Templates live under `infra/env/*.example` and are committed.
 - Real environment files (filled with secrets) should **not** be committed.
@@ -34,14 +34,14 @@ For local dev, prefer **per-service** env files where supported:
 
 - `apps/<service>/.env` or `apps/<service>/.env.local`
 
-***REMOVED******REMOVED*** Linking rules
+## Linking rules
 
 - If you mention an app/library, link to its README:
   - `apps/<service>/README.md`, `libs/<lib>/README.md`
 - If you mention infra compose/env files, link to:
   - `infra/compose/*`, `infra/env/*`
 
-***REMOVED******REMOVED*** “If you change X, update Y” checklist
+## “If you change X, update Y” checklist
 
 When you change **infra paths**, **compose filenames**, or **env template locations**, update:
 

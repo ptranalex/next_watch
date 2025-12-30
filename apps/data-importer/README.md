@@ -1,8 +1,8 @@
-***REMOVED*** Data Importer
+# Data Importer
 
 This application provides tools to import movie and TV show data from external sources into the Next Watch database.
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - Import movies from TMDB (The Movie Database) with cast and crew information
 - Import movie details from OMDB (Open Movie Database)
@@ -14,9 +14,9 @@ This application provides tools to import movie and TV show data from external s
 - Customizable data transformation options
 - Docker support for containerized deployment
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
-***REMOVED******REMOVED******REMOVED*** Using Docker (Recommended for Production)
+### Using Docker (Recommended for Production)
 
 Build the Docker image from the monorepo root:
 
@@ -28,38 +28,38 @@ docker build -f apps/data-importer/Dockerfile -t data-importer .
 Run with Docker:
 
 ```bash
-***REMOVED*** Show help
+# Show help
 docker run --rm data-importer --help
 
-***REMOVED*** Sync movies with environment variables
+# Sync movies with environment variables
 docker run --rm \
   -e TMDB_ACCESS_TOKEN="your_token" \
   -e OMDB_API_KEY="your_key" \
   -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
   data-importer sync movies 2022 2023 --credits --save
 
-***REMOVED*** Using docker-compose (from infra directory)
+# Using docker-compose (from infra directory)
 cd infra
 docker-compose --profile sync up data-importer
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using Poetry (Development)
+### Using Poetry (Development)
 
 ```bash
 cd apps/data-importer
 poetry install
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using Pip
+### Using Pip
 
 ```bash
 cd apps/data-importer
 pip install -e .
 ```
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Environment Setup
+### Environment Setup
 
 Set your API keys as environment variables:
 
@@ -71,15 +71,15 @@ export DATABASE_URL="postgresql://user:password@localhost:5432/nextwatch"
 
 Alternatively, create a `.env` file in the project root with these values.
 
-***REMOVED******REMOVED******REMOVED*** CLI Commands
+### CLI Commands
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Sync Movies by Year Range
+#### Sync Movies by Year Range
 
 ```bash
-***REMOVED*** Using local installation
+# Using local installation
 data-importer sync movies 2022 2023 --credits --save
 
-***REMOVED*** Using Docker
+# Using Docker
 docker run --rm \
   -e TMDB_ACCESS_TOKEN="your_token" \
   -e OMDB_API_KEY="your_key" \
@@ -98,13 +98,13 @@ Options:
 - `--filter`: Filter movies by specified criteria (e.g., "vote_count>100")
 - `--skip-existing`: Skip movies that already exist in the database
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Import Movies by ID
+#### Import Movies by ID
 
 ```bash
-***REMOVED*** Using local installation
+# Using local installation
 data-importer import tmdb-id 550 634649 --credits --save
 
-***REMOVED*** Using Docker
+# Using Docker
 docker run --rm \
   -e TMDB_ACCESS_TOKEN="your_token" \
   -e OMDB_API_KEY="your_key" \
@@ -120,13 +120,13 @@ Options:
 - `--credits/--no-credits`: Include cast and crew information (default: --no-credits)
 - `--verbose`, `-v`: Show detailed output
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Import from File
+#### Import from File
 
 ```bash
-***REMOVED*** Using local installation
+# Using local installation
 data-importer import from-file movie_ids.txt --credits --save
 
-***REMOVED*** Using Docker (with volume mount)
+# Using Docker (with volume mount)
 docker run --rm \
   -v $(pwd)/movie_ids.txt:/app/movie_ids.txt \
   -e TMDB_ACCESS_TOKEN="your_token" \
@@ -144,13 +144,13 @@ Options:
 - `--verbose`, `-v`: Show detailed output
 - `--format`: Format of the input file (tmdb-id, imdb-id, title)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Update Existing Movies
+#### Update Existing Movies
 
 ```bash
-***REMOVED*** Using local installation
+# Using local installation
 data-importer update movies --credits
 
-***REMOVED*** Using Docker
+# Using Docker
 docker run --rm \
   -e TMDB_ACCESS_TOKEN="your_token" \
   -e OMDB_API_KEY="your_key" \
@@ -168,15 +168,15 @@ Options:
 - `--credits/--no-credits`: Update cast and crew information (default: --no-credits)
 - `--verbose`, `-v`: Show detailed output
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Interactive Shell
+#### Interactive Shell
 
 Launch an interactive shell to explore and manipulate data:
 
 ```bash
-***REMOVED*** Using local installation
+# Using local installation
 data-importer shell
 
-***REMOVED*** Using Docker (interactive mode)
+# Using Docker (interactive mode)
 docker run --rm -it \
   -e TMDB_ACCESS_TOKEN="your_token" \
   -e OMDB_API_KEY="your_key" \
@@ -200,31 +200,31 @@ Options:
 In the shell, you can use various functions:
 
 ```python
-***REMOVED*** Get popular movies from TMDB
+# Get popular movies from TMDB
 movies = run_async(tmdb_client.get_popular_movies())
 
-***REMOVED*** Search for a movie
+# Search for a movie
 results = run_async(tmdb_client.search_movies("Inception"))
 
-***REMOVED*** Get movie by ID
+# Get movie by ID
 movie = run_async(tmdb_client.get_movie(550))
 
-***REMOVED*** Get movie credits
+# Get movie credits
 credits = run_async(tmdb_client.get_movie_credits(550))
 
-***REMOVED*** Save movie to database
+# Save movie to database
 db_movie = save_movie(movie, credits)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Interactive Mode (Experimental)
+#### Interactive Mode (Experimental)
 
 Launch an interactive interface for data import operations:
 
 ```bash
-***REMOVED*** Using local installation
+# Using local installation
 data-importer interactive
 
-***REMOVED*** Using Docker (interactive mode)
+# Using Docker (interactive mode)
 docker run --rm -it \
   -e TMDB_ACCESS_TOKEN="your_token" \
   -e OMDB_API_KEY="your_key" \
@@ -243,31 +243,31 @@ Options:
 
 Note: This feature is experimental and not fully implemented yet.
 
-***REMOVED******REMOVED*** Docker Deployment
+## Docker Deployment
 
-***REMOVED******REMOVED******REMOVED*** Production Deployment
+### Production Deployment
 
 The data-importer is designed to run as a utility service in the Next Watch infrastructure. It's configured in the docker-compose setup with specific profiles:
 
 ```bash
-***REMOVED*** Run data sync with docker-compose
+# Run data sync with docker-compose
 cd infra
 docker-compose --profile sync up data-importer
 
-***REMOVED*** Run one-time import job
+# Run one-time import job
 docker-compose run --rm data-importer sync movies 2023 --credits --save
 ```
 
-***REMOVED******REMOVED******REMOVED*** Docker Environment Variables
+### Docker Environment Variables
 
 When running with Docker, you can configure the application using these environment variables:
 
 ```bash
-***REMOVED*** API Configuration
+# API Configuration
 TMDB_ACCESS_TOKEN=your_tmdb_token
 OMDB_API_KEY=your_omdb_key
 
-***REMOVED*** Database Configuration
+# Database Configuration
 DATABASE_URL=postgresql://user:password@host:5432/database
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
@@ -275,7 +275,7 @@ POSTGRES_USER=nextwatch
 POSTGRES_PASSWORD=your_password
 POSTGRES_DB=nextwatch
 
-***REMOVED*** Application Configuration
+# Application Configuration
 ENVIRONMENT=production
 LOG_LEVEL=info
 BATCH_SIZE=100
@@ -283,16 +283,16 @@ RATE_LIMIT_DELAY=1
 MAX_RETRIES=3
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Checks
+### Health Checks
 
 The Docker container includes health checks to ensure the service is running properly:
 
 ```bash
-***REMOVED*** Check container health
+# Check container health
 docker run --rm data-importer --help
 ```
 
-***REMOVED******REMOVED*** API Key Configuration
+## API Key Configuration
 
 The application requires API keys for external services:
 
@@ -306,7 +306,7 @@ export TMDB_ACCESS_TOKEN="your_tmdb_access_token_here"
 export OMDB_API_KEY="your_omdb_api_key_here"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration File
+### Configuration File
 
 You can also create a configuration file at `~/.data-importer/config.toml`:
 
@@ -326,9 +326,9 @@ credits = true
 limit = 50
 ```
 
-***REMOVED******REMOVED*** Development
+## Development
 
-***REMOVED******REMOVED******REMOVED*** Project Structure
+### Project Structure
 
 - `src/data_importer/`: Main package
   - `cli/`: CLI commands
@@ -344,15 +344,15 @@ limit = 50
   - `models/`: Data models and transformations
   - `db/`: Database operations
 
-***REMOVED******REMOVED******REMOVED*** Building Docker Image
+### Building Docker Image
 
 To build the Docker image for development:
 
 ```bash
-***REMOVED*** From monorepo root
+# From monorepo root
 docker build -f apps/data-importer/Dockerfile -t data-importer:dev .
 
-***REMOVED*** Test the build
+# Test the build
 docker run --rm data-importer:dev --help
 ```
 
@@ -363,23 +363,23 @@ The Docker image uses a multi-stage Alpine Linux build for optimal size and secu
 - **Security**: Runs as a non-root user with proper file permissions
 - **Integration**: Properly integrates with the shared `movie-storage` library from the monorepo
 
-***REMOVED******REMOVED******REMOVED*** Testing
+### Testing
 
 Run the test suite with:
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 pytest
 
-***REMOVED*** Run with coverage report
+# Run with coverage report
 pytest --cov=data_importer
 
-***REMOVED*** Test Docker build
+# Test Docker build
 docker build -f apps/data-importer/Dockerfile -t data-importer:test .
 docker run --rm data-importer:test --help
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding Support for New Data Sources
+### Adding Support for New Data Sources
 
 To add a new data source:
 
@@ -388,7 +388,7 @@ To add a new data source:
 3. Add CLI commands to interact with the new source
 4. Update the Docker image build if new dependencies are required
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
 Common issues and solutions:
 
@@ -398,13 +398,13 @@ Common issues and solutions:
 - **Docker Build Issues**: Ensure you're building from the monorepo root with the correct Dockerfile path.
 - **Permission Issues**: The Docker container runs as a non-root user. Ensure mounted volumes have appropriate permissions.
 
-***REMOVED******REMOVED******REMOVED*** Docker-specific Troubleshooting
+### Docker-specific Troubleshooting
 
 - **Build Context**: Always build from the monorepo root: `docker build -f apps/data-importer/Dockerfile .`
 - **Volume Mounts**: When mounting files, ensure they're accessible by the container's `app` user (UID/GID 1000)
 - **Network Access**: Ensure the container can reach the database and external APIs
 - **Environment Variables**: Double-check that all required environment variables are set
 
-***REMOVED******REMOVED*** License
+## License
 
 MIT

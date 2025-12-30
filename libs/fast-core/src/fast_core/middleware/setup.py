@@ -45,15 +45,15 @@ def setup_middleware(app: FastAPI, config: MiddlewareConfig) -> None:
     """
     logger.debug("Setting up middleware stack")
 
-    ***REMOVED*** Auto-enable context middleware if tracing is enabled in the app settings
-    ***REMOVED*** This ensures all services get distributed tracing without manual configuration
+    # Auto-enable context middleware if tracing is enabled in the app settings
+    # This ensures all services get distributed tracing without manual configuration
     if not config.context_config:
         settings = getattr(app.state, "settings", None)
         if settings and getattr(settings, "enable_tracing", False):
             service_name = getattr(settings, "service_name", "unknown-service")
             logger.info(f"Auto-enabling context middleware for tracing (service: {service_name})")
 
-            ***REMOVED*** Create default context config with optimal tracing settings
+            # Create default context config with optimal tracing settings
             from .config import ContextConfig
 
             config._context = ContextConfig(
@@ -67,31 +67,31 @@ def setup_middleware(app: FastAPI, config: MiddlewareConfig) -> None:
                 include_jaeger_headers=True,
             )
 
-    ***REMOVED*** 1. Request processing middleware (innermost)
+    # 1. Request processing middleware (innermost)
     if config.request_config and config.request_config.enabled:
         _setup_request_middleware(app, config.request_config)
 
-    ***REMOVED*** 2. Metrics middleware
+    # 2. Metrics middleware
     if config.metrics_config and config.metrics_config.enabled:
         _setup_metrics_middleware(app, config.metrics_config)
 
-    ***REMOVED*** 3. Logging middleware
+    # 3. Logging middleware
     if config.logging_config and config.logging_config.enabled:
         _setup_logging_middleware(app, config.logging_config)
 
-    ***REMOVED*** 4. Rate limiting middleware
+    # 4. Rate limiting middleware
     if config.rate_limit_config and config.rate_limit_config.enabled:
         _setup_rate_limiting_middleware(app, config.rate_limit_config)
 
-    ***REMOVED*** 5. Security headers middleware
+    # 5. Security headers middleware
     if config.security_config and config.security_config.enabled:
         _setup_security_middleware(app, config.security_config)
 
-    ***REMOVED*** 6. Context middleware (for tracing and request correlation)
+    # 6. Context middleware (for tracing and request correlation)
     if config.context_config and config.context_config.enabled:
         _setup_context_middleware(app, config.context_config)
 
-    ***REMOVED*** 7. CORS middleware (outermost)
+    # 7. CORS middleware (outermost)
     if config.cors_config and config.cors_config.enabled:
         _setup_cors_middleware(app, config.cors_config)
 
@@ -139,38 +139,38 @@ def _setup_cors_middleware(app: FastAPI, config: CORSConfig) -> None:
 def _setup_security_middleware(app: FastAPI, config: SecurityConfig) -> None:
     """Set up security headers middleware."""
 
-    ***REMOVED*** Add trusted host middleware if configured
+    # Add trusted host middleware if configured
     if config.trusted_hosts:
         app.add_middleware(TrustedHostMiddleware, allowed_hosts=config.trusted_hosts)
 
-    ***REMOVED*** Add security headers middleware
+    # Add security headers middleware
     class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request: Request, call_next: Callable[..., Any]) -> Response:
             response: Response = await call_next(request)
 
-            ***REMOVED*** HSTS
+            # HSTS
             if config.hsts:
                 hsts_value = f"max-age={config.hsts_max_age}"
                 if config.hsts_include_subdomains:
                     hsts_value += "; includeSubDomains"
                 response.headers["Strict-Transport-Security"] = hsts_value
 
-            ***REMOVED*** Frame options
+            # Frame options
             response.headers["X-Frame-Options"] = config.frame_options
 
-            ***REMOVED*** Content type options
+            # Content type options
             if config.content_type_options:
                 response.headers["X-Content-Type-Options"] = "nosniff"
 
-            ***REMOVED*** XSS protection
+            # XSS protection
             if config.xss_protection:
                 response.headers["X-XSS-Protection"] = "1; mode=block"
 
-            ***REMOVED*** CSP
+            # CSP
             if config.csp:
                 response.headers["Content-Security-Policy"] = config.csp
 
-            ***REMOVED*** Referrer policy
+            # Referrer policy
             response.headers["Referrer-Policy"] = config.referrer_policy
 
             return response
@@ -185,13 +185,13 @@ def _setup_logging_middleware(app: FastAPI, config: LoggingConfig) -> None:
 
     app.add_middleware(
         LoggingMiddleware,
-        log_requests=True,  ***REMOVED*** Always log requests
-        log_responses=True,  ***REMOVED*** Always log responses
+        log_requests=True,  # Always log requests
+        log_responses=True,  # Always log responses
         include_headers=config.include_headers,
-        include_body=config.include_request_body,  ***REMOVED*** Map include_request_body to include_body
+        include_body=config.include_request_body,  # Map include_request_body to include_body
         max_body_size=config.max_body_size,
         exclude_paths=config.exclude_paths,
-        level=config.level,  ***REMOVED*** Pass through the logging level
+        level=config.level,  # Pass through the logging level
     )
     logger.debug(
         f"Logging middleware configured: level={config.level}, "
@@ -203,10 +203,10 @@ def _setup_logging_middleware(app: FastAPI, config: LoggingConfig) -> None:
 def _setup_rate_limiting_middleware(app: FastAPI, config: RateLimitConfig) -> None:
     """Set up rate limiting middleware."""
 
-    ***REMOVED*** Note: This is a basic implementation
-    ***REMOVED*** In production, you'd want to use Redis or similar for distributed rate limiting
+    # Note: This is a basic implementation
+    # In production, you'd want to use Redis or similar for distributed rate limiting
 
-    ***REMOVED*** Simple in-memory rate limiter
+    # Simple in-memory rate limiter
     request_counts: dict[str, deque[float]] = defaultdict(deque)
 
     def parse_limit(limit_str: str) -> tuple[int, int]:
@@ -220,35 +220,35 @@ def _setup_rate_limiting_middleware(app: FastAPI, config: RateLimitConfig) -> No
             "minute": 60,
             "hour": 3600,
             "day": 86400,
-        }.get(period, 60)  ***REMOVED*** Default to minute
+        }.get(period, 60)  # Default to minute
 
         return num_requests, period_seconds
 
     class RateLimitMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request: Request, call_next: Callable[..., Any]) -> Response:
-            ***REMOVED*** Get client identifier
+            # Get client identifier
             if config.key_func == "ip":
                 key = request.client.host if request.client else "unknown"
             else:
-                ***REMOVED*** For now, just use IP. In production, you'd implement user-based limiting
+                # For now, just use IP. In production, you'd implement user-based limiting
                 key = request.client.host if request.client else "unknown"
 
-            ***REMOVED*** Check if IP is exempt
+            # Check if IP is exempt
             if key in config.exempt_ips:
                 exempt_response: Response = await call_next(request)
                 return exempt_response
 
-            ***REMOVED*** Get limit for this endpoint
+            # Get limit for this endpoint
             limit_str = config.endpoints.get(request.url.path, config.default_limit)
             max_requests, window_seconds = parse_limit(limit_str)
 
-            ***REMOVED*** Clean old requests
+            # Clean old requests
             now = time.time()
             requests = request_counts[key]
             while requests and requests[0] < now - window_seconds:
                 requests.popleft()
 
-            ***REMOVED*** Check rate limit
+            # Check rate limit
             if len(requests) >= max_requests:
                 rate_limit_response = JSONResponse(
                     status_code=429, content={"detail": "Rate limit exceeded"}
@@ -261,13 +261,13 @@ def _setup_rate_limiting_middleware(app: FastAPI, config: RateLimitConfig) -> No
                     )
                 return rate_limit_response
 
-            ***REMOVED*** Record this request
+            # Record this request
             requests.append(now)
 
-            ***REMOVED*** Process request
+            # Process request
             response: Response = await call_next(request)
 
-            ***REMOVED*** Add rate limit headers
+            # Add rate limit headers
             if config.headers:
                 response.headers["X-RateLimit-Limit"] = str(max_requests)
                 response.headers["X-RateLimit-Remaining"] = str(max_requests - len(requests))
@@ -282,13 +282,13 @@ def _setup_rate_limiting_middleware(app: FastAPI, config: RateLimitConfig) -> No
 def _setup_request_middleware(app: FastAPI, config: RequestConfig) -> None:
     """Set up general request processing middleware."""
 
-    ***REMOVED*** Add gzip compression if enabled
+    # Add gzip compression if enabled
     if config.gzip_compression:
         app.add_middleware(GZipMiddleware, minimum_size=config.gzip_minimum_size)
 
     class RequestProcessingMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request: Request, call_next: Callable[..., Any]) -> Response:
-            ***REMOVED*** Get request ID from context if available, or generate new one
+            # Get request ID from context if available, or generate new one
             request_id = getattr(request.state, "request_id", None)
             if not request_id and config.include_request_id:
                 request_id = str(uuid.uuid4())
@@ -296,10 +296,10 @@ def _setup_request_middleware(app: FastAPI, config: RequestConfig) -> None:
 
             start_time = time.time()
 
-            ***REMOVED*** Process request
+            # Process request
             response: Response = await call_next(request)
 
-            ***REMOVED*** Add headers (only if we have a request ID and it's configured)
+            # Add headers (only if we have a request ID and it's configured)
             if config.include_request_id and request_id:
                 response.headers[config.request_id_header] = request_id
 
@@ -322,17 +322,17 @@ def _setup_metrics_middleware(app: FastAPI, config: MetricsConfig) -> None:
             setup_metrics_endpoint,
         )
 
-        ***REMOVED*** Get or create metrics registry
+        # Get or create metrics registry
         service_name = getattr(app.state, "settings", None)
         if service_name and hasattr(service_name, "service_name"):
             service_name = service_name.service_name
         else:
             service_name = app.title or "unknown-service"
 
-        ***REMOVED*** Initialize metrics registry
+        # Initialize metrics registry
         metrics_registry = initialize_metrics(service_name)
 
-        ***REMOVED*** Add prometheus middleware
+        # Add prometheus middleware
         app.add_middleware(
             PrometheusMiddleware,
             metrics_registry=metrics_registry,
@@ -340,7 +340,7 @@ def _setup_metrics_middleware(app: FastAPI, config: MetricsConfig) -> None:
             exclude_methods=set(config.exclude_methods),
         )
 
-        ***REMOVED*** Add metrics endpoint if requested
+        # Add metrics endpoint if requested
         if config.include_endpoint:
             setup_metrics_endpoint(app, metrics_registry, config.endpoint_path)
 

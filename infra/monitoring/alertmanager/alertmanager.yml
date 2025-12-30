@@ -1,9 +1,9 @@
 global:
-  ***REMOVED*** Global SMTP configuration (optional - disable for now)
-  ***REMOVED*** smtp_smarthost: "localhost:587"
-  ***REMOVED*** smtp_from: "alerts@nextwatch.local"
+  # Global SMTP configuration (optional - disable for now)
+  # smtp_smarthost: "localhost:587"
+  # smtp_from: "alerts@nextwatch.local"
 
-***REMOVED*** Route configuration
+# Route configuration
 route:
   group_by: ["alertname", "cluster", "service"]
   group_wait: 10s
@@ -11,21 +11,21 @@ route:
   repeat_interval: 12h
   receiver: "default-receiver"
   routes:
-    ***REMOVED*** Critical alerts - immediate notification
+    # Critical alerts - immediate notification
     - match:
         severity: critical
       receiver: "critical-alerts"
       group_wait: 5s
       repeat_interval: 5m
 
-    ***REMOVED*** Warning alerts - less frequent notifications
+    # Warning alerts - less frequent notifications
     - match:
         severity: warning
       receiver: "warning-alerts"
       group_wait: 30s
       repeat_interval: 1h
 
-    ***REMOVED*** Service-specific routes
+    # Service-specific routes
     - match:
         service: "bff-api"
       receiver: "bff-alerts"
@@ -38,16 +38,16 @@ route:
         service: "search-api"
       receiver: "search-alerts"
 
-***REMOVED*** Inhibition rules (suppress alerts based on other alerts)
+# Inhibition rules (suppress alerts based on other alerts)
 inhibit_rules:
-  ***REMOVED*** Suppress warning alerts if critical alert is firing
+  # Suppress warning alerts if critical alert is firing
   - source_match:
       severity: "critical"
     target_match:
       severity: "warning"
     equal: ["alertname", "cluster", "service"]
 
-***REMOVED*** Notification receivers
+# Notification receivers
 receivers:
   - name: "default-receiver"
     webhook_configs:
@@ -79,6 +79,6 @@ receivers:
       - url: "http://localhost:8080/webhook/search"
         send_resolved: true
 
-***REMOVED*** Templates for notifications
+# Templates for notifications
 templates:
   - "/etc/alertmanager/templates/*.tmpl"

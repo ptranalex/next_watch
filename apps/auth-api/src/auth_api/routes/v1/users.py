@@ -8,7 +8,7 @@ from typing import Annotated
 
 from config.logging import get_logger
 
-***REMOVED*** Import enhanced error handling
+# Import enhanced error handling
 from fast_core.errors import (
     ConflictException,
     ValidationException,
@@ -30,7 +30,7 @@ from auth_api.services.auth_service import AuthService
 
 logger = get_logger(__name__)
 
-***REMOVED*** Create router
+# Create router
 router = APIRouter()
 
 
@@ -79,14 +79,14 @@ async def create_user(
         ConflictException: If email or username already exists (preserves semantic meaning)
         ValidationException: If input validation fails
     """
-    ***REMOVED*** Record registration attempt
+    # Record registration attempt
     metrics = get_auth_metrics()
     if metrics:
         metrics.record_user_operation("register", "attempt")
         metrics.record_api_client_request("bff", "/users", "attempt")
         metrics.record_database_operation("insert", "users", "attempt", 0.0)
 
-    ***REMOVED*** Validate input data
+    # Validate input data
     if not user_data.email or not user_data.email.strip():
         raise ValidationException("Email is required")
     if not user_data.password or not user_data.password.strip():
@@ -104,21 +104,21 @@ async def create_user(
             user_data.username.strip() if user_data.username else None,
         )
 
-        ***REMOVED*** Record successful registration
+        # Record successful registration
         if metrics:
             metrics.record_user_operation("register", "success")
             metrics.record_user_registration("success", "none")
             metrics.record_api_client_request("bff", "/users", "success")
             metrics.record_database_operation("insert", "users", "success", 0.0)
             metrics.record_password_operation("hash", "success")
-            metrics.record_password_strength("strong")  ***REMOVED*** Assuming strong password validation
+            metrics.record_password_strength("strong")  # Assuming strong password validation
             metrics.record_security_event("user_registration", "low")
-            metrics.record_response_size("register", 300)  ***REMOVED*** Approximate user response size
-            metrics.record_cache_performance("user", "miss")  ***REMOVED*** New user cache
+            metrics.record_response_size("register", 300)  # Approximate user response size
+            metrics.record_cache_performance("user", "miss")  # New user cache
 
         return user
     except ValueError as e:
-        ***REMOVED*** Record registration failure
+        # Record registration failure
         if metrics:
             failure_reason = "validation_error"
             if "email" in str(e).lower():
@@ -133,7 +133,7 @@ async def create_user(
             metrics.record_security_event("registration_failure", "medium")
             metrics.record_password_operation("hash", "failure")
 
-        ***REMOVED*** Convert ValueError to semantic exception - will be caught by error mapping
+        # Convert ValueError to semantic exception - will be caught by error mapping
         error_msg = str(e).lower()
         if "email" in error_msg and "exists" in error_msg:
             raise ValueError("email already exists") from e
@@ -166,14 +166,14 @@ async def get_current_user_profile(
         AuthenticationException: If user is not authenticated (handled by dependency)
         ExternalServiceException: If database is unavailable (critical failure)
     """
-    ***REMOVED*** Record profile access
+    # Record profile access
     metrics = get_auth_metrics()
     if metrics:
         metrics.record_user_operation("profile_access", "success")
         metrics.record_api_client_request("bff", "/users/me", "success")
         metrics.record_database_operation("select", "users", "success", 0.0)
         metrics.record_session_operation("validate", "success")
-        metrics.record_response_size("profile", 400)  ***REMOVED*** Approximate user profile response size
-        metrics.record_cache_performance("user", "hit")  ***REMOVED*** User profile cache
+        metrics.record_response_size("profile", 400)  # Approximate user profile response size
+        metrics.record_cache_performance("user", "hit")  # User profile cache
 
     return current_user

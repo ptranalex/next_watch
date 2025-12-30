@@ -12,7 +12,7 @@ from rich.console import Console
 
 from ml_api import __version__
 
-***REMOVED*** Configure CLI app
+# Configure CLI app
 app = typer.Typer(
     name="ml-api",
     help="Machine Learning API for Next Watch platform",

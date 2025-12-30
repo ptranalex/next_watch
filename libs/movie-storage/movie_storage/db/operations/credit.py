@@ -182,7 +182,7 @@ def create_credits_from_tmdb_data(
     """
     created_credits = []
 
-    ***REMOVED*** Process cast data
+    # Process cast data
     cast_data = credits_data.get("cast", [])
     for cast_member in cast_data:
         if not cast_member.get("id"):
@@ -208,7 +208,7 @@ def create_credits_from_tmdb_data(
         session.add(credit)
         created_credits.append(credit)
 
-    ***REMOVED*** Process crew data
+    # Process crew data
     crew_data = credits_data.get("crew", [])
     for crew_member in crew_data:
         if not crew_member.get("id"):

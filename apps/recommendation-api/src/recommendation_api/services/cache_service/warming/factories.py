@@ -41,7 +41,7 @@ class RecommendationTargetFactories:
                         "limit": limit,
                         "min_score": min_score,
                     },
-                    priority=1.0,  ***REMOVED*** High priority for similar movies
+                    priority=1.0,  # High priority for similar movies
                 )
             )
 
@@ -67,7 +67,7 @@ class RecommendationTargetFactories:
 
         targets = []
 
-        ***REMOVED*** Create targets for different combinations of parameters
+        # Create targets for different combinations of parameters
         for limit in limits:
             for min_rating in min_ratings:
                 targets.append(
@@ -78,7 +78,7 @@ class RecommendationTargetFactories:
                             "min_rating": min_rating,
                             "min_vote_count": 1000,
                         },
-                        priority=0.8,  ***REMOVED*** Medium-high priority
+                        priority=0.8,  # Medium-high priority
                     )
                 )
 
@@ -104,7 +104,7 @@ class RecommendationTargetFactories:
 
         targets = []
 
-        ***REMOVED*** Create targets for different combinations of parameters
+        # Create targets for different combinations of parameters
         for limit in limits:
             for days in days_values:
                 targets.append(
@@ -115,11 +115,11 @@ class RecommendationTargetFactories:
                             "days": days,
                             "min_rating": None,
                         },
-                        priority=0.7,  ***REMOVED*** Medium priority
+                        priority=0.7,  # Medium priority
                     )
                 )
 
-                ***REMOVED*** Also create targets with min_rating
+                # Also create targets with min_rating
                 targets.append(
                     WarmingTarget(
                         function_name="trending_movies",
@@ -128,7 +128,7 @@ class RecommendationTargetFactories:
                             "days": days,
                             "min_rating": 7.0,
                         },
-                        priority=0.7,  ***REMOVED*** Medium priority
+                        priority=0.7,  # Medium priority
                     )
                 )
 
@@ -148,26 +148,26 @@ class RecommendationTargetFactories:
         """
         targets = []
 
-        ***REMOVED*** Create similar movies targets for popular and trending movies
+        # Create similar movies targets for popular and trending movies
         popular_movie_ids = popularity_data.get("popular_movie_ids", [])
         if popular_movie_ids:
-            ***REMOVED*** Take top 20 popular movies
+            # Take top 20 popular movies
             top_popular_ids = popular_movie_ids[:20]
             targets.extend(self.create_similar_movies_targets(top_popular_ids))
 
         trending_movie_ids = popularity_data.get("trending_movie_ids", [])
         if trending_movie_ids:
-            ***REMOVED*** Take top 20 trending movies
+            # Take top 20 trending movies
             top_trending_ids = trending_movie_ids[:20]
             targets.extend(self.create_similar_movies_targets(top_trending_ids))
 
         recent_movie_ids = popularity_data.get("recent_movie_ids", [])
         if recent_movie_ids:
-            ***REMOVED*** Take top 10 recent movies
+            # Take top 10 recent movies
             top_recent_ids = recent_movie_ids[:10]
             targets.extend(self.create_similar_movies_targets(top_recent_ids))
 
-        ***REMOVED*** Add popular and trending movies targets
+        # Add popular and trending movies targets
         targets.extend(self.create_popular_movies_targets())
         targets.extend(self.create_trending_movies_targets())
 

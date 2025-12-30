@@ -14,7 +14,7 @@ def test_ml_config_validators_and_helpers() -> None:
     cfg = MLAPIConfig(model_cache_dir="/tmp", enable_embeddings=False)
     assert cfg.model_cache_path is not None
 
-    ***REMOVED*** ensure caching singleton works
+    # ensure caching singleton works
     a = get_ml_settings()
     b = get_ml_settings()
     assert a is b

@@ -56,7 +56,7 @@ class OMDBClient:
             logger.error("No OMDB API key provided for API request")
             return {"Response": "False", "Error": "No API key provided"}
 
-        ***REMOVED*** Add API key to params
+        # Add API key to params
         params["apikey"] = self.api_key
 
         session = await self._ensure_session()

@@ -6,7 +6,7 @@ from datetime import datetime
 
 from config.logging import get_logger
 
-***REMOVED*** Import enhanced error handling
+# Import enhanced error handling
 from fast_core.errors import (
     ValidationException,
     critical_service_handler,
@@ -43,21 +43,21 @@ def create_user(
         ValueError: If email already exists or validation fails (will be mapped to semantic exceptions)
         ExternalServiceException: If database is unavailable (critical failure)
     """
-    ***REMOVED*** Check if user with email already exists
+    # Check if user with email already exists
     existing_user = get_user_by_email(session, email)
     if existing_user:
         raise ValueError(f"User with email {email} already exists")
 
-    ***REMOVED*** Check if username already exists (if provided)
+    # Check if username already exists (if provided)
     if username:
         existing_username = get_user_by_username(session, username)
         if existing_username:
             raise ValueError(f"User with username {username} already exists")
 
-    ***REMOVED*** Hash the password
+    # Hash the password
     hashed_password = User.hash_password(password)
 
-    ***REMOVED*** Create new user
+    # Create new user
     user = User(
         email=email,
         hashed_password=hashed_password,
@@ -154,7 +154,7 @@ def get_users(session: Session, skip: int = 0, limit: int = 100) -> list[User]:
         ValidationException: If pagination parameters are invalid
         ExternalServiceException: If database is unavailable (critical failure)
     """
-    ***REMOVED*** Validate pagination parameters
+    # Validate pagination parameters
     if skip < 0:
         raise ValidationException("Skip parameter must be non-negative")
     if limit <= 0 or limit > 1000:
@@ -196,21 +196,21 @@ def update_user(
     if not user:
         return None
 
-    ***REMOVED*** Check for email conflicts if email is being updated
+    # Check for email conflicts if email is being updated
     if email and email != user.email:
         existing_user = get_user_by_email(session, email)
         if existing_user and existing_user.id != user_id:
             raise ValueError(f"User with email {email} already exists")
         user.email = email
 
-    ***REMOVED*** Check for username conflicts if username is being updated
+    # Check for username conflicts if username is being updated
     if username and username != user.username:
         existing_user = get_user_by_username(session, username)
         if existing_user and existing_user.id != user_id:
             raise ValueError(f"User with username {username} already exists")
         user.username = username
 
-    ***REMOVED*** Update password if provided
+    # Update password if provided
     if password:
         user.hashed_password = User.hash_password(password)
 

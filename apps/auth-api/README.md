@@ -1,8 +1,8 @@
-***REMOVED*** Auth API Service
+# Auth API Service
 
 Dedicated authentication microservice for the Next Watch movie platform. This service handles all authentication concerns including user registration, login, JWT token management, and token verification for other services.
 
-***REMOVED******REMOVED*** 🎯 Purpose
+## 🎯 Purpose
 
 This service handles all authentication concerns in the microservices architecture:
 
@@ -12,7 +12,7 @@ This service handles all authentication concerns in the microservices architectu
 - Centralized authentication logic
 - User management and administration
 
-***REMOVED******REMOVED*** 🏗️ Architecture Role
+## 🏗️ Architecture Role
 
 ```
 Frontend → BFF → Auth-API (verify token) → Backend-API (X-User-ID header)
@@ -23,7 +23,7 @@ Frontend → BFF → Auth-API (verify token) → Backend-API (X-User-ID header)
 - **Auth-API** returns user info if token is valid
 - **BFF** injects `X-User-ID` header for Backend-API calls
 
-***REMOVED******REMOVED******REMOVED*** Core Architecture
+### Core Architecture
 
 The Auth API follows a modular architecture with clear separation of concerns:
 
@@ -34,48 +34,48 @@ The Auth API follows a modular architecture with clear separation of concerns:
 - **CLI**: Command-line interface for operations and management
 - **Configuration**: Environment-based configuration management
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 ```bash
-***REMOVED*** Navigate to Auth API directory
+# Navigate to Auth API directory
 cd apps/auth-api
 
-***REMOVED*** Install dependencies
+# Install dependencies
 hatch env create
 
-***REMOVED*** Copy environment configuration
+# Copy environment configuration
 cp .env.example .env
 
-***REMOVED*** Start the service
+# Start the service
 hatch run serve
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using the CLI
+### Using the CLI
 
 The Auth API includes a comprehensive command-line interface for development and operations:
 
 ```bash
-***REMOVED*** Show all available commands
+# Show all available commands
 auth-api --help
 
-***REMOVED*** Start the development server
+# Start the development server
 auth-api serve --reload --verbose
 
-***REMOVED*** Check configuration
+# Check configuration
 auth-api config --verbose
 
-***REMOVED*** Show version information
+# Show version information
 auth-api version
 ```
 
-***REMOVED******REMOVED*** 🛠️ CLI Commands
+## 🛠️ CLI Commands
 
-***REMOVED******REMOVED******REMOVED*** Server Management
+### Server Management
 
 ```bash
-***REMOVED*** Start the Auth API server
+# Start the Auth API server
 auth-api serve [OPTIONS]
 
 Options:
@@ -87,28 +87,28 @@ Options:
   --quiet, -q          Suppress console output except errors
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration Management
+### Configuration Management
 
 ```bash
-***REMOVED*** Display current configuration
+# Display current configuration
 auth-api config [OPTIONS]
 
 Options:
   --show-secrets       Show sensitive configuration values (use with caution)
   --verbose, -v        Show detailed configuration information
 
-***REMOVED*** Examples
-auth-api config                    ***REMOVED*** Show masked configuration
-auth-api config --verbose         ***REMOVED*** Show detailed configuration
-auth-api config --show-secrets    ***REMOVED*** Show unmasked secrets (development only)
+# Examples
+auth-api config                    # Show masked configuration
+auth-api config --verbose         # Show detailed configuration
+auth-api config --show-secrets    # Show unmasked secrets (development only)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Checks
+### Health Checks
 
 Comprehensive health checking for the Auth API service and dependencies:
 
 ```bash
-***REMOVED*** Check all services and dependencies
+# Check all services and dependencies
 auth-api health check [OPTIONS]
 
 Options:
@@ -117,23 +117,23 @@ Options:
   --timeout INTEGER         Request timeout in seconds [default: 5]
   --verbose, -v             Show detailed output
 
-***REMOVED*** Check specific components
-auth-api health self [OPTIONS]      ***REMOVED*** Check Auth API only
-auth-api health database [OPTIONS]  ***REMOVED*** Check database connection only
+# Check specific components
+auth-api health self [OPTIONS]      # Check Auth API only
+auth-api health database [OPTIONS]  # Check database connection only
 
-***REMOVED*** Examples
-auth-api health check                ***REMOVED*** Check all services
-auth-api health check --verbose     ***REMOVED*** Detailed health check with response times
-auth-api health self --timeout 10   ***REMOVED*** Check self with custom timeout
-auth-api health database            ***REMOVED*** Check database connection
+# Examples
+auth-api health check                # Check all services
+auth-api health check --verbose     # Detailed health check with response times
+auth-api health self --timeout 10   # Check self with custom timeout
+auth-api health database            # Check database connection
 ```
 
-***REMOVED******REMOVED******REMOVED*** User Management
+### User Management
 
 Comprehensive user administration commands:
 
 ```bash
-***REMOVED*** List users
+# List users
 auth-api users list [OPTIONS]
 
 Options:
@@ -142,7 +142,7 @@ Options:
   --search TEXT         Search users by email or username
   --verbose, -v         Show detailed output
 
-***REMOVED*** Create new user
+# Create new user
 auth-api users create [OPTIONS]
 
 Options:
@@ -153,51 +153,51 @@ Options:
   --admin               Grant admin privileges
   --verbose, -v         Show detailed output
 
-***REMOVED*** User status management
-auth-api users activate USER_EMAIL_OR_ID     ***REMOVED*** Activate user account
-auth-api users deactivate USER_EMAIL_OR_ID   ***REMOVED*** Deactivate user account
-auth-api users delete USER_EMAIL_OR_ID       ***REMOVED*** Delete user permanently
+# User status management
+auth-api users activate USER_EMAIL_OR_ID     # Activate user account
+auth-api users deactivate USER_EMAIL_OR_ID   # Deactivate user account
+auth-api users delete USER_EMAIL_OR_ID       # Delete user permanently
 
-***REMOVED*** User statistics
+# User statistics
 auth-api users stats [OPTIONS]
 
 Options:
   --verbose, -v         Show detailed statistics
 
-***REMOVED*** Examples
-auth-api users list --active-only --limit 20        ***REMOVED*** List 20 active users
-auth-api users create --email user@example.com      ***REMOVED*** Create user (will prompt for password)
-auth-api users create --email admin@example.com --admin  ***REMOVED*** Create admin user
-auth-api users activate user@example.com            ***REMOVED*** Activate user by email
-auth-api users stats --verbose                      ***REMOVED*** Show detailed user statistics
+# Examples
+auth-api users list --active-only --limit 20        # List 20 active users
+auth-api users create --email user@example.com      # Create user (will prompt for password)
+auth-api users create --email admin@example.com --admin  # Create admin user
+auth-api users activate user@example.com            # Activate user by email
+auth-api users stats --verbose                      # Show detailed user statistics
 ```
 
-***REMOVED******REMOVED******REMOVED*** Database Management
+### Database Management
 
 ```bash
-***REMOVED*** Initialize database with required tables
+# Initialize database with required tables
 auth-api init-db [OPTIONS]
 
 Options:
   --confirm/--no-confirm    Confirm before initializing [default: True]
   --verbose, -v             Show detailed output
 
-***REMOVED*** Examples
-auth-api init-db                    ***REMOVED*** Initialize with confirmation
-auth-api init-db --no-confirm      ***REMOVED*** Initialize without confirmation
-auth-api init-db --verbose         ***REMOVED*** Show detailed initialization process
+# Examples
+auth-api init-db                    # Initialize with confirmation
+auth-api init-db --no-confirm      # Initialize without confirmation
+auth-api init-db --verbose         # Show detailed initialization process
 ```
 
-***REMOVED******REMOVED******REMOVED*** Version Information
+### Version Information
 
 ```bash
-***REMOVED*** Show version and environment information
+# Show version and environment information
 auth-api version
 ```
 
-***REMOVED******REMOVED*** 🔧 CLI Features
+## 🔧 CLI Features
 
-***REMOVED******REMOVED******REMOVED*** Rich Output
+### Rich Output
 
 The CLI uses Rich for beautiful, informative output:
 
@@ -206,20 +206,20 @@ The CLI uses Rich for beautiful, informative output:
 - **Formatted tables** for configuration, user lists, and statistics
 - **Interactive prompts** for sensitive operations
 
-***REMOVED******REMOVED******REMOVED*** Environment Integration
+### Environment Integration
 
 Commands automatically use environment variables and can be overridden:
 
 ```bash
-***REMOVED*** Use environment variables
+# Use environment variables
 export AUTH_API_URL=http://production-auth:8003
 auth-api health check
 
-***REMOVED*** Override with command-line options
+# Override with command-line options
 auth-api health check --auth-api-url http://staging-auth:8003
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error Handling
+### Error Handling
 
 Comprehensive error handling with:
 
@@ -228,61 +228,61 @@ Comprehensive error handling with:
 - **Logging integration** for debugging and monitoring
 - **Graceful handling** of database errors and connection issues
 
-***REMOVED******REMOVED******REMOVED*** Development Workflow
+### Development Workflow
 
 ```bash
-***REMOVED*** Development server with auto-reload and verbose logging
+# Development server with auto-reload and verbose logging
 auth-api serve --reload --verbose --log-level DEBUG
 
-***REMOVED*** Initialize database for development
+# Initialize database for development
 auth-api init-db --verbose
 
-***REMOVED*** Create admin user for testing
+# Create admin user for testing
 auth-api users create --email admin@localhost --admin --verbose
 
-***REMOVED*** Check all services are healthy
+# Check all services are healthy
 auth-api health check --verbose
 
-***REMOVED*** Monitor user activity
+# Monitor user activity
 auth-api users stats --verbose
 ```
 
-***REMOVED******REMOVED*** 📡 API Endpoints
+## 📡 API Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Health & Info
-
-```http
-GET /               ***REMOVED*** Service information
-GET /health         ***REMOVED*** Comprehensive health check with database status
-GET /health/live    ***REMOVED*** Liveness check for load balancers
-GET /health/ready   ***REMOVED*** Readiness check for orchestrators
-GET /health/deep    ***REMOVED*** Deep diagnostics (optional)
-```
-
-***REMOVED******REMOVED******REMOVED*** Authentication (v1)
+### Health & Info
 
 ```http
-POST /auth/v1/users           ***REMOVED*** Register new user
-POST /auth/v1/tokens          ***REMOVED*** Login (OAuth2 form: username=email, password)
-PUT  /auth/v1/tokens          ***REMOVED*** Refresh access token
-GET  /auth/v1/users/me        ***REMOVED*** Get current user info
+GET /               # Service information
+GET /health         # Comprehensive health check with database status
+GET /health/live    # Liveness check for load balancers
+GET /health/ready   # Readiness check for orchestrators
+GET /health/deep    # Deep diagnostics (optional)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Token Verification (for BFF)
+### Authentication (v1)
 
 ```http
-POST /auth/v1/tokens/verify   ***REMOVED*** Verify JWT token and return user info
+POST /auth/v1/users           # Register new user
+POST /auth/v1/tokens          # Login (OAuth2 form: username=email, password)
+PUT  /auth/v1/tokens          # Refresh access token
+GET  /auth/v1/users/me        # Get current user info
 ```
 
-***REMOVED******REMOVED*** 🧩 Integration Points
+### Token Verification (for BFF)
 
-***REMOVED******REMOVED******REMOVED*** Database
+```http
+POST /auth/v1/tokens/verify   # Verify JWT token and return user info
+```
+
+## 🧩 Integration Points
+
+### Database
 
 - **PostgreSQL**: Primary data store for user accounts and authentication data
 - **Shared with other services**: Uses the same database as Backend API
 - **Health Monitoring**: Comprehensive database health checks with response time tracking
 
-***REMOVED******REMOVED******REMOVED*** Health Service
+### Health Service
 
 The service includes a comprehensive health monitoring system:
 
@@ -291,12 +291,12 @@ The service includes a comprehensive health monitoring system:
 - **Multiple Endpoints**: Separate endpoints for different health check types
 - **Load Balancer Integration**: Optimized health checks for orchestration systems
 
-***REMOVED******REMOVED******REMOVED*** Configuration
+### Configuration
 
 Environment variables:
 
 ```bash
-***REMOVED*** Server Configuration
+# Server Configuration
 AUTH_API_PORT=8003
 HOST=0.0.0.0
 ENVIRONMENT=development
@@ -304,33 +304,33 @@ DEBUG=false
 LOG_LEVEL=INFO
 LOGS_DIR=logs
 
-***REMOVED*** Database Configuration
+# Database Configuration
 DATABASE_URL=postgresql://user:pass@localhost:5432/next_watch
 
-***REMOVED*** JWT Configuration
+# JWT Configuration
 JWT_SECRET=your-jwt-secret-here-change-in-production
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
-***REMOVED*** Security Configuration
+# Security Configuration
 PASSWORD_HASH_ROUNDS=12
 MAX_LOGIN_ATTEMPTS=5
 LOGIN_LOCKOUT_DURATION_MINUTES=15
 SESSION_TIMEOUT_MINUTES=60
 
-***REMOVED*** CORS Configuration
+# CORS Configuration
 CORS_ORIGINS=http://localhost:3000,http://localhost:8001
 
-***REMOVED*** Performance Monitoring
+# Performance Monitoring
 ENABLE_PERFORMANCE_METRICS=false
 
-***REMOVED*** Rate Limiting
+# Rate Limiting
 RATE_LIMIT_REQUESTS_PER_MINUTE=60
 RATE_LIMIT_BURST=10
 ```
 
-***REMOVED******REMOVED*** 🔐 Security Features
+## 🔐 Security Features
 
 - **JWT Tokens**: Industry-standard JWT for authentication
 - **Password Hashing**: Bcrypt with configurable rounds
@@ -339,9 +339,9 @@ RATE_LIMIT_BURST=10
 - **Login Lockout**: Protection against brute force attacks
 - **Environment Isolation**: Separate configuration for dev/prod
 
-***REMOVED******REMOVED*** 🧪 Usage Examples
+## 🧪 Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Register a User
+### Register a User
 
 ```bash
 curl -X POST http://localhost:8003/auth/v1/users \
@@ -354,7 +354,7 @@ curl -X POST http://localhost:8003/auth/v1/users \
   }'
 ```
 
-***REMOVED******REMOVED******REMOVED*** Login (OAuth2 form)
+### Login (OAuth2 form)
 
 ```bash
 curl -X POST http://localhost:8003/auth/v1/tokens \
@@ -362,7 +362,7 @@ curl -X POST http://localhost:8003/auth/v1/tokens \
   -d 'username=user@example.com&password=securepassword123'
 ```
 
-***REMOVED******REMOVED******REMOVED*** Refresh Token
+### Refresh Token
 
 ```bash
 curl -X PUT http://localhost:8003/auth/v1/tokens \
@@ -372,7 +372,7 @@ curl -X PUT http://localhost:8003/auth/v1/tokens \
   }'
 ```
 
-***REMOVED******REMOVED******REMOVED*** Verify Token (BFF Usage)
+### Verify Token (BFF Usage)
 
 ```bash
 curl -X POST http://localhost:8003/auth/v1/tokens/verify \
@@ -382,37 +382,37 @@ curl -X POST http://localhost:8003/auth/v1/tokens/verify \
   }'
 ```
 
-***REMOVED******REMOVED*** 🧪 Testing
+## 🧪 Testing
 
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 hatch run test
 
-***REMOVED*** Run with coverage
+# Run with coverage
 hatch run test-cov
 
-***REMOVED*** Run specific test file
+# Run specific test file
 hatch run test tests/test_auth.py
 
-***REMOVED*** Run with verbose output
+# Run with verbose output
 hatch run test -v
 ```
 
-***REMOVED******REMOVED*** 🔧 Development
+## 🔧 Development
 
-***REMOVED******REMOVED******REMOVED*** Code Style
+### Code Style
 
 The project follows Google Python Style Guide:
 
 ```bash
-***REMOVED*** Format code
+# Format code
 hatch run format
 
-***REMOVED*** Lint code (includes black, isort, ruff, and mypy)
+# Lint code (includes black, isort, ruff, and mypy)
 hatch run lint
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding New CLI Commands
+### Adding New CLI Commands
 
 1. **Create command module** in `src/auth_api/cli/commands/`
 2. **Import in commands/**init**.py**
@@ -423,7 +423,7 @@ hatch run lint
 Example command structure:
 
 ```python
-***REMOVED*** src/auth_api/cli/commands/example.py
+# src/auth_api/cli/commands/example.py
 import typer
 from rich.console import Console
 
@@ -436,54 +436,54 @@ def hello(name: str = typer.Option(..., help="Name to greet")):
     console.print(f"[green]Hello {name}![/green]")
 ```
 
-***REMOVED******REMOVED******REMOVED*** Project Structure
+### Project Structure
 
 ```
 apps/auth-api/
 ├── src/auth_api/
-│   ├── core/           ***REMOVED*** Core application components
-│   │   ├── app.py      ***REMOVED*** FastAPI application factory
-│   │   ├── middleware.py ***REMOVED*** Middleware configuration
-│   │   ├── logging.py  ***REMOVED*** Logging setup
-│   │   └── README.md   ***REMOVED*** Core module documentation
-│   ├── config/         ***REMOVED*** Configuration management
-│   ├── routes/         ***REMOVED*** FastAPI route handlers
-│   ├── services/       ***REMOVED*** Business logic and authentication services
-│   ├── db/            ***REMOVED*** Database models and connections
-│   ├── schemas/       ***REMOVED*** Pydantic models for request/response
-│   ├── dependencies/ ***REMOVED*** FastAPI dependency injection
-│   ├── cli/           ***REMOVED*** Command-line interface
-│   │   ├── commands/  ***REMOVED*** Modular CLI commands
-│   │   ├── utils.py   ***REMOVED*** CLI utilities
-│   │   └── main.py    ***REMOVED*** Main CLI app
-│   └── main.py        ***REMOVED*** Application entry point
-├── tests/             ***REMOVED*** Test suite
-├── logs/              ***REMOVED*** Application logs
-├── .env               ***REMOVED*** Environment configuration
-├── .env.local         ***REMOVED*** Local development overrides
-├── pyproject.toml     ***REMOVED*** Dependencies and Hatch configuration
-├── hatch.toml         ***REMOVED*** Hatch project configuration
-├── Dockerfile         ***REMOVED*** Optimized multi-stage Docker build
-└── README.md          ***REMOVED*** This file
+│   ├── core/           # Core application components
+│   │   ├── app.py      # FastAPI application factory
+│   │   ├── middleware.py # Middleware configuration
+│   │   ├── logging.py  # Logging setup
+│   │   └── README.md   # Core module documentation
+│   ├── config/         # Configuration management
+│   ├── routes/         # FastAPI route handlers
+│   ├── services/       # Business logic and authentication services
+│   ├── db/            # Database models and connections
+│   ├── schemas/       # Pydantic models for request/response
+│   ├── dependencies/ # FastAPI dependency injection
+│   ├── cli/           # Command-line interface
+│   │   ├── commands/  # Modular CLI commands
+│   │   ├── utils.py   # CLI utilities
+│   │   └── main.py    # Main CLI app
+│   └── main.py        # Application entry point
+├── tests/             # Test suite
+├── logs/              # Application logs
+├── .env               # Environment configuration
+├── .env.local         # Local development overrides
+├── pyproject.toml     # Dependencies and Hatch configuration
+├── hatch.toml         # Hatch project configuration
+├── Dockerfile         # Optimized multi-stage Docker build
+└── README.md          # This file
 ```
 
-***REMOVED******REMOVED*** 🚀 Deployment
+## 🚀 Deployment
 
-***REMOVED******REMOVED******REMOVED*** Docker
+### Docker
 
 The service can be built and run using Docker with an optimized Alpine-based build:
 
 ```bash
-***REMOVED*** Build the optimized Docker image
+# Build the optimized Docker image
 docker build -f apps/auth-api/Dockerfile -t next-watch-auth .
 
-***REMOVED*** Run the container
+# Run the container
 docker run -p 8003:8003 \
   -e DATABASE_URL=postgresql://user:pass@host:5432/next_watch \
   -e JWT_SECRET=your-secret-key \
   next-watch-auth
 
-***REMOVED*** Or run in background
+# Or run in background
 docker run -d -p 8003:8003 \
   -e DATABASE_URL=postgresql://user:pass@host:5432/next_watch \
   -e JWT_SECRET=your-secret-key \
@@ -499,7 +499,7 @@ The Docker build uses:
 - **Health checks** for container orchestration
 - **Proper movie-storage dependency** handling
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
 Ensure these are set in production:
 
@@ -509,7 +509,7 @@ Ensure these are set in production:
 - `PASSWORD_HASH_ROUNDS` (12 or higher for production)
 - `MAX_LOGIN_ATTEMPTS` (reasonable limit like 5)
 
-***REMOVED******REMOVED*** 📊 Monitoring
+## 📊 Monitoring
 
 The Auth API service provides several monitoring endpoints:
 
@@ -519,7 +519,7 @@ The Auth API service provides several monitoring endpoints:
 - User activity tracking
 - CLI tools for operational monitoring
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
 1. Follow TDD practices - write tests first
 2. Use type hints for all functions
@@ -528,7 +528,7 @@ The Auth API service provides several monitoring endpoints:
 5. Ensure all tests pass before submitting
 6. Test CLI commands thoroughly
 
-***REMOVED******REMOVED*** 📝 License
+## 📝 License
 
 This project is part of the Next Watch movie platform.
 

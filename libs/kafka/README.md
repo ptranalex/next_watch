@@ -1,8 +1,8 @@
-***REMOVED*** Kafka - Shared Kafka Integration Library
+# Kafka - Shared Kafka Integration Library
 
 A shared library providing Kafka producer, consumer, and event schemas for Next Watch microservices.
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - **Async Kafka Producer**: High-performance async producer with retry logic and OpenTelemetry tracing
 - **Base Consumer Class**: Reusable consumer patterns with error handling and DLQ support
@@ -11,22 +11,22 @@ A shared library providing Kafka producer, consumer, and event schemas for Next 
 - **Monitoring**: Built-in metrics and tracing integration
 - **Configuration**: Environment-based configuration with sensible defaults
 
-***REMOVED******REMOVED*** Installation
+## Installation
 
 ```bash
-***REMOVED*** Basic installation
+# Basic installation
 pip install -e libs/kafka
 
-***REMOVED*** With Avro support
+# With Avro support
 pip install -e "libs/kafka[avro]"
 
-***REMOVED*** Development dependencies
+# Development dependencies
 pip install -e "libs/kafka[dev]"
 ```
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Producer
+### Producer
 
 ```python
 from kafka.producer import KafkaEventProducer
@@ -34,12 +34,12 @@ from kafka.events import MovieViewedEvent
 from kafka.config import KafkaConfig
 from datetime import datetime
 
-***REMOVED*** Initialize producer
+# Initialize producer
 config = KafkaConfig()
 producer = KafkaEventProducer(config)
 await producer.start()
 
-***REMOVED*** Send event
+# Send event
 event = MovieViewedEvent(
     user_id=123,
     movie_id=456,
@@ -47,11 +47,11 @@ event = MovieViewedEvent(
 )
 await producer.send_event("user.activity", event, key=str(event.user_id))
 
-***REMOVED*** Cleanup
+# Cleanup
 await producer.stop()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Consumer
+### Consumer
 
 ```python
 from kafka.consumer import KafkaEventConsumer
@@ -63,7 +63,7 @@ class ActivityConsumer(KafkaEventConsumer):
         event = MovieViewedEvent(**message.value)
         print(f"User {event.user_id} viewed movie {event.movie_id}")
 
-***REMOVED*** Initialize and run consumer
+# Initialize and run consumer
 config = KafkaConfig()
 consumer = ActivityConsumer(
     config=config,
@@ -74,7 +74,7 @@ await consumer.start()
 await consumer.consume()
 ```
 
-***REMOVED******REMOVED*** Event Schemas
+## Event Schemas
 
 All events are Pydantic models with validation:
 
@@ -88,33 +88,33 @@ All events are Pydantic models with validation:
 - **CacheInvalidationEvent**: Cache invalidation events
 - **RecommendationRequestEvent**: Async recommendation generation
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
 Configuration via environment variables:
 
 ```bash
-***REMOVED*** Kafka broker
+# Kafka broker
 KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 KAFKA_SECURITY_PROTOCOL=PLAINTEXT
 
-***REMOVED*** Producer settings
+# Producer settings
 KAFKA_PRODUCER_ACKS=1
 KAFKA_PRODUCER_COMPRESSION_TYPE=snappy
 KAFKA_PRODUCER_RETRIES=3
 
-***REMOVED*** Consumer settings
+# Consumer settings
 KAFKA_CONSUMER_GROUP_ID_PREFIX=next-watch
 KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest
 
-***REMOVED*** Schema Registry
+# Schema Registry
 KAFKA_SCHEMA_REGISTRY_URL=http://schema-registry:8081
 
-***REMOVED*** Feature flags
+# Feature flags
 ENABLE_KAFKA_PRODUCER=true
 ENABLE_KAFKA_CONSUMER=true
 ```
 
-***REMOVED******REMOVED*** Topics
+## Topics
 
 The library defines these standard topics:
 
@@ -127,24 +127,24 @@ The library defines these standard topics:
 - `system.events` (2 partitions): System health events
 - `dlq.events` (4 partitions): Dead letter queue
 
-***REMOVED******REMOVED*** Development
+## Development
 
 ```bash
-***REMOVED*** Run tests
+# Run tests
 cd libs/kafka
 hatch run test
 
-***REMOVED*** Run tests with coverage
+# Run tests with coverage
 hatch run test-cov
 
-***REMOVED*** Lint code
+# Lint code
 hatch run lint
 
-***REMOVED*** Format code
+# Format code
 hatch run format
 ```
 
-***REMOVED******REMOVED*** Integration
+## Integration
 
 To integrate this library into a service:
 
@@ -160,6 +160,6 @@ To integrate this library into a service:
 3. Emit events from business logic
 4. Process events in consumer handlers
 
-***REMOVED******REMOVED*** License
+## License
 
 MIT

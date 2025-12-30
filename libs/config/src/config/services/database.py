@@ -25,7 +25,7 @@ class DatabaseConfigMixin:
     - {SERVICE}_DATABASE_ECHO: Enable SQL query logging
     """
 
-    ***REMOVED*** Database connection settings
+    # Database connection settings
     database_url: str = Field(
         default="sqlite:///./app.db",
         description="Database connection URL",
@@ -129,7 +129,7 @@ class DatabaseConfigMixin:
         """
         issues = []
 
-        ***REMOVED*** Check database URL security
+        # Check database URL security
         if (
             self.database_url.startswith("sqlite")
             and hasattr(self, "is_production")
@@ -144,7 +144,7 @@ class DatabaseConfigMixin:
         ):
             issues.append("Database URL should not use localhost in production")
 
-        ***REMOVED*** Check connection pool settings
+        # Check connection pool settings
         if hasattr(self, "is_production") and getattr(self, "is_production"):
             if self.database_pool_size < 5:
                 issues.append("Database pool size should be at least 5 in production")
@@ -163,10 +163,10 @@ class DatabaseConfigMixin:
 
             logger = get_logger(__name__)
 
-            ***REMOVED*** Log database URL (masked)
+            # Log database URL (masked)
             logger.debug(f"Database: {self.get_database_url_masked()}")
 
-            ***REMOVED*** Log pool settings in compact format
+            # Log pool settings in compact format
             logger.debug(
                 f"DB pool: size={self.database_pool_size}, "
                 + f"max_overflow={self.database_max_overflow}, "

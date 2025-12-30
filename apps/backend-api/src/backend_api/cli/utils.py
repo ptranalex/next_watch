@@ -24,15 +24,15 @@ def format_config_table(config: Any, title: str = "Configuration") -> Table:
     table.add_column("Setting", style="cyan")
     table.add_column("Value", style="green")
 
-    ***REMOVED*** Add rows for each config attribute
+    # Add rows for each config attribute
     for attr in dir(config):
-        ***REMOVED*** Skip private attributes and methods
+        # Skip private attributes and methods
         if attr.startswith("_"):
             continue
 
         value = getattr(config, attr)
 
-        ***REMOVED*** Handle sensitive values
+        # Handle sensitive values
         if any(
             sensitive in attr.lower() for sensitive in ["api_key", "token", "password", "secret"]
         ):
@@ -82,14 +82,14 @@ def display_redis_config(
     table.add_column("Setting", style="cyan")
     table.add_column("Value", style="green")
 
-    ***REMOVED*** Add Redis URL (mask password if present)
+    # Add Redis URL (mask password if present)
     if ":" in redis_url and "@" in redis_url:
-        ***REMOVED*** Format like redis://user:pass@host:port/db
+        # Format like redis://user:pass@host:port/db
         parts = redis_url.split("@")
         auth_part = parts[0]
         host_part = parts[1]
 
-        ***REMOVED*** Get username/password part
+        # Get username/password part
         if ":" in auth_part:
             protocol_user, _ = auth_part.rsplit(":", 1)
             masked_url = f"{protocol_user}:****@{host_part}"
@@ -100,7 +100,7 @@ def display_redis_config(
 
     table.add_row("Redis URL", masked_url)
 
-    ***REMOVED*** Add other options
+    # Add other options
     for key, value in options.items():
         table.add_row(key.replace("_", " ").title(), str(value))
 

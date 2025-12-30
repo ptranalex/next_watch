@@ -43,11 +43,11 @@ def test_dependency_get_current_user_id(monkeypatch) -> None:
         def __init__(self, token: str | None):
             self.credentials = token
 
-    ***REMOVED*** Missing creds -> exception
+    # Missing creds -> exception
     with pytest.raises(Exception):
         get_current_user_id(credentials=Creds(None))
 
-    ***REMOVED*** Valid creds -> returns int
+    # Valid creds -> returns int
     monkeypatch.setattr(
         "bff_api.dependencies.auth.extract_user_id_from_token", lambda token, **kw: 7
     )
@@ -100,7 +100,7 @@ def test_error_handling_helpers(monkeypatch) -> None:
 
     from bff_api.utils import error_handling
 
-    ***REMOVED*** Avoid invoking real handler internals
+    # Avoid invoking real handler internals
     monkeypatch.setattr(error_handling, "handle_service_error", lambda **kwargs: None)
 
     import asyncio

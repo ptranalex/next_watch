@@ -1,27 +1,27 @@
-***REMOVED*** Backend API Routes Module
+# Backend API Routes Module
 
 The `routes` module contains all HTTP endpoints for the Next Watch Backend API, organized into logical router groups following FastAPI best practices.
 
-***REMOVED******REMOVED*** Architecture Overview
+## Architecture Overview
 
 The routes module is organized around functional areas:
 
 ```
 routes/
-├── __init__.py       ***REMOVED*** Module initialization
-├── api_v1/          ***REMOVED*** Versioned API routes (main business logic)
-├── health.py        ***REMOVED*** Health check endpoints
-├── meta.py          ***REMOVED*** Meta endpoints (root, debug)
-└── ...              ***REMOVED*** Additional route modules
+├── __init__.py       # Module initialization
+├── api_v1/          # Versioned API routes (main business logic)
+├── health.py        # Health check endpoints
+├── meta.py          # Meta endpoints (root, debug)
+└── ...              # Additional route modules
 ```
 
-***REMOVED******REMOVED*** Route Organization
+## Route Organization
 
-***REMOVED******REMOVED******REMOVED*** Meta Routes (`meta.py`)
+### Meta Routes (`meta.py`)
 
 Core application endpoints providing service information and debugging capabilities.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Root Endpoint (`/`)
+#### Root Endpoint (`/`)
 
 **Description**: Main API information endpoint
 **Method**: `GET`
@@ -54,7 +54,7 @@ Core application endpoints providing service information and debugging capabilit
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Debug Endpoint (`/debug`)
+#### Debug Endpoint (`/debug`)
 
 **Description**: Development and debugging information
 **Method**: `GET`
@@ -97,11 +97,11 @@ Core application endpoints providing service information and debugging capabilit
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Health Routes (`health.py`)
+### Health Routes (`health.py`)
 
 Comprehensive health monitoring endpoints for system observability and load balancer integration.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Comprehensive Health Check (`/health`)
+#### Comprehensive Health Check (`/health`)
 
 **Description**: Full health check of all system dependencies
 **Method**: `GET`
@@ -173,7 +173,7 @@ Comprehensive health monitoring endpoints for system observability and load bala
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Liveness Check (`/health/live`)
+#### Liveness Check (`/health/live`)
 
 **Description**: Simple liveness probe for container orchestrators
 **Method**: `GET`
@@ -191,7 +191,7 @@ Comprehensive health monitoring endpoints for system observability and load bala
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Readiness Check (`/health/ready`)
+#### Readiness Check (`/health/ready`)
 
 **Description**: Readiness probe for critical dependencies
 **Method**: `GET`
@@ -226,7 +226,7 @@ Comprehensive health monitoring endpoints for system observability and load bala
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Legacy Database Health (`/db-health`)
+#### Legacy Database Health (`/db-health`)
 
 **Description**: Legacy database-only health check
 **Method**: `GET`
@@ -256,7 +256,7 @@ Comprehensive health monitoring endpoints for system observability and load bala
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** API Routes (`api_v1/`)
+### API Routes (`api_v1/`)
 
 Main business logic routes organized under versioned API structure.
 
@@ -264,27 +264,27 @@ Main business logic routes organized under versioned API structure.
 **Description**: Core application functionality
 **Authentication**: Varies by endpoint
 
-***REMOVED******REMOVED*** Health Check Integration
+## Health Check Integration
 
-***REMOVED******REMOVED******REMOVED*** Health Service Integration
+### Health Service Integration
 
 Health endpoints integrate with the health service for comprehensive monitoring:
 
 ```python
 async def health_check(request: Request) -> JSONResponse:
-    ***REMOVED*** Get health service from application state
+    # Get health service from application state
     health_service = request.app.state.health_service
 
     if health_service:
-        ***REMOVED*** Use full health service capabilities
+        # Use full health service capabilities
         health_results = await health_service.check_all()
-        ***REMOVED*** Process and return results
+        # Process and return results
     else:
-        ***REMOVED*** Fallback to basic checks
+        # Fallback to basic checks
         return await health_check_fallback()
 ```
 
-***REMOVED******REMOVED******REMOVED*** Fallback Mechanisms
+### Fallback Mechanisms
 
 When the health service is unavailable, fallback mechanisms ensure basic monitoring:
 
@@ -292,11 +292,11 @@ When the health service is unavailable, fallback mechanisms ensure basic monitor
 async def health_check_fallback() -> JSONResponse:
     """Fallback health check when health service is not available."""
     try:
-        ***REMOVED*** Use synchronous database check
+        # Use synchronous database check
         health_service = HealthService()
         postgres_result = health_service.check_postgres_sync()
 
-        ***REMOVED*** Return simplified response
+        # Return simplified response
         return JSONResponse(
             status_code=200 if postgres_result.is_healthy else 503,
             content={
@@ -306,11 +306,11 @@ async def health_check_fallback() -> JSONResponse:
             }
         )
     except Exception as e:
-        ***REMOVED*** Return error response
+        # Return error response
         return JSONResponse(status_code=503, content={"error": str(e)})
 ```
 
-***REMOVED******REMOVED******REMOVED*** Critical vs Non-Critical Services
+### Critical vs Non-Critical Services
 
 Health checks distinguish between critical and non-critical services:
 
@@ -323,7 +323,7 @@ Health checks distinguish between critical and non-critical services:
 - Redis cache
 
 ```python
-***REMOVED*** Readiness check only considers critical services
+# Readiness check only considers critical services
 critical_services = ["postgres"]
 critical_healthy = all(
     health_results[service].is_healthy
@@ -332,9 +332,9 @@ critical_healthy = all(
 )
 ```
 
-***REMOVED******REMOVED*** Error Handling
+## Error Handling
 
-***REMOVED******REMOVED******REMOVED*** Global Exception Handling
+### Global Exception Handling
 
 Routes benefit from global exception handling in the core module:
 
@@ -345,12 +345,12 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 ```
 
-***REMOVED******REMOVED******REMOVED*** Specific Error Responses
+### Specific Error Responses
 
 Health endpoints provide specific error information:
 
 ```python
-***REMOVED*** Service unavailable with details
+# Service unavailable with details
 return JSONResponse(
     status_code=503,
     content={
@@ -366,9 +366,9 @@ return JSONResponse(
 )
 ```
 
-***REMOVED******REMOVED*** Response Standards
+## Response Standards
 
-***REMOVED******REMOVED******REMOVED*** Common Response Structure
+### Common Response Structure
 
 All endpoints follow consistent response patterns:
 
@@ -378,11 +378,11 @@ All endpoints follow consistent response patterns:
     "service": "backend-api",
     "version": "0.1.0",
     "timestamp": "2024-01-15T10:30:00.123Z",
-    ***REMOVED*** Endpoint-specific data
+    # Endpoint-specific data
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** HTTP Status Codes
+### HTTP Status Codes
 
 **Health Endpoints**:
 
@@ -395,13 +395,13 @@ All endpoints follow consistent response patterns:
 - `403`: Forbidden (debug endpoint in production)
 - `500`: Internal server error
 
-***REMOVED******REMOVED******REMOVED*** Content Types
+### Content Types
 
 All endpoints return `application/json` with UTF-8 encoding.
 
-***REMOVED******REMOVED*** Load Balancer Integration
+## Load Balancer Integration
 
-***REMOVED******REMOVED******REMOVED*** Health Check Endpoints for Load Balancers
+### Health Check Endpoints for Load Balancers
 
 **Liveness Probe**: `/health/live`
 
@@ -421,7 +421,7 @@ All endpoints return `application/json` with UTF-8 encoding.
 - **Response**: Full dependency status with metrics
 - **Frequency**: Low (every 5-10 minutes)
 
-***REMOVED******REMOVED******REMOVED*** Configuration Examples
+### Configuration Examples
 
 **Kubernetes Configuration**:
 
@@ -452,9 +452,9 @@ healthcheck:
   start_period: 40s
 ```
 
-***REMOVED******REMOVED*** Monitoring Integration
+## Monitoring Integration
 
-***REMOVED******REMOVED******REMOVED*** Metrics Collection
+### Metrics Collection
 
 Health endpoints provide metrics for monitoring systems:
 
@@ -463,14 +463,14 @@ Health endpoints provide metrics for monitoring systems:
 - **Error Rates**: Failed health check percentages
 - **Resource Usage**: Memory, disk space, and network metrics
 
-***REMOVED******REMOVED******REMOVED*** Alerting Integration
+### Alerting Integration
 
 Health check responses support alerting integration:
 
 ```python
-***REMOVED*** Alert on service unavailability
+# Alert on service unavailability
 if not all_healthy:
-    ***REMOVED*** Trigger alert with service details
+    # Trigger alert with service details
     alert_data = {
         "service": "backend-api",
         "status": "unhealthy",
@@ -481,9 +481,9 @@ if not all_healthy:
     }
 ```
 
-***REMOVED******REMOVED*** Security Considerations
+## Security Considerations
 
-***REMOVED******REMOVED******REMOVED*** Public Endpoints
+### Public Endpoints
 
 Health and meta endpoints are publicly accessible for operational needs:
 
@@ -491,7 +491,7 @@ Health and meta endpoints are publicly accessible for operational needs:
 - No sensitive information exposed
 - Database credentials masked in debug output
 
-***REMOVED******REMOVED******REMOVED*** Information Disclosure
+### Information Disclosure
 
 **Debug Endpoint**:
 
@@ -505,9 +505,9 @@ Health and meta endpoints are publicly accessible for operational needs:
 - Generic error messages
 - No internal implementation details
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
-***REMOVED******REMOVED******REMOVED*** Endpoint Testing
+### Endpoint Testing
 
 ```python
 import pytest
@@ -534,25 +534,25 @@ def test_liveness_endpoint(client: TestClient):
     assert data["status"] == "alive"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Integration Testing
+### Integration Testing
 
 ```python
 @pytest.mark.asyncio
 async def test_health_service_integration(client: TestClient):
-    ***REMOVED*** Test with healthy services
+    # Test with healthy services
     response = client.get("/health")
     assert response.status_code == 200
 
-    ***REMOVED*** Test fallback mechanism
-    ***REMOVED*** (Mock health service unavailability)
+    # Test fallback mechanism
+    # (Mock health service unavailability)
     response = client.get("/health")
-    ***REMOVED*** Should still return a response
+    # Should still return a response
     assert response.status_code in [200, 503]
 ```
 
-***REMOVED******REMOVED*** Future Enhancements
+## Future Enhancements
 
-***REMOVED******REMOVED******REMOVED*** Planned Features
+### Planned Features
 
 1. **Enhanced Metrics**: Prometheus metrics endpoint
 2. **Custom Health Checks**: Plugin system for service-specific checks
@@ -560,13 +560,13 @@ async def test_health_service_integration(client: TestClient):
 4. **Alert Integration**: Direct integration with alerting systems
 5. **Performance Benchmarks**: Performance regression detection
 
-***REMOVED******REMOVED******REMOVED*** API Versioning
+### API Versioning
 
 1. **Version Strategy**: Semantic versioning for API endpoints
 2. **Deprecation Handling**: Graceful deprecation of old endpoints
 3. **Migration Tools**: Tools for API version migration
 
-***REMOVED******REMOVED******REMOVED*** Documentation
+### Documentation
 
 1. **OpenAPI Specification**: Complete API documentation
 2. **Interactive Docs**: Enhanced FastAPI documentation

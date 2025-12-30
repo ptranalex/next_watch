@@ -78,7 +78,7 @@ def create_user(
         admin: Whether to grant admin privileges
         verbose: Show detailed output
     """
-    ***REMOVED*** Prompt for password if not provided
+    # Prompt for password if not provided
     if not password:
         password = Prompt.ask("Enter password", password=True)
         confirm_password = Prompt.ask("Confirm password", password=True)
@@ -194,7 +194,7 @@ async def _list_users_async(
 
         engine = create_engine(settings.database_url)
 
-        ***REMOVED*** Build query
+        # Build query
         query = "SELECT id, email, username, is_active, created_at, last_login_at FROM users"
         conditions = []
         params: dict[str, Any] = {}
@@ -255,14 +255,14 @@ async def _create_user_async(
 
         from sqlalchemy import create_engine, text
 
-        ***REMOVED*** Try to import passlib, but provide fallback
+        # Try to import passlib, but provide fallback
         try:
             from passlib.context import CryptContext
 
             pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
             hashed_password = pwd_context.hash(password)
         except ImportError:
-            ***REMOVED*** Fallback to basic hashing if passlib not available
+            # Fallback to basic hashing if passlib not available
             import hashlib
 
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
@@ -270,7 +270,7 @@ async def _create_user_async(
 
         engine = create_engine(settings.database_url)
 
-        ***REMOVED*** Check if user already exists
+        # Check if user already exists
         with engine.connect() as connection:
             existing = connection.execute(
                 text("SELECT id FROM users WHERE email = :email"), {"email": email}
@@ -280,7 +280,7 @@ async def _create_user_async(
                 console.print(f"[red]❌ User with email '{email}' already exists![/red]")
                 raise typer.Exit(1)
 
-            ***REMOVED*** Insert new user
+            # Insert new user
             insert_query = """
                 INSERT INTO users (email, username, hashed_password, is_active, is_admin, created_at)
                 VALUES (:email, :username, :password, :active, :admin, :created_at)
@@ -337,7 +337,7 @@ async def _update_user_status_async(identifier: str, active: bool, verbose: bool
         engine = create_engine(settings.database_url)
 
         with engine.connect() as connection:
-            ***REMOVED*** Find user by email or ID
+            # Find user by email or ID
             if identifier.isdigit():
                 user_query = "SELECT id, email, is_active FROM users WHERE id = :identifier"
             else:
@@ -349,7 +349,7 @@ async def _update_user_status_async(identifier: str, active: bool, verbose: bool
                 console.print(f"[red]❌ User '{identifier}' not found![/red]")
                 raise typer.Exit(1)
 
-            ***REMOVED*** Update status
+            # Update status
             update_query = "UPDATE users SET is_active = :active WHERE id = :user_id"
             connection.execute(text(update_query), {"active": active, "user_id": user.id})
             connection.commit()
@@ -380,7 +380,7 @@ async def _delete_user_async(identifier: str, verbose: bool) -> None:
         engine = create_engine(settings.database_url)
 
         with engine.connect() as connection:
-            ***REMOVED*** Find user by email or ID
+            # Find user by email or ID
             if identifier.isdigit():
                 user_query = "SELECT id, email FROM users WHERE id = :identifier"
             else:
@@ -392,7 +392,7 @@ async def _delete_user_async(identifier: str, verbose: bool) -> None:
                 console.print(f"[red]❌ User '{identifier}' not found![/red]")
                 raise typer.Exit(1)
 
-            ***REMOVED*** Delete user
+            # Delete user
             delete_query = "DELETE FROM users WHERE id = :user_id"
             connection.execute(text(delete_query), {"user_id": user.id})
             connection.commit()
@@ -422,7 +422,7 @@ async def _display_user_stats_async(verbose: bool) -> None:
         engine = create_engine(settings.database_url)
 
         with engine.connect() as connection:
-            ***REMOVED*** Get basic stats
+            # Get basic stats
             stats_query = """
                 SELECT
                     COUNT(*) as total_users,
@@ -440,13 +440,13 @@ async def _display_user_stats_async(verbose: bool) -> None:
             console.print("[red]❌ Failed to retrieve user statistics[/red]")
             raise typer.Exit(1)
 
-        ***REMOVED*** Create stats table
+        # Create stats table
         table = Table(title="User Statistics", show_header=True, header_style="bold blue")
         table.add_column("Metric", style="cyan", no_wrap=True)
         table.add_column("Count", style="green", justify="right")
         table.add_column("Percentage", style="yellow", justify="right")
 
-        ***REMOVED*** Access row data by index since we know the column order
+        # Access row data by index since we know the column order
         total_users = stats_row[0] or 0
         active_users = stats_row[1] or 0
         inactive_users = stats_row[2] or 0
@@ -454,7 +454,7 @@ async def _display_user_stats_async(verbose: bool) -> None:
         new_users_30d = stats_row[4] or 0
         active_30d = stats_row[5] or 0
 
-        total = total_users or 1  ***REMOVED*** Avoid division by zero
+        total = total_users or 1  # Avoid division by zero
 
         metrics = [
             ("Total Users", total_users, "100.0%"),

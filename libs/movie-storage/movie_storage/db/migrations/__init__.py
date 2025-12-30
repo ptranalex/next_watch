@@ -25,7 +25,7 @@ from movie_storage.config.app import Config
 
 logger = logging.getLogger(__name__)
 
-***REMOVED*** List of migration modules to apply in order
+# List of migration modules to apply in order
 MIGRATIONS = [
     "movie_storage.db.migrations.001_create_initial_tables",
     "movie_storage.db.migrations.002_add_credits_and_extended_movie_fields",
@@ -48,11 +48,11 @@ def get_applied_migrations(engine) -> dict[str, str]:
     Returns:
         Dictionary mapping migration IDs to descriptions
     """
-    ***REMOVED*** First check if migrations table exists using SQLAlchemy inspector
+    # First check if migrations table exists using SQLAlchemy inspector
     inspector = inspect(engine)
     table_exists = "migrations" in inspector.get_table_names()
 
-    ***REMOVED*** If table doesn't exist, create it
+    # If table doesn't exist, create it
     if not table_exists:
         with engine.begin() as conn:
             conn.execute(
@@ -69,22 +69,22 @@ def get_applied_migrations(engine) -> dict[str, str]:
         logger.info("Created migrations table")
         return {}
 
-    ***REMOVED*** Check if table has correct schema
+    # Check if table has correct schema
     try:
-        ***REMOVED*** Try to query the table with expected columns
+        # Try to query the table with expected columns
         with engine.connect() as conn:
             result = conn.execute(text("SELECT id, description FROM migrations"))
             return {row[0]: row[1] for row in result}
     except Exception as e:
         logger.warning(f"Error querying migrations table: {e}")
 
-        ***REMOVED*** Table exists but has wrong schema - recreate it
+        # Table exists but has wrong schema - recreate it
         with engine.begin() as conn:
-            ***REMOVED*** Drop the existing table
+            # Drop the existing table
             logger.warning("Migrations table has incorrect schema, recreating it")
             conn.execute(text("DROP TABLE migrations"))
 
-            ***REMOVED*** Create the migrations table with the correct schema
+            # Create the migrations table with the correct schema
             conn.execute(
                 text(
                     """
@@ -110,34 +110,34 @@ def run_migration(db_url: str | None = None, config: Config | None = None) -> li
     Returns:
         List of applied migration IDs
     """
-    ***REMOVED*** Get config if not provided
+    # Get config if not provided
     if config is None:
         config = Config.get_instance()
 
-    ***REMOVED*** Use provided URL or config URL
+    # Use provided URL or config URL
     db_url = db_url or config.database_url
 
-    ***REMOVED*** Create engine
+    # Create engine
     engine = create_engine(db_url)
 
-    ***REMOVED*** Get applied migrations
+    # Get applied migrations
     applied_migrations = get_applied_migrations(engine)
     logger.info(f"Found {len(applied_migrations)} applied migrations")
 
-    ***REMOVED*** Run pending migrations
+    # Run pending migrations
     applied_ids = []
     for migration_module in MIGRATIONS:
         try:
-            ***REMOVED*** Import migration module
+            # Import migration module
             module = importlib.import_module(migration_module)
             migration_id = getattr(module, "MIGRATION_ID", migration_module)
 
-            ***REMOVED*** Skip if already applied
+            # Skip if already applied
             if migration_id in applied_migrations:
                 logger.info(f"Migration {migration_id} already applied, skipping")
                 continue
 
-            ***REMOVED*** Run migration
+            # Run migration
             logger.info(f"Applying migration: {migration_id}")
             module.upgrade(engine, config)
             applied_ids.append(migration_id)

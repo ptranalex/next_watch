@@ -1,21 +1,21 @@
-***REMOVED*** BFF API Schemas
+# BFF API Schemas
 
 This module defines all data models (schemas) used for request validation, response serialization, and data transfer between components.
 
-***REMOVED******REMOVED*** Structure
+## Structure
 
 The schemas module is organized by domain:
 
 ```
 bff_api/schemas/
 │
-├── __init__.py                 ***REMOVED*** Package initialization
-├── auth_schemas.py             ***REMOVED*** Authentication and authorization schemas
-├── screen_schemas.py           ***REMOVED*** Movie, TV show, and media content schemas
-└── user_interaction_schemas.py ***REMOVED*** User ratings, reviews, and interactions schemas
+├── __init__.py                 # Package initialization
+├── auth_schemas.py             # Authentication and authorization schemas
+├── screen_schemas.py           # Movie, TV show, and media content schemas
+└── user_interaction_schemas.py # User ratings, reviews, and interactions schemas
 ```
 
-***REMOVED******REMOVED*** Schema Types
+## Schema Types
 
 The schemas module contains several types of models:
 
@@ -24,7 +24,7 @@ The schemas module contains several types of models:
 3. **Internal Models**: Used for data transfer between components
 4. **Enum Classes**: Define allowed values for certain fields
 
-***REMOVED******REMOVED*** Implementation
+## Implementation
 
 All schemas are implemented using Pydantic models, which provide:
 
@@ -61,7 +61,7 @@ class UserCreate(BaseModel):
         }
 ```
 
-***REMOVED******REMOVED*** Validation
+## Validation
 
 Schemas implement validation rules including:
 
@@ -90,7 +90,7 @@ class MovieRating(BaseModel):
         return v
 ```
 
-***REMOVED******REMOVED*** Schema Inheritance
+## Schema Inheritance
 
 Schemas use inheritance to create hierarchies and avoid duplication:
 
@@ -121,7 +121,7 @@ class UserResponse(UserBase):
         orm_mode = True
 ```
 
-***REMOVED******REMOVED*** Design Principles
+## Design Principles
 
 1. **Single Responsibility**: Each schema represents a single data structure
 2. **Validation at Boundaries**: Validate data as it enters and leaves the system
@@ -129,7 +129,7 @@ class UserResponse(UserBase):
 4. **Consistency**: Similar entities have similar schema structures
 5. **Separation**: Input and output schemas are separated to control visibility
 
-***REMOVED******REMOVED*** Extension Guidelines
+## Extension Guidelines
 
 When adding new schemas:
 
@@ -139,7 +139,7 @@ When adding new schemas:
 4. Add examples for documentation
 5. Follow naming conventions
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 - Include comprehensive field descriptions
 - Add examples for all schemas

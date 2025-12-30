@@ -33,7 +33,7 @@ export const viewport: Viewport = {
   // Also supported by new API:
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "***REMOVED***1a202c" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a202c" },
   ],
 };
 

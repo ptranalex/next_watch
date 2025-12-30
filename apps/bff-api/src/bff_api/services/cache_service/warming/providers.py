@@ -28,7 +28,7 @@ class BFFDataProviders:
             Dictionary containing popular movies, actors, and genres
         """
         try:
-            ***REMOVED*** Get proper BFF backend client with specialized methods
+            # Get proper BFF backend client with specialized methods
             from bff_api.dependencies import get_backend_client
 
             backend_client = get_backend_client()
@@ -45,7 +45,7 @@ class BFFDataProviders:
                 component="warming_providers",
             )
 
-            ***REMOVED*** Get ALL movies from the backend API through pagination
+            # Get ALL movies from the backend API through pagination
             all_movies = await self._fetch_all_movies(backend_client)
             popular_actors = await self._get_popular_actors_data(backend_client)
             popular_genres = await self._get_popular_genres_data(backend_client)
@@ -110,7 +110,7 @@ class BFFDataProviders:
                     )
                     break
 
-                ***REMOVED*** Transform movies to popularity format
+                # Transform movies to popularity format
                 for movie in page_movies:
                     movie_id = movie.get("id")
                     if movie_id:
@@ -132,7 +132,7 @@ class BFFDataProviders:
 
                 page += 1
 
-                ***REMOVED*** Safety limit
+                # Safety limit
                 if page > 1000:
                     logger.warning(
                         "Reached maximum page limit for movie fetching",
@@ -159,7 +159,7 @@ class BFFDataProviders:
         try:
             score = 1.0
 
-            ***REMOVED*** Boost based on ratings
+            # Boost based on ratings
             imdb_rating = movie.get("imdb_rating")
             if imdb_rating and imdb_rating > 7.0:
                 score += (imdb_rating - 7.0) * 0.5
@@ -168,7 +168,7 @@ class BFFDataProviders:
             if rotten_tomatoes and rotten_tomatoes > 80:
                 score += (rotten_tomatoes - 80) * 0.01
 
-            ***REMOVED*** Boost recent movies (released in last 5 years)
+            # Boost recent movies (released in last 5 years)
             release_date = movie.get("release_date")
             if release_date:
                 try:
@@ -179,7 +179,7 @@ class BFFDataProviders:
                 except (ValueError, TypeError):
                     pass
 
-            ***REMOVED*** Boost movies with higher vote counts
+            # Boost movies with higher vote counts
             vote_count = movie.get("vote_count", 0)
             if vote_count > 1000:
                 score += min(vote_count / 10000, 1.0)
@@ -239,25 +239,25 @@ class BFFDataProviders:
     async def _get_popular_genres_data(self, backend_client: Any) -> list[dict[str, Any]]:
         """Get all genres data for warming."""
         try:
-            ***REMOVED*** Fetch all genres from backend API
+            # Fetch all genres from backend API
             genres = await backend_client.get_genres()
 
-            ***REMOVED*** Transform genres for warming cache with default popularity data
+            # Transform genres for warming cache with default popularity data
             popular_genres = []
             for genre in genres:
                 genre_id = genre.get("id")
                 if genre_id:
-                    ***REMOVED*** Calculate popularity score based on genre ID (simple heuristic)
-                    ***REMOVED*** Action, Comedy, Drama tend to be more popular
+                    # Calculate popularity score based on genre ID (simple heuristic)
+                    # Action, Comedy, Drama tend to be more popular
                     base_score = 5.0
-                    if genre_id in [28, 35, 18]:  ***REMOVED*** Action, Comedy, Drama
+                    if genre_id in [28, 35, 18]:  # Action, Comedy, Drama
                         base_score = 8.0
-                    elif genre_id in [27, 53, 10749]:  ***REMOVED*** Horror, Thriller, Romance
+                    elif genre_id in [27, 53, 10749]:  # Horror, Thriller, Romance
                         base_score = 6.5
-                    elif genre_id in [878, 12, 16]:  ***REMOVED*** Sci-Fi, Adventure, Animation
+                    elif genre_id in [878, 12, 16]:  # Sci-Fi, Adventure, Animation
                         base_score = 6.0
 
-                    ***REMOVED*** Estimate view count based on popularity score
+                    # Estimate view count based on popularity score
                     view_count = int(base_score * 500)
 
                     popular_genres.append(
@@ -297,7 +297,7 @@ class BFFDataProviders:
             Dictionary containing user preferences and behavior data
         """
         try:
-            ***REMOVED*** In production: query BFF user service, preferences, history
+            # In production: query BFF user service, preferences, history
             return {
                 "watchlist": [1, 2, 3, 254, 550],
                 "favorite_genres": [28, 12, 16, 35, 80],
@@ -319,7 +319,7 @@ class BFFDataProviders:
             List of recommended items with confidence scores
         """
         try:
-            ***REMOVED*** In production: query BFF recommendation engine
+            # In production: query BFF recommendation engine
             return [
                 {"movie_id": 680, "confidence": 0.95, "type": "collaborative"},
                 {"movie_id": 13, "confidence": 0.88, "type": "content"},

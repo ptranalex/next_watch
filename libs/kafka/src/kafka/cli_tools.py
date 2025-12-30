@@ -73,7 +73,7 @@ class KafkaClITools:
 
         try:
             await admin_client.start()
-            ***REMOVED*** Get consumer group offsets
+            # Get consumer group offsets
             offsets = await admin_client.list_consumer_group_offsets(group_id)
             return offsets
         finally:
@@ -149,14 +149,14 @@ class KafkaClITools:
 
         try:
             await admin_client.start()
-            ***REMOVED*** Implementation depends on specific reset strategy
+            # Implementation depends on specific reset strategy
             logger.info(
                 "Resetting consumer group",
                 group_id=group_id,
                 topic=topic,
                 offset=offset,
             )
-            ***REMOVED*** Note: Full implementation would use admin_client.alter_consumer_group_offsets
+            # Note: Full implementation would use admin_client.alter_consumer_group_offsets
         finally:
             await admin_client.close()
 
@@ -165,11 +165,11 @@ async def main() -> None:
     """Example CLI usage."""
     tools = KafkaClITools()
 
-    ***REMOVED*** List topics
+    # List topics
     topics = await tools.list_topics()
     print(f"Topics: {topics}")
 
-    ***REMOVED*** Describe a topic
+    # Describe a topic
     if topics:
         info = await tools.describe_topic(topics[0])
         print(f"Topic info: {json.dumps(info, indent=2)}")

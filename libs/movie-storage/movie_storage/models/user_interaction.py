@@ -30,22 +30,22 @@ class UserMovieInteraction(SQLModel, table=True):
 
     __tablename__ = "user_movie_interactions"
 
-    ***REMOVED*** Table constraints
+    # Table constraints
     __table_args__ = (UniqueConstraint("user_id", "movie_id", name="uq_user_movie_interaction"),)
 
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)
     movie_id: int = Field(foreign_key="movie.id", index=True)
 
-    ***REMOVED*** Interaction flags
+    # Interaction flags
     watched: bool = Field(default=False)
     liked: bool = Field(default=False)
     in_watchlist: bool = Field(default=False)
 
-    ***REMOVED*** Timestamp fields
+    # Timestamp fields
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    ***REMOVED*** Relationships - avoid circular imports with TYPE_CHECKING
+    # Relationships - avoid circular imports with TYPE_CHECKING
     user: "User" = Relationship(back_populates="movie_interactions")
     movie: "Movie" = Relationship(back_populates="user_interactions")

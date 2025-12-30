@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-***REMOVED*** Custom key builder for personalized movies
+# Custom key builder for personalized movies
 def _build_personalized_movies_key(
     user_id: int,
     limit: int = 20,
@@ -46,7 +46,7 @@ def _build_personalized_movies_key(
 
 
 @redis_cache(
-    ttl=3600,  ***REMOVED*** 1 hour TTL
+    ttl=3600,  # 1 hour TTL
     key_builder=_build_personalized_movies_key,
     enable_metrics=True,
 )
@@ -72,11 +72,11 @@ async def _get_personalized_recommendations_data(
         min_vote_count=min_vote_count,
     )
 
-    ***REMOVED*** Convert MovieRecommendation objects to dictionaries for caching
-    ***REMOVED*** Use mode="json" to ensure proper serialization of date objects
+    # Convert MovieRecommendation objects to dictionaries for caching
+    # Use mode="json" to ensure proper serialization of date objects
     recommendations_dicts = [rec.model_dump(mode="json") for rec in recommendations]
 
-    ***REMOVED*** Return as dictionary for caching
+    # Return as dictionary for caching
     return {
         "recommendations": recommendations_dicts,
         "total": len(recommendations),
@@ -118,14 +118,14 @@ async def get_personalized_recommendations_endpoint(
         ValidationException: If user_id is invalid
         ResourceNotFoundException: If user is not found
     """
-    ***REMOVED*** Validate user_id
+    # Validate user_id
     if user_id <= 0:
         raise ValidationException("User ID must be a positive integer")
 
-    ***REMOVED*** Record recommendation request metrics
+    # Record recommendation request metrics
     metrics = get_recommendation_metrics()
     if metrics:
-        ***REMOVED*** Record filter usage for personalized recommendations
+        # Record filter usage for personalized recommendations
         metrics.record_recommendation_filter_usage("min_rating", _categorize_rating(min_rating))
         metrics.record_recommendation_filter_usage(
             "min_vote_count", _categorize_vote_count(min_vote_count)
@@ -143,7 +143,7 @@ async def get_personalized_recommendations_endpoint(
         endpoint="get_personalized_recommendations",
     )
 
-    ***REMOVED*** Use the cached function to get data as dictionary
+    # Use the cached function to get data as dictionary
     data = await _get_personalized_recommendations_data(
         user_id=user_id,
         limit=limit,
@@ -152,7 +152,7 @@ async def get_personalized_recommendations_endpoint(
         recommendation_service=recommendation_service,
     )
 
-    ***REMOVED*** Record successful recommendation request
+    # Record successful recommendation request
     if metrics:
         metrics.record_recommendation_request("personalized", "success", 0.0, data.get("total", 0))
         metrics.record_backend_api_request("get_personalized_movies", "success", 0.0)
@@ -166,7 +166,7 @@ async def get_personalized_recommendations_endpoint(
         endpoint="get_personalized_recommendations",
     )
 
-    ***REMOVED*** Convert dictionary back to Pydantic model for response
+    # Convert dictionary back to Pydantic model for response
     return PersonalizedRecommendationsResponse(**data)
 
 

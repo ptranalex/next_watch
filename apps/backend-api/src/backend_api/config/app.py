@@ -19,7 +19,7 @@ from config.services.database import DatabaseConfigMixin
 from config.services.monitoring import MonitoringConfigMixin
 from pydantic import Field, field_validator
 
-***REMOVED*** Configure basic logging first for this module
+# Configure basic logging first for this module
 logger = get_logger(__name__)
 
 
@@ -43,15 +43,15 @@ class BackendAPIConfig(
     All settings can be configured via environment variables with sensible defaults.
     """
 
-    ***REMOVED*** Service identification
+    # Service identification
     service_name: str = Field(default="backend-api", description="Service name")
     version: str = Field(default="0.1.0", description="Service version")
 
-    ***REMOVED*** HTTP service settings (override defaults from ServiceConfig)
+    # HTTP service settings (override defaults from ServiceConfig)
     host: str = Field(default="0.0.0.0", description="Service host address")
     port: int = Field(default=8000, description="Service port number")
 
-    ***REMOVED*** Backend-specific settings
+    # Backend-specific settings
     backend_performance_metrics: bool = Field(
         default=False,
         description="Enable backend-specific performance metrics collection",
@@ -71,7 +71,7 @@ class BackendAPIConfig(
             return None
         return v
 
-    ***REMOVED*** Database profiling settings (development only)
+    # Database profiling settings (development only)
     enable_db_profiling: bool = Field(
         default=False, description="Enable database query profiling (development only)"
     )
@@ -79,7 +79,7 @@ class BackendAPIConfig(
         default=100, description="Threshold in ms for slow query profiling"
     )
 
-    ***REMOVED*** Database monitoring settings
+    # Database monitoring settings
     database_monitoring_enabled: bool = Field(
         default=True, description="Enable database performance monitoring"
     )
@@ -87,7 +87,7 @@ class BackendAPIConfig(
         default=100, description="Threshold in ms for slow query warnings"
     )
 
-    ***REMOVED*** Authentication settings
+    # Authentication settings
     access_token_expire_minutes: int = Field(
         default=30, description="Access token expiration time in minutes"
     )
@@ -95,7 +95,7 @@ class BackendAPIConfig(
         default=7, description="Refresh token expiration time in days"
     )
 
-    ***REMOVED*** Service-to-service authentication
+    # Service-to-service authentication
     internal_api_key: str = Field(
         default="bff-to-backend-secret-key",
         description="Internal API key for service-to-service authentication",
@@ -104,17 +104,17 @@ class BackendAPIConfig(
     class Config:
         """Pydantic configuration for environment handling."""
 
-        env_file = [".env", ".env.local"]  ***REMOVED*** Load multiple env files
+        env_file = [".env", ".env.local"]  # Load multiple env files
         env_file_encoding = "utf-8"
         case_sensitive = False
         extra = "ignore"
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize backend API configuration."""
-        ***REMOVED*** Initialize with Pydantic Settings (will auto-load .env files)
+        # Initialize with Pydantic Settings (will auto-load .env files)
         super().__init__(**kwargs)
 
-        ***REMOVED*** Apply shared security and logging patterns
+        # Apply shared security and logging patterns
         self.apply_production_security_overrides()
         self._apply_backend_specific_overrides()
         self.log_configuration_summary()
@@ -125,13 +125,13 @@ class BackendAPIConfig(
         if not self.is_production:
             return
 
-        ***REMOVED*** Backend-specific security overrides
+        # Backend-specific security overrides
         if self.enable_db_profiling:
             logger.warning("Database profiling disabled in production for security and performance")
             object.__setattr__(self, "enable_db_profiling", False)
 
-        ***REMOVED*** Note: File logging works fine in production with Docker volume mounts
-        ***REMOVED*** Docker handles volume permissions properly, so no need to disable logging
+        # Note: File logging works fine in production with Docker volume mounts
+        # Docker handles volume permissions properly, so no need to disable logging
 
     def _log_backend_specific_summary(self) -> None:
         """Log backend-specific configuration details."""
@@ -146,8 +146,8 @@ class BackendAPIConfig(
     @classmethod
     def validate_db_profiling(cls, v: bool) -> bool:
         """Ensure database profiling is disabled in production."""
-        ***REMOVED*** Note: In Pydantic V2, we can't access other fields in field_validator
-        ***REMOVED*** Production override is handled in _apply_backend_specific_overrides instead
+        # Note: In Pydantic V2, we can't access other fields in field_validator
+        # Production override is handled in _apply_backend_specific_overrides instead
         return v
 
     def validate_production_settings(self) -> list[str]:
@@ -160,19 +160,19 @@ class BackendAPIConfig(
         """
         issues: list[str] = []
 
-        ***REMOVED*** Get validation from parent classes (includes basic debug mode checks)
+        # Get validation from parent classes (includes basic debug mode checks)
         issues.extend(super().validate_production_settings())
         issues.extend(self.validate_database_production_settings())
         issues.extend(self.validate_cache_production_settings())
         issues.extend(self.validate_auth_production_settings())
         issues.extend(self.validate_monitoring_production_settings(self.environment))
 
-        ***REMOVED*** Backend-specific production validation
+        # Backend-specific production validation
         if self.enable_db_profiling:
             issues.append("Database profiling should be disabled in production")
 
-        ***REMOVED*** Note: File logging works fine in production with Docker volumes
-        ***REMOVED*** No need to validate against logs_dir being set
+        # Note: File logging works fine in production with Docker volumes
+        # No need to validate against logs_dir being set
 
         return issues
 
@@ -206,9 +206,9 @@ class BackendAPIConfig(
     Redis URL: {self.get_redis_url_masked()}"""
 
 
-***REMOVED*** ------------------------------------------------------------------------------
-***REMOVED*** GLOBAL SETTINGS INSTANCE
-***REMOVED*** ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# GLOBAL SETTINGS INSTANCE
+# ------------------------------------------------------------------------------
 
-***REMOVED*** Create global settings instance (simplified - no more wrapper!)
+# Create global settings instance (simplified - no more wrapper!)
 settings = BackendAPIConfig()

@@ -1,9 +1,9 @@
-***REMOVED*** Production Environment Configuration for Next Watch
-***REMOVED*** Copy this file to .env.prod and fill in the actual values
+# Production Environment Configuration for Next Watch
+# Copy this file to .env.prod and fill in the actual values
 
-***REMOVED***
-***REMOVED*** DOCKER IMAGES
-***REMOVED***
+#
+# DOCKER IMAGES
+#
 DOCKER_BACKEND_IMAGE=next-watch-backend:latest
 DOCKER_AUTH_IMAGE=next-watch-auth:latest
 DOCKER_BFF_IMAGE=next-watch-bff:latest
@@ -13,98 +13,98 @@ DOCKER_RECOMMENDATION_IMAGE=next-watch-recommendation:latest
 DOCKER_SEARCH_IMAGE=next-watch-search:latest
 DOCKER_ML_IMAGE=next-watch-ml:latest
 
-***REMOVED***
-***REMOVED*** DATABASE CONFIGURATION
-***REMOVED***
+#
+# DATABASE CONFIGURATION
+#
 POSTGRES_USER=next_watch_user
 POSTGRES_PASSWORD=your-secure-database-password-here
 POSTGRES_DB=next_watch
 
-***REMOVED***
-***REMOVED*** SECURITY CONFIGURATION
-***REMOVED***
-***REMOVED*** JWT Secret - MUST be a strong, random string in production
-***REMOVED*** Generate with: openssl rand -base64 32
+#
+# SECURITY CONFIGURATION
+#
+# JWT Secret - MUST be a strong, random string in production
+# Generate with: openssl rand -base64 32
 JWT_SECRET=your-super-secure-jwt-secret-key-change-this-in-production
 
-***REMOVED*** Optional: JWT Web Key (JWK) for advanced JWT features
+# Optional: JWT Web Key (JWK) for advanced JWT features
 JWT_JWK=
 JWT_JWK_ROTATION_INTERVAL=86400
 
-***REMOVED*** Internal API Key for service-to-service communication
-***REMOVED*** Generate with: openssl rand -base64 32
+# Internal API Key for service-to-service communication
+# Generate with: openssl rand -base64 32
 INTERNAL_API_KEY=your-internal-api-key-for-service-communication
 
-***REMOVED***
-***REMOVED*** EXTERNAL API KEYS
-***REMOVED***
-***REMOVED*** TMDB (The Movie Database) API Access Token
-***REMOVED*** Get from: https://www.themoviedb.org/settings/api
+#
+# EXTERNAL API KEYS
+#
+# TMDB (The Movie Database) API Access Token
+# Get from: https://www.themoviedb.org/settings/api
 TMDB_ACCESS_TOKEN=your-tmdb-access-token-here
 
-***REMOVED*** OMDB (Open Movie Database) API Key
-***REMOVED*** Get from: http://www.omdbapi.com/apikey.aspx
+# OMDB (Open Movie Database) API Key
+# Get from: http://www.omdbapi.com/apikey.aspx
 OMDB_API_KEY=your-omdb-api-key-here
 
-***REMOVED***
-***REMOVED*** DEPLOYMENT CONFIGURATION
-***REMOVED***
-***REMOVED*** Domain for production deployment
+#
+# DEPLOYMENT CONFIGURATION
+#
+# Domain for production deployment
 PRODUCTION_DOMAIN=your-domain.com
 
-***REMOVED*** SSL/TLS Configuration (if using reverse proxy)
+# SSL/TLS Configuration (if using reverse proxy)
 SSL_CERT_PATH=/path/to/ssl/cert.pem
 SSL_KEY_PATH=/path/to/ssl/private.key
 
-***REMOVED***
-***REMOVED*** MONITORING & LOGGING
-***REMOVED***
-***REMOVED*** Log levels: DEBUG, INFO, WARNING, ERROR
+#
+# MONITORING & LOGGING
+#
+# Log levels: DEBUG, INFO, WARNING, ERROR
 LOG_LEVEL=INFO
 
-***REMOVED*** Enable performance metrics collection
+# Enable performance metrics collection
 ENABLE_PERFORMANCE_METRICS=true
 
-***REMOVED***
-***REMOVED*** REDIS CONFIGURATION (if using external Redis)
-***REMOVED***
-***REMOVED*** Redis connection settings (currently using host Redis)
+#
+# REDIS CONFIGURATION (if using external Redis)
+#
+# Redis connection settings (currently using host Redis)
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
 
-***REMOVED***
-***REMOVED*** EMAIL CONFIGURATION (for auth notifications)
-***REMOVED***
+#
+# EMAIL CONFIGURATION (for auth notifications)
+#
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
 SMTP_FROM_EMAIL=noreply@your-domain.com
 
-***REMOVED***
-***REMOVED*** RATE LIMITING
-***REMOVED***
+#
+# RATE LIMITING
+#
 RATE_LIMIT_REQUESTS_PER_MINUTE=60
 RATE_LIMIT_BURST=10
 
-***REMOVED***
-***REMOVED*** CACHE CONFIGURATION
-***REMOVED***
-CACHE_TTL=300  ***REMOVED*** 5 minutes default cache TTL
-CACHE_MAX_SIZE=1000  ***REMOVED*** Maximum number of cached items
+#
+# CACHE CONFIGURATION
+#
+CACHE_TTL=300  # 5 minutes default cache TTL
+CACHE_MAX_SIZE=1000  # Maximum number of cached items
 
-***REMOVED***
-***REMOVED*** SECURITY HEADERS
-***REMOVED***
+#
+# SECURITY HEADERS
+#
 CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com
 ALLOWED_HOSTS=your-domain.com,www.your-domain.com
 
-***REMOVED***
-***REMOVED*** OBSERVABILITY (Grafana Cloud via Alloy) - optional
-***REMOVED***
-***REMOVED*** Copy values from: infra/monitoring/alloy/.env.example
+#
+# OBSERVABILITY (Grafana Cloud via Alloy) - optional
+#
+# Copy values from: infra/monitoring/alloy/.env.example
 GRAFANA_CLOUD_METRICS_URL=
 GRAFANA_CLOUD_METRICS_USERNAME=
 GRAFANA_CLOUD_METRICS_PASSWORD=
@@ -115,32 +115,32 @@ GRAFANA_CLOUD_TRACES_URL=
 GRAFANA_CLOUD_TRACES_USERNAME=
 GRAFANA_CLOUD_TRACES_PASSWORD=
 
-***REMOVED***
-***REMOVED*** FEATURE FLAGS
-***REMOVED***
+#
+# FEATURE FLAGS
+#
 ENABLE_REGISTRATION=true
 ENABLE_SOCIAL_LOGIN=false
 ENABLE_EMAIL_VERIFICATION=true
 ENABLE_PASSWORD_RESET=true
 
-***REMOVED***
-***REMOVED*** PERFORMANCE TUNING
-***REMOVED***
-***REMOVED*** Database connection pool settings
+#
+# PERFORMANCE TUNING
+#
+# Database connection pool settings
 DB_POOL_SIZE=20
 DB_MAX_OVERFLOW=30
 DB_POOL_TIMEOUT=30
 
-***REMOVED*** Redis connection pool settings
+# Redis connection pool settings
 REDIS_MAX_CONNECTIONS=20
 REDIS_TIMEOUT=5
 REDIS_RETRY_ON_TIMEOUT=true
 
-***REMOVED***
-***REMOVED*** DEVELOPMENT OVERRIDES (for staging environment)
-***REMOVED***
-***REMOVED*** Uncomment these for staging/development
-***REMOVED*** DEBUG=true
-***REMOVED*** LOG_LEVEL=DEBUG
-***REMOVED*** CORS_ORIGINS=*
-***REMOVED*** ENABLE_PERFORMANCE_METRICS=false
+#
+# DEVELOPMENT OVERRIDES (for staging environment)
+#
+# Uncomment these for staging/development
+# DEBUG=true
+# LOG_LEVEL=DEBUG
+# CORS_ORIGINS=*
+# ENABLE_PERFORMANCE_METRICS=false

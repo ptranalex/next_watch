@@ -19,7 +19,7 @@ def upgrade(engine: Engine) -> None:
         engine: SQLAlchemy engine
         config: Optional Config object
     """
-    ***REMOVED*** First, check if movie table exists
+    # First, check if movie table exists
     with engine.connect() as conn:
         result = conn.execute(
             text(
@@ -30,7 +30,7 @@ def upgrade(engine: Engine) -> None:
 
     if not movie_table_exists:
         logger.warning("Movie table does not exist. Creating it before applying migration.")
-        ***REMOVED*** Create the movie table with basic structure using direct SQL
+        # Create the movie table with basic structure using direct SQL
         with engine.begin() as conn:
             conn.execute(
                 text(
@@ -49,17 +49,17 @@ def upgrade(engine: Engine) -> None:
             )
         logger.info("Created movie table")
 
-    ***REMOVED*** Add new columns to the movie table
+    # Add new columns to the movie table
     with engine.begin() as conn:
-        ***REMOVED*** New basic information columns
+        # New basic information columns
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS tagline TEXT"))
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS status TEXT"))
 
-        ***REMOVED*** New language and country columns
+        # New language and country columns
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS original_language TEXT"))
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS origin_country TEXT"))
 
-        ***REMOVED*** New collection columns
+        # New collection columns
         conn.execute(
             text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS belongs_to_collection_id INTEGER")
         )
@@ -67,20 +67,20 @@ def upgrade(engine: Engine) -> None:
             text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS belongs_to_collection_name TEXT")
         )
 
-        ***REMOVED*** New URL and path columns
+        # New URL and path columns
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS homepage TEXT"))
 
-        ***REMOVED*** New performance metrics
+        # New performance metrics
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS vote_average FLOAT"))
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS vote_count INTEGER"))
 
-        ***REMOVED*** New boolean flags
+        # New boolean flags
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS adult BOOLEAN DEFAULT FALSE"))
         conn.execute(text("ALTER TABLE movie ADD COLUMN IF NOT EXISTS video BOOLEAN DEFAULT FALSE"))
 
         logger.info("Added new columns to movie table")
 
-    ***REMOVED*** Create credit table directly with SQL
+    # Create credit table directly with SQL
     with engine.begin() as conn:
         conn.execute(
             text(
@@ -106,12 +106,12 @@ def upgrade(engine: Engine) -> None:
             )
         )
 
-        ***REMOVED*** Create index on tmdb_person_id
+        # Create index on tmdb_person_id
         conn.execute(
             text("CREATE INDEX IF NOT EXISTS idx_credit_tmdb_person_id ON credit (tmdb_person_id)")
         )
 
-        ***REMOVED*** Add foreign key separately
+        # Add foreign key separately
         conn.execute(
             text(
                 """
@@ -126,7 +126,7 @@ def upgrade(engine: Engine) -> None:
 
     logger.info("Created credit table")
 
-    ***REMOVED*** Record the migration
+    # Record the migration
     with engine.begin() as conn:
         conn.execute(
             text(
@@ -150,7 +150,7 @@ def downgrade(engine: Engine) -> None:
         config: Optional Config object
     """
     with engine.begin() as conn:
-        ***REMOVED*** First remove the foreign key constraint if it exists
+        # First remove the foreign key constraint if it exists
         conn.execute(
             text(
                 """
@@ -167,37 +167,37 @@ def downgrade(engine: Engine) -> None:
             )
         )
 
-        ***REMOVED*** Drop the credit table
+        # Drop the credit table
         conn.execute(text("DROP TABLE IF EXISTS credit"))
         logger.info("Dropped credit table")
 
-        ***REMOVED*** Remove added columns from movie table (only if they exist)
-        ***REMOVED*** Basic information
+        # Remove added columns from movie table (only if they exist)
+        # Basic information
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS tagline"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS status"))
 
-        ***REMOVED*** Language and country
+        # Language and country
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS original_language"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS origin_country"))
 
-        ***REMOVED*** Collection
+        # Collection
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS belongs_to_collection_id"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS belongs_to_collection_name"))
 
-        ***REMOVED*** URL and path
+        # URL and path
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS homepage"))
 
-        ***REMOVED*** Performance metrics
+        # Performance metrics
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS vote_average"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS vote_count"))
 
-        ***REMOVED*** Boolean flags
+        # Boolean flags
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS adult"))
         conn.execute(text("ALTER TABLE movie DROP COLUMN IF EXISTS video"))
 
         logger.info("Removed new columns from movie table")
 
-        ***REMOVED*** Remove the migration record
+        # Remove the migration record
         conn.execute(
             text("DELETE FROM migrations WHERE id = :id"),
             {"id": MIGRATION_ID},

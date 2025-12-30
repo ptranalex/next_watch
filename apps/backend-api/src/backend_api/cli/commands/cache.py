@@ -37,15 +37,15 @@ def cache_info(
     import redis
     from redis.exceptions import RedisError
 
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level="INFO", quiet=not verbose)
     logger = get_logger(__name__)
 
-    ***REMOVED*** Get Redis URL from options, environment, or default
+    # Get Redis URL from options, environment, or default
     actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
 
     try:
-        ***REMOVED*** Connect to Redis
+        # Connect to Redis
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -55,13 +55,13 @@ def cache_info(
             progress.add_task(
                 description=f"Connecting to Redis at {actual_redis_url}...", total=None
             )
-            ***REMOVED*** Cast to str to satisfy type checker
+            # Cast to str to satisfy type checker
             redis_client = redis.from_url(cast(str, actual_redis_url))
 
-            ***REMOVED*** Get Redis info
+            # Get Redis info
             info = redis_client.info()
 
-        ***REMOVED*** Display basic info
+        # Display basic info
         console.print("📊 Redis Cache Information")
         console.print(f"Version: {info.get('redis_version', 'Unknown')}")
         console.print(f"Mode: {info.get('redis_mode', 'Unknown')}")
@@ -69,12 +69,12 @@ def cache_info(
         console.print(f"Connected clients: {info.get('connected_clients', 0)}")
 
         if verbose:
-            ***REMOVED*** Display detailed info
+            # Display detailed info
             table = Table(title="Detailed Redis Information")
             table.add_column("Metric", style="cyan")
             table.add_column("Value", style="green")
 
-            ***REMOVED*** Server info
+            # Server info
             table.add_row("Redis version", info.get("redis_version", "Unknown"))
             table.add_row("Redis mode", info.get("redis_mode", "Unknown"))
             table.add_row("OS", info.get("os", "Unknown"))
@@ -82,7 +82,7 @@ def cache_info(
             table.add_row("Uptime", f"{info.get('uptime_in_days', 0)} days")
             table.add_row("Process ID", str(info.get("process_id", "Unknown")))
 
-            ***REMOVED*** Memory info
+            # Memory info
             table.add_row("Used memory", info.get("used_memory_human", "Unknown"))
             table.add_row("Peak memory", info.get("used_memory_peak_human", "Unknown"))
             table.add_row(
@@ -90,7 +90,7 @@ def cache_info(
                 str(info.get("mem_fragmentation_ratio", "Unknown")),
             )
 
-            ***REMOVED*** Stats
+            # Stats
             table.add_row("Connected clients", str(info.get("connected_clients", 0)))
             table.add_row(
                 "Total connections received",
@@ -100,7 +100,7 @@ def cache_info(
             table.add_row("Keyspace hits", str(info.get("keyspace_hits", 0)))
             table.add_row("Keyspace misses", str(info.get("keyspace_misses", 0)))
 
-            ***REMOVED*** Keyspace info
+            # Keyspace info
             for db, stats in info.items():
                 if db.startswith("db"):
                     if isinstance(stats, dict):
@@ -141,15 +141,15 @@ def list_keys(
     import redis
     from redis.exceptions import RedisError
 
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
-    ***REMOVED*** Get Redis URL from options, environment, or default
+    # Get Redis URL from options, environment, or default
     actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
 
     try:
-        ***REMOVED*** Connect to Redis
+        # Connect to Redis
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -159,7 +159,7 @@ def list_keys(
             progress.add_task(
                 description=f"Connecting to Redis at {actual_redis_url}...", total=None
             )
-            ***REMOVED*** Cast to str to satisfy type checker
+            # Cast to str to satisfy type checker
             redis_client = redis.from_url(cast(str, actual_redis_url))
 
             progress.add_task(
@@ -167,25 +167,25 @@ def list_keys(
                 total=None,
             )
 
-            ***REMOVED*** Use SCAN to iterate through keys
+            # Use SCAN to iterate through keys
             cursor = 0
-            keys: list[bytes] = []  ***REMOVED*** Redis keys are always bytes
+            keys: list[bytes] = []  # Redis keys are always bytes
 
             while len(keys) < limit:
                 cursor, batch = redis_client.scan(cursor=cursor, match=pattern, count=100)
 
-                ***REMOVED*** Add keys from this batch
+                # Add keys from this batch
                 for key in batch:
                     if len(keys) < limit:
                         keys.append(key)
                     else:
                         break
 
-                ***REMOVED*** If we've scanned all keys, break out
+                # If we've scanned all keys, break out
                 if cursor == 0:
                     break
 
-        ***REMOVED*** Display keys
+        # Display keys
         if keys:
             table = Table(title=f"Redis Keys Matching '{pattern}'")
             table.add_column("Key", style="cyan")
@@ -193,17 +193,17 @@ def list_keys(
             table.add_column("Size", style="green")
 
             for key in keys:
-                ***REMOVED*** For type checking safety, create string version of key
+                # For type checking safety, create string version of key
                 key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
 
-                ***REMOVED*** Get key type (we can't use variable name 'type' as it shadows Python's type)
-                ***REMOVED*** Add type ignore for untyped function
-                key_type_str = redis_client.type(key)  ***REMOVED*** type: ignore
+                # Get key type (we can't use variable name 'type' as it shadows Python's type)
+                # Add type ignore for untyped function
+                key_type_str = redis_client.type(key)  # type: ignore
 
-                ***REMOVED*** Get size based on key type
+                # Get size based on key type
                 if key_type_str == "string":
-                    ***REMOVED*** Add type ignore for untyped function
-                    size = redis_client.strlen(key)  ***REMOVED*** type: ignore
+                    # Add type ignore for untyped function
+                    size = redis_client.strlen(key)  # type: ignore
                 elif key_type_str == "list":
                     size = redis_client.llen(key)
                 elif key_type_str == "set":
@@ -254,35 +254,35 @@ def get_key(
     import redis
     from redis.exceptions import RedisError
 
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
-    ***REMOVED*** Get Redis URL from options, environment, or default
+    # Get Redis URL from options, environment, or default
     actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
 
     try:
-        ***REMOVED*** Connect to Redis
-        ***REMOVED*** Cast to str to satisfy type checker
+        # Connect to Redis
+        # Cast to str to satisfy type checker
         redis_client = redis.from_url(cast(str, actual_redis_url))
 
-        ***REMOVED*** Check if key exists
+        # Check if key exists
         if not redis_client.exists(key):
             console.print(f"❌ Key '{key}' not found", style="bold red")
             raise typer.Exit(1)
 
-        ***REMOVED*** Get key type (we can't use variable name 'type' as it shadows Python's type)
-        ***REMOVED*** Add type ignore for untyped function
-        key_type_str = redis_client.type(key)  ***REMOVED*** type: ignore
+        # Get key type (we can't use variable name 'type' as it shadows Python's type)
+        # Add type ignore for untyped function
+        key_type_str = redis_client.type(key)  # type: ignore
 
-        ***REMOVED*** Get value based on type
+        # Get value based on type
         if key_type_str == "string":
             value = redis_client.get(key)
 
-            ***REMOVED*** Try to format as JSON if requested
+            # Try to format as JSON if requested
             if format_json and value:
                 try:
-                    ***REMOVED*** Handle both str and bytes values
+                    # Handle both str and bytes values
                     value_str = value.decode("utf-8") if isinstance(value, bytes) else str(value)
 
                     json_value = json.loads(value_str)
@@ -304,7 +304,7 @@ def get_key(
                 console.print(f"{i}: {item_str}")
 
         elif key_type_str == "set":
-            ***REMOVED*** Redis smembers returns Set[bytes], but we need to add type: ignore
+            # Redis smembers returns Set[bytes], but we need to add type: ignore
             set_values = redis_client.smembers(key)
             console.print(f"📝 Key: {key} (set, {len(set_values)} items)")
 
@@ -313,7 +313,7 @@ def get_key(
                 console.print(f"- {item_str}")
 
         elif key_type_str == "zset":
-            ***REMOVED*** Redis zrange with withscores returns list of tuples, add type: ignore
+            # Redis zrange with withscores returns list of tuples, add type: ignore
             zset_values = redis_client.zrange(key, 0, -1, withscores=True)
             console.print(f"📝 Key: {key} (sorted set, {len(zset_values)} items)")
 
@@ -322,7 +322,7 @@ def get_key(
                 console.print(f"{score}: {item_str}")
 
         elif key_type_str == "hash":
-            ***REMOVED*** Redis hgetall returns Dict[bytes, bytes], add type: ignore
+            # Redis hgetall returns Dict[bytes, bytes], add type: ignore
             hash_values = redis_client.hgetall(key)
             console.print(f"📝 Key: {key} (hash, {len(hash_values)} fields)")
 
@@ -331,11 +331,11 @@ def get_key(
             table.add_column("Value", style="green")
 
             for field, value in hash_values.items():
-                ***REMOVED*** Convert bytes to string for both field and value
+                # Convert bytes to string for both field and value
                 field_str = field.decode("utf-8") if isinstance(field, bytes) else str(field)
                 value_str = value.decode("utf-8") if isinstance(value, bytes) else str(value)
 
-                ***REMOVED*** Try to format JSON values
+                # Try to format JSON values
                 if format_json:
                     try:
                         json_value = json.loads(value_str)
@@ -377,34 +377,34 @@ def delete_key(
     import redis
     from redis.exceptions import RedisError
 
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
-    ***REMOVED*** Get Redis URL from options, environment, or default
+    # Get Redis URL from options, environment, or default
     actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
 
     try:
-        ***REMOVED*** Connect to Redis
-        ***REMOVED*** Cast to str to satisfy type checker
+        # Connect to Redis
+        # Cast to str to satisfy type checker
         redis_client = redis.from_url(cast(str, actual_redis_url))
 
-        ***REMOVED*** Check if key exists
+        # Check if key exists
         if not redis_client.exists(key):
             console.print(f"❌ Key '{key}' not found", style="bold red")
             raise typer.Exit(1)
 
-        ***REMOVED*** Confirm deletion if requested
+        # Confirm deletion if requested
         if confirm:
-            ***REMOVED*** Get key type (we can't use variable name 'type' as it shadows Python's type)
-            ***REMOVED*** Add type ignore for untyped function
-            key_type_str = redis_client.type(key)  ***REMOVED*** type: ignore
+            # Get key type (we can't use variable name 'type' as it shadows Python's type)
+            # Add type ignore for untyped function
+            key_type_str = redis_client.type(key)  # type: ignore
             console.print(f"⚠️  About to delete key '{key}' of type {key_type_str}")
             if not typer.confirm("Are you sure?"):
                 console.print("Operation cancelled.")
                 return
 
-        ***REMOVED*** Delete the key
+        # Delete the key
         redis_client.delete(key)
         console.print(f"✅ Key '{key}' deleted successfully")
 
@@ -436,21 +436,21 @@ def clear_cache(
     import redis
     from redis.exceptions import RedisError
 
-    ***REMOVED*** Configure logging
+    # Configure logging
     configure_logging(logger_name="backend_api", log_level="INFO")
     logger = get_logger(__name__)
 
-    ***REMOVED*** Get Redis URL from options, environment, or default
+    # Get Redis URL from options, environment, or default
     actual_redis_url = redis_url or getattr(settings, "redis_url", "redis://localhost:6379/0")
 
     try:
-        ***REMOVED*** Connect to Redis
-        ***REMOVED*** Cast to str to satisfy type checker
+        # Connect to Redis
+        # Cast to str to satisfy type checker
         redis_client = redis.from_url(cast(str, actual_redis_url))
 
-        ***REMOVED*** Get keys matching pattern
+        # Get keys matching pattern
         cursor = 0
-        keys: list[bytes] = []  ***REMOVED*** Redis keys are always bytes
+        keys: list[bytes] = []  # Redis keys are always bytes
 
         with Progress(
             SpinnerColumn(),
@@ -465,25 +465,25 @@ def clear_cache(
 
             while True:
                 cursor, batch = redis_client.scan(cursor=cursor, match=pattern, count=100)
-                ***REMOVED*** Explicitly cast to bytes to handle type checking
+                # Explicitly cast to bytes to handle type checking
                 keys.extend([key for key in batch])
 
                 if cursor == 0:
                     break
 
-        ***REMOVED*** No keys found
+        # No keys found
         if not keys:
             console.print(f"ℹ️  No keys found matching pattern '{pattern}'")
             return
 
-        ***REMOVED*** Confirm deletion if requested
+        # Confirm deletion if requested
         if confirm:
             console.print(f"⚠️  About to delete {len(keys)} keys matching pattern '{pattern}'")
             if not typer.confirm("Are you sure?"):
                 console.print("Operation cancelled.")
                 return
 
-        ***REMOVED*** Delete keys in batches
+        # Delete keys in batches
         deleted = 0
         with Progress(
             SpinnerColumn(),
@@ -492,7 +492,7 @@ def clear_cache(
         ) as progress:
             task = progress.add_task(description="Deleting keys...", total=len(keys))
 
-            ***REMOVED*** Delete in batches of 100
+            # Delete in batches of 100
             batch_size = 100
             for i in range(0, len(keys), batch_size):
                 batch = keys[i : i + batch_size]
@@ -512,10 +512,10 @@ def clear_cache(
         raise typer.Exit(1)
 
 
-***REMOVED*** Register cache commands directly with cache_app
-from backend_api.cli import cache_app  ***REMOVED*** noqa: E402
+# Register cache commands directly with cache_app
+from backend_api.cli import cache_app  # noqa: E402
 
-***REMOVED*** Register each command directly
+# Register each command directly
 cache_app.command("info")(cache_info)
 cache_app.command("keys")(list_keys)
 cache_app.command("get")(get_key)

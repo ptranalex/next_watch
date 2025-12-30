@@ -39,9 +39,9 @@ class RedisProvider(CacheProvider):
         self.timeout = timeout
         self.redis_kwargs = redis_kwargs
 
-        ***REMOVED*** Connection pool will be initialized lazily
-        self._pool: redis.ConnectionPool | None = None  ***REMOVED*** type: ignore
-        self._client: redis.Redis | None = None  ***REMOVED*** type: ignore
+        # Connection pool will be initialized lazily
+        self._pool: redis.ConnectionPool | None = None  # type: ignore
+        self._client: redis.Redis | None = None  # type: ignore
 
         self.logger = logger.bind(
             provider="RedisProvider",
@@ -76,7 +76,7 @@ class RedisProvider(CacheProvider):
             Masked URL safe for logging
         """
         if "@" in url:
-            ***REMOVED*** Mask password in URL like redis://user:password@host:port/db
+            # Mask password in URL like redis://user:password@host:port/db
             parts = url.split("@")
             if len(parts) == 2:
                 auth_part = parts[0]
@@ -85,7 +85,7 @@ class RedisProvider(CacheProvider):
                     return f"{scheme_user}:***@{parts[1]}"
         return url
 
-    async def _get_client(self) -> redis.Redis:  ***REMOVED*** type: ignore
+    async def _get_client(self) -> redis.Redis:  # type: ignore
         """Get Redis client, initializing connection pool if needed.
 
         Returns:
@@ -105,7 +105,7 @@ class RedisProvider(CacheProvider):
 
             self._client = redis.Redis(
                 connection_pool=self._pool,
-                decode_responses=True,  ***REMOVED*** Automatically decode bytes to strings
+                decode_responses=True,  # Automatically decode bytes to strings
             )
 
             self.logger.info("Redis connection pool initialized")
@@ -135,7 +135,7 @@ class RedisProvider(CacheProvider):
                     value_type=type(value).__name__,
                     value_len=len(str(value)),
                 )
-                ***REMOVED*** Handle both string and bytes responses
+                # Handle both string and bytes responses
                 if isinstance(value, bytes):
                     return value.decode("utf-8")
                 return str(value)
@@ -145,7 +145,7 @@ class RedisProvider(CacheProvider):
 
         except Exception as e:
             self.logger.error("Failed to get value from Redis", key=key, error=str(e))
-            ***REMOVED*** Return None on error to treat as cache miss
+            # Return None on error to treat as cache miss
             return None
 
     async def set_raw(self, key: CacheKey, value: str, ttl: TTL = None) -> CacheSetResult:
@@ -223,10 +223,10 @@ class RedisProvider(CacheProvider):
         try:
             client = await self._get_client()
 
-            ***REMOVED*** Apply key prefix if configured
+            # Apply key prefix if configured
             full_pattern = self._build_key(pattern)
 
-            ***REMOVED*** Use scan_iter to efficiently iterate through matching keys
+            # Use scan_iter to efficiently iterate through matching keys
             deleted_count = 0
             batch_size = 100
             keys_to_delete = []
@@ -237,11 +237,11 @@ class RedisProvider(CacheProvider):
                 full_pattern=full_pattern,
             )
 
-            ***REMOVED*** Iterate through matching keys
+            # Iterate through matching keys
             async for key in client.scan_iter(match=full_pattern, count=batch_size):
                 keys_to_delete.append(key)
 
-                ***REMOVED*** Delete in batches for efficiency
+                # Delete in batches for efficiency
                 if len(keys_to_delete) >= batch_size:
                     if keys_to_delete:
                         result = await client.delete(*keys_to_delete)
@@ -251,7 +251,7 @@ class RedisProvider(CacheProvider):
                         )
                     keys_to_delete = []
 
-            ***REMOVED*** Delete any remaining keys
+            # Delete any remaining keys
             if keys_to_delete:
                 result = await client.delete(*keys_to_delete)
                 deleted_count += result
@@ -299,7 +299,7 @@ class RedisProvider(CacheProvider):
         """
         try:
             client = await self._get_client()
-            ***REMOVED*** Use PING command to check connection
+            # Use PING command to check connection
             result = await client.ping()
 
             healthy = result is True

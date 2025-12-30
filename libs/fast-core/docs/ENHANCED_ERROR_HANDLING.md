@@ -1,6 +1,6 @@
-***REMOVED*** Enhanced Error Handling in Fast-Core
+# Enhanced Error Handling in Fast-Core
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 Fast-Core now includes an intelligent error handling system that addresses the core issues identified in the previous implementation:
 
@@ -10,22 +10,22 @@ Fast-Core now includes an intelligent error handling system that addresses the c
 4. **Enhanced Context**: Better logging with function arguments and exception types
 5. **Service Classification**: Critical vs optional service handling
 
-***REMOVED******REMOVED*** Key Features
+## Key Features
 
-***REMOVED******REMOVED******REMOVED*** 🎯 Semantic Preservation
+### 🎯 Semantic Preservation
 
 Preserves the original meaning of HTTP status codes:
 
 ```python
-***REMOVED*** Before: 404 -> ExternalServiceException (502)
-***REMOVED*** After: 404 -> ResourceNotFoundException (404)
+# Before: 404 -> ExternalServiceException (502)
+# After: 404 -> ResourceNotFoundException (404)
 
 @service_error_handler("backend-api", logger, preserve_semantics=True)
 async def get_movie(movie_id: int):
     return await backend.get(f"/movies/{movie_id}")
 ```
 
-***REMOVED******REMOVED******REMOVED*** 🛡️ Graceful Degradation
+### 🛡️ Graceful Degradation
 
 Non-critical features can gracefully degrade:
 
@@ -36,11 +36,11 @@ Non-critical features can gracefully degrade:
     fallback_value=[]
 )
 async def get_recommendations(user_id: int):
-    ***REMOVED*** If service fails, returns [] instead of crashing the page
+    # If service fails, returns [] instead of crashing the page
     return await reco_api.get(f"/users/{user_id}/recommendations")
 ```
 
-***REMOVED******REMOVED******REMOVED*** 🎨 Custom Error Mapping
+### 🎨 Custom Error Mapping
 
 Map specific errors to business logic:
 
@@ -57,26 +57,26 @@ async def process_payment(amount: float):
     return await payment_api.charge(amount)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 📊 Enhanced Logging
+### 📊 Enhanced Logging
 
 Automatic context enrichment:
 
 ```python
-***REMOVED*** Logs now include:
-***REMOVED*** - Exception type name
-***REMOVED*** - Function arguments (safely filtered)
-***REMOVED*** - Service context
-***REMOVED*** - Critical/optional classification
+# Logs now include:
+# - Exception type name
+# - Function arguments (safely filtered)
+# - Service context
+# - Critical/optional classification
 
 @service_error_handler("user-api", logger)
 async def get_user_profile(user_id: int, include_private: bool = False):
-    ***REMOVED*** Logs will show: arg_user_id=123, critical=True, etc.
+    # Logs will show: arg_user_id=123, critical=True, etc.
     return await user_api.get(f"/users/{user_id}")
 ```
 
-***REMOVED******REMOVED*** Usage Patterns
+## Usage Patterns
 
-***REMOVED******REMOVED******REMOVED*** Critical Services (Must Succeed)
+### Critical Services (Must Succeed)
 
 ```python
 @critical_service_handler("auth-api", logger)
@@ -85,7 +85,7 @@ async def authenticate_user(token: str):
     return await auth_api.validate(token)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Optional Services (Can Gracefully Degrade)
+### Optional Services (Can Gracefully Degrade)
 
 ```python
 @optional_service_handler(
@@ -98,7 +98,7 @@ async def track_event(event: str):
     return await analytics_api.track(event)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Business Logic
+### Custom Business Logic
 
 ```python
 @service_error_handler(
@@ -113,9 +113,9 @@ async def reserve_item(item_id: int, quantity: int):
     return await inventory_api.reserve(item_id, quantity)
 ```
 
-***REMOVED******REMOVED*** Migration Guide
+## Migration Guide
 
-***REMOVED******REMOVED******REMOVED*** Before (Old Pattern)
+### Before (Old Pattern)
 
 ```python
 @service_error_handler("backend-api", logger)
@@ -123,13 +123,13 @@ async def get_similar_movies(movie_id: int):
     try:
         return await backend.get(f"/movies/{movie_id}/similar")
     except Exception as e:
-        ***REMOVED*** Manual handling of 404s, graceful degradation, etc.
+        # Manual handling of 404s, graceful degradation, etc.
         if "404" in str(e):
             return []
         raise
 ```
 
-***REMOVED******REMOVED******REMOVED*** After (Enhanced Pattern)
+### After (Enhanced Pattern)
 
 ```python
 @optional_service_handler(
@@ -138,11 +138,11 @@ async def get_similar_movies(movie_id: int):
     fallback_value=[]
 )
 async def get_similar_movies(movie_id: int):
-    ***REMOVED*** Automatic semantic preservation and graceful degradation
+    # Automatic semantic preservation and graceful degradation
     return await reco_api.get(f"/movies/{movie_id}/similar")
 ```
 
-***REMOVED******REMOVED*** Benefits
+## Benefits
 
 1. **Better User Experience**: Pages don't break when optional services are down
 2. **Semantic Correctness**: 404s stay 404s, not generic 502s
@@ -151,7 +151,7 @@ async def get_similar_movies(movie_id: int):
 5. **Service Classification**: Clear distinction between critical and optional
 6. **Reduced Boilerplate**: Less manual exception handling code
 
-***REMOVED******REMOVED*** Error Flow
+## Error Flow
 
 ```mermaid
 graph TD
@@ -170,7 +170,7 @@ graph TD
     E -->|No| K[Raise Exception]
 ```
 
-***REMOVED******REMOVED*** Real-World Example: Recommendation Service Fix
+## Real-World Example: Recommendation Service Fix
 
 **Problem**: Movie detail page returned 502 when recommendation service had no similar movies (404).
 
@@ -199,7 +199,7 @@ async def get_similar_movies(movie_id: int):
 - Movie detail page loads successfully with empty recommendations
 - Better user experience and proper HTTP semantics
 
-***REMOVED******REMOVED*** Testing
+## Testing
 
 Run the comprehensive demo:
 

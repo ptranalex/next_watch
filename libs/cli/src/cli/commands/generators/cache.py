@@ -95,22 +95,22 @@ def create_cache_commands(
         try:
             redis_client = await get_redis_client()
 
-            ***REMOVED*** Get Redis info
+            # Get Redis info
             info = await redis_client.info()
             memory_info = await redis_client.info("memory")
 
-            ***REMOVED*** Create summary table
+            # Create summary table
             table = Table(title="Redis Cache Information")
             table.add_column("Property", style="cyan")
             table.add_column("Value", style="white")
 
-            ***REMOVED*** Basic info
+            # Basic info
             table.add_row("Redis Version", info.get("redis_version", "Unknown"))
             table.add_row("Connected Clients", str(info.get("connected_clients", 0)))
             table.add_row("Used Memory", memory_info.get("used_memory_human", "Unknown"))
             table.add_row("Max Memory", memory_info.get("maxmemory_human", "Not set"))
 
-            ***REMOVED*** Database info
+            # Database info
             total_keys = 0
             for key in info.keys():
                 if key.startswith("db"):
@@ -143,19 +143,19 @@ def create_cache_commands(
 
             out.info(f"Searching for keys with pattern: {pattern}")
 
-            ***REMOVED*** Get keys with pattern
+            # Get keys with pattern
             keys = await redis_client.keys(pattern)
 
             if not keys:
                 out.warning(f"No keys found matching pattern: {pattern}")
                 return
 
-            ***REMOVED*** Limit results
+            # Limit results
             if len(keys) > limit:
                 out.warning(f"Found {len(keys)} keys, showing first {limit}")
                 keys = keys[:limit]
 
-            ***REMOVED*** Display keys
+            # Display keys
             if verbose:
                 table = Table(title=f"Cache Keys (pattern: {pattern})")
                 table.add_column("Key", style="cyan")
@@ -191,12 +191,12 @@ def create_cache_commands(
         try:
             redis_client = await get_redis_client()
 
-            ***REMOVED*** Check if key exists
+            # Check if key exists
             if not await redis_client.exists(key):
                 out.error(f"Key '{key}' not found")
                 raise typer.Exit(code=1)
 
-            ***REMOVED*** Get value and metadata
+            # Get value and metadata
             value = await redis_client.get(key)
             key_type = await redis_client.type(key)
             ttl = await redis_client.ttl(key)
@@ -244,17 +244,17 @@ def create_cache_commands(
         try:
             redis_client = await get_redis_client()
 
-            ***REMOVED*** Check if key exists
+            # Check if key exists
             if not await redis_client.exists(key):
                 out.error(f"Key '{key}' not found")
                 raise typer.Exit(code=1)
 
-            ***REMOVED*** Confirm deletion
+            # Confirm deletion
             if confirm and not out.confirm(f"Delete cache key '{key}'?"):
                 out.info("Deletion cancelled")
                 return
 
-            ***REMOVED*** Delete key
+            # Delete key
             result = await redis_client.delete(key)
 
             if result:
@@ -274,19 +274,19 @@ def create_cache_commands(
         try:
             redis_client = await get_redis_client()
 
-            ***REMOVED*** Get matching keys
+            # Get matching keys
             keys = await redis_client.keys(pattern)
 
             if not keys:
                 out.warning(f"No keys found matching pattern: {pattern}")
                 return
 
-            ***REMOVED*** Confirm clearing
+            # Confirm clearing
             if confirm and not out.confirm(f"Clear {len(keys)} cache keys matching '{pattern}'?"):
                 out.info("Clear operation cancelled")
                 return
 
-            ***REMOVED*** Delete keys in batches
+            # Delete keys in batches
             async with with_progress(out, f"Clearing {len(keys)} cache keys...", timeout=None):
                 deleted_count = 0
 
