@@ -397,9 +397,13 @@ jobs:
                 docker_cmd rm -f "$svc" >/dev/null 2>&1 || true
               done
 
-              ***REMOVED*** Pull and deploy only the specified services
+              ***REMOVED*** Pull and deploy only the specified services.
+              ***REMOVED***
+              ***REMOVED*** IMPORTANT: Many services have `depends_on`. A targeted deploy (e.g. only `bff-api`)
+              ***REMOVED*** should NOT implicitly pull/recreate dependencies like `auth-api`, otherwise the
+              ***REMOVED*** deploy can fail if those dependency images haven't been built/published yet.
               compose_cmd -f compose/prod.yml --env-file .env.prod pull $SERVICES
-              compose_cmd -f compose/prod.yml --env-file .env.prod up -d $SERVICES
+              compose_cmd -f compose/prod.yml --env-file .env.prod up -d --no-deps $SERVICES
 
               ***REMOVED*** Wait for services to be healthy
               echo "⏳ Waiting for services to be healthy..."
