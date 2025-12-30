@@ -136,6 +136,8 @@ bfg --delete-files '.secrets' --no-blob-protection .
 bfg --delete-files '.env' --no-blob-protection .
 bfg --delete-files '.env.local' --no-blob-protection .
 bfg --delete-files '.env.prod' --no-blob-protection .
+bfg --delete-files '.env.production' --no-blob-protection .
+bfg --delete-files '.env.monitoring' --no-blob-protection .
 bfg --delete-files '.env.monitoring.prod' --no-blob-protection .
 bfg --delete-files '.env.observability.prod' --no-blob-protection .
 bfg --delete-files '.env.development' --no-blob-protection .
