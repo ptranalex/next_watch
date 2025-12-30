@@ -17,7 +17,7 @@ from redis.exceptions import RedisError
 from sqlmodel import text
 
 from backend_api.config.app import settings
-from backend_api.db.database import get_db
+from backend_api.db.database import get_db, get_engine
 
 if TYPE_CHECKING:
     from fast_core.monitoring import HealthCheckRegistry
@@ -185,20 +185,27 @@ class HealthService:
         start_time = time.time()
 
         try:
+            dialect = get_engine(enable_monitoring=False).dialect.name
+
             # Use the existing database session
             with next(get_db()) as db:
                 # Try a simple query
                 result = db.execute(text("SELECT 1")).scalar()
 
                 # Get version
-                version_result = db.execute(text("SELECT version()")).scalar()
-                version = version_result if version_result else "Unknown"
+                if dialect == "sqlite":
+                    version_result = db.execute(text("SELECT sqlite_version()")).scalar()
+                    version = version_result if version_result else "Unknown"
+                    db_size = "N/A"
+                else:
+                    version_result = db.execute(text("SELECT version()")).scalar()
+                    version = version_result if version_result else "Unknown"
 
-                # Get database size
-                db_size_result = db.execute(
-                    text("SELECT pg_size_pretty(pg_database_size(current_database())) as size")
-                ).scalar()
-                db_size = db_size_result if db_size_result else "Unknown"
+                    # Get database size (PostgreSQL-only)
+                    db_size_result = db.execute(
+                        text("SELECT pg_size_pretty(pg_database_size(current_database())) as size")
+                    ).scalar()
+                    db_size = db_size_result if db_size_result else "Unknown"
 
                 response_time = (time.time() - start_time) * 1000
 
@@ -207,6 +214,7 @@ class HealthService:
                     status="healthy",
                     response_time_ms=round(response_time, 2),
                     details={
+                        "dialect": dialect,
                         "version": version,
                         "database_size": db_size,
                         "connection_successful": True,
@@ -284,18 +292,27 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
     )
     from sqlmodel import text
 
-    # PostgreSQL Database - CRITICAL dependency
+    # Database - CRITICAL dependency (PostgreSQL in standard dev/prod, SQLite in lightweight dev)
     async def check_postgres() -> HealthCheckResult:
-        """Check PostgreSQL database health."""
+        """Check database health."""
         start_time = time.time()
         try:
+            dialect = get_engine(enable_monitoring=False).dialect.name
             with next(get_db()) as db:
                 # Simple connectivity test
                 db.execute(text("SELECT 1")).scalar()
 
                 # Get version for details
-                version_result = db.execute(text("SELECT version()")).scalar()
-                version = version_result if version_result else "Unknown"
+                if dialect == "sqlite":
+                    version_result = db.execute(text("SELECT sqlite_version()")).scalar()
+                    version = version_result if version_result else "Unknown"
+                    version_short = version
+                else:
+                    version_result = db.execute(text("SELECT version()")).scalar()
+                    version = version_result if version_result else "Unknown"
+                    version_short = (
+                        version.split()[1] if version and len(version.split()) > 1 else "Unknown"
+                    )
 
                 response_time = (time.time() - start_time) * 1000
 
@@ -304,11 +321,8 @@ def setup_backend_health_checks(registry: "HealthCheckRegistry") -> None:
                     status="healthy",
                     response_time_ms=round(response_time, 2),
                     details={
-                        "version": (
-                            version.split()[1]
-                            if version and len(version.split()) > 1
-                            else "Unknown"
-                        ),
+                        "dialect": dialect,
+                        "version": version_short,
                         "connection": "successful",
                     },
                 )

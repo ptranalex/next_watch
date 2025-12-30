@@ -187,8 +187,11 @@ def check_db_health(
 
             console.print(f"🔍 Checking database health at {display_url}")
 
-        # Create engine with timeout
-        engine = create_engine(db_url, connect_args={"connect_timeout": timeout})
+        # Create engine with timeout (Postgres only; SQLite doesn't support connect_timeout)
+        connect_args: dict[str, object] = {}
+        if not db_url.lower().startswith("sqlite"):
+            connect_args = {"connect_timeout": timeout}
+        engine = create_engine(db_url, connect_args=connect_args)
 
         # Try simple query to test connection
         with engine.connect() as conn:
@@ -198,7 +201,10 @@ def check_db_health(
         if verbose:
             # Get database info
             with engine.connect() as conn:
-                db_info = conn.execute(text("SELECT version()")).scalar()
+                if engine.dialect.name == "sqlite":
+                    db_info = conn.execute(text("SELECT sqlite_version()")).scalar()
+                else:
+                    db_info = conn.execute(text("SELECT version()")).scalar()
 
             table = Table(title="Database Health Status")
             table.add_column("Attribute", style="cyan")
@@ -206,6 +212,7 @@ def check_db_health(
 
             table.add_row("Status", "✅ Healthy")
             table.add_row("Version", str(db_info))
+            table.add_row("Dialect", str(engine.dialect.name))
 
             console.print(table)
         else:
