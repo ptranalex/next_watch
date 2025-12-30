@@ -45,14 +45,14 @@ flowchart LR
 
 ### Core Services
 
-- **Frontend** (`apps/web-nextjs`): Next.js 15 web application with modern UI/UX
-- **BFF API** (`apps/bff-api`): Backend for Frontend - aggregation and orchestration layer
-- **Auth API** (`apps/auth-api`): Dedicated JWT-based authentication and authorization service
-- **Backend API** (`apps/backend-api`): Core business logic, movie data access, and database operations
-- **Recommendation API** (`apps/recommendation-api`): Movie recommendations using vector similarity and collaborative filtering
-- **ML API** (`apps/ml-api`): Machine learning service for generating movie and user embeddings
-- **Search API** (`apps/search-api`): Dedicated search service with Redis-powered autocomplete and suggestions
-- **Data Importer** (`apps/data-importer`): Movie data synchronization from TMDB and OMDB
+- **Frontend** ([`apps/web-nextjs`](apps/web-nextjs)): Next.js 15 web application with modern UI/UX
+- **BFF API** ([`apps/bff-api`](apps/bff-api)): Backend for Frontend - aggregation and orchestration layer
+- **Auth API** ([`apps/auth-api`](apps/auth-api)): Dedicated JWT-based authentication and authorization service
+- **Backend API** ([`apps/backend-api`](apps/backend-api)): Core business logic, movie data access, and database operations
+- **Recommendation API** ([`apps/recommendation-api`](apps/recommendation-api)): Movie recommendations using vector similarity and collaborative filtering
+- **ML API** ([`apps/ml-api`](apps/ml-api)): Machine learning service for generating movie and user embeddings
+- **Search API** ([`apps/search-api`](apps/search-api)): Dedicated search service with Redis-powered autocomplete and suggestions
+- **Data Importer** ([`apps/data-importer`](apps/data-importer)): Movie data synchronization from TMDB and OMDB
 
 ### Infrastructure & Storage
 
@@ -62,23 +62,23 @@ flowchart LR
 
 ### Shared Libraries
 
-- **Fast-Core** (`libs/fast-core`): Standardized FastAPI middleware, configuration, and monitoring framework
+- **Fast-Core** ([`libs/fast-core`](libs/fast-core)): Standardized FastAPI middleware, configuration, and monitoring framework
   - Consistent middleware stack (CORS, security headers, rate limiting, logging, metrics)
   - OpenTelemetry integration for distributed tracing
   - Health check framework with liveness/readiness/deep probes
   - JWT utilities and authentication helpers
   - Error handling and service error contexts
-- **Cache** (`libs/cache`): Redis caching utilities with warming and invalidation patterns
+- **Cache** ([`libs/cache`](libs/cache)): Redis caching utilities with warming and invalidation patterns
   - Cache warming strategies
   - TTL management
   - Key versioning and invalidation
   - Metrics and monitoring
-- **Config** (`libs/config`): Centralized configuration management with environment profiles
+- **Config** ([`libs/config`](libs/config)): Centralized configuration management with environment profiles
   - Environment-based configuration
   - Logging setup with themes
   - Security configuration
   - Service discovery settings
-- **CLI** (`libs/cli`): Shared command-line interface utilities for service management
+- **CLI** ([`libs/cli`](libs/cli)): Shared command-line interface utilities for service management
   - Service registry pattern
   - Output handling and formatting
   - Common command patterns
@@ -132,11 +132,11 @@ flowchart LR
 
 New to the repo? Start here:
 
-- `docs/getting-started/ONBOARDING.md` (recommended local development path)
+- [`docs/getting-started/ONBOARDING.md`](docs/getting-started/ONBOARDING.md) (recommended local development path)
 
 ### Production-like stack (Docker Compose)
 
-Note: `infra/compose/prod.yml` expects PostgreSQL and Redis to be reachable on the host (`host.docker.internal`).
+Note: [`infra/compose/prod.yml`](infra/compose/prod.yml) expects PostgreSQL and Redis to be reachable on the host (`host.docker.internal`).
 
 ```bash
 # Clone the repository
@@ -182,6 +182,8 @@ chmod +x scripts/deploy-prod.sh
 ./scripts/deploy-prod.sh --build-only
 ```
 
+See [`infra/DEPLOYMENT.md`](infra/DEPLOYMENT.md) for end-to-end deployment docs.
+
 ## 🔧 Configuration
 
 ### Required Environment Variables
@@ -217,7 +219,7 @@ RECOMMENDATION_API_URL=http://recommendation-api:8000
 SEARCH_API_URL=http://search-api:8000
 ```
 
-See `infra/env/prod.example` for complete configuration options.
+See [`infra/env/prod.example`](infra/env/prod.example) for complete configuration options.
 
 ## 🔄 CI/CD Workflows
 
@@ -228,7 +230,7 @@ The project includes comprehensive GitHub Actions workflows:
 #### **Build Workflow** (`.github/workflows/build.yml`)
 
 - Builds all 8 services when their code changes
-- Supports building shared libraries (`libs/fast-core`, `libs/cache`, `libs/config`, `libs/cli`)
+- Supports building shared libraries ([`libs/fast-core`](libs/fast-core), [`libs/cache`](libs/cache), [`libs/config`](libs/config), [`libs/cli`](libs/cli))
 - Pushes images to GitHub Container Registry
 - Supports manual builds with `build_all` option
 
@@ -339,7 +341,7 @@ All services include built-in observability:
 
 Access your monitoring:
 
-- **Grafana**: <https://your-domain.com/grafana/> (credentials configured via `infra/env/monitoring.prod.example`)
+- **Grafana**: <https://your-domain.com/grafana/> (credentials configured via [`infra/env/monitoring.prod.example`](infra/env/monitoring.prod.example))
 - **Prometheus**: <https://your-domain.com/prometheus/>
 - **AlertManager**: <https://your-domain.com/alertmanager/>
 
@@ -376,7 +378,7 @@ The primary local dev workflow is to start **all services** in a single tmux ses
 ```
 
 This will start Redis + Qdrant + all APIs + the Next.js frontend and attach you to a `nextwatch` tmux session.
-See `infra/tmux/README.md` for prerequisites, window layout, and troubleshooting.
+See [`infra/tmux/README.md`](infra/tmux/README.md) for prerequisites, window layout, and troubleshooting.
 
 ### Individual Service Development
 
@@ -499,31 +501,28 @@ Each service provides these common scripts:
 
 Each service has comprehensive documentation:
 
-- **Backend API**: `apps/backend-api/README.md`
-  - Fast-core integration guide
-  - Bulk operations optimization
-  - Materialized view architecture
-  - Metrics integration
-- **Recommendation API**: `apps/recommendation-api/README.md`
-  - Vector search setup
-  - Embedding generation CLI
-  - Cache warming strategies
-- **ML API**: `apps/ml-api/README.md`
-  - Model configuration
-  - Embedding endpoints
-  - Docker deployment
-- **Search API**: `apps/search-api/README.md`
-  - Redis index management
-  - Performance optimization
-- **Auth API**: `apps/auth-api/README.md`
-  - JWT configuration
-  - API refinement guide
-- **BFF API**: `apps/bff-api/README.md`
-  - Cache patterns
-  - Service orchestration
-- **Data Importer**: `apps/data-importer/README.md`
-  - TMDB/OMDB sync
-  - CLI commands
+- **Backend API**: [`apps/backend-api/README.md`](apps/backend-api/README.md)
+  - [Fast-core integration guide](apps/backend-api/docs/FAST_CORE_INTEGRATION.md)
+  - [Bulk operations optimization](apps/backend-api/docs/BULK_MOVIES_OPTIMIZATION.md)
+  - [Materialized view architecture](apps/backend-api/docs/MOVIE_METADATA_ARCHITECTURE.md)
+  - [Metrics integration](apps/backend-api/docs/METRICS_INTEGRATION.md)
+- **Recommendation API**: [`apps/recommendation-api/README.md`](apps/recommendation-api/README.md)
+  - [Embedding generation CLI](apps/recommendation-api/src/recommendation_api/cli/README.md)
+  - [Cache warming strategies](apps/recommendation-api/src/recommendation_api/services/cache_service/warming/README.md)
+  - [Docker deployment](apps/recommendation-api/DOCKER.md)
+- **ML API**: [`apps/ml-api/README.md`](apps/ml-api/README.md)
+  - [Docker deployment](apps/ml-api/DOCKER.md)
+- **Search API**: [`apps/search-api/README.md`](apps/search-api/README.md)
+  - [Redis suggestion engine](apps/search-api/src/search_api/services/suggestion_engine/README.md)
+  - [Search performance plan](apps/search-api/docs/search-suggestions-performance-plan.md)
+- **Auth API**: [`apps/auth-api/README.md`](apps/auth-api/README.md)
+  - [API refinement guide](apps/auth-api/docs/API_REFINEMENT.md)
+  - [Fast-core integration guide](apps/auth-api/docs/FAST_CORE_INTEGRATION.md)
+- **BFF API**: [`apps/bff-api/README.md`](apps/bff-api/README.md)
+  - [Cache warming strategies](apps/bff-api/src/bff_api/services/cache_service/warming/README.md)
+  - [Cache patterns (forever strategy)](apps/bff-api/doc/CACHE_REFINEMENT_FOREVER.md)
+- **Data Importer**: [`apps/data-importer/README.md`](apps/data-importer/README.md)
+  - [CLI commands](apps/data-importer/src/data_importer/cli/README.md)
 
 ### API Documentation
 
@@ -538,15 +537,15 @@ Interactive API documentation available at `/docs` on each service:
 
 ### Infrastructure Documentation
 
-- **Docs index**: `docs/README.md`
-- **Onboarding (New Devs)**: `docs/getting-started/ONBOARDING.md`
-- **Service Map**: `docs/getting-started/SERVICE_MAP.md`
-- **Docs Conventions**: `docs/meta/DOCS_GUIDE.md`
-- **Deployment Guide**: `infra/DEPLOYMENT.md`
-- **Production Deployment**: `infra/production-deployment-guide.md`
-- **Monitoring Setup**: `infra/compose/monitoring.yml`
-- **AWS Infrastructure**: `infra/aws/`
-- **Security cleanup (making repo public)**: `docs/security/SECURITY_CLEANUP.md` and `cleanup-git-history.sh`
+- **Docs index**: [`docs/README.md`](docs/README.md)
+- **Onboarding (New Devs)**: [`docs/getting-started/ONBOARDING.md`](docs/getting-started/ONBOARDING.md)
+- **Service Map**: [`docs/getting-started/SERVICE_MAP.md`](docs/getting-started/SERVICE_MAP.md)
+- **Docs Conventions**: [`docs/meta/DOCS_GUIDE.md`](docs/meta/DOCS_GUIDE.md)
+- **Deployment Guide**: [`infra/DEPLOYMENT.md`](infra/DEPLOYMENT.md)
+- **Production Deployment**: [`infra/production-deployment-guide.md`](infra/production-deployment-guide.md)
+- **Monitoring Setup**: [`infra/compose/monitoring.yml`](infra/compose/monitoring.yml)
+- **AWS Infrastructure**: [`infra/aws/`](infra/aws/)
+- **Security cleanup (making repo public)**: [`docs/security/SECURITY_CLEANUP.md`](docs/security/SECURITY_CLEANUP.md) and [`cleanup-git-history.sh`](cleanup-git-history.sh)
 
 ## 🤝 Contributing
 
@@ -568,5 +567,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📐 Engineering Notes
 
-- Type checking standards: `docs/development/TYPE_CHECKING.md`
-- Project status / progress notes: `docs/development/PROJECT_STATUS.md`
+- Type checking standards: [`docs/development/TYPE_CHECKING.md`](docs/development/TYPE_CHECKING.md)
+- Project status / progress notes: [`docs/development/PROJECT_STATUS.md`](docs/development/PROJECT_STATUS.md)
