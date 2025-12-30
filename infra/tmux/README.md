@@ -37,15 +37,15 @@ This means you can safely run the script multiple times without losing your work
 
 ## Service URLs
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000 (docs: http://localhost:8000/docs)
-- **BFF API**: http://localhost:8001 (docs: http://localhost:8001/docs)
-- **Recommendation API**: http://localhost:8002 (docs: http://localhost:8002/docs)
-- **Auth API**: http://localhost:8003 (docs: http://localhost:8003/docs)
-- **ML API**: http://localhost:8004 (docs: http://localhost:8004/docs)
-- **Search API**: http://localhost:8005 (docs: http://localhost:8005/docs)
-- **Redis (Homebrew)**: localhost:6379
-- **Qdrant (Docker)**: http://localhost:6333
+- **Frontend**: `http://localhost:3000`
+- **Backend API**: `http://localhost:8000` (docs: `http://localhost:8000/docs`)
+- **BFF API**: `http://localhost:8001` (docs: `http://localhost:8001/docs`)
+- **Recommendation API**: `http://localhost:8002` (docs: `http://localhost:8002/docs`)
+- **Auth API**: `http://localhost:8003` (docs: `http://localhost:8003/docs`)
+- **ML API**: `http://localhost:8004` (docs: `http://localhost:8004/docs`)
+- **Search API**: `http://localhost:8005` (docs: `http://localhost:8005/docs`)
+- **Redis (Homebrew)**: `localhost:6379`
+- **Qdrant (Docker)**: `http://localhost:6333`
 
 ## Prerequisites
 
@@ -170,6 +170,7 @@ curl http://localhost:6333/collections
 - Check logs in the respective tmux window
 - Ensure all dependencies are installed
 - Check if ports are already in use: `lsof -i :8000`
+- The tmux starter script now aborts early if app/Qdrant ports are already in use (3000, 6333/6334, 8000–8005). If you already have a `nextwatch` tmux session running, just attach to it instead: `tmux attach -t nextwatch`.
 
 ### Clean Restart
 
@@ -208,7 +209,7 @@ If you notice missing windows (common issue):
 ### Data Persistence
 
 - **Redis**: Data persists between restarts (Homebrew manages persistence)
-- **Qdrant**: Data persists in `./qdrant_storage/` directory (vector embeddings saved!)
+- **Qdrant**: Data persists in `./data/qdrant_storage/` directory (vector embeddings saved!)
 - **PostgreSQL**: Separate setup required, data persists independently
 
 ### Smart Window Management
@@ -228,6 +229,9 @@ If you notice missing windows (common issue):
 - Services take 1-2 minutes to fully start up
 - Frontend hot-reload works automatically
 - API services restart automatically on code changes (via hatch)
+- On startup, the backend window initializes schema automatically:
+  - If `DATABASE_URL` is PostgreSQL (configured in `apps/backend-api/.env` or `.env.local`), it runs `hatch run migrate`
+  - Otherwise it falls back to `hatch run db-init-tables` (SQLite-friendly)
 - Qdrant embeddings and collections persist between sessions
 - Use `Ctrl+B` then `w` for easy window navigation
 - The script is safe to run multiple times
