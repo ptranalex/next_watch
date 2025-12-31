@@ -35,6 +35,22 @@ When running the script, if a session already exists, you'll get options:
 
 This means you can safely run the script multiple times without losing your work!
 
+## Optional: Disable Specific Windows (Env Toggles)
+
+By default, the script starts all windows `0-10`. You can disable individual services by setting `NEXTWATCH_ENABLE_*` environment variables to `0`.
+
+- Disabled windows are still created at their normal indices (to preserve navigation), but they will print a “disabled” message instead of starting the service.
+
+Examples:
+
+```bash
+# Skip frontend
+NEXTWATCH_ENABLE_FRONTEND=0 ./infra/tmux/start_services_tmux.sh
+
+# Skip Qdrant (no Docker needed)
+NEXTWATCH_ENABLE_QDRANT=0 ./infra/tmux/start_services_tmux.sh
+```
+
 ## Service URLs
 
 - **Frontend**: `http://localhost:3000`
