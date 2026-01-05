@@ -34,6 +34,23 @@ echo -e "${CYAN}Project root: ${PROJECT_ROOT}${NC}"
 #   NEXTWATCH_ENABLE_FRONTEND=0 ./infra/tmux/start_services_tmux.sh
 #   NEXTWATCH_ENABLE_QDRANT=0   ./infra/tmux/start_services_tmux.sh
 #
+# Golden path v1 "service spec contract"
+# - `get_window_specs()` MUST output newline-delimited records in this format:
+#
+#     index|window_name|service_key
+#
+#   where:
+#   - `index` is a stable integer (0..10) used for navigation and docs
+#   - `window_name` is the tmux window name
+#   - `service_key` selects which multi-line command sequence to run (via `cmd_lines_for`)
+#
+# - v1 intentionally keeps the contract minimal. Future v2-compatible extensions
+#   (not implemented in v1) could add additional fields, e.g.:
+#     index|window_name|service_key|ports_csv|deps_csv|healthcheck_cmd
+#
+# Bash portability: keep this file compatible with macOS default Bash 3.2
+# (no mapfile, no associative arrays).
+#
 
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -72,90 +89,165 @@ is_enabled() {
     esac
 }
 
-_disabled_cmd() {
+print_disabled_lines() {
     local key="$1"
     local name="$2"
     local env_key="NEXTWATCH_ENABLE_$(_to_upper "$key")"
-    printf "%s" "echo '⏸️  ${name} is disabled (${env_key}=0).'; echo 'Set ${env_key}=1 to enable and restart this window.'"
+    echo "echo '⏸️  ${name} is disabled (${env_key}=0).'"
+    echo "echo 'Set ${env_key}=1 to enable and restart this window.'"
 }
 
-_cmd_infra() {
-    printf "%s" "echo '🔄 Checking Redis (Homebrew) service...' ; if ! redis-cli ping >/dev/null 2>&1; then echo '🚀 Starting Redis via Homebrew...' ; brew services start redis ; sleep 2 ; else echo '✅ Redis already running' ; fi ; echo '🔍 Infrastructure Status:' ; echo '🔴 Redis (Homebrew):' && redis-cli ping 2>/dev/null && echo '  ✅ Redis responding on localhost:6379' || echo '  ❌ Redis not responding' ; sleep 2"
+cmd_lines_infra() {
+    echo "echo '🔄 Checking Redis (Homebrew) service...'"
+    echo "if ! redis-cli ping >/dev/null 2>&1; then"
+    echo "  echo '🚀 Starting Redis via Homebrew...'"
+    echo "  brew services start redis"
+    echo "  sleep 2"
+    echo "else"
+    echo "  echo '✅ Redis already running'"
+    echo "fi"
+    echo "echo '🔍 Infrastructure Status:'"
+    echo "echo '🔴 Redis (Homebrew):' && redis-cli ping 2>/dev/null && echo '  ✅ Redis responding on localhost:6379' || echo '  ❌ Redis not responding'"
+    echo "sleep 2"
 }
 
-_cmd_qdrant() {
-    printf "%s" "echo '🔄 Starting Qdrant container with persistent storage...' && mkdir -p \"$PROJECT_ROOT/data/qdrant_storage\" && echo '📁 Storage directory ready' && docker run --rm --name nextwatch-qdrant -p 6333:6333 -p 6334:6334 -v \"$PROJECT_ROOT/data/qdrant_storage:/qdrant/storage\" qdrant/qdrant"
+cmd_lines_qdrant() {
+    echo "echo '🔄 Starting Qdrant container with persistent storage...'"
+    echo "mkdir -p \"$PROJECT_ROOT/data/qdrant_storage\""
+    echo "echo '📁 Storage directory ready'"
+    echo "docker run --rm --name nextwatch-qdrant \\"
+    echo "  -p 6333:6333 \\"
+    echo "  -p 6334:6334 \\"
+    echo "  -v \"$PROJECT_ROOT/data/qdrant_storage:/qdrant/storage\" \\"
+    echo "  qdrant/qdrant"
 }
 
-_cmd_backend() {
-    # NOTE: We keep this SQLite/Postgres detection local to the backend window.
-    # SQLite can't run the full migration set; Postgres can.
-    printf "%s" "cd \"$PROJECT_ROOT/apps/backend-api\" && echo '🔄 Starting Backend API on port 8000...' && hatch run install-libs && DB_URL='' ; for f in .env.local .env; do if [ -f \"$f\" ]; then DB_URL_LINE=$(grep -E '^[[:space:]]*DATABASE_URL=' \"$f\" | tail -n 1 || true) ; if [ -n \"$DB_URL_LINE\" ]; then DB_URL=\${DB_URL_LINE#*=} ; fi ; fi ; done ; DB_URL=\${DB_URL%\\\"} ; DB_URL=\${DB_URL#\\\"} ; DB_URL=\${DB_URL%$'\\r'} ; if echo \"\$DB_URL\" | grep -qE '^postgresql(\\+|:)'; then echo '🗄️  Using PostgreSQL; running migrations...' && hatch run migrate ; else echo '🗄️  DATABASE_URL is not set to PostgreSQL; creating tables (SQLite-friendly) instead.' && echo '💡 To use Postgres migrations, set DATABASE_URL in apps/backend-api/.env(.local) and restart.' && hatch run db-init-tables ; fi && hatch run dev"
+cmd_lines_backend() {
+    echo "cd \"$PROJECT_ROOT/apps/backend-api\""
+    echo "echo '🔄 Starting Backend API on port 8000...'"
+    echo "hatch run install-libs"
+    echo "DB_URL=''"
+    echo "for f in .env.local .env; do"
+    echo "  if [ -f \"\$f\" ]; then"
+    echo "    DB_URL_LINE=\$(grep -E '^[[:space:]]*DATABASE_URL=' \"\$f\" | tail -n 1 || true)"
+    echo "    if [ -n \"\$DB_URL_LINE\" ]; then"
+    echo "      DB_URL=\${DB_URL_LINE#*=}"
+    echo "    fi"
+    echo "  fi"
+    echo "done"
+    echo "DB_URL=\${DB_URL#\\\"}"
+    echo "DB_URL=\${DB_URL%\\\"}"
+    echo "DB_URL=\$(printf \"%s\" \"\$DB_URL\" | tr -d '\\r')"
+    echo "if echo \"\$DB_URL\" | grep -qE '^postgresql(\\+|:)'; then"
+    echo "  echo '🗄️  Using PostgreSQL; running migrations...'"
+    echo "  hatch run migrate"
+    echo "else"
+    echo "  echo '🗄️  DATABASE_URL is not set to PostgreSQL; creating tables (SQLite-friendly) instead.'"
+    echo "  echo '💡 To use Postgres migrations, set DATABASE_URL in apps/backend-api/.env(.local) and restart.'"
+    echo "  hatch run db-init-tables"
+    echo "fi"
+    echo "hatch run dev"
 }
 
-_cmd_bff() {
-    printf "%s" "cd \"$PROJECT_ROOT/apps/bff-api\" && echo '🔄 Starting BFF API on port 8001...' && hatch run install-libs && hatch run dev"
+cmd_lines_bff() {
+    echo "cd \"$PROJECT_ROOT/apps/bff-api\""
+    echo "echo '🔄 Starting BFF API on port 8001...'"
+    echo "hatch run install-libs"
+    echo "hatch run dev"
 }
 
-_cmd_auth() {
-    printf "%s" "cd \"$PROJECT_ROOT/apps/auth-api\" && echo '🔄 Starting Auth API on port 8003...' && hatch run install-libs && hatch run dev"
+cmd_lines_auth() {
+    echo "cd \"$PROJECT_ROOT/apps/auth-api\""
+    echo "echo '🔄 Starting Auth API on port 8003...'"
+    echo "hatch run install-libs"
+    echo "hatch run dev"
 }
 
-_cmd_reco() {
-    printf "%s" "cd \"$PROJECT_ROOT/apps/recommendation-api\" && echo '🔄 Starting Recommendation API on port 8002...' && hatch run install-libs && hatch run dev"
+cmd_lines_reco() {
+    echo "cd \"$PROJECT_ROOT/apps/recommendation-api\""
+    echo "echo '🔄 Starting Recommendation API on port 8002...'"
+    echo "hatch run install-libs"
+    echo "hatch run dev"
 }
 
-_cmd_ml() {
-    printf "%s" "cd \"$PROJECT_ROOT/apps/ml-api\" && echo '🔄 Starting ML API on port 8004...' && hatch run install-libs && hatch run dev"
+cmd_lines_ml() {
+    echo "cd \"$PROJECT_ROOT/apps/ml-api\""
+    echo "echo '🔄 Starting ML API on port 8004...'"
+    echo "hatch run install-libs"
+    echo "hatch run dev"
 }
 
-_cmd_search() {
-    printf "%s" "cd \"$PROJECT_ROOT/apps/search-api\" && echo '🔄 Starting Search API on port 8005...' && hatch run install-libs && hatch run dev"
+cmd_lines_search() {
+    echo "cd \"$PROJECT_ROOT/apps/search-api\""
+    echo "echo '🔄 Starting Search API on port 8005...'"
+    echo "hatch run install-libs"
+    echo "hatch run dev"
 }
 
-_cmd_frontend() {
-    printf "%s" "cd \"$PROJECT_ROOT/apps/web-nextjs\" && echo '🔄 Starting Next.js Frontend on port 3000...' && if [ ! -d node_modules ]; then pnpm install ; fi && pnpm dev"
+cmd_lines_frontend() {
+    echo "cd \"$PROJECT_ROOT/apps/web-nextjs\""
+    echo "echo '🔄 Starting Next.js Frontend on port 3000...'"
+    echo "if [ ! -d node_modules ]; then pnpm install; fi"
+    echo "pnpm dev"
 }
 
-_cmd_data() {
-    printf "%s" "cd \"$PROJECT_ROOT/apps/data-importer\" && echo '📥 Data Importer ready. Use: hatch run cli sync movies --help'"
+cmd_lines_data() {
+    echo "cd \"$PROJECT_ROOT/apps/data-importer\""
+    echo "echo '📥 Data Importer ready. Use: hatch run cli sync movies --help'"
 }
 
-_cmd_monitoring() {
-    printf "%s" "cd \"$PROJECT_ROOT\" && echo '🔍 Service status checker ready' && echo 'Use ./infra/scripts/check-services.sh to check all service status'"
+cmd_lines_monitoring() {
+    echo "cd \"$PROJECT_ROOT\""
+    echo "echo '🔍 Service status checker ready'"
+    echo "echo 'Use ./infra/scripts/check-services.sh to check all service status'"
 }
 
-_window_cmd() {
+cmd_lines_for() {
     local key="$1"
-    local name="$2"
-    local cmd="$3"
+    local window_name="$2"
 
-    if is_enabled "$key"; then
-        printf "%s" "$cmd"
-    else
-        _disabled_cmd "$key" "$name"
+    if ! is_enabled "$key"; then
+        print_disabled_lines "$key" "$window_name"
+        return 0
     fi
+
+    case "$key" in
+        infra) cmd_lines_infra ;;
+        qdrant) cmd_lines_qdrant ;;
+        backend) cmd_lines_backend ;;
+        bff) cmd_lines_bff ;;
+        auth) cmd_lines_auth ;;
+        reco) cmd_lines_reco ;;
+        ml) cmd_lines_ml ;;
+        search) cmd_lines_search ;;
+        frontend) cmd_lines_frontend ;;
+        data) cmd_lines_data ;;
+        monitoring) cmd_lines_monitoring ;;
+        *)
+            echo "echo '❌ Unknown service key: ${key}'"
+            ;;
+    esac
 }
 
 _emit_spec() {
     local num="$1"
     local name="$2"
-    local cmd="$3"
-    printf "%s|%s|%s\n" "$num" "$name" "$cmd"
+    local key="$3"
+    printf "%s|%s|%s\n" "$num" "$name" "$key"
 }
 
 get_window_specs() {
-    _emit_spec 0 "infra" "$(_window_cmd infra infra "$(_cmd_infra)")"
-    _emit_spec 1 "qdrant" "$(_window_cmd qdrant qdrant "$(_cmd_qdrant)")"
-    _emit_spec 2 "backend" "$(_window_cmd backend backend "$(_cmd_backend)")"
-    _emit_spec 3 "bff" "$(_window_cmd bff bff "$(_cmd_bff)")"
-    _emit_spec 4 "auth" "$(_window_cmd auth auth "$(_cmd_auth)")"
-    _emit_spec 5 "reco" "$(_window_cmd reco reco "$(_cmd_reco)")"
-    _emit_spec 6 "ml" "$(_window_cmd ml ml "$(_cmd_ml)")"
-    _emit_spec 7 "search" "$(_window_cmd search search "$(_cmd_search)")"
-    _emit_spec 8 "frontend" "$(_window_cmd frontend frontend "$(_cmd_frontend)")"
-    _emit_spec 9 "data" "$(_window_cmd data data "$(_cmd_data)")"
-    _emit_spec 10 "monitoring" "$(_window_cmd monitoring monitoring "$(_cmd_monitoring)")"
+    _emit_spec 0 "infra" "infra"
+    _emit_spec 1 "qdrant" "qdrant"
+    _emit_spec 2 "backend-api" "backend"
+    _emit_spec 3 "auth-api" "auth"
+    _emit_spec 4 "bff-api" "bff"
+    _emit_spec 5 "search-api" "search"
+    _emit_spec 6 "reco-api" "reco"
+    _emit_spec 7 "ml-api" "ml"
+    _emit_spec 8 "web" "frontend"
+    _emit_spec 9 "data" "data"
+    _emit_spec 10 "monitor" "monitoring"
 }
 
 get_required_ports() {
@@ -180,8 +272,8 @@ cleanup_existing_containers() {
         return 0
     fi
     echo -e "${YELLOW}🧹 Stopping any existing NextWatch containers...${NC}"
-    docker stop nextwatch-qdrant 2>/dev/null || true
-    docker rm nextwatch-qdrant 2>/dev/null || true
+    docker stop nextwatch-qdrant >/dev/null 2>&1 || true
+    docker rm nextwatch-qdrant >/dev/null 2>&1 || true
 }
 
 check_docker_daemon() {
@@ -252,21 +344,28 @@ tmux_list_windows() {
 send_window_cmd() {
     local window_num="$1"
     local window_name="$2"
-    local window_cmd="$3"
+    local service_key="$3"
 
-    if [ -z "$window_cmd" ]; then
-        return 0
-    fi
-
+    # Ensure tmux window shells have access to PROJECT_ROOT.
     tmux_safe \
-        "send command to window ${window_num} (${window_name})" \
-        send-keys -t "$SESSION:$window_num" "PROJECT_ROOT=\"$PROJECT_ROOT\"; $window_cmd" C-m
+        "export PROJECT_ROOT in window ${window_num} (${window_name})" \
+        send-keys -t "$SESSION:$window_num" "PROJECT_ROOT=\"$PROJECT_ROOT\"; export PROJECT_ROOT" C-m
+
+    cmd_lines_for "$service_key" "$window_name" | while IFS= read -r line; do
+        if [ -z "$line" ]; then
+            continue
+        fi
+
+        tmux_safe \
+            "send line to window ${window_num} (${window_name})" \
+            send-keys -t "$SESSION:$window_num" "$line" C-m
+    done
 }
 
 add_window_if_missing() {
     local window_num=$1
     local window_name=$2
-    local window_cmd=$3
+    local service_key=$3
 
     if window_exists "$window_num"; then
         echo -e "${GREEN}✅ Window ${window_num} (${window_name}) exists${NC}"
@@ -275,7 +374,7 @@ add_window_if_missing() {
 
     echo -e "${YELLOW}➕ Adding window ${window_num} (${window_name})${NC}"
     tmux_safe "create window ${window_num} (${window_name})" new-window -t "$SESSION:$window_num" -n "$window_name"
-    send_window_cmd "$window_num" "$window_name" "$window_cmd"
+    send_window_cmd "$window_num" "$window_name" "$service_key"
     return 1
 }
 
@@ -304,13 +403,13 @@ verify_expected_windows() {
 }
 
 create_windows_from_specs() {
-    while IFS='|' read -r window_num window_name window_cmd; do
+    while IFS='|' read -r window_num window_name service_key; do
         if [ "$window_num" = "0" ]; then
             tmux_safe "rename window 0" rename-window -t "$SESSION:0" "$window_name"
         else
             tmux_safe "create window ${window_num} (${window_name})" new-window -t "$SESSION:$window_num" -n "$window_name"
         fi
-        send_window_cmd "$window_num" "$window_name" "$window_cmd"
+        send_window_cmd "$window_num" "$window_name" "$service_key"
     done < <(get_window_specs)
 }
 
@@ -323,8 +422,8 @@ fix_missing_windows() {
         check_docker_daemon
     fi
 
-    while IFS='|' read -r window_num window_name window_cmd; do
-        add_window_if_missing "$window_num" "$window_name" "$window_cmd" || ((windows_added++))
+    while IFS='|' read -r window_num window_name service_key; do
+        add_window_if_missing "$window_num" "$window_name" "$service_key" || ((windows_added++))
     done < <(get_window_specs)
 
     if [ $windows_added -eq 0 ]; then
@@ -466,15 +565,15 @@ echo
 echo -e "${PURPLE}🔧 Tmux Windows:${NC}"
 echo -e "  0. infra      - Redis (Homebrew) infrastructure"
 echo -e "  1. qdrant     - Qdrant vector database (Docker) with logs"
-echo -e "  2. backend    - Backend API (port 8000)"
-echo -e "  3. bff        - BFF API (port 8001)"
-echo -e "  4. auth       - Auth API (port 8003)"
-echo -e "  5. reco       - Recommendation API (port 8002)"
-echo -e "  6. ml         - ML API (port 8004)"
-echo -e "  7. search     - Search API (port 8005)"
-echo -e "  8. frontend   - Next.js Frontend (port 3000)"
+echo -e "  2. backend-api - Backend API (port 8000)"
+echo -e "  3. auth-api    - Auth API (port 8003)"
+echo -e "  4. bff-api     - BFF API (port 8001)"
+echo -e "  5. search-api  - Search API (port 8005)"
+echo -e "  6. reco-api    - Recommendation API (port 8002)"
+echo -e "  7. ml-api      - ML API (port 8004)"
+echo -e "  8. web         - Next.js Frontend (port 3000)"
 echo -e "  9. data       - Data Importer tools"
-echo -e "  10. monitoring - Service status & health checks"
+echo -e "  10. monitor    - Service status & health checks"
 echo
 echo -e "${GREEN}✅ Attaching to tmux session...${NC}"
 

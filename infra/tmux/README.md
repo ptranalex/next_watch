@@ -15,15 +15,15 @@ The script creates an 11-window tmux session called "nextwatch" with:
 
 0. **infra** - Redis (Homebrew service) on port 6379
 1. **qdrant** - Qdrant vector database (Docker) on port 6333 with live logs
-2. **backend** - Backend API on port 8000
-3. **bff** - BFF API on port 8001
-4. **auth** - Auth API on port 8003
-5. **reco** - Recommendation API on port 8002
-6. **ml** - ML API on port 8004
-7. **search** - Search API on port 8005
-8. **frontend** - Next.js frontend on port 3000
+2. **backend-api** - Backend API on port 8000
+3. **auth-api** - Auth API on port 8003
+4. **bff-api** - BFF API on port 8001
+5. **search-api** - Search API on port 8005
+6. **reco-api** - Recommendation API on port 8002
+7. **ml-api** - ML API on port 8004
+8. **web** - Next.js frontend on port 3000
 9. **data** - Data importer utilities
-10. **monitoring** - Service health checks and monitoring
+10. **monitor** - Service health checks and monitoring
 
 ## Smart Session Management
 
@@ -40,6 +40,20 @@ This means you can safely run the script multiple times without losing your work
 By default, the script starts all windows `0-10`. You can disable individual services by setting `NEXTWATCH_ENABLE_*` environment variables to `0`.
 
 - Disabled windows are still created at their normal indices (to preserve navigation), but they will print a “disabled” message instead of starting the service.
+
+Supported keys (set to `0` to disable):
+
+- `NEXTWATCH_ENABLE_INFRA`
+- `NEXTWATCH_ENABLE_QDRANT`
+- `NEXTWATCH_ENABLE_BACKEND`
+- `NEXTWATCH_ENABLE_BFF`
+- `NEXTWATCH_ENABLE_AUTH`
+- `NEXTWATCH_ENABLE_RECO`
+- `NEXTWATCH_ENABLE_ML`
+- `NEXTWATCH_ENABLE_SEARCH`
+- `NEXTWATCH_ENABLE_FRONTEND`
+- `NEXTWATCH_ENABLE_DATA`
+- `NEXTWATCH_ENABLE_MONITORING`
 
 Examples:
 
@@ -112,7 +126,7 @@ createdb nextwatch_dev
 - `Ctrl+B` then `0` - infra (Redis)
 - `Ctrl+B` then `1` - qdrant (Vector DB logs)
 - `Ctrl+B` then `2` - backend API
-- `Ctrl+B` then `8` - frontend
+- `Ctrl+B` then `8` - web (frontend)
 - `Ctrl+B` then `w` then arrow keys - Browse all windows
 
 ### Reconnect to Session
@@ -129,7 +143,7 @@ tmux kill-session -t nextwatch
 
 ## Health Monitoring
 
-In the monitoring window (window 10), run:
+In the monitor window (window 10), run:
 
 ```bash
 ./infra/scripts/check-services.sh
